@@ -1,0 +1,13 @@
+---
+description: Documentation and ADR rules
+globs:
+  - "docs/**/*.md"
+  - "AGENTS.md"
+alwaysApply: false
+---
+
+- Architecture documents describe the current architecture.
+- ADRs preserve why significant decisions were made.
+- Sprint history must not be rewritten.
+- Do not duplicate the same source of truth across documents.
+- Update documentation when public contracts or architectural behaviour change.

@@ -1,0 +1,21 @@
+---
+description: Core architecture and implementation rules for the Trading Research Framework
+alwaysApply: true
+---
+
+Before modifying code:
+
+1. Read the root `AGENTS.md`.
+2. Read the relevant architecture and module documentation.
+3. Inspect existing contracts and tests.
+4. Preserve the `src/` and `user_data/` boundary.
+5. Do not introduce speculative abstractions or infrastructure.
+6. Keep changes within the requested task scope.
+7. Add tests for every behavioural change.
+8. Run:
+   - `uv run ruff check .`
+   - `uv run ruff format --check .`
+   - `uv run mypy`
+   - `uv run pytest`
+9. Report failed checks instead of hiding or disabling them.
+10. Do not place credentials, datasets, research results or proprietary strategies in the repository.

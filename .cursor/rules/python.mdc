@@ -1,0 +1,19 @@
+---
+description: Python coding rules
+globs:
+  - "src/**/*.py"
+  - "tests/**/*.py"
+alwaysApply: false
+---
+
+- Target Python 3.12.
+- Use complete type annotations.
+- Prefer immutable domain value objects.
+- Avoid untyped dictionaries for domain data.
+- Use explicit exceptions.
+- Never use `except Exception: pass`.
+- Do not use naive datetimes.
+- Keep domain code independent from infrastructure.
+- Prefer composition over inheritance.
+- Do not add dependencies without explaining the demonstrated need.
+- Tests must follow Arrange, Act, Assert where practical.
