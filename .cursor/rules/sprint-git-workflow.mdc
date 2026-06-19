@@ -1,0 +1,131 @@
+---
+description: Sprint branch model, task-scoped PRs, and logical commit boundaries
+alwaysApply: true
+---
+
+# Sprint Git Workflow
+
+## Branch Model
+
+Each sprint uses one integration branch. Each sprint task uses one dedicated branch and one PR into that sprint branch.
+
+```text
+main
+  └── sprint/market-data-mvp
+        └── instrument-model              # task branch → PR → sprint branch
+        └── market-bar-model              # next task
+```
+
+Rules:
+
+1. Do not implement multiple sprint tasks on one branch unless the user explicitly asks.
+2. Do not merge sprint work directly to `main` task-by-task; merge the sprint branch when the sprint is complete (unless the user directs otherwise).
+3. Before starting a task, confirm the active sprint branch and create a task branch from it.
+
+## Naming
+
+Name branches, PRs and commits by **what the change does**, not by sprint task IDs.
+
+The name alone should explain the responsibility. Nobody should need the roadmap or sprint file to understand a branch, PR or commit.
+
+Do **not** use:
+
+- sprint task numbers (`S002-T004`, `T004`, `task/S002-T004`),
+- generic placeholders (`fix`, `update`, `changes`, `wave-1`).
+
+Do use:
+
+- short, concrete capability or change names,
+- the same semantic intent across branch, PR title and commit subject where practical.
+
+Examples:
+
+| Artifact | Bad | Good |
+|----------|-----|------|
+| Branch | `task/S002-T004-instrument` | `instrument-model` |
+| PR title | `S002-T004` | `Add Instrument domain model` |
+| Commit | `complete T004` | `feat: add Instrument domain model` |
+| Sprint branch | `sprint/002-market-data-mvp` | `sprint/market-data-mvp` |
+
+Task IDs may appear only in PR description, sprint docs or review notes — not in branch, PR or commit names.
+
+## Pull Requests
+
+One task = one PR into the sprint branch.
+
+PR title and description should state the capability or fix in plain language.
+
+A PR should contain:
+
+- implementation for that task only,
+- tests required by that task,
+- documentation updates caused by that task.
+
+Do not bundle Wave 1, Wave 2, or multiple unrelated tasks into one PR.
+
+## Commits
+
+Inside a task branch, make only **logical** commits.
+
+Commit subjects should describe the change, not the planning artifact:
+
+- `feat: add Instrument domain model`
+- `test: cover bar timestamp normalization`
+
+Not:
+
+- `S002-T003 bar timestamps`
+- `finish task 4`
+
+A commit should represent one coherent change that would make sense in review on its own, for example:
+
+- domain model + its unit tests,
+- application use case + its tests,
+- ADR or planning update tied to the same decision.
+
+Do **not** artificially split work by:
+
+- one commit per file,
+- one commit per mechanical step (`ruff`, `mypy`, `rename`, `fix typo`) when they belong to the same logical change,
+- separating tests from the behaviour they cover in the same task.
+
+Do **not** combine unrelated logical changes into one large commit, such as:
+
+- multiple sprint tasks,
+- code + unrelated docs refresh,
+- foundation work + next-wave features.
+
+## Default Execution Shape
+
+When the user asks to implement sprint work:
+
+```text
+1. checkout or create sprint integration branch
+2. for each requested task:
+   a. create descriptively named task branch from sprint branch
+   b. implement only that task
+   c. make 1–3 logical commits with descriptive messages
+   d. open PR with descriptive title to sprint branch
+3. stop after the requested task(s); do not continue to the next task unless asked
+```
+
+## Examples
+
+### Good
+
+- Branch `instrument-model`, PR `Add Instrument domain model`, commit `feat: add Instrument domain model`.
+- Branch `market-bar-model`, separate PR for `MarketBar`.
+
+### Bad
+
+- Branch `task/S002-T004-instrument` or PR titled `S002-T004`.
+- Commit `complete wave 1`.
+- One branch with multiple capabilities and 50 files.
+- Five commits: `add file A`, `add file B`, `add tests`, `run ruff`, `update docs` for a single small task.
+- One PR covering an entire wave or sprint unless explicitly requested.
+
+## When the User Asks to Commit
+
+Commit only the work for the current task branch.
+
+If the working tree contains changes from multiple tasks, stop and split them before committing.

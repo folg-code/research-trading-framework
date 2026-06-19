@@ -57,6 +57,15 @@ Report failed checks. Do not hide or disable them.
 - ideas: `docs/planning/IDEA_INBOX.md`
 - technical debt: `docs/planning/TECHNICAL_DEBT.md`
 
+## Sprint Git Workflow
+
+- one integration branch per sprint, named by capability (for example `sprint/market-data-mvp`)
+- one descriptively named branch and one PR per sprint task into the sprint branch
+- branch, PR and commit names describe the work — not sprint task IDs such as `S002-T004`
+- within a task: only logical commits; do not batch multiple tasks or split one task artificially by file
+
+See `.cursor/rules/sprint-git-workflow.mdc`.
+
 ## Boundaries
 
 - do not place credentials, datasets, research results or proprietary strategies in the repository,
