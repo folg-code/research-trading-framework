@@ -122,12 +122,12 @@ Prefer the smallest dependency set that satisfies the Parquet vertical slice.
 
 | ID | Task | Status | Depends On |
 |----|------|--------|------------|
-| S002-T001 | MVP numeric types for OHLCV (PRB-010) | TODO | — |
-| S002-T002 | MVP dataset identity algorithm (PRB-001) | TODO | — |
-| S002-T003 | Bar timestamp convention (PRB-008) | TODO | — |
+| S002-T001 | MVP numeric types for OHLCV (PRB-010) | DONE | — |
+| S002-T002 | MVP dataset identity algorithm (PRB-001) | DONE | — |
+| S002-T003 | Bar timestamp convention (PRB-008) | DONE | — |
 | S002-T004 | `Instrument` domain model | TODO | S002-T001 |
 | S002-T005 | `MarketBar` domain model | TODO | S002-T001, S002-T003 |
-| S002-T006 | `DatasetId` and `DatasetRef` | TODO | S002-T002 |
+| S002-T006 | `DatasetId` and `DatasetRef` | DONE | S002-T002 |
 | S002-T007 | `DatasetMetadata` model | TODO | S002-T006 |
 | S002-T008 | `DatasetLifecycle` state model | TODO | S002-T006 |
 | S002-T009 | External file inspection contract | TODO | — |
@@ -155,7 +155,7 @@ Prefer the smallest dependency set that satisfies the Parquet vertical slice.
 
 ### S002-T001 — MVP numeric types for OHLCV (PRB-010)
 
-**Status:** TODO  
+**Status:** DONE  
 **Category:** Architecture  
 **Domain:** Core / Market
 
@@ -200,7 +200,7 @@ Document the decision in task output and reference from `MarketBar`.
 
 ### S002-T002 — MVP dataset identity algorithm (PRB-001)
 
-**Status:** TODO  
+**Status:** DONE  
 **Category:** Architecture  
 **Domain:** Market
 
@@ -244,7 +244,7 @@ Implement version allocation in registry.
 
 ### S002-T003 — Bar timestamp convention (PRB-008)
 
-**Status:** TODO  
+**Status:** DONE  
 **Category:** Architecture  
 **Domain:** Time / Market
 
@@ -335,7 +335,7 @@ available_at UTC-aware
 
 ### S002-T006 — `DatasetId` and `DatasetRef`
 
-**Status:** TODO  
+**Status:** DONE  
 **Category:** Feature  
 **Domain:** Market  
 **Depends On:** S002-T002

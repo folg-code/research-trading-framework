@@ -106,7 +106,7 @@ Last Updated:
 ## PRB-001 — Dataset Identity Is Conceptually Defined but Not Yet Algorithmically Specified
 
 ```text
-Status: DECISION_REQUIRED
+Status: MITIGATED
 Severity: HIGH
 Domain: Market
 Owner: Unassigned
@@ -125,7 +125,7 @@ The architecture defines dataset identity, versioning, lineage and lifecycle, bu
 - partition replacement,
 - semantic versus physical change.
 
-Sprint 002 task S002-T002 will specify and implement the MVP algorithm.
+**MVP resolution (Sprint 002 Wave 1):** `DatasetId` canonical key, monotonic integer versions per identity, `DatasetRef(dataset_id, version)`, and `DatasetVersionPolicy` material-change rules implemented in `src/trading_framework/market/datasets/`. Full partition and content-addressed semantics remain open.
 
 ### Evidence
 
@@ -419,7 +419,7 @@ Incorrect calendars can produce false data gaps and temporal errors.
 ## PRB-008 — Bar Timestamp Convention Must Be Explicit
 
 ```text
-Status: OPEN
+Status: MITIGATED
 Severity: HIGH
 Domain: Time / Market
 Owner: Unassigned
@@ -433,7 +433,7 @@ Providers may timestamp bars by interval open, close or another convention.
 
 The framework needs one canonical convention or explicit metadata.
 
-Sprint 002 task S002-T003 will adopt the MVP interval-start convention.
+**MVP resolution (Sprint 002 Wave 1):** `observed_at` = interval start (UTC), `available_at` = interval end derived from `timeframe`. Implemented in `src/trading_framework/market/temporal/bar_interval.py`.
 
 ### Impact
 
@@ -495,7 +495,7 @@ Resolve only when a real intrabar use case is implemented.
 ## PRB-010 — Initial Numeric Types Are Not Fixed
 
 ```text
-Status: DECISION_REQUIRED
+Status: MITIGATED
 Severity: MEDIUM
 Domain: Core / Market / Execution
 Owner: Unassigned
@@ -507,7 +507,7 @@ Last Updated: 2026-06-19
 
 Price, volume, quantity, PnL and money types are conceptually explicit but concrete numeric representations are not selected.
 
-Sprint 002 task S002-T001 will define MVP types for OHLCV (`Decimal` price, `int` volume).
+**MVP resolution (Sprint 002 Wave 1):** `Price` uses `Decimal`, `Volume` uses non-negative `int` in `src/trading_framework/core/types/`. Money, quantity and PnL remain deferred.
 
 ### Impact
 

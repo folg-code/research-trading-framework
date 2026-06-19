@@ -29,9 +29,9 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 Status Date: 2026-06-19
 Current Phase: Phase 2 — Market Data MVP
 Current Milestone: Sprint 002 — Market Data MVP
-Implementation Status: Sprint planned, not started
+Implementation Status: Sprint 002 Wave 1 complete
 Overall Status: IN_PROGRESS
-Active Sprint: SPRINT_002 (PLANNED)
+Active Sprint: SPRINT_002 (IN_PROGRESS)
 Last Completed Sprint: SPRINT_001 (COMPLETED)
 ```
 
@@ -105,13 +105,17 @@ docs/planning/sprints/SPRINT_002.md
 
 ### Sprint 002 — Market Data MVP
 
-**Status:** PLANNED  
+**Status:** IN_PROGRESS  
 **Plan:** `docs/planning/sprints/SPRINT_002.md`  
-**Tasks:** 26 (0 started)
+**Tasks:** 4 / 26 complete (Wave 1: T001–T003, T006)
 
-First implementation wave resolves PRB-001, PRB-008 and PRB-010, then delivers domain models, CSV import, Parquet storage, lifecycle workflows and integration tests.
+Completed wave:
 
-No implementation task is marked IN_PROGRESS yet.
+- MVP numeric types (`Price`, `Volume`),
+- dataset identity and versioning (`DatasetId`, `DatasetRef`, version policy),
+- bar timestamp convention (`observed_at` / `available_at`).
+
+Next wave: domain models (`Instrument`, `MarketBar`, metadata, lifecycle).
 
 ---
 
@@ -179,7 +183,7 @@ External OHLCV File → Inspect → Normalize → Validate → Store → Registe
 | Sprint | Goal | Status | Progress |
 |--------|------|--------|----------|
 | 001 | Repository foundation | COMPLETED | 22 / 22 tasks |
-| 002 | Market Data MVP | PLANNED | 0 / 26 tasks |
+| 002 | Market Data MVP | IN_PROGRESS | 4 / 26 tasks |
 
 ---
 
