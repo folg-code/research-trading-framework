@@ -125,11 +125,11 @@ Prefer the smallest dependency set that satisfies the Parquet vertical slice.
 | S002-T001 | MVP numeric types for OHLCV (PRB-010) | DONE | — |
 | S002-T002 | MVP dataset identity algorithm (PRB-001) | DONE | — |
 | S002-T003 | Bar timestamp convention (PRB-008) | DONE | — |
-| S002-T004 | `Instrument` domain model | TODO | S002-T001 |
-| S002-T005 | `MarketBar` domain model | TODO | S002-T001, S002-T003 |
+| S002-T004 | `Instrument` domain model | DONE | S002-T001 |
+| S002-T005 | `MarketBar` domain model | DONE | S002-T001, S002-T003 |
 | S002-T006 | `DatasetId` and `DatasetRef` | DONE | S002-T002 |
-| S002-T007 | `DatasetMetadata` model | TODO | S002-T006 |
-| S002-T008 | `DatasetLifecycle` state model | TODO | S002-T006 |
+| S002-T007 | `DatasetMetadata` model | DONE | S002-T006 |
+| S002-T008 | `DatasetLifecycle` state model | DONE | S002-T006 |
 | S002-T009 | External file inspection contract | TODO | — |
 | S002-T010 | CSV file inspector (infrastructure) | TODO | S002-T009 |
 | S002-T011 | OHLCV normalization contract | TODO | S002-T003, S002-T005 |
