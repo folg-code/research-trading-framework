@@ -708,16 +708,19 @@ AI agents and contributors may follow conflicting instructions.
 ## PRB-016 — ADR History Has Not Yet Been Materialized
 
 ```text
-Status: PLANNED
+Status: MITIGATED
 Severity: MEDIUM
 Domain: Governance / Architecture
 Owner: Unassigned
 Discovered: 2026-06-19
+Last Updated: 2026-06-19
 ```
 
 ### Description
 
 Accepted decisions are recorded in consolidated architecture documents, but individual ADR files do not yet exist.
+
+ADR-0001 through ADR-0003 were materialized in Sprint 001. ADR-0004 through ADR-0010 remain planned.
 
 ### Impact
 

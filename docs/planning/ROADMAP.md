@@ -119,6 +119,8 @@ docs/adr/
 - GitHub Issues and Projects can become the operational source of truth,
 - architectural decisions are separated from tasks and ideas.
 
+**Progress (2026-06-19):** planning documents and Sprint 001 are in place. Remaining items: GitHub Project configuration, issue templates, and individual ADR files (started via `docs/adr/README.md`).
+
 ## Dependencies
 
 None.
@@ -187,6 +189,14 @@ CI validation
 ## Dependencies
 
 - Phase 0 planning conventions.
+
+## Active Sprint
+
+Sprint 001 implements this phase:
+
+```text
+docs/planning/sprints/SPRINT_001.md
+```
 
 ## Main Risks
 

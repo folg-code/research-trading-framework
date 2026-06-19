@@ -1,2 +1,3 @@
-def hello() -> str:
-    return "Hello from trading-framework!"
+"""Trading Research Framework."""
+
+__version__ = "0.1.0"

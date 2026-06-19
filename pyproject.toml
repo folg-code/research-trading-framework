@@ -1,13 +1,15 @@
 [project]
 name = "trading-framework"
 version = "0.1.0"
-description = "Add your description here"
+description = "Modular quantitative trading research framework"
 readme = "README.md"
 authors = [
     { name = "filip", email = "filip1folga@gmail.com" }
 ]
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "pydantic>=2.12.5",
+]
 
 [build-system]
 requires = ["uv_build>=0.11.14,<0.12.0"]
