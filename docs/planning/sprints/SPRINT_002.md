@@ -280,7 +280,7 @@ Record convention in dataset metadata where relevant.
 
 ### S002-T004 — `Instrument` domain model
 
-**Status:** TODO  
+**Status:** DONE  
 **Category:** Feature  
 **Domain:** Market  
 **Depends On:** S002-T001
@@ -307,7 +307,7 @@ metadata (optional, bounded)
 
 ### S002-T005 — `MarketBar` domain model
 
-**Status:** TODO  
+**Status:** DONE  
 **Category:** Feature  
 **Domain:** Market  
 **Depends On:** S002-T001, S002-T003
@@ -357,7 +357,7 @@ Implement in `src/trading_framework/market/datasets/identity.py`:
 
 ### S002-T007 — `DatasetMetadata` model
 
-**Status:** TODO  
+**Status:** DONE  
 **Category:** Feature  
 **Domain:** Market  
 **Depends On:** S002-T006
@@ -396,7 +396,7 @@ lineage (minimal)
 
 ### S002-T008 — `DatasetLifecycle` state model
 
-**Status:** TODO  
+**Status:** DONE  
 **Category:** Feature  
 **Domain:** Market  
 **Depends On:** S002-T006

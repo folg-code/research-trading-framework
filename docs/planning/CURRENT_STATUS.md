@@ -107,15 +107,14 @@ docs/planning/sprints/SPRINT_002.md
 
 **Status:** IN_PROGRESS  
 **Plan:** `docs/planning/sprints/SPRINT_002.md`  
-**Tasks:** 4 / 26 complete (Wave 1: T001–T003, T006)
+**Tasks:** 8 / 26 complete (Wave 1 + Wave 2)
 
-Completed wave:
+Completed waves:
 
-- MVP numeric types (`Price`, `Volume`),
-- dataset identity and versioning (`DatasetId`, `DatasetRef`, version policy),
-- bar timestamp convention (`observed_at` / `available_at`).
+- Wave 1: numeric types, dataset identity, bar timestamp convention
+- Wave 2: `Instrument`, `MarketBar`, `DatasetMetadata`, `DatasetLifecycle`
 
-Next wave: domain models (`Instrument`, `MarketBar`, metadata, lifecycle).
+Next wave: contracts and infrastructure (file inspection, normalization, validation).
 
 ---
 
@@ -183,7 +182,7 @@ External OHLCV File → Inspect → Normalize → Validate → Store → Registe
 | Sprint | Goal | Status | Progress |
 |--------|------|--------|----------|
 | 001 | Repository foundation | COMPLETED | 22 / 22 tasks |
-| 002 | Market Data MVP | IN_PROGRESS | 4 / 26 tasks |
+| 002 | Market Data MVP | IN_PROGRESS | 8 / 26 tasks |
 
 ---
 
