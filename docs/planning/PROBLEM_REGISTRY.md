@@ -111,6 +111,7 @@ Severity: HIGH
 Domain: Market
 Owner: Unassigned
 Discovered: 2026-06-19
+Last Updated: 2026-06-19
 ```
 
 ### Description
@@ -123,6 +124,8 @@ The architecture defines dataset identity, versioning, lineage and lifecycle, bu
 - checksum scope,
 - partition replacement,
 - semantic versus physical change.
+
+Sprint 002 task S002-T002 will specify and implement the MVP algorithm.
 
 ### Evidence
 
@@ -421,6 +424,7 @@ Severity: HIGH
 Domain: Time / Market
 Owner: Unassigned
 Discovered: 2026-06-19
+Last Updated: 2026-06-19
 ```
 
 ### Description
@@ -428,6 +432,8 @@ Discovered: 2026-06-19
 Providers may timestamp bars by interval open, close or another convention.
 
 The framework needs one canonical convention or explicit metadata.
+
+Sprint 002 task S002-T003 will adopt the MVP interval-start convention.
 
 ### Impact
 
@@ -494,11 +500,14 @@ Severity: MEDIUM
 Domain: Core / Market / Execution
 Owner: Unassigned
 Discovered: 2026-06-19
+Last Updated: 2026-06-19
 ```
 
 ### Description
 
 Price, volume, quantity, PnL and money types are conceptually explicit but concrete numeric representations are not selected.
+
+Sprint 002 task S002-T001 will define MVP types for OHLCV (`Decimal` price, `int` volume).
 
 ### Impact
 

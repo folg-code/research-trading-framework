@@ -27,10 +27,11 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 
 ```text
 Status Date: 2026-06-19
-Current Phase: Phase 1 — Repository Foundation (COMPLETE)
-Current Milestone: Sprint 002 planning — Market Data MVP
-Implementation Status: Foundation implemented
-Overall Status: READY_FOR_NEXT_PHASE
+Current Phase: Phase 2 — Market Data MVP
+Current Milestone: Sprint 002 — Market Data MVP
+Implementation Status: Sprint planned, not started
+Overall Status: IN_PROGRESS
+Active Sprint: SPRINT_002 (PLANNED)
 Last Completed Sprint: SPRINT_001 (COMPLETED)
 ```
 
@@ -38,10 +39,11 @@ Last Completed Sprint: SPRINT_001 (COMPLETED)
 
 ## 3. Current Objective
 
-Plan and begin **Phase 2 — Market Data MVP**.
+Execute **Sprint 002 — Market Data MVP**.
 
-Sprint 001 delivered the repository foundation. The next capability is the first market data vertical slice.
+Deliver the first reproducible OHLCV import flow from external CSV through publication to historical query.
 
+Sprint 002 plan: `docs/planning/sprints/SPRINT_002.md`  
 Sprint 001 record: `docs/planning/sprints/SPRINT_001.md`
 
 ---
@@ -94,22 +96,22 @@ docs/adr/ADR-0001-modular-monolith.md
 docs/adr/ADR-0002-separate-src-and-user-data.md
 docs/adr/ADR-0003-utc-internal-time.md
 docs/planning/sprints/SPRINT_001.md
+docs/planning/sprints/SPRINT_002.md
 ```
 
 ---
 
 ## 6. Work in Progress
 
-### Sprint 002 — Market Data MVP (not yet defined)
+### Sprint 002 — Market Data MVP
 
-Next sprint should target the first market data vertical slice:
+**Status:** PLANNED  
+**Plan:** `docs/planning/sprints/SPRINT_002.md`  
+**Tasks:** 26 (0 started)
 
-```text
-Instrument, Timeframe (domain usage), MarketBar, DatasetId, DatasetRef,
-CSV import, UTC normalization, validation, Parquet storage.
-```
+First implementation wave resolves PRB-001, PRB-008 and PRB-010, then delivers domain models, CSV import, Parquet storage, lifecycle workflows and integration tests.
 
-No active implementation sprint is open.
+No implementation task is marked IN_PROGRESS yet.
 
 ---
 
@@ -177,7 +179,7 @@ External OHLCV File → Inspect → Normalize → Validate → Store → Registe
 | Sprint | Goal | Status | Progress |
 |--------|------|--------|----------|
 | 001 | Repository foundation | COMPLETED | 22 / 22 tasks |
-| 002 | Market Data MVP | PLANNED | — |
+| 002 | Market Data MVP | PLANNED | 0 / 26 tasks |
 
 ---
 

@@ -25,8 +25,8 @@ SUPERSEDED
 | ADR-0004 | Independent Research and Execution Workflows | PLANNED | TBD |
 | ADR-0005 | Market Analysis Domain and Taxonomy | PLANNED | TBD |
 | ADR-0006 | Declarative Market and Signal Models | PLANNED | TBD |
-| ADR-0007 | Dataset Lifecycle and Publication | PLANNED | TBD |
-| ADR-0008 | Parquet Historical Storage | PLANNED | TBD |
+| ADR-0007 | Dataset Lifecycle and Publication | PLANNED | Sprint 002 |
+| ADR-0008 | Parquet Historical Storage | PLANNED | Sprint 002 |
 | ADR-0009 | Batch Backtest vs Replay Execution | PLANNED | TBD |
 | ADR-0010 | Working Component and Model Fingerprints | PLANNED | TBD |
 

@@ -281,6 +281,14 @@ Query Through Repository
 - core time models,
 - configuration loading.
 
+## Active Sprint
+
+Sprint 002 implements this phase:
+
+```text
+docs/planning/sprints/SPRINT_002.md
+```
+
 ## Main Risks
 
 - ambiguous dataset identity,
