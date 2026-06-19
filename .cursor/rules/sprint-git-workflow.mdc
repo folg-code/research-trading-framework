@@ -20,7 +20,40 @@ Rules:
 
 1. Do not implement multiple sprint tasks on one branch unless the user explicitly asks.
 2. Do not merge sprint work directly to `main` task-by-task; merge the sprint branch when the sprint is complete (unless the user directs otherwise).
-3. Before starting a task, confirm the active sprint branch and create a task branch from it.
+3. Before starting a task, checkout the sprint integration branch and create a descriptively named task branch from it.
+
+## Mandatory PR Pipeline
+
+From Wave 3 onward, every task must follow the full review path.
+
+Do **not** merge task branches locally into the sprint branch.
+
+```text
+task branch
+  → logical commit(s)
+  → push
+  → PR to sprint/<sprint-slug>
+  → review / CI
+  → squash merge          # performed by human or after explicit approval
+  → delete task branch
+```
+
+### Agent Stop Point
+
+When implementing sprint work, the agent may:
+
+- create the task branch,
+- implement the task,
+- run local quality checks,
+- commit,
+- push the task branch,
+- open the PR against the sprint branch.
+
+The agent must **stop before merge**.
+
+Do not run `git merge` from a task branch into the sprint branch unless the user explicitly asks for a local merge exception.
+
+After opening the PR, report the PR URL and wait for review, CI and squash merge.
 
 ## Naming
 
@@ -53,6 +86,10 @@ Task IDs may appear only in PR description, sprint docs or review notes — not 
 
 One task = one PR into the sprint branch.
 
+- base branch: `sprint/<sprint-slug>`
+- compare branch: descriptively named task branch
+- merge method: **squash merge** after review and green CI
+
 PR title and description should state the capability or fix in plain language.
 
 A PR should contain:
@@ -61,7 +98,7 @@ A PR should contain:
 - tests required by that task,
 - documentation updates caused by that task.
 
-Do not bundle Wave 1, Wave 2, or multiple unrelated tasks into one PR.
+Do not bundle multiple unrelated tasks into one PR.
 
 ## Commits
 
@@ -77,35 +114,25 @@ Not:
 - `S002-T003 bar timestamps`
 - `finish task 4`
 
-A commit should represent one coherent change that would make sense in review on its own, for example:
+A commit should represent one coherent change that would make sense in review on its own.
 
-- domain model + its unit tests,
-- application use case + its tests,
-- ADR or planning update tied to the same decision.
+Do **not** artificially split work by file or mechanical step when it belongs to one logical change.
 
-Do **not** artificially split work by:
-
-- one commit per file,
-- one commit per mechanical step (`ruff`, `mypy`, `rename`, `fix typo`) when they belong to the same logical change,
-- separating tests from the behaviour they cover in the same task.
-
-Do **not** combine unrelated logical changes into one large commit, such as:
-
-- multiple sprint tasks,
-- code + unrelated docs refresh,
-- foundation work + next-wave features.
+Do **not** combine unrelated logical changes into one large commit.
 
 ## Default Execution Shape
 
 When the user asks to implement sprint work:
 
 ```text
-1. checkout or create sprint integration branch
+1. checkout sprint integration branch and pull latest
 2. for each requested task:
    a. create descriptively named task branch from sprint branch
    b. implement only that task
    c. make 1–3 logical commits with descriptive messages
-   d. open PR with descriptive title to sprint branch
+   d. push task branch
+   e. open PR to sprint branch with descriptive title
+   f. stop — do not merge
 3. stop after the requested task(s); do not continue to the next task unless asked
 ```
 
@@ -113,19 +140,26 @@ When the user asks to implement sprint work:
 
 ### Good
 
-- Branch `instrument-model`, PR `Add Instrument domain model`, commit `feat: add Instrument domain model`.
+- Branch `instrument-model`, push, PR `Add Instrument domain model`, wait for squash merge.
 - Branch `market-bar-model`, separate PR for `MarketBar`.
 
 ### Bad
 
+- Local `git merge instrument-model` into `sprint/market-data-mvp` and delete the task branch.
 - Branch `task/S002-T004-instrument` or PR titled `S002-T004`.
-- Commit `complete wave 1`.
-- One branch with multiple capabilities and 50 files.
-- Five commits: `add file A`, `add file B`, `add tests`, `run ruff`, `update docs` for a single small task.
-- One PR covering an entire wave or sprint unless explicitly requested.
+- One PR covering multiple unrelated tasks.
+- Agent merges its own PR without review unless the user explicitly requests it.
 
 ## When the User Asks to Commit
 
 Commit only the work for the current task branch.
 
 If the working tree contains changes from multiple tasks, stop and split them before committing.
+
+## Historical Exception
+
+Earlier sprint work may exist as local fast-forward merges with clear per-task commits.
+
+Do not rewrite that history or recreate PRs retroactively.
+
+Apply the mandatory PR pipeline to new work only.
