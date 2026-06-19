@@ -7,6 +7,7 @@ from trading_framework.market.datasets import (
     InMemoryDatasetVersionAllocator,
     MaterialChangeReason,
 )
+from trading_framework.market.models import AssetClass, Instrument
 from trading_framework.market.temporal import (
     BarTimestampSemantics,
     derive_bar_interval,
@@ -14,11 +15,13 @@ from trading_framework.market.temporal import (
 )
 
 __all__ = [
+    "AssetClass",
     "BarTimestampSemantics",
     "DatasetId",
     "DatasetRef",
     "DatasetVersionPolicy",
     "InMemoryDatasetVersionAllocator",
+    "Instrument",
     "MaterialChangeReason",
     "derive_bar_interval",
     "normalize_provider_bar_timestamp",
