@@ -12,7 +12,7 @@ from trading_framework.market.datasets import (
     assert_published_is_immutable,
     transition_dataset_lifecycle,
 )
-from trading_framework.market.models import AssetClass, Instrument
+from trading_framework.market.models import AssetClass, Instrument, MarketBar
 from trading_framework.market.temporal import (
     BarTimestampSemantics,
     derive_bar_interval,
@@ -29,6 +29,7 @@ __all__ = [
     "DatasetVersionPolicy",
     "InMemoryDatasetVersionAllocator",
     "Instrument",
+    "MarketBar",
     "MaterialChangeReason",
     "ValidationStatus",
     "assert_published_is_immutable",
