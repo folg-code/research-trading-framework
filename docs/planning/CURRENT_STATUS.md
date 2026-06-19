@@ -107,14 +107,16 @@ docs/planning/sprints/SPRINT_002.md
 
 **Status:** IN_PROGRESS  
 **Plan:** `docs/planning/sprints/SPRINT_002.md`  
-**Tasks:** 8 / 26 complete (Wave 1 + Wave 2)
+**Tasks:** 8 / 26 merged; 4 Wave 3 PRs open
 
-Completed waves:
+Wave 3 contract PRs (awaiting review / squash merge into `sprint/market-data-mvp`):
 
-- Wave 1: numeric types, dataset identity, bar timestamp convention
-- Wave 2: `Instrument`, `MarketBar`, `DatasetMetadata`, `DatasetLifecycle`
+- `file-inspection-contract`
+- `ohlcv-normalization-contract`
+- `ohlcv-validation-contract`
+- `dataset-repository-contract`
 
-Next wave: contracts and infrastructure (file inspection, normalization, validation).
+Next after merge: Wave 4 infrastructure implementations.
 
 ---
 
