@@ -46,6 +46,11 @@ Examples
 """
 
 from trading_framework.market.datasets.identity import DatasetId, DatasetRef
+from trading_framework.market.datasets.lifecycle import (
+    DatasetLifecycleState,
+    assert_published_is_immutable,
+    transition_dataset_lifecycle,
+)
 from trading_framework.market.datasets.versioning import (
     DatasetVersionAllocator,
     DatasetVersionPolicy,
@@ -55,9 +60,12 @@ from trading_framework.market.datasets.versioning import (
 
 __all__ = [
     "DatasetId",
+    "DatasetLifecycleState",
     "DatasetRef",
     "DatasetVersionAllocator",
     "DatasetVersionPolicy",
     "InMemoryDatasetVersionAllocator",
     "MaterialChangeReason",
+    "assert_published_is_immutable",
+    "transition_dataset_lifecycle",
 ]
