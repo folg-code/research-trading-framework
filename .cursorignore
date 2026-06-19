@@ -1,0 +1,30 @@
+# Proprietary research
+user_data/
+
+# Credentials
+.env
+.env.*
+*.pem
+*.key
+credentials.json
+
+# Large market data
+**/*.dbn
+**/*.parquet
+**/*.duckdb
+**/*.feather
+**/*.arrow
+
+# Generated artifacts
+dist/
+build/
+htmlcov/
+.coverage
+coverage.xml
+
+# Caches
+.venv/
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/

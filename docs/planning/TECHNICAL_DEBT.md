@@ -1,0 +1,535 @@
+# Trading Research Framework
+
+# TECHNICAL_DEBT.md
+
+## 1. Purpose
+
+This register records known implementation debt that has been consciously accepted.
+
+Technical debt is different from:
+
+- an unresolved architectural problem,
+- an unvalidated idea,
+- a bug that violates expected behaviour,
+- intentionally deferred future functionality.
+
+An item belongs here only when:
+
+1. a simpler or incomplete implementation is consciously accepted,
+2. the limitation is understood,
+3. the current system may still operate correctly within documented boundaries,
+4. future remediation cost or risk is known.
+
+Because the project is currently pre-implementation, this register initially contains mostly planned debt boundaries and no large body of accumulated code debt.
+
+---
+
+## 2. Statuses
+
+```text
+ACCEPTED
+PLANNED_REPAYMENT
+IN_PROGRESS
+REPAID
+OBSOLETE
+```
+
+---
+
+## 3. Priority
+
+```text
+CRITICAL
+HIGH
+MEDIUM
+LOW
+```
+
+Priority reflects repayment importance.
+
+---
+
+## 4. Debt Entry Template
+
+```markdown
+## TD-XXX — Title
+
+Status:
+Priority:
+Domain:
+Introduced:
+Target Review:
+Owner:
+
+### Accepted Shortcut
+
+...
+
+### Reason
+
+...
+
+### Consequences
+
+...
+
+### Safe Operating Boundary
+
+...
+
+### Repayment Trigger
+
+...
+
+### Repayment Direction
+
+...
+
+### Related Problems
+
+- ...
+
+### Related Tasks
+
+- ...
+```
+
+---
+
+# 5. Accepted Technical Debt
+
+## TD-001 — Architecture Decisions Are Consolidated Before Individual ADR Files Exist
+
+```text
+Status: ACCEPTED
+Priority: MEDIUM
+Domain: Governance / Architecture
+Introduced: 2026-06-19
+Target Review: Phase 0 completion
+Owner: Unassigned
+```
+
+### Accepted Shortcut
+
+Architectural decisions are currently documented in consolidated architecture files instead of individual numbered ADRs.
+
+### Reason
+
+The architecture was evolving rapidly and consolidating decisions first reduced fragmentation.
+
+### Consequences
+
+- historical alternatives are less visible,
+- individual decisions are harder to supersede cleanly,
+- contributors must inspect large documents.
+
+### Safe Operating Boundary
+
+No material architectural change should be implemented without checking the consolidated documents.
+
+### Repayment Trigger
+
+Before implementation moves beyond repository foundation.
+
+### Repayment Direction
+
+Create the initial ADR set and cross-reference it from architecture documents.
+
+### Related Problems
+
+- PRB-016.
+
+---
+
+## TD-002 — Planning State Is Maintained in Markdown Before GitHub Project Setup
+
+```text
+Status: ACCEPTED
+Priority: LOW
+Domain: Governance
+Introduced: 2026-06-19
+Target Review: Phase 0 completion
+Owner: Unassigned
+```
+
+### Accepted Shortcut
+
+Current status, problems and ideas are stored in Markdown before GitHub Issues and Projects become the operational source of truth.
+
+### Reason
+
+The repository governance structure is still being created.
+
+### Consequences
+
+- manual updates,
+- possible status drift,
+- no automated issue linking.
+
+### Safe Operating Boundary
+
+Do not duplicate detailed task state in multiple Markdown files.
+
+### Repayment Trigger
+
+Repository and GitHub Project are initialized.
+
+### Repayment Direction
+
+Move operational task state to GitHub and retain Markdown for stable rules and summaries.
+
+---
+
+## TD-003 — Initial Market Analysis Module Uses a Minimal Directory Structure
+
+```text
+Status: ACCEPTED
+Priority: LOW
+Domain: Market Analysis
+Introduced: Planned for Phase 3
+Target Review: After first 5–10 stable components
+Owner: Unassigned
+```
+
+### Accepted Shortcut
+
+Begin with:
+
+```text
+market_analysis/
+├── components/
+├── engine/
+├── models/
+└── protocols.py
+```
+
+instead of immediately creating separate permanent directories for every semantic category and engine capability.
+
+### Reason
+
+The conceptual taxonomy is known, but the practical component volume is not.
+
+### Consequences
+
+- temporary mixed component directory,
+- later file moves may be required.
+
+### Safe Operating Boundary
+
+Every component must still declare whether its output is a Feature, Structure or State.
+
+### Repayment Trigger
+
+The module becomes difficult to navigate or stable clusters emerge.
+
+### Repayment Direction
+
+Split into justified directories without changing domain semantics.
+
+---
+
+## TD-004 — Version 1 Keeps Position Sizing Inside the Risk Model
+
+```text
+Status: ACCEPTED
+Priority: LOW
+Domain: Strategy
+Introduced: Architecture baseline
+Target Review: Phase 6 or later
+Owner: Unassigned
+```
+
+### Accepted Shortcut
+
+Do not create a separate Position Sizing Model in Version 1.
+
+### Reason
+
+Independent composition and versioning are not yet demonstrated requirements.
+
+### Consequences
+
+Some Risk Models may contain both capital constraints and sizing logic.
+
+### Safe Operating Boundary
+
+Risk responsibilities must remain strategy-level and separate from operational execution risk controls.
+
+### Repayment Trigger
+
+Sizing variants require independent research, composition or execution reuse.
+
+### Repayment Direction
+
+Introduce a separate contract through an ADR and migration plan.
+
+---
+
+## TD-005 — Version 1 Uses an In-Memory Event Bus
+
+```text
+Status: ACCEPTED
+Priority: LOW
+Domain: Events / Execution
+Introduced: Planned for Phase 8
+Target Review: Before Live Execution
+Owner: Unassigned
+```
+
+### Accepted Shortcut
+
+Use an in-process EventBus rather than Redis, Kafka or another durable broker.
+
+### Reason
+
+The initial system is a modular monolith and does not require distributed messaging.
+
+### Consequences
+
+- no process-independent durability,
+- no horizontal consumer scaling,
+- restart loses non-persisted in-flight events.
+
+### Safe Operating Boundary
+
+Critical Execution state must be persisted independently.
+
+The EventBus must not be treated as the system of record.
+
+### Repayment Trigger
+
+Multiple processes, durable replay or independent services become required.
+
+### Repayment Direction
+
+Evaluate a distributed broker through an ADR.
+
+---
+
+## TD-006 — Historical Storage Uses Local Parquet Before a Dedicated Data Platform
+
+```text
+Status: ACCEPTED
+Priority: LOW
+Domain: Market Data / Infrastructure
+Introduced: Architecture baseline
+Target Review: After measured storage bottlenecks
+Owner: Unassigned
+```
+
+### Accepted Shortcut
+
+Use local Parquet, optional DuckDB and metadata storage rather than a distributed data platform.
+
+### Reason
+
+This maximizes value with minimum operational complexity.
+
+### Consequences
+
+- limited multi-user concurrency,
+- local-machine storage constraints,
+- manual distribution across machines.
+
+### Safe Operating Boundary
+
+Dataset identity and lineage remain independent from physical paths.
+
+### Repayment Trigger
+
+One-machine storage, query or coordination limits are repeatedly exceeded.
+
+### Repayment Direction
+
+Assess object storage, shared catalogues or distributed query engines using measured requirements.
+
+---
+
+## TD-007 — Initial Trading Calendar May Wrap an External Library
+
+```text
+Status: ACCEPTED
+Priority: MEDIUM
+Domain: Time / Market
+Introduced: Planned for Phase 2 or 4
+Target Review: After CME vertical slice
+Owner: Unassigned
+```
+
+### Accepted Shortcut
+
+Use an adapter around an existing calendar library rather than implementing full exchange calendars internally.
+
+### Reason
+
+Exchange holiday and shortened-session logic is complex and not a core differentiator.
+
+### Consequences
+
+- external library behaviour and updates become dependencies,
+- unsupported markets may need overrides,
+- reproducibility requires calendar-version metadata.
+
+### Safe Operating Boundary
+
+Domain and application layers depend only on framework calendar contracts.
+
+### Repayment Trigger
+
+Required markets are unsupported or external behaviour cannot be versioned reliably.
+
+### Repayment Direction
+
+Add framework-owned overrides or selected internal calendar definitions.
+
+---
+
+## TD-008 — Initial Research Planner Uses Conservative Static Limits
+
+```text
+Status: ACCEPTED
+Priority: MEDIUM
+Domain: Research
+Introduced: Planned for Phase 5
+Target Review: After measured research workloads
+Owner: Unassigned
+```
+
+### Accepted Shortcut
+
+Use static candidate-count and model-complexity limits before dynamic cost estimation is available.
+
+### Reason
+
+A simple hard boundary protects against accidental explosion.
+
+### Consequences
+
+- limits may be too strict or too permissive,
+- no accurate runtime estimate.
+
+### Safe Operating Boundary
+
+Overrides must be explicit and visible.
+
+The planner must never silently prune requested experiments.
+
+### Repayment Trigger
+
+Measured workloads provide enough data for cost estimation.
+
+### Repayment Direction
+
+Implement preflight resource estimates and configurable policy tiers.
+
+---
+
+## TD-009 — Initial Strategy Backtest Supports a Limited Fill Model
+
+```text
+Status: ACCEPTED
+Priority: HIGH
+Domain: Research
+Introduced: Planned for Phase 6
+Target Review: Before robustness claims
+Owner: Unassigned
+```
+
+### Accepted Shortcut
+
+The first batch/vectorized backtest should support a deliberately limited, explicit fill model rather than full broker realism.
+
+### Reason
+
+Full execution simulation would significantly expand Phase 6 scope and blur the Research/Execution boundary.
+
+### Consequences
+
+- some strategy types cannot be evaluated accurately,
+- results depend strongly on documented assumptions,
+- no claim of live parity is allowed.
+
+### Safe Operating Boundary
+
+Unsupported orders, partial fills and intrabar ambiguity must fail or be explicitly excluded.
+
+### Repayment Trigger
+
+A selected strategy requires more realistic order semantics.
+
+### Repayment Direction
+
+Add simulation capabilities incrementally while preserving assumptions in run identity.
+
+---
+
+## TD-010 — Documentation Consistency Is Reviewed Manually Before Automation
+
+```text
+Status: ACCEPTED
+Priority: MEDIUM
+Domain: Documentation / Governance
+Introduced: 2026-06-19
+Target Review: Phase 1
+Owner: Unassigned
+```
+
+### Accepted Shortcut
+
+Use manual review and simple text searches before implementing documentation linting or architecture checks.
+
+### Reason
+
+Document conventions are still stabilizing.
+
+### Consequences
+
+- stale terminology may remain,
+- heading numbering and references may drift.
+
+### Safe Operating Boundary
+
+Architecture-changing work must update all affected documents.
+
+### Repayment Trigger
+
+The documentation set stabilizes and repository CI exists.
+
+### Repayment Direction
+
+Add lightweight checks for deprecated terms, required files and broken internal references.
+
+---
+
+# 6. Planned Debt Boundaries
+
+The following shortcuts may be accepted later but are not yet introduced:
+
+```text
+- limited provider set,
+- limited asset-class coverage,
+- bar-only Market Data MVP,
+- local-only research execution,
+- no UI,
+- no distributed task scheduler,
+- no live multi-account support,
+- no automatic ML model registry.
+```
+
+They should become technical-debt entries only when implementation consciously relies on them and repayment conditions are known.
+
+---
+
+# 7. Debt Review Rules
+
+Review technical debt:
+
+- at sprint retrospectives,
+- before phase completion,
+- before introducing related abstractions,
+- when a repayment trigger occurs,
+- when a debt item becomes a correctness risk.
+
+A debt item must move to `PROBLEM_REGISTRY.md` or a bug when it begins violating expected behaviour or safety.
+
+Do not use technical debt as a label for every unfinished feature.

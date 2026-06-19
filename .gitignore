@@ -1,0 +1,52 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+
+# Virtual environments
+.venv/
+
+# Test and quality caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Build outputs
+build/
+dist/
+*.egg-info/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials.json
+
+# User-owned research and data
+user_data/**
+
+# Keep an optional explanation file
+!user_data/README.md
+
+# Local analytical files outside fixtures
+*.duckdb
+*.db
+*.db-journal
+
+# IDE
+.idea/
+
+# Cursor local state, but keep project rules
+.cursor/*
+!.cursor/rules/
+!.cursor/rules/**
+!.cursor/BUGBOT.md
+
+# Operating system
+.DS_Store
+Thumbs.db
+desktop.ini
