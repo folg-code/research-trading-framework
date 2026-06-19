@@ -51,6 +51,7 @@ from trading_framework.market.datasets.lifecycle import (
     assert_published_is_immutable,
     transition_dataset_lifecycle,
 )
+from trading_framework.market.datasets.metadata import DatasetMetadata, ValidationStatus
 from trading_framework.market.datasets.versioning import (
     DatasetVersionAllocator,
     DatasetVersionPolicy,
@@ -61,11 +62,13 @@ from trading_framework.market.datasets.versioning import (
 __all__ = [
     "DatasetId",
     "DatasetLifecycleState",
+    "DatasetMetadata",
     "DatasetRef",
     "DatasetVersionAllocator",
     "DatasetVersionPolicy",
     "InMemoryDatasetVersionAllocator",
     "MaterialChangeReason",
+    "ValidationStatus",
     "assert_published_is_immutable",
     "transition_dataset_lifecycle",
 ]
