@@ -12,6 +12,10 @@ from trading_framework.market_analysis.models.availability import (
     AvailabilityPolicy,
 )
 from trading_framework.market_analysis.models.context import AnalysisContext
+from trading_framework.market_analysis.models.dependencies import (
+    ComponentDependency,
+    DataFieldDependency,
+)
 from trading_framework.market_analysis.models.history import HistoryRequirement, WarmUpMetadata
 from trading_framework.market_analysis.models.kind import Causality, ComponentKind
 from trading_framework.market_analysis.models.lineage import Lineage
@@ -36,20 +40,28 @@ from trading_framework.market_analysis.models.result import (
     ValidityMetadata,
 )
 from trading_framework.market_analysis.models.time_range import TimeRange
+from trading_framework.market_analysis.protocols import (
+    BatchAnalysisComponent,
+    ComponentImplementation,
+)
 
 __all__ = [
     "AnalysisContext",
     "AnalysisResult",
     "AvailabilityMetadata",
     "AvailabilityPolicy",
+    "BatchAnalysisComponent",
     "CanonicalParameters",
     "Causality",
+    "ComponentDependency",
     "ComponentId",
+    "ComponentImplementation",
     "ComponentKind",
     "ComponentOutputRef",
     "ComponentRequest",
     "ComponentVersion",
     "ComputationIdentity",
+    "DataFieldDependency",
     "HistoryRequirement",
     "ImplementationId",
     "ImplementationVersion",
