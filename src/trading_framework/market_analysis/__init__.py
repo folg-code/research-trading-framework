@@ -40,6 +40,14 @@ from trading_framework.market_analysis.models.result import (
     ValidityMetadata,
 )
 from trading_framework.market_analysis.models.time_range import TimeRange
+from trading_framework.market_analysis.planning import (
+    CyclicDependencyError,
+    DependencyPlanner,
+    ExecutionPlan,
+    PlannedNode,
+    PlanningContext,
+    PlanningRequest,
+)
 from trading_framework.market_analysis.protocols import (
     BatchAnalysisComponent,
     ComponentImplementation,
@@ -63,7 +71,10 @@ __all__ = [
     "ComponentRequest",
     "ComponentVersion",
     "ComputationIdentity",
+    "CyclicDependencyError",
     "DataFieldDependency",
+    "DependencyPlanner",
+    "ExecutionPlan",
     "HistoryRequirement",
     "ImplementationId",
     "ImplementationVersion",
@@ -77,6 +88,9 @@ __all__ = [
     "ParameterFieldSpec",
     "ParameterSchema",
     "ParameterType",
+    "PlannedNode",
+    "PlanningContext",
+    "PlanningRequest",
     "TimeRange",
     "ValidityMetadata",
     "WarmUpMetadata",
