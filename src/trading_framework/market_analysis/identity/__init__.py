@@ -6,10 +6,12 @@ from trading_framework.market_analysis.identity.component import (
     ImplementationId,
     ImplementationVersion,
 )
+from trading_framework.market_analysis.identity.computation import ComputationIdentity
 
 __all__ = [
     "ComponentId",
     "ComponentVersion",
+    "ComputationIdentity",
     "ImplementationId",
     "ImplementationVersion",
 ]
