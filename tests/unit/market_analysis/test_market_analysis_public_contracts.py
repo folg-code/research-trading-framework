@@ -39,3 +39,14 @@ def test_market_analysis_exports_execution_context_contracts() -> None:
         "TimeRange",
     ):
         assert hasattr(market_analysis, name)
+
+
+def test_market_analysis_exports_result_contracts() -> None:
+    for name in (
+        "AnalysisResult",
+        "OutputRef",
+        "Lineage",
+        "OutputSchema",
+        "AvailabilityMetadata",
+    ):
+        assert hasattr(market_analysis, name)

@@ -124,7 +124,7 @@ docs/planning/sprints/SPRINT_003.md
 **Status:** IN_PROGRESS (Wave 0 complete)  
 **Plan:** `docs/planning/sprints/SPRINT_003.md`  
 **Sprint branch:** `sprint/market-analysis-mvp`  
-**Tasks:** 41 (4 done — Wave 0)
+**Tasks:** 41 (12 done — Wave 0–1 contracts)
 
 Wave 0 deliverables:
 
@@ -132,7 +132,7 @@ Wave 0 deliverables:
 - `docs/planning/sprints/S003_WAVE0_SPIKE_REPORT.md`
 - `tests/spike/run_market_analysis_backend_benchmark.py`
 
-Wave 1 (identity contracts T005–T012) is unblocked.
+Wave 1 identity and core contracts (T005–T012) complete. Next: Wave 2 registry and planner.
 
 ---
 
@@ -216,7 +216,7 @@ True Range → ATR → Volatility State (+ EMA, diagnostic output)
 |--------|------|--------|----------|
 | 001 | Repository foundation | COMPLETED | 22 / 22 tasks |
 | 002 | Market Data MVP | COMPLETED | 26 / 26 tasks |
-| 003 | Market Analysis Engine MVP | IN_PROGRESS | 4 / 41 tasks |
+| 003 | Market Analysis Engine MVP | IN_PROGRESS | 12 / 41 tasks |
 
 ---
 
