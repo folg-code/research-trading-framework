@@ -1,7 +1,5 @@
 """Component registry tests."""
 
-from collections.abc import Mapping
-
 import pytest
 
 from trading_framework.core.exceptions import ConfigurationError
@@ -24,6 +22,7 @@ from trading_framework.market_analysis import (
     ParameterSchema,
 )
 from trading_framework.market_analysis.registry import ComponentRegistry
+from trading_framework.market_analysis.storage.workspace import AnalysisWorkspaceView
 
 
 class _CloseComponent:
@@ -54,8 +53,8 @@ class _CloseNumpy:
     def compute(
         self,
         context: AnalysisContext,
+        workspace: AnalysisWorkspaceView,
         parameters: CanonicalParameters,
-        dependency_results: Mapping[str, AnalysisResult],
     ) -> AnalysisResult:
         raise NotImplementedError
 
@@ -67,8 +66,8 @@ class _ClosePandas:
     def compute(
         self,
         context: AnalysisContext,
+        workspace: AnalysisWorkspaceView,
         parameters: CanonicalParameters,
-        dependency_results: Mapping[str, AnalysisResult],
     ) -> AnalysisResult:
         raise NotImplementedError
 

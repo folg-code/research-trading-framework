@@ -1,6 +1,5 @@
 """Dependency planner tests."""
 
-from collections.abc import Mapping
 from datetime import UTC, datetime
 
 import pytest
@@ -37,6 +36,7 @@ from trading_framework.market_analysis.planning import (
     PlanningRequest,
 )
 from trading_framework.market_analysis.registry import ComponentRegistry
+from trading_framework.market_analysis.storage.workspace import AnalysisWorkspaceView
 from trading_framework.time.models.timeframe import Timeframe
 
 
@@ -82,8 +82,8 @@ class _TrueRangeImpl:
     def compute(
         self,
         context: AnalysisContext,
+        workspace: AnalysisWorkspaceView,
         parameters: CanonicalParameters,
-        dependency_results: Mapping[str, AnalysisResult],
     ) -> AnalysisResult:
         raise NotImplementedError
 
@@ -125,8 +125,8 @@ class _AtrImpl:
     def compute(
         self,
         context: AnalysisContext,
+        workspace: AnalysisWorkspaceView,
         parameters: CanonicalParameters,
-        dependency_results: Mapping[str, AnalysisResult],
     ) -> AnalysisResult:
         raise NotImplementedError
 
@@ -168,8 +168,8 @@ class _VolatilityStateImpl:
     def compute(
         self,
         context: AnalysisContext,
+        workspace: AnalysisWorkspaceView,
         parameters: CanonicalParameters,
-        dependency_results: Mapping[str, AnalysisResult],
     ) -> AnalysisResult:
         raise NotImplementedError
 
@@ -210,8 +210,8 @@ class _CyclicAImpl:
     def compute(
         self,
         context: AnalysisContext,
+        workspace: AnalysisWorkspaceView,
         parameters: CanonicalParameters,
-        dependency_results: Mapping[str, AnalysisResult],
     ) -> AnalysisResult:
         raise NotImplementedError
 
@@ -252,8 +252,8 @@ class _CyclicBImpl:
     def compute(
         self,
         context: AnalysisContext,
+        workspace: AnalysisWorkspaceView,
         parameters: CanonicalParameters,
-        dependency_results: Mapping[str, AnalysisResult],
     ) -> AnalysisResult:
         raise NotImplementedError
 
