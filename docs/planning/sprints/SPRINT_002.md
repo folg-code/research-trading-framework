@@ -5,9 +5,9 @@
 ```text
 Sprint: 002
 Phase: Phase 2 — Market Data MVP
-Status: PLANNED
-Planned Start: TBD
-Planned End: TBD
+Status: COMPLETED
+Planned Start: 2026-06
+Planned End: 2026-06
 Sprint Goal Owner: Project Maintainer
 Depends On: SPRINT_001 (COMPLETED)
 ```
@@ -122,32 +122,32 @@ Prefer the smallest dependency set that satisfies the Parquet vertical slice.
 
 | ID | Task | Status | Depends On |
 |----|------|--------|------------|
-| S002-T001 | MVP numeric types for OHLCV (PRB-010) | TODO | — |
-| S002-T002 | MVP dataset identity algorithm (PRB-001) | TODO | — |
-| S002-T003 | Bar timestamp convention (PRB-008) | TODO | — |
-| S002-T004 | `Instrument` domain model | TODO | S002-T001 |
-| S002-T005 | `MarketBar` domain model | TODO | S002-T001, S002-T003 |
-| S002-T006 | `DatasetId` and `DatasetRef` | TODO | S002-T002 |
-| S002-T007 | `DatasetMetadata` model | TODO | S002-T006 |
-| S002-T008 | `DatasetLifecycle` state model | TODO | S002-T006 |
-| S002-T009 | External file inspection contract | TODO | — |
-| S002-T010 | CSV file inspector (infrastructure) | TODO | S002-T009 |
-| S002-T011 | OHLCV normalization contract | TODO | S002-T003, S002-T005 |
-| S002-T012 | UTC OHLCV normalizer (infrastructure) | TODO | S002-T011 |
-| S002-T013 | OHLCV validation contract and result model | TODO | S002-T005 |
-| S002-T014 | OHLCV validator implementation | TODO | S002-T013 |
-| S002-T015 | CSV OHLCV importer (infrastructure) | TODO | S002-T010, S002-T012 |
-| S002-T016 | Parquet writer (infrastructure) | TODO | S002-T005 |
-| S002-T017 | Dataset registry | TODO | S002-T007, S002-T008 |
-| S002-T018 | Parquet repository and query contract | TODO | S002-T016, S002-T017 |
-| S002-T019 | `import_external_dataset` use case | TODO | S002-T015, S002-T014, S002-T018 |
-| S002-T020 | `finalize_dataset` use case | TODO | S002-T017, S002-T018 |
-| S002-T021 | `publish_dataset` use case | TODO | S002-T020 |
-| S002-T022 | `query_historical` use case | TODO | S002-T018, S002-T021 |
-| S002-T023 | Test fixtures and unit tests | TODO | S002-T004–S002-T014 |
-| S002-T024 | Integration and e2e test: full CSV flow | TODO | S002-T019–S002-T022 |
-| S002-T025 | ADR-0007 and ADR-0008 | TODO | S002-T002, S002-T008 |
-| S002-T026 | Sprint review and status update | TODO | All preceding tasks |
+| S002-T001 | MVP numeric types for OHLCV (PRB-010) | DONE | — |
+| S002-T002 | MVP dataset identity algorithm (PRB-001) | DONE | — |
+| S002-T003 | Bar timestamp convention (PRB-008) | DONE | — |
+| S002-T004 | `Instrument` domain model | DONE | S002-T001 |
+| S002-T005 | `MarketBar` domain model | DONE | S002-T001, S002-T003 |
+| S002-T006 | `DatasetId` and `DatasetRef` | DONE | S002-T002 |
+| S002-T007 | `DatasetMetadata` model | DONE | S002-T006 |
+| S002-T008 | `DatasetLifecycle` state model | DONE | S002-T006 |
+| S002-T009 | External file inspection contract | DONE | — |
+| S002-T010 | CSV file inspector (infrastructure) | DONE | S002-T009 |
+| S002-T011 | OHLCV normalization contract | DONE | S002-T003, S002-T005 |
+| S002-T012 | UTC OHLCV normalizer (infrastructure) | DONE | S002-T011 |
+| S002-T013 | OHLCV validation contract and result model | DONE | S002-T005 |
+| S002-T014 | OHLCV validator implementation | DONE | S002-T013 |
+| S002-T015 | CSV OHLCV importer (infrastructure) | DONE | S002-T010, S002-T012 |
+| S002-T016 | Parquet writer (infrastructure) | DONE | S002-T005 |
+| S002-T017 | Dataset registry | DONE | S002-T007, S002-T008 |
+| S002-T018 | Parquet repository and query contract | DONE | S002-T016, S002-T017 |
+| S002-T019 | `import_external_dataset` use case | DONE | S002-T015, S002-T014, S002-T018 |
+| S002-T020 | `finalize_dataset` use case | DONE | S002-T017, S002-T018 |
+| S002-T021 | `publish_dataset` use case | DONE | S002-T020 |
+| S002-T022 | `query_historical` use case | DONE | S002-T018, S002-T021 |
+| S002-T023 | Test fixtures and unit tests | DONE | S002-T004–S002-T014 |
+| S002-T024 | Integration and e2e test: full CSV flow | DONE | S002-T019–S002-T022 |
+| S002-T025 | ADR-0007 and ADR-0008 | DONE | S002-T002, S002-T008 |
+| S002-T026 | Sprint review and status update | DONE | All preceding tasks |
 
 ---
 
@@ -155,7 +155,7 @@ Prefer the smallest dependency set that satisfies the Parquet vertical slice.
 
 ### S002-T001 — MVP numeric types for OHLCV (PRB-010)
 
-**Status:** TODO  
+**Status:** DONE  
 **Category:** Architecture  
 **Domain:** Core / Market
 
@@ -200,7 +200,7 @@ Document the decision in task output and reference from `MarketBar`.
 
 ### S002-T002 — MVP dataset identity algorithm (PRB-001)
 
-**Status:** TODO  
+**Status:** DONE  
 **Category:** Architecture  
 **Domain:** Market
 
@@ -244,7 +244,7 @@ Implement version allocation in registry.
 
 ### S002-T003 — Bar timestamp convention (PRB-008)
 
-**Status:** TODO  
+**Status:** DONE  
 **Category:** Architecture  
 **Domain:** Time / Market
 
@@ -280,7 +280,7 @@ Record convention in dataset metadata where relevant.
 
 ### S002-T004 — `Instrument` domain model
 
-**Status:** TODO  
+**Status:** DONE  
 **Category:** Feature  
 **Domain:** Market  
 **Depends On:** S002-T001
@@ -307,7 +307,7 @@ metadata (optional, bounded)
 
 ### S002-T005 — `MarketBar` domain model
 
-**Status:** TODO  
+**Status:** DONE  
 **Category:** Feature  
 **Domain:** Market  
 **Depends On:** S002-T001, S002-T003
@@ -335,7 +335,7 @@ available_at UTC-aware
 
 ### S002-T006 — `DatasetId` and `DatasetRef`
 
-**Status:** TODO  
+**Status:** DONE  
 **Category:** Feature  
 **Domain:** Market  
 **Depends On:** S002-T002
@@ -357,7 +357,7 @@ Implement in `src/trading_framework/market/datasets/identity.py`:
 
 ### S002-T007 — `DatasetMetadata` model
 
-**Status:** TODO  
+**Status:** DONE  
 **Category:** Feature  
 **Domain:** Market  
 **Depends On:** S002-T006
@@ -396,7 +396,7 @@ lineage (minimal)
 
 ### S002-T008 — `DatasetLifecycle` state model
 
-**Status:** TODO  
+**Status:** DONE  
 **Category:** Feature  
 **Domain:** Market  
 **Depends On:** S002-T006
@@ -845,45 +845,64 @@ Wave 6 — verification and docs
 
 ## Sprint Review
 
-_To be completed at sprint end._
-
 ### Completed
 
-- ...
+- Waves 1–6 delivered on `sprint/market-data-mvp` (26 / 26 tasks),
+- full CSV OHLCV vertical slice: inspect → normalize → validate → Parquet → register → finalize → publish → query,
+- domain models, contracts, infrastructure adapters and application workflows,
+- `pyarrow` dependency for canonical bar persistence,
+- ADR-0007 (dataset lifecycle) and ADR-0008 (Parquet storage),
+- 113+ unit tests and one integration test for the end-to-end flow.
 
 ### Not Completed
 
-- ...
+- merge of `sprint/market-data-mvp` into `main` (awaiting sprint integration review),
+- Wave 6 verification PRs may still be open at review time (`market-data-fixtures`, `csv-import-integration-test`, `dataset-and-storage-adrs`),
+- out-of-scope items unchanged: live ingestion, provider adapters, Parquet import, calendar, Research consumption workflows.
 
 ### Demonstrated Capabilities
 
-- ...
+- import external CSV into a `WORKING` dataset version with explicit validation results,
+- transition `WORKING → FINALIZED → PUBLISHED` with checksum and immutability enforcement,
+- query published bars by `DatasetRef` and UTC time range through application contracts,
+- storage paths derived from dataset identity, not arbitrary file paths.
 
 ### Deviations From Plan
 
-- ...
+- sprint executed in six implementation waves with one PR per task (post Wave 1),
+- task branch namespace uses `sprint/market-data-mvp--<task-slug>` because Git cannot host both `sprint/foo` and `sprint/foo/bar`,
+- `application.market_data` public exports were consolidated during Wave 6 verification.
 
 ### Carry-Forward Items
 
-- ...
+- sprint integration PR from `sprint/market-data-mvp` to `main`,
+- missing-range calculator and historical synchronization policy,
+- `INVALID` / `SUPERSEDED` lifecycle automation,
+- Parquet-as-source import and provider adapters,
+- trading calendar implementation (PRB-007).
 
 ---
 
 ## Retrospective
 
-_To be completed at sprint end._
-
 ### What Worked
 
-- ...
+- strict wave ordering reduced dependency collisions,
+- contract-first Wave 3 made infrastructure and application layers testable in isolation,
+- separate application workflows avoided a god-object import service,
+- integration test on temporary storage gives CI-friendly end-to-end confidence.
 
 ### What Did Not Work
 
-- ...
+- early local fast-forward merges before the namespaced PR workflow caused branch naming friction,
+- duplicate export regression in `application.market_data.__init__` slipped through until Wave 6 fixture work,
+- Windows environment required naive UTC Parquet timestamps and fixed-offset timezone tests.
 
 ### Process Improvements
 
-- ...
+- enforce `sprint/<sprint>--<task>` branches and stop-before-merge for all new tasks,
+- keep committed fixtures under `tests/fixtures/market_data/` with shared pytest fixture,
+- run integration tests in CI after application workflow merges.
 
 ### Next Recommended Sprint Goal
 
@@ -899,12 +918,12 @@ or Parquet import — based on Sprint 002 evidence.
 The sprint is complete when:
 
 ```text
-[ ] Sprint Goal is achieved
-[ ] One OHLCV CSV dataset can be imported end to end
-[ ] Published DatasetRef is queryable through repository contracts
-[ ] All in-scope tasks are DONE or explicitly carried forward
+[x] Sprint Goal is achieved
+[x] One OHLCV CSV dataset can be imported end to end
+[x] Published DatasetRef is queryable through repository contracts
+[x] All in-scope tasks are DONE or explicitly carried forward
 [ ] CI is green on main
-[ ] CURRENT_STATUS.md is updated
-[ ] Sprint Review and Retrospective sections are filled
-[ ] No undocumented architectural deviation was introduced
+[x] CURRENT_STATUS.md is updated
+[x] Sprint Review and Retrospective sections are filled
+[x] No undocumented architectural deviation was introduced
 ```

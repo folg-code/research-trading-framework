@@ -283,11 +283,13 @@ Query Through Repository
 
 ## Active Sprint
 
-Sprint 002 implements this phase:
+Sprint 002 implemented the MVP vertical slice on `sprint/market-data-mvp`:
 
 ```text
 docs/planning/sprints/SPRINT_002.md
 ```
+
+Status: implementation complete on the sprint integration branch; merge to `main` pending review.
 
 ## Main Risks
 
