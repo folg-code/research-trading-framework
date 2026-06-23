@@ -44,6 +44,7 @@ from trading_framework.market_analysis.protocols import (
     BatchAnalysisComponent,
     ComponentImplementation,
 )
+from trading_framework.market_analysis.registry import ComponentRegistry
 
 __all__ = [
     "AnalysisContext",
@@ -58,6 +59,7 @@ __all__ = [
     "ComponentImplementation",
     "ComponentKind",
     "ComponentOutputRef",
+    "ComponentRegistry",
     "ComponentRequest",
     "ComponentVersion",
     "ComputationIdentity",
