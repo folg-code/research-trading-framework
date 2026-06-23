@@ -130,16 +130,16 @@ Prefer the smallest dependency set that satisfies the Parquet vertical slice.
 | S002-T006 | `DatasetId` and `DatasetRef` | DONE | S002-T002 |
 | S002-T007 | `DatasetMetadata` model | DONE | S002-T006 |
 | S002-T008 | `DatasetLifecycle` state model | DONE | S002-T006 |
-| S002-T009 | External file inspection contract | TODO | — |
+| S002-T009 | External file inspection contract | PR_OPEN | — |
 | S002-T010 | CSV file inspector (infrastructure) | TODO | S002-T009 |
-| S002-T011 | OHLCV normalization contract | TODO | S002-T003, S002-T005 |
+| S002-T011 | OHLCV normalization contract | PR_OPEN | S002-T003, S002-T005 |
 | S002-T012 | UTC OHLCV normalizer (infrastructure) | TODO | S002-T011 |
-| S002-T013 | OHLCV validation contract and result model | TODO | S002-T005 |
+| S002-T013 | OHLCV validation contract and result model | PR_OPEN | S002-T005 |
 | S002-T014 | OHLCV validator implementation | TODO | S002-T013 |
 | S002-T015 | CSV OHLCV importer (infrastructure) | TODO | S002-T010, S002-T012 |
 | S002-T016 | Parquet writer (infrastructure) | TODO | S002-T005 |
 | S002-T017 | Dataset registry | TODO | S002-T007, S002-T008 |
-| S002-T018 | Parquet repository and query contract | TODO | S002-T016, S002-T017 |
+| S002-T018 | Parquet repository and query contract | PR_OPEN | S002-T016, S002-T017 |
 | S002-T019 | `import_external_dataset` use case | TODO | S002-T015, S002-T014, S002-T018 |
 | S002-T020 | `finalize_dataset` use case | TODO | S002-T017, S002-T018 |
 | S002-T021 | `publish_dataset` use case | TODO | S002-T020 |
