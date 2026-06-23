@@ -8,12 +8,12 @@ from trading_framework.core.exceptions import ValidationError
 from trading_framework.infrastructure.importers.csv import CsvFileInspector
 from trading_framework.market.importers import DetectedFileFormat, FileInspector
 
-_FIXTURES_DIR = Path(__file__).resolve().parent.parent / "fixtures" / "csv"
 
-
-def test_csv_file_inspector_detects_columns_and_timestamp_candidates() -> None:
+def test_csv_file_inspector_detects_columns_and_timestamp_candidates(
+    market_data_fixtures_dir: Path,
+) -> None:
     inspector = CsvFileInspector()
-    result = inspector.inspect(_FIXTURES_DIR / "sample_ohlcv.csv")
+    result = inspector.inspect(market_data_fixtures_dir / "sample_ohlcv.csv")
 
     assert result.format is DetectedFileFormat.CSV
     assert result.columns == ("timestamp", "open", "high", "low", "close", "volume")
@@ -22,10 +22,10 @@ def test_csv_file_inspector_detects_columns_and_timestamp_candidates() -> None:
     assert result.encoding in {"utf-8", "utf-8-sig"}
 
 
-def test_csv_file_inspector_rejects_missing_file() -> None:
+def test_csv_file_inspector_rejects_missing_file(market_data_fixtures_dir: Path) -> None:
     inspector = CsvFileInspector()
     with pytest.raises(ValidationError, match="does not exist"):
-        inspector.inspect(_FIXTURES_DIR / "missing.csv")
+        inspector.inspect(market_data_fixtures_dir / "missing.csv")
 
 
 def test_csv_file_inspector_rejects_empty_header(tmp_path: Path) -> None:
@@ -37,7 +37,7 @@ def test_csv_file_inspector_rejects_empty_header(tmp_path: Path) -> None:
         inspector.inspect(path)
 
 
-def test_csv_file_inspector_satisfies_protocol() -> None:
+def test_csv_file_inspector_satisfies_protocol(market_data_fixtures_dir: Path) -> None:
     inspector: FileInspector = CsvFileInspector()
-    result = inspector.inspect(_FIXTURES_DIR / "sample_ohlcv.csv")
+    result = inspector.inspect(market_data_fixtures_dir / "sample_ohlcv.csv")
     assert result.row_estimate == 2
