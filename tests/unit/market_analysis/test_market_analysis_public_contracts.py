@@ -9,6 +9,7 @@ def test_market_analysis_exports_identity_contracts() -> None:
         "ComponentVersion",
         "ImplementationId",
         "ImplementationVersion",
+        "ComputationIdentity",
     ):
         assert hasattr(market_analysis, name)
 
@@ -28,5 +29,13 @@ def test_market_analysis_exports_parameter_contracts() -> None:
         "ParameterSchema",
         "CanonicalParameters",
         "ComponentRequest",
+    ):
+        assert hasattr(market_analysis, name)
+
+
+def test_market_analysis_exports_execution_context_contracts() -> None:
+    for name in (
+        "AnalysisContext",
+        "TimeRange",
     ):
         assert hasattr(market_analysis, name)
