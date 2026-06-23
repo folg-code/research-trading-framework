@@ -59,11 +59,14 @@ Report failed checks. Do not hide or disable them.
 
 ## Sprint Git Workflow
 
-- one integration branch per sprint: `sprint/<sprint-slug>` (for example `sprint/market-data-mvp`)
-- one namespaced task branch per sprint task: `sprint/<sprint-slug>--<task-slug>`
+- one integration branch per sprint: `sprint/<sprint-slug>` (for example `sprint/market-analysis-mvp`)
+- working branches use separate prefixes: `feat/`, `fix/`, `docs/`, `test/`, `refactor/` — not `sprint/<sprint-slug>/<task>`
+- one PR per coherent, reviewable outcome into the sprint branch — not into `main`
+- target PR size: 100–400 meaningful lines; split if larger than ~600–800
 - branch, PR and commit names describe the work — not sprint task IDs
-- within a task: only logical commits; do not batch multiple tasks or split one task artificially by file
-- mandatory path: task branch → commit → push → PR → review / CI → squash merge → delete branch
+- sprint docs define **what** to deliver; they do not mandate PR boundaries
+- mandatory path: working branch → commit → push → PR to sprint branch → review / CI → squash merge → delete branch
+- when the sprint is complete: one final PR from `sprint/<sprint-slug>` to `main`
 - the agent implements, pushes and opens the PR, then **stops before merge**
 
 See `.cursor/rules/sprint-git-workflow.mdc`.
