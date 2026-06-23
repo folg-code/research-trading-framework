@@ -1,6 +1,5 @@
 """Component protocol contract tests."""
 
-from collections.abc import Mapping
 from datetime import UTC, datetime
 
 from trading_framework.core.identifiers import Identifier
@@ -36,7 +35,23 @@ from trading_framework.market_analysis import (
     ValidityMetadata,
     WarmUpMetadata,
 )
+from trading_framework.market_analysis.data.view import AnalysisDataView, DataColumn
+from trading_framework.market_analysis.storage.workspace import AnalysisWorkspaceView
 from trading_framework.time.models.timeframe import Timeframe
+
+
+def _workspace_view() -> AnalysisWorkspaceView:
+    timestamps = (datetime(2024, 1, 1, tzinfo=UTC),)
+    column = DataColumn((1.0,))
+    market = AnalysisDataView(
+        timestamps=timestamps,
+        open=column,
+        high=column,
+        low=column,
+        close=column,
+        volume=column,
+    )
+    return AnalysisWorkspaceView(market=market, dependency_results={})
 
 
 class _StubComponent:
@@ -87,8 +102,8 @@ class _StubImplementation:
     def compute(
         self,
         context: AnalysisContext,
+        workspace: AnalysisWorkspaceView,
         parameters: CanonicalParameters,
-        dependency_results: Mapping[str, AnalysisResult],
     ) -> AnalysisResult:
         dataset_ref = context.dataset_ref
         identity = ComputationIdentity(
@@ -160,9 +175,9 @@ def test_stub_implementation_satisfies_protocol() -> None:
     )
     result = implementation.compute(
         context,
+        _workspace_view(),
         ParameterSchema(
             fields=(ParameterFieldSpec("period", ParameterType.INT, default=14),)
         ).canonicalize({}),
-        {},
     )
     assert result.outputs[OutputId("value")].length == 1

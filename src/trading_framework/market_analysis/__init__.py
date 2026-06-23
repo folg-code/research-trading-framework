@@ -54,11 +54,19 @@ from trading_framework.market_analysis.protocols import (
     ComponentImplementation,
 )
 from trading_framework.market_analysis.registry import ComponentRegistry
+from trading_framework.market_analysis.storage import (
+    AnalysisResultStore,
+    AnalysisWorkspace,
+    AnalysisWorkspaceView,
+)
 
 __all__ = [
     "AnalysisContext",
     "AnalysisDataView",
     "AnalysisResult",
+    "AnalysisResultStore",
+    "AnalysisWorkspace",
+    "AnalysisWorkspaceView",
     "AvailabilityMetadata",
     "AvailabilityPolicy",
     "BatchAnalysisComponent",
