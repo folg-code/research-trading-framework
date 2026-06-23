@@ -91,6 +91,31 @@ def test_file_dataset_registry_rejects_non_working_metadata(tmp_path: Path) -> N
         registry.register(metadata)
 
 
+def test_file_dataset_registry_rejects_published_metadata_update(tmp_path: Path) -> None:
+    registry = FileDatasetRegistry(tmp_path)
+    dataset_ref = registry.allocate_ref(_dataset_id())
+    registry.register(_working_metadata(dataset_ref))
+    published = replace(
+        _working_metadata(dataset_ref),
+        lifecycle_status=DatasetLifecycleState.PUBLISHED,
+    )
+    registry.update(
+        replace(
+            _working_metadata(dataset_ref),
+            lifecycle_status=DatasetLifecycleState.FINALIZED,
+        )
+    )
+    registry.update(published)
+
+    with pytest.raises(ValidationError, match="immutable"):
+        registry.update(
+            replace(
+                published,
+                checksum="changed",
+            )
+        )
+
+
 def test_file_dataset_registry_path_is_derived_from_identity(tmp_path: Path) -> None:
     registry = FileDatasetRegistry(tmp_path)
     dataset_ref = registry.allocate_ref(_dataset_id())
