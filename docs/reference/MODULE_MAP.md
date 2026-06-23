@@ -106,7 +106,7 @@ Deep reference: 📘 [modules/DATA_MODULE_UPDATED.md](modules/DATA_MODULE_UPDATE
 
 ## Market Analysis (Sprint 003) 🟡
 
-Engine scaffold through Wave 3. Vertical slice components, frame assembler and public facade are **not yet** implemented.
+Engine through Wave 4. Built-in vertical slice components, frame assembler and `run_analysis` facade are implemented. Wave 5 adds contract/integration tests and ADRs.
 
 Thin guide: [modules/MARKET_ANALYSIS_MODULE.md](modules/MARKET_ANALYSIS_MODULE.md)  
 Binding decisions (vision): [../vision/MARKET_ANALYSIS_WITH_DECISIONS.md](../vision/MARKET_ANALYSIS_WITH_DECISIONS.md)  
@@ -116,14 +116,12 @@ End-to-end flow (as implemented):
 
 ```text
 Published DatasetRef
-  → load_analysis_data_view (application)
-  → query_historical → AnalysisDataView
+  → run_analysis (application) or manual plan/execute
+  → load_analysis_data_view → AnalysisDataView
   → ComponentRegistry + DependencyPlanner → ExecutionPlan
-  → SequentialBatchExecutor
-  → AnalysisResultStore / AnalysisWorkspace
+  → SequentialBatchExecutor → AnalysisWorkspace
+  → optional AnalysisFrameAssembler → AnalysisFrame
 ```
-
-Not yet wired: `AnalysisFrameAssembler`, `run_analysis` facade, built-in TR/ATR/EMA components.
 
 ### `market_analysis/` 🟡
 
@@ -132,26 +130,26 @@ Not yet wired: `AnalysisFrameAssembler`, `run_analysis` facade, built-in TR/ATR/
 | `identity/` | ✅ | `ComponentId`, `ComputationIdentity`, versions |
 | `models/` | ✅ | Requests, results, outputs, lineage, parameters, context |
 | `protocols/` | ✅ | `BatchAnalysisComponent`, `ComponentImplementation` |
-| `registry/` | ✅ | `ComponentRegistry` |
+| `registry/` | ✅ | `ComponentRegistry`, `register_mvp_components` |
 | `planning/` | ✅ | `DependencyPlanner`, `ExecutionPlan`, cycle detection |
-| `data/` | ✅ | `AnalysisDataView` — read-only OHLCV columns (`float64` in view) |
-| `storage/` | ✅ | `AnalysisResultStore`, `AnalysisWorkspace`, `AnalysisWorkspaceView` |
-| `execution/` | ✅ | `SequentialBatchExecutor`, `ExecutionCache`, warmup helpers |
+| `data/` | ✅ | `AnalysisDataView` |
+| `storage/` | ✅ | `AnalysisResultStore`, `AnalysisWorkspace` |
+| `execution/` | ✅ | `SequentialBatchExecutor`, `ExecutionCache` |
+| `adapters/numpy/` | ✅ | Indicator kernels and result builder |
+| `components/` | ✅ | TR, ATR, volatility state, EMA |
+| `assembly/` | ✅ | `AnalysisFrameAssembler`, `AnalysisFrame` |
 | `errors.py` | ✅ | Analysis error hierarchy |
-| components (TR, ATR, EMA, …) | ⬜ | Wave 4 |
-| frame assembly | ⬜ | Wave 4 (`AnalysisFrameAssembler`) |
-| engine facade | ⬜ | Wave 4 |
 
-**Talks to:** `market` (`DatasetRef` indirectly via application), `time`, `core`. Does **not** import pandas in public API.
+**Talks to:** `market` (via application), `time`, `core`. NumPy in adapters only.
 
-### `application/market_analysis/` 🟡
+### `application/market_analysis/` ✅
 
 | | |
 |---|---|
-| **Responsibility** | Bridge published datasets into analysis input |
-| **Talks to** | `application/market_data.query_historical`, `AnalysisDataView` |
-| **Key paths** | `load_data_view.py` |
-| **Entry point** | `load_analysis_data_view` |
+| **Responsibility** | Load market input and run end-to-end analysis |
+| **Talks to** | `application/market_data`, `market_analysis` |
+| **Key paths** | `load_data_view.py`, `run_analysis.py` |
+| **Entry points** | `load_analysis_data_view`, `run_analysis` |
 
 ---
 
