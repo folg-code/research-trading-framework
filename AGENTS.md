@@ -59,14 +59,20 @@ Report failed checks. Do not hide or disable them.
 
 ## Sprint Git Workflow
 
-- one integration branch per sprint, named by capability (for example `sprint/market-data-mvp`)
-- one descriptively named branch and one PR per sprint task into the sprint branch
-- branch, PR and commit names describe the work — not sprint task IDs such as `S002-T004`
+- one integration branch per sprint: `sprint/<sprint-slug>` (for example `sprint/market-data-mvp`)
+- one namespaced task branch per sprint task: `sprint/<sprint-slug>--<task-slug>`
+- branch, PR and commit names describe the work — not sprint task IDs
 - within a task: only logical commits; do not batch multiple tasks or split one task artificially by file
 - mandatory path: task branch → commit → push → PR → review / CI → squash merge → delete branch
 - the agent implements, pushes and opens the PR, then **stops before merge**
 
 See `.cursor/rules/sprint-git-workflow.mdc`.
+
+## Architecture Control
+
+Before cross-module or contract-changing work, read `.cursor/rules/ARCHITECTURE_CONTROL.md`.
+
+Every task PR must preserve domain ownership, dependency direction and the `src/` / `user_data/` boundary.
 
 ## Boundaries
 

@@ -1,165 +1,337 @@
 ---
+
 description: Sprint branch model, task-scoped PRs, and logical commit boundaries
 alwaysApply: true
----
+-----------------
 
 # Sprint Git Workflow
 
 ## Branch Model
 
-Each sprint uses one integration branch. Each sprint task uses one dedicated branch and one PR into that sprint branch.
+Each sprint uses one integration branch. Each sprint task uses one dedicated branch created from and namespaced under that sprint branch.
 
 ```text
 main
   └── sprint/market-data-mvp
-        └── instrument-model              # task branch → PR → sprint branch
-        └── market-bar-model              # next task
+        ├── sprint/market-data-mvp--instrument-model
+        ├── sprint/market-data-mvp--market-bar-model
+        └── sprint/market-data-mvp--ohlcv-normalization-contract
+```
+
+Git stores branch names as flat refs. A sprint branch `sprint/market-data-mvp` cannot coexist with `sprint/market-data-mvp/<task>` as a separate ref. Use `--` to namespace task branches under the sprint slug:
+
+```text
+sprint/<sprint-slug>--<task-slug>
 ```
 
 Rules:
 
 1. Do not implement multiple sprint tasks on one branch unless the user explicitly asks.
-2. Do not merge sprint work directly to `main` task-by-task; merge the sprint branch when the sprint is complete (unless the user directs otherwise).
-3. Before starting a task, checkout the sprint integration branch and create a descriptively named task branch from it.
+2. Do not merge sprint work directly to `main` task-by-task.
+3. Merge task branches into the active sprint integration branch.
+4. Merge the sprint integration branch into `main` only when the sprint is complete.
+5. Before starting a task:
+
+   * checkout the sprint integration branch,
+   * pull its latest state,
+   * create the task branch from it.
+6. A task branch must follow:
+
+```text
+sprint/<sprint-slug>--<task-slug>
+```
+
+Example:
+
+```text
+sprint/market-data-mvp--ohlcv-normalization-contract
+```
 
 ## Mandatory PR Pipeline
 
-From Wave 3 onward, every task must follow the full review path.
+Every new sprint task must follow the complete review path.
 
 Do **not** merge task branches locally into the sprint branch.
 
 ```text
-task branch
+sprint/<sprint-slug>--<task-slug>
   → logical commit(s)
   → push
   → PR to sprint/<sprint-slug>
   → review / CI
-  → squash merge          # performed by human or after explicit approval
+  → squash merge
   → delete task branch
 ```
 
-### Agent Stop Point
+After all sprint tasks are complete:
 
-When implementing sprint work, the agent may:
+```text
+sprint/<sprint-slug>
+  → final integration review / CI
+  → PR to main
+  → merge after approval
+```
 
-- create the task branch,
-- implement the task,
-- run local quality checks,
-- commit,
-- push the task branch,
-- open the PR against the sprint branch.
+## Agent Stop Point
 
-The agent must **stop before merge**.
+When implementing a sprint task, the agent may:
 
-Do not run `git merge` from a task branch into the sprint branch unless the user explicitly asks for a local merge exception.
+* checkout and update the sprint branch,
+* create the namespaced task branch,
+* implement the task,
+* run local quality checks,
+* create logical commits,
+* push the task branch,
+* open the PR against the sprint branch.
 
-After opening the PR, report the PR URL and wait for review, CI and squash merge.
+The agent must stop before merge.
+
+Do not:
+
+* run a local merge into the sprint branch,
+* squash merge the PR,
+* merge the sprint branch into `main`,
+
+unless the user explicitly requests it.
+
+After opening the PR, report:
+
+* task branch,
+* base branch,
+* commit or commits,
+* quality-check results,
+* PR URL.
+
+Then wait for review, CI and squash merge.
 
 ## Naming
 
-Name branches, PRs and commits by **what the change does**, not by sprint task IDs.
+Name branches, PRs and commits by **what the change does**, not by planning IDs.
 
-The name alone should explain the responsibility. Nobody should need the roadmap or sprint file to understand a branch, PR or commit.
+### Sprint branch
 
-Do **not** use:
+```text
+sprint/<sprint-slug>
+```
 
-- sprint task numbers (`S002-T004`, `T004`, `task/S002-T004`),
-- generic placeholders (`fix`, `update`, `changes`, `wave-1`).
+Example:
 
-Do use:
+```text
+sprint/market-data-mvp
+```
 
-- short, concrete capability or change names,
-- the same semantic intent across branch, PR title and commit subject where practical.
+### Task branch
+
+```text
+sprint/<sprint-slug>--<task-slug>
+```
 
 Examples:
 
-| Artifact | Bad | Good |
-|----------|-----|------|
-| Branch | `task/S002-T004-instrument` | `instrument-model` |
-| PR title | `S002-T004` | `Add Instrument domain model` |
-| Commit | `complete T004` | `feat: add Instrument domain model` |
-| Sprint branch | `sprint/002-market-data-mvp` | `sprint/market-data-mvp` |
+```text
+sprint/market-data-mvp--instrument-model
+sprint/market-data-mvp--dataset-lifecycle
+sprint/market-data-mvp--ohlcv-validation-contract
+```
 
-Task IDs may appear only in PR description, sprint docs or review notes — not in branch, PR or commit names.
+Do not use:
+
+```text
+instrument-model
+task/S002-T004
+S002-T004-instrument
+wave-3-validation
+```
+
+The task branch name must clearly identify:
+
+1. the owning sprint,
+2. the responsibility of the task.
+
+### PR and commit names
+
+PR titles and commit subjects describe the change itself, without repeating the sprint namespace.
+
+Examples:
+
+```text
+PR: Add OHLCV normalization contract
+Commit: feat: add OHLCV normalization contract
+```
+
+Do not use:
+
+```text
+PR: S002-T004
+Commit: complete Wave 3 task
+```
+
+Task IDs may appear in:
+
+* PR descriptions,
+* sprint documentation,
+* review notes.
+
+They must not appear in branch names, PR titles or commit subjects.
 
 ## Pull Requests
 
-One task = one PR into the sprint branch.
+One task equals one PR into the sprint integration branch.
 
-- base branch: `sprint/<sprint-slug>`
-- compare branch: descriptively named task branch
-- merge method: **squash merge** after review and green CI
+For a task branch:
 
-PR title and description should state the capability or fix in plain language.
+```text
+sprint/market-data-mvp--ohlcv-normalization-contract
+```
 
-A PR should contain:
+the PR configuration must be:
 
-- implementation for that task only,
-- tests required by that task,
-- documentation updates caused by that task.
+```text
+base:    sprint/market-data-mvp
+compare: sprint/market-data-mvp--ohlcv-normalization-contract
+```
 
-Do not bundle multiple unrelated tasks into one PR.
+Merge method:
+
+```text
+squash merge
+```
+
+A task PR should contain only:
+
+* implementation required by the task,
+* tests required by the task,
+* documentation changes directly caused by the task.
+
+Do not bundle:
+
+* multiple unrelated tasks,
+* an entire wave,
+* the whole sprint,
+
+unless the user explicitly requests a combined PR.
 
 ## Commits
 
-Inside a task branch, make only **logical** commits.
+Inside a task branch, create only logical commits.
 
-Commit subjects should describe the change, not the planning artifact:
+A commit represents one coherent change that makes sense in review.
 
-- `feat: add Instrument domain model`
-- `test: cover bar timestamp normalization`
+A commit may modify multiple files.
 
-Not:
+Do not split work artificially into:
 
-- `S002-T003 bar timestamps`
-- `finish task 4`
+* one commit per file,
+* one commit per editing action,
+* separate lint or formatting commits,
+* implementation and directly related tests without a concrete reason.
 
-A commit should represent one coherent change that would make sense in review on its own.
+Do not combine unrelated logical changes.
 
-Do **not** artificially split work by file or mechanical step when it belongs to one logical change.
+The normal task shape is:
 
-Do **not** combine unrelated logical changes into one large commit.
+```text
+one task
+→ one namespaced task branch
+→ one PR
+→ one to three logical commits
+→ one squash commit on the sprint branch
+```
+
+A small coherent task may use one commit containing:
+
+* implementation,
+* tests,
+* directly related documentation.
 
 ## Default Execution Shape
 
 When the user asks to implement sprint work:
 
 ```text
-1. checkout sprint integration branch and pull latest
-2. for each requested task:
-   a. create descriptively named task branch from sprint branch
-   b. implement only that task
-   c. make 1–3 logical commits with descriptive messages
-   d. push task branch
-   e. open PR to sprint branch with descriptive title
-   f. stop — do not merge
-3. stop after the requested task(s); do not continue to the next task unless asked
+1. checkout sprint/<sprint-slug>
+2. pull the latest sprint branch
+3. create sprint/<sprint-slug>--<task-slug>
+4. implement only the requested task
+5. run all required checks
+6. create 1–3 logical commits
+7. push the task branch
+8. open a PR:
+   base: sprint/<sprint-slug>
+   compare: sprint/<sprint-slug>--<task-slug>
+9. report the PR URL
+10. stop before merge
 ```
+
+Do not start another task unless:
+
+* the user explicitly requested multiple tasks, and
+* starting it is safe based on task dependencies.
+
+For dependent tasks, wait until the required PR has been squash-merged into the sprint branch.
 
 ## Examples
 
 ### Good
 
-- Branch `instrument-model`, push, PR `Add Instrument domain model`, wait for squash merge.
-- Branch `market-bar-model`, separate PR for `MarketBar`.
+```text
+Sprint branch:
+sprint/market-data-mvp
+
+Task branch:
+sprint/market-data-mvp--instrument-model
+
+PR:
+base: sprint/market-data-mvp
+compare: sprint/market-data-mvp--instrument-model
+title: Add Instrument domain model
+
+Commit:
+feat: add Instrument domain model
+```
 
 ### Bad
 
-- Local `git merge instrument-model` into `sprint/market-data-mvp` and delete the task branch.
-- Branch `task/S002-T004-instrument` or PR titled `S002-T004`.
-- One PR covering multiple unrelated tasks.
-- Agent merges its own PR without review unless the user explicitly requests it.
+```text
+Branch:
+instrument-model
+
+Branch:
+task/S002-T004-instrument
+
+PR base:
+main
+
+Commit:
+complete task 4
+```
+
+Also prohibited:
+
+* locally merging the task branch into the sprint branch,
+* merging task PRs directly into `main`,
+* creating multiple task branches without opening the preceding PR,
+* continuing after PR creation is blocked,
+* merging the agent's own PR without explicit approval.
 
 ## When the User Asks to Commit
 
-Commit only the work for the current task branch.
+Commit only work belonging to the current namespaced task branch.
+
+Before committing:
+
+1. inspect `git status`,
+2. inspect the complete diff,
+3. verify that every changed file belongs to the task,
+4. separate unrelated changes,
+5. exclude generated, temporary and local-only files unless required.
 
 If the working tree contains changes from multiple tasks, stop and split them before committing.
 
 ## Historical Exception
 
-Earlier sprint work may exist as local fast-forward merges with clear per-task commits.
+Earlier task branches may use flat names or may have been merged locally using fast-forward merges.
 
 Do not rewrite that history or recreate PRs retroactively.
 
-Apply the mandatory PR pipeline to new work only.
+Apply the namespaced branch model and mandatory PR pipeline only to new work.
