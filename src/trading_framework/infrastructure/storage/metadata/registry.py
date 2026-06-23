@@ -12,6 +12,7 @@ from trading_framework.market.datasets import (
     DatasetRef,
     DatasetVersionAllocator,
     InMemoryDatasetVersionAllocator,
+    assert_published_is_immutable,
 )
 
 
@@ -54,3 +55,17 @@ class FileDatasetRegistry:
             raise ValidationError(msg)
         payload = json.loads(path.read_text(encoding="utf-8"))
         return DatasetMetadata.from_dict(payload)
+
+    def update(self, metadata: DatasetMetadata) -> None:
+        """Persist an updated metadata record for an existing dataset version."""
+        existing = self.get(metadata.dataset_ref)
+        assert_published_is_immutable(existing.lifecycle_status)
+        if metadata.dataset_ref != existing.dataset_ref:
+            msg = "dataset_ref mismatch during metadata update"
+            raise ValidationError(msg)
+
+        path = dataset_metadata_path(self._root, metadata.dataset_ref)
+        path.write_text(
+            json.dumps(metadata.to_dict(), indent=2),
+            encoding="utf-8",
+        )
