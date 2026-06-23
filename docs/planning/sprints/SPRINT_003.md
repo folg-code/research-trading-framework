@@ -194,14 +194,14 @@ Prefer the smallest dependency set confirmed by the Wave 0 spike.
 | S003-T002 | Technical spike: backend and workspace benchmark | DONE | S003-T001 |
 | S003-T003 | Spike report: AnalysisDataView and internal representation | DONE | S003-T002 |
 | S003-T004 | Wave 0 gate: Definition of Ready sign-off | DONE | S003-T003 |
-| S003-T005 | Component and implementation identity models | TODO | S003-T004 |
-| S003-T006 | ComponentKind, Causality, HistoryRequirement | TODO | S003-T004 |
-| S003-T007 | Parameter schema and canonicalization (PRB-002 MVP) | TODO | S003-T005 |
-| S003-T008 | ComponentRequest contract | TODO | S003-T007 |
-| S003-T009 | ComputationIdentity contract | TODO | S003-T005, S003-T008 |
-| S003-T010 | AnalysisContext contract | TODO | S003-T008 |
-| S003-T011 | AnalysisResult, OutputId, OutputRef, OutputSchema (PRB-005 MVP) | TODO | S003-T009 |
-| S003-T012 | Lineage and availability metadata models | TODO | S003-T011 |
+| S003-T005 | Component and implementation identity models | DONE | S003-T004 |
+| S003-T006 | ComponentKind, Causality, HistoryRequirement | DONE | S003-T004 |
+| S003-T007 | Parameter schema and canonicalization (PRB-002 MVP) | DONE | S003-T005 |
+| S003-T008 | ComponentRequest contract | DONE | S003-T007 |
+| S003-T009 | ComputationIdentity contract | DONE | S003-T005, S003-T008 |
+| S003-T010 | AnalysisContext contract | DONE | S003-T008 |
+| S003-T011 | AnalysisResult, OutputId, OutputRef, OutputSchema (PRB-005 MVP) | DONE | S003-T009 |
+| S003-T012 | Lineage and availability metadata models | DONE | S003-T011 |
 | S003-T013 | Component and implementation protocols | TODO | S003-T006, S003-T011 |
 | S003-T014 | Component registry and resolution policy | TODO | S003-T013 |
 | S003-T015 | Data and component dependency declarations | TODO | S003-T013 |
