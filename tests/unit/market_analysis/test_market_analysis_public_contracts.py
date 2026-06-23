@@ -21,3 +21,12 @@ def test_market_analysis_exports_classification_contracts() -> None:
         "WarmUpMetadata",
     ):
         assert hasattr(market_analysis, name)
+
+
+def test_market_analysis_exports_parameter_contracts() -> None:
+    for name in (
+        "ParameterSchema",
+        "CanonicalParameters",
+        "ComponentRequest",
+    ):
+        assert hasattr(market_analysis, name)
