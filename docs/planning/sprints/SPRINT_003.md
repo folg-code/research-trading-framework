@@ -341,7 +341,7 @@ Update this file: Wave 0 tasks marked DONE; implementation waves unblocked.
 
 - [x] Definition of Ready checklist complete
 - [x] Sprint branch `sprint/market-analysis-mvp` created from `main`
-- [x] First implementation PR scope is Wave 1 identity contracts (T005–T012)
+- [x] First implementation work may start (outcome-scoped PRs; see PR guidance below)
 
 #### Definition of Ready — signed 2026-06-23
 
@@ -1289,24 +1289,53 @@ Wave 6 — ADRs and closure
 
 ---
 
-## Recommended PR Pipeline
+## PR Guidance (Sprint 003)
 
-Map tasks to reviewable PRs (one task ≈ one PR; combine only if tightly coupled):
+Sprint tasks (T001–T041) track **what** must exist when the sprint is done.
 
-| PR | Tasks | Title (suggested) |
-|----|-------|-------------------|
-| 1 | T001, T034 (proposed ADRs draft) | Market Analysis ADR draft and closure checklist |
-| 2 | T002, T003 | Technical spike and data/workspace representation decision |
-| 3 | T005–T012 | Identity and core analysis contracts |
-| 4 | T013–T018 | Registry and dependency planner |
-| 5 | T019, T020, T037, T038, T021–T024 | Data view, result store, workspace, executor |
-| 6 | T025–T028, T040 | Vertical slice and EMA components |
-| 7 | T039, T029 | AnalysisFrame assembler and engine facade |
-| 8 | T030–T033, T041 | Contract, integration and workspace tests |
-| 9 | T034–T036 | ADR acceptance, docs and sprint review |
+**PR boundaries are chosen by outcome, size and reviewability** — see `.cursor/rules/sprint-git-workflow.mdc`.
 
-Base branch: `sprint/market-analysis-mvp`.  
-Task branches: `sprint/market-analysis-mvp--<task-slug>`.
+### Sprint integration branch
+
+```text
+sprint/market-analysis-mvp
+```
+
+### Illustrative working branches
+
+These are **outcome guides**, not a mandatory task-to-branch map:
+
+| Branch | Review question |
+|--------|-----------------|
+| `docs/market-analysis-architecture` | Are architecture decisions and ADRs accepted? |
+| `feat/market-analysis-identity` | Do component and implementation identity types exist? |
+| `feat/market-analysis-parameters` | Are parameter schemas and `ComponentRequest` stable? |
+| `feat/market-analysis-result-contract` | Do `AnalysisResult`, outputs and lineage contracts exist? |
+| `feat/market-analysis-registry` | Can components be registered and resolved? |
+| `feat/market-analysis-dag` | Can the planner build a DAG and detect cycles? |
+| `feat/market-analysis-executor` | Does sequential execution with cache work? |
+| `feat/market-analysis-workspace` | Do result store, workspace and frame assembly work? |
+| `feat/market-analysis-vertical-slice` | Does True Range → ATR → Volatility State run end-to-end? |
+
+Split further when a PR exceeds ~600–800 meaningful lines.
+
+### PR flow
+
+```text
+feat/* or docs/*
+    ↓ PR (squash)
+sprint/market-analysis-mvp
+    ↓ final sprint PR
+main
+```
+
+### Known deviation
+
+PR `sprint/market-analysis-mvp--identity-core-contracts` (~1 200 lines, T005–T012 bundled) predates this policy.
+
+**Do not merge as-is.** Split into outcome-scoped `feat/market-analysis-*` PRs or close and replace.
+
+Wave 0 branch `sprint/market-analysis-mvp--wave-0-closure-spike` is a historical exception (merged in PR #25).
 
 ---
 
