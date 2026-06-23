@@ -1,5 +1,6 @@
 """Market Analysis domain package."""
 
+from trading_framework.market_analysis.data import AnalysisDataView, DataColumn
 from trading_framework.market_analysis.identity import (
     ComponentId,
     ComponentVersion,
@@ -56,6 +57,7 @@ from trading_framework.market_analysis.registry import ComponentRegistry
 
 __all__ = [
     "AnalysisContext",
+    "AnalysisDataView",
     "AnalysisResult",
     "AvailabilityMetadata",
     "AvailabilityPolicy",
@@ -72,6 +74,7 @@ __all__ = [
     "ComponentVersion",
     "ComputationIdentity",
     "CyclicDependencyError",
+    "DataColumn",
     "DataFieldDependency",
     "DependencyPlanner",
     "ExecutionPlan",
