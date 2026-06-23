@@ -4,12 +4,12 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 
 from trading_framework.core.exceptions import ValidationError
+from trading_framework.market_analysis.errors import CyclicDependencyError
 from trading_framework.market_analysis.identity.component import ComponentId, ImplementationId
 from trading_framework.market_analysis.identity.computation import ComputationIdentity
 from trading_framework.market_analysis.models.dependencies import ComponentDependency
 from trading_framework.market_analysis.models.request import ComponentRequest
 from trading_framework.market_analysis.planning.context import PlanningContext
-from trading_framework.market_analysis.planning.errors import CyclicDependencyError
 from trading_framework.market_analysis.planning.plan import ExecutionPlan, PlannedNode
 from trading_framework.market_analysis.registry.registry import ComponentRegistry
 

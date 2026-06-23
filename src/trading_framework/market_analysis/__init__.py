@@ -1,6 +1,24 @@
 """Market Analysis domain package."""
 
 from trading_framework.market_analysis.data import AnalysisDataView, DataColumn
+from trading_framework.market_analysis.errors import (
+    CacheError,
+    ComponentValidationError,
+    CyclicDependencyError,
+    ImplementationExecutionError,
+    MarketAnalysisError,
+    OutputValidationError,
+    PlanningError,
+)
+from trading_framework.market_analysis.execution import (
+    ExecutionCache,
+    SequentialBatchExecutor,
+    validate_analysis_result,
+)
+from trading_framework.market_analysis.execution.warmup import (
+    extend_computation_range,
+    max_history_requirement,
+)
 from trading_framework.market_analysis.identity import (
     ComponentId,
     ComponentVersion,
@@ -42,7 +60,6 @@ from trading_framework.market_analysis.models.result import (
 )
 from trading_framework.market_analysis.models.time_range import TimeRange
 from trading_framework.market_analysis.planning import (
-    CyclicDependencyError,
     DependencyPlanner,
     ExecutionPlan,
     PlannedNode,
@@ -70,6 +87,7 @@ __all__ = [
     "AvailabilityMetadata",
     "AvailabilityPolicy",
     "BatchAnalysisComponent",
+    "CacheError",
     "CanonicalParameters",
     "Causality",
     "ComponentDependency",
@@ -79,30 +97,40 @@ __all__ = [
     "ComponentOutputRef",
     "ComponentRegistry",
     "ComponentRequest",
+    "ComponentValidationError",
     "ComponentVersion",
     "ComputationIdentity",
     "CyclicDependencyError",
     "DataColumn",
     "DataFieldDependency",
     "DependencyPlanner",
+    "ExecutionCache",
     "ExecutionPlan",
     "HistoryRequirement",
+    "ImplementationExecutionError",
     "ImplementationId",
     "ImplementationVersion",
     "Lineage",
+    "MarketAnalysisError",
     "OutputFieldSpec",
     "OutputGroup",
     "OutputId",
     "OutputRef",
     "OutputSchema",
     "OutputSeries",
+    "OutputValidationError",
     "ParameterFieldSpec",
     "ParameterSchema",
     "ParameterType",
     "PlannedNode",
     "PlanningContext",
+    "PlanningError",
     "PlanningRequest",
+    "SequentialBatchExecutor",
     "TimeRange",
     "ValidityMetadata",
     "WarmUpMetadata",
+    "extend_computation_range",
+    "max_history_requirement",
+    "validate_analysis_result",
 ]
