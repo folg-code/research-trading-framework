@@ -18,7 +18,6 @@ from trading_framework.market.validation import ValidationSeverity
 from trading_framework.time.clocks.fixed import FixedClock
 from trading_framework.time.models.timeframe import Timeframe
 
-_FIXTURES_DIR = Path(__file__).resolve().parent.parent / "fixtures" / "csv"
 _FIXED_NOW = datetime(2024, 6, 1, 12, 0, tzinfo=UTC)
 
 
@@ -51,12 +50,15 @@ def _request(path: Path) -> ImportExternalDatasetRequest:
     )
 
 
-def test_import_external_dataset_registers_working_version(tmp_path: Path) -> None:
+def test_import_external_dataset_registers_working_version(
+    tmp_path: Path,
+    market_data_fixtures_dir: Path,
+) -> None:
     storage_root = tmp_path / "data"
     registry = FileDatasetRegistry(storage_root)
     repository = ParquetDatasetRepository(storage_root)
     result = import_external_dataset(
-        _request(_FIXTURES_DIR / "sample_ohlcv.csv"),
+        _request(market_data_fixtures_dir / "sample_ohlcv.csv"),
         storage_root=storage_root,
         registry=registry,
         repository=repository,
@@ -81,12 +83,12 @@ def test_import_external_dataset_registers_working_version(tmp_path: Path) -> No
 
 def test_import_external_dataset_marks_failed_validation_without_writing_bars(
     tmp_path: Path,
+    market_data_fixtures_dir: Path,
 ) -> None:
     storage_root = tmp_path / "data"
     registry = FileDatasetRegistry(storage_root)
     repository = ParquetDatasetRepository(storage_root)
-    empty_csv = tmp_path / "empty.csv"
-    empty_csv.write_text("timestamp,open,high,low,close,volume\n", encoding="utf-8")
+    empty_csv = market_data_fixtures_dir / "empty_ohlcv.csv"
 
     result = import_external_dataset(
         _request(empty_csv),

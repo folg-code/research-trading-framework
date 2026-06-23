@@ -9,8 +9,6 @@ from trading_framework.market.normalization import OhlcvColumnMapping, OhlcvImpo
 from trading_framework.market.temporal import BarTimestampSemantics
 from trading_framework.time.models.timeframe import Timeframe
 
-_FIXTURES_DIR = Path(__file__).resolve().parent.parent / "fixtures" / "csv"
-
 _CONFIG = OhlcvImportConfig(
     column_mapping=OhlcvColumnMapping(
         timestamp="timestamp",
@@ -26,16 +24,20 @@ _CONFIG = OhlcvImportConfig(
 )
 
 
-def test_csv_ohlcv_importer_streams_fixture_rows() -> None:
-    rows = list(CsvOhlcvImporter().iter_rows(_FIXTURES_DIR / "sample_ohlcv.csv", _CONFIG))
+def test_csv_ohlcv_importer_streams_fixture_rows(market_data_fixtures_dir: Path) -> None:
+    fixture = market_data_fixtures_dir / "sample_ohlcv.csv"
+    rows = list(CsvOhlcvImporter().iter_rows(fixture, _CONFIG))
 
     assert len(rows) == 2
     assert rows[0].close == Decimal("103")
     assert rows[1].volume == 1100
 
 
-def test_csv_ohlcv_importer_integrates_inspector_and_normalizer() -> None:
-    rows = list(CsvOhlcvImporter().iter_rows(_FIXTURES_DIR / "sample_ohlcv.csv", _CONFIG))
+def test_csv_ohlcv_importer_integrates_inspector_and_normalizer(
+    market_data_fixtures_dir: Path,
+) -> None:
+    fixture = market_data_fixtures_dir / "sample_ohlcv.csv"
+    rows = list(CsvOhlcvImporter().iter_rows(fixture, _CONFIG))
 
     assert rows[0].observed_at.tzinfo is not None
     assert rows[0].available_at > rows[0].observed_at
