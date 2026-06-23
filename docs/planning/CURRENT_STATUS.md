@@ -26,12 +26,12 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 ## 2. Status Metadata
 
 ```text
-Status Date: 2026-06-19
+Status Date: 2026-06-23
 Current Phase: Phase 2 — Market Data MVP
 Current Milestone: Sprint 002 — Market Data MVP
-Implementation Status: Sprint 002 Wave 1 complete
+Implementation Status: Sprint 002 complete on integration branch
 Overall Status: IN_PROGRESS
-Active Sprint: SPRINT_002 (IN_PROGRESS)
+Active Sprint: SPRINT_002 (COMPLETED — pending merge to main)
 Last Completed Sprint: SPRINT_001 (COMPLETED)
 ```
 
@@ -77,6 +77,19 @@ Completed in Sprint 001:
 - root `AGENTS.md` and `README.md`,
 - ADR-0001, ADR-0002, ADR-0003.
 
+### Phase 2 — Market Data MVP (Sprint 002)
+
+Completed on `sprint/market-data-mvp`:
+
+- MVP numeric types (`Price`, `Volume`) and `MarketBar`,
+- dataset identity (`DatasetId`, `DatasetRef`) and metadata,
+- dataset lifecycle `WORKING → FINALIZED → PUBLISHED`,
+- CSV inspection, normalization, validation and import infrastructure,
+- Parquet writer, dataset registry and repository,
+- application workflows: import, finalize, publish, query,
+- ADR-0007, ADR-0008,
+- unit, contract and integration test coverage for the CSV vertical slice.
+
 ### Architectural Foundations
 
 Conceptual architecture for all major domains remains as previously defined in `docs/architecture/`.
@@ -95,6 +108,8 @@ docs/planning/
 docs/adr/ADR-0001-modular-monolith.md
 docs/adr/ADR-0002-separate-src-and-user-data.md
 docs/adr/ADR-0003-utc-internal-time.md
+docs/adr/ADR-0007-dataset-lifecycle-and-publication.md
+docs/adr/ADR-0008-parquet-historical-storage.md
 docs/planning/sprints/SPRINT_001.md
 docs/planning/sprints/SPRINT_002.md
 ```
@@ -105,18 +120,17 @@ docs/planning/sprints/SPRINT_002.md
 
 ### Sprint 002 — Market Data MVP
 
-**Status:** IN_PROGRESS  
+**Status:** COMPLETED on `sprint/market-data-mvp` (integration merge to `main` pending)  
 **Plan:** `docs/planning/sprints/SPRINT_002.md`  
-**Tasks:** 8 / 26 merged; 4 Wave 3 PRs open
+**Tasks:** 26 / 26 complete on sprint branch
 
-Wave 3 contract PRs (awaiting review / squash merge into `sprint/market-data-mvp`):
+Wave 6 verification PRs may still be open at review time:
 
-- `file-inspection-contract`
-- `ohlcv-normalization-contract`
-- `ohlcv-validation-contract`
-- `dataset-repository-contract`
+- `sprint/market-data-mvp--market-data-fixtures`
+- `sprint/market-data-mvp--csv-import-integration-test`
+- `sprint/market-data-mvp--dataset-and-storage-adrs`
 
-Next after merge: Wave 4 infrastructure implementations.
+Next: sprint integration review and PR from `sprint/market-data-mvp` to `main`.
 
 ---
 
@@ -124,7 +138,7 @@ Next after merge: Wave 4 infrastructure implementations.
 
 Nothing is technically blocked.
 
-Phase 2 should define Sprint 002 before implementation begins.
+Sprint 002 implementation is complete on the integration branch; remaining work is review and merge to `main`.
 
 ---
 
@@ -132,8 +146,8 @@ Phase 2 should define Sprint 002 before implementation begins.
 
 Unchanged high-priority items from `PROBLEM_REGISTRY.md`:
 
-1. Canonical numeric types for price, volume and quantity (PRB-010).
-2. Dataset identity algorithm (PRB-001).
+1. Canonical numeric types for price, volume and quantity (PRB-010) — **MVP mitigated** for OHLCV CSV slice.
+2. Dataset identity algorithm (PRB-001) — **MVP mitigated** for Sprint 002.
 3. Component and model fingerprints (PRB-002, PRB-003).
 4. Public `user_data/` discovery contract (PRB-004).
 5. Market Analysis result storage schemas (PRB-005).
@@ -153,7 +167,9 @@ PRB-015 (import boundaries) and PRB-016 (ADR materialization) are partially miti
 | ADR-0001 Modular Monolith | ACCEPTED |
 | ADR-0002 Separate src and user_data | ACCEPTED |
 | ADR-0003 UTC Internal Time | ACCEPTED |
-| ADR-0004 – ADR-0010 | PLANNED |
+| ADR-0007 Dataset Lifecycle and Publication | ACCEPTED |
+| ADR-0008 Parquet Historical Storage | ACCEPTED |
+| ADR-0004 – ADR-0006, ADR-0009 – ADR-0010 | PLANNED |
 
 ---
 
@@ -168,13 +184,13 @@ PRB-015 (import boundaries) and PRB-016 (ADR materialization) are partially miti
 ## 11. Next Planned Capability
 
 ```text
-Phase 2 — Market Data MVP
+Sprint integration: merge sprint/market-data-mvp → main
 ```
 
-First flow:
+Then choose the next Phase 2 increment:
 
 ```text
-External OHLCV File → Inspect → Normalize → Validate → Store → Register → Query
+missing-range calculator, historical synchronization policy, or Parquet import
 ```
 
 ---
@@ -184,7 +200,7 @@ External OHLCV File → Inspect → Normalize → Validate → Store → Registe
 | Sprint | Goal | Status | Progress |
 |--------|------|--------|----------|
 | 001 | Repository foundation | COMPLETED | 22 / 22 tasks |
-| 002 | Market Data MVP | IN_PROGRESS | 8 / 26 tasks |
+| 002 | Market Data MVP | COMPLETED (branch) | 26 / 26 tasks |
 
 ---
 
