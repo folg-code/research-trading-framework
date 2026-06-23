@@ -15,8 +15,8 @@ Wave 1 contract implementation after the technical spike (S003-T002/T003).
 
 Sources:
 
-- `docs/architecture/MARKET_ANALYSIS_WITH_DECISIONS.md` (D-001–D-036)
-- `docs/architecture/ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md` (§29–§33, invariants §32)
+- `docs/vision/MARKET_ANALYSIS_WITH_DECISIONS.md` (D-001–D-036)
+- `docs/vision/ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md` (§29–§33, invariants §32)
 
 Where the documents conflict on workspace or derived-data topics, the workspace document
 takes precedence.

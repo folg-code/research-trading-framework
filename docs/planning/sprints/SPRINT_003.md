@@ -5,15 +5,15 @@
 ```text
 Sprint: 003
 Phase: Phase 3 — Market Analysis Engine MVP
-Status: IN_PROGRESS (Wave 0 COMPLETE)
+Status: IN_PROGRESS (Waves 0–3 COMPLETE; Wave 4 next)
 Planned Start: 2026-06-23
 Planned End: TBD
 Sprint Goal Owner: Project Maintainer
 Depends On: SPRINT_002 (COMPLETED)
 Sprint Branch: sprint/market-analysis-mvp
 Architecture Sources:
-  - docs/architecture/MARKET_ANALYSIS_WITH_DECISIONS.md (engine, identity, DAG, cache)
-  - docs/architecture/ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md (workspace, result store, frames)
+  - docs/vision/MARKET_ANALYSIS_WITH_DECISIONS.md (engine, identity, DAG, cache)
+  - docs/vision/ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md (workspace, result store, frames)
 Precedence: where documents conflict on workspace or derived-data topics, the workspace
 document is authoritative (newer).
 ```
@@ -153,9 +153,9 @@ Out of scope:
 
 ```text
 Sprint 002 — published DatasetRef, query_historical, MarketBar (complete)
-docs/architecture/MARKET_ANALYSIS_WITH_DECISIONS.md
-docs/architecture/ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md
-docs/architecture/MULTITIMEFRAME_MARKET_MODEL_ARCHITECTURE_UPDATED.md (directional)
+docs/vision/MARKET_ANALYSIS_WITH_DECISIONS.md
+docs/vision/ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md
+docs/vision/MULTITIMEFRAME_MARKET_MODEL_ARCHITECTURE_UPDATED.md (directional)
 docs/agents/AGENTS_MULTITIMEFRAME_MARKET_MODEL_UPDATED (1).md
 ```
 
@@ -202,20 +202,20 @@ Prefer the smallest dependency set confirmed by the Wave 0 spike.
 | S003-T010 | AnalysisContext contract | DONE | S003-T008 |
 | S003-T011 | AnalysisResult, OutputId, OutputRef, OutputSchema (PRB-005 MVP) | DONE | S003-T009 |
 | S003-T012 | Lineage and availability metadata models | DONE | S003-T011 |
-| S003-T013 | Component and implementation protocols | TODO | S003-T006, S003-T011 |
-| S003-T014 | Component registry and resolution policy | TODO | S003-T013 |
-| S003-T015 | Data and component dependency declarations | TODO | S003-T013 |
-| S003-T016 | Request normalization and dependency expansion | TODO | S003-T014, S003-T015 |
-| S003-T017 | Cycle detection | TODO | S003-T016 |
-| S003-T018 | Topological sort and execution plan | TODO | S003-T017 |
-| S003-T019 | AnalysisDataView contract | TODO | S003-T003, S003-T004 |
-| S003-T020 | Data Module bridge: DatasetRef to AnalysisDataView | TODO | S003-T019 |
-| S003-T037 | AnalysisResultStore | TODO | S003-T011, S003-T018 |
-| S003-T038 | AnalysisWorkspace (executor-controlled registration) | TODO | S003-T037 |
-| S003-T021 | Sequential batch executor | TODO | S003-T018, S003-T020, S003-T038 |
-| S003-T022 | Execution cache (exact-match, in-plan) | TODO | S003-T021, S003-T037 |
-| S003-T023 | Warm-up range extension and output validation | TODO | S003-T021 |
-| S003-T024 | Analysis error hierarchy | TODO | S003-T021 |
+| S003-T013 | Component and implementation protocols | DONE | S003-T006, S003-T011 |
+| S003-T014 | Component registry and resolution policy | DONE | S003-T013 |
+| S003-T015 | Data and component dependency declarations | DONE | S003-T013 |
+| S003-T016 | Request normalization and dependency expansion | DONE | S003-T014, S003-T015 |
+| S003-T017 | Cycle detection | DONE | S003-T016 |
+| S003-T018 | Topological sort and execution plan | DONE | S003-T017 |
+| S003-T019 | AnalysisDataView contract | DONE | S003-T003, S003-T004 |
+| S003-T020 | Data Module bridge: DatasetRef to AnalysisDataView | DONE | S003-T019 |
+| S003-T037 | AnalysisResultStore | DONE | S003-T011, S003-T018 |
+| S003-T038 | AnalysisWorkspace (executor-controlled registration) | DONE | S003-T037 |
+| S003-T021 | Sequential batch executor | DONE | S003-T018, S003-T020, S003-T038 |
+| S003-T022 | Execution cache (exact-match, in-plan) | DONE | S003-T021, S003-T037 |
+| S003-T023 | Warm-up range extension and output validation | DONE | S003-T021 |
+| S003-T024 | Analysis error hierarchy | DONE | S003-T021 |
 | S003-T025 | True Range Feature component | TODO | S003-T014, S003-T020 |
 | S003-T026 | ATR Feature and NumPy adapter | TODO | S003-T025 |
 | S003-T027 | Optional TA-Lib adapter extra | TODO | S003-T026 |
@@ -1229,7 +1229,7 @@ Update `docs/adr/README.md`.
 
 Update PRB-002, PRB-005 with MVP resolution notes.
 
-Align `docs/architecture/` module sections if public contracts changed.
+Align `docs/reference/` and `docs/vision/` if public contracts changed.
 
 #### Acceptance Criteria
 

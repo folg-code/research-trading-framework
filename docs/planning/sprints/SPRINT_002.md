@@ -92,7 +92,7 @@ Out of scope:
 
 ```text
 Sprint 001 — repository foundation (complete)
-docs/architecture/DATA_MODULE_UPDATED.md
+docs/reference/modules/DATA_MODULE_UPDATED.md
 docs/agents/AGENTS_UPDATED.md
 ```
 
@@ -185,7 +185,7 @@ Document the decision in task output and reference from `MarketBar`.
 
 #### Architecture References
 
-- `docs/architecture/DATA_MODULE_UPDATED.md` §6
+- `docs/reference/modules/DATA_MODULE_UPDATED.md` §6
 - `docs/planning/PROBLEM_REGISTRY.md` — PRB-010
 
 #### Acceptance Criteria
@@ -230,7 +230,7 @@ Implement version allocation in registry.
 
 #### Architecture References
 
-- `docs/architecture/DATA_MODULE_UPDATED.md` §7.1
+- `docs/reference/modules/DATA_MODULE_UPDATED.md` §7.1
 - `docs/planning/PROBLEM_REGISTRY.md` — PRB-001
 
 #### Acceptance Criteria
@@ -266,7 +266,7 @@ Record convention in dataset metadata where relevant.
 
 #### Architecture References
 
-- `docs/architecture/ARCHITECTURE_TECHNICAL_UPDATED.md` §2.9
+- `docs/vision/ARCHITECTURE_TECHNICAL_UPDATED.md` §2.9
 - `docs/planning/PROBLEM_REGISTRY.md` — PRB-008
 
 #### Acceptance Criteria

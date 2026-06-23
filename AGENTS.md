@@ -7,13 +7,22 @@ Read this file before modifying the repository.
 1. `AGENTS.md` (this file)
 2. `docs/planning/CURRENT_STATUS.md`
 3. `docs/planning/ROADMAP.md`
-4. `docs/architecture/ARCHITECTURE_FOUNDATIONS_UPDATED.md`
-5. `docs/architecture/ARCHITECTURE_TECHNICAL_UPDATED.md`
-6. relevant module documentation under `docs/architecture/` and `docs/agents/`
+4. `docs/vision/ARCHITECTURE_FOUNDATIONS_UPDATED.md`
+5. `docs/vision/ARCHITECTURE_TECHNICAL_UPDATED.md`
+6. relevant docs under `docs/reference/` and `docs/agents/`
 7. relevant ADRs under `docs/adr/`
 8. existing contracts and tests in `src/` and `tests/`
 
 Do not implement from an issue description alone when repository contracts already exist.
+
+## Documentation
+
+Single index: **`docs/README.md`** (taxonomy, paths, folder layout).
+
+**Humans:** follow reading paths in `docs/README.md`.  
+**Agents:** required reading order below + deep references as needed.
+
+After each merged wave: update `docs/reference/MODULE_MAP.md` and `docs/reference/DATA_WORKFLOWS.md` if paths changed. After contract changes: update `docs/reference/` and `docs/vision/` as needed in the same PR.
 
 ## Architecture Rules
 

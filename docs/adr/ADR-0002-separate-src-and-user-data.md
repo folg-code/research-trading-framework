@@ -41,4 +41,4 @@ Rules:
 
 - `user_data/README.md`
 - `tests/unit/test_architecture_boundaries.py`
-- `docs/architecture/ARCHITECTURE_FOUNDATIONS_UPDATED.md`
+- `docs/vision/ARCHITECTURE_FOUNDATIONS_UPDATED.md`
