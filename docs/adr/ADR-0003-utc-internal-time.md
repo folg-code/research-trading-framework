@@ -36,5 +36,5 @@ Initial implementations: `SystemClock`, `FixedClock`.
 ## References
 
 - `src/trading_framework/time/`
-- `docs/architecture/ARCHITECTURE_TECHNICAL_UPDATED.md` §2.2–2.8
+- `docs/vision/ARCHITECTURE_TECHNICAL_UPDATED.md` §2.2–2.8
 - `docs/planning/PROBLEM_REGISTRY.md` — PRB-008, PRB-009

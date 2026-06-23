@@ -67,7 +67,7 @@ Out of scope:
 
 ```text
 Phase 0 planning documents (complete)
-Architecture documents in docs/architecture/
+Vision docs in docs/vision/; reference in docs/reference/
 ```
 
 No external services are required.
@@ -258,7 +258,7 @@ src/trading_framework/
 
 #### Architecture References
 
-- `docs/architecture/ARCHITECTURE_TECHNICAL_UPDATED.md` §10.2–10.3
+- `docs/vision/ARCHITECTURE_TECHNICAL_UPDATED.md` §10.2–10.3
 
 #### Acceptance Criteria
 
@@ -397,7 +397,7 @@ Add package `__init__.py` files and pytest markers documentation if needed.
 
 #### Architecture References
 
-- `docs/architecture/ARCHITECTURE_FOUNDATIONS_UPDATED.md`
+- `docs/vision/ARCHITECTURE_FOUNDATIONS_UPDATED.md`
 - `docs/planning/ROADMAP.md` Phase 1 completion criteria
 
 #### Acceptance Criteria
@@ -456,7 +456,7 @@ Identifiers must be validated, immutable and hashable. Domain-specific IDs such 
 
 #### Architecture References
 
-- `docs/architecture/ARCHITECTURE_TECHNICAL_UPDATED.md` §10.3
+- `docs/vision/ARCHITECTURE_TECHNICAL_UPDATED.md` §10.3
 
 #### Acceptance Criteria
 
@@ -481,7 +481,7 @@ Identifiers must be validated, immutable and hashable. Domain-specific IDs such 
 
 #### Architecture References
 
-- `docs/architecture/ARCHITECTURE_TECHNICAL_UPDATED.md` §2.2–2.3
+- `docs/vision/ARCHITECTURE_TECHNICAL_UPDATED.md` §2.2–2.3
 - ADR-0003 (to be created in S001-T021)
 
 #### Acceptance Criteria
@@ -513,8 +513,8 @@ Identifiers must be validated, immutable and hashable. Domain-specific IDs such 
 
 #### Architecture References
 
-- `docs/architecture/DATA_MODULE_UPDATED.md` §29
-- `docs/architecture/MULTITIMEFRAME_MARKET_MODEL_ARCHITECTURE_UPDATED.md` §6.2
+- `docs/reference/modules/DATA_MODULE_UPDATED.md` §29
+- `docs/vision/MULTITIMEFRAME_MARKET_MODEL_ARCHITECTURE_UPDATED.md` §6.2
 
 #### Acceptance Criteria
 
@@ -543,7 +543,7 @@ Identifiers must be validated, immutable and hashable. Domain-specific IDs such 
 
 #### Architecture References
 
-- `docs/architecture/ARCHITECTURE_TECHNICAL_UPDATED.md` §2.8
+- `docs/vision/ARCHITECTURE_TECHNICAL_UPDATED.md` §2.8
 
 #### Acceptance Criteria
 
@@ -570,7 +570,7 @@ Identifiers must be validated, immutable and hashable. Domain-specific IDs such 
 
 #### Architecture References
 
-- `docs/architecture/ARCHITECTURE_TECHNICAL_UPDATED.md` §9.1–9.4
+- `docs/vision/ARCHITECTURE_TECHNICAL_UPDATED.md` §9.1–9.4
 
 #### Acceptance Criteria
 

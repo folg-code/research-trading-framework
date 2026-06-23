@@ -1,5 +1,7 @@
 # Architectural Decision Records
 
+Catalog of `docs/adr/`. For documentation taxonomy see **[../README.md](../README.md)**.
+
 ## Purpose
 
 ADRs preserve **why** significant architectural decisions were made.
@@ -60,7 +62,7 @@ Positive and negative outcomes of the decision.
 
 ## Related Documents
 
-- `docs/architecture/ARCHITECTURE_FOUNDATIONS_UPDATED.md`
-- `docs/architecture/ARCHITECTURE_TECHNICAL_UPDATED.md`
-- `docs/architecture/WORKFLOWS_AI_ADR_UPDATED.md`
+- `docs/vision/ARCHITECTURE_FOUNDATIONS_UPDATED.md`
+- `docs/vision/ARCHITECTURE_TECHNICAL_UPDATED.md`
+- `docs/vision/WORKFLOWS_AI_ADR_UPDATED.md`
 - `docs/planning/PROBLEM_REGISTRY.md` — PRB-016

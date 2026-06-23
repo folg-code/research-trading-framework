@@ -29,7 +29,7 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 Status Date: 2026-06-23
 Current Phase: Phase 3 — Market Analysis Engine MVP
 Current Milestone: Sprint 003 — Market Analysis Engine MVP
-Implementation Status: Wave 0 complete; Wave 1 ready to start
+Implementation Status: Waves 0–3 complete; Wave 4 (vertical slice) next
 Overall Status: IN_PROGRESS
 Active Sprint: SPRINT_003 (IN_PROGRESS)
 Last Completed Sprint: SPRINT_002 (COMPLETED)
@@ -47,8 +47,8 @@ assembly, and results with identity and lineage. Validate through vertical slice
 `True Range → ATR → Volatility State` plus EMA and diagnostic outputs from a published `DatasetRef`.
 
 Sprint 003 plan: `docs/planning/sprints/SPRINT_003.md`  
-Architecture decisions: `docs/architecture/MARKET_ANALYSIS_WITH_DECISIONS.md`  
-Workspace and derived data: `docs/architecture/ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md`  
+Architecture decisions (vision): `docs/vision/MARKET_ANALYSIS_WITH_DECISIONS.md`  
+Workspace design (vision): `docs/vision/ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md`  
 Sprint 002 record: `docs/planning/sprints/SPRINT_002.md`
 
 ---
@@ -88,32 +88,29 @@ Completed in Sprint 002:
 
 ### Architectural Foundations
 
-Conceptual architecture for all major domains remains defined in `docs/architecture/`.
+Conceptual architecture: `docs/vision/`. As-implemented reference: `docs/reference/`.
 
-Market Analysis architecture and Sprint 003 decisions:
+Market Analysis (vision):
 
-- `docs/architecture/MARKET_ANALYSIS_WITH_DECISIONS.md` (D-001–D-036),
-- `docs/architecture/ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md` (workspace, result store, frames; takes precedence on derived-data topics).
+- `docs/vision/MARKET_ANALYSIS_WITH_DECISIONS.md` (D-001–D-036),
+- `docs/vision/ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md` (workspace, result store, frames; takes precedence on derived-data topics).
 
 ---
 
 ## 5. Documentation Baseline
 
+Single index: **`docs/README.md`**
+
 ```text
+docs/README.md                    taxonomy & reading paths
+docs/vision/                      assumptions & target design
+docs/reference/                   as-implemented (see reference/README.md)
+docs/planning/                    status, roadmap, sprints
+docs/adr/                         decision records
 AGENTS.md
-README.md
-user_data/README.md
-docs/architecture/
-docs/architecture/MARKET_ANALYSIS_WITH_DECISIONS.md
-docs/architecture/ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md
-docs/agents/
-docs/planning/
-docs/adr/ADR-0001 through ADR-0003 (ACCEPTED)
-docs/adr/ADR-0007, ADR-0008 (Sprint 002)
-docs/planning/sprints/SPRINT_001.md
-docs/planning/sprints/SPRINT_002.md
-docs/planning/sprints/SPRINT_003.md
 ```
+
+Maintenance: `.cursor/rules/documentation.mdc`
 
 ---
 
@@ -121,18 +118,21 @@ docs/planning/sprints/SPRINT_003.md
 
 ### Sprint 003 — Market Analysis Engine MVP
 
-**Status:** IN_PROGRESS (Wave 0 complete)  
+**Status:** IN_PROGRESS (Waves 0–3 complete)  
 **Plan:** `docs/planning/sprints/SPRINT_003.md`  
 **Sprint branch:** `sprint/market-analysis-mvp`  
-**Tasks:** 41 (12 done — Wave 0–1 contracts)
+**Tasks:** 41 (26 done — Waves 0–3)
 
-Wave 0 deliverables:
+**Completed waves:**
 
-- `docs/planning/sprints/S003_WAVE0_ARCHITECTURE_CLOSURE.md`
-- `docs/planning/sprints/S003_WAVE0_SPIKE_REPORT.md`
-- `tests/spike/run_market_analysis_backend_benchmark.py`
+- Wave 0 — architecture closure, spike, Definition of Ready
+- Wave 1 — identity and core contracts (T005–T012)
+- Wave 2 — registry, dependency planner, execution plan (T013–T018)
+- Wave 3 — `AnalysisDataView`, result store, workspace, executor, cache, errors (T019–T024, T037–T038)
 
-Wave 1 identity and core contracts (T005–T012) complete. Next: Wave 2 registry and planner.
+**Next:** Wave 4 — vertical slice components, `AnalysisFrameAssembler`, engine facade (T025–T031, T039–T040).
+
+**Reference:** `docs/reference/MODULE_MAP.md`, `docs/reference/modules/MARKET_ANALYSIS_MODULE.md`
 
 ---
 
@@ -216,7 +216,7 @@ True Range → ATR → Volatility State (+ EMA, diagnostic output)
 |--------|------|--------|----------|
 | 001 | Repository foundation | COMPLETED | 22 / 22 tasks |
 | 002 | Market Data MVP | COMPLETED | 26 / 26 tasks |
-| 003 | Market Analysis Engine MVP | IN_PROGRESS | 12 / 41 tasks |
+| 003 | Market Analysis Engine MVP | IN_PROGRESS | 26 / 41 tasks |
 
 ---
 
