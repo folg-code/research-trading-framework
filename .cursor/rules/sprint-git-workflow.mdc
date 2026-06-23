@@ -13,12 +13,16 @@ Each sprint uses one integration branch. Each sprint task uses one dedicated bra
 ```text
 main
   └── sprint/market-data-mvp
-        ├── sprint/market-data-mvp/instrument-model
-        ├── sprint/market-data-mvp/market-bar-model
-        └── sprint/market-data-mvp/ohlcv-normalization-contract
+        ├── sprint/market-data-mvp--instrument-model
+        ├── sprint/market-data-mvp--market-bar-model
+        └── sprint/market-data-mvp--ohlcv-normalization-contract
 ```
 
-The slashes are a naming convention. Git does not create physically nested branches, but the namespace must communicate sprint ownership.
+Git stores branch names as flat refs. A sprint branch `sprint/market-data-mvp` cannot coexist with `sprint/market-data-mvp/<task>` as a separate ref. Use `--` to namespace task branches under the sprint slug:
+
+```text
+sprint/<sprint-slug>--<task-slug>
+```
 
 Rules:
 
@@ -34,13 +38,13 @@ Rules:
 6. A task branch must follow:
 
 ```text
-sprint/<sprint-slug>/<task-slug>
+sprint/<sprint-slug>--<task-slug>
 ```
 
 Example:
 
 ```text
-sprint/market-data-mvp/ohlcv-normalization-contract
+sprint/market-data-mvp--ohlcv-normalization-contract
 ```
 
 ## Mandatory PR Pipeline
@@ -50,7 +54,7 @@ Every new sprint task must follow the complete review path.
 Do **not** merge task branches locally into the sprint branch.
 
 ```text
-sprint/<sprint-slug>/<task-slug>
+sprint/<sprint-slug>--<task-slug>
   → logical commit(s)
   → push
   → PR to sprint/<sprint-slug>
@@ -119,15 +123,15 @@ sprint/market-data-mvp
 ### Task branch
 
 ```text
-sprint/<sprint-slug>/<task-slug>
+sprint/<sprint-slug>--<task-slug>
 ```
 
 Examples:
 
 ```text
-sprint/market-data-mvp/instrument-model
-sprint/market-data-mvp/dataset-lifecycle
-sprint/market-data-mvp/ohlcv-validation-contract
+sprint/market-data-mvp--instrument-model
+sprint/market-data-mvp--dataset-lifecycle
+sprint/market-data-mvp--ohlcv-validation-contract
 ```
 
 Do not use:
@@ -177,14 +181,14 @@ One task equals one PR into the sprint integration branch.
 For a task branch:
 
 ```text
-sprint/market-data-mvp/ohlcv-normalization-contract
+sprint/market-data-mvp--ohlcv-normalization-contract
 ```
 
 the PR configuration must be:
 
 ```text
 base:    sprint/market-data-mvp
-compare: sprint/market-data-mvp/ohlcv-normalization-contract
+compare: sprint/market-data-mvp--ohlcv-normalization-contract
 ```
 
 Merge method:
@@ -247,14 +251,14 @@ When the user asks to implement sprint work:
 ```text
 1. checkout sprint/<sprint-slug>
 2. pull the latest sprint branch
-3. create sprint/<sprint-slug>/<task-slug>
+3. create sprint/<sprint-slug>--<task-slug>
 4. implement only the requested task
 5. run all required checks
 6. create 1–3 logical commits
 7. push the task branch
 8. open a PR:
    base: sprint/<sprint-slug>
-   compare: sprint/<sprint-slug>/<task-slug>
+   compare: sprint/<sprint-slug>--<task-slug>
 9. report the PR URL
 10. stop before merge
 ```
@@ -275,11 +279,11 @@ Sprint branch:
 sprint/market-data-mvp
 
 Task branch:
-sprint/market-data-mvp/instrument-model
+sprint/market-data-mvp--instrument-model
 
 PR:
 base: sprint/market-data-mvp
-compare: sprint/market-data-mvp/instrument-model
+compare: sprint/market-data-mvp--instrument-model
 title: Add Instrument domain model
 
 Commit:

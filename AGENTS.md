@@ -60,7 +60,7 @@ Report failed checks. Do not hide or disable them.
 ## Sprint Git Workflow
 
 - one integration branch per sprint: `sprint/<sprint-slug>` (for example `sprint/market-data-mvp`)
-- one namespaced task branch per sprint task: `sprint/<sprint-slug>/<task-slug>`
+- one namespaced task branch per sprint task: `sprint/<sprint-slug>--<task-slug>`
 - branch, PR and commit names describe the work — not sprint task IDs
 - within a task: only logical commits; do not batch multiple tasks or split one task artificially by file
 - mandatory path: task branch → commit → push → PR → review / CI → squash merge → delete branch
