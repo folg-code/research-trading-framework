@@ -1,5 +1,11 @@
 """Market Analysis domain package."""
 
+from trading_framework.market_analysis.assembly import (
+    AnalysisFrame,
+    AnalysisFrameAssembler,
+    AnalysisFrameColumnSpec,
+    AnalysisFrameRequest,
+)
 from trading_framework.market_analysis.data import AnalysisDataView, DataColumn
 from trading_framework.market_analysis.errors import (
     CacheError,
@@ -80,6 +86,10 @@ from trading_framework.market_analysis.storage import (
 __all__ = [
     "AnalysisContext",
     "AnalysisDataView",
+    "AnalysisFrame",
+    "AnalysisFrameAssembler",
+    "AnalysisFrameColumnSpec",
+    "AnalysisFrameRequest",
     "AnalysisResult",
     "AnalysisResultStore",
     "AnalysisWorkspace",
