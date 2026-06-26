@@ -3,7 +3,7 @@
 > **Reference doc** — [as-implemented layer](../README.md).  
 > Expand after Sprint 003 closure. Index: [docs/README.md](../../README.md).
 
-**Status:** Sprint 003 in progress — Waves 0–3 merged on `sprint/market-analysis-mvp`.  
+**Status:** Sprint 003 in progress — Waves 0–4 on `sprint/market-analysis-mvp`.  
 Binding decisions (vision): [../../vision/MARKET_ANALYSIS_WITH_DECISIONS.md](../../vision/MARKET_ANALYSIS_WITH_DECISIONS.md), [../../vision/ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md](../../vision/ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md).
 
 ---
@@ -21,25 +21,32 @@ The domain does **not** use a shared mutable DataFrame as the primary model. Inp
 
 ---
 
-## Implemented Flow (Wave 3)
+## Implemented Flow (Wave 4)
 
 ```text
-DatasetRef + TimeRange
-    load_analysis_data_view()          # application/market_analysis
-        query_historical()             # application/market_data
-        AnalysisDataView.from_bars()
+run_analysis()                       # application/market_analysis (facade)
+    load_analysis_data_view()
+    DependencyPlanner.build_plan()
+    SequentialBatchExecutor.execute()
+    optional AnalysisFrameAssembler.assemble()
 
-ComponentRequest(s)
-    ComponentRegistry.resolve()
-    DependencyPlanner.plan()           # → ExecutionPlan
-
-SequentialBatchExecutor.execute()
-    ComponentImplementation.compute(context, workspace, parameters)
-    AnalysisResultStore / AnalysisWorkspace
-    ExecutionCache (exact-match, in-plan)
+Built-in components (register_mvp_components):
+    volatility.true_range → volatility.atr → volatility.state
+    trend.ema
 ```
 
-Warm-up range extension: `extend_computation_range`, `max_history_requirement` in `execution/warmup.py`.
+Manual flow remains available via `load_analysis_data_view` + planner + executor.
+
+---
+
+## MVP Components
+
+| ComponentId | Implementation | Notes |
+|-------------|----------------|-------|
+| `volatility.true_range` | `numpy.true_range` | OHLC data deps |
+| `volatility.atr` | `numpy.atr` | depends on TR output |
+| `volatility.state` | `numpy.volatility_state` | ATR + threshold; diagnostic `distance_to_threshold` |
+| `trend.ema` | `numpy.ema` | close column |
 
 ---
 
@@ -52,22 +59,23 @@ Warm-up range extension: `extend_computation_range`, `max_history_requirement` i
 | Input | `AnalysisDataView`, `AnalysisContext`, `TimeRange` |
 | Output | `AnalysisResult`, `OutputId`, `OutputRef`, `Lineage` |
 | Storage | `AnalysisResultStore`, `AnalysisWorkspace` |
+| Assembly | `AnalysisFrame`, `AnalysisFrameAssembler`, `AnalysisFrameRequest` |
 | Execution | `SequentialBatchExecutor`, `ExecutionCache` |
 | Protocols | `BatchAnalysisComponent`, `ComponentImplementation` |
 
-Application bridge: `trading_framework.application.market_analysis.load_analysis_data_view`.
+Application: `load_analysis_data_view`, `run_analysis`.
 
 ---
 
-## Not Yet Implemented (Sprint 003 remainder)
+## Remaining (Wave 5+)
 
-| Capability | Sprint tasks (approx.) |
-|------------|------------------------|
-| True Range, ATR, EMA, Volatility State components | T025–T028, T040 |
-| `AnalysisFrameAssembler`, wide consumer view | T039 |
-| `run_analysis` engine facade | T029 |
-| Integration test DatasetRef → AnalysisFrame | T031 |
+| Capability | Sprint tasks |
+|------------|--------------|
+| Adapter contract test suite | T030 |
+| Integration test (dedicated) | T031 |
+| Workspace/frame regression tests | T041 |
 | Market Analysis ADRs | T034–T035 |
+| Optional TA-Lib adapter | T027 |
 
 ---
 
