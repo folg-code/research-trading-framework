@@ -29,7 +29,7 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 Status Date: 2026-06-23
 Current Phase: Phase 3 — Market Analysis Engine MVP
 Current Milestone: Sprint 003 — Market Analysis Engine MVP
-Implementation Status: Wave 4 complete; Wave 5 (verification) next
+Implementation Status: Wave 5 complete; Wave 6 (ADRs and closure) next
 Overall Status: IN_PROGRESS
 Active Sprint: SPRINT_003 (IN_PROGRESS)
 Last Completed Sprint: SPRINT_002 (COMPLETED)
@@ -118,10 +118,10 @@ Maintenance: `.cursor/rules/documentation.mdc`
 
 ### Sprint 003 — Market Analysis Engine MVP
 
-**Status:** IN_PROGRESS (Waves 0–4 complete)  
+**Status:** IN_PROGRESS (Waves 0–5 complete)  
 **Plan:** `docs/planning/sprints/SPRINT_003.md`  
 **Sprint branch:** `sprint/market-analysis-mvp`  
-**Tasks:** 41 (32 done — Waves 0–4)
+**Tasks:** 41 (37 done — Waves 0–5)
 
 **Completed waves:**
 
@@ -130,8 +130,9 @@ Maintenance: `.cursor/rules/documentation.mdc`
 - Wave 2 — registry, dependency planner, execution plan (T013–T018)
 - Wave 3 — `AnalysisDataView`, result store, workspace, executor, cache, errors (T019–T024, T037–T038)
 - Wave 4 — TR/ATR/state/EMA components, `AnalysisFrameAssembler`, `run_analysis` (T025–T026, T028–T029, T039–T040)
+- Wave 5 — adapter contracts, integration test, workspace/frame regressions, cache and identity tests (T030–T033, T031, T041)
 
-**Next:** Wave 5 — contract tests, integration test, ADRs (T030–T036, T041). Optional: T027 TA-Lib extra.
+**Next:** Wave 6 — ADRs and sprint closure (T034–T036). Optional: T027 TA-Lib extra.
 
 **Reference:** `docs/reference/MODULE_MAP.md`, `docs/reference/modules/MARKET_ANALYSIS_MODULE.md`
 
@@ -217,7 +218,7 @@ True Range → ATR → Volatility State (+ EMA, diagnostic output)
 |--------|------|--------|----------|
 | 001 | Repository foundation | COMPLETED | 22 / 22 tasks |
 | 002 | Market Data MVP | COMPLETED | 26 / 26 tasks |
-| 003 | Market Analysis Engine MVP | IN_PROGRESS | 32 / 41 tasks |
+| 003 | Market Analysis Engine MVP | IN_PROGRESS | 37 / 41 tasks |
 
 ---
 
