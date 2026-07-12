@@ -1,17 +1,25 @@
 """Assemble wide consumer views from execution workspace results."""
 
+from datetime import datetime
+
 from trading_framework.core.exceptions import ValidationError
+from trading_framework.market_analysis.assembly.alignment_cache import AlignmentCache
 from trading_framework.market_analysis.assembly.frame import (
     AnalysisFrame,
     AnalysisFrameColumnSpec,
     AnalysisFrameRequest,
 )
+from trading_framework.market_analysis.data.align import align_output_series, needs_alignment
 from trading_framework.market_analysis.errors import MarketAnalysisError
 from trading_framework.market_analysis.identity.computation import ComputationIdentity
+from trading_framework.market_analysis.identity.mtf import AlignmentIdentity
+from trading_framework.market_analysis.models.alignment import AlignmentPolicy
 from trading_framework.market_analysis.models.output_ref import OutputRef
 from trading_framework.market_analysis.models.outputs import OutputId
-from trading_framework.market_analysis.models.result import AnalysisResult
+from trading_framework.market_analysis.models.result import AnalysisResult, OutputSeries
+from trading_framework.market_analysis.models.time_range import TimeRange
 from trading_framework.market_analysis.storage.workspace import AnalysisWorkspace
+from trading_framework.time.models.timeframe import Timeframe
 
 
 class AliasCollisionError(MarketAnalysisError):
@@ -47,8 +55,16 @@ class AnalysisFrameAssembler:
         self,
         workspace: AnalysisWorkspace,
         request: AnalysisFrameRequest,
+        *,
+        evaluation_timeframe: Timeframe | None = None,
+        evaluation_range: TimeRange | None = None,
+        alignment_policy: AlignmentPolicy = AlignmentPolicy.LAST_CLOSED_BAR,
+        alignment_cache: AlignmentCache | None = None,
     ) -> AnalysisFrame:
         timestamps = workspace.market_view.timestamps
+        eval_range = evaluation_range or _default_evaluation_range(timestamps)
+        cache = alignment_cache if alignment_cache is not None else AlignmentCache()
+
         columns: dict[str, tuple[float, ...]] = {}
         lineage: dict[str, OutputRef] = {}
         used_aliases: set[str] = set()
@@ -72,9 +88,18 @@ class AnalysisFrameAssembler:
             )
             alias = spec.alias or default_alias(result.computation_identity, spec.output_id)
             series = result.outputs[spec.output_id]
+            values = self._resolve_column_values(
+                result=result,
+                series=series,
+                evaluation_timestamps=timestamps,
+                evaluation_timeframe=evaluation_timeframe,
+                evaluation_range=eval_range,
+                alignment_policy=alignment_policy,
+                alignment_cache=cache,
+            )
             self._register_column(
                 alias=alias,
-                values=series.values,
+                values=values,
                 output_ref=output_ref,
                 columns=columns,
                 lineage=lineage,
@@ -86,6 +111,45 @@ class AnalysisFrameAssembler:
             columns=columns,
             column_lineage=lineage,
         )
+
+    def _resolve_column_values(
+        self,
+        *,
+        result: AnalysisResult,
+        series: OutputSeries,
+        evaluation_timestamps: tuple[datetime, ...],
+        evaluation_timeframe: Timeframe | None,
+        evaluation_range: TimeRange,
+        alignment_policy: AlignmentPolicy,
+        alignment_cache: AlignmentCache,
+    ) -> tuple[float, ...]:
+        computation_timeframe = result.computation_identity.computation_timeframe
+        if evaluation_timeframe is None or not needs_alignment(
+            computation_timeframe=computation_timeframe,
+            evaluation_timeframe=evaluation_timeframe,
+        ):
+            if len(series.values) != len(evaluation_timestamps):
+                msg = "column length must match evaluation grid when alignment is disabled"
+                raise ValidationError(msg)
+            return series.values
+
+        alignment_identity = AlignmentIdentity(
+            component_computation_key=result.computation_identity.canonical_key(),
+            evaluation_timeframe=evaluation_timeframe,
+            evaluation_range=evaluation_range,
+            alignment_policy=alignment_policy,
+        )
+        cached = alignment_cache.get(alignment_identity)
+        if cached is not None:
+            return cached
+
+        aligned = align_output_series(
+            series,
+            evaluation_timestamps=evaluation_timestamps,
+            policy=alignment_policy,
+        )
+        alignment_cache.put(alignment_identity, aligned)
+        return aligned
 
     def _find_result(
         self,
@@ -118,3 +182,10 @@ class AnalysisFrameAssembler:
         columns[alias] = values
         if output_ref is not None:
             lineage[alias] = output_ref
+
+
+def _default_evaluation_range(timestamps: tuple[datetime, ...]) -> TimeRange:
+    if not timestamps:
+        msg = "evaluation timestamps must be non-empty"
+        raise ValidationError(msg)
+    return TimeRange(start=timestamps[0], end=timestamps[-1])

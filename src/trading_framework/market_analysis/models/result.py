@@ -2,6 +2,7 @@
 
 from collections.abc import Mapping
 from dataclasses import dataclass
+from datetime import datetime
 
 from trading_framework.core.exceptions import ValidationError
 from trading_framework.market_analysis.identity.computation import ComputationIdentity
@@ -17,6 +18,7 @@ class OutputSeries:
 
     values: tuple[float, ...]
     dtype: str = "float64"
+    available_at: tuple[datetime, ...] | None = None
 
     def __post_init__(self) -> None:
         normalized_dtype = self.dtype.strip().lower()
@@ -25,6 +27,9 @@ class OutputSeries:
             raise ValidationError(msg)
         if normalized_dtype != self.dtype:
             object.__setattr__(self, "dtype", normalized_dtype)
+        if self.available_at is not None and len(self.available_at) != len(self.values):
+            msg = "available_at must match values length when present"
+            raise ValidationError(msg)
 
     @property
     def length(self) -> int:

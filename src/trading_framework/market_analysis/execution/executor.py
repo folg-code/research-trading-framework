@@ -129,6 +129,8 @@ class SequentialBatchExecutor:
         workspace_view = workspace.view_for(
             node.dependency_keys,
             input_identity_key=identity.input_identity_key,
+            computation_timeframe=identity.computation_timeframe,
+            planned_computation_identity=identity,
         )
         bar_count = len(workspace_view.market)
         try:

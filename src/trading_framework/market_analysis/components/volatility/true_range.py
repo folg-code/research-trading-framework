@@ -96,6 +96,7 @@ class NumpyTrueRangeImplementation:
             warmup_bars=_WARMUP_BARS,
             valid_from_index=_WARMUP_BARS,
             bar_count=bar_count,
+            workspace=workspace,
         )
 
 

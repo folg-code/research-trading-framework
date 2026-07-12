@@ -55,8 +55,8 @@ class DependencyPlanner:
         resolved_plan: ResolvedInputPlan | None = None,
     ) -> ExecutionPlan:
         normalized = self._normalize_requests(requests)
-        input_keys = self._input_keys_from_plan(normalized, resolved_plan)
         graph = self._expand_dependencies(normalized)
+        input_keys = self._input_keys_from_plan(graph, resolved_plan, context)
         ordered_keys = self._topological_sort(graph)
         component_nodes = self._build_component_nodes(
             context,
@@ -69,11 +69,12 @@ class DependencyPlanner:
 
     def _input_keys_from_plan(
         self,
-        normalized: Mapping[str, PlanningRequest],
+        graph: Mapping[str, tuple[PlanningRequest, tuple[str, ...]]],
         resolved_plan: ResolvedInputPlan | None,
+        context: PlanningContext,
     ) -> dict[str, str | None]:
         if resolved_plan is None:
-            return dict.fromkeys(normalized)
+            return dict.fromkeys(graph)
         lookup: dict[str, str | None] = {}
         for component in resolved_plan.components:
             key = request_key(
@@ -81,7 +82,33 @@ class DependencyPlanner:
                 component.request.parameters.fingerprint(),
             )
             lookup[key] = component.resolved.input_identity_key
-        return {key: lookup.get(key) for key in normalized}
+        return {
+            key: self._resolve_input_key(planning_request, lookup, context, resolved_plan)
+            for key, (planning_request, _) in graph.items()
+        }
+
+    def _resolve_input_key(
+        self,
+        planning_request: PlanningRequest,
+        lookup: Mapping[str, str | None],
+        context: PlanningContext,
+        resolved_plan: ResolvedInputPlan,
+    ) -> str | None:
+        key = request_key(
+            planning_request.component_id,
+            planning_request.request.parameters.fingerprint(),
+        )
+        if key in lookup:
+            return lookup[key]
+        computation_timeframe = planning_request.request.resolved_computation_timeframe(
+            source_timeframe=context.source_timeframe,
+        )
+        if computation_timeframe.total_seconds <= context.source_timeframe.total_seconds:
+            return None
+        for requirement in resolved_plan.resample_requirements():
+            if requirement.resample_spec.target_timeframe == computation_timeframe:
+                return requirement.resample_identity.canonical_key()
+        return None
 
     def _build_resample_nodes(
         self,
@@ -159,7 +186,7 @@ class DependencyPlanner:
                     child_request = ComponentRequest(
                         component_id=dependency.output_ref.component_id,
                         parameters=dependency.output_ref.parameters,
-                        computation_timeframe=None,
+                        computation_timeframe=planning_request.request.computation_timeframe,
                     )
                     pending.append(PlanningRequest.from_component_request(child_request))
 
