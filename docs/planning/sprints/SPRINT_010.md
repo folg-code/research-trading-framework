@@ -5,7 +5,7 @@
 ```text
 Sprint: 010
 Phase: Phase 5 — Signal Research MVP (analytics increment — Phase 5 closure)
-Status: PLANNED — Wave 0 complete (2026-07-12); Wave 1 kickoff pending
+Status: IN PROGRESS — Wave 0 complete (2026-07-12); Wave 1 complete (2026-07-12)
 Planned Start: TBD
 Planned End: TBD
 Sprint Goal Owner: Project Maintainer
@@ -577,8 +577,8 @@ metrics_eligible / visible small groups
 | ID | Task | Status | Depends On |
 |----|------|--------|------------|
 | S010-T001 | Wave 0 spike + `S010_WAVE0_DECISIONS.md` | DONE | — |
-| S010-T002 | Filters, `AnalyticsTimestampBasis`, schemas | TODO | S010-T001 |
-| S010-T003 | Scope-aware `build_analysis_frame()` | TODO | S010-T001 |
+| S010-T002 | Filters, `AnalyticsTimestampBasis`, schemas | DONE | S010-T001 |
+| S010-T003 | Scope-aware `build_analysis_frame()` | DONE | S010-T001 |
 | S010-T004 | `RunSummary` aggregates + `metrics_eligible` | TODO | S010-T002, S010-T003 |
 | S010-T005 | Grouping: RTH, time-of-day, calendar period | TODO | S010-T004 |
 | S010-T006 | Conditional comparison (`context_met`) | TODO | S010-T004 |
