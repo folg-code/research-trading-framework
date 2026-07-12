@@ -22,6 +22,7 @@ class ExpressionDependencies:
     """Deterministic dependency set required to evaluate one expression."""
 
     component_requests: tuple[ComponentRequest, ...]
+    component_output_references: tuple[ComponentOutputReference, ...]
     market_fields: tuple[MarketField, ...]
 
 
@@ -30,10 +31,13 @@ class ExpressionDependencyExtractor:
 
     def extract(self, expression: Expression) -> ExpressionDependencies:
         component_requests: dict[str, ComponentRequest] = {}
+        output_references: dict[str, ComponentOutputReference] = {}
         market_fields: dict[str, MarketField] = {}
-        self._visit(expression, component_requests, market_fields)
+        self._visit(expression, component_requests, output_references, market_fields)
+        keys = sorted(component_requests)
         return ExpressionDependencies(
-            component_requests=tuple(component_requests[key] for key in sorted(component_requests)),
+            component_requests=tuple(component_requests[key] for key in keys),
+            component_output_references=tuple(output_references[key] for key in keys),
             market_fields=tuple(market_fields[key] for key in sorted(market_fields)),
         )
 
@@ -41,38 +45,76 @@ class ExpressionDependencyExtractor:
         self,
         expression: Expression,
         component_requests: dict[str, ComponentRequest],
+        output_references: dict[str, ComponentOutputReference],
         market_fields: dict[str, MarketField],
     ) -> None:
         if isinstance(expression, CompareExpression):
-            self._visit_operand(expression.operand, component_requests, market_fields)
+            self._visit_operand(
+                expression.operand,
+                component_requests,
+                output_references,
+                market_fields,
+            )
             return
 
         if isinstance(expression, AndExpression):
-            self._visit(expression.left, component_requests, market_fields)
-            self._visit(expression.right, component_requests, market_fields)
+            self._visit(expression.left, component_requests, output_references, market_fields)
+            self._visit(expression.right, component_requests, output_references, market_fields)
             return
 
         if isinstance(expression, OrExpression):
-            self._visit(expression.left, component_requests, market_fields)
-            self._visit(expression.right, component_requests, market_fields)
+            self._visit(expression.left, component_requests, output_references, market_fields)
+            self._visit(expression.right, component_requests, output_references, market_fields)
             return
 
         if isinstance(expression, NotExpression):
-            self._visit(expression.operand, component_requests, market_fields)
+            self._visit(expression.operand, component_requests, output_references, market_fields)
             return
 
     def _visit_operand(
         self,
         operand: ComponentOutputReference | MarketFieldReference,
         component_requests: dict[str, ComponentRequest],
+        output_references: dict[str, ComponentOutputReference],
         market_fields: dict[str, MarketField],
     ) -> None:
         if isinstance(operand, MarketFieldReference):
             market_fields[operand.field.value] = operand.field
             return
 
-        request = operand.to_component_request()
-        component_requests[operand.dependency_key()] = request
+        key = operand.dependency_key()
+        component_requests[key] = operand.to_component_request()
+        output_references[key] = operand
 
 
-__all__ = ["ExpressionDependencies", "ExpressionDependencyExtractor"]
+def merge_expression_dependencies(
+    *dependencies: ExpressionDependencies,
+) -> ExpressionDependencies:
+    """Merge dependency sets from multiple expressions."""
+    component_requests: dict[str, ComponentRequest] = {}
+    output_references: dict[str, ComponentOutputReference] = {}
+    market_fields: dict[str, MarketField] = {}
+    for item in dependencies:
+        for request, reference in zip(
+            item.component_requests,
+            item.component_output_references,
+            strict=True,
+        ):
+            key = reference.dependency_key()
+            component_requests[key] = request
+            output_references[key] = reference
+        for field in item.market_fields:
+            market_fields[field.value] = field
+    keys = sorted(component_requests)
+    return ExpressionDependencies(
+        component_requests=tuple(component_requests[key] for key in keys),
+        component_output_references=tuple(output_references[key] for key in keys),
+        market_fields=tuple(market_fields[key] for key in sorted(market_fields)),
+    )
+
+
+__all__ = [
+    "ExpressionDependencies",
+    "ExpressionDependencyExtractor",
+    "merge_expression_dependencies",
+]

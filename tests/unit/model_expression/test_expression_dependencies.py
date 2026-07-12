@@ -56,6 +56,7 @@ def test_extract_single_component_dependency() -> None:
 
     assert len(dependencies.component_requests) == 1
     assert dependencies.component_requests[0] == reference.to_component_request()
+    assert dependencies.component_output_references == (reference,)
     assert dependencies.market_fields == ()
 
 
@@ -69,6 +70,7 @@ def test_extract_market_field_dependency() -> None:
     dependencies = ExpressionDependencyExtractor().extract(expression)
 
     assert dependencies.component_requests == ()
+    assert dependencies.component_output_references == ()
     assert dependencies.market_fields == (MarketField.CLOSE,)
 
 

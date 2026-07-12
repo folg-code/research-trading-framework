@@ -409,9 +409,9 @@ Chart layer must **not** evaluate models, compute components, apply firing, or r
 | S006-T010 | `SignalModelEvaluator` (condition result) | DONE | S006-T009 |
 | S006-T011 | `SignalFiringPolicy` + emission materialization | DONE | S006-T010 |
 | S006-T012 | Null and temporal semantics in evaluators | DONE | S006-T008, S006-T010 |
-| S006-T013 | `evaluate_models` application use case | TODO | S006-T006, S006-T012 |
-| S006-T014 | Automatic `ComponentRequest` construction from models | TODO | S006-T013 |
-| S006-T015 | Shared single `run_analysis` execution | TODO | S006-T014 |
+| S006-T013 | `evaluate_models` application use case | DONE | S006-T006, S006-T012 |
+| S006-T014 | Automatic `ComponentRequest` construction from models | DONE | S006-T013 |
+| S006-T015 | Shared single `run_analysis` execution | DONE | S006-T014 |
 | S006-T016 | Canonical Market Model example | TODO | S006-T015 |
 | S006-T017 | Event-based Signal Model example (`ON_EVENT`) | TODO | S006-T015 |
 | S006-T018 | State-edge Signal Model example (`ON_TRUE_EDGE`) | TODO | S006-T015 |
@@ -455,6 +455,10 @@ Model definitions, evaluators, firing, null and temporal semantics.
 ### Wave 3 — T013–T015
 
 Application orchestration: `evaluate_models`, request construction, shared `run_analysis`.
+
+**Done (2026-07-12):** `application/model_evaluation/evaluate_models.py`,
+`model_expression/planning.py`, extended `ExpressionDependencies` with output references,
+`merge_expression_dependencies`, integration test `test_s006_evaluate_models.py`.
 
 ### Wave 4 — T016–T021
 
