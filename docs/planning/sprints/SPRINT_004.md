@@ -5,7 +5,7 @@
 ```text
 Sprint: 004
 Phase: Phase 4 — Market Analysis Components and Multitimeframe (first increment)
-Status: IN_PROGRESS (Wave 4 complete; Wave 5 next)
+Status: COMPLETED (2026-07-12)
 Planned Start: 2026-07-12
 Planned End: TBD
 Sprint Goal Owner: Project Maintainer
@@ -323,8 +323,8 @@ No new dependency for Trading Calendar in this sprint.
 | S004-T011 | `AnalysisFrame` MTF assembly on evaluation grid | DONE | S004-T010 |
 | S004-T012 | Behavior-focused MTF test suite | DONE | S004-T010 |
 | S004-T013 | End-to-end vertical slice and `run_analysis` MTF path | DONE | S004-T011, S004-T012 |
-| S004-T014 | ADR — Batch Multitimeframe Computation with Polars | TODO | S004-T001 |
-| S004-T015 | Module docs, MODULE_MAP, PRB-007 deferral note, sprint closure | TODO | S004-T013, S004-T014 |
+| S004-T014 | ADR — Batch Multitimeframe Computation with Polars | DONE | S004-T001 |
+| S004-T015 | Module docs, MODULE_MAP, PRB-007 deferral note, sprint closure | DONE | S004-T013, S004-T014 |
 | S004-T016 | Optional TA-Lib adapter (S003-T027 carry-forward) | DEFERRED | — |
 
 **Total:** 16 tasks (15 planned + 1 deferred)
@@ -661,7 +661,7 @@ One test module (or focused package) covering the seven required behaviors from 
 
 ### S004-T014 — ADR — Batch Multitimeframe Computation with Polars
 
-**Status:** TODO  
+**Status:** DONE (2026-07-12)  
 **Category:** Architecture  
 **Domain:** Documentation  
 **Wave:** 5  
@@ -687,15 +687,15 @@ Accept ADR before sprint closure.
 
 #### Acceptance Criteria
 
-- [ ] Indexed in `docs/adr/README.md`
-- [ ] Supersedes or clarifies MTF-related planning assumptions where needed
-- [ ] No separate ADRs for calendar MVP in this sprint
+- [x] Indexed in `docs/adr/README.md`
+- [x] Supersedes or clarifies MTF-related planning assumptions where needed
+- [x] No separate ADRs for calendar MVP in this sprint
 
 ---
 
 ### S004-T015 — Documentation and sprint closure
 
-**Status:** TODO  
+**Status:** DONE (2026-07-12)  
 **Category:** Documentation  
 **Domain:** Core  
 **Wave:** 5  
@@ -709,8 +709,8 @@ Accept ADR before sprint closure.
 
 #### Acceptance Criteria
 
-- [ ] Reference docs match public API
-- [ ] Sprint marked COMPLETED with date and quality command results
+- [x] Reference docs match public API
+- [x] Sprint marked COMPLETED with date and quality command results
 
 ---
 
@@ -796,16 +796,89 @@ Review checklist: verify PR does not violate **Design Principles (Anti-Overengin
 
 ## Definition of Done (Sprint Level)
 
-- [ ] T001–T015 DONE (T016 remains deferred unless explicitly pulled in)
-- [ ] `uv run ruff check .` passes
-- [ ] `uv run ruff format --check .` passes
-- [ ] `uv run mypy` passes
-- [ ] `uv run pytest` passes
+- [x] T001–T015 DONE (T016 remains deferred unless explicitly pulled in)
+- [x] `uv run ruff check .` passes
+- [x] `uv run ruff format --check .` passes
+- [x] `uv run mypy` passes
+- [x] `uv run pytest` passes
 - [x] Seven behavioral test areas (T012) green
 - [x] End-to-end MTF integration (T013) green
-- [ ] ADR-MA-012 accepted
-- [ ] `CURRENT_STATUS.md` updated
+- [x] ADR-MA-012 accepted
+- [x] `CURRENT_STATUS.md` updated
 - [ ] Sprint PR to `main` opened; agent stops before merge
+
+---
+
+## Sprint Review
+
+Completed 2026-07-12.
+
+### Completed
+
+- Lean MTF foundation: timeframe roles, `RequestResolver`, layered identities, `ResampleSpec`.
+- Polars resample path: `ResampleNode` in execution DAG with planner deduplication and `ResampleCache`.
+- Temporal safety: `available_at` on HTF outputs, `LAST_CLOSED_BAR` alignment via Polars `join_asof`.
+- MTF frame assembly on evaluation grid; single-TF path backward compatible.
+- Behavior regression suite (seven areas) and end-to-end MTF vertical slice through `run_analysis`.
+- ADR-MA-012 accepted; reference docs and MODULE_MAP updated; PRB-007 deferral documented.
+
+### Not Completed
+
+- S004-T016 optional TA-Lib adapter (deferred from Sprint 003).
+- Exchange/session Trading Calendar (PRB-007 — deferred to Sprint 005+).
+- Published HTF dataset vs on-the-fly resample auto-resolution.
+- `ResamplingPolicy` / `BoundaryPolicy` enums.
+
+### Demonstrated Capabilities
+
+- Vertical slice: 1m dataset → 5m ATR aligned to 1m + 1m EMA in one `AnalysisFrame`.
+- Shared 1m→5m resample executes once when multiple components share target timeframe.
+- Look-ahead regression at hand-crafted timestamps (10:37 evaluation grid case).
+- Partial bucket edge behaviour on non-aligned range starts.
+- 240 automated tests on sprint integration branch at closure.
+
+### Deviations From Plan
+
+- Task branches used flat `feat/*` names when Git could not namespace under sprint branch slug.
+- Scope reduced from original 33-task plan per overengineering review (calendar MVP, policy enums, registry resample rejected).
+
+### Carry-Forward Items
+
+- Merge `sprint/market-analysis-mtf` to `main`.
+- TradingCalendar when CME/session use case appears (PRB-007).
+- Structure components, MarketFieldReference, persistent derived datasets (Sprint 005 preview).
+- Columnar query/resample boundary (TD-011, TD-015).
+- Optional TA-Lib adapter (S004-T016).
+
+---
+
+## Retrospective
+
+### What Worked
+
+- Lean MVP scope held: one ADR, five outcome-scoped PRs, Polars at boundary only.
+- Behavior-focused tests caught look-ahead and partial-bucket semantics early.
+- Layered identity kept resample, computation and alignment caches independent.
+- Reusing Sprint 003 NumPy components on resampled views avoided adapter proliferation.
+
+### What Did Not Work
+
+- Git branch namespace collision required flat feature branch names.
+- Documentation status in MODULE_MAP lagged until Wave 5 closure.
+
+### Process Improvements
+
+- Update reference docs in the same PR as sprint closure (Wave 5).
+- Keep MTF tests asserting outputs/timestamps, not internal node type names.
+- Run full quality suite before opening sprint integration PR to `main`.
+
+### Next Recommended Sprint Goal
+
+```text
+Sprint 005 — TradingCalendar when session use case appears; structure catalog;
+published HTF dataset resolution; optional columnar boundary improvements (TD-011/TD-015).
+See Sprint 005 Preview below.
+```
 
 ---
 
@@ -830,4 +903,4 @@ Ordering depends on Sprint 004 retrospective.
 |------|--------|
 | 2026-07-12 | Initial plan (33 tasks, calendar MVP, policy enums, registry resample) |
 | 2026-07-12 | **Reduced scope** per overengineering review: 15 tasks, layered identity, ResampleNode, Polars resample/align only, calendar deferred, one ADR, 5 PRs |
-| 2026-07-12 | Linked Architecture Simplification Review (S002/S003); T001 includes §5 checklist; TD-011–TD-016 registered |
+| 2026-07-12 | Sprint closure: ADR-MA-012, reference docs, Wave 5 complete |
