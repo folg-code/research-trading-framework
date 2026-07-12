@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from trading_framework.market_analysis.models.request import ComponentRequest
 from trading_framework.model_expression.expressions import (
     AndExpression,
+    BinaryCompareExpression,
     CompareExpression,
     Expression,
     NotExpression,
@@ -51,6 +52,21 @@ class ExpressionDependencyExtractor:
         if isinstance(expression, CompareExpression):
             self._visit_operand(
                 expression.operand,
+                component_requests,
+                output_references,
+                market_fields,
+            )
+            return
+
+        if isinstance(expression, BinaryCompareExpression):
+            self._visit_operand(
+                expression.left,
+                component_requests,
+                output_references,
+                market_fields,
+            )
+            self._visit_operand(
+                expression.right,
                 component_requests,
                 output_references,
                 market_fields,

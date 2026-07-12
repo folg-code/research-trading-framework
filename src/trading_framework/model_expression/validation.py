@@ -7,6 +7,7 @@ from trading_framework.model_expression.errors import ModelExpressionValidationE
 from trading_framework.model_expression.expressions import (
     MAX_EXPRESSION_DEPTH,
     AndExpression,
+    BinaryCompareExpression,
     CompareExpression,
     ComparisonOperator,
     Expression,
@@ -56,6 +57,10 @@ def _validate_node(
         _validate_compare(expression, registry)
         return
 
+    if isinstance(expression, BinaryCompareExpression):
+        _validate_binary_compare(expression, registry)
+        return
+
     if isinstance(expression, AndExpression):
         _validate_node(expression.left, registry, depth=depth + 1, max_depth=max_depth)
         _validate_node(expression.right, registry, depth=depth + 1, max_depth=max_depth)
@@ -94,6 +99,22 @@ def _validate_compare(expression: CompareExpression, registry: ComponentRegistry
         return
 
     assert_never(operand)
+
+
+def _validate_binary_compare(
+    expression: BinaryCompareExpression,
+    registry: ComponentRegistry,
+) -> None:
+    if expression.operator not in _ORDER_OPERATORS:
+        msg = f"unsupported binary compare operator: {expression.operator.value}"
+        raise ModelExpressionValidationError(msg)
+    for operand in (expression.left, expression.right):
+        if isinstance(operand, MarketFieldReference):
+            continue
+        if isinstance(operand, ComponentOutputReference):
+            _validate_component_output_reference(operand, registry)
+            continue
+        assert_never(operand)
 
 
 def _validate_component_output_reference(
