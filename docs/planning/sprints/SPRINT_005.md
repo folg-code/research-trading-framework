@@ -5,9 +5,9 @@
 ```text
 Sprint: 005
 Phase: Phase 4 — Market Analysis Components and Multitimeframe (second increment)
-Status: PLANNED
-Planned Start: TBD
-Planned End: TBD
+Status: COMPLETED (sprint branch — pending merge to main)
+Planned Start: 2026-07-12
+Planned End: 2026-07-12
 Sprint Goal Owner: Project Maintainer
 Depends On: SPRINT_004 (COMPLETED, merged to main)
 Sprint Branch: sprint/market-analysis-components
@@ -204,22 +204,22 @@ Continues Phase 4 increment 2. Enables Phase 5 Signal Research path (Sprints 006
 
 | ID | Task | Status | Depends On |
 |----|------|--------|------------|
-| S005-T001 | Calendar adapter spike and decision note | TODO | — |
-| S005-T002 | Batch `TradingSessionResolver` protocol | TODO | S005-T001 |
-| S005-T003 | CME ES RTH resolver implementation | TODO | S005-T002 |
-| S005-T004 | Session metadata enrichment on analysis path | TODO | S005-T003 |
-| S005-T005 | Pivot Structure contract and output schema | TODO | — |
-| S005-T006 | Port/adapt Pivot detector + implementation choice (Polars/NumPy) | TODO | S005-T005 |
-| S005-T007 | Registry integration | TODO | S005-T006 |
-| S005-T008 | Pivot timing metadata (`pivot_at`, `detected_at`, `available_at`) | TODO | S005-T006 |
-| S005-T009 | Stateful HH/HL/LH/LL outputs and classification | TODO | S005-T008 |
-| S005-T010 | MTF alignment: state vs point-event projection policy | TODO | S005-T009, S004-T011 |
-| S005-T011 | Calendar behavior tests | TODO | S005-T004 |
-| S005-T012 | Pivot temporal and classification tests | TODO | S005-T009 |
-| S005-T013 | End-to-end `run_analysis` integration test | TODO | S005-T010 |
-| S005-T014 | Local visual inspection prototype | TODO | S005-T013 |
-| S005-T015 | ADR — Calendar + Pivot Structure semantics | TODO | S005-T001 |
-| S005-T016 | Documentation and sprint closure | TODO | S005-T014, S005-T015 |
+| S005-T001 | Calendar adapter spike and decision note | DONE | — |
+| S005-T002 | Batch `TradingSessionResolver` protocol | DONE | S005-T001 |
+| S005-T003 | CME ES RTH resolver implementation | DONE | S005-T002 |
+| S005-T004 | Session metadata enrichment on analysis path | DONE | S005-T003 |
+| S005-T005 | Pivot Structure contract and output schema | DONE | — |
+| S005-T006 | Port/adapt Pivot detector + implementation choice (Polars/NumPy) | DONE | S005-T005 |
+| S005-T007 | Registry integration | DONE | S005-T006 |
+| S005-T008 | Pivot timing metadata (`pivot_at`, `detected_at`, `available_at`) | DONE | S005-T006 |
+| S005-T009 | Stateful HH/HL/LH/LL outputs and classification | DONE | S005-T008 |
+| S005-T010 | MTF alignment: state vs point-event projection policy | DONE | S005-T009, S004-T011 |
+| S005-T011 | Calendar behavior tests | DONE | S005-T004 |
+| S005-T012 | Pivot temporal and classification tests | DONE | S005-T009 |
+| S005-T013 | End-to-end `run_analysis` integration test | DONE | S005-T010 |
+| S005-T014 | Local visual inspection prototype | DONE | S005-T013 |
+| S005-T015 | ADR — Calendar + Pivot Structure semantics | DONE | S005-T001 |
+| S005-T016 | Documentation and sprint closure | DONE | S005-T014, S005-T015 |
 | S005-T017 | Optional TA-Lib adapter (carry-forward) | DEFERRED | — |
 | S005-T018 | Columnar boundary spike (TD-011 / TD-015) | DEFERRED | — |
 
@@ -233,25 +233,37 @@ Continues Phase 4 increment 2. Enables Phase 5 Signal Research path (Sprints 006
 
 Calendar spike: adapter choice, CME ES RTH + DST fixture, batch mapping cost, decision note under `docs/planning/sprints/`.
 
+**Done (2026-07-12):** `tests/spike/run_calendar_spike.py`, `S005_CALENDAR_SPIKE_AND_DECISIONS.md`.
+
 ### Wave 1 — T002–T004
 
 Batch resolver protocol, CME ES adapter, session columns on analysis/frame path without mutating bars.
+
+**Done (2026-07-12):** `TradingSessionResolver`, `CmeEsRthSessionResolver`, `TradingSessionMetadata` enrichment on workspace/frame and `run_analysis`.
 
 ### Wave 2 — T005–T009
 
 Pivot contract, detector port, registry, timing metadata, HH/HL/LH/LL state outputs, edge-case policies documented.
 
+**Done (2026-07-12):** `structure.swing` component, NumPy reference kernel, `S005_SWING_STRUCTURE_CONTRACT.md`.
+
 ### Wave 3 — T010
 
 MTF 5m → 1m: stateful outputs via existing alignment; point events per chosen projection policy; no S004 regression.
 
+**Done (2026-07-12):** `EVENT_AT_AVAILABLE` alignment policy, per-output `alignment_policy` on schema, `structure.swing` event/state split, `test_mtf_swing_alignment.py`.
+
 ### Wave 4 — T011–T014
 
-Calendar tests, pivot tests, e2e integration, `user_data/development/inspect_mtf_pivot.py` (or notebook) — OHLCV, optional EMA/ATR, RTH shading, pivot markers at `pivot_at` and `detected_at`, stateful levels.
+Calendar tests, swing structure tests, e2e integration, `tests/spike/run_inspect_mtf_swing.py` — OHLCV, optional EMA/ATR, RTH shading, swing markers at observed and detection indices, stateful levels.
+
+**Done (2026-07-12):** calendar and swing unit tests, `test_s005_mtf_swing_vertical_slice.py`, Plotly interactive HTML inspection spike.
 
 ### Wave 5 — T015–T016
 
-One ADR (calendar MVP + pivot temporal semantics + event/state projection). Update MODULE_MAP, MARKET_ANALYSIS_MODULE, CURRENT_STATUS, PRB-007 note.
+One ADR (calendar MVP + swing temporal semantics + event/state projection). Update MODULE_MAP, MARKET_ANALYSIS_MODULE, CURRENT_STATUS, PRB-007 note.
+
+**Done (2026-07-12):** ADR-MA-013, reference docs and sprint closure updates.
 
 ---
 
@@ -271,15 +283,16 @@ Branch: `sprint/market-analysis-components` → squash PRs → sprint PR to `mai
 
 ## Definition of Done
 
-- [ ] T001–T016 DONE (T017–T018 deferred)
-- [ ] Quality commands pass (`ruff`, `mypy`, `pytest`)
-- [ ] Batch session resolver — no per-bar calendar loop in hot path
-- [ ] Pivot detection lookahead-free; no back-write to `pivot_at`
-- [ ] Stateful HH/HL/LH/LL align to 1m without look-ahead
-- [ ] Point-event projection policy documented and tested
-- [ ] Visual inspection script runs locally against fixture run
-- [ ] Sprint 004 MTF tests still green
-- [ ] ADR accepted; sprint PR to `main` (agent stops before merge)
+- [x] T001–T016 DONE (T017–T018 deferred)
+- [x] Quality commands pass (`ruff`, `mypy`, `pytest`) — 280 tests at closure
+- [x] Batch session resolver — no per-bar calendar loop in hot path
+- [x] Swing detection lookahead-free; no back-write to observed index
+- [x] Stateful HH/HL/LH/LL align to 1m without look-ahead
+- [x] Point-event projection policy documented and tested (`EVENT_AT_AVAILABLE`)
+- [x] Visual inspection script runs locally against fixture run
+- [x] Sprint 004 MTF tests still green
+- [x] ADR accepted (ADR-MA-013)
+- [ ] Sprint PR to `main` (agent stops before merge)
 
 ---
 
@@ -295,3 +308,4 @@ Declarative Market Model and Signal Model — see `SPRINT_006.md`.
 |------|--------|
 | 2026-07-12 | Initial lean calendar + Pivot plan |
 | 2026-07-12 | **Corrected direction:** visual inspection, batch calendar, full Pivot event/state semantics, HH/HL/LH/LL integral outputs (`PHASE_4_5_SPRINT_DIRECTION.md`) |
+| 2026-07-12 | **Sprint closure:** Waves 0–5 complete; ADR-MA-013; 280 tests; pending sprint PR to `main` |

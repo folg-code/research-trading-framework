@@ -160,12 +160,14 @@ def test_alignment_identity_differs_by_policy_not_computation() -> None:
     time_range = _time_range()
     last_closed = AlignmentIdentity(
         component_computation_key=computation_key,
+        output_id="value",
         evaluation_timeframe=Timeframe("1m"),
         evaluation_range=time_range,
         alignment_policy=AlignmentPolicy.LAST_CLOSED_BAR,
     )
     intrabar = AlignmentIdentity(
         component_computation_key=computation_key,
+        output_id="value",
         evaluation_timeframe=Timeframe("1m"),
         evaluation_range=time_range,
         alignment_policy=AlignmentPolicy.INTRABAR,

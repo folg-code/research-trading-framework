@@ -28,25 +28,25 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 ```text
 Status Date: 2026-07-12
 Current Phase: Phase 4 — Market Analysis Components and Multitimeframe
-Current Milestone: Sprint 004 merged to main (2026-07-12)
-Implementation Status: Sprint 003 and Sprint 004 COMPLETE on main
+Current Milestone: Sprint 005 complete on sprint branch (pending merge to main)
+Implementation Status: Sprints 003–004 COMPLETE on main; Sprint 005 COMPLETE on sprint branch
 Overall Status: IN_PROGRESS
-Active Sprint: SPRINT_005 (PLANNED — see SPRINT_005.md)
-Last Completed Sprint: SPRINT_004 (COMPLETED)
+Active Sprint: SPRINT_006 (PLANNED — see SPRINT_006.md)
+Last Completed Sprint: SPRINT_005 (COMPLETED on sprint branch)
 ```
 
 ---
 
 ## 3. Current Objective
 
-Execute **Sprint 005** per corrected direction: calendar + Pivot Structure + visual inspection.
+Execute **Sprint 006** per corrected direction: declarative Market/Signal Model.
 
 Binding direction: `docs/planning/sprints/PHASE_4_5_SPRINT_DIRECTION.md`  
-Sprint 005 plan: `docs/planning/sprints/SPRINT_005.md`
+Sprint 006 plan: `docs/planning/sprints/SPRINT_006.md`
 
 **North star:** published data → visually verified analysis → declarative Signal Model → `SignalOccurrence` → persistent research dataset (Sprints 006–008).
 
-Shortest research path: `005 → 006 → 008` (Sprint 007 only as needed).
+Shortest research path: `006 → 008` (Sprint 007 only as needed).
 
 ---
 
@@ -102,6 +102,19 @@ Completed on `main` (PR #60, 2026-07-12):
 - MTF behavior regressions and end-to-end vertical slice via `run_analysis`,
 - ADR-MA-012; 240 tests at sprint closure.
 
+### Phase 4 — Market Analysis Components (Sprint 005)
+
+Completed on `sprint/market-analysis-components` (2026-07-12):
+
+- batch `TradingSessionResolver` and `CmeEsRthSessionResolver` (CME ES RTH),
+- session metadata enrichment on `run_analysis` path,
+- `structure.swing` component with event/state outputs and HH/HL/LH/LL classification,
+- per-output MTF alignment: `EVENT_AT_AVAILABLE` vs `LAST_CLOSED_BAR`,
+- behavior tests, S005 MTF vertical slice, Plotly inspection spike,
+- ADR-MA-013; 280 tests at sprint closure.
+
+Pending: sprint PR from `sprint/market-analysis-components` → `main`.
+
 ### Architectural Foundations
 
 Conceptual architecture: `docs/vision/`. As-implemented reference: `docs/reference/`.
@@ -132,17 +145,21 @@ Maintenance: `.cursor/rules/documentation.mdc`
 
 ## 6. Work in Progress
 
-### Sprint 005 — Trading Calendar, Pivot Structure and Visual Inspection MVP
+### Sprint 006 — Declarative Market/Signal Model
 
 **Status:** PLANNED  
+**Plan:** `docs/planning/sprints/SPRINT_006.md`  
+**Direction:** `docs/planning/sprints/PHASE_4_5_SPRINT_DIRECTION.md`
+
+**Planned follow-on (not started):** Sprints 007–010 — see direction doc.
+
+---
+
+### Sprint 005 — Closed (sprint branch)
+
+**Status:** COMPLETE on `sprint/market-analysis-components` — awaiting merge to `main`.  
 **Plan:** `docs/planning/sprints/SPRINT_005.md`  
-**Direction:** `docs/planning/sprints/PHASE_4_5_SPRINT_DIRECTION.md`  
-**Sprint branch (planned):** `sprint/market-analysis-components`  
-**Tasks:** 18 (16 planned + 2 deferred)
-
-**Outcomes:** (A) CME ES RTH batch session resolver, (B) Pivot Structure with event + HH/HL/LH/LL state outputs, (C) local inspection chart in `user_data/development/`.
-
-**Planned follow-on (not started):** Sprints 006–010 — see direction doc and `SPRINT_006.md` … `SPRINT_010.md`.
+**ADR:** ADR-MA-013
 
 ---
 
@@ -150,7 +167,7 @@ Maintenance: `.cursor/rules/documentation.mdc`
 
 Nothing is technically blocked.
 
-Sprint 005 planned — create sprint branch when Wave 0 starts.
+Sprint 005 sprint PR to `main` is the next integration step when approved.
 
 ---
 
@@ -161,11 +178,13 @@ From `PROBLEM_REGISTRY.md` — Sprint 004 delivered:
 - PRB-002 — layered computation identity (Resample / Component / Alignment) — partial MVP resolution extended,
 - PRB-007 — deferral documented (fixed UTC resampling; exchange calendar in Sprint 005+).
 
+Sprint 005 delivered partial PRB-007 resolution (CME ES RTH batch resolver only).
+
 Remaining high-priority items:
 
 1. Public `user_data/` discovery contract (PRB-004).
 2. Research Dataset physical schemas (PRB-006).
-3. Exchange/session-aware Trading Calendar (PRB-007 — deferred from Sprint 004).
+3. Full exchange/session Trading Calendar (PRB-007 — partial MVP only; Globex, missing-range, registry open).
 4. Local model definition fingerprints (PRB-003).
 5. Full component implementation fingerprints (PRB-002 — parameter identity resolved in MVP).
 6. Vectorized backtest semantics (PRB-014).
@@ -188,6 +207,7 @@ PRB-002 and PRB-005 received partial MVP resolution in Sprint 003.
 | ADR-0005 Market Analysis Domain | ACCEPTED (Sprint 003) |
 | ADR-MA-001–011 Market Analysis Engine | ACCEPTED (Sprint 003) |
 | ADR-MA-012 Batch MTF with Polars | ACCEPTED (Sprint 004) |
+| ADR-MA-013 CME ES RTH + Swing Structure MTF | ACCEPTED (Sprint 005) |
 | ADR-0004, ADR-0006, ADR-0009, ADR-0010 | PLANNED |
 
 Binding decisions D-001–D-036 and workspace invariants are documented in the architecture files above; ADR materialization is Sprint 003 Wave 6 (including ADR-MA-007 workspace).
@@ -207,10 +227,11 @@ Binding decisions D-001–D-036 and workspace invariants are documented in the a
 ## 11. Next Planned Capability
 
 ```text
-Sprint 005 — Calendar + Pivot + chart (active plan)
-Sprint 006 — Declarative Market/Signal Model
+Sprint 006 — Declarative Market/Signal Model (active plan)
 Sprint 008 — Signal Research dataset (target milestone)
 ```
+
+Sprint 005 sprint PR to `main` is the immediate integration step.
 
 See `PHASE_4_5_SPRINT_DIRECTION.md` for Sprints 007, 009, 010.
 
@@ -224,7 +245,8 @@ See `PHASE_4_5_SPRINT_DIRECTION.md` for Sprints 007, 009, 010.
 | 002 | Market Data MVP | COMPLETED | 26 / 26 tasks |
 | 003 | Market Analysis Engine MVP | COMPLETED | 40 / 41 tasks (T027 deferred) |
 | 004 | Multitimeframe Foundation MVP | COMPLETED | 15 / 15 tasks (T016 deferred) |
-| 005 | Calendar, Pivot, visual inspection | PLANNED | 0 / 16 tasks (T017–T018 deferred) |
+| 005 | Calendar, swing structure, visual inspection | COMPLETED (sprint branch) | 16 / 16 tasks (T017–T018 deferred) |
+| 006 | Declarative Market/Signal Model | PLANNED | 0 / TBD |
 
 ---
 

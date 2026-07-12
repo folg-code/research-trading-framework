@@ -41,9 +41,9 @@ strategy/, research/, execution/, events/   ⬜ future domains
 
 | | |
 |---|---|
-| **Responsibility** | UTC instants, timeframes, `Clock` protocol |
-| **Talks to** | `market`, `market_analysis` (time ranges) |
-| **Key paths** | `models/utc_instant.py`, `models/timeframe.py`, `clocks/` |
+| **Responsibility** | UTC instants, timeframes, `Clock` protocol, batch session resolution (S005) |
+| **Talks to** | `market`, `market_analysis` (time ranges, session metadata) |
+| **Key paths** | `models/utc_instant.py`, `models/timeframe.py`, `clocks/`, `sessions/` (`TradingSessionResolver`, `CmeEsRthSessionResolver`) |
 
 ### `config/` ✅
 
@@ -104,10 +104,11 @@ Deep reference: 📘 [modules/DATA_MODULE_UPDATED.md](modules/DATA_MODULE_UPDATE
 
 ---
 
-## Market Analysis (Sprint 003–004) ✅
+## Market Analysis (Sprint 003–005) ✅
 
-Engine and MTF foundation complete. Built-in vertical slice components, frame assembler,
-`run_analysis` facade, Polars resample/align path and MTF vertical slice are implemented.
+Engine, MTF foundation, CME ES RTH session enrichment and swing structure complete on sprint branch.
+Built-in vertical slice components, frame assembler, `run_analysis` facade, Polars resample/align path
+and MTF vertical slice are implemented.
 
 Thin guide: [modules/MARKET_ANALYSIS_MODULE.md](modules/MARKET_ANALYSIS_MODULE.md)  
 Binding decisions (vision): [../vision/MARKET_ANALYSIS_WITH_DECISIONS.md](../vision/MARKET_ANALYSIS_WITH_DECISIONS.md)  
@@ -123,6 +124,7 @@ Published DatasetRef (source timeframe, e.g. 1m)
   → ComponentRegistry + DependencyPlanner → ExecutionPlan (components + ResampleNode)
   → SequentialBatchExecutor → AnalysisWorkspace (ResampleCache + ExecutionCache)
   → optional AnalysisFrameAssembler → AnalysisFrame (evaluation grid alignment)
+  → optional TradingSessionMetadata (S005 session_resolver on run_analysis)
 ```
 
 ### `market_analysis/` ✅
@@ -130,7 +132,7 @@ Published DatasetRef (source timeframe, e.g. 1m)
 | Subpackage | Status | Responsibility |
 |------------|--------|----------------|
 | `identity/` | ✅ | `ComponentId`, `ComputationIdentity`, `ResampleIdentity`, `AlignmentIdentity` |
-| `models/` | ✅ | Requests, results, outputs, lineage, parameters, context, `ResampleSpec`, `AlignmentPolicy` |
+| `models/` | ✅ | Requests, results, outputs, lineage, parameters, context, `ResampleSpec`, `AlignmentPolicy`, per-output `alignment_policy` |
 | `protocols/` | ✅ | `BatchAnalysisComponent`, `ComponentImplementation` |
 | `registry/` | ✅ | `ComponentRegistry`, `register_mvp_components` |
 | `planning/` | ✅ | `RequestResolver`, `DependencyPlanner`, `ExecutionPlan`, `ResampleNode` |
@@ -138,8 +140,8 @@ Published DatasetRef (source timeframe, e.g. 1m)
 | `storage/` | ✅ | `AnalysisResultStore`, `AnalysisWorkspace` |
 | `execution/` | ✅ | `SequentialBatchExecutor`, `ExecutionCache`, `ResampleCache` |
 | `adapters/numpy/` | ✅ | Indicator kernels and result builder (`available_at` on HTF) |
-| `components/` | ✅ | TR, ATR, volatility state, EMA |
-| `assembly/` | ✅ | `AnalysisFrameAssembler`, `AnalysisFrame`, `AlignmentCache` |
+| `components/` | ✅ | TR, ATR, volatility state, EMA, `structure.swing` |
+| `assembly/` | ✅ | `AnalysisFrameAssembler`, `AnalysisFrame`, `AlignmentCache`, optional session metadata |
 | `errors.py` | ✅ | Analysis error hierarchy |
 
 **Talks to:** `market` (via application), `time`, `core`. NumPy in adapters; Polars at resample/align boundary only.
@@ -151,7 +153,7 @@ Published DatasetRef (source timeframe, e.g. 1m)
 | **Responsibility** | Load market input and run end-to-end analysis |
 | **Talks to** | `application/market_data`, `market_analysis` |
 | **Key paths** | `load_data_view.py`, `run_analysis.py` |
-| **Entry points** | `load_analysis_data_view`, `run_analysis` (supports `evaluation_timeframe`, MTF `ComponentRequest`) |
+| **Entry points** | `load_analysis_data_view`, `run_analysis` (supports `evaluation_timeframe`, MTF `ComponentRequest`, optional `session_resolver`) |
 
 ---
 

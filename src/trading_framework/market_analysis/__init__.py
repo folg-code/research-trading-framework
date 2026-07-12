@@ -5,6 +5,7 @@ from trading_framework.market_analysis.assembly import (
     AnalysisFrameAssembler,
     AnalysisFrameColumnSpec,
     AnalysisFrameRequest,
+    TradingSessionMetadata,
 )
 from trading_framework.market_analysis.data import AnalysisDataView, DataColumn
 from trading_framework.market_analysis.errors import (
@@ -162,6 +163,7 @@ __all__ = [
     "RunTimeframeContext",
     "SequentialBatchExecutor",
     "TimeRange",
+    "TradingSessionMetadata",
     "ValidityMetadata",
     "WarmUpMetadata",
     "extend_computation_range",

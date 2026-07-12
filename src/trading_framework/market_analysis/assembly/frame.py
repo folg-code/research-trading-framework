@@ -4,6 +4,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import datetime
 
+from trading_framework.market_analysis.assembly.session_metadata import TradingSessionMetadata
 from trading_framework.market_analysis.identity.component import ComponentId
 from trading_framework.market_analysis.models.output_ref import OutputRef
 from trading_framework.market_analysis.models.outputs import OutputId
@@ -35,3 +36,4 @@ class AnalysisFrame:
     timestamps: tuple[datetime, ...]
     columns: Mapping[str, tuple[float, ...]]
     column_lineage: Mapping[str, OutputRef]
+    session_metadata: TradingSessionMetadata | None = None

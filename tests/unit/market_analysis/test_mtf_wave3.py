@@ -219,6 +219,7 @@ def test_alignment_cache_is_keyed_by_alignment_identity() -> None:
     cache = AlignmentCache()
     identity = AlignmentIdentity(
         component_computation_key='{"kind":"component_computation"}',
+        output_id="value",
         evaluation_timeframe=Timeframe("1m"),
         evaluation_range=_time_range(),
         alignment_policy=AlignmentPolicy.LAST_CLOSED_BAR,

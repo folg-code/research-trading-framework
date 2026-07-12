@@ -387,11 +387,12 @@ Resolve during Phase 5 and Phase 6 using actual vertical-slice requirements.
 ## PRB-007 — Trading Calendar Implementation Is Not Selected
 
 ```text
-Status: OPEN
+Status: OPEN (partial MVP resolution — Sprint 005)
 Severity: HIGH
 Domain: Time / Market
 Owner: Unassigned
 Discovered: 2026-06-19
+Last Updated: 2026-07-12
 ```
 
 ### Description
@@ -410,7 +411,14 @@ The contract is defined, but implementation strategy is not selected.
 **Sprint 004 deferral (2026-07-12):** Multitimeframe batch resampling uses fixed UTC duration
 buckets (`ResampleSpec`, Polars `group_by_dynamic`) without exchange sessions or holidays.
 Documented in ADR-MA-012. Calendar-aware resampling, missing-range detection and session
-boundaries remain blocked on this problem for Sprint 005+.
+boundaries remain blocked on full resolution of this problem.
+
+**Sprint 005 partial MVP (2026-07-12):** Batch `TradingSessionResolver` protocol and
+`CmeEsRthSessionResolver` (CME ES RTH: `trading_day`, `session_id`, `is_rth`) enrich
+`AnalysisWorkspace` and `AnalysisFrame` via `RunAnalysisRequest.session_resolver`.
+Documented in ADR-MA-013. **Not resolved:** Globex/ETH, `is_market_open`, missing-range
+integration, global calendar registry, session-boundary resampling, shortened-session rules
+beyond optional holiday date mask.
 
 ### Impact
 

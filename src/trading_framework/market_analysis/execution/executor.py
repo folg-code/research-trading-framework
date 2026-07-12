@@ -1,6 +1,7 @@
 """Sequential batch execution."""
 
 from trading_framework.core.exceptions import TradingFrameworkError
+from trading_framework.market_analysis.assembly.session_metadata import TradingSessionMetadata
 from trading_framework.market_analysis.data.resample import resample_analysis_view
 from trading_framework.market_analysis.data.view import AnalysisDataView
 from trading_framework.market_analysis.errors import (
@@ -79,8 +80,9 @@ class SequentialBatchExecutor:
         context: AnalysisContext,
         cache: ExecutionCache | None = None,
         resample_cache: ResampleCache | None = None,
+        session_metadata: TradingSessionMetadata | None = None,
     ) -> AnalysisWorkspace:
-        workspace = AnalysisWorkspace(market_view)
+        workspace = AnalysisWorkspace(market_view, session_metadata=session_metadata)
         execution_cache = cache if cache is not None else ExecutionCache()
         resample_stage_cache = resample_cache if resample_cache is not None else ResampleCache()
 
