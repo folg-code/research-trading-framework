@@ -5,7 +5,7 @@
 ```text
 Sprint: 009
 Phase: Phase 5 — Signal Research MVP (second increment)
-Status: COMPLETE — sprint branch ready for merge to main (2026-07-12)
+Status: COMPLETE (2026-07-12, merged to main)
 Planned Start: TBD
 Planned End: TBD
 Sprint Goal Owner: Project Maintainer
