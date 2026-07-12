@@ -168,6 +168,7 @@ def test_summarize_analysis_frame_defers_grouping_and_conditional() -> None:
         frame,
         horizons=(5,),
         min_sample_size=1,
+        interpretation_min_sample_size=30,
         outcome_filter=OutcomeAnalyticsFilter.complete_only(),
         research_scope=ResearchScope.SIGNAL_MODEL_ONLY,
     )
@@ -240,6 +241,7 @@ def test_summarize_analysis_frame_populates_grouping_and_conditional() -> None:
         frame,
         horizons=(5,),
         min_sample_size=1,
+        interpretation_min_sample_size=30,
         outcome_filter=OutcomeAnalyticsFilter.complete_only(),
         research_scope=ResearchScope.MARKET_AND_SIGNAL,
         group_by=(GroupDimension.RTH_MEMBERSHIP,),
@@ -253,3 +255,5 @@ def test_summarize_analysis_frame_populates_grouping_and_conditional() -> None:
     conditional = result.conditional_comparison.row(0, named=True)
     assert conditional["context_true_sample_size"] == 1
     assert conditional["context_false_sample_size"] == 1
+    assert conditional["context_missing_sample_size"] == 0
+    assert result.distribution_summaries.height == 1

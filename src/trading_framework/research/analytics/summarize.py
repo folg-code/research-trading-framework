@@ -12,6 +12,7 @@ from trading_framework.research.analytics.dimensions import (
     AnalyticsTimestampBasis,
     GroupDimension,
 )
+from trading_framework.research.analytics.distribution import summarize_distribution_summaries
 from trading_framework.research.analytics.filters import OutcomeAnalyticsFilter
 from trading_framework.research.analytics.grouping import summarize_grouped_summaries
 from trading_framework.research.scope import ResearchScope
@@ -24,6 +25,7 @@ class SummarizeAnalysisFrameResult:
     run_summaries: pl.DataFrame
     grouped_summaries: pl.DataFrame | None
     conditional_comparison: pl.DataFrame | None
+    distribution_summaries: pl.DataFrame
 
 
 def summarize_analysis_frame(
@@ -32,6 +34,7 @@ def summarize_analysis_frame(
     horizons: tuple[int, ...],
     outcome_filter: OutcomeAnalyticsFilter,
     min_sample_size: int,
+    interpretation_min_sample_size: int,
     research_scope: ResearchScope,
     group_by: tuple[GroupDimension, ...] = (),
     conditional_context: bool = False,
@@ -59,8 +62,16 @@ def summarize_analysis_frame(
         conditional_context=conditional_context,
         outcome_filter=outcome_filter,
     )
+    distribution_summaries = summarize_distribution_summaries(
+        frame,
+        horizons=horizons,
+        min_sample_size=min_sample_size,
+        interpretation_min_sample_size=interpretation_min_sample_size,
+        outcome_filter=outcome_filter,
+    )
     return SummarizeAnalysisFrameResult(
         run_summaries=run_summaries,
         grouped_summaries=grouped_summaries,
         conditional_comparison=conditional_comparison,
+        distribution_summaries=distribution_summaries,
     )

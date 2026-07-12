@@ -104,6 +104,9 @@ def _conditional_comparison_schema() -> dict[str, pl.DataType]:
         "horizon_bars": pl.Int64(),
         "context_true_sample_size": pl.Int64(),
         "context_false_sample_size": pl.Int64(),
+        "context_missing_sample_size": pl.Int64(),
+        "comparison_status": pl.String(),
+        "status_reason": pl.String(),
         "forward_return_mean_true": pl.Float64(),
         "forward_return_mean_false": pl.Float64(),
         "forward_return_mean_delta": pl.Float64(),
@@ -130,6 +133,68 @@ def validate_conditional_comparison(frame: pl.DataFrame) -> None:
         frame,
         expected=empty_conditional_comparison(),
         label="conditional comparison",
+    )
+
+
+def _join_diagnostics_schema() -> dict[str, pl.DataType]:
+    return {
+        "run_id": pl.String(),
+        "horizon_bars": pl.Int64(),
+        "entity_count": pl.Int64(),
+        "outcome_rows_total": pl.Int64(),
+        "outcome_rows_complete": pl.Int64(),
+        "outcome_rows_unmatched_entity": pl.Int64(),
+        "matched_context_rows": pl.Int64(),
+        "missing_context_rows": pl.Int64(),
+        "duplicate_context_matches": pl.Int64(),
+        "context_true_complete": pl.Int64(),
+        "context_false_complete": pl.Int64(),
+        "context_missing_complete": pl.Int64(),
+        "overlapping_outcome_windows": pl.Int64(),
+        "overlapping_outcome_rate": pl.Float64(),
+    }
+
+
+def empty_join_diagnostics() -> pl.DataFrame:
+    """Return an empty join diagnostics table with the canonical schema."""
+    return pl.DataFrame(schema=_join_diagnostics_schema())
+
+
+def validate_join_diagnostics(frame: pl.DataFrame) -> None:
+    """Validate join diagnostics output columns and dtypes."""
+    _validate_frame_schema(frame, expected=empty_join_diagnostics(), label="join diagnostics")
+
+
+def _distribution_summaries_schema() -> dict[str, pl.DataType]:
+    return {
+        "run_id": pl.String(),
+        "horizon_bars": pl.Int64(),
+        "sample_size_complete": pl.Int64(),
+        "minimum_required": pl.Int64(),
+        "interpretation_minimum_required": pl.Int64(),
+        "metrics_computable": pl.Boolean(),
+        "metrics_interpretable": pl.Boolean(),
+        "forward_return_p10": pl.Float64(),
+        "forward_return_p25": pl.Float64(),
+        "forward_return_p75": pl.Float64(),
+        "forward_return_p90": pl.Float64(),
+        "forward_return_std": pl.Float64(),
+        "forward_return_min": pl.Float64(),
+        "forward_return_max": pl.Float64(),
+    }
+
+
+def empty_distribution_summaries() -> pl.DataFrame:
+    """Return an empty distribution summary table with the canonical schema."""
+    return pl.DataFrame(schema=_distribution_summaries_schema())
+
+
+def validate_distribution_summaries(frame: pl.DataFrame) -> None:
+    """Validate distribution summary output columns and dtypes."""
+    _validate_frame_schema(
+        frame,
+        expected=empty_distribution_summaries(),
+        label="distribution summaries",
     )
 
 
