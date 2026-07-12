@@ -5,101 +5,338 @@
 ```text
 Sprint: 008
 Phase: Phase 5 — Signal Research MVP (first increment)
-Status: PLANNED
-Depends On: SPRINT_006 (required); SPRINT_005 (required); SPRINT_007 (optional subset)
-Sprint Branch: TBD
+Status: COMPLETE (2026-07-12)
+Planned Start: 2026-07-12
+Planned End: TBD
+Sprint Goal Owner: Project Maintainer
+Depends On: SPRINT_006 (required, merged); SPRINT_005 (required, merged); SPRINT_007 (skipped)
+Sprint Branch: sprint/signal-research-mvp
+Task branch convention: sprint/signal-research-mvp--<task-slug>
 Direction: docs/planning/sprints/PHASE_4_5_SPRINT_DIRECTION.md
+Wave 0: docs/planning/sprints/S008_WAVE0_DECISIONS.md
+Architecture Sources:
+  - docs/vision/WORKFLOWS_AI_ADR_UPDATED.md (SignalOccurrence, research datasets)
+  - docs/vision/ARCHITECTURE_FOUNDATIONS_UPDATED.md
+Prerequisite: Sprint 007 skipped — minimum component set satisfied on main
 ```
 
 ---
 
 ## Sprint Goal
 
-Run the first real **Signal Research** workflow end-to-end:
+Run the first real **Signal Research** workflow end-to-end with scope **`SIGNAL_MODEL_ONLY`**:
 
 ```text
 Published Market Dataset
     ↓
-Market Analysis
+run_analysis (via evaluate_models)
     ↓
-Signal Model evaluation
+Signal Model evaluation → emissions
     ↓
-SignalOccurrence (Polars event table)
+SignalOccurrence (sparse occurrence facts)
     ↓
-Forward outcomes (return, MFE, MAE)
+ForwardOutcome (long-format outcome facts)
     ↓
-Persistent Signal Research Dataset (immutable Parquet)
+Persistent Signal Research run envelope (immutable Parquet + manifest)
 ```
 
-Start with scope: **`SIGNAL_MODEL_ONLY`**.
+Deliver **research computation**, not analytics dashboards or combined Market×Signal scopes.
+
+Sprint 008 studies **signal behaviour**, not strategy execution — no fill price, no entry price.
 
 ---
 
-## SignalOccurrence payload (Polars)
+## Three Outcomes
+
+| Outcome | Deliverable |
+|---------|-------------|
+| **A — Occurrence materialization** | `SignalOccurrence` with stable `occurrence_id`; reference-price policy (descriptive, not execution) |
+| **B — Forward outcomes** | Explicit `ForwardOutcomeDefinition` + calculator; long-format outcome rows with status |
+| **C — Application integration** | `run_signal_research`, dataset repository (write + read), e2e round-trip, inspection layer |
+
+---
+
+## Domain Boundary
+
+### SignalOccurrence vs Research Dataset
 
 ```text
+Strategy Domain  → SignalOccurrence (core event artifact — no research-only fields)
+Research Domain  → ForwardOutcomeDefinition, outcome calculator, dataset persistence
+Application      → orchestrates evaluate_models + materialization + write/read
+Inspection       → consumes finished dataset only; no domain logic
+```
+
+Research must not redefine occurrence semantics. Market Model conditioning deferred to Sprint 009.
+
+### Price semantics (binding)
+
+```text
+reference_price  — descriptive close at detected_at (Signal Research MVP)
+fill_price       — NOT in Sprint 008
+entry_price      — NOT in Sprint 008
+```
+
+### Reuse — do not rebuild
+
+```text
+evaluate_models       — shared run_analysis + model evaluation
+SignalModelEvaluator  — emissions table (detected_at, available_at, direction)
+canonical_examples    — first e2e signal models
+Parquet patterns      — follow Sprint 002 infrastructure conventions
+```
+
+---
+
+## Logical Dataset Schema
+
+Two fact tables in **long format** (one row per occurrence × horizon):
+
+### SignalOccurrence (occurrence facts)
+
+```text
+occurrence_id
+signal_model_id
 detected_at
 available_at
-signal_model_id
 direction
 reference_price
 instrument
-timeframe
+evaluation_timeframe
 source_dataset_ref
 ```
 
----
-
-## Forward outcome contract (MVP — must be precise)
+### ForwardOutcome (outcome facts)
 
 ```text
-reference_price: close at signal available_at
-horizon:         N evaluation bars
-forward_return:  close[t+N] / reference_price - 1
-MFE:             best favorable excursion over horizon
-MAE:             worst adverse excursion over horizon
+occurrence_id
+horizon_bars
+outcome_status          — COMPLETE | INCOMPLETE_HORIZON | INSUFFICIENT_DATA
+terminal_price
+forward_return          — signed, direction-normalized
+mfe                     — non-negative
+mae                     — non-positive
 ```
 
-Spike must resolve: next-bar inclusion, missing horizon, direction normalization, session crossing, overlapping signals.
+**Binding:** one occurrence may produce **multiple outcome rows** (one per horizon). Outcome rows
+are **not** 1:1 with occurrences when multiple horizons are requested.
+
+Forward price **paths** are not stored in MVP — summary outcomes only.
 
 ---
 
-## Persistent research dataset (MVP)
-
-Single immutable Parquet dataset schema (examples):
+## Physical Run Envelope
 
 ```text
-run_id, experiment_id, dataset_ref, signal_model_id,
-detected_at, available_at, direction, reference_price,
-horizon, forward_return, mfe, mae
+{storage_root}/{run_id}/
+├── manifest.json           — run identity, schema version, framework/model fingerprints
+├── occurrences.parquet
+└── outcomes.parquet
 ```
 
-Not a full research warehouse.
+Consumers load via repository adapter — **no direct path reads** outside infrastructure/tests.
+
+Immutability: existing `run_id` directory must not be overwritten.
 
 ---
 
-## Visualization increment
+## Task Table
+
+| ID | Task | Status | Depends On |
+|----|------|--------|------------|
+| S008-T001 | Wave 0 spike and binding decisions | DONE | — |
+| S008-T002 | `SignalOccurrence` schema, stable `occurrence_id`, materialization | DONE | S008-T001 |
+| S008-T003 | Reference-price policy and materialization (not fill price) | DONE | S008-T002 |
+| S008-T004 | Forward outcome definition and calculator | DONE | S008-T001 |
+| S008-T005 | Temporal and incomplete-horizon edge cases | DONE | S008-T004 |
+| S008-T006 | Dataset schema, manifest, writer and reader | DONE | S008-T004 |
+| S008-T007 | `run_signal_research` application workflow | DONE | S008-T003, S008-T006 |
+| S008-T008 | End-to-end integration and round-trip determinism | DONE | S008-T007 |
+| S008-T009 | Occurrence and forward-path inspector | DONE | S008-T008 |
+| S008-T010 | ADR — full outcome and persistence semantics | DONE | S008-T001 |
+| S008-T011 | Documentation and sprint closure | DONE | S008-T010 |
+
+**Total:** 11 tasks (~4 outcome PRs)
+
+---
+
+## Tasks (by wave)
+
+### Wave 0 — T001, T010 (draft)
+
+Scope gate, binding outcome semantics, dataset layout, ADR outline.
+
+**Done (2026-07-12):** `tests/spike/run_signal_research_spike.py`, `S008_WAVE0_DECISIONS.md`.
+Binding decisions D-S008-01 … D-S008-19 confirmed by spike (15/15 checks PASS).
+
+Deliverables:
+
+- ~~`tests/spike/run_signal_research_spike.py`~~
+- ~~binding decisions confirmed by spike output~~
+- ADR draft (T010) — ~~next~~ **ADR-0011 accepted**
+- ADR draft covering occurrence/outcome boundary and long-format schema
+
+### Wave 1 — T002–T003
+
+Strategy-domain `SignalOccurrence` with stable identity and reference-price policy.
+
+**Done (2026-07-12):** `reference_price.py`, `signal_occurrence.py`, unit tests; spike uses production strategy API.
+
+### Wave 2 — T004–T005
+
+`ForwardOutcomeDefinition` + calculator; incomplete horizon, nulls, temporal edge cases.
+
+**Done (2026-07-12):** `research/outcomes/` definition, calculator, OHLCV alignment; unit tests; spike uses production API.
+
+### Wave 3 — T006–T008
+
+Dataset repository (write + read + schema validation), `run_signal_research`, e2e round-trip.
+
+**Done (2026-07-12):** `research/datasets/signal_research.py`, `application/signal_research/run_signal_research.py`, integration tests.
+
+### Wave 4 — T009, T010, T011
+
+Occurrence/forward-path inspector (validation tooling only), ADR finalization, MODULE_MAP closure.
+
+**Done (2026-07-12):** `run_inspect_signal_research.py`, ADR-0011, MODULE_MAP and sprint closure.
+
+---
+
+## Acceptance Criteria
+
+### SignalOccurrence
+
+- [x] stable `occurrence_id` (deterministic from run context + occurrence key)
+- [x] model identity preserved (`signal_model_id`)
+- [x] `detected_at` and `available_at` preserved
+- [x] direction is typed (`LONG` | `SHORT`)
+- [x] `reference_price` semantics documented — descriptive, not execution
+- [x] no research-only fields in Strategy-domain occurrence object
+
+### Outcomes
+
+- [x] explicit `ForwardOutcomeDefinition` before calculator implementation
+- [x] LONG and SHORT use one normalized sign convention
+- [x] `forward_return`: signed, direction-normalized (favourable > 0, adverse < 0)
+- [x] `mfe`: non-negative
+- [x] `mae`: non-positive (signed convention — do not mix with magnitude convention)
+- [x] horizon bar inclusion tested (`horizon=5` = 5 full bars after signal bar; terminal = close of 5th bar)
+- [x] MFE/MAE window excludes signal bar; includes bars `(t+1 … t+N]`
+- [x] incomplete horizon produces explicit `outcome_status` (not silent drop)
+- [x] null metrics are not silently replaced with zero
+- [x] no look-ahead beyond selected horizon
+
+### Dataset
+
+- [x] write is immutable — existing `run_id` cannot be overwritten
+- [x] manifest includes framework version, schema version, model/dataset identity
+- [x] reader validates schema version
+- [x] load by `run_id` or research `DatasetRef` — paths hidden behind adapter
+- [x] round-trip test (write → read → assert equality)
+- [x] long-format outcomes; multiple horizons without schema change
+
+### Determinism
+
+Same inputs:
 
 ```text
-signal markers on chart
-forward outcome path for single signal
-basic distribution / event frequency preview
+dataset + model definition + horizon definition + framework version
+```
+
+must produce the same logical run identity, or detect duplicate run unambiguously.
+
+### Inspection (T009)
+
+Must include:
+
+```text
+occurrence selection
+window before/after event
+detected_at marker
+available_at marker
+reference_price level
+horizon end marker
+MFE / MAE levels
+terminal outcome
+```
+
+Must **not** include:
+
+```text
+dashboard server
+multi-model comparison
+rankings
+research filters
+statistical tests
+```
+
+Optional adapter: finplot in spike/inspection only — not in domain or main workflow.
+
+---
+
+## PR Guidance
+
+| PR | Outcome | Tasks |
+|----|---------|-------|
+| 1 | Wave 0 spike + binding decisions + ADR draft | T001, T010 (draft) |
+| 2 | SignalOccurrence + reference-price policy | T002–T003 |
+| 3 | Outcome definition, calculator, dataset repository | T004–T006 |
+| 4 | Application workflow + e2e + inspector + closure | T007–T009, T011 |
+
+Branch model:
+
+```text
+sprint/signal-research-mvp
+  → task branches sprint/signal-research-mvp--<task-slug>
+  → PR to sprint/signal-research-mvp
+  → squash merge
+  → sprint PR to main (after sprint complete)
 ```
 
 ---
 
-## Task Overview (draft)
+## Branching — Start Conditions
 
-| ID | Task | Status |
-|----|------|--------|
-| S008-T001 | Signal research scope and outcome semantics spike | TODO |
-| S008-T002 | SignalOccurrence materialization | TODO |
-| S008-T003 | Forward outcome calculator | TODO |
-| S008-T004 | Parquet research dataset writer | TODO |
-| S008-T005 | Application workflow (signal_model_only) | TODO |
-| S008-T006 | End-to-end integration test | TODO |
-| S008-T007 | Visual inspection extension | TODO |
-| S008-T008 | ADR and sprint closure | TODO |
+**Met (2026-07-12):** Sprint 006 merged to `main` via PR #75.
+
+```text
+git switch main
+git pull
+git switch -c sprint/signal-research-mvp
+git push -u origin sprint/signal-research-mvp
+```
+
+---
+
+## Canonical E2E Scenario
+
+```text
+Signal model: higher_low_long (ON_EVENT)
+Dataset:      committed integration fixture
+Horizons:     e.g. (5,) or (5, 10) — long-format outcome rows
+Assert:       ≥1 occurrence,
+              COMPLETE outcomes where horizon fits,
+              INCOMPLETE_HORIZON status where it does not,
+              write → read round-trip,
+              run_id immutability,
+              deterministic run identity
+```
+
+---
+
+## Explicit Non-Goals
+
+```text
+Sprint 007 component catalog expansion
+MARKET_MODEL_ONLY / MARKET_AND_SIGNAL (Sprint 009)
+Stored-dataset analytics without recompute (Sprint 010)
+Experiment grids, rankings, statistical tests
+Production dashboard
+fill_price / entry_price / execution simulation
+Stored forward price paths (summary outcomes only)
+Direct file-path reads by analytics consumers
+DuckDB / advanced query layer
+```
 
 ---
 
@@ -108,3 +345,5 @@ basic distribution / event frequency preview
 | Date | Change |
 |------|--------|
 | 2026-07-12 | Initial outline |
+| 2026-07-12 | Expanded task table, waves, Wave 0 kickoff; Sprint 007 skipped |
+| 2026-07-12 | Corrections: reader in T006, outcome definition in T004, reference_price policy, long schema, run envelope, acceptance criteria |

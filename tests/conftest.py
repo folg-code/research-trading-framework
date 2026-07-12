@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 
+from tests.fixtures.market_data import OHLCV_SAMPLE_1M
 from trading_framework.market_analysis.assembly.frame import AnalysisFrame
 
 _MARKET_DATA_FIXTURES_DIR = Path(__file__).resolve().parent / "fixtures" / "market_data"
@@ -15,6 +16,12 @@ _MARKET_DATA_FIXTURES_DIR = Path(__file__).resolve().parent / "fixtures" / "mark
 def market_data_fixtures_dir() -> Path:
     """Return the committed market data fixture directory."""
     return _MARKET_DATA_FIXTURES_DIR
+
+
+@pytest.fixture
+def ohlcv_sample_1m_path() -> Path:
+    """Return the canonical committed 1m OHLCV sample fixture."""
+    return OHLCV_SAMPLE_1M
 
 
 @pytest.fixture

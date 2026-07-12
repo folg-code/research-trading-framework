@@ -3,6 +3,7 @@
 from datetime import UTC, datetime
 from pathlib import Path
 
+from tests.fixtures.market_data import OHLCV_SAMPLE_1M_ROW_COUNT
 from trading_framework.application.market_data import (
     ImportExternalDatasetRequest,
     import_external_dataset,
@@ -52,13 +53,13 @@ def _request(path: Path) -> ImportExternalDatasetRequest:
 
 def test_import_external_dataset_registers_working_version(
     tmp_path: Path,
-    market_data_fixtures_dir: Path,
+    ohlcv_sample_1m_path: Path,
 ) -> None:
     storage_root = tmp_path / "data"
     registry = FileDatasetRegistry(storage_root)
     repository = ParquetDatasetRepository(storage_root)
     result = import_external_dataset(
-        _request(market_data_fixtures_dir / "sample_ohlcv.csv"),
+        _request(ohlcv_sample_1m_path),
         storage_root=storage_root,
         registry=registry,
         repository=repository,
@@ -69,7 +70,7 @@ def test_import_external_dataset_registers_working_version(
     metadata = registry.get(result.dataset_ref)
     assert metadata.lifecycle_status is DatasetLifecycleState.WORKING
     assert metadata.validation_status is ValidationStatus.PASSED
-    assert metadata.row_count == 2
+    assert metadata.row_count == OHLCV_SAMPLE_1M_ROW_COUNT
 
     bars = repository.query_bars(
         HistoricalBarQuery(
@@ -78,7 +79,7 @@ def test_import_external_dataset_registers_working_version(
             end_at=metadata.end_at,
         )
     )
-    assert len(bars) == 2
+    assert len(bars) == OHLCV_SAMPLE_1M_ROW_COUNT
 
 
 def test_import_external_dataset_marks_failed_validation_without_writing_bars(

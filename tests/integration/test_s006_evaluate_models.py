@@ -75,11 +75,10 @@ def _write_published_dataset(storage_root: Path, *, csv_path: Path) -> DatasetRe
 
 def test_evaluate_models_runs_analysis_once_for_shared_dependencies(
     tmp_path: Path,
-    market_data_fixtures_dir: Path,
+    ohlcv_sample_1m_path: Path,
 ) -> None:
     storage_root = tmp_path / "storage"
-    fixture = market_data_fixtures_dir / "s005_swing_vertical_slice_1m.csv"
-    dataset_ref = _write_published_dataset(storage_root, csv_path=fixture)
+    dataset_ref = _write_published_dataset(storage_root, csv_path=ohlcv_sample_1m_path)
     metadata = FileDatasetRegistry(storage_root).get(dataset_ref)
 
     volatility_component = VolatilityStateComponent()

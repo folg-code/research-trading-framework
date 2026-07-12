@@ -1,7 +1,7 @@
 """Integration test for the Market Analysis vertical slice (D-035).
 
-Fixture provenance: ``tests/fixtures/market_data/sample_ohlcv.csv`` — two 1m OHLCV
-rows imported through the same CSV pipeline as ``test_csv_import_flow``.
+Fixture provenance: ``tests/fixtures/market_data/ohlcv_sample_1m.csv`` — committed
+1m OHLCV sample imported through the same CSV pipeline as ``test_csv_import_flow``.
 """
 
 from datetime import UTC
@@ -81,11 +81,10 @@ def _write_published_dataset(storage_root: Path, *, csv_path: Path) -> DatasetRe
 
 def test_vertical_slice_builds_wide_frame_from_dataset_ref(
     tmp_path: Path,
-    market_data_fixtures_dir: Path,
+    ohlcv_sample_1m_path: Path,
 ) -> None:
     storage_root = tmp_path / "storage"
-    fixture = market_data_fixtures_dir / "sample_ohlcv.csv"
-    dataset_ref = _write_published_dataset(storage_root, csv_path=fixture)
+    dataset_ref = _write_published_dataset(storage_root, csv_path=ohlcv_sample_1m_path)
     metadata = FileDatasetRegistry(storage_root).get(dataset_ref)
     bars_before = query_historical(
         QueryHistoricalRequest(

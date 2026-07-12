@@ -17,12 +17,19 @@ from __future__ import annotations
 
 import argparse
 import math
+import sys
 import tempfile
 import webbrowser
 from datetime import UTC, datetime
 from pathlib import Path
 
 import polars as pl
+
+_SPIKE_DIR = Path(__file__).resolve().parent
+if str(_SPIKE_DIR) not in sys.path:
+    sys.path.insert(0, str(_SPIKE_DIR))
+
+from _fixture_paths import OHLCV_SAMPLE_1M, OHLCV_SAMPLE_1M_FILENAME
 
 from trading_framework.application.model_evaluation import EvaluateModelsRequest, evaluate_models
 from trading_framework.application.model_evaluation.canonical_examples import (
@@ -42,12 +49,7 @@ from trading_framework.market_analysis.data.view import AnalysisDataView
 from trading_framework.time.models.timeframe import Timeframe
 from trading_framework.time.sessions import CmeEsRthSessionResolver
 
-FIXTURE = (
-    Path(__file__).resolve().parents[1]
-    / "fixtures"
-    / "market_data"
-    / "s005_swing_vertical_slice_1m.csv"
-)
+FIXTURE = OHLCV_SAMPLE_1M
 
 
 def _write_published_dataset(storage_root: Path, csv_path: Path) -> DatasetRef:
@@ -420,7 +422,7 @@ def main() -> int:
         "--fixture",
         type=Path,
         default=FIXTURE,
-        help="CSV fixture path (default: s005_swing_vertical_slice_1m.csv)",
+        help=f"CSV fixture path (default: {OHLCV_SAMPLE_1M_FILENAME})",
     )
     parser.add_argument(
         "--output",
