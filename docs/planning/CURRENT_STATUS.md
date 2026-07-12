@@ -28,8 +28,8 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 ```text
 Status Date: 2026-07-12
 Current Phase: Phase 4 — Market Analysis Components and Multitimeframe
-Current Milestone: Sprint 004 complete; sprint integration PR to main pending
-Implementation Status: Sprint 004 COMPLETE on sprint/market-analysis-mtf; merge to main pending
+Current Milestone: Sprint 004 merged to main (2026-07-12)
+Implementation Status: Sprint 003 and Sprint 004 COMPLETE on main
 Overall Status: IN_PROGRESS
 Active Sprint: none (SPRINT_004 closed; SPRINT_005 not yet planned)
 Last Completed Sprint: SPRINT_004 (COMPLETED)
@@ -39,7 +39,7 @@ Last Completed Sprint: SPRINT_004 (COMPLETED)
 
 ## 3. Current Objective
 
-Close Sprint 004 integration: open PR from `sprint/market-analysis-mtf` to `main`, review and merge.
+Plan **Sprint 005** (Phase 4 continuation). Sprint 004 is merged to `main` via PR #60.
 
 Sprint 004 delivered the **Multitimeframe Foundation MVP** — lean batch MTF with explicit
 `ResampleNode`, layered identity, Polars resample/align, `LAST_CLOSED_BAR` alignment, and
@@ -47,7 +47,7 @@ vertical slice `1m → 5m ATR (aligned to 1m) + 1m EMA`. ADR-MA-012 accepted.
 
 Sprint 004 record: `docs/planning/sprints/SPRINT_004.md`  
 MTF ADR: `docs/adr/ADR-MA-012-batch-multitimeframe-computation-with-polars.md`  
-Engine baseline on `main`: Sprint 003; MTF increment on sprint branch pending merge.
+Engine + MTF baseline on `main` @ `bc18f09` (PR #60).
 
 ---
 
@@ -95,7 +95,7 @@ Completed in Sprint 003 (merged to `main`):
 
 ### Phase 4 — Multitimeframe Foundation (Sprint 004)
 
-Completed on `sprint/market-analysis-mtf` (merge to `main` pending):
+Completed on `main` (PR #60, 2026-07-12):
 
 - timeframe roles: `computation_timeframe`, `evaluation_timeframe`, `RequestResolver`,
 - `ResampleSpec`, `ResampleNode`, Polars resample/align, layered identities,
@@ -133,14 +133,6 @@ Maintenance: `.cursor/rules/documentation.mdc`
 
 ## 6. Work in Progress
 
-### Sprint integration — `sprint/market-analysis-mtf` → `main`
-
-**Status:** ready for final sprint PR  
-**Branch:** `sprint/market-analysis-mtf`  
-**Delivered:** T001–T015 (T016 deferred)
-
-**Next step:** open sprint integration PR to `main`, review, merge.
-
 ### Sprint 005 (not yet planned)
 
 Preview from Sprint 004 retrospective:
@@ -156,7 +148,7 @@ Preview from Sprint 004 retrospective:
 
 Nothing is technically blocked.
 
-Sprint 004 closed — **sprint integration PR to `main` is the next gate**.
+Sprint 004 merged to `main` — **Sprint 005 planning is next**.
 
 ---
 

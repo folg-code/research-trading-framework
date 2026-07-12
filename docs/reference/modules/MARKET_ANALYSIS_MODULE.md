@@ -3,7 +3,7 @@
 > **Reference doc** — [as-implemented layer](../README.md).  
 > Index: [docs/README.md](../../README.md).
 
-**Status:** Sprint 004 complete — single-TF engine + MTF foundation on `sprint/market-analysis-mtf`.  
+**Status:** Sprint 004 complete on `main` — single-TF engine + MTF foundation.  
 Binding decisions (vision): [../../vision/MARKET_ANALYSIS_WITH_DECISIONS.md](../../vision/MARKET_ANALYSIS_WITH_DECISIONS.md), [../../vision/MULTITIMEFRAME_MARKET_MODEL_ARCHITECTURE_UPDATED.md](../../vision/MULTITIMEFRAME_MARKET_MODEL_ARCHITECTURE_UPDATED.md).  
 Accepted ADRs: [../adr/README.md](../adr/README.md) (ADR-MA-001–012).
 

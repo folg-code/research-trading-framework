@@ -805,7 +805,7 @@ Review checklist: verify PR does not violate **Design Principles (Anti-Overengin
 - [x] End-to-end MTF integration (T013) green
 - [x] ADR-MA-012 accepted
 - [x] `CURRENT_STATUS.md` updated
-- [ ] Sprint PR to `main` opened; agent stops before merge
+- [x] Sprint PR to `main` opened; agent stops before merge (merged PR #60, 2026-07-12)
 
 ---
 
@@ -844,7 +844,7 @@ Completed 2026-07-12.
 
 ### Carry-Forward Items
 
-- Merge `sprint/market-analysis-mtf` to `main`.
+- Sprint 004 merged to `main` (PR #60, 2026-07-12).
 - TradingCalendar when CME/session use case appears (PRB-007).
 - Structure components, MarketFieldReference, persistent derived datasets (Sprint 005 preview).
 - Columnar query/resample boundary (TD-011, TD-015).
