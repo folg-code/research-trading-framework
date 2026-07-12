@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import assert_never
 
 import polars as pl
 
@@ -14,7 +15,10 @@ from trading_framework.core.exceptions import ValidationError
 from trading_framework.market.datasets import DatasetRef
 from trading_framework.market_analysis.models.time_range import TimeRange
 from trading_framework.market_model.definitions import MarketModelDefinition
-from trading_framework.research.context import empty_context_facts_dataframe
+from trading_framework.research.context import (
+    align_context_facts_at_available_at,
+    empty_context_facts_dataframe,
+)
 from trading_framework.research.datasets.signal_research import (
     SIGNAL_RESEARCH_SCHEMA_V2,
     SIGNAL_RESEARCH_SCHEMA_VERSION,
@@ -85,6 +89,7 @@ class RunSignalResearchResult:
     outcomes: pl.DataFrame
     occurrences: pl.DataFrame
     observations: pl.DataFrame
+    context: pl.DataFrame
 
 
 def run_signal_research(
@@ -118,9 +123,12 @@ def run_signal_research(
         return _run_signal_model_only(
             request, repository=repository, outcome_definition=outcome_definition
         )
+    if request.scope is ResearchScope.MARKET_AND_SIGNAL:
+        return _run_market_and_signal(
+            request, repository=repository, outcome_definition=outcome_definition
+        )
 
-    msg = f"unsupported research scope in Wave 2: {request.scope.value}"
-    raise SignalResearchError(msg)
+    assert_never(request.scope)
 
 
 def _run_signal_model_only(
@@ -214,6 +222,103 @@ def _run_signal_model_only(
         manifest=manifest,
         occurrences=occurrences,
         observations=empty_market_model_observations_dataframe(),
+        context=empty_context_facts_dataframe(),
+        outcomes=outcomes,
+    )
+
+
+def _run_market_and_signal(
+    request: RunSignalResearchRequest,
+    *,
+    repository: SignalResearchDatasetRepository | None,
+    outcome_definition: ForwardOutcomeDefinition,
+) -> RunSignalResearchResult:
+    market_model = request.market_models[0]
+    signal_model = request.signal_models[0]
+    evaluation_timeframe = request.evaluation_timeframe or request.timeframe
+    eval_result = evaluate_models(
+        EvaluateModelsRequest(
+            dataset_ref=request.dataset_ref,
+            timeframe=request.timeframe,
+            requested_range=request.requested_range,
+            storage_root=request.storage_root,
+            market_models=(market_model,),
+            signal_models=(signal_model,),
+            evaluation_timeframe=evaluation_timeframe,
+            session_resolver=request.session_resolver,
+        )
+    )
+    frame = eval_result.analysis.frame
+    if frame is None:
+        msg = "signal research requires an assembled AnalysisFrame"
+        raise SignalResearchError(msg)
+
+    market_view = eval_result.analysis.workspace.market_view
+    ohlcv = align_ohlcv_to_evaluation_frame(frame, market_view)
+    source_dataset_ref = str(request.dataset_ref)
+    instrument = request.dataset_ref.dataset_id.instrument_id.value
+
+    emissions = eval_result.signal_model_emissions[signal_model.signal_model_id]
+    occurrences = materialize_signal_occurrences(
+        emissions,
+        frame=frame,
+        market_view=market_view,
+        context=OccurrenceMaterializationContext(
+            signal_model_id=signal_model.signal_model_id,
+            instrument=instrument,
+            evaluation_timeframe=evaluation_timeframe,
+            source_dataset_ref=source_dataset_ref,
+        ),
+    )
+    market_state = eval_result.market_model_results[market_model.market_model_id]
+    context = align_context_facts_at_available_at(
+        occurrences,
+        market_state,
+        market_model_id=market_model.market_model_id,
+    )
+    outcomes = compute_forward_outcomes_for_horizons(
+        occurrences,
+        frame=frame,
+        ohlcv=ohlcv,
+        horizons=request.horizons,
+        definition=outcome_definition,
+    )
+
+    definition_fingerprint = outcome_definition_fingerprint(request.horizons, outcome_definition)
+    run_id = derive_run_id_v2(
+        research_scope=ResearchScope.MARKET_AND_SIGNAL,
+        source_dataset_ref=source_dataset_ref,
+        market_model_ids=(market_model.market_model_id,),
+        signal_model_ids=(signal_model.signal_model_id,),
+        horizons=request.horizons,
+        evaluation_timeframe=evaluation_timeframe.value,
+        requested_range_start=request.requested_range.start,
+        requested_range_end=request.requested_range.end,
+        framework_version=framework_version,
+        outcome_definition_fingerprint=definition_fingerprint,
+    )
+    manifest = SignalResearchRunManifest(
+        run_id=run_id,
+        schema_version=SIGNAL_RESEARCH_SCHEMA_V2,
+        framework_version=framework_version,
+        created_at_utc=datetime.now(tz=UTC),
+        source_dataset_ref=source_dataset_ref,
+        evaluation_timeframe=evaluation_timeframe.value,
+        signal_model_ids=(signal_model.signal_model_id,),
+        horizon_bars_requested=request.horizons,
+        reference_price_policy=outcome_definition.reference_price_policy,
+        outcome_definition_fingerprint=definition_fingerprint,
+        experiment_id=request.experiment_id,
+        research_scope=ResearchScope.MARKET_AND_SIGNAL,
+        market_model_ids=(market_model.market_model_id,),
+    )
+    return _persist_run(
+        request,
+        repository=repository,
+        manifest=manifest,
+        occurrences=occurrences,
+        observations=empty_market_model_observations_dataframe(),
+        context=context,
         outcomes=outcomes,
     )
 
@@ -303,6 +408,7 @@ def _run_market_model_only(
         manifest=manifest,
         occurrences=empty_signal_occurrences_dataframe(),
         observations=observations,
+        context=empty_context_facts_dataframe(),
         outcomes=outcomes,
     )
 
@@ -314,6 +420,7 @@ def _persist_run(
     manifest: SignalResearchRunManifest,
     occurrences: pl.DataFrame,
     observations: pl.DataFrame,
+    context: pl.DataFrame,
     outcomes: pl.DataFrame,
 ) -> RunSignalResearchResult:
     envelope = SignalResearchRunEnvelope(
@@ -321,7 +428,7 @@ def _persist_run(
         occurrences=occurrences,
         observations=observations,
         outcomes=outcomes,
-        context=empty_context_facts_dataframe(),
+        context=context,
     )
     run_ref = RunDatasetRef(run_id=manifest.run_id)
     if request.persist:
@@ -334,5 +441,6 @@ def _persist_run(
         manifest=manifest,
         occurrences=occurrences,
         observations=observations,
+        context=context,
         outcomes=outcomes,
     )

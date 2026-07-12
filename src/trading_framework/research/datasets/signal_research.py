@@ -13,7 +13,10 @@ import polars as pl
 
 from trading_framework.core.exceptions import ValidationError
 from trading_framework.infrastructure.storage.paths import signal_research_run_dir
-from trading_framework.research.context.context_fact import empty_context_facts_dataframe
+from trading_framework.research.context.context_fact import (
+    empty_context_facts_dataframe,
+    validate_context_facts_dataframe,
+)
 from trading_framework.research.observations.market_model_observation import (
     empty_market_model_observations_dataframe,
     validate_observations_dataframe,
@@ -288,9 +291,12 @@ class SignalResearchDatasetRepository:
             envelope.observations.write_parquet(run_dir / "observations.parquet")
         elif scope is ResearchScope.MARKET_AND_SIGNAL:
             validate_occurrences_dataframe(envelope.occurrences)
+            validate_context_facts_dataframe(envelope.context)
+            if len(envelope.occurrences) != len(envelope.context):
+                msg = "context rows must match occurrence rows for MARKET_AND_SIGNAL"
+                raise ValidationError(msg)
             envelope.occurrences.write_parquet(run_dir / "occurrences.parquet")
-            if len(envelope.context) > 0:
-                envelope.context.write_parquet(run_dir / "context.parquet")
+            envelope.context.write_parquet(run_dir / "context.parquet")
         else:
             assert_never(scope)
 
@@ -348,8 +354,12 @@ class SignalResearchDatasetRepository:
             observations = pl.read_parquet(observations_path)
             validate_observations_dataframe(observations)
 
-        if scope is ResearchScope.MARKET_AND_SIGNAL and context_path.exists():
+        if scope is ResearchScope.MARKET_AND_SIGNAL:
+            if not context_path.exists():
+                msg = f"missing context parquet: {context_path}"
+                raise FileNotFoundError(msg)
             context = pl.read_parquet(context_path)
+            validate_context_facts_dataframe(context)
 
         return SignalResearchRunEnvelope(
             manifest=manifest,
