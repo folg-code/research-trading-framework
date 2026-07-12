@@ -5,12 +5,13 @@
 ```text
 Sprint: 006
 Phase: Phase 4 / Phase 5 bridge
-Status: PLANNED (planning complete — implementation blocked on S005 merge to main)
-Planned Start: TBD (after SPRINT_005 merged to main)
+Status: IN_PROGRESS (Wave 0 complete)
+Planned Start: 2026-07-12
 Planned End: TBD
 Sprint Goal Owner: Project Maintainer
-Depends On: SPRINT_005 (COMPLETED on sprint branch — pending merge to main)
+Depends On: SPRINT_005 (COMPLETED, merged to main)
 Sprint Branch: sprint/declarative-models
+Task branch convention: sprint/declarative-models--<task-slug>  (Git ref collision workaround)
 Direction: docs/planning/sprints/PHASE_4_5_SPRINT_DIRECTION.md
 Architecture Sources:
   - docs/vision/ARCHITECTURE_FOUNDATIONS_UPDATED.md
@@ -396,32 +397,32 @@ Chart layer must **not** evaluate models, compute components, apply firing, or r
 
 | ID | Task | Status | Depends On |
 |----|------|--------|------------|
-| S006-T001 | Wave 0 decisions spike and note | TODO | — |
-| S006-T002 | `ComponentOutputReference` (reuse/wrap `ComponentOutputRef`) | TODO | S006-T001 |
-| S006-T003 | `MarketFieldReference` (canonical OHLCV) | TODO | S006-T001 |
-| S006-T004 | Expression nodes (`Compare`, `And`, `Or`, `Not`) | TODO | S006-T002, S006-T003 |
-| S006-T005 | Expression validation | TODO | S006-T004 |
-| S006-T006 | `ExpressionDependencyExtractor` | TODO | S006-T004 |
-| S006-T007 | `MarketModelDefinition` | TODO | S006-T004 |
-| S006-T008 | `MarketModelEvaluator` | TODO | S006-T007 |
-| S006-T009 | `SignalModelDefinition` + `SignalDirection` | TODO | S006-T004 |
-| S006-T010 | `SignalModelEvaluator` (condition result) | TODO | S006-T009 |
-| S006-T011 | `SignalFiringPolicy` + emission materialization | TODO | S006-T010 |
-| S006-T012 | Null and temporal semantics in evaluators | TODO | S006-T008, S006-T010 |
-| S006-T013 | `evaluate_models` application use case | TODO | S006-T006, S006-T012 |
-| S006-T014 | Automatic `ComponentRequest` construction from models | TODO | S006-T013 |
-| S006-T015 | Shared single `run_analysis` execution | TODO | S006-T014 |
-| S006-T016 | Canonical Market Model example | TODO | S006-T015 |
-| S006-T017 | Event-based Signal Model example (`ON_EVENT`) | TODO | S006-T015 |
-| S006-T018 | State-edge Signal Model example (`ON_TRUE_EDGE`) | TODO | S006-T015 |
-| S006-T019 | Combined expression example | TODO | S006-T015 |
-| S006-T020 | Inspection chart overlay | TODO | S006-T016 |
-| S006-T021 | End-to-end integration test | TODO | S006-T019 |
-| S006-T022 | Temporal regression tests | TODO | S006-T012 |
-| S006-T023 | Null and warm-up tests | TODO | S006-T012 |
-| S006-T024 | Invalid reference / forbidden field tests | TODO | S006-T005 |
-| S006-T025 | ADR — model expression, domain boundary, firing, null semantics | TODO | S006-T001 |
-| S006-T026 | MODULE_MAP, reference docs, sprint closure | TODO | S006-T025 |
+| S006-T001 | Wave 0 decisions spike and note | DONE | — |
+| S006-T002 | `ComponentOutputReference` (reuse/wrap `ComponentOutputRef`) | DONE | S006-T001 |
+| S006-T003 | `MarketFieldReference` (canonical OHLCV) | DONE | S006-T001 |
+| S006-T004 | Expression nodes (`Compare`, `And`, `Or`, `Not`) | DONE | S006-T002, S006-T003 |
+| S006-T005 | Expression validation | DONE | S006-T004 |
+| S006-T006 | `ExpressionDependencyExtractor` | DONE | S006-T004 |
+| S006-T007 | `MarketModelDefinition` | DONE | S006-T004 |
+| S006-T008 | `MarketModelEvaluator` | DONE | S006-T007 |
+| S006-T009 | `SignalModelDefinition` + `SignalDirection` | DONE | S006-T004 |
+| S006-T010 | `SignalModelEvaluator` (condition result) | DONE | S006-T009 |
+| S006-T011 | `SignalFiringPolicy` + emission materialization | DONE | S006-T010 |
+| S006-T012 | Null and temporal semantics in evaluators | DONE | S006-T008, S006-T010 |
+| S006-T013 | `evaluate_models` application use case | DONE | S006-T006, S006-T012 |
+| S006-T014 | Automatic `ComponentRequest` construction from models | DONE | S006-T013 |
+| S006-T015 | Shared single `run_analysis` execution | DONE | S006-T014 |
+| S006-T016 | Canonical Market Model example | DONE | S006-T015 |
+| S006-T017 | Event-based Signal Model example (`ON_EVENT`) | DONE | S006-T015 |
+| S006-T018 | State-edge Signal Model example (`ON_TRUE_EDGE`) | DONE | S006-T015 |
+| S006-T019 | Combined expression example | DONE | S006-T015 |
+| S006-T020 | Inspection chart overlay | DONE | S006-T016 |
+| S006-T021 | End-to-end integration test | DONE | S006-T019 |
+| S006-T022 | Temporal regression tests | DONE | S006-T012 |
+| S006-T023 | Null and warm-up tests | DONE | S006-T012 |
+| S006-T024 | Invalid reference / forbidden field tests | DONE | S006-T005 |
+| S006-T025 | ADR — model expression, domain boundary, firing, null semantics | DONE | S006-T001 |
+| S006-T026 | MODULE_MAP, reference docs, sprint closure | DONE | S006-T025 |
 
 **Total:** 26 tasks (consolidated into ~5 outcome PRs)
 
@@ -435,27 +436,46 @@ Close package ownership, AST shape, `AnalysisFrame` adapter boundary, result sch
 firing policies, null semantics, temporal rules, max expression depth, `MarketFieldReference`
 scope.
 
-**Artifact:** `docs/planning/sprints/S006_WAVE0_DECISIONS.md`
+**Done (2026-07-12):** `tests/spike/run_model_expression_spike.py`, `S006_WAVE0_DECISIONS.md`.
+Binding decisions D-S006-01 … D-S006-12.
 
 ### Wave 1 — T002–T006
 
 References, expression nodes, validation, dependency extraction.
 
+**Done (2026-07-12):** `model_expression` package — references, AST, validation, `ExpressionDependencyExtractor`.
+
 ### Wave 2 — T007–T012
 
 Model definitions, evaluators, firing, null and temporal semantics.
+
+**Done (2026-07-12):** `model_expression/evaluation/`, `market_model/`, `signal_model/` with
+`ExpressionEvaluator`, `MarketModelEvaluator`, `SignalModelEvaluator`, `SignalFiringPolicy`.
 
 ### Wave 3 — T013–T015
 
 Application orchestration: `evaluate_models`, request construction, shared `run_analysis`.
 
+**Done (2026-07-12):** `application/model_evaluation/evaluate_models.py`,
+`model_expression/planning.py`, extended `ExpressionDependencies` with output references,
+`merge_expression_dependencies`, integration test `test_s006_evaluate_models.py`.
+
 ### Wave 4 — T016–T021
 
 Canonical examples, inspection overlay, end-to-end integration test.
 
+**Done (2026-07-12):** `application/model_evaluation/canonical_examples.py`,
+`tests/integration/test_s006_evaluate_models_vertical_slice.py`,
+`tests/spike/run_inspect_declarative_models.py`.
+
 ### Wave 5 — T022–T026
 
 Temporal / null / negative tests, ADR, documentation closure.
+
+**Done (2026-07-12):** ADR-0006, `model_authoring/` DSL, registry-backed component catalog,
+`BinaryCompareExpression`, regression tests, MODULE_MAP update.
+
+**Also delivered (authoring increment):** `model_authoring/` user-facing DSL compiling to IR.
 
 ---
 
@@ -473,11 +493,14 @@ Branch model:
 
 ```text
 sprint/declarative-models
-  → task branches sprint/declarative-models/<task-slug>
+  → task branches sprint/declarative-models--<task-slug>
   → PR to sprint/declarative-models
   → squash merge
   → sprint PR to main (after sprint complete)
 ```
+
+Git cannot nest `sprint/declarative-models/foo` when branch `sprint/declarative-models` exists;
+use double-dash task names (see D-S006-11).
 
 ---
 
@@ -607,3 +630,4 @@ see `SPRINT_008.md`.
 |------|--------|
 | 2026-07-12 | Initial outline from PHASE_4_5_SPRINT_DIRECTION |
 | 2026-07-12 | **Full planning:** domain boundary (not Strategy), condition vs firing split, null semantics, package layout, 26 tasks, 5 PRs, branching gate on S005 merge |
+| 2026-07-12 | **Wave 0 complete:** spike + S006_WAVE0_DECISIONS.md; sprint branch created from main |

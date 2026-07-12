@@ -21,3 +21,49 @@ uv run python tests/spike/run_inspect_mtf_swing.py --output swing_inspection.htm
 
 Writes zoomable HTML (not PNG) with OHLCV, all swing frame columns in hover, state
 levels, event panel and RTH shading.
+
+Model expression spike (S006-T001):
+
+```bash
+uv run python tests/spike/run_model_expression_spike.py
+uv run python tests/spike/run_model_expression_spike.py --json
+```
+
+Validates AnalysisFrame → Polars adapter, three-valued logic and firing policies.
+
+Declarative model inspection (S006-T020):
+
+```bash
+uv pip install plotly
+uv run python tests/spike/run_inspect_declarative_models.py --open
+uv run python tests/spike/run_inspect_declarative_models.py \\
+  --market-models high_volatility \\
+  --signal-models higher_low_long,high_vol_and_higher_low \\
+  --output model_inspection.html --open
+```
+
+Overlays pre-computed Market Model state, Signal Model conditions and emission markers.
+Chart helpers do not evaluate models or run Market Analysis.
+
+Building models and components (S006 tutorial):
+
+```bash
+# Recipe + run example models on fixture data
+uv run python tests/spike/run_build_declarative_models_example.py
+
+# List MVP components (outputs, parameters)
+uv run python tests/spike/run_build_declarative_models_example.py --catalog
+
+# Checklist for adding a new Market Analysis component
+uv run python tests/spike/run_build_declarative_models_example.py --checklist
+
+# Model-building recipe only
+uv run python tests/spike/run_build_declarative_models_example.py --recipe
+```
+
+Reusable example code:
+
+- ``tests/spike/run_dsl_models_example.py`` — target user-facing DSL API
+- ``tests/spike/examples_model_building.py`` — low-level IR examples (legacy)
+- ``src/trading_framework/model_authoring/`` — production DSL package
+- ``src/trading_framework/application/model_evaluation/canonical_examples.py`` — production canonical set

@@ -7,7 +7,7 @@ Package map for `src/trading_framework/`: responsibility, dependencies, status, 
 
 **Status legend:** ✅ implemented · 🟡 partial / in sprint · ⬜ skeleton · 📘 deep doc elsewhere
 
-Last updated: 2026-07-12 (Sprint 004 complete)
+Last updated: 2026-07-12 (Sprint 006 in progress)
 
 ---
 
@@ -18,6 +18,10 @@ application/          use cases — orchestrates domain + infrastructure
     ↓ uses
 market/               market domain models and repository protocols
 market_analysis/      analysis domain — components, planning, execution
+model_expression/     declarative expression IR, validation, evaluation
+model_authoring/      user-facing model DSL (compiles to model_expression)
+market_model/         Market Model definitions and evaluator
+signal_model/         Signal Model definitions, firing, emissions
 infrastructure/       adapters — CSV, Parquet, file registry
 core/, time/, config/ shared primitives
 strategy/, research/, execution/, events/   ⬜ future domains
@@ -154,6 +158,52 @@ Published DatasetRef (source timeframe, e.g. 1m)
 | **Talks to** | `application/market_data`, `market_analysis` |
 | **Key paths** | `load_data_view.py`, `run_analysis.py` |
 | **Entry points** | `load_analysis_data_view`, `run_analysis` (supports `evaluation_timeframe`, MTF `ComponentRequest`, optional `session_resolver`) |
+
+### `application/model_evaluation/` 🟡
+
+| | |
+|---|---|
+| **Responsibility** | `evaluate_models` orchestration, canonical examples |
+| **Talks to** | `market_analysis`, `market_model`, `signal_model`, `model_expression` |
+| **Key paths** | `evaluate_models.py`, `canonical_examples.py` |
+| **Entry points** | `evaluate_models`, `build_canonical_model_bundle` |
+
+---
+
+## Declarative Models (Sprint 006) 🟡
+
+End-to-end flow:
+
+```text
+model_authoring DSL (optional)
+  → compile → model_expression IR
+  → evaluate_models
+  → run_analysis once (deduplicated ComponentRequest set)
+  → AnalysisFrame
+  → MarketModelEvaluator / SignalModelEvaluator (+ firing)
+```
+
+### `model_expression/` 🟡
+
+| | |
+|---|---|
+| **Responsibility** | Operand references, expression AST, validation, Polars evaluation on `AnalysisFrame` |
+| **Key paths** | `references.py`, `expressions.py`, `validation.py`, `evaluation/` |
+
+### `model_authoring/` 🟡
+
+| | |
+|---|---|
+| **Responsibility** | User-facing typed references (`price`, `trend`, `volatility`, `structure`), conditions, `market_model` / `signal_model` builders |
+| **Talks to** | `model_expression`, `market_model`, `signal_model` |
+| **Entry points** | `market_model`, `signal_model`, `VolatilityState` |
+
+### `market_model/` · `signal_model/` 🟡
+
+| Package | Responsibility |
+|---------|----------------|
+| `market_model/` | `MarketModelDefinition`, dense `model_result` evaluator |
+| `signal_model/` | `SignalModelDefinition`, `SignalFiringPolicy`, sparse emissions |
 
 ---
 
