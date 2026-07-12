@@ -6,12 +6,14 @@ from trading_framework.research.context import (
     validate_context_facts_dataframe,
 )
 from trading_framework.research.datasets import (
+    SIGNAL_RESEARCH_SCHEMA_V2,
     SIGNAL_RESEARCH_SCHEMA_VERSION,
     RunDatasetRef,
     SignalResearchDatasetRepository,
     SignalResearchRunEnvelope,
     SignalResearchRunManifest,
     derive_run_id,
+    derive_run_id_v2,
     outcome_definition_fingerprint,
 )
 from trading_framework.research.observations import (
@@ -20,6 +22,7 @@ from trading_framework.research.observations import (
     derive_observation_id,
     empty_market_model_observations_dataframe,
     materialize_market_model_observations,
+    observations_as_outcome_occurrences,
     validate_observations_dataframe,
 )
 from trading_framework.research.outcomes import (
@@ -39,6 +42,7 @@ from trading_framework.research.requests import (
 from trading_framework.research.scope import ResearchScope
 
 __all__ = [
+    "SIGNAL_RESEARCH_SCHEMA_V2",
     "SIGNAL_RESEARCH_SCHEMA_VERSION",
     "ForwardOutcomeDefinition",
     "IncompleteHorizonPolicy",
@@ -58,10 +62,12 @@ __all__ = [
     "compute_forward_outcomes_for_horizons",
     "derive_observation_id",
     "derive_run_id",
+    "derive_run_id_v2",
     "empty_context_facts_dataframe",
     "empty_forward_outcomes_dataframe",
     "empty_market_model_observations_dataframe",
     "materialize_market_model_observations",
+    "observations_as_outcome_occurrences",
     "outcome_definition_fingerprint",
     "validate_context_facts_dataframe",
     "validate_observations_dataframe",
