@@ -1,26 +1,26 @@
-"""Spike-only Signal Research analytics helpers (S010 Wave 0).
+"""Spike-only Signal Research analytics helpers (S010 Wave 0+).
 
-Promoted to ``research/analytics/`` in Wave 1. Must not import model evaluation,
-materialization or outcome calculator modules.
+Aggregate helpers remain spike-only until promoted in later waves.
+Production frame builder, filters and schemas live in ``research/analytics/``.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
-from enum import StrEnum
+from pathlib import Path
 from typing import Any
 
 import polars as pl
 
 from trading_framework.core.exceptions import ValidationError
-from trading_framework.research.datasets.signal_research import SignalResearchRunEnvelope
-from trading_framework.research.outcomes.definition import OutcomeStatus
-from trading_framework.research.scope import ResearchScope
+from trading_framework.research.analytics.dimensions import (
+    AnalyticsTimestampBasis,
+    GroupDimension,
+)
+from trading_framework.research.analytics.filters import OutcomeAnalyticsFilter
+from trading_framework.research.analytics.frame_builder import build_analysis_frame
 from trading_framework.time.sessions import CmeEsRthSessionResolver
 from trading_framework.time.sessions.constants import ES_RTH_SESSION_ID
-
-ENTITY_KIND_SIGNAL = "SIGNAL_OCCURRENCE"
-ENTITY_KIND_OBSERVATION = "MARKET_MODEL_OBSERVATION"
 
 FORBIDDEN_ANALYTICS_IMPORTS = frozenset(
     {
@@ -33,18 +33,9 @@ FORBIDDEN_ANALYTICS_IMPORTS = frozenset(
     }
 )
 
-
-class AnalyticsTimestampBasis(StrEnum):
-    AVAILABLE_AT = "available_at"
-    DETECTED_AT = "detected_at"
-
-
-class GroupDimension(StrEnum):
-    HORIZON = "horizon"
-    RTH_MEMBERSHIP = "rth_membership"
-    TIME_OF_DAY = "time_of_day"
-    CALENDAR_MONTH = "calendar_month"
-    CONTEXT_MET = "context_met"
+_ANALYTICS_MODULE_DIR = (
+    Path(__file__).resolve().parents[2] / "src" / "trading_framework" / "research" / "analytics"
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -81,95 +72,22 @@ class ConditionalComparisonRow:
     hit_rate_delta: float | None
 
 
-def assert_read_only_module(source_text: str) -> None:
-    """Fail if spike analytics module imports forbidden compute paths."""
+def assert_read_only_analytics_package() -> None:
+    """Fail if production analytics modules import forbidden compute paths."""
+    for path in sorted(_ANALYTICS_MODULE_DIR.glob("*.py")):
+        assert_read_only_module(path.read_text(encoding="utf-8"), source=str(path.name))
+
+
+def assert_read_only_module(source_text: str, *, source: str = "module") -> None:
+    """Fail if analytics module imports forbidden compute paths."""
     for line in source_text.splitlines():
         stripped = line.strip()
         if not stripped.startswith(("import ", "from ")):
             continue
         for forbidden in FORBIDDEN_ANALYTICS_IMPORTS:
             if forbidden in stripped:
-                msg = f"analytics spike must not import forbidden symbol: {forbidden}"
+                msg = f"{source} must not import forbidden symbol: {forbidden}"
                 raise ValidationError(msg)
-
-
-def build_analysis_frame(envelope: SignalResearchRunEnvelope) -> pl.DataFrame:
-    """Join persisted facts into one normalized analytics frame."""
-    scope = envelope.manifest.effective_scope()
-    outcomes = envelope.outcomes
-    run_id = envelope.manifest.run_id
-    research_scope = scope.value
-
-    if scope is ResearchScope.SIGNAL_MODEL_ONLY:
-        entities = envelope.occurrences.select(
-            "occurrence_id",
-            pl.lit(ENTITY_KIND_SIGNAL).alias("entity_kind"),
-            "detected_at",
-            "available_at",
-            "reference_price",
-            "instrument",
-        )
-        joined = outcomes.join(entities, on="occurrence_id", how="left")
-        context_expr = pl.lit(None, dtype=pl.Boolean).alias("context_met_at_available_at")
-    elif scope is ResearchScope.MARKET_MODEL_ONLY:
-        entities = envelope.observations.select(
-            pl.col("observation_id").alias("occurrence_id"),
-            pl.lit(ENTITY_KIND_OBSERVATION).alias("entity_kind"),
-            "detected_at",
-            "available_at",
-            "reference_price",
-            "instrument",
-        )
-        joined = outcomes.join(entities, on="occurrence_id", how="left")
-        context_expr = pl.lit(None, dtype=pl.Boolean).alias("context_met_at_available_at")
-    elif scope is ResearchScope.MARKET_AND_SIGNAL:
-        entities = envelope.occurrences.select(
-            "occurrence_id",
-            pl.lit(ENTITY_KIND_SIGNAL).alias("entity_kind"),
-            "detected_at",
-            "available_at",
-            "reference_price",
-            "instrument",
-        )
-        context = envelope.context.select("occurrence_id", "context_met_at_available_at")
-        joined = outcomes.join(entities, on="occurrence_id", how="left").join(
-            context,
-            on="occurrence_id",
-            how="left",
-        )
-        context_expr = pl.col("context_met_at_available_at")
-    else:
-        msg = f"unsupported research scope: {scope}"
-        raise ValidationError(msg)
-
-    return joined.select(
-        pl.lit(run_id).alias("run_id"),
-        pl.lit(research_scope).alias("research_scope"),
-        pl.col("occurrence_id").alias("entity_id"),
-        pl.col("entity_kind"),
-        pl.col("horizon_bars"),
-        pl.col("outcome_status"),
-        pl.col("forward_return"),
-        pl.col("mfe"),
-        pl.col("mae"),
-        pl.col("detected_at"),
-        pl.col("available_at"),
-        pl.col("reference_price"),
-        pl.col("instrument"),
-        context_expr,
-    )
-
-
-def _timestamp_column(
-    frame: pl.DataFrame,
-    *,
-    basis: AnalyticsTimestampBasis,
-) -> pl.Series:
-    column = basis.value
-    if column not in frame.columns:
-        msg = f"timestamp basis column missing: {column}"
-        raise ValidationError(msg)
-    return frame[column]
 
 
 def _aggregate_complete_metrics(complete: pl.DataFrame) -> dict[str, float | None]:
@@ -201,11 +119,13 @@ def compute_run_summary(
     *,
     horizon_bars: int,
     min_sample_size: int,
+    outcome_filter: OutcomeAnalyticsFilter | None = None,
 ) -> RunSummaryRow:
     """Aggregate one run x horizon summary."""
+    aggregate_filter = outcome_filter or OutcomeAnalyticsFilter.complete_only()
     subset = frame.filter(pl.col("horizon_bars") == horizon_bars)
     sample_total = len(subset)
-    complete = subset.filter(pl.col("outcome_status") == OutcomeStatus.COMPLETE.value)
+    complete = aggregate_filter.filter_for_aggregates(subset)
     sample_complete = len(complete)
     sample_incomplete = sample_total - sample_complete
     completion_rate = sample_complete / sample_total if sample_total else 0.0
@@ -245,6 +165,18 @@ def compute_run_summary(
         mae_mean=metrics["mae_mean"],
         mae_median=metrics["mae_median"],
     )
+
+
+def _timestamp_column(
+    frame: pl.DataFrame,
+    *,
+    basis: AnalyticsTimestampBasis,
+) -> pl.Series:
+    column = basis.value
+    if column not in frame.columns:
+        msg = f"timestamp basis column missing: {column}"
+        raise ValidationError(msg)
+    return frame[column]
 
 
 def _with_rth_membership(
@@ -348,7 +280,7 @@ def compute_conditional_comparison(
 ) -> ConditionalComparisonRow:
     """Compare outcomes where context_met is true vs false."""
     subset = frame.filter(pl.col("horizon_bars") == horizon_bars)
-    complete = subset.filter(pl.col("outcome_status") == OutcomeStatus.COMPLETE.value)
+    complete = OutcomeAnalyticsFilter.complete_only().filter_for_aggregates(subset)
     true_rows = complete.filter(pl.col("context_met_at_available_at"))
     false_rows = complete.filter(~pl.col("context_met_at_available_at"))
 
@@ -376,3 +308,18 @@ def compute_conditional_comparison(
         hit_rate_false=false_metrics["hit_rate"],
         hit_rate_delta=_delta(true_metrics["hit_rate"], false_metrics["hit_rate"]),
     )
+
+
+__all__ = [
+    "AnalyticsTimestampBasis",
+    "ConditionalComparisonRow",
+    "GroupDimension",
+    "OutcomeAnalyticsFilter",
+    "RunSummaryRow",
+    "assert_read_only_analytics_package",
+    "assert_read_only_module",
+    "build_analysis_frame",
+    "compute_conditional_comparison",
+    "compute_grouped_summary",
+    "compute_run_summary",
+]

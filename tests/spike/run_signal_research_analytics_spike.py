@@ -34,12 +34,9 @@ if str(_SPIKE_DIR) not in sys.path:
 
 from _fixture_paths import OHLCV_SAMPLE_1M
 from _signal_research_analytics_spike import (
-    ENTITY_KIND_OBSERVATION,
-    ENTITY_KIND_SIGNAL,
     AnalyticsTimestampBasis,
     GroupDimension,
-    assert_read_only_module,
-    build_analysis_frame,
+    assert_read_only_analytics_package,
     compute_conditional_comparison,
     compute_grouped_summary,
     compute_run_summary,
@@ -58,6 +55,11 @@ from trading_framework.infrastructure.storage.metadata.registry import FileDatas
 from trading_framework.market.datasets import DatasetId, DatasetRef
 from trading_framework.market_analysis import TimeRange
 from trading_framework.research import ResearchScope, RunDatasetRef, SignalResearchDatasetRepository
+from trading_framework.research.analytics import (
+    ENTITY_KIND_OBSERVATION,
+    ENTITY_KIND_SIGNAL,
+    build_analysis_frame,
+)
 from trading_framework.research.outcomes.definition import OutcomeStatus
 from trading_framework.time.models.timeframe import Timeframe
 from trading_framework.time.sessions import CmeEsRthSessionResolver
@@ -175,13 +177,10 @@ def _run_scope(
 def run_checks() -> list[SpikeCheck]:
     checks: list[SpikeCheck] = []
 
-    analytics_source = (_SPIKE_DIR / "_signal_research_analytics_spike.py").read_text(
-        encoding="utf-8"
-    )
     try:
-        assert_read_only_module(analytics_source)
+        assert_read_only_analytics_package()
         read_only_ok = True
-        read_only_detail = "no forbidden compute imports in analytics spike module"
+        read_only_detail = "no forbidden compute imports in research/analytics package"
     except Exception as exc:
         read_only_ok = False
         read_only_detail = str(exc)

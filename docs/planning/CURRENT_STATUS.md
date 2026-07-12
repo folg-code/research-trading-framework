@@ -161,12 +161,12 @@ Maintenance: `.cursor/rules/documentation.mdc`
 
 ### Sprint 010 — Signal Research Analytics MVP
 
-**Status:** IN_PROGRESS — Wave 0 complete  
+**Status:** IN_PROGRESS — Wave 0 complete; Wave 1 complete (pending PR)  
 **Plan:** `docs/planning/sprints/SPRINT_010.md`  
 **Sprint branch:** `sprint/signal-research-analytics`  
-**Tasks:** 2 / 11
+**Tasks:** 4 / 11
 
-**Next:** Wave 1 — promote spike helpers to `research/analytics/`.
+**Next:** Wave 2 — `RunSummary` aggregates and `analyze_signal_research_run()`.
 
 ---
 
@@ -199,7 +199,7 @@ Maintenance: `.cursor/rules/documentation.mdc`
 
 ## 7. Blocked Work
 
-Nothing is technically blocked. Sprint 010 Wave 1 awaits PR merge of Wave 0.
+Nothing is technically blocked. Sprint 010 Wave 2 awaits PR merge of Wave 1.
 
 ---
 
