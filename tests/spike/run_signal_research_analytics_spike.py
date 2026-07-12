@@ -33,14 +33,7 @@ if str(_SPIKE_DIR) not in sys.path:
     sys.path.insert(0, str(_SPIKE_DIR))
 
 from _fixture_paths import OHLCV_SAMPLE_1M
-from _signal_research_analytics_spike import (
-    AnalyticsTimestampBasis,
-    GroupDimension,
-    assert_read_only_analytics_package,
-    compute_conditional_comparison,
-    compute_grouped_summary,
-    compute_run_summary,
-)
+from _signal_research_analytics_spike import assert_read_only_analytics_package
 
 from trading_framework.application.model_evaluation.canonical_examples import (
     build_canonical_market_model_high_volatility,
@@ -58,7 +51,13 @@ from trading_framework.research import ResearchScope, RunDatasetRef, SignalResea
 from trading_framework.research.analytics import (
     ENTITY_KIND_OBSERVATION,
     ENTITY_KIND_SIGNAL,
+    AnalyticsTimestampBasis,
+    GroupDimension,
+    OutcomeAnalyticsFilter,
     build_analysis_frame,
+    compute_conditional_comparison,
+    compute_grouped_summary,
+    compute_run_summary,
 )
 from trading_framework.research.outcomes.definition import OutcomeStatus
 from trading_framework.time.models.timeframe import Timeframe
@@ -294,18 +293,22 @@ def run_checks() -> list[SpikeCheck]:
             )
         )
 
-        conditional = compute_conditional_comparison(combined_frame, horizon_bars=HORIZON)
-        split_total = conditional.context_true_sample_size + conditional.context_false_sample_size
+        conditional = compute_conditional_comparison(combined_frame, horizon_bars=HORIZON).row(
+            0, named=True
+        )
+        split_total = (
+            conditional["context_true_sample_size"] + conditional["context_false_sample_size"]
+        )
         checks.append(
             SpikeCheck(
                 name="conditional_context_split",
                 passed=(
-                    conditional.context_false_sample_size > 0
+                    conditional["context_false_sample_size"] > 0
                     and split_total == combined_summary["sample_size_complete"]
                 ),
                 detail=(
-                    f"true={conditional.context_true_sample_size} "
-                    f"false={conditional.context_false_sample_size} "
+                    f"true={conditional['context_true_sample_size']} "
+                    f"false={conditional['context_false_sample_size']} "
                     f"(fixture may have no true context rows)"
                 ),
             )
@@ -314,10 +317,10 @@ def run_checks() -> list[SpikeCheck]:
             SpikeCheck(
                 name="conditional_delta_direction",
                 passed=(
-                    conditional.forward_return_mean_delta is None
-                    or conditional.forward_return_mean_true is not None
+                    conditional["forward_return_mean_delta"] is None
+                    or conditional["forward_return_mean_true"] is not None
                 ),
-                detail=f"delta={conditional.forward_return_mean_delta}",
+                detail=f"delta={conditional['forward_return_mean_delta']}",
             )
         )
 
@@ -326,6 +329,7 @@ def run_checks() -> list[SpikeCheck]:
             horizon_bars=HORIZON,
             dimension=GroupDimension.RTH_MEMBERSHIP,
             min_sample_size=1,
+            outcome_filter=OutcomeAnalyticsFilter.complete_only(),
             timestamp_basis=AnalyticsTimestampBasis.AVAILABLE_AT,
         )
         checks.append(
@@ -341,6 +345,7 @@ def run_checks() -> list[SpikeCheck]:
             horizon_bars=HORIZON,
             dimension=GroupDimension.TIME_OF_DAY,
             min_sample_size=1,
+            outcome_filter=OutcomeAnalyticsFilter.complete_only(),
             timestamp_basis=AnalyticsTimestampBasis.AVAILABLE_AT,
         )
         checks.append(

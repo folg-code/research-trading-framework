@@ -67,6 +67,72 @@ def validate_run_summaries(frame: pl.DataFrame) -> None:
     _validate_frame_schema(frame, expected=empty_run_summaries(), label="run summaries")
 
 
+def _grouped_summary_schema() -> dict[str, pl.DataType]:
+    return {
+        "run_id": pl.String(),
+        "research_scope": pl.String(),
+        "horizon_bars": pl.Int64(),
+        "group_dimension": pl.String(),
+        "group_value": pl.String(),
+        "sample_size_total": pl.Int64(),
+        "sample_size_complete": pl.Int64(),
+        "sample_size_incomplete": pl.Int64(),
+        "metrics_eligible": pl.Boolean(),
+        "forward_return_mean": pl.Float64(),
+        "forward_return_median": pl.Float64(),
+        "hit_rate": pl.Float64(),
+        "mfe_mean": pl.Float64(),
+        "mfe_median": pl.Float64(),
+        "mae_mean": pl.Float64(),
+        "mae_median": pl.Float64(),
+    }
+
+
+def empty_grouped_summaries() -> pl.DataFrame:
+    """Return an empty GroupedSummary table with the canonical schema."""
+    return pl.DataFrame(schema=_grouped_summary_schema())
+
+
+def validate_grouped_summaries(frame: pl.DataFrame) -> None:
+    """Validate GroupedSummary output columns and dtypes."""
+    _validate_frame_schema(frame, expected=empty_grouped_summaries(), label="grouped summaries")
+
+
+def _conditional_comparison_schema() -> dict[str, pl.DataType]:
+    return {
+        "run_id": pl.String(),
+        "horizon_bars": pl.Int64(),
+        "context_true_sample_size": pl.Int64(),
+        "context_false_sample_size": pl.Int64(),
+        "forward_return_mean_true": pl.Float64(),
+        "forward_return_mean_false": pl.Float64(),
+        "forward_return_mean_delta": pl.Float64(),
+        "hit_rate_true": pl.Float64(),
+        "hit_rate_false": pl.Float64(),
+        "hit_rate_delta": pl.Float64(),
+        "mfe_mean_true": pl.Float64(),
+        "mfe_mean_false": pl.Float64(),
+        "mfe_mean_delta": pl.Float64(),
+        "mae_mean_true": pl.Float64(),
+        "mae_mean_false": pl.Float64(),
+        "mae_mean_delta": pl.Float64(),
+    }
+
+
+def empty_conditional_comparison() -> pl.DataFrame:
+    """Return an empty ConditionalComparison table with the canonical schema."""
+    return pl.DataFrame(schema=_conditional_comparison_schema())
+
+
+def validate_conditional_comparison(frame: pl.DataFrame) -> None:
+    """Validate ConditionalComparison output columns and dtypes."""
+    _validate_frame_schema(
+        frame,
+        expected=empty_conditional_comparison(),
+        label="conditional comparison",
+    )
+
+
 def _validate_frame_schema(
     frame: pl.DataFrame,
     *,
