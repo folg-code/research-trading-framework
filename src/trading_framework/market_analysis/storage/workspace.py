@@ -3,8 +3,10 @@
 from dataclasses import dataclass
 
 from trading_framework.market_analysis.data.view import AnalysisDataView
+from trading_framework.market_analysis.identity.computation import ComputationIdentity
 from trading_framework.market_analysis.models.result import AnalysisResult
 from trading_framework.market_analysis.storage.result_store import AnalysisResultStore
+from trading_framework.time.models.timeframe import Timeframe
 
 
 @dataclass(frozen=True, slots=True)
@@ -13,6 +15,9 @@ class AnalysisWorkspaceView:
 
     market: AnalysisDataView
     dependency_results: dict[str, AnalysisResult]
+    computation_timeframe: Timeframe | None = None
+    input_identity_key: str | None = None
+    planned_computation_identity: ComputationIdentity | None = None
 
 
 class AnalysisWorkspace:
@@ -47,8 +52,13 @@ class AnalysisWorkspace:
         dependency_keys: tuple[str, ...],
         *,
         input_identity_key: str | None = None,
+        computation_timeframe: Timeframe | None = None,
+        planned_computation_identity: ComputationIdentity | None = None,
     ) -> AnalysisWorkspaceView:
         return AnalysisWorkspaceView(
             market=self.market_view_for(input_identity_key),
             dependency_results=self._store.dependency_results(dependency_keys),
+            computation_timeframe=computation_timeframe,
+            input_identity_key=input_identity_key,
+            planned_computation_identity=planned_computation_identity,
         )

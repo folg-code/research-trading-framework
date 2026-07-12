@@ -5,7 +5,7 @@
 ```text
 Sprint: 004
 Phase: Phase 4 — Market Analysis Components and Multitimeframe (first increment)
-Status: IN_PROGRESS (Wave 2 complete; Wave 3 next)
+Status: IN_PROGRESS (Wave 3 complete; Wave 4 next)
 Planned Start: 2026-07-12
 Planned End: TBD
 Sprint Goal Owner: Project Maintainer
@@ -318,9 +318,9 @@ No new dependency for Trading Calendar in this sprint.
 | S004-T006 | Polars OHLCV resampling + `ResampleNode` | DONE | S004-T004, S004-T005 |
 | S004-T007 | Request resolution layer (explicit input plan) | DONE | S004-T003, S004-T005 |
 | S004-T008 | Planner and executor: `ResampleNode` deduplication and integration | DONE | S004-T006, S004-T007 |
-| S004-T009 | `available_at` derivation on component outputs | TODO | S004-T008 |
-| S004-T010 | `AlignmentPolicy` + Polars `join_asof` alignment | TODO | S004-T009 |
-| S004-T011 | `AnalysisFrame` MTF assembly on evaluation grid | TODO | S004-T010 |
+| S004-T009 | `available_at` derivation on component outputs | DONE | S004-T008 |
+| S004-T010 | `AlignmentPolicy` + Polars `join_asof` alignment | DONE | S004-T009 |
+| S004-T011 | `AnalysisFrame` MTF assembly on evaluation grid | DONE | S004-T010 |
 | S004-T012 | Behavior-focused MTF test suite | TODO | S004-T010 |
 | S004-T013 | End-to-end vertical slice and `run_analysis` MTF path | TODO | S004-T011, S004-T012 |
 | S004-T014 | ADR — Batch Multitimeframe Computation with Polars | TODO | S004-T001 |
@@ -550,7 +550,7 @@ Single deliverable merging former “planner expansion”, “executor integrati
 
 ### S004-T009 — available_at derivation on component outputs
 
-**Status:** TODO  
+**Status:** DONE  
 **Category:** Implementation  
 **Domain:** Market Analysis  
 **Wave:** 3  
@@ -564,14 +564,14 @@ Single-TF outputs: preserve Sprint 003 behaviour.
 
 #### Acceptance Criteria
 
-- [ ] HTF ATR series includes `available_at` metadata
-- [ ] Unit tests with hand-crafted timestamps (e.g. 10:37 vs 1h bar)
+- [x] HTF ATR series includes `available_at` metadata
+- [x] Unit tests with hand-crafted timestamps (e.g. 10:37 vs 1h bar)
 
 ---
 
 ### S004-T010 — AlignmentPolicy and Polars join_asof
 
-**Status:** TODO  
+**Status:** DONE  
 **Category:** Implementation  
 **Domain:** Market Analysis  
 **Wave:** 3  
@@ -585,15 +585,15 @@ Single-TF outputs: preserve Sprint 003 behaviour.
 
 #### Acceptance Criteria
 
-- [ ] No future HTF value on earlier LTF timestamp (behavior test)
-- [ ] No unsafe forward-fill
-- [ ] Warm-up / missing history handled explicitly
+- [x] No future HTF value on earlier LTF timestamp (behavior test)
+- [x] No unsafe forward-fill
+- [x] Warm-up / missing history handled explicitly
 
 ---
 
 ### S004-T011 — AnalysisFrame MTF assembly
 
-**Status:** TODO  
+**Status:** DONE  
 **Category:** Implementation  
 **Domain:** Market Analysis  
 **Wave:** 3  
@@ -610,9 +610,9 @@ Regression: Sprint 003 single-TF frame assembly unchanged.
 
 #### Acceptance Criteria
 
-- [ ] Frame index = evaluation timeframe
-- [ ] Mixed-TF columns correctly aligned
-- [ ] Alias policy unchanged for single-TF case
+- [x] Frame index = evaluation timeframe
+- [x] Mixed-TF columns correctly aligned
+- [x] Alias policy unchanged for single-TF case
 
 ---
 

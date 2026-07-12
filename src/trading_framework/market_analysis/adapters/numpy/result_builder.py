@@ -1,9 +1,11 @@
 """Helpers to build ``AnalysisResult`` from NumPy adapter outputs."""
 
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
+from datetime import datetime
 
 import numpy as np
 
+from trading_framework.market.temporal.bar_interval import derive_bar_interval
 from trading_framework.market_analysis.identity.component import (
     ComponentId,
     ComponentVersion,
@@ -25,10 +27,43 @@ from trading_framework.market_analysis.models.result import (
     OutputSeries,
     ValidityMetadata,
 )
+from trading_framework.market_analysis.storage.workspace import AnalysisWorkspaceView
+from trading_framework.time.models.timeframe import Timeframe
 
 
 def ndarray_to_output_series(values: np.ndarray, *, dtype: str = "float64") -> OutputSeries:
     return OutputSeries(values=tuple(float(value) for value in values), dtype=dtype)
+
+
+def derive_available_at_timestamps(
+    observed_at: Sequence[datetime],
+    computation_timeframe: Timeframe,
+) -> tuple[datetime, ...]:
+    available: list[datetime] = []
+    for timestamp in observed_at:
+        _, available_at = derive_bar_interval(timestamp, computation_timeframe)
+        available.append(available_at)
+    return tuple(available)
+
+
+def attach_htf_available_at(
+    outputs: Mapping[OutputId, OutputSeries],
+    *,
+    market_timestamps: tuple[datetime, ...],
+    computation_timeframe: Timeframe,
+    source_timeframe: Timeframe,
+) -> dict[OutputId, OutputSeries]:
+    if computation_timeframe.total_seconds <= source_timeframe.total_seconds:
+        return dict(outputs)
+    available_at = derive_available_at_timestamps(market_timestamps, computation_timeframe)
+    return {
+        output_id: OutputSeries(
+            values=series.values,
+            dtype=series.dtype,
+            available_at=available_at,
+        )
+        for output_id, series in outputs.items()
+    }
 
 
 def build_analysis_result(
@@ -45,23 +80,44 @@ def build_analysis_result(
     warmup_bars: int,
     valid_from_index: int,
     bar_count: int,
+    workspace: AnalysisWorkspaceView | None = None,
 ) -> AnalysisResult:
-    identity = ComputationIdentity(
-        component_id=component_id,
-        component_version=component_version,
-        implementation_id=implementation_id,
-        implementation_version=implementation_version,
-        parameters=parameters,
-        dataset_ref=context.dataset_ref,
-        computation_timeframe=context.timeframe,
-        requested_range=context.requested_range,
-        dependency_keys=dependency_keys,
-    )
+    if workspace is not None and workspace.planned_computation_identity is not None:
+        identity = workspace.planned_computation_identity
+        computation_timeframe = identity.computation_timeframe
+    else:
+        computation_timeframe = (
+            workspace.computation_timeframe
+            if workspace and workspace.computation_timeframe
+            else context.timeframe
+        )
+        identity = ComputationIdentity(
+            component_id=component_id,
+            component_version=component_version,
+            implementation_id=implementation_id,
+            implementation_version=implementation_version,
+            parameters=parameters,
+            dataset_ref=context.dataset_ref,
+            computation_timeframe=computation_timeframe,
+            requested_range=context.requested_range,
+            dependency_keys=dependency_keys,
+            input_identity_key=workspace.input_identity_key if workspace else None,
+        )
+
+    resolved_outputs = outputs
+    if workspace is not None:
+        resolved_outputs = attach_htf_available_at(
+            outputs,
+            market_timestamps=workspace.market.timestamps,
+            computation_timeframe=computation_timeframe,
+            source_timeframe=context.timeframe,
+        )
+
     valid_to_index = max(valid_from_index, bar_count - 1)
     return AnalysisResult(
         computation_identity=identity,
         output_schema=output_schema,
-        outputs=outputs,
+        outputs=resolved_outputs,
         lineage=Lineage(
             dataset_ref=context.dataset_ref,
             component_id=component_id,

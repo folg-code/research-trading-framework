@@ -117,5 +117,10 @@ def run_analysis(
     )
     frame = None
     if request.frame_request is not None:
-        frame = AnalysisFrameAssembler().assemble(workspace, request.frame_request)
+        frame = AnalysisFrameAssembler().assemble(
+            workspace,
+            request.frame_request,
+            evaluation_timeframe=context.evaluation_timeframe,
+            evaluation_range=context.requested_range,
+        )
     return AnalysisRunResult(plan=plan, workspace=workspace, frame=frame)
