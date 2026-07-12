@@ -5,7 +5,7 @@
 ```text
 Sprint: 010
 Phase: Phase 5 — Signal Research MVP (analytics increment — Phase 5 closure)
-Status: IN PROGRESS — Wave 0 complete (2026-07-12); Wave 1 complete (2026-07-12)
+Status: IN PROGRESS — Wave 2 complete (2026-07-12); Wave 3 kickoff pending
 Planned Start: TBD
 Planned End: TBD
 Sprint Goal Owner: Project Maintainer
@@ -579,10 +579,10 @@ metrics_eligible / visible small groups
 | S010-T001 | Wave 0 spike + `S010_WAVE0_DECISIONS.md` | DONE | — |
 | S010-T002 | Filters, `AnalyticsTimestampBasis`, schemas | DONE | S010-T001 |
 | S010-T003 | Scope-aware `build_analysis_frame()` | DONE | S010-T001 |
-| S010-T004 | `RunSummary` aggregates + `metrics_eligible` | TODO | S010-T002, S010-T003 |
+| S010-T004 | `RunSummary` aggregates + `metrics_eligible` | DONE | S010-T002, S010-T003 |
 | S010-T005 | Grouping: RTH, time-of-day, calendar period | TODO | S010-T004 |
 | S010-T006 | Conditional comparison (`context_met`) | TODO | S010-T004 |
-| S010-T007 | `analyze_signal_research_run` application API | TODO | S010-T004–T006 |
+| S010-T007 | `analyze_signal_research_run` application API | DONE | S010-T004–T006 |
 | S010-T008 | Integration tests (three scopes) | TODO | S010-T007 |
 | S010-T009 | Optional HTML report spike | TODO | S010-T007 |
 | S010-T010 | ADR-0013 — analytics boundary | DONE (draft) | S010-T001 |

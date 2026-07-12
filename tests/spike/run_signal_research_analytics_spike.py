@@ -223,19 +223,22 @@ def run_checks() -> list[SpikeCheck]:
         market_frame = build_analysis_frame(market_envelope)
         combined_frame = build_analysis_frame(combined_envelope)
 
-        signal_summary = compute_run_summary(signal_frame, horizon_bars=HORIZON, min_sample_size=1)
+        signal_summary_df = compute_run_summary(
+            signal_frame, horizon_bars=HORIZON, min_sample_size=1
+        )
+        signal_summary = signal_summary_df.row(0, named=True)
         checks.append(
             SpikeCheck(
                 name="signal_only_v1_run_summary",
                 passed=(
-                    signal_summary.sample_size_complete > 0
-                    and signal_summary.metrics_eligible
-                    and signal_summary.hit_rate is not None
-                    and 0.0 <= signal_summary.hit_rate <= 1.0
+                    signal_summary["sample_size_complete"] > 0
+                    and signal_summary["metrics_eligible"]
+                    and signal_summary["hit_rate"] is not None
+                    and 0.0 <= signal_summary["hit_rate"] <= 1.0
                 ),
                 detail=(
-                    f"complete={signal_summary.sample_size_complete} "
-                    f"hit_rate={signal_summary.hit_rate}"
+                    f"complete={signal_summary['sample_size_complete']} "
+                    f"hit_rate={signal_summary['hit_rate']}"
                 ),
             )
         )
@@ -247,12 +250,17 @@ def run_checks() -> list[SpikeCheck]:
             )
         )
 
-        market_summary = compute_run_summary(market_frame, horizon_bars=HORIZON, min_sample_size=1)
+        market_summary = compute_run_summary(
+            market_frame, horizon_bars=HORIZON, min_sample_size=1
+        ).row(0, named=True)
         checks.append(
             SpikeCheck(
                 name="market_only_run_summary",
-                passed=market_summary.sample_size_complete > 0 and market_summary.metrics_eligible,
-                detail=f"complete={market_summary.sample_size_complete}",
+                passed=(
+                    market_summary["sample_size_complete"] > 0
+                    and market_summary["metrics_eligible"]
+                ),
+                detail=f"complete={market_summary['sample_size_complete']}",
             )
         )
         checks.append(
@@ -268,19 +276,19 @@ def run_checks() -> list[SpikeCheck]:
         ).height
         combined_summary = compute_run_summary(
             combined_frame, horizon_bars=HORIZON, min_sample_size=1
-        )
+        ).row(0, named=True)
         completion_ok = (
-            combined_summary.sample_size_total
-            == combined_summary.sample_size_complete + combined_summary.sample_size_incomplete
+            combined_summary["sample_size_total"]
+            == combined_summary["sample_size_complete"] + combined_summary["sample_size_incomplete"]
         )
         checks.append(
             SpikeCheck(
                 name="complete_filter_sample_diagnostics",
-                passed=completion_ok and combined_summary.sample_size_complete > 0,
+                passed=completion_ok and combined_summary["sample_size_complete"] > 0,
                 detail=(
-                    f"total={combined_summary.sample_size_total} "
-                    f"complete={combined_summary.sample_size_complete} "
-                    f"incomplete={combined_summary.sample_size_incomplete} "
+                    f"total={combined_summary['sample_size_total']} "
+                    f"complete={combined_summary['sample_size_complete']} "
+                    f"incomplete={combined_summary['sample_size_incomplete']} "
                     f"raw_incomplete_rows={incomplete_count}"
                 ),
             )
@@ -293,7 +301,7 @@ def run_checks() -> list[SpikeCheck]:
                 name="conditional_context_split",
                 passed=(
                     conditional.context_false_sample_size > 0
-                    and split_total == combined_summary.sample_size_complete
+                    and split_total == combined_summary["sample_size_complete"]
                 ),
                 detail=(
                     f"true={conditional.context_true_sample_size} "
@@ -347,18 +355,18 @@ def run_checks() -> list[SpikeCheck]:
             combined_frame,
             horizon_bars=HORIZON,
             min_sample_size=999_999,
-        )
+        ).row(0, named=True)
         checks.append(
             SpikeCheck(
                 name="metrics_eligible_false_path",
                 passed=(
-                    not ineligible.metrics_eligible
-                    and ineligible.forward_return_mean is None
-                    and ineligible.sample_size_complete > 0
+                    not ineligible["metrics_eligible"]
+                    and ineligible["forward_return_mean"] is None
+                    and ineligible["sample_size_complete"] > 0
                 ),
                 detail=(
-                    f"eligible={ineligible.metrics_eligible} "
-                    f"complete={ineligible.sample_size_complete}"
+                    f"eligible={ineligible['metrics_eligible']} "
+                    f"complete={ineligible['sample_size_complete']}"
                 ),
             )
         )
@@ -366,7 +374,7 @@ def run_checks() -> list[SpikeCheck]:
         naive_mean = combined_frame.filter(
             pl.col("outcome_status") == OutcomeStatus.COMPLETE.value
         )["forward_return"].mean()
-        filtered_mean = combined_summary.forward_return_mean
+        filtered_mean = combined_summary["forward_return_mean"]
         checks.append(
             SpikeCheck(
                 name="complete_only_mean_semantics",
