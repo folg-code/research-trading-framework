@@ -29,9 +29,9 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 Status Date: 2026-07-12
 Current Phase: Phase 4 — Market Analysis Components and Multitimeframe (planning)
 Current Milestone: Sprint 004 — Multitimeframe Foundation MVP
-Implementation Status: Sprint 003 COMPLETE on main; Sprint 004 IN_PROGRESS (Wave 3 complete)
+Implementation Status: Sprint 003 COMPLETE on main; Sprint 004 IN_PROGRESS (Wave 4 complete)
 Overall Status: IN_PROGRESS
-Active Sprint: SPRINT_004 (IN_PROGRESS — Wave 3 complete, Wave 4 next)
+Active Sprint: SPRINT_004 (IN_PROGRESS — Wave 4 complete, Wave 5 next)
 Last Completed Sprint: SPRINT_003 (COMPLETED)
 ```
 
@@ -127,10 +127,10 @@ Maintenance: `.cursor/rules/documentation.mdc`
 
 ### Sprint 004 — Multitimeframe Foundation MVP
 
-**Status:** IN_PROGRESS (Wave 3 complete)  
+**Status:** IN_PROGRESS (Wave 4 complete)  
 **Plan:** `docs/planning/sprints/SPRINT_004.md`  
 **Sprint branch:** `sprint/market-analysis-mtf`  
-**Tasks:** 16 (T001–T011 DONE; Wave 4 next; T016 deferred)
+**Tasks:** 16 (T001–T013 DONE; Wave 5 next; T016 deferred)
 
 **Design stance:** lean MTF MVP — layered identity, `ResampleNode` (not registry component), Polars for resample/align only, Trading Calendar deferred, ~5 outcome-scoped PRs. See Design Principles in sprint plan.
 
@@ -145,7 +145,7 @@ Maintenance: `.cursor/rules/documentation.mdc`
 - Wave 4 — behavior tests + end-to-end vertical slice (T012–T013)
 - Wave 5 — one ADR (ADR-MA-012), docs, closure (T014–T015)
 
-**Next:** Wave 4 (T012–T013) — behavior tests + end-to-end vertical slice.
+**Next:** Wave 5 (T014–T015) — ADR-MA-012, module docs, sprint closure.
 
 **Reference:** `docs/vision/MULTITIMEFRAME_MARKET_MODEL_ARCHITECTURE_UPDATED.md`, `docs/agents/AGENTS_MULTITIMEFRAME_MARKET_MODEL_UPDATED (1).md`
 
@@ -155,7 +155,7 @@ Maintenance: `.cursor/rules/documentation.mdc`
 
 Nothing is technically blocked.
 
-Sprint 004 Wave 3 (T009–T011) complete — **Wave 4 next**.
+Sprint 004 Wave 4 (T012–T013) complete — **Wave 5 next**.
 
 ---
 
