@@ -29,9 +29,9 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 Status Date: 2026-07-12
 Current Phase: Phase 4 — Market Analysis Components and Multitimeframe (planning)
 Current Milestone: Sprint 004 — Multitimeframe Foundation MVP
-Implementation Status: Sprint 003 COMPLETE on main; Sprint 004 PLANNED
+Implementation Status: Sprint 003 COMPLETE on main; Sprint 004 IN_PROGRESS (Wave 2 complete)
 Overall Status: IN_PROGRESS
-Active Sprint: SPRINT_004 (IN_PROGRESS — Wave 0 complete, Wave 1 unblocked)
+Active Sprint: SPRINT_004 (IN_PROGRESS — Wave 2 complete, Wave 3 next)
 Last Completed Sprint: SPRINT_003 (COMPLETED)
 ```
 
@@ -127,10 +127,10 @@ Maintenance: `.cursor/rules/documentation.mdc`
 
 ### Sprint 004 — Multitimeframe Foundation MVP
 
-**Status:** IN_PROGRESS (Wave 0 complete)  
+**Status:** IN_PROGRESS (Wave 2 complete)  
 **Plan:** `docs/planning/sprints/SPRINT_004.md`  
 **Sprint branch:** `sprint/market-analysis-mtf`  
-**Tasks:** 16 (T001–T005 DONE; Wave 2 next; T016 deferred)
+**Tasks:** 16 (T001–T008 DONE; Wave 3 next; T016 deferred)
 
 **Design stance:** lean MTF MVP — layered identity, `ResampleNode` (not registry component), Polars for resample/align only, Trading Calendar deferred, ~5 outcome-scoped PRs. See Design Principles in sprint plan.
 
@@ -145,7 +145,7 @@ Maintenance: `.cursor/rules/documentation.mdc`
 - Wave 4 — behavior tests + end-to-end vertical slice (T012–T013)
 - Wave 5 — one ADR (ADR-MA-012), docs, closure (T014–T015)
 
-**Next:** Wave 2 (T006–T008) — Polars resampling, request resolution plan, ResampleNode DAG.
+**Next:** Wave 3 (T009–T011) — `available_at`, `join_asof` alignment, frame MTF assembly.
 
 **Reference:** `docs/vision/MULTITIMEFRAME_MARKET_MODEL_ARCHITECTURE_UPDATED.md`, `docs/agents/AGENTS_MULTITIMEFRAME_MARKET_MODEL_UPDATED (1).md`
 
@@ -155,7 +155,7 @@ Maintenance: `.cursor/rules/documentation.mdc`
 
 Nothing is technically blocked.
 
-Sprint 004 Wave 0 (T001 spike) complete — **Wave 1 unblocked**.
+Sprint 004 Wave 2 (T006–T008) complete — **Wave 3 next**.
 
 ---
 

@@ -1,6 +1,7 @@
 """Sequential batch execution."""
 
 from trading_framework.core.exceptions import TradingFrameworkError
+from trading_framework.market_analysis.data.resample import resample_analysis_view
 from trading_framework.market_analysis.data.view import AnalysisDataView
 from trading_framework.market_analysis.errors import (
     ImplementationExecutionError,
@@ -8,9 +9,10 @@ from trading_framework.market_analysis.errors import (
 )
 from trading_framework.market_analysis.identity.component import ComponentId
 from trading_framework.market_analysis.identity.computation import ComputationIdentity
+from trading_framework.market_analysis.identity.mtf import ResampleIdentity
 from trading_framework.market_analysis.models.context import AnalysisContext
 from trading_framework.market_analysis.models.result import AnalysisResult
-from trading_framework.market_analysis.planning.plan import ExecutionPlan
+from trading_framework.market_analysis.planning.plan import ExecutionPlan, PlannedNode, ResampleNode
 from trading_framework.market_analysis.storage.workspace import AnalysisWorkspace
 
 
@@ -25,6 +27,22 @@ class ExecutionCache:
 
     def put(self, identity: ComputationIdentity, result: AnalysisResult) -> None:
         self._entries[identity.canonical_key()] = result
+
+    def __len__(self) -> int:
+        return len(self._entries)
+
+
+class ResampleCache:
+    """In-memory resample-stage cache keyed by ``ResampleIdentity``."""
+
+    def __init__(self) -> None:
+        self._entries: dict[str, AnalysisDataView] = {}
+
+    def get(self, identity: ResampleIdentity) -> AnalysisDataView | None:
+        return self._entries.get(identity.canonical_key())
+
+    def put(self, identity: ResampleIdentity, view: AnalysisDataView) -> None:
+        self._entries[identity.canonical_key()] = view
 
     def __len__(self) -> int:
         return len(self._entries)
@@ -60,40 +78,78 @@ class SequentialBatchExecutor:
         market_view: AnalysisDataView,
         context: AnalysisContext,
         cache: ExecutionCache | None = None,
+        resample_cache: ResampleCache | None = None,
     ) -> AnalysisWorkspace:
         workspace = AnalysisWorkspace(market_view)
         execution_cache = cache if cache is not None else ExecutionCache()
-        bar_count = len(market_view)
+        resample_stage_cache = resample_cache if resample_cache is not None else ResampleCache()
 
         for node in plan.nodes:
-            identity = node.computation_identity
-            cached = execution_cache.get(identity)
-            if cached is not None:
-                workspace.register(cached)
-                continue
-
-            workspace_view = workspace.view_for(node.dependency_keys)
-            try:
-                result = node.implementation.compute(
-                    context,
-                    workspace_view,
-                    node.request.parameters,
+            if isinstance(node, ResampleNode):
+                self._execute_resample_node(node, workspace, resample_stage_cache)
+            elif isinstance(node, PlannedNode):
+                self._execute_component_node(
+                    node,
+                    workspace=workspace,
+                    context=context,
+                    execution_cache=execution_cache,
                 )
-            except TradingFrameworkError:
-                raise
-            except Exception as exc:
-                raise ImplementationExecutionError(
-                    component_id=node.component.component_id,
-                    computation_key=identity.canonical_key(),
-                    message=str(exc),
-                ) from exc
-
-            validate_analysis_result(
-                result,
-                bar_count=bar_count,
-                component_id=node.component.component_id,
-            )
-            workspace.register(result)
-            execution_cache.put(identity, result)
 
         return workspace
+
+    def _execute_resample_node(
+        self,
+        node: ResampleNode,
+        workspace: AnalysisWorkspace,
+        resample_cache: ResampleCache,
+    ) -> None:
+        identity = node.resample_identity
+        identity_key = identity.canonical_key()
+        cached = resample_cache.get(identity)
+        if cached is None:
+            source_view = workspace.market_view_for(node.source_input_key)
+            cached = resample_analysis_view(source_view, node.resample_spec)
+            resample_cache.put(identity, cached)
+        workspace.register_resampled_view(identity_key, cached)
+
+    def _execute_component_node(
+        self,
+        node: PlannedNode,
+        *,
+        workspace: AnalysisWorkspace,
+        context: AnalysisContext,
+        execution_cache: ExecutionCache,
+    ) -> None:
+        identity = node.computation_identity
+        cached = execution_cache.get(identity)
+        if cached is not None:
+            workspace.register(cached)
+            return
+
+        workspace_view = workspace.view_for(
+            node.dependency_keys,
+            input_identity_key=identity.input_identity_key,
+        )
+        bar_count = len(workspace_view.market)
+        try:
+            result = node.implementation.compute(
+                context,
+                workspace_view,
+                node.request.parameters,
+            )
+        except TradingFrameworkError:
+            raise
+        except Exception as exc:
+            raise ImplementationExecutionError(
+                component_id=node.component.component_id,
+                computation_key=identity.canonical_key(),
+                message=str(exc),
+            ) from exc
+
+        validate_analysis_result(
+            result,
+            bar_count=bar_count,
+            component_id=node.component.component_id,
+        )
+        workspace.register(result)
+        execution_cache.put(identity, result)

@@ -10,7 +10,8 @@ from trading_framework.market_analysis.identity.computation import ComputationId
 from trading_framework.market_analysis.models.dependencies import ComponentDependency
 from trading_framework.market_analysis.models.request import ComponentRequest
 from trading_framework.market_analysis.planning.context import PlanningContext
-from trading_framework.market_analysis.planning.plan import ExecutionPlan, PlannedNode
+from trading_framework.market_analysis.planning.plan import ExecutionPlan, PlannedNode, ResampleNode
+from trading_framework.market_analysis.planning.resolution import ResolvedInputPlan
 from trading_framework.market_analysis.registry.registry import ComponentRegistry
 
 
@@ -50,12 +51,52 @@ class DependencyPlanner:
         self,
         context: PlanningContext,
         requests: Sequence[PlanningRequest],
+        *,
+        resolved_plan: ResolvedInputPlan | None = None,
     ) -> ExecutionPlan:
         normalized = self._normalize_requests(requests)
+        input_keys = self._input_keys_from_plan(normalized, resolved_plan)
         graph = self._expand_dependencies(normalized)
         ordered_keys = self._topological_sort(graph)
-        nodes = self._build_nodes(context, graph, ordered_keys)
-        return ExecutionPlan(nodes=nodes)
+        component_nodes = self._build_component_nodes(
+            context,
+            graph,
+            ordered_keys,
+            input_keys,
+        )
+        resample_nodes = self._build_resample_nodes(resolved_plan)
+        return ExecutionPlan(nodes=(*resample_nodes, *component_nodes))
+
+    def _input_keys_from_plan(
+        self,
+        normalized: Mapping[str, PlanningRequest],
+        resolved_plan: ResolvedInputPlan | None,
+    ) -> dict[str, str | None]:
+        if resolved_plan is None:
+            return dict.fromkeys(normalized)
+        lookup: dict[str, str | None] = {}
+        for component in resolved_plan.components:
+            key = request_key(
+                component.component_id,
+                component.request.parameters.fingerprint(),
+            )
+            lookup[key] = component.resolved.input_identity_key
+        return {key: lookup.get(key) for key in normalized}
+
+    def _build_resample_nodes(
+        self,
+        resolved_plan: ResolvedInputPlan | None,
+    ) -> tuple[ResampleNode, ...]:
+        if resolved_plan is None:
+            return ()
+        nodes: dict[str, ResampleNode] = {}
+        for requirement in resolved_plan.resample_requirements():
+            identity_key = requirement.resample_identity.canonical_key()
+            nodes[identity_key] = ResampleNode(
+                resample_identity=requirement.resample_identity,
+                resample_spec=requirement.resample_spec,
+            )
+        return tuple(nodes[key] for key in sorted(nodes))
 
     def _normalize_requests(
         self,
@@ -194,11 +235,12 @@ class DependencyPlanner:
                     return found
         return tuple(sorted(graph)[:1])
 
-    def _build_nodes(
+    def _build_component_nodes(
         self,
         context: PlanningContext,
         graph: Mapping[str, tuple[PlanningRequest, tuple[str, ...]]],
         ordered_keys: Sequence[str],
+        input_keys: Mapping[str, str | None],
     ) -> tuple[PlannedNode, ...]:
         computation_keys: dict[str, str] = {}
         nodes: list[PlannedNode] = []
@@ -227,6 +269,7 @@ class DependencyPlanner:
                 computation_timeframe=computation_timeframe,
                 requested_range=context.requested_range,
                 dependency_keys=dependency_keys,
+                input_identity_key=input_keys.get(key),
             )
             identity_key = identity.canonical_key()
             computation_keys[key] = identity_key

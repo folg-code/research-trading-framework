@@ -5,7 +5,7 @@
 ```text
 Sprint: 004
 Phase: Phase 4 — Market Analysis Components and Multitimeframe (first increment)
-Status: IN_PROGRESS (Wave 0 complete; Wave 1 unblocked)
+Status: IN_PROGRESS (Wave 2 complete; Wave 3 next)
 Planned Start: 2026-07-12
 Planned End: TBD
 Sprint Goal Owner: Project Maintainer
@@ -315,9 +315,9 @@ No new dependency for Trading Calendar in this sprint.
 | S004-T003 | Resolved request / execution input model | DONE | S004-T002 |
 | S004-T004 | Layered identities (Resample, ComponentComputation, Alignment) | DONE | S004-T003 |
 | S004-T005 | `ResampleSpec` and fixed UTC boundary semantics | DONE | S004-T001 |
-| S004-T006 | Polars OHLCV resampling + `ResampleNode` | TODO | S004-T004, S004-T005 |
-| S004-T007 | Request resolution layer (explicit input plan) | TODO | S004-T003, S004-T005 |
-| S004-T008 | Planner and executor: `ResampleNode` deduplication and integration | TODO | S004-T006, S004-T007 |
+| S004-T006 | Polars OHLCV resampling + `ResampleNode` | DONE | S004-T004, S004-T005 |
+| S004-T007 | Request resolution layer (explicit input plan) | DONE | S004-T003, S004-T005 |
+| S004-T008 | Planner and executor: `ResampleNode` deduplication and integration | DONE | S004-T006, S004-T007 |
 | S004-T009 | `available_at` derivation on component outputs | TODO | S004-T008 |
 | S004-T010 | `AlignmentPolicy` + Polars `join_asof` alignment | TODO | S004-T009 |
 | S004-T011 | `AnalysisFrame` MTF assembly on evaluation grid | TODO | S004-T010 |
@@ -472,7 +472,7 @@ Update execution cache to key by appropriate layer per node type.
 
 ### S004-T006 — Polars OHLCV resampling and ResampleNode
 
-**Status:** TODO  
+**Status:** DONE  
 **Category:** Implementation  
 **Domain:** Market Analysis  
 **Wave:** 2  
@@ -487,15 +487,15 @@ Update execution cache to key by appropriate layer per node type.
 
 #### Acceptance Criteria
 
-- [ ] OHLCV aggregation matches spike rules
-- [ ] Source frame immutability verified by test
-- [ ] Resample correctness tests (behavior, not class names)
+- [x] OHLCV aggregation matches spike rules
+- [x] Source frame immutability verified by test
+- [x] Resample correctness tests (behavior, not class names)
 
 ---
 
 ### S004-T007 — Request resolution layer
 
-**Status:** TODO  
+**Status:** DONE  
 **Category:** Implementation  
 **Domain:** Market Analysis  
 **Wave:** 2  
@@ -517,15 +517,15 @@ MVP resolution is explicit and narrow:
 
 #### Acceptance Criteria
 
-- [ ] Planner receives resolved plan; does not infer resampling policy
-- [ ] Unit tests for resolution outcomes
-- [ ] Documented extension point for future “use published 5m dataset” resolution
+- [x] Planner receives resolved plan; does not infer resampling policy
+- [x] Unit tests for resolution outcomes
+- [x] Documented extension point for future “use published 5m dataset” resolution
 
 ---
 
 ### S004-T008 — Planner and executor ResampleNode integration
 
-**Status:** TODO  
+**Status:** DONE  
 **Category:** Implementation  
 **Domain:** Market Analysis  
 **Wave:** 2  
@@ -542,9 +542,9 @@ Single deliverable merging former “planner expansion”, “executor integrati
 
 #### Acceptance Criteria
 
-- [ ] Plan deduplicates shared resample (behavior test: one execution)
-- [ ] Topological order preserved
-- [ ] No `ResampleNode` in `ComponentRegistry`
+- [x] Plan deduplicates shared resample (behavior test: one execution)
+- [x] Topological order preserved
+- [x] No `ResampleNode` in `ComponentRegistry`
 
 ---
 
