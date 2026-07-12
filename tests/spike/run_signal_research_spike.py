@@ -19,12 +19,10 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-import math
 import sys
 import tempfile
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
-from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
@@ -50,6 +48,13 @@ from trading_framework.market.datasets import DatasetId, DatasetRef
 from trading_framework.market_analysis import TimeRange
 from trading_framework.market_analysis.assembly.frame import AnalysisFrame
 from trading_framework.market_analysis.data.view import AnalysisDataView
+from trading_framework.research import (
+    ForwardOutcomeDefinition,
+    OutcomeStatus,
+    align_ohlcv_to_evaluation_frame,
+    compute_forward_outcomes,
+    compute_forward_outcomes_for_horizons,
+)
 from trading_framework.strategy import (
     OccurrenceMaterializationContext,
     ReferencePricePolicy,
@@ -62,28 +67,6 @@ from trading_framework.time.sessions import CmeEsRthSessionResolver
 FIXTURE = OHLCV_SAMPLE_1M
 
 SCHEMA_VERSION = "signal_research.v1"
-
-
-class IncompleteHorizonPolicy(StrEnum):
-    EMIT_WITH_STATUS = "emit_with_status"
-
-
-class OutcomeStatus(StrEnum):
-    COMPLETE = "complete"
-    INCOMPLETE_HORIZON = "incomplete_horizon"
-    INSUFFICIENT_DATA = "insufficient_data"
-
-
-class SignalDirection(StrEnum):
-    LONG = "long"
-    SHORT = "short"
-
-
-@dataclass(frozen=True, slots=True)
-class ForwardOutcomeDefinition:
-    horizon_bars: int
-    reference_price_policy: ReferencePricePolicy = ReferencePricePolicy.CLOSE_AT_DETECTED_AT
-    incomplete_horizon_policy: IncompleteHorizonPolicy = IncompleteHorizonPolicy.EMIT_WITH_STATUS
 
 
 @dataclass(frozen=True, slots=True)
@@ -141,37 +124,6 @@ def _timestamp_index(frame: AnalysisFrame) -> dict[datetime, int]:
     return {timestamp: index for index, timestamp in enumerate(frame.timestamps)}
 
 
-def _ohlcv_for_frame(
-    frame: AnalysisFrame,
-    market_view: AnalysisDataView,
-) -> dict[str, tuple[float, ...]]:
-    if "close" in frame.columns:
-        return {
-            field: frame.columns[field]
-            for field in ("open", "high", "low", "close", "volume")
-            if field in frame.columns
-        }
-
-    index_by_timestamp = {
-        timestamp: index for index, timestamp in enumerate(market_view.timestamps)
-    }
-    columns: dict[str, list[float]] = {
-        field: [] for field in ("open", "high", "low", "close", "volume")
-    }
-    for timestamp in frame.timestamps:
-        index = index_by_timestamp.get(timestamp)
-        if index is None:
-            for values in columns.values():
-                values.append(math.nan)
-            continue
-        columns["open"].append(market_view.open.values[index])
-        columns["high"].append(market_view.high.values[index])
-        columns["low"].append(market_view.low.values[index])
-        columns["close"].append(market_view.close.values[index])
-        columns["volume"].append(market_view.volume.values[index])
-    return {field: tuple(values) for field, values in columns.items()}
-
-
 def _run_id(*, dataset_key: str, signal_model_id: str, horizons: tuple[int, ...]) -> str:
     payload = (
         f"{dataset_key}|{signal_model_id}|{','.join(str(h) for h in horizons)}|{framework_version}"
@@ -200,162 +152,6 @@ def _materialize_occurrences(
             source_dataset_ref=source_dataset_ref,
         ),
     )
-
-
-def _direction_normalize_return(*, raw_return: float, direction: str) -> float:
-    if direction == SignalDirection.SHORT.value:
-        return -raw_return
-    return raw_return
-
-
-def _compute_excursions(
-    *,
-    reference_price: float,
-    direction: str,
-    highs: list[float],
-    lows: list[float],
-) -> tuple[float, float]:
-    if not math.isfinite(reference_price) or reference_price == 0.0:
-        return math.nan, math.nan
-
-    high_returns = [high / reference_price - 1.0 for high in highs]
-    low_returns = [low / reference_price - 1.0 for low in lows]
-
-    if direction == SignalDirection.SHORT.value:
-        favorable = [-low_return for low_return in low_returns]
-        adverse = [-high_return for high_return in high_returns]
-    else:
-        favorable = high_returns
-        adverse = low_returns
-
-    mfe = max(max(favorable), 0.0)
-    mae = min(min(adverse), 0.0)
-    return mfe, mae
-
-
-def compute_outcomes(
-    occurrences: pl.DataFrame,
-    *,
-    frame: AnalysisFrame,
-    ohlcv: dict[str, tuple[float, ...]],
-    definition: ForwardOutcomeDefinition,
-) -> pl.DataFrame:
-    """Prototype long-format outcome facts."""
-    if len(occurrences) == 0:
-        return pl.DataFrame(
-            schema={
-                "occurrence_id": pl.Utf8,
-                "horizon_bars": pl.Int64,
-                "outcome_status": pl.Utf8,
-                "terminal_price": pl.Float64,
-                "forward_return": pl.Float64,
-                "mfe": pl.Float64,
-                "mae": pl.Float64,
-            }
-        )
-
-    index_by_timestamp = _timestamp_index(frame)
-    close = ohlcv["close"]
-    high = ohlcv["high"]
-    low = ohlcv["low"]
-    horizon = definition.horizon_bars
-    rows: list[dict[str, Any]] = []
-
-    for occurrence in occurrences.iter_rows(named=True):
-        detected_at = occurrence["detected_at"]
-        signal_index = index_by_timestamp.get(detected_at)
-        reference_price = occurrence["reference_price"]
-        direction = occurrence["direction"]
-
-        if signal_index is None or not math.isfinite(reference_price):
-            rows.append(
-                {
-                    "occurrence_id": occurrence["occurrence_id"],
-                    "horizon_bars": horizon,
-                    "outcome_status": OutcomeStatus.INSUFFICIENT_DATA.value,
-                    "terminal_price": None,
-                    "forward_return": None,
-                    "mfe": None,
-                    "mae": None,
-                }
-            )
-            continue
-
-        window_start = signal_index + 1
-        window_end = signal_index + horizon
-        if window_end >= len(frame.timestamps):
-            rows.append(
-                {
-                    "occurrence_id": occurrence["occurrence_id"],
-                    "horizon_bars": horizon,
-                    "outcome_status": OutcomeStatus.INCOMPLETE_HORIZON.value,
-                    "terminal_price": None,
-                    "forward_return": None,
-                    "mfe": None,
-                    "mae": None,
-                }
-            )
-            continue
-
-        window_highs = [high[index] for index in range(window_start, window_end + 1)]
-        window_lows = [low[index] for index in range(window_start, window_end + 1)]
-        window_closes = [close[index] for index in range(window_start, window_end + 1)]
-
-        if any(not math.isfinite(value) for value in (*window_highs, *window_lows, *window_closes)):
-            rows.append(
-                {
-                    "occurrence_id": occurrence["occurrence_id"],
-                    "horizon_bars": horizon,
-                    "outcome_status": OutcomeStatus.INSUFFICIENT_DATA.value,
-                    "terminal_price": None,
-                    "forward_return": None,
-                    "mfe": None,
-                    "mae": None,
-                }
-            )
-            continue
-
-        terminal_price = close[window_end]
-        raw_return = terminal_price / reference_price - 1.0
-        forward_return = _direction_normalize_return(raw_return=raw_return, direction=direction)
-        mfe, mae = _compute_excursions(
-            reference_price=reference_price,
-            direction=direction,
-            highs=window_highs,
-            lows=window_lows,
-        )
-        rows.append(
-            {
-                "occurrence_id": occurrence["occurrence_id"],
-                "horizon_bars": horizon,
-                "outcome_status": OutcomeStatus.COMPLETE.value,
-                "terminal_price": terminal_price,
-                "forward_return": forward_return,
-                "mfe": mfe,
-                "mae": mae,
-            }
-        )
-
-    return pl.DataFrame(rows)
-
-
-def compute_outcomes_for_horizons(
-    occurrences: pl.DataFrame,
-    *,
-    frame: AnalysisFrame,
-    ohlcv: dict[str, tuple[float, ...]],
-    horizons: tuple[int, ...],
-) -> pl.DataFrame:
-    frames = [
-        compute_outcomes(
-            occurrences,
-            frame=frame,
-            ohlcv=ohlcv,
-            definition=ForwardOutcomeDefinition(horizon_bars=horizon),
-        )
-        for horizon in horizons
-    ]
-    return pl.concat(frames) if frames else pl.DataFrame()
 
 
 def write_signal_research_run(
@@ -423,7 +219,7 @@ def _synthetic_incomplete_horizon_check() -> SpikeCheck:
             "source_dataset_ref": ["test"],
         }
     )
-    outcomes = compute_outcomes(
+    outcomes = compute_forward_outcomes(
         occurrences,
         frame=frame,
         ohlcv=ohlcv,
@@ -461,7 +257,7 @@ def _synthetic_horizon_window_check() -> SpikeCheck:
             "source_dataset_ref": ["test"],
         }
     )
-    outcomes = compute_outcomes(
+    outcomes = compute_forward_outcomes(
         occurrences,
         frame=frame,
         ohlcv=ohlcv,
@@ -510,7 +306,7 @@ def run_spike() -> list[SpikeCheck]:
         frame = eval_result.analysis.frame
         assert frame is not None
         market_view = eval_result.analysis.workspace.market_view
-        ohlcv = _ohlcv_for_frame(frame, market_view)
+        ohlcv = align_ohlcv_to_evaluation_frame(frame, market_view)
 
         emissions = eval_result.signal_model_emissions[CANONICAL_SIGNAL_HIGHER_LOW_ID]
         checks.append(
@@ -566,7 +362,7 @@ def run_spike() -> list[SpikeCheck]:
         )
 
         horizons = (5, 10)
-        outcomes = compute_outcomes_for_horizons(
+        outcomes = compute_forward_outcomes_for_horizons(
             occurrences,
             frame=frame,
             ohlcv=ohlcv,
