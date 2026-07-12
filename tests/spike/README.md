@@ -44,3 +44,26 @@ uv run python tests/spike/run_inspect_declarative_models.py \\
 
 Overlays pre-computed Market Model state, Signal Model conditions and emission markers.
 Chart helpers do not evaluate models or run Market Analysis.
+
+Building models and components (S006 tutorial):
+
+```bash
+# Recipe + run example models on fixture data
+uv run python tests/spike/run_build_declarative_models_example.py
+
+# List MVP components (outputs, parameters)
+uv run python tests/spike/run_build_declarative_models_example.py --catalog
+
+# Checklist for adding a new Market Analysis component
+uv run python tests/spike/run_build_declarative_models_example.py --checklist
+
+# Model-building recipe only
+uv run python tests/spike/run_build_declarative_models_example.py --recipe
+```
+
+Reusable example code:
+
+- ``tests/spike/run_dsl_models_example.py`` — target user-facing DSL API
+- ``tests/spike/examples_model_building.py`` — low-level IR examples (legacy)
+- ``src/trading_framework/model_authoring/`` — production DSL package
+- ``src/trading_framework/application/model_evaluation/canonical_examples.py`` — production canonical set

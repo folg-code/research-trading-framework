@@ -38,6 +38,7 @@ from trading_framework.infrastructure.storage.metadata.registry import FileDatas
 from trading_framework.market.datasets import DatasetId, DatasetRef
 from trading_framework.market_analysis import TimeRange
 from trading_framework.market_analysis.assembly.frame import AnalysisFrame
+from trading_framework.market_analysis.data.view import AnalysisDataView
 from trading_framework.time.models.timeframe import Timeframe
 from trading_framework.time.sessions import CmeEsRthSessionResolver
 
@@ -133,11 +134,51 @@ def _timestamp_index(frame: AnalysisFrame) -> dict[datetime, int]:
     return {timestamp: index for index, timestamp in enumerate(frame.timestamps)}
 
 
-def _close_at(frame: AnalysisFrame, timestamp: datetime) -> float:
+def _ohlcv_for_frame(
+    frame: AnalysisFrame,
+    market_view: AnalysisDataView,
+) -> dict[str, tuple[float, ...]]:
+    """Map canonical OHLCV from the analysis market view onto the evaluation frame."""
+    if "close" in frame.columns:
+        return {
+            field: frame.columns[field]
+            for field in ("open", "high", "low", "close", "volume")
+            if field in frame.columns
+        }
+
+    index_by_timestamp = {
+        timestamp: index for index, timestamp in enumerate(market_view.timestamps)
+    }
+    columns: dict[str, list[float]] = {
+        field: [] for field in ("open", "high", "low", "close", "volume")
+    }
+    for timestamp in frame.timestamps:
+        index = index_by_timestamp.get(timestamp)
+        if index is None:
+            for values in columns.values():
+                values.append(math.nan)
+            continue
+        columns["open"].append(market_view.open.values[index])
+        columns["high"].append(market_view.high.values[index])
+        columns["low"].append(market_view.low.values[index])
+        columns["close"].append(market_view.close.values[index])
+        columns["volume"].append(market_view.volume.values[index])
+    return {field: tuple(values) for field, values in columns.items()}
+
+
+def _close_at(
+    frame: AnalysisFrame,
+    timestamp: datetime,
+    *,
+    ohlcv: dict[str, tuple[float, ...]],
+) -> float:
     index = _timestamp_index(frame).get(timestamp)
     if index is None:
         return math.nan
-    return frame.columns["close"][index]
+    close = ohlcv.get("close")
+    if close is None:
+        return math.nan
+    return close[index]
 
 
 def _print_text_report(
@@ -167,6 +208,7 @@ def _print_text_report(
 def _write_interactive_html(
     *,
     frame: AnalysisFrame,
+    market_view: AnalysisDataView,
     market_results: dict[str, pl.DataFrame],
     signal_conditions: dict[str, pl.DataFrame],
     signal_emissions: dict[str, pl.DataFrame],
@@ -180,6 +222,7 @@ def _write_interactive_html(
         raise SystemExit(msg) from exc
 
     timestamps = list(frame.timestamps)
+    ohlcv = _ohlcv_for_frame(frame, market_view)
     panel_count = 1 + len(market_results) + len(signal_conditions)
     row_heights = [0.55] + [0.45 / max(panel_count - 1, 1)] * (panel_count - 1)
     subplot_titles = (
@@ -200,10 +243,10 @@ def _write_interactive_html(
     fig.add_trace(
         go.Candlestick(
             x=timestamps,
-            open=frame.columns["open"],
-            high=frame.columns["high"],
-            low=frame.columns["low"],
-            close=frame.columns["close"],
+            open=ohlcv["open"],
+            high=ohlcv["high"],
+            low=ohlcv["low"],
+            close=ohlcv["close"],
             name="OHLCV",
             increasing_line_color="#2ca02c",
             decreasing_line_color="#d62728",
@@ -225,7 +268,7 @@ def _write_interactive_html(
         texts: list[str] = []
         for row in emissions.iter_rows(named=True):
             detected_at = row["detected_at"]
-            price = _close_at(frame, detected_at)
+            price = _close_at(frame, detected_at, ohlcv=ohlcv)
             if math.isnan(price):
                 continue
             xs.append(detected_at)
@@ -438,6 +481,7 @@ def main() -> int:
         )
         _write_interactive_html(
             frame=frame,
+            market_view=evaluation.analysis.workspace.market_view,
             market_results=evaluation.market_model_results,
             signal_conditions=evaluation.signal_model_conditions,
             signal_emissions=evaluation.signal_model_emissions,
