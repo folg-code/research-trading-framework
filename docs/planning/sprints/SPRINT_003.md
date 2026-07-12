@@ -5,7 +5,7 @@
 ```text
 Sprint: 003
 Phase: Phase 3 — Market Analysis Engine MVP
-Status: IN_PROGRESS (Waves 0–5 COMPLETE; Wave 6 next)
+Status: COMPLETED (2026-07-12)
 Planned Start: 2026-06-23
 Planned End: TBD
 Sprint Goal Owner: Project Maintainer
@@ -218,7 +218,7 @@ Prefer the smallest dependency set confirmed by the Wave 0 spike.
 | S003-T024 | Analysis error hierarchy | DONE | S003-T021 |
 | S003-T025 | True Range Feature component | DONE | S003-T014, S003-T020 |
 | S003-T026 | ATR Feature and NumPy adapter | DONE | S003-T025 |
-| S003-T027 | Optional TA-Lib adapter extra | TODO | S003-T026 |
+| S003-T027 | Optional TA-Lib adapter extra | DEFERRED | S003-T026 |
 | S003-T040 | EMA reusable Feature component | DONE | S003-T014, S003-T020 |
 | S003-T028 | Volatility State + diagnostic output | DONE | S003-T026 |
 | S003-T039 | AnalysisFrameAssembler and alias policy | DONE | S003-T038, S003-T028 |
@@ -228,9 +228,9 @@ Prefer the smallest dependency set confirmed by the Wave 0 spike.
 | S003-T041 | Workspace and frame assembly tests | DONE | S003-T039 |
 | S003-T032 | Cache dedup and cycle detection tests | DONE | S003-T022, S003-T017 |
 | S003-T033 | Input immutability and identity tests | DONE | S003-T021 |
-| S003-T034 | Market Analysis ADRs (ADR-0005 + MA decisions) | TODO | S003-T004 |
-| S003-T035 | Update architecture docs and problem registry notes | TODO | S003-T034 |
-| S003-T036 | Sprint review and CURRENT_STATUS update | TODO | All preceding tasks |
+| S003-T034 | Market Analysis ADRs (ADR-0005 + MA decisions) | DONE | S003-T004 |
+| S003-T035 | Update architecture docs and problem registry notes | DONE | S003-T034 |
+| S003-T036 | Sprint review and CURRENT_STATUS update | DONE | All preceding tasks |
 
 ---
 
@@ -1341,51 +1341,68 @@ Wave 0 branch `sprint/market-analysis-mvp--wave-0-closure-spike` is a historical
 
 ## Sprint Review
 
-_To be completed at sprint end._
+Completed 2026-07-12.
 
 ### Completed
 
-- ...
+- Market Analysis engine MVP: identity, parameters, results, registry, DAG planner, sequential executor, cache, workspace, frame assembly.
+- NumPy adapter and vertical slice: True Range → ATR → Volatility State + EMA + diagnostic output.
+- Application facade `run_analysis` from published `DatasetRef`.
+- Verification suite: adapter contracts, execution regressions, workspace/frame tests, integration test.
+- ADR materialization: ADR-0005 and ADR-MA-001–011 accepted.
 
 ### Not Completed
 
-- ...
+- S003-T027 optional TA-Lib adapter extra (deferred; NumPy is default CI backend).
 
 ### Demonstrated Capabilities
 
-- ...
+- End-to-end flow from CSV import through published dataset to wide `AnalysisFrame`.
+- Planner deduplication and cycle detection with regression tests.
+- Input immutability and stable computation identity keys.
+- 208 automated tests on sprint integration branch.
 
 ### Deviations From Plan
 
-- ...
+- Wave 4 initially bundled in one PR (#39); replaced with outcome-scoped PR chain (#40–#51).
+- Stacked PR merges required a landing PR (#50) and follow-up (#51) to fully sync `sprint/market-analysis-mvp`.
+- TA-Lib optional extra deferred without blocking sprint closure.
 
 ### Carry-Forward Items
 
-- ...
+- T027 TA-Lib adapter and cross-backend tolerance tests.
+- Structure component examples (Phase 4 catalog).
+- Persistent derived datasets and multitimeframe execution (Phase 4).
+- Full implementation fingerprint contract (PRB-002 remainder, ADR-0010).
+- Merge `sprint/market-analysis-mvp` to `main`.
 
 ---
 
 ## Retrospective
 
-_To be completed at sprint end._
-
 ### What Worked
 
-- ...
+- Outcome-scoped PR policy improved reviewability after initial monolithic PR.
+- Vertical slice validated architecture before expanding the component catalog.
+- Shared adapter contract suite (D-033) catches regressions early.
+- Vision/reference doc split clarified binding decisions vs as-implemented state.
 
 ### What Did Not Work
 
-- ...
+- Stacked PR bases caused sprint branch drift until explicit landing PRs.
+- Documentation status lagged behind merged code by several days.
 
 ### Process Improvements
 
-- ...
+- Always retarget or land stacked chains to `sprint/<slug>` before starting the next wave.
+- Update `CURRENT_STATUS.md` in the same PR that completes a wave.
+- Keep PR diffs within 100–400 lines where possible.
 
 ### Next Recommended Sprint Goal
 
 ```text
-Phase 4 increment: multitimeframe alignment, additional Features/Structures,
-or Research consumption of AnalysisResult — based on Sprint 003 evidence.
+Phase 4 increment: multitimeframe alignment or expanded Feature/Structure catalog,
+informed by Sprint 003 integration test evidence and ADR-MA-011 batch-only constraint.
 ```
 
 ---
@@ -1395,19 +1412,19 @@ or Research consumption of AnalysisResult — based on Sprint 003 evidence.
 The sprint is complete when:
 
 ```text
-[ ] Sprint Goal is achieved
-[ ] Four-layer model operational: MarketDataset → ResultStore → Workspace → AnalysisFrame
-[ ] Vertical slice True Range → ATR → Volatility State runs from DatasetRef
-[ ] Wide AnalysisFrame integration test includes OHLCV, slice, EMA, diagnostic output
-[ ] Components return outputs; executor registers them — no shared mutable DataFrame model
-[ ] Planner builds deterministic DAG with deduplication and cycle detection
-[ ] Execution cache prevents duplicate work within a plan
-[ ] AnalysisResult includes identity, lineage, warm-up and availability metadata
-[ ] Alias collisions detected; aliases do not replace computation identity
-[ ] Input dataset/view is not mutated by execution
-[ ] Adapter contract tests pass (NumPy; TA-Lib when extra installed)
-[ ] ADR-0005 and ADR-MA-007 (workspace) are ACCEPTED
-[ ] CURRENT_STATUS.md is updated
-[ ] Sprint Review and Retrospective sections are filled
-[ ] No undocumented architectural deviation was introduced
+[x] Sprint Goal is achieved
+[x] Four-layer model operational: MarketDataset → ResultStore → Workspace → AnalysisFrame
+[x] Vertical slice True Range → ATR → Volatility State runs from DatasetRef
+[x] Wide AnalysisFrame integration test includes OHLCV, slice, EMA, diagnostic output
+[x] Components return outputs; executor registers them — no shared mutable DataFrame model
+[x] Planner builds deterministic DAG with deduplication and cycle detection
+[x] Execution cache prevents duplicate work within a plan
+[x] AnalysisResult includes identity, lineage, warm-up and availability metadata
+[x] Alias collisions detected; aliases do not replace computation identity
+[x] Input dataset/view is not mutated by execution
+[x] Adapter contract tests pass (NumPy; TA-Lib when extra installed — T027 deferred)
+[x] ADR-0005 and ADR-MA-007 (workspace) are ACCEPTED
+[x] CURRENT_STATUS.md is updated
+[x] Sprint Review and Retrospective sections are filled
+[x] No undocumented architectural deviation was introduced
 ```
