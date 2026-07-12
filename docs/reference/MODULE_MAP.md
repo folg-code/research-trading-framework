@@ -7,7 +7,7 @@ Package map for `src/trading_framework/`: responsibility, dependencies, status, 
 
 **Status legend:** ✅ implemented · 🟡 partial / in sprint · ⬜ skeleton · 📘 deep doc elsewhere
 
-Last updated: 2026-07-12 (Sprint 006 in progress)
+Last updated: 2026-07-12 (Sprint 008 complete)
 
 ---
 
@@ -24,7 +24,8 @@ market_model/         Market Model definitions and evaluator
 signal_model/         Signal Model definitions, firing, emissions
 infrastructure/       adapters — CSV, Parquet, file registry
 core/, time/, config/ shared primitives
-strategy/, research/, execution/, events/   ⬜ future domains
+strategy/, research/         Signal Research MVP (Sprint 008) ✅ / 🟡
+execution/, events/          ⬜ future domains
 ```
 
 **Boundary:** `src/trading_framework/` must not import `user_data/`. User-owned paths are passed in at runtime.
@@ -159,7 +160,7 @@ Published DatasetRef (source timeframe, e.g. 1m)
 | **Key paths** | `load_data_view.py`, `run_analysis.py` |
 | **Entry points** | `load_analysis_data_view`, `run_analysis` (supports `evaluation_timeframe`, MTF `ComponentRequest`, optional `session_resolver`) |
 
-### `application/model_evaluation/` 🟡
+### `application/model_evaluation/` ✅
 
 | | |
 |---|---|
@@ -168,9 +169,18 @@ Published DatasetRef (source timeframe, e.g. 1m)
 | **Key paths** | `evaluate_models.py`, `canonical_examples.py` |
 | **Entry points** | `evaluate_models`, `build_canonical_model_bundle` |
 
+### `application/signal_research/` ✅
+
+| | |
+|---|---|
+| **Responsibility** | Signal Research run orchestration (`SIGNAL_MODEL_ONLY` MVP) |
+| **Talks to** | `application/model_evaluation`, `strategy`, `research` |
+| **Key paths** | `run_signal_research.py` |
+| **Entry points** | `run_signal_research` |
+
 ---
 
-## Declarative Models (Sprint 006) 🟡
+## Declarative Models (Sprint 006) ✅
 
 End-to-end flow:
 
@@ -183,14 +193,14 @@ model_authoring DSL (optional)
   → MarketModelEvaluator / SignalModelEvaluator (+ firing)
 ```
 
-### `model_expression/` 🟡
+### `model_expression/` ✅
 
 | | |
 |---|---|
 | **Responsibility** | Operand references, expression AST, validation, Polars evaluation on `AnalysisFrame` |
 | **Key paths** | `references.py`, `expressions.py`, `validation.py`, `evaluation/` |
 
-### `model_authoring/` 🟡
+### `model_authoring/` ✅
 
 | | |
 |---|---|
@@ -198,7 +208,7 @@ model_authoring DSL (optional)
 | **Talks to** | `model_expression`, `market_model`, `signal_model` |
 | **Entry points** | `market_model`, `signal_model`, `VolatilityState` |
 
-### `market_model/` · `signal_model/` 🟡
+### `market_model/` · `signal_model/` ✅
 
 | Package | Responsibility |
 |---------|----------------|
@@ -207,16 +217,49 @@ model_authoring DSL (optional)
 
 ---
 
+## Signal Research (Sprint 008) ✅
+
+End-to-end flow:
+
+```text
+Published DatasetRef
+  → run_signal_research (or evaluate_models + materialization + outcomes)
+  → SignalOccurrence facts
+  → ForwardOutcome facts (long format)
+  → immutable run envelope (manifest + occurrences.parquet + outcomes.parquet)
+  → repository read / inspection spike
+```
+
+ADR: [ADR-0011](../adr/ADR-0011-signal-research-outcomes-and-persistence.md)
+
+### `strategy/` ✅ (Signal Research slice)
+
+| | |
+|---|---|
+| **Responsibility** | `SignalOccurrence` materialization, reference-price policy |
+| **Key paths** | `signal_occurrence.py`, `reference_price.py` |
+| **Entry points** | `materialize_signal_occurrences`, `derive_occurrence_id`, `resolve_reference_price` |
+
+### `research/` ✅ (Signal Research slice)
+
+| Subpackage | Responsibility |
+|------------|----------------|
+| `outcomes/` | `ForwardOutcomeDefinition`, forward outcome calculator, OHLCV alignment |
+| `datasets/` | Run envelope manifest, `SignalResearchDatasetRepository`, deterministic `run_id` |
+
+**Entry points:** `compute_forward_outcomes`, `compute_forward_outcomes_for_horizons`,
+`SignalResearchDatasetRepository.read/write`
+
+---
+
 ## Future Domains ⬜
 
 | Package | Planned role |
 |---------|----------------|
-| `strategy/` | Stateless strategy definitions |
-| `research/` | Research workflows, experiment tracking |
 | `execution/` | Order execution domain (not `market_analysis/execution`) |
 | `events/` | Domain events |
 
-Skeleton `__init__.py` only — no public workflows.
+Skeleton packages without public workflows beyond Signal Research slice above.
 
 ---
 
@@ -227,6 +270,8 @@ Skeleton `__init__.py` only — no public workflows.
 | Architecture boundary | `tests/unit/test_architecture_boundaries.py` |
 | Market data integration | `tests/integration/market_data/` |
 | Market analysis | `tests/unit/market_analysis/`, `tests/unit/application/market_analysis/`, `tests/integration/test_market_analysis_*` |
+| Signal Research integration | `tests/integration/test_s008_run_signal_research.py` |
+| Signal Research unit | `tests/unit/strategy/`, `tests/unit/research/` |
 | MA architecture boundaries | `tests/unit/market_analysis/test_market_analysis_architecture_boundaries.py` |
 
 ---

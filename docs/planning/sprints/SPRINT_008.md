@@ -5,7 +5,7 @@
 ```text
 Sprint: 008
 Phase: Phase 5 — Signal Research MVP (first increment)
-Status: IN_PROGRESS (Wave 0 complete)
+Status: COMPLETE (2026-07-12)
 Planned Start: 2026-07-12
 Planned End: TBD
 Sprint Goal Owner: Project Maintainer
@@ -152,9 +152,9 @@ Immutability: existing `run_id` directory must not be overwritten.
 | S008-T006 | Dataset schema, manifest, writer and reader | DONE | S008-T004 |
 | S008-T007 | `run_signal_research` application workflow | DONE | S008-T003, S008-T006 |
 | S008-T008 | End-to-end integration and round-trip determinism | DONE | S008-T007 |
-| S008-T009 | Occurrence and forward-path inspector | TODO | S008-T008 |
-| S008-T010 | ADR — full outcome and persistence semantics | TODO | S008-T001 |
-| S008-T011 | Documentation and sprint closure | TODO | S008-T010 |
+| S008-T009 | Occurrence and forward-path inspector | DONE | S008-T008 |
+| S008-T010 | ADR — full outcome and persistence semantics | DONE | S008-T001 |
+| S008-T011 | Documentation and sprint closure | DONE | S008-T010 |
 
 **Total:** 11 tasks (~4 outcome PRs)
 
@@ -173,7 +173,7 @@ Deliverables:
 
 - ~~`tests/spike/run_signal_research_spike.py`~~
 - ~~binding decisions confirmed by spike output~~
-- ADR draft (T010) — next
+- ADR draft (T010) — ~~next~~ **ADR-0011 accepted**
 - ADR draft covering occurrence/outcome boundary and long-format schema
 
 ### Wave 1 — T002–T003
@@ -194,9 +194,11 @@ Dataset repository (write + read + schema validation), `run_signal_research`, e2
 
 **Done (2026-07-12):** `research/datasets/signal_research.py`, `application/signal_research/run_signal_research.py`, integration tests.
 
-### Wave 4 — T009, T011
+### Wave 4 — T009, T010, T011
 
 Occurrence/forward-path inspector (validation tooling only), ADR finalization, MODULE_MAP closure.
+
+**Done (2026-07-12):** `run_inspect_signal_research.py`, ADR-0011, MODULE_MAP and sprint closure.
 
 ---
 
@@ -204,34 +206,34 @@ Occurrence/forward-path inspector (validation tooling only), ADR finalization, M
 
 ### SignalOccurrence
 
-- [ ] stable `occurrence_id` (deterministic from run context + occurrence key)
-- [ ] model identity preserved (`signal_model_id`)
-- [ ] `detected_at` and `available_at` preserved
-- [ ] direction is typed (`LONG` | `SHORT`)
-- [ ] `reference_price` semantics documented — descriptive, not execution
-- [ ] no research-only fields in Strategy-domain occurrence object
+- [x] stable `occurrence_id` (deterministic from run context + occurrence key)
+- [x] model identity preserved (`signal_model_id`)
+- [x] `detected_at` and `available_at` preserved
+- [x] direction is typed (`LONG` | `SHORT`)
+- [x] `reference_price` semantics documented — descriptive, not execution
+- [x] no research-only fields in Strategy-domain occurrence object
 
 ### Outcomes
 
-- [ ] explicit `ForwardOutcomeDefinition` before calculator implementation
-- [ ] LONG and SHORT use one normalized sign convention
-- [ ] `forward_return`: signed, direction-normalized (favourable > 0, adverse < 0)
-- [ ] `mfe`: non-negative
-- [ ] `mae`: non-positive (signed convention — do not mix with magnitude convention)
-- [ ] horizon bar inclusion tested (`horizon=5` = 5 full bars after signal bar; terminal = close of 5th bar)
-- [ ] MFE/MAE window excludes signal bar; includes bars `(t+1 … t+N]`
-- [ ] incomplete horizon produces explicit `outcome_status` (not silent drop)
-- [ ] null metrics are not silently replaced with zero
-- [ ] no look-ahead beyond selected horizon
+- [x] explicit `ForwardOutcomeDefinition` before calculator implementation
+- [x] LONG and SHORT use one normalized sign convention
+- [x] `forward_return`: signed, direction-normalized (favourable > 0, adverse < 0)
+- [x] `mfe`: non-negative
+- [x] `mae`: non-positive (signed convention — do not mix with magnitude convention)
+- [x] horizon bar inclusion tested (`horizon=5` = 5 full bars after signal bar; terminal = close of 5th bar)
+- [x] MFE/MAE window excludes signal bar; includes bars `(t+1 … t+N]`
+- [x] incomplete horizon produces explicit `outcome_status` (not silent drop)
+- [x] null metrics are not silently replaced with zero
+- [x] no look-ahead beyond selected horizon
 
 ### Dataset
 
-- [ ] write is immutable — existing `run_id` cannot be overwritten
-- [ ] manifest includes framework version, schema version, model/dataset identity
-- [ ] reader validates schema version
-- [ ] load by `run_id` or research `DatasetRef` — paths hidden behind adapter
-- [ ] round-trip test (write → read → assert equality)
-- [ ] long-format outcomes; multiple horizons without schema change
+- [x] write is immutable — existing `run_id` cannot be overwritten
+- [x] manifest includes framework version, schema version, model/dataset identity
+- [x] reader validates schema version
+- [x] load by `run_id` or research `DatasetRef` — paths hidden behind adapter
+- [x] round-trip test (write → read → assert equality)
+- [x] long-format outcomes; multiple horizons without schema change
 
 ### Determinism
 

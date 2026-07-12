@@ -76,3 +76,16 @@ uv run python tests/spike/run_signal_research_spike.py --json
 ```
 
 Validates occurrence materialization, forward outcome semantics, run envelope write/read.
+
+Signal research inspection (S008-T009):
+
+```bash
+uv pip install plotly
+uv run python tests/spike/run_inspect_signal_research.py --generate --open
+uv run python tests/spike/run_inspect_signal_research.py \\
+  --storage-root user_data/storage --run-id <run_id> \\
+  --occurrence-index 0 --horizon 5 --open
+```
+
+Overlays occurrence markers, reference price, horizon end, MFE/MAE and terminal outcome on OHLCV.
+Inspection consumes persisted run facts only — no model evaluation or outcome recomputation.
