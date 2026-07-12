@@ -34,6 +34,7 @@ Catalog of `docs/planning/`. For taxonomy and reading paths see **[../README.md]
 | [sprints/SPRINT_004.md](sprints/SPRINT_004.md) | Multitimeframe Foundation MVP (completed) |
 | [sprints/PHASE_4_5_SPRINT_DIRECTION.md](sprints/PHASE_4_5_SPRINT_DIRECTION.md) | Corrected direction Sprints 005–010 (binding) |
 | [sprints/S005_CALENDAR_SPIKE_AND_DECISIONS.md](sprints/S005_CALENDAR_SPIKE_AND_DECISIONS.md) | Sprint 005 T001 calendar spike outcomes |
+| [sprints/S005_SWING_STRUCTURE_CONTRACT.md](sprints/S005_SWING_STRUCTURE_CONTRACT.md) | Sprint 005 swing structure contract |
 | [sprints/SPRINT_005.md](sprints/SPRINT_005.md) | Calendar, Pivot Structure, visual inspection (planned) |
 | [sprints/SPRINT_006.md](sprints/SPRINT_006.md) | Declarative Market/Signal Model (planned) |
 | [sprints/SPRINT_007.md](sprints/SPRINT_007.md) | Research-enabling catalog — conditional (planned) |
