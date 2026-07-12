@@ -62,5 +62,5 @@ MVP version allocation policy:
 
 - `src/trading_framework/market/datasets/`
 - `src/trading_framework/application/market_data/`
-- `docs/architecture/DATA_MODULE_UPDATED.md` §7, §17
+- `docs/reference/modules/DATA_MODULE_UPDATED.md` §7, §17
 - `docs/planning/PROBLEM_REGISTRY.md` — PRB-001

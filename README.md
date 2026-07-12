@@ -35,11 +35,7 @@ docs/                  # architecture, planning and ADRs
 
 ## Documentation
 
-- Roadmap: `docs/planning/ROADMAP.md`
-- Current status: `docs/planning/CURRENT_STATUS.md`
-- Sprint 001: `docs/planning/sprints/SPRINT_001.md`
-- Architecture: `docs/architecture/`
-- AI agent entry point: `AGENTS.md`
+**[docs/README.md](docs/README.md)** — single index (taxonomy, reading paths, folder layout).
 
 ## Configuration
 

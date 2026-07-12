@@ -26,25 +26,30 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 ## 2. Status Metadata
 
 ```text
-Status Date: 2026-06-23
-Current Phase: Phase 2 — Market Data MVP
-Current Milestone: Sprint 002 — Market Data MVP
-Implementation Status: Sprint 002 complete on integration branch
+Status Date: 2026-07-12
+Current Phase: Phase 3 — Market Analysis Engine MVP (complete; merge to main pending)
+Current Milestone: Sprint 003 — Market Analysis Engine MVP
+Implementation Status: Sprint 003 COMPLETE (Wave 6 closure)
 Overall Status: IN_PROGRESS
-Active Sprint: SPRINT_002 (COMPLETED — pending merge to main)
-Last Completed Sprint: SPRINT_001 (COMPLETED)
+Active Sprint: none (Sprint 003 closed; integration branch ready for main PR)
+Last Completed Sprint: SPRINT_003 (COMPLETED)
 ```
 
 ---
 
 ## 3. Current Objective
 
-Execute **Sprint 002 — Market Data MVP**.
+Plan and execute **Sprint 003 — Market Analysis Engine MVP**.
 
-Deliver the first reproducible OHLCV import flow from external CSV through publication to historical query.
+Deliver a minimal deterministic analysis engine: registry, dependency DAG, sequential batch execution,
+execution-scoped result store and workspace, in-memory execution cache, optional `AnalysisFrame`
+assembly, and results with identity and lineage. Validate through vertical slice
+`True Range → ATR → Volatility State` plus EMA and diagnostic outputs from a published `DatasetRef`.
 
-Sprint 002 plan: `docs/planning/sprints/SPRINT_002.md`  
-Sprint 001 record: `docs/planning/sprints/SPRINT_001.md`
+Sprint 003 plan: `docs/planning/sprints/SPRINT_003.md`  
+Architecture decisions (vision): `docs/vision/MARKET_ANALYSIS_WITH_DECISIONS.md`  
+Workspace design (vision): `docs/vision/ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md`  
+Sprint 002 record: `docs/planning/sprints/SPRINT_002.md`
 
 ---
 
@@ -66,71 +71,71 @@ Completed in Sprint 001:
 - quality toolchain: Ruff, mypy, pytest, pre-commit, GitHub Actions CI,
 - domain package skeletons: `core`, `time`, `market`, `market_analysis`, `strategy`, `research`, `execution`, `events`, `config`, `infrastructure`, `application`,
 - `user_data/README.md` placeholder and boundary documentation,
-- core exceptions: `TradingFrameworkError`, `ValidationError`, `ConfigurationError`,
-- `Identifier` base value object,
-- UTC timestamp normalization (`require_utc_aware`, `normalize_to_utc`),
-- `Timeframe` value object,
-- `Clock` protocol with `SystemClock` and `FixedClock`,
-- `FrameworkConfig`, TOML loading, logging configuration,
-- architecture boundary test (no `user_data/` imports from `src/`),
-- test structure: `unit/`, `integration/`, `e2e/` (36 unit tests),
-- root `AGENTS.md` and `README.md`,
+- core exceptions, `Identifier`, UTC time, `Timeframe`, `Clock`, `FrameworkConfig`,
+- architecture boundary test,
 - ADR-0001, ADR-0002, ADR-0003.
 
-### Phase 2 — Market Data MVP (Sprint 002)
+### Phase 2 — Market Data MVP
 
-Completed on `sprint/market-data-mvp`:
+Completed in Sprint 002:
 
-- MVP numeric types (`Price`, `Volume`) and `MarketBar`,
-- dataset identity (`DatasetId`, `DatasetRef`) and metadata,
-- dataset lifecycle `WORKING → FINALIZED → PUBLISHED`,
-- CSV inspection, normalization, validation and import infrastructure,
-- Parquet writer, dataset registry and repository,
-- application workflows: import, finalize, publish, query,
-- ADR-0007, ADR-0008,
-- unit, contract and integration test coverage for the CSV vertical slice.
+- `Instrument`, `MarketBar`, `DatasetRef`, `DatasetState`, lifecycle contracts,
+- CSV inspect → normalize → validate → Parquet → register → finalize → publish → query,
+- application workflows: `import_external_dataset`, `finalize_dataset`, `publish_dataset`, `query_historical`,
+- integration test for full CSV import flow,
+- ADR-0007 (dataset lifecycle), ADR-0008 (Parquet storage),
+- CI triggers for `main` and `sprint/**` branches.
 
 ### Architectural Foundations
 
-Conceptual architecture for all major domains remains as previously defined in `docs/architecture/`.
+Conceptual architecture: `docs/vision/`. As-implemented reference: `docs/reference/`.
+
+Market Analysis (vision):
+
+- `docs/vision/MARKET_ANALYSIS_WITH_DECISIONS.md` (D-001–D-036),
+- `docs/vision/ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md` (workspace, result store, frames; takes precedence on derived-data topics).
 
 ---
 
 ## 5. Documentation Baseline
 
+Single index: **`docs/README.md`**
+
 ```text
+docs/README.md                    taxonomy & reading paths
+docs/vision/                      assumptions & target design
+docs/reference/                   as-implemented (see reference/README.md)
+docs/planning/                    status, roadmap, sprints
+docs/adr/                         decision records
 AGENTS.md
-README.md
-user_data/README.md
-docs/architecture/
-docs/agents/
-docs/planning/
-docs/adr/ADR-0001-modular-monolith.md
-docs/adr/ADR-0002-separate-src-and-user-data.md
-docs/adr/ADR-0003-utc-internal-time.md
-docs/adr/ADR-0007-dataset-lifecycle-and-publication.md
-docs/adr/ADR-0008-parquet-historical-storage.md
-docs/planning/sprints/SPRINT_001.md
-docs/planning/sprints/SPRINT_002.md
 ```
+
+Maintenance: `.cursor/rules/documentation.mdc`
 
 ---
 
 ## 6. Work in Progress
 
-### Sprint 002 — Market Data MVP
+### Sprint 003 — Market Analysis Engine MVP
 
-**Status:** COMPLETED on `sprint/market-data-mvp` (integration merge to `main` pending)  
-**Plan:** `docs/planning/sprints/SPRINT_002.md`  
-**Tasks:** 26 / 26 complete on sprint branch
+**Status:** COMPLETED (2026-07-12)  
+**Plan:** `docs/planning/sprints/SPRINT_003.md`  
+**Sprint branch:** `sprint/market-analysis-mvp`  
+**Tasks:** 41 (40 done; T027 TA-Lib optional deferred)
 
-Wave 6 verification PRs may still be open at review time:
+**Delivered waves:**
 
-- `sprint/market-data-mvp--market-data-fixtures`
-- `sprint/market-data-mvp--csv-import-integration-test`
-- `sprint/market-data-mvp--dataset-and-storage-adrs`
+- Wave 0 — architecture closure, spike, Definition of Ready
+- Wave 1 — identity and core contracts (T005–T012)
+- Wave 2 — registry, dependency planner, execution plan (T013–T018)
+- Wave 3 — `AnalysisDataView`, result store, workspace, executor, cache, errors (T019–T024, T037–T038)
+- Wave 4 — TR/ATR/state/EMA components, `AnalysisFrameAssembler`, `run_analysis` (T025–T026, T028–T029, T039–T040)
+- Wave 5 — adapter contracts, integration test, workspace/frame regressions, cache and identity tests (T030–T033, T031, T041)
+- Wave 6 — ADRs (ADR-0005, ADR-MA-001–011), problem registry notes, sprint closure (T034–T036)
 
-Next: sprint integration review and PR from `sprint/market-data-mvp` to `main`.
+**Next:** merge `sprint/market-analysis-mvp` → `main`; begin Phase 4 planning. Optional follow-up: T027 TA-Lib extra.
+
+**Reference:** `docs/reference/MODULE_MAP.md`, `docs/reference/modules/MARKET_ANALYSIS_MODULE.md`, `docs/adr/README.md`
 
 ---
 
@@ -138,25 +143,29 @@ Next: sprint integration review and PR from `sprint/market-data-mvp` to `main`.
 
 Nothing is technically blocked.
 
-Sprint 002 implementation is complete on the integration branch; remaining work is review and merge to `main`.
+Sprint 003 implementation is gated on Wave 0 Definition of Ready — **passed 2026-06-23**.
 
 ---
 
 ## 8. Open Critical Problems
 
-Unchanged high-priority items from `PROBLEM_REGISTRY.md`:
+From `PROBLEM_REGISTRY.md` — Sprint 003 addresses MVP slices of:
 
-1. Canonical numeric types for price, volume and quantity (PRB-010) — **MVP mitigated** for OHLCV CSV slice.
-2. Dataset identity algorithm (PRB-001) — **MVP mitigated** for Sprint 002.
-3. Component and model fingerprints (PRB-002, PRB-003).
-4. Public `user_data/` discovery contract (PRB-004).
-5. Market Analysis result storage schemas (PRB-005).
-6. Research Dataset physical schemas (PRB-006).
-7. Trading Calendar choice (PRB-007).
-8. Vectorized backtest semantics (PRB-014).
-9. Research/runtime parity (PRB-013).
+- PRB-002 — computation parameter fingerprinting (Wave 1),
+- PRB-005 — analysis result storage shape (Wave 1).
 
-PRB-015 (import boundaries) and PRB-016 (ADR materialization) are partially mitigated by Sprint 001.
+Remaining high-priority items:
+
+1. Public `user_data/` discovery contract (PRB-004).
+2. Research Dataset physical schemas (PRB-006).
+3. Trading Calendar choice (PRB-007).
+4. Local model definition fingerprints (PRB-003).
+5. Full component implementation fingerprints (PRB-002 — parameter identity resolved in MVP).
+6. Vectorized backtest semantics (PRB-014).
+7. Research/runtime parity (PRB-013).
+
+PRB-001, PRB-008 and PRB-010 received MVP resolution in Sprint 002.  
+PRB-002 and PRB-005 received partial MVP resolution in Sprint 003.
 
 ---
 
@@ -167,30 +176,44 @@ PRB-015 (import boundaries) and PRB-016 (ADR materialization) are partially miti
 | ADR-0001 Modular Monolith | ACCEPTED |
 | ADR-0002 Separate src and user_data | ACCEPTED |
 | ADR-0003 UTC Internal Time | ACCEPTED |
-| ADR-0007 Dataset Lifecycle and Publication | ACCEPTED |
-| ADR-0008 Parquet Historical Storage | ACCEPTED |
-| ADR-0004 – ADR-0006, ADR-0009 – ADR-0010 | PLANNED |
+| ADR-0007 Dataset Lifecycle | ACCEPTED (Sprint 002) |
+| ADR-0008 Parquet Storage | ACCEPTED (Sprint 002) |
+| ADR-0005 Market Analysis Domain | ACCEPTED (Sprint 003) |
+| ADR-MA-001–011 Market Analysis Engine | ACCEPTED (Sprint 003) |
+| ADR-0004, ADR-0006, ADR-0009, ADR-0010 | PLANNED |
+
+Binding decisions D-001–D-036 and workspace invariants are documented in the architecture files above; ADR materialization is Sprint 003 Wave 6 (including ADR-MA-007 workspace).
 
 ---
 
 ## 10. Known Risks
 
-- **Phase 2 scope creep** — first data slice must stay limited to one OHLCV flow.
-- **Numeric type delay** — PRB-010 should be resolved early in Phase 2.
-- **Documentation drift** — sprint and status documents must be updated with Phase 2 planning.
+- **Phase 4 scope creep** — multitimeframe and component catalog can expand quickly; keep outcome-scoped PRs.
+- **Implementation fingerprint gap** — PRB-002 parameter identity is resolved; full implementation hashing remains for research parity.
+- **TA-Lib optional path** — deferred T027; NumPy adapter is the CI reference backend.
 
 ---
 
 ## 11. Next Planned Capability
 
 ```text
-Sprint integration: merge sprint/market-data-mvp → main
+Phase 4 — Market Analysis Components and Multitimeframe
 ```
 
-Then choose the next Phase 2 increment:
+Candidate first increments:
 
 ```text
-missing-range calculator, historical synchronization policy, or Parquet import
+multitimeframe alignment and resampling nodes
+additional Feature / Structure components
+Research consumption of AnalysisResult artifacts
+optional TA-Lib adapter (S003-T027 carry-forward)
+```
+
+Phase 3 delivered flow:
+
+```text
+Published DatasetRef → AnalysisDataView → DAG → AnalysisResultStore → AnalysisWorkspace
+→ optional AnalysisFrame (wide consumer view)
 ```
 
 ---
@@ -200,7 +223,8 @@ missing-range calculator, historical synchronization policy, or Parquet import
 | Sprint | Goal | Status | Progress |
 |--------|------|--------|----------|
 | 001 | Repository foundation | COMPLETED | 22 / 22 tasks |
-| 002 | Market Data MVP | COMPLETED (branch) | 26 / 26 tasks |
+| 002 | Market Data MVP | COMPLETED | 26 / 26 tasks |
+| 003 | Market Analysis Engine MVP | COMPLETED | 40 / 41 tasks (T027 deferred) |
 
 ---
 

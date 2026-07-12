@@ -167,12 +167,18 @@ An incorrect definition may cause:
 ## PRB-002 — Component Fingerprint Algorithm Is Not Defined
 
 ```text
-Status: DECISION_REQUIRED
+Status: PARTIALLY_RESOLVED (MVP)
 Severity: HIGH
 Domain: Market Analysis
 Owner: Unassigned
 Discovered: 2026-06-19
 ```
+
+**MVP resolution (Sprint 003):** Parameter fingerprinting for execution identity is implemented via
+`ParameterSchema.canonicalize()` → `CanonicalParameters` embedded in `ComputationIdentity`. DAG nodes
+and the in-plan execution cache key on `ComputationIdentity.canonical_key()`. Full
+`implementation_hash` / transitive dependency hashing for research-grade component fingerprints
+remains open — see ADR-MA-003 and ADR-0010 (planned).
 
 ### Description
 
@@ -298,12 +304,17 @@ A poor design may create:
 ## PRB-005 — Market Analysis Result Storage Shape Is Not Fixed
 
 ```text
-Status: OPEN
+Status: PARTIALLY_RESOLVED (MVP)
 Severity: MEDIUM
 Domain: Market Analysis
 Owner: Unassigned
 Discovered: 2026-06-19
 ```
+
+**MVP resolution (Sprint 003):** In-memory `AnalysisResult` with typed `OutputSeries`, multi-output
+`OutputSchema`, lineage and warm-up metadata. Results live in `AnalysisResultStore` /
+`AnalysisWorkspace` for one execution; optional `AnalysisFrame` assembly for wide consumers.
+Persistent derived-dataset storage remains deferred — see ADR-MA-005 and ADR-MA-007.
 
 ### Description
 

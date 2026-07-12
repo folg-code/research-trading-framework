@@ -1,13 +1,70 @@
 ---
-description: Documentation and ADR rules
+description: Documentation taxonomy, sources of truth and update rules
 globs:
   - "docs/**/*.md"
   - "AGENTS.md"
+  - "README.md"
 alwaysApply: false
 ---
 
-- Architecture documents describe the current architecture.
-- ADRs preserve why significant decisions were made.
-- Sprint history must not be rewritten.
-- Do not duplicate the same source of truth across documents.
-- Update documentation when public contracts or architectural behaviour change.
+# Documentation Structure
+
+**Single index:** `docs/README.md`
+
+```text
+docs/vision/      assumptions, target architecture, binding decisions
+docs/reference/   as-implemented (module map, flows, module docs)
+docs/planning/    roadmap, status, sprints
+docs/adr/         why decisions were frozen
+```
+
+Folder READMEs are **catalogs only** — not second indexes.
+
+## Layers
+
+| Layer | Folder | Update when |
+|-------|--------|-------------|
+| Index | `docs/README.md` | New category or folder |
+| Onboarding | `onboarding/DEVELOPER_GUIDE.md` | Setup/tooling only |
+| Vision | `docs/vision/` | Principles, binding decisions, target design |
+| Reference | `docs/reference/` | Merged wave; contract change |
+| Progress | `planning/CURRENT_STATUS.md` | Sprint milestone |
+| Planning | `planning/sprints/` | Sprint planning — not impl status |
+| ADRs | `docs/adr/` | Durable decisions |
+
+## Reference (as-implemented)
+
+| File | Owns |
+|------|------|
+| `reference/MODULE_MAP.md` | Packages, status |
+| `reference/DATA_WORKFLOWS.md` | Data movement, diagrams |
+| `reference/modules/*.md` | Per-module implemented detail |
+
+Do not duplicate in `DEVELOPER_GUIDE.md` or sprint files.
+
+## Single Source of Truth
+
+- **Built?** `src/`, tests, then `reference/` — not `vision/` or roadmap alone.
+- **Should be?** `vision/`, `planning/`, ADRs.
+- **Why?** ADRs + binding decision docs in `vision/`.
+
+`vision/ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md` wins on MA derived-data conflicts.
+
+## Mandatory Updates
+
+**After merged wave:** `MODULE_MAP.md`; `DATA_WORKFLOWS.md` if paths changed.
+
+**Contract change:** `reference/modules/*`, vision if binding decision changed, tests, ADR if durable.
+
+**Sprint close:** `CURRENT_STATUS.md`, expand module guides.
+
+## What Not to Do
+
+- No implementation status from vision docs alone.
+- No flow diagrams in `DEVELOPER_GUIDE.md` — use `DATA_WORKFLOWS.md`.
+- No duplicate indexes in folder READMEs.
+
+## Reading Order
+
+- **Humans:** `docs/README.md` → `DEVELOPER_GUIDE.md` → `reference/` → `vision/` as needed.
+- **Agents:** `AGENTS.md` → `CURRENT_STATUS.md` → `vision/` → `reference/` → contracts/tests.

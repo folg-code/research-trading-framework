@@ -312,6 +312,9 @@ Status: implementation complete on the sprint integration branch; merge to `main
 
 # 7. Phase 3 — Market Analysis Engine MVP
 
+**Status:** COMPLETED in Sprint 003 (2026-07-12). Integration branch: `sprint/market-analysis-mvp`.  
+ADRs: `docs/adr/ADR-0005-market-analysis-domain-and-taxonomy.md`, ADR-MA-001–011.
+
 ## Purpose
 
 Calculate reusable analytical components through explicit dependency contracts.
@@ -363,13 +366,15 @@ Lineage and Cache Identity
 
 ## Completion Criteria
 
-- a component declares all dependencies before execution,
-- equivalent deterministic nodes are calculated once,
-- hidden component calls inside `compute()` are rejected by convention and tests,
-- cache identity includes dataset and implementation identity,
-- working components can be loaded from controlled user space,
-- research use of a working component stores an implementation fingerprint,
-- the engine remains independent from Market Model and Signal Model semantics.
+Sprint 003 assessment (2026-07-12):
+
+- [x] a component declares all dependencies before execution,
+- [x] equivalent deterministic nodes are calculated once,
+- [x] hidden component calls inside `compute()` are rejected by convention and tests,
+- [x] cache identity includes dataset and implementation identity,
+- [ ] working components can be loaded from controlled user space (deferred — no `user_data/` loader in MVP),
+- [ ] research use of a working component stores an implementation fingerprint (partial — parameter identity only; PRB-002 remainder),
+- [x] the engine remains independent from Market Model and Signal Model semantics.
 
 ## Dependencies
 
