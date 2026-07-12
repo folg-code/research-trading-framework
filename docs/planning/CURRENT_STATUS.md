@@ -29,10 +29,10 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 Status Date: 2026-07-12
 Current Phase: Phase 5 — Signal Research MVP (first increment)
 Current Milestone: Sprint 008 — Signal Research computation
-Implementation Status: Sprints 003–006 COMPLETE on main; Sprint 008 IN_PROGRESS
+Implementation Status: Sprints 003–008 COMPLETE on sprint branch; Sprint 008 ready for merge to main
 Overall Status: IN_PROGRESS
-Active Sprint: SPRINT_008 (Wave 0)
-Last Completed Sprint: SPRINT_006 (COMPLETED on main)
+Active Sprint: none (Sprint 008 complete — pending sprint-branch merge to main)
+Last Completed Sprint: SPRINT_008 (COMPLETE on sprint/signal-research-mvp)
 ```
 
 ---
@@ -42,12 +42,12 @@ Last Completed Sprint: SPRINT_006 (COMPLETED on main)
 Execute **Sprint 008** per corrected direction: first Signal Research workflow end-to-end.
 
 Binding direction: `docs/planning/sprints/PHASE_4_5_SPRINT_DIRECTION.md`  
-Sprint 008 plan: `docs/planning/sprints/SPRINT_008.md`  
-Wave 0: `docs/planning/sprints/S008_WAVE0_DECISIONS.md`
+Sprint 008 plan: `docs/planning/sprints/SPRINT_008.md` — **COMPLETE** (2026-07-12)  
+ADR: ADR-0011
 
-**North star:** published data → Signal Model → `SignalOccurrence` → forward outcomes → persistent research dataset (Sprints 008–010).
+**North star:** published data → Signal Model → `SignalOccurrence` → forward outcomes → persistent research dataset ✅ (Sprint 008)
 
-Shortest research path: `006 → 008` (Sprint 007 skipped at scope gate 2026-07-12).
+**Next:** Sprint 009 (combined scopes) or Sprint 010 (analytics on stored datasets) per roadmap.
 
 ---
 
@@ -127,13 +127,16 @@ Completed on `main` (PR #75, 2026-07-12):
 
 ### Phase 5 — Signal Research (Sprint 008)
 
-In progress on `sprint/signal-research-mvp`:
+Complete on `sprint/signal-research-mvp` (2026-07-12):
 
-- Wave 0: outcome semantics spike and architecture decisions,
-- target: `SignalOccurrence` → forward return / MFE / MAE → Parquet research dataset,
-- scope: `SIGNAL_MODEL_ONLY`.
+- `SignalOccurrence` materialization and reference-price policy,
+- `ForwardOutcomeDefinition` + calculator (long-format outcomes),
+- immutable run envelope (manifest + Parquet facts),
+- `run_signal_research` application workflow,
+- inspection spike and ADR-0011,
+- 366 tests at sprint closure.
 
-Pending: Sprint 007 skipped (scope gate — existing components sufficient).
+Pending merge of `sprint/signal-research-mvp` → `main`.
 
 ### Architectural Foundations
 
@@ -165,15 +168,14 @@ Maintenance: `.cursor/rules/documentation.mdc`
 
 ## 6. Work in Progress
 
-### Sprint 008 — Signal Research Computation MVP
+### Sprint 008 — Closed
 
-**Status:** IN_PROGRESS (Wave 3 complete)  
+**Status:** COMPLETE on `sprint/signal-research-mvp` (2026-07-12)  
 **Plan:** `docs/planning/sprints/SPRINT_008.md`  
-**Wave 0:** `docs/planning/sprints/S008_WAVE0_DECISIONS.md`  
-**Sprint branch:** `sprint/signal-research-mvp`  
-**Tasks:** 8 / 11 done (T001–T008)
+**ADR:** ADR-0011  
+**Tasks:** 11 / 11 done
 
-**Scope gate:** Sprint 007 skipped — existing components sufficient for first experiment.
+Pending: sprint integration branch PR to `main`.
 
 ---
 
@@ -188,7 +190,7 @@ Maintenance: `.cursor/rules/documentation.mdc`
 
 ## 7. Blocked Work
 
-Nothing is technically blocked for Sprint 008 Wave 0.
+Nothing is technically blocked. Sprint 008 awaits merge to `main`.
 
 ---
 
@@ -249,7 +251,6 @@ Binding decisions D-001–D-036 and workspace invariants are documented in the a
 ## 11. Next Planned Capability
 
 ```text
-Sprint 008 — Signal Research computation (active)
 Sprint 009 — Combined research scopes (MARKET_MODEL_ONLY, MARKET_AND_SIGNAL)
 Sprint 010 — Analytics on stored datasets
 ```
@@ -269,7 +270,7 @@ See `PHASE_4_5_SPRINT_DIRECTION.md` for Sprints 009–010.
 | 005 | Calendar, swing structure, visual inspection | COMPLETED | 16 / 16 tasks (T017–T018 deferred) |
 | 006 | Declarative Market Model and Signal Model | COMPLETED | 26 / 26 tasks |
 | 007 | Research-enabling catalog | SKIPPED (scope gate) | 1 / 9 (T001 only) |
-| 008 | Signal Research computation MVP | IN_PROGRESS | 1 / 11 tasks |
+| 008 | Signal Research computation MVP | COMPLETED | 11 / 11 tasks |
 
 ---
 
