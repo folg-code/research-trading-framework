@@ -17,14 +17,12 @@ Run:
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import sys
 import tempfile
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import Any
 
 import polars as pl
 
@@ -49,11 +47,18 @@ from trading_framework.market_analysis import TimeRange
 from trading_framework.market_analysis.assembly.frame import AnalysisFrame
 from trading_framework.market_analysis.data.view import AnalysisDataView
 from trading_framework.research import (
+    SIGNAL_RESEARCH_SCHEMA_VERSION,
     ForwardOutcomeDefinition,
     OutcomeStatus,
+    RunDatasetRef,
+    SignalResearchDatasetRepository,
+    SignalResearchRunEnvelope,
+    SignalResearchRunManifest,
     align_ohlcv_to_evaluation_frame,
     compute_forward_outcomes,
     compute_forward_outcomes_for_horizons,
+    derive_run_id,
+    outcome_definition_fingerprint,
 )
 from trading_framework.strategy import (
     OccurrenceMaterializationContext,
@@ -65,8 +70,6 @@ from trading_framework.time.models.timeframe import Timeframe
 from trading_framework.time.sessions import CmeEsRthSessionResolver
 
 FIXTURE = OHLCV_SAMPLE_1M
-
-SCHEMA_VERSION = "signal_research.v1"
 
 
 @dataclass(frozen=True, slots=True)
@@ -124,13 +127,6 @@ def _timestamp_index(frame: AnalysisFrame) -> dict[datetime, int]:
     return {timestamp: index for index, timestamp in enumerate(frame.timestamps)}
 
 
-def _run_id(*, dataset_key: str, signal_model_id: str, horizons: tuple[int, ...]) -> str:
-    payload = (
-        f"{dataset_key}|{signal_model_id}|{','.join(str(h) for h in horizons)}|{framework_version}"
-    )
-    return hashlib.sha256(payload.encode()).hexdigest()[:16]
-
-
 def _materialize_occurrences(
     emissions: pl.DataFrame,
     *,
@@ -154,46 +150,11 @@ def _materialize_occurrences(
     )
 
 
-def write_signal_research_run(
-    run_dir: Path,
-    *,
-    manifest: dict[str, Any],
-    occurrences: pl.DataFrame,
-    outcomes: pl.DataFrame,
-    overwrite: bool = False,
-) -> None:
-    if run_dir.exists() and not overwrite:
-        msg = f"run directory already exists: {run_dir}"
-        raise FileExistsError(msg)
-    run_dir.mkdir(parents=True, exist_ok=overwrite)
-    manifest_path = run_dir / "manifest.json"
-    if manifest_path.exists() and not overwrite:
-        msg = f"manifest already exists: {manifest_path}"
-        raise FileExistsError(msg)
-    manifest_path.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
-    occurrences.write_parquet(run_dir / "occurrences.parquet")
-    outcomes.write_parquet(run_dir / "outcomes.parquet")
-
-
 def _frames_equal(left: pl.DataFrame, right: pl.DataFrame) -> bool:
     if left.shape != right.shape or left.columns != right.columns:
         return False
     sort_cols = left.columns
     return left.sort(sort_cols).equals(right.sort(sort_cols))
-
-
-def load_signal_research_run(run_dir: Path) -> tuple[dict[str, Any], pl.DataFrame, pl.DataFrame]:
-    manifest_path = run_dir / "manifest.json"
-    if not manifest_path.exists():
-        msg = f"missing manifest: {manifest_path}"
-        raise FileNotFoundError(msg)
-    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    if manifest.get("schema_version") != SCHEMA_VERSION:
-        msg = f"unsupported schema version: {manifest.get('schema_version')}"
-        raise ValueError(msg)
-    occurrences = pl.read_parquet(run_dir / "occurrences.parquet")
-    outcomes = pl.read_parquet(run_dir / "outcomes.parquet")
-    return manifest, occurrences, outcomes
 
 
 def _synthetic_incomplete_horizon_check() -> SpikeCheck:
@@ -420,44 +381,52 @@ def run_spike() -> list[SpikeCheck]:
         ).is_empty()
         checks.append(SpikeCheck(name="incomplete_metrics_null_not_zero", passed=nulls_not_zero))
 
-        run_key = _run_id(
-            dataset_key=dataset_key,
-            signal_model_id=CANONICAL_SIGNAL_HIGHER_LOW_ID,
+        run_key = derive_run_id(
+            source_dataset_ref=dataset_key,
+            signal_model_ids=(CANONICAL_SIGNAL_HIGHER_LOW_ID,),
             horizons=horizons,
+            evaluation_timeframe="1m",
+            requested_range_start=metadata.start_at,
+            requested_range_end=metadata.end_at,
+            framework_version=framework_version,
+            outcome_definition_fingerprint=outcome_definition_fingerprint(horizons),
         )
-        run_dir = Path(tmp) / "research" / run_key
-        manifest = {
-            "run_id": run_key,
-            "schema_version": SCHEMA_VERSION,
-            "framework_version": framework_version,
-            "created_at_utc": datetime.now(tz=UTC).isoformat(),
-            "source_dataset_ref": dataset_key,
-            "evaluation_timeframe": "1m",
-            "signal_model_ids": [CANONICAL_SIGNAL_HIGHER_LOW_ID],
-            "horizon_bars_requested": list(horizons),
-            "reference_price_policy": ReferencePricePolicy.CLOSE_AT_DETECTED_AT.value,
-        }
-        write_signal_research_run(
-            run_dir,
-            manifest=manifest,
-            occurrences=occurrences,
-            outcomes=outcomes,
+        manifest = SignalResearchRunManifest(
+            run_id=run_key,
+            schema_version=SIGNAL_RESEARCH_SCHEMA_VERSION,
+            framework_version=framework_version,
+            created_at_utc=datetime.now(tz=UTC),
+            source_dataset_ref=dataset_key,
+            evaluation_timeframe="1m",
+            signal_model_ids=(CANONICAL_SIGNAL_HIGHER_LOW_ID,),
+            horizon_bars_requested=horizons,
+            reference_price_policy=ReferencePricePolicy.CLOSE_AT_DETECTED_AT,
+            outcome_definition_fingerprint=outcome_definition_fingerprint(horizons),
         )
-        loaded_manifest, loaded_occurrences, loaded_outcomes = load_signal_research_run(run_dir)
+        repository = SignalResearchDatasetRepository(storage_root)
+        repository.write(
+            SignalResearchRunEnvelope(
+                manifest=manifest,
+                occurrences=occurrences,
+                outcomes=outcomes,
+            )
+        )
+        loaded = repository.read(RunDatasetRef(run_id=run_key))
         round_trip = (
-            loaded_manifest["run_id"] == run_key
-            and _frames_equal(loaded_occurrences, occurrences)
-            and _frames_equal(loaded_outcomes, outcomes)
+            loaded.manifest.run_id == run_key
+            and _frames_equal(loaded.occurrences, occurrences)
+            and _frames_equal(loaded.outcomes, outcomes)
         )
         checks.append(SpikeCheck(name="write_read_round_trip", passed=round_trip))
 
         immutability_ok = False
         try:
-            write_signal_research_run(
-                run_dir,
-                manifest=manifest,
-                occurrences=occurrences,
-                outcomes=outcomes,
+            repository.write(
+                SignalResearchRunEnvelope(
+                    manifest=manifest,
+                    occurrences=occurrences,
+                    outcomes=outcomes,
+                )
             )
         except FileExistsError:
             immutability_ok = True
@@ -519,7 +488,7 @@ def main() -> int:
     checklist = _checklist_pass(checks)
     payload = {
         "task": "S008-T001",
-        "schema_version": SCHEMA_VERSION,
+        "schema_version": SIGNAL_RESEARCH_SCHEMA_VERSION,
         "checks": [
             {"name": check.name, "passed": check.passed, "detail": check.detail} for check in checks
         ],

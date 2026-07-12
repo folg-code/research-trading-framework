@@ -34,3 +34,8 @@ def dataset_bars_path(root: Path, dataset_ref: DatasetRef) -> Path:
         / f"v{dataset_ref.version}"
         / "bars.parquet"
     )
+
+
+def signal_research_run_dir(root: Path, run_id: str) -> Path:
+    """Return the run envelope directory for one Signal Research run."""
+    return root / run_id

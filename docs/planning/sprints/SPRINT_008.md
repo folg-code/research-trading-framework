@@ -149,9 +149,9 @@ Immutability: existing `run_id` directory must not be overwritten.
 | S008-T003 | Reference-price policy and materialization (not fill price) | DONE | S008-T002 |
 | S008-T004 | Forward outcome definition and calculator | DONE | S008-T001 |
 | S008-T005 | Temporal and incomplete-horizon edge cases | DONE | S008-T004 |
-| S008-T006 | Dataset schema, manifest, writer and reader | TODO | S008-T004 |
-| S008-T007 | `run_signal_research` application workflow | TODO | S008-T003, S008-T006 |
-| S008-T008 | End-to-end integration and round-trip determinism | TODO | S008-T007 |
+| S008-T006 | Dataset schema, manifest, writer and reader | DONE | S008-T004 |
+| S008-T007 | `run_signal_research` application workflow | DONE | S008-T003, S008-T006 |
+| S008-T008 | End-to-end integration and round-trip determinism | DONE | S008-T007 |
 | S008-T009 | Occurrence and forward-path inspector | TODO | S008-T008 |
 | S008-T010 | ADR — full outcome and persistence semantics | TODO | S008-T001 |
 | S008-T011 | Documentation and sprint closure | TODO | S008-T010 |
@@ -191,6 +191,8 @@ Strategy-domain `SignalOccurrence` with stable identity and reference-price poli
 ### Wave 3 — T006–T008
 
 Dataset repository (write + read + schema validation), `run_signal_research`, e2e round-trip.
+
+**Done (2026-07-12):** `research/datasets/signal_research.py`, `application/signal_research/run_signal_research.py`, integration tests.
 
 ### Wave 4 — T009, T011
 
