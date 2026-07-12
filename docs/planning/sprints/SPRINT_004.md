@@ -5,7 +5,7 @@
 ```text
 Sprint: 004
 Phase: Phase 4 — Market Analysis Components and Multitimeframe (first increment)
-Status: IN_PROGRESS (Wave 3 complete; Wave 4 next)
+Status: IN_PROGRESS (Wave 4 complete; Wave 5 next)
 Planned Start: 2026-07-12
 Planned End: TBD
 Sprint Goal Owner: Project Maintainer
@@ -321,8 +321,8 @@ No new dependency for Trading Calendar in this sprint.
 | S004-T009 | `available_at` derivation on component outputs | DONE | S004-T008 |
 | S004-T010 | `AlignmentPolicy` + Polars `join_asof` alignment | DONE | S004-T009 |
 | S004-T011 | `AnalysisFrame` MTF assembly on evaluation grid | DONE | S004-T010 |
-| S004-T012 | Behavior-focused MTF test suite | TODO | S004-T010 |
-| S004-T013 | End-to-end vertical slice and `run_analysis` MTF path | TODO | S004-T011, S004-T012 |
+| S004-T012 | Behavior-focused MTF test suite | DONE | S004-T010 |
+| S004-T013 | End-to-end vertical slice and `run_analysis` MTF path | DONE | S004-T011, S004-T012 |
 | S004-T014 | ADR — Batch Multitimeframe Computation with Polars | TODO | S004-T001 |
 | S004-T015 | Module docs, MODULE_MAP, PRB-007 deferral note, sprint closure | TODO | S004-T013, S004-T014 |
 | S004-T016 | Optional TA-Lib adapter (S003-T027 carry-forward) | DEFERRED | — |
@@ -618,7 +618,7 @@ Regression: Sprint 003 single-TF frame assembly unchanged.
 
 ### S004-T012 — Behavior-focused MTF test suite
 
-**Status:** TODO  
+**Status:** DONE (2026-07-12)  
 **Category:** Testing  
 **Domain:** Market Analysis  
 **Wave:** 4  
@@ -632,15 +632,15 @@ One test module (or focused package) covering the seven required behaviors from 
 
 #### Acceptance Criteria
 
-- [ ] All seven behavioral areas covered
-- [ ] Tests assert outputs and timestamps, not node class names
-- [ ] CI green with full suite
+- [x] All seven behavioral areas covered
+- [x] Tests assert outputs and timestamps, not node class names
+- [x] CI green with full suite
 
 ---
 
 ### S004-T013 — End-to-end vertical slice and run_analysis MTF path
 
-**Status:** TODO  
+**Status:** DONE (2026-07-12)  
 **Category:** Integration  
 **Domain:** Application / Market Analysis  
 **Wave:** 4  
@@ -653,9 +653,9 @@ One test module (or focused package) covering the seven required behaviors from 
 
 #### Acceptance Criteria
 
-- [ ] Runs in CI without external APIs
-- [ ] Coexists with `test_market_analysis_vertical_slice.py`
-- [ ] Single-TF path unchanged
+- [x] Runs in CI without external APIs
+- [x] Coexists with `test_market_analysis_vertical_slice.py`
+- [x] Single-TF path unchanged
 
 ---
 
@@ -801,8 +801,8 @@ Review checklist: verify PR does not violate **Design Principles (Anti-Overengin
 - [ ] `uv run ruff format --check .` passes
 - [ ] `uv run mypy` passes
 - [ ] `uv run pytest` passes
-- [ ] Seven behavioral test areas (T012) green
-- [ ] End-to-end MTF integration (T013) green
+- [x] Seven behavioral test areas (T012) green
+- [x] End-to-end MTF integration (T013) green
 - [ ] ADR-MA-012 accepted
 - [ ] `CURRENT_STATUS.md` updated
 - [ ] Sprint PR to `main` opened; agent stops before merge
