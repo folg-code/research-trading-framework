@@ -39,9 +39,10 @@ Catalog of `docs/planning/`. For taxonomy and reading paths see **[../README.md]
 | [sprints/SPRINT_006.md](sprints/SPRINT_006.md) | Declarative Market/Signal Model (planned) |
 | [sprints/SPRINT_007.md](sprints/SPRINT_007.md) | Research-enabling catalog — conditional (planned) |
 | [sprints/SPRINT_008.md](sprints/SPRINT_008.md) | Signal Research computation MVP (complete) |
-| [sprints/SPRINT_009.md](sprints/SPRINT_009.md) | Combined research scopes (Wave 0 decisions locked) |
+| [sprints/SPRINT_009.md](sprints/SPRINT_009.md) | Combined research scopes (complete) |
 | [sprints/S009_WAVE0_DECISIONS.md](sprints/S009_WAVE0_DECISIONS.md) | Sprint 009 binding decisions (D-S009-01 … D-S009-11) |
-| [sprints/SPRINT_010.md](sprints/SPRINT_010.md) | Signal Research analytics (planned) |
+| [sprints/SPRINT_010.md](sprints/SPRINT_010.md) | Signal Research analytics MVP (planned) |
+| [sprints/S010_WAVE0_DECISIONS.md](sprints/S010_WAVE0_DECISIONS.md) | Sprint 010 binding decisions (D-S010-01 … D-S010-20) |
 | [sprints/S004_MTF_SPIKE_AND_DECISIONS.md](sprints/S004_MTF_SPIKE_AND_DECISIONS.md) | Sprint 004 T001 spike outcomes |
 | [sprints/S003_WAVE0_*.md](sprints/) | Sprint 003 wave 0 artefacts |
 

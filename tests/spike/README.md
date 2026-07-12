@@ -113,3 +113,21 @@ uv run python tests/spike/run_inspect_signal_research.py \\
 
 Overlays occurrence markers, reference price, horizon end, MFE/MAE and terminal outcome on OHLCV.
 Inspection consumes persisted run facts only — no model evaluation or outcome recomputation.
+
+Signal research analytics spike (S010-T001):
+
+```bash
+uv run python tests/spike/run_signal_research_analytics_spike.py
+uv run python tests/spike/run_signal_research_analytics_spike.py --json
+```
+
+Validates read-only analytics over persisted v1/v2 runs: analysis frame, RunSummary,
+RTH/time-of-day grouping, conditional context split, and ``metrics_eligible`` semantics.
+Production package: ``src/trading_framework/research/analytics/``.
+
+Signal research analytics HTML report (S010-T009):
+
+```bash
+uv pip install plotly
+uv run python tests/spike/run_signal_research_analytics_report.py --generate --open
+```
