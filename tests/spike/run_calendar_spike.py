@@ -28,9 +28,13 @@ import exchange_calendars as xcals
 import pandas as pd
 import polars as pl
 
+from trading_framework.time.sessions import (
+    ES_RTH_SESSION_ID,
+    OUTSIDE_RTH_SESSION_ID,
+    CmeEsRthSessionResolver,
+)
+
 NEW_YORK = ZoneInfo("America/New_York")
-ES_RTH_SESSION_ID = "ES_RTH"
-OUTSIDE_RTH_SESSION_ID = "OUTSIDE_RTH"
 
 
 @dataclass(frozen=True)
@@ -111,53 +115,8 @@ def resolve_es_rth_batch(
     *,
     holiday_dates: frozenset[Any] | None = None,
 ) -> pl.DataFrame:
-    """Batch ES RTH resolver without map_elements for holidays."""
-    frame = pl.DataFrame({"timestamp": timestamps}).with_columns(
-        pl.col("timestamp").dt.convert_time_zone("America/New_York").alias("ny_ts"),
-    )
-    result = (
-        frame.with_columns(
-            pl.col("ny_ts").dt.date().alias("trading_day"),
-            pl.col("ny_ts").dt.weekday().alias("weekday"),
-            pl.col("ny_ts").dt.hour().alias("hour"),
-            pl.col("ny_ts").dt.minute().alias("minute"),
-        )
-        .with_columns(
-            (
-                (pl.col("weekday") <= 5)
-                & ((pl.col("hour") > 9) | ((pl.col("hour") == 9) & (pl.col("minute") >= 30)))
-                & (pl.col("hour") < 16)
-            ).alias("is_rth")
-        )
-        .with_columns(
-            pl.when(pl.col("is_rth"))
-            .then(pl.lit(ES_RTH_SESSION_ID))
-            .otherwise(pl.lit(OUTSIDE_RTH_SESSION_ID))
-            .alias("session_id")
-        )
-    )
-    if holiday_dates:
-        holiday_series = pl.Series("holiday", list(holiday_dates))
-        result = (
-            result.join(
-                holiday_series.to_frame().with_columns(pl.lit(True).alias("is_holiday")),
-                left_on="trading_day",
-                right_on="holiday",
-                how="left",
-            )
-            .with_columns(
-                pl.when(pl.col("is_holiday").fill_null(False))
-                .then(pl.lit(False))
-                .otherwise(pl.col("is_rth"))
-                .alias("is_rth"),
-                pl.when(pl.col("is_holiday").fill_null(False))
-                .then(pl.lit(OUTSIDE_RTH_SESSION_ID))
-                .otherwise(pl.col("session_id"))
-                .alias("session_id"),
-            )
-            .drop("is_holiday")
-        )
-    return result.select("timestamp", "trading_day", "session_id", "is_rth")
+    """Delegate to production batch resolver (spike equivalence check)."""
+    return CmeEsRthSessionResolver(holiday_dates=holiday_dates).resolve(timestamps)
 
 
 def xnys_holiday_dates(start: datetime, end: datetime) -> frozenset[Any]:

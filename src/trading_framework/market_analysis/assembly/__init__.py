@@ -10,6 +10,7 @@ from trading_framework.market_analysis.assembly.frame import (
     AnalysisFrameColumnSpec,
     AnalysisFrameRequest,
 )
+from trading_framework.market_analysis.assembly.session_metadata import TradingSessionMetadata
 
 __all__ = [
     "AlignmentCache",
@@ -17,5 +18,6 @@ __all__ = [
     "AnalysisFrameAssembler",
     "AnalysisFrameColumnSpec",
     "AnalysisFrameRequest",
+    "TradingSessionMetadata",
     "default_alias",
 ]

@@ -5,7 +5,7 @@
 ```text
 Sprint: 005
 Phase: Phase 4 — Market Analysis Components and Multitimeframe (second increment)
-Status: PLANNED (Wave 0 complete)
+Status: PLANNED (Wave 0 complete, Wave 1 complete)
 Planned Start: TBD
 Planned End: TBD
 Sprint Goal Owner: Project Maintainer
@@ -205,9 +205,9 @@ Continues Phase 4 increment 2. Enables Phase 5 Signal Research path (Sprints 006
 | ID | Task | Status | Depends On |
 |----|------|--------|------------|
 | S005-T001 | Calendar adapter spike and decision note | DONE | — |
-| S005-T002 | Batch `TradingSessionResolver` protocol | TODO | S005-T001 |
-| S005-T003 | CME ES RTH resolver implementation | TODO | S005-T002 |
-| S005-T004 | Session metadata enrichment on analysis path | TODO | S005-T003 |
+| S005-T002 | Batch `TradingSessionResolver` protocol | DONE | S005-T001 |
+| S005-T003 | CME ES RTH resolver implementation | DONE | S005-T002 |
+| S005-T004 | Session metadata enrichment on analysis path | DONE | S005-T003 |
 | S005-T005 | Pivot Structure contract and output schema | TODO | — |
 | S005-T006 | Port/adapt Pivot detector + implementation choice (Polars/NumPy) | TODO | S005-T005 |
 | S005-T007 | Registry integration | TODO | S005-T006 |
@@ -238,6 +238,8 @@ Calendar spike: adapter choice, CME ES RTH + DST fixture, batch mapping cost, de
 ### Wave 1 — T002–T004
 
 Batch resolver protocol, CME ES adapter, session columns on analysis/frame path without mutating bars.
+
+**Done (2026-07-12):** `TradingSessionResolver`, `CmeEsRthSessionResolver`, `TradingSessionMetadata` enrichment on workspace/frame and `run_analysis`.
 
 ### Wave 2 — T005–T009
 

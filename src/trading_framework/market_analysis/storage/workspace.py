@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass
 
+from trading_framework.market_analysis.assembly.session_metadata import TradingSessionMetadata
 from trading_framework.market_analysis.data.view import AnalysisDataView
 from trading_framework.market_analysis.identity.computation import ComputationIdentity
 from trading_framework.market_analysis.models.result import AnalysisResult
@@ -23,14 +24,24 @@ class AnalysisWorkspaceView:
 class AnalysisWorkspace:
     """Executor-controlled workspace for one execution plan."""
 
-    def __init__(self, market_view: AnalysisDataView) -> None:
+    def __init__(
+        self,
+        market_view: AnalysisDataView,
+        *,
+        session_metadata: TradingSessionMetadata | None = None,
+    ) -> None:
         self._market_view = market_view
+        self._session_metadata = session_metadata
         self._resampled_views: dict[str, AnalysisDataView] = {}
         self._store = AnalysisResultStore()
 
     @property
     def market_view(self) -> AnalysisDataView:
         return self._market_view
+
+    @property
+    def session_metadata(self) -> TradingSessionMetadata | None:
+        return self._session_metadata
 
     @property
     def result_store(self) -> AnalysisResultStore:

@@ -110,6 +110,7 @@ class AnalysisFrameAssembler:
             timestamps=timestamps,
             columns=columns,
             column_lineage=lineage,
+            session_metadata=workspace.session_metadata,
         )
 
     def _resolve_column_values(
