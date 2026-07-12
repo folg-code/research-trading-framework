@@ -302,10 +302,10 @@ v1 read compatibility, deterministic run identity.
 | S009-T002 | `ResearchScope`, `SignalResearchRequest`, validation | DONE | S009-T001 |
 | S009-T003 | `MarketModelObservation`, `ContextFact` | DONE | S009-T001 |
 | S009-T004 | MARKET_MODEL_ONLY workflow + persistence | DONE | S009-T002, S009-T003 |
-| S009-T005 | Context alignment at `available_at` | TODO | S009-T001 |
-| S009-T006 | MARKET_AND_SIGNAL workflow + context facts | TODO | S009-T004, S009-T005 |
+| S009-T005 | Context alignment at `available_at` | DONE | S009-T001 |
+| S009-T006 | MARKET_AND_SIGNAL workflow + context facts | DONE | S009-T004, S009-T005 |
 | S009-T007 | Envelope schema v2 + repository read/write + v1 read | DONE | S009-T004 |
-| S009-T008 | Integration tests (three scopes + deterministic fixture) | TODO | S009-T006, S009-T007 |
+| S009-T008 | Integration tests (three scopes + deterministic fixture) | DONE | S009-T006, S009-T007 |
 | S009-T009 | Inspection spike increment (optional) | TODO | S009-T008 |
 | S009-T010 | ADR-0012 — scope and context alignment | DONE (draft) | S009-T001 |
 | S009-T011 | MODULE_MAP, CURRENT_STATUS, sprint closure | TODO | S009-T010 |
