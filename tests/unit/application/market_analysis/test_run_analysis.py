@@ -25,6 +25,7 @@ from trading_framework.market_analysis.components.volatility import (
     VolatilityStateComponent,
 )
 from trading_framework.time.models.timeframe import Timeframe
+from trading_framework.time.sessions import CmeEsRthSessionResolver
 
 
 def _write_published_dataset(storage_root: Path, *, csv_path: Path) -> DatasetRef:
@@ -148,3 +149,33 @@ def test_run_analysis_executes_vertical_slice(
     assert "ema" in result.frame.columns
     assert "volatility_state" in result.frame.columns
     assert "volatility_distance" in result.frame.columns
+
+
+def test_run_analysis_attaches_session_metadata_when_resolver_provided(
+    tmp_path: Path,
+    market_data_fixtures_dir: Path,
+) -> None:
+    storage_root = tmp_path / "storage"
+    dataset_ref = _write_published_dataset(
+        storage_root,
+        csv_path=market_data_fixtures_dir / "sample_ohlcv.csv",
+    )
+    metadata = FileDatasetRegistry(storage_root).get(dataset_ref)
+    result = run_analysis(
+        RunAnalysisRequest(
+            dataset_ref=dataset_ref,
+            timeframe=Timeframe("1m"),
+            requested_range=TimeRange(start=metadata.start_at, end=metadata.end_at),
+            storage_root=storage_root,
+            component_requests=(),
+            frame_request=AnalysisFrameRequest(market_fields=("close",)),
+            session_resolver=CmeEsRthSessionResolver(),
+        )
+    )
+    assert result.frame is not None
+    assert result.frame.session_metadata is not None
+    assert len(result.frame.session_metadata) == len(result.frame.timestamps)
+    assert all(
+        session_id in {"ES_RTH", "OUTSIDE_RTH"}
+        for session_id in result.frame.session_metadata.session_ids
+    )

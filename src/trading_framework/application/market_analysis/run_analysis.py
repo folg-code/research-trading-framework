@@ -10,6 +10,7 @@ from trading_framework.application.market_analysis.load_data_view import (
 from trading_framework.market.datasets import DatasetRef
 from trading_framework.market_analysis.assembly.assembler import AnalysisFrameAssembler
 from trading_framework.market_analysis.assembly.frame import AnalysisFrame, AnalysisFrameRequest
+from trading_framework.market_analysis.assembly.session_metadata import TradingSessionMetadata
 from trading_framework.market_analysis.execution import SequentialBatchExecutor
 from trading_framework.market_analysis.execution.warmup import (
     extend_computation_range,
@@ -29,6 +30,7 @@ from trading_framework.market_analysis.registry.builtins import default_mvp_regi
 from trading_framework.market_analysis.registry.registry import ComponentRegistry
 from trading_framework.market_analysis.storage.workspace import AnalysisWorkspace
 from trading_framework.time.models.timeframe import Timeframe
+from trading_framework.time.sessions.protocol import TradingSessionResolver
 
 ENGINE_VERSION = "0.1.0"
 
@@ -44,6 +46,7 @@ class RunAnalysisRequest:
     component_requests: tuple[ComponentRequest, ...]
     frame_request: AnalysisFrameRequest | None = None
     evaluation_timeframe: Timeframe | None = None
+    session_resolver: TradingSessionResolver | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -110,10 +113,17 @@ def run_analysis(
         engine_version=engine_version,
         evaluation_timeframe=request.evaluation_timeframe,
     )
+    session_metadata = None
+    if request.session_resolver is not None:
+        session_metadata = TradingSessionMetadata.resolve(
+            market_view.timestamps,
+            request.session_resolver,
+        )
     workspace = SequentialBatchExecutor().execute(
         plan,
         market_view=market_view,
         context=context,
+        session_metadata=session_metadata,
     )
     frame = None
     if request.frame_request is not None:
