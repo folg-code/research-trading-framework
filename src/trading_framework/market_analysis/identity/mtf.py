@@ -40,6 +40,7 @@ class AlignmentIdentity:
     """Identity of one aligned presentation of a component result on an evaluation grid."""
 
     component_computation_key: str
+    output_id: str
     evaluation_timeframe: Timeframe
     evaluation_range: TimeRange
     alignment_policy: AlignmentPolicy
@@ -48,6 +49,7 @@ class AlignmentIdentity:
         payload = {
             "kind": "alignment",
             "component_computation_key": self.component_computation_key,
+            "output_id": self.output_id,
             "evaluation_timeframe": self.evaluation_timeframe.value,
             "evaluation_range": self.evaluation_range.canonical(),
             "alignment_policy": self.alignment_policy.value,

@@ -8,3 +8,4 @@ class AlignmentPolicy(StrEnum):
 
     LAST_CLOSED_BAR = "last_closed_bar"
     INTRABAR = "intrabar"
+    EVENT_AT_AVAILABLE = "event_at_available"
