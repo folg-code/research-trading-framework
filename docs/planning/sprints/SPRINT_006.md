@@ -398,11 +398,11 @@ Chart layer must **not** evaluate models, compute components, apply firing, or r
 | ID | Task | Status | Depends On |
 |----|------|--------|------------|
 | S006-T001 | Wave 0 decisions spike and note | DONE | — |
-| S006-T002 | `ComponentOutputReference` (reuse/wrap `ComponentOutputRef`) | TODO | S006-T001 |
-| S006-T003 | `MarketFieldReference` (canonical OHLCV) | TODO | S006-T001 |
-| S006-T004 | Expression nodes (`Compare`, `And`, `Or`, `Not`) | TODO | S006-T002, S006-T003 |
-| S006-T005 | Expression validation | TODO | S006-T004 |
-| S006-T006 | `ExpressionDependencyExtractor` | TODO | S006-T004 |
+| S006-T002 | `ComponentOutputReference` (reuse/wrap `ComponentOutputRef`) | DONE | S006-T001 |
+| S006-T003 | `MarketFieldReference` (canonical OHLCV) | DONE | S006-T001 |
+| S006-T004 | Expression nodes (`Compare`, `And`, `Or`, `Not`) | DONE | S006-T002, S006-T003 |
+| S006-T005 | Expression validation | DONE | S006-T004 |
+| S006-T006 | `ExpressionDependencyExtractor` | DONE | S006-T004 |
 | S006-T007 | `MarketModelDefinition` | TODO | S006-T004 |
 | S006-T008 | `MarketModelEvaluator` | TODO | S006-T007 |
 | S006-T009 | `SignalModelDefinition` + `SignalDirection` | TODO | S006-T004 |
@@ -442,6 +442,8 @@ Binding decisions D-S006-01 … D-S006-12.
 ### Wave 1 — T002–T006
 
 References, expression nodes, validation, dependency extraction.
+
+**Done (2026-07-12):** `model_expression` package — references, AST, validation, `ExpressionDependencyExtractor`.
 
 ### Wave 2 — T007–T012
 
