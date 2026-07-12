@@ -3,6 +3,7 @@
 from trading_framework.model_expression.dependencies import (
     ExpressionDependencies,
     ExpressionDependencyExtractor,
+    merge_expression_dependencies,
 )
 from trading_framework.model_expression.errors import (
     ModelExpressionError,
@@ -49,5 +50,6 @@ __all__ = [
     "OperandReference",
     "OrExpression",
     "build_evaluation_dataframe",
+    "merge_expression_dependencies",
     "validate_expression",
 ]
