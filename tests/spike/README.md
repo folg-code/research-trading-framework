@@ -77,6 +77,30 @@ uv run python tests/spike/run_signal_research_spike.py --json
 
 Validates occurrence materialization, forward outcome semantics, run envelope write/read.
 
+Combined research spike (S009-T001):
+
+```bash
+uv run python tests/spike/run_combined_research_spike.py
+uv run python tests/spike/run_combined_research_spike.py --json
+```
+
+Validates MARKET_MODEL_ONLY TRUE_EDGE observations, MARKET_AND_SIGNAL context at
+``available_at``, envelope v2 layout prototype and v1 read compatibility.
+
+Combined research inspection (S009-T009):
+
+```bash
+uv pip install plotly
+uv run python tests/spike/run_inspect_combined_research.py --generate --open
+uv run python tests/spike/run_inspect_combined_research.py \\
+  --scope market_and_signal --generate --fact-index 0 --horizon 5 --open
+uv run python tests/spike/run_inspect_combined_research.py \\
+  --storage-root user_data/storage --run-id <run_id> --fact-index 0 --horizon 5 --open
+```
+
+Scope-aware HTML chart: OHLCV window, outcome summary, MFE/MAE/terminal levels, and
+``context_met@available_at`` for ``MARKET_AND_SIGNAL``. Consumes persisted run facts only.
+
 Signal research inspection (S008-T009):
 
 ```bash
