@@ -31,7 +31,7 @@ Current Phase: Phase 4 — Market Analysis Components and Multitimeframe
 Current Milestone: Sprint 004 merged to main (2026-07-12)
 Implementation Status: Sprint 003 and Sprint 004 COMPLETE on main
 Overall Status: IN_PROGRESS
-Active Sprint: none (SPRINT_004 closed; SPRINT_005 not yet planned)
+Active Sprint: SPRINT_005 (PLANNED — see SPRINT_005.md)
 Last Completed Sprint: SPRINT_004 (COMPLETED)
 ```
 
@@ -39,15 +39,14 @@ Last Completed Sprint: SPRINT_004 (COMPLETED)
 
 ## 3. Current Objective
 
-Plan **Sprint 005** (Phase 4 continuation). Sprint 004 is merged to `main` via PR #60.
+Execute **Sprint 005** per corrected direction: calendar + Pivot Structure + visual inspection.
 
-Sprint 004 delivered the **Multitimeframe Foundation MVP** — lean batch MTF with explicit
-`ResampleNode`, layered identity, Polars resample/align, `LAST_CLOSED_BAR` alignment, and
-vertical slice `1m → 5m ATR (aligned to 1m) + 1m EMA`. ADR-MA-012 accepted.
+Binding direction: `docs/planning/sprints/PHASE_4_5_SPRINT_DIRECTION.md`  
+Sprint 005 plan: `docs/planning/sprints/SPRINT_005.md`
 
-Sprint 004 record: `docs/planning/sprints/SPRINT_004.md`  
-MTF ADR: `docs/adr/ADR-MA-012-batch-multitimeframe-computation-with-polars.md`  
-Engine + MTF baseline on `main` @ `bc18f09` (PR #60).
+**North star:** published data → visually verified analysis → declarative Signal Model → `SignalOccurrence` → persistent research dataset (Sprints 006–008).
+
+Shortest research path: `005 → 006 → 008` (Sprint 007 only as needed).
 
 ---
 
@@ -133,14 +132,17 @@ Maintenance: `.cursor/rules/documentation.mdc`
 
 ## 6. Work in Progress
 
-### Sprint 005 (not yet planned)
+### Sprint 005 — Trading Calendar, Pivot Structure and Visual Inspection MVP
 
-Preview from Sprint 004 retrospective:
+**Status:** PLANNED  
+**Plan:** `docs/planning/sprints/SPRINT_005.md`  
+**Direction:** `docs/planning/sprints/PHASE_4_5_SPRINT_DIRECTION.md`  
+**Sprint branch (planned):** `sprint/market-analysis-components`  
+**Tasks:** 18 (16 planned + 2 deferred)
 
-- TradingCalendar when CME/session use case appears (PRB-007),
-- structure components catalog,
-- published HTF dataset vs on-the-fly resample,
-- columnar boundary improvements (TD-011, TD-015).
+**Outcomes:** (A) CME ES RTH batch session resolver, (B) Pivot Structure with event + HH/HL/LH/LL state outputs, (C) local inspection chart in `user_data/development/`.
+
+**Planned follow-on (not started):** Sprints 006–010 — see direction doc and `SPRINT_006.md` … `SPRINT_010.md`.
 
 ---
 
@@ -148,7 +150,7 @@ Preview from Sprint 004 retrospective:
 
 Nothing is technically blocked.
 
-Sprint 004 merged to `main` — **Sprint 005 planning is next**.
+Sprint 005 planned — create sprint branch when Wave 0 starts.
 
 ---
 
@@ -205,20 +207,12 @@ Binding decisions D-001–D-036 and workspace invariants are documented in the a
 ## 11. Next Planned Capability
 
 ```text
-Sprint 005 planning (Phase 4 continuation)
+Sprint 005 — Calendar + Pivot + chart (active plan)
+Sprint 006 — Declarative Market/Signal Model
+Sprint 008 — Signal Research dataset (target milestone)
 ```
 
-Candidate scope (see `SPRINT_004.md` Sprint 005 Preview):
-
-```text
-TradingCalendar when CME/session use case appears
-Structure components (Pivot, swing labels)
-Published HTF dataset vs on-the-fly resample
-ResamplingPolicy when second semantics exists
-MarketFieldReference
-persistent derived datasets
-optional TA-Lib adapter (S004-T016)
-```
+See `PHASE_4_5_SPRINT_DIRECTION.md` for Sprints 007, 009, 010.
 
 ---
 
@@ -230,6 +224,7 @@ optional TA-Lib adapter (S004-T016)
 | 002 | Market Data MVP | COMPLETED | 26 / 26 tasks |
 | 003 | Market Analysis Engine MVP | COMPLETED | 40 / 41 tasks (T027 deferred) |
 | 004 | Multitimeframe Foundation MVP | COMPLETED | 15 / 15 tasks (T016 deferred) |
+| 005 | Calendar, Pivot, visual inspection | PLANNED | 0 / 16 tasks (T017–T018 deferred) |
 
 ---
 

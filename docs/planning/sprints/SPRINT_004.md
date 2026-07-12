@@ -882,18 +882,9 @@ See Sprint 005 Preview below.
 
 ---
 
-## Sprint 005 Preview (not committed)
+## Sprint 005+ Preview
 
-```text
-TradingCalendar when CME/session use case appears
-Structure components (Pivot, swing labels)
-Resolution: published HTF dataset vs on-the-fly resample
-ResamplingPolicy when second semantics exists
-MarketFieldReference
-persistent derived datasets
-```
-
-Ordering depends on Sprint 004 retrospective.
+Superseded by **`docs/planning/sprints/PHASE_4_5_SPRINT_DIRECTION.md`** and `SPRINT_005.md` … `SPRINT_010.md` (2026-07-12).
 
 ---
 

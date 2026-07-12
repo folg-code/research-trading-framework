@@ -412,10 +412,21 @@ Phase 4 is larger than one sprint. Planned delivery:
 
 | Sprint | Increment | Focus |
 |--------|-----------|-------|
-| 004 | Multitimeframe Foundation MVP (lean) | `ResampleNode`, layered identity, Polars resample/align, `LAST_CLOSED_BAR`, fixed UTC; calendar deferred |
-| 005+ | Components and session calendar | Structure catalog, `TradingCalendar`, `MarketFieldReference`, derived datasets |
+| 004 | Multitimeframe Foundation MVP | DONE — `SPRINT_004.md` |
+| 005 | Calendar + Pivot + visual inspection | CME ES RTH batch resolver, Pivot Structure (events + HH/HL/LH/LL), local chart — `SPRINT_005.md` |
+| 006 | Declarative models | Market Model + Signal Model expression MVP — `SPRINT_006.md` |
+| 007 | Research-enabling catalog (conditional) | slope, wick ratio, Session Range, Trend State — as needed — `SPRINT_007.md` |
+| 008 | Signal Research computation | SignalOccurrence, forward outcomes, Parquet research dataset — `SPRINT_008.md` |
+| 009 | Combined research scopes | MARKET_MODEL_ONLY, MARKET_AND_SIGNAL — `SPRINT_009.md` |
+| 010 | Research analytics | Stored-dataset analytics and charts — `SPRINT_010.md` |
 
-Plan: `docs/planning/sprints/SPRINT_004.md`
+**Direction (binding):** `docs/planning/sprints/PHASE_4_5_SPRINT_DIRECTION.md`
+
+Shortest path to first research value:
+
+```text
+005 → 006 → 008   (007 optional if existing components suffice)
+```
 
 ## Expected Capabilities
 
