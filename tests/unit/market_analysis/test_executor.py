@@ -84,7 +84,7 @@ class _ConstantImplementation:
             implementation_version=ImplementationVersion("1.0.0"),
             parameters=parameters,
             dataset_ref=context.dataset_ref,
-            timeframe=context.timeframe,
+            computation_timeframe=context.timeframe,
             requested_range=context.requested_range,
             dependency_keys=(),
         )
@@ -179,7 +179,7 @@ def _planned_node(implementation: _ConstantImplementation | _FailingImplementati
         implementation_version=implementation.implementation_version,
         parameters=parameters,
         dataset_ref=context.dataset_ref,
-        timeframe=context.timeframe,
+        computation_timeframe=context.timeframe,
         requested_range=context.requested_range,
         dependency_keys=(),
     )

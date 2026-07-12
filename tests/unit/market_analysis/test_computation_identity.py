@@ -47,7 +47,7 @@ def _sample_identity(*, period: int = 14) -> ComputationIdentity:
         implementation_version=ImplementationVersion("1.0.0"),
         parameters=request.parameters,
         dataset_ref=dataset_ref,
-        timeframe=Timeframe("1m"),
+        computation_timeframe=Timeframe("1m"),
         requested_range=time_range,
         dependency_keys=(),
     )

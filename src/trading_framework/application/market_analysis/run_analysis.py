@@ -42,6 +42,7 @@ class RunAnalysisRequest:
     storage_root: Path
     component_requests: tuple[ComponentRequest, ...]
     frame_request: AnalysisFrameRequest | None = None
+    evaluation_timeframe: Timeframe | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -65,6 +66,7 @@ def run_analysis(
         dataset_ref=request.dataset_ref,
         timeframe=request.timeframe,
         requested_range=request.requested_range,
+        evaluation_timeframe=request.evaluation_timeframe,
     )
     planning_requests = tuple(
         PlanningRequest.from_component_request(component_request)
@@ -91,6 +93,7 @@ def run_analysis(
         requested_range=request.requested_range,
         computation_range=computation_range,
         engine_version=engine_version,
+        evaluation_timeframe=request.evaluation_timeframe,
     )
     workspace = SequentialBatchExecutor().execute(
         plan,

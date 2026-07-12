@@ -70,7 +70,7 @@ def _result() -> AnalysisResult:
         implementation_version=ImplementationVersion("1.0.0"),
         parameters=CanonicalParameters.from_mapping({"period": 14}),
         dataset_ref=dataset_ref,
-        timeframe=Timeframe("1m"),
+        computation_timeframe=Timeframe("1m"),
         requested_range=TimeRange(
             start=datetime(2024, 1, 1, tzinfo=UTC),
             end=datetime(2024, 1, 2, tzinfo=UTC),
