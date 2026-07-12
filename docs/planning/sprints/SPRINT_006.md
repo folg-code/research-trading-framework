@@ -412,12 +412,12 @@ Chart layer must **not** evaluate models, compute components, apply firing, or r
 | S006-T013 | `evaluate_models` application use case | DONE | S006-T006, S006-T012 |
 | S006-T014 | Automatic `ComponentRequest` construction from models | DONE | S006-T013 |
 | S006-T015 | Shared single `run_analysis` execution | DONE | S006-T014 |
-| S006-T016 | Canonical Market Model example | TODO | S006-T015 |
-| S006-T017 | Event-based Signal Model example (`ON_EVENT`) | TODO | S006-T015 |
-| S006-T018 | State-edge Signal Model example (`ON_TRUE_EDGE`) | TODO | S006-T015 |
-| S006-T019 | Combined expression example | TODO | S006-T015 |
-| S006-T020 | Inspection chart overlay | TODO | S006-T016 |
-| S006-T021 | End-to-end integration test | TODO | S006-T019 |
+| S006-T016 | Canonical Market Model example | DONE | S006-T015 |
+| S006-T017 | Event-based Signal Model example (`ON_EVENT`) | DONE | S006-T015 |
+| S006-T018 | State-edge Signal Model example (`ON_TRUE_EDGE`) | DONE | S006-T015 |
+| S006-T019 | Combined expression example | DONE | S006-T015 |
+| S006-T020 | Inspection chart overlay | DONE | S006-T016 |
+| S006-T021 | End-to-end integration test | DONE | S006-T019 |
 | S006-T022 | Temporal regression tests | TODO | S006-T012 |
 | S006-T023 | Null and warm-up tests | TODO | S006-T012 |
 | S006-T024 | Invalid reference / forbidden field tests | TODO | S006-T005 |
@@ -463,6 +463,10 @@ Application orchestration: `evaluate_models`, request construction, shared `run_
 ### Wave 4 — T016–T021
 
 Canonical examples, inspection overlay, end-to-end integration test.
+
+**Done (2026-07-12):** `application/model_evaluation/canonical_examples.py`,
+`tests/integration/test_s006_evaluate_models_vertical_slice.py`,
+`tests/spike/run_inspect_declarative_models.py`.
 
 ### Wave 5 — T022–T026
 
