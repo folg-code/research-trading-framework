@@ -1,7 +1,7 @@
 """Spike-only Signal Research analytics helpers (S010 Wave 0+).
 
-Aggregate helpers remain spike-only until promoted in later waves.
-Production frame builder, filters and schemas live in ``research/analytics/``.
+Grouping and conditional helpers remain spike-only until Wave 3 promotion.
+Production frame builder, filters, schemas and RunSummary live in ``research/analytics/``.
 """
 
 from __future__ import annotations
@@ -13,6 +13,10 @@ from typing import Any
 import polars as pl
 
 from trading_framework.core.exceptions import ValidationError
+from trading_framework.research.analytics.aggregates import (
+    aggregate_complete_metrics,
+    compute_run_summary,
+)
 from trading_framework.research.analytics.dimensions import (
     AnalyticsTimestampBasis,
     GroupDimension,
@@ -36,26 +40,6 @@ FORBIDDEN_ANALYTICS_IMPORTS = frozenset(
 _ANALYTICS_MODULE_DIR = (
     Path(__file__).resolve().parents[2] / "src" / "trading_framework" / "research" / "analytics"
 )
-
-
-@dataclass(frozen=True, slots=True)
-class RunSummaryRow:
-    run_id: str
-    research_scope: str
-    horizon_bars: int
-    sample_size_total: int
-    sample_size_complete: int
-    sample_size_incomplete: int
-    completion_rate: float
-    minimum_required: int
-    metrics_eligible: bool
-    forward_return_mean: float | None
-    forward_return_median: float | None
-    hit_rate: float | None
-    mfe_mean: float | None
-    mfe_median: float | None
-    mae_mean: float | None
-    mae_median: float | None
 
 
 @dataclass(frozen=True, slots=True)
@@ -88,83 +72,6 @@ def assert_read_only_module(source_text: str, *, source: str = "module") -> None
             if forbidden in stripped:
                 msg = f"{source} must not import forbidden symbol: {forbidden}"
                 raise ValidationError(msg)
-
-
-def _aggregate_complete_metrics(complete: pl.DataFrame) -> dict[str, float | None]:
-    if len(complete) == 0:
-        return {
-            "forward_return_mean": None,
-            "forward_return_median": None,
-            "hit_rate": None,
-            "mfe_mean": None,
-            "mfe_median": None,
-            "mae_mean": None,
-            "mae_median": None,
-        }
-    returns = complete["forward_return"]
-    hits = complete.filter(pl.col("forward_return") > 0).height
-    return {
-        "forward_return_mean": float(returns.mean()),  # type: ignore[arg-type]
-        "forward_return_median": float(returns.median()),  # type: ignore[arg-type]
-        "hit_rate": hits / len(complete),
-        "mfe_mean": float(complete["mfe"].mean()),  # type: ignore[arg-type]
-        "mfe_median": float(complete["mfe"].median()),  # type: ignore[arg-type]
-        "mae_mean": float(complete["mae"].mean()),  # type: ignore[arg-type]
-        "mae_median": float(complete["mae"].median()),  # type: ignore[arg-type]
-    }
-
-
-def compute_run_summary(
-    frame: pl.DataFrame,
-    *,
-    horizon_bars: int,
-    min_sample_size: int,
-    outcome_filter: OutcomeAnalyticsFilter | None = None,
-) -> RunSummaryRow:
-    """Aggregate one run x horizon summary."""
-    aggregate_filter = outcome_filter or OutcomeAnalyticsFilter.complete_only()
-    subset = frame.filter(pl.col("horizon_bars") == horizon_bars)
-    sample_total = len(subset)
-    complete = aggregate_filter.filter_for_aggregates(subset)
-    sample_complete = len(complete)
-    sample_incomplete = sample_total - sample_complete
-    completion_rate = sample_complete / sample_total if sample_total else 0.0
-    metrics_eligible = sample_complete >= min_sample_size
-
-    metrics: dict[str, float | None]
-    if metrics_eligible:
-        metrics = _aggregate_complete_metrics(complete)
-    else:
-        metrics = {
-            "forward_return_mean": None,
-            "forward_return_median": None,
-            "hit_rate": None,
-            "mfe_mean": None,
-            "mfe_median": None,
-            "mae_mean": None,
-            "mae_median": None,
-        }
-
-    run_id = str(subset.row(0, named=True)["run_id"]) if sample_total else ""
-    scope = str(subset.row(0, named=True)["research_scope"]) if sample_total else ""
-    return RunSummaryRow(
-        run_id=run_id,
-        research_scope=scope,
-        horizon_bars=horizon_bars,
-        sample_size_total=sample_total,
-        sample_size_complete=sample_complete,
-        sample_size_incomplete=sample_incomplete,
-        completion_rate=completion_rate,
-        minimum_required=min_sample_size,
-        metrics_eligible=metrics_eligible,
-        forward_return_mean=metrics["forward_return_mean"],
-        forward_return_median=metrics["forward_return_median"],
-        hit_rate=metrics["hit_rate"],
-        mfe_mean=metrics["mfe_mean"],
-        mfe_median=metrics["mfe_median"],
-        mae_mean=metrics["mae_mean"],
-        mae_median=metrics["mae_median"],
-    )
 
 
 def _timestamp_column(
@@ -249,25 +156,25 @@ def compute_grouped_summary(
         group_frame = working.filter(pl.col(group_col) == group_value)
         summary = compute_run_summary(
             group_frame, horizon_bars=horizon_bars, min_sample_size=min_sample_size
-        )
+        ).row(0, named=True)
         rows.append(
             {
-                "run_id": summary.run_id,
-                "research_scope": summary.research_scope,
-                "horizon_bars": summary.horizon_bars,
+                "run_id": summary["run_id"],
+                "research_scope": summary["research_scope"],
+                "horizon_bars": summary["horizon_bars"],
                 "group_dimension": dimension.value,
                 "group_value": str(group_value),
-                "sample_size_total": summary.sample_size_total,
-                "sample_size_complete": summary.sample_size_complete,
-                "sample_size_incomplete": summary.sample_size_incomplete,
-                "metrics_eligible": summary.metrics_eligible,
-                "forward_return_mean": summary.forward_return_mean,
-                "forward_return_median": summary.forward_return_median,
-                "hit_rate": summary.hit_rate,
-                "mfe_mean": summary.mfe_mean,
-                "mfe_median": summary.mfe_median,
-                "mae_mean": summary.mae_mean,
-                "mae_median": summary.mae_median,
+                "sample_size_total": summary["sample_size_total"],
+                "sample_size_complete": summary["sample_size_complete"],
+                "sample_size_incomplete": summary["sample_size_incomplete"],
+                "metrics_eligible": summary["metrics_eligible"],
+                "forward_return_mean": summary["forward_return_mean"],
+                "forward_return_median": summary["forward_return_median"],
+                "hit_rate": summary["hit_rate"],
+                "mfe_mean": summary["mfe_mean"],
+                "mfe_median": summary["mfe_median"],
+                "mae_mean": summary["mae_mean"],
+                "mae_median": summary["mae_median"],
             }
         )
     return pl.DataFrame(rows)
@@ -284,8 +191,8 @@ def compute_conditional_comparison(
     true_rows = complete.filter(pl.col("context_met_at_available_at"))
     false_rows = complete.filter(~pl.col("context_met_at_available_at"))
 
-    true_metrics = _aggregate_complete_metrics(true_rows)
-    false_metrics = _aggregate_complete_metrics(false_rows)
+    true_metrics = aggregate_complete_metrics(true_rows)
+    false_metrics = aggregate_complete_metrics(false_rows)
 
     def _delta(true_val: float | None, false_val: float | None) -> float | None:
         if true_val is None or false_val is None:
@@ -315,7 +222,6 @@ __all__ = [
     "ConditionalComparisonRow",
     "GroupDimension",
     "OutcomeAnalyticsFilter",
-    "RunSummaryRow",
     "assert_read_only_analytics_package",
     "assert_read_only_module",
     "build_analysis_frame",
