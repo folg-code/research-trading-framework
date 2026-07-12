@@ -67,3 +67,12 @@ Reusable example code:
 - ``tests/spike/examples_model_building.py`` — low-level IR examples (legacy)
 - ``src/trading_framework/model_authoring/`` — production DSL package
 - ``src/trading_framework/application/model_evaluation/canonical_examples.py`` — production canonical set
+
+Signal research spike (S008-T001):
+
+```bash
+uv run python tests/spike/run_signal_research_spike.py
+uv run python tests/spike/run_signal_research_spike.py --json
+```
+
+Validates occurrence materialization, forward outcome semantics, run envelope write/read.

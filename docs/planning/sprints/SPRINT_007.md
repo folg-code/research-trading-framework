@@ -5,7 +5,7 @@
 ```text
 Sprint: 007
 Phase: Phase 4 continuation
-Status: PLANNED
+Status: SKIPPED (scope gate 2026-07-12 — proceed to Sprint 008)
 Depends On: SPRINT_005 (minimum); SPRINT_006 recommended
 Sprint Branch: TBD
 Direction: docs/planning/sprints/PHASE_4_5_SPRINT_DIRECTION.md
@@ -18,6 +18,8 @@ Direction: docs/planning/sprints/PHASE_4_5_SPRINT_DIRECTION.md
 Extend the component catalog **only** with pieces needed for the first real research experiments — not a full TA library.
 
 **Note:** Sprint 007 may be **partially skipped or trimmed** if Sprints 005–006 already suffice for the first Signal Research experiment (see direction doc §3).
+
+**Scope gate (2026-07-12):** SKIPPED — minimum set satisfied; Sprint 008 started.
 
 ---
 
@@ -72,7 +74,7 @@ Separate HH/HL component — only if Pivot outputs insufficient
 
 | ID | Task | Status |
 |----|------|--------|
-| S007-T001 | Scope gate: confirm components required before Sprint 008 | TODO |
+| S007-T001 | Scope gate: confirm components required before Sprint 008 | DONE (skip) |
 | S007-T002 | slope feature | TODO |
 | S007-T003 | wick ratio feature | TODO |
 | S007-T004 | distance to level feature | TODO |
