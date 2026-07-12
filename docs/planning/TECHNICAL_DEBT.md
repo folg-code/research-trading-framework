@@ -501,6 +501,257 @@ Add lightweight checks for deprecated terms, required files and broken internal 
 
 ---
 
+## TD-011 — Historical Query Returns List of MarketBar Objects
+
+```text
+Status: ACCEPTED
+Priority: HIGH
+Domain: Market Data
+Introduced: Sprint 002 (2026-06)
+Target Review: Before large-scale batch analysis or Sprint 004 MTF spike completion
+Owner: Unassigned
+```
+
+### Accepted Shortcut
+
+`query_historical` materializes results as `list[MarketBar]` — one Python object per bar.
+
+### Reason
+
+Sprint 002 prioritized semantic clarity and testability over columnar throughput for MVP fixtures.
+
+### Consequences
+
+- high memory and construction cost for multi-year 1m data,
+- mandatory conversion before Polars/NumPy vectorized analysis,
+- Sprint 003 `AnalysisDataView.from_bars()` adds another conversion step.
+
+### Safe Operating Boundary
+
+Use committed fixtures and modest bar counts in CI. Do not assume million-row in-memory lists are production-viable.
+
+### Repayment Trigger
+
+Sprint 004 Polars resample path or first production-scale dataset import.
+
+### Repayment Direction
+
+Add columnar batch return type (`MarketDataBatch` / `pl.LazyFrame` with metadata) alongside or instead of list materialization for analytical paths.
+
+### Related Problems
+
+- PRB-004 (user_data discovery — separate concern).
+
+### Related Tasks
+
+- Sprint 004 T001 spike
+- `docs/planning/retrospectives/ARCHITECTURE_SIMPLIFICATION_REVIEW_S002_S003.md` §5.1
+
+---
+
+## TD-012 — Decimal OHLCV in Market Data with float64 Analysis Conversion
+
+```text
+Status: ACCEPTED
+Priority: MEDIUM
+Domain: Market Data / Market Analysis
+Introduced: Sprint 002 (MarketBar) + Sprint 003 (AnalysisDataView float64)
+Target Review: When analytical backend standardizes on Polars-native types
+Owner: Unassigned
+```
+
+### Accepted Shortcut
+
+Market Data stores prices as `Decimal`; Market Analysis adapters consume `float64`.
+
+### Reason
+
+Domain-safe storage vs research-default computation dtype (D-027).
+
+### Consequences
+
+- conversion on every analysis run,
+- impedance with Polars/TA-Lib native types,
+- two precision semantics to document.
+
+### Safe Operating Boundary
+
+Research/backtest paths only; not used for order accounting without separate money types.
+
+### Repayment Trigger
+
+Polars-first batch pipeline adopted for query + analysis boundary.
+
+### Repayment Direction
+
+Analytical OHLCV as float64 or scaled integer at storage boundary; reserve Decimal for execution/accounting.
+
+### Related Tasks
+
+- Architecture Simplification Review §2.2, §3.2
+
+---
+
+## TD-013 — Multi-Implementation Registry Before Second Backend
+
+```text
+Status: ACCEPTED
+Priority: MEDIUM
+Domain: Market Analysis
+Introduced: Sprint 003
+Target Review: When second backend (Polars-native or TA-Lib) is committed
+Owner: Unassigned
+```
+
+### Accepted Shortcut
+
+`ComponentRegistry` resolves multiple implementations per component with explicit/default policy; only NumPy adapter is production-ready.
+
+### Reason
+
+Vision doc D-004/D-005 anticipated interchangeable backends before MVP delivery.
+
+### Consequences
+
+- resolver and dual identity axis maintained without interchange benefit,
+- higher mental load for contributors,
+- tests cover resolution paths rarely used.
+
+### Safe Operating Boundary
+
+Register only NumPy implementations in CI. Do not add resolver features until a second backend ships.
+
+### Repayment Trigger
+
+TA-Lib extra (S003-T027) or Polars-native component path lands with real interchange need.
+
+### Repayment Direction
+
+Simplify to `ComponentId → ComponentDefinition` if second backend never materializes; otherwise keep registry but document interchange contract.
+
+---
+
+## TD-014 — Separate ResultStore, Workspace and In-Plan ExecutionCache
+
+```text
+Status: ACCEPTED
+Priority: MEDIUM
+Domain: Market Analysis
+Introduced: Sprint 003
+Target Review: Sprint 004 executor changes or persistent cache work
+Owner: Unassigned
+```
+
+### Accepted Shortcut
+
+Three execution-scoped structures: `AnalysisResultStore`, `AnalysisWorkspace`, `ExecutionCache`.
+
+### Reason
+
+Four-layer model from workspace vision doc; cache ADR-MA-008 for exact-match deduplication.
+
+### Consequences
+
+- overlapping responsibilities for single-plan batch MVP,
+- duplicate lookup paths,
+- more surface area for MTF extensions.
+
+### Safe Operating Boundary
+
+Single sequential plan per run; no cross-run cache; no persistent workspace.
+
+### Repayment Trigger
+
+Cross-run cache, partial reruns, or persistent derived results require distinct lifecycles.
+
+### Repayment Direction
+
+Evaluate consolidation into `ExecutionState: dict[NodeKey, ComponentResult]` when touching executor without breaking ADR semantics.
+
+---
+
+## TD-015 — AnalysisDataView Map-of-Arrays Instead of Columnar Frame
+
+```text
+Status: ACCEPTED
+Priority: HIGH
+Domain: Market Analysis
+Introduced: Sprint 003 (post Wave 0 spike)
+Target Review: Sprint 004 T001; before expanding view API
+Owner: Unassigned
+```
+
+### Accepted Shortcut
+
+`AnalysisDataView` exposes tuple columns and custom `column()` API instead of Polars LazyFrame payload.
+
+### Reason
+
+Backend-neutral contract (D-011); avoid locking domain to pandas/Polars in Sprint 003.
+
+### Consequences
+
+- custom mini-API that may grow toward DataFrame emulation,
+- friction for resampling, join_asof, LazyFrame,
+- Sprint 004 needs conversion boundary for Polars MTF path.
+
+### Safe Operating Boundary
+
+Do not extend `AnalysisDataView` with select/join/resample methods. New batch paths should use thin `MarketFrame` wrapper (future) per simplification review.
+
+### Repayment Trigger
+
+Sprint 004 spike confirms Polars resample/align; or second analytical backend requires shared columnar contract.
+
+### Repayment Direction
+
+Introduce `MarketFrame(pl.LazyFrame, metadata)` for batch paths; migrate components incrementally; deprecate view API growth not conversions at boundary.
+
+### Related Tasks
+
+- Sprint 004 Design Principles
+- ADR-MA-012 (planned)
+
+---
+
+## TD-016 — ComponentId and ImplementationId Dual Identity Axis
+
+```text
+Status: ACCEPTED
+Priority: LOW
+Domain: Market Analysis
+Introduced: Sprint 003
+Target Review: With TD-013 (second backend)
+Owner: Unassigned
+```
+
+### Accepted Shortcut
+
+Separate semantic component identity and implementation identity in public types and cache keys.
+
+### Reason
+
+Supports multiple backends and versioned implementations per vision architecture.
+
+### Consequences
+
+- two versioning dimensions for single NumPy implementation,
+- longer identity keys and resolver tests.
+
+### Safe Operating Boundary
+
+One implementation per component in CI registry.
+
+### Repayment Trigger
+
+Second implementation of same component shipped.
+
+### Repayment Direction
+
+Collapse to single identity axis if interchange never needed; else keep and document in ADR.
+
+---
+
 # 6. Planned Debt Boundaries
 
 The following shortcuts may be accepted later but are not yet introduced:

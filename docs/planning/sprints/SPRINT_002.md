@@ -904,6 +904,12 @@ Wave 6 — verification and docs
 - keep committed fixtures under `tests/fixtures/market_data/` with shared pytest fixture,
 - run integration tests in CI after application workflow merges.
 
+### Post-hoc architecture review (2026-07-12)
+
+See [`docs/planning/retrospectives/ARCHITECTURE_SIMPLIFICATION_REVIEW_S002_S003.md`](../retrospectives/ARCHITECTURE_SIMPLIFICATION_REVIEW_S002_S003.md) §2.
+
+Key accepted debt: `MarketBar` list batch payload (TD-011), semantic `DatasetId`, optional inspector weight, Decimal OHLCV (TD-012). Forward direction: columnar batch query, opaque id + rich metadata, convenience publish API for static imports.
+
 ### Next Recommended Sprint Goal
 
 ```text

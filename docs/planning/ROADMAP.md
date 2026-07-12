@@ -406,6 +406,17 @@ Sprint 003 assessment (2026-07-12):
 
 Support timeframe-aware Market Analysis safely and reproducibly.
 
+## Sprint Increments
+
+Phase 4 is larger than one sprint. Planned delivery:
+
+| Sprint | Increment | Focus |
+|--------|-----------|-------|
+| 004 | Multitimeframe Foundation MVP (lean) | `ResampleNode`, layered identity, Polars resample/align, `LAST_CLOSED_BAR`, fixed UTC; calendar deferred |
+| 005+ | Components and session calendar | Structure catalog, `TradingCalendar`, `MarketFieldReference`, derived datasets |
+
+Plan: `docs/planning/sprints/SPRINT_004.md`
+
 ## Expected Capabilities
 
 - source, computation and evaluation timeframe distinction,

@@ -1397,12 +1397,19 @@ Completed 2026-07-12.
 - Always retarget or land stacked chains to `sprint/<slug>` before starting the next wave.
 - Update `CURRENT_STATUS.md` in the same PR that completes a wave.
 - Keep PR diffs within 100–400 lines where possible.
+- Plan around **outcome PRs** (4–6 per sprint), not one contract per PR.
+
+### Post-hoc architecture review (2026-07-12)
+
+See [`docs/planning/retrospectives/ARCHITECTURE_SIMPLIFICATION_REVIEW_S002_S003.md`](../retrospectives/ARCHITECTURE_SIMPLIFICATION_REVIEW_S002_S003.md) §3.
+
+Key accepted debt: dual component/implementation identity (TD-016), multi-backend registry (TD-013), ResultStore + Workspace + Cache (TD-014), `AnalysisDataView` map-of-arrays (TD-015). Do not extend these layers without simplification checklist (review §5).
 
 ### Next Recommended Sprint Goal
 
 ```text
-Phase 4 increment: multitimeframe alignment or expanded Feature/Structure catalog,
-informed by Sprint 003 integration test evidence and ADR-MA-011 batch-only constraint.
+Sprint 004 — lean MTF increment (see SPRINT_004.md), Polars resample/align at boundary,
+not another platform layer on top of Sprint 003 abstractions.
 ```
 
 ---
