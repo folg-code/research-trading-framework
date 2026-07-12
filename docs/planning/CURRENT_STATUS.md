@@ -134,7 +134,8 @@ Maintenance: `.cursor/rules/documentation.mdc`
 
 ### Sprint 005 — Trading Calendar, Pivot Structure and Visual Inspection MVP
 
-**Status:** PLANNED  
+**Status:** PLANNED (Wave 0 complete)  
+**Spike:** `docs/planning/sprints/S005_CALENDAR_SPIKE_AND_DECISIONS.md`  
 **Plan:** `docs/planning/sprints/SPRINT_005.md`  
 **Direction:** `docs/planning/sprints/PHASE_4_5_SPRINT_DIRECTION.md`  
 **Sprint branch (planned):** `sprint/market-analysis-components`  

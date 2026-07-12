@@ -5,7 +5,7 @@
 ```text
 Sprint: 005
 Phase: Phase 4 — Market Analysis Components and Multitimeframe (second increment)
-Status: PLANNED
+Status: PLANNED (Wave 0 complete)
 Planned Start: TBD
 Planned End: TBD
 Sprint Goal Owner: Project Maintainer
@@ -204,7 +204,7 @@ Continues Phase 4 increment 2. Enables Phase 5 Signal Research path (Sprints 006
 
 | ID | Task | Status | Depends On |
 |----|------|--------|------------|
-| S005-T001 | Calendar adapter spike and decision note | TODO | — |
+| S005-T001 | Calendar adapter spike and decision note | DONE | — |
 | S005-T002 | Batch `TradingSessionResolver` protocol | TODO | S005-T001 |
 | S005-T003 | CME ES RTH resolver implementation | TODO | S005-T002 |
 | S005-T004 | Session metadata enrichment on analysis path | TODO | S005-T003 |
@@ -232,6 +232,8 @@ Continues Phase 4 increment 2. Enables Phase 5 Signal Research path (Sprints 006
 ### Wave 0 — T001
 
 Calendar spike: adapter choice, CME ES RTH + DST fixture, batch mapping cost, decision note under `docs/planning/sprints/`.
+
+**Done (2026-07-12):** `tests/spike/run_calendar_spike.py`, `S005_CALENDAR_SPIKE_AND_DECISIONS.md`.
 
 ### Wave 1 — T002–T004
 
