@@ -403,12 +403,12 @@ Chart layer must **not** evaluate models, compute components, apply firing, or r
 | S006-T004 | Expression nodes (`Compare`, `And`, `Or`, `Not`) | DONE | S006-T002, S006-T003 |
 | S006-T005 | Expression validation | DONE | S006-T004 |
 | S006-T006 | `ExpressionDependencyExtractor` | DONE | S006-T004 |
-| S006-T007 | `MarketModelDefinition` | TODO | S006-T004 |
-| S006-T008 | `MarketModelEvaluator` | TODO | S006-T007 |
-| S006-T009 | `SignalModelDefinition` + `SignalDirection` | TODO | S006-T004 |
-| S006-T010 | `SignalModelEvaluator` (condition result) | TODO | S006-T009 |
-| S006-T011 | `SignalFiringPolicy` + emission materialization | TODO | S006-T010 |
-| S006-T012 | Null and temporal semantics in evaluators | TODO | S006-T008, S006-T010 |
+| S006-T007 | `MarketModelDefinition` | DONE | S006-T004 |
+| S006-T008 | `MarketModelEvaluator` | DONE | S006-T007 |
+| S006-T009 | `SignalModelDefinition` + `SignalDirection` | DONE | S006-T004 |
+| S006-T010 | `SignalModelEvaluator` (condition result) | DONE | S006-T009 |
+| S006-T011 | `SignalFiringPolicy` + emission materialization | DONE | S006-T010 |
+| S006-T012 | Null and temporal semantics in evaluators | DONE | S006-T008, S006-T010 |
 | S006-T013 | `evaluate_models` application use case | TODO | S006-T006, S006-T012 |
 | S006-T014 | Automatic `ComponentRequest` construction from models | TODO | S006-T013 |
 | S006-T015 | Shared single `run_analysis` execution | TODO | S006-T014 |
@@ -448,6 +448,9 @@ References, expression nodes, validation, dependency extraction.
 ### Wave 2 — T007–T012
 
 Model definitions, evaluators, firing, null and temporal semantics.
+
+**Done (2026-07-12):** `model_expression/evaluation/`, `market_model/`, `signal_model/` with
+`ExpressionEvaluator`, `MarketModelEvaluator`, `SignalModelEvaluator`, `SignalFiringPolicy`.
 
 ### Wave 3 — T013–T015
 

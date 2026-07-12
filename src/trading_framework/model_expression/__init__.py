@@ -8,6 +8,11 @@ from trading_framework.model_expression.errors import (
     ModelExpressionError,
     ModelExpressionValidationError,
 )
+from trading_framework.model_expression.evaluation import (
+    ExpressionEvaluator,
+    FrameColumnResolver,
+    build_evaluation_dataframe,
+)
 from trading_framework.model_expression.expressions import (
     MAX_EXPRESSION_DEPTH,
     AndExpression,
@@ -34,6 +39,8 @@ __all__ = [
     "Expression",
     "ExpressionDependencies",
     "ExpressionDependencyExtractor",
+    "ExpressionEvaluator",
+    "FrameColumnResolver",
     "MarketField",
     "MarketFieldReference",
     "ModelExpressionError",
@@ -41,5 +48,6 @@ __all__ = [
     "NotExpression",
     "OperandReference",
     "OrExpression",
+    "build_evaluation_dataframe",
     "validate_expression",
 ]
