@@ -57,7 +57,7 @@ def _build_result() -> AnalysisResult:
         implementation_version=ImplementationVersion("1.0.0"),
         parameters=params,
         dataset_ref=dataset_ref,
-        timeframe=Timeframe("1m"),
+        computation_timeframe=Timeframe("1m"),
         requested_range=time_range,
         dependency_keys=("volatility.true_range:{}",),
     )

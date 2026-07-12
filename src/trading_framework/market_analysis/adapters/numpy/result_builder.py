@@ -53,7 +53,7 @@ def build_analysis_result(
         implementation_version=implementation_version,
         parameters=parameters,
         dataset_ref=context.dataset_ref,
-        timeframe=context.timeframe,
+        computation_timeframe=context.timeframe,
         requested_range=context.requested_range,
         dependency_keys=dependency_keys,
     )

@@ -311,10 +311,10 @@ No new dependency for Trading Calendar in this sprint.
 | ID | Task | Status | Depends On |
 |----|------|--------|------------|
 | S004-T001 | MTF implementation spike and architecture decision note | DONE | — |
-| S004-T002 | `computation_timeframe` on request; `evaluation_timeframe` on run context | TODO | S004-T001 |
-| S004-T003 | Resolved request / execution input model | TODO | S004-T002 |
-| S004-T004 | Layered identities (Resample, ComponentComputation, Alignment) | TODO | S004-T003 |
-| S004-T005 | `ResampleSpec` and fixed UTC boundary semantics | TODO | S004-T001 |
+| S004-T002 | `computation_timeframe` on request; `evaluation_timeframe` on run context | DONE | S004-T001 |
+| S004-T003 | Resolved request / execution input model | DONE | S004-T002 |
+| S004-T004 | Layered identities (Resample, ComponentComputation, Alignment) | DONE | S004-T003 |
+| S004-T005 | `ResampleSpec` and fixed UTC boundary semantics | DONE | S004-T001 |
 | S004-T006 | Polars OHLCV resampling + `ResampleNode` | TODO | S004-T004, S004-T005 |
 | S004-T007 | Request resolution layer (explicit input plan) | TODO | S004-T003, S004-T005 |
 | S004-T008 | Planner and executor: `ResampleNode` deduplication and integration | TODO | S004-T006, S004-T007 |
@@ -376,7 +376,7 @@ Artifacts: `tests/spike/run_mtf_polars_spike.py`
 
 ### S004-T002 — Timeframe fields on public request types
 
-**Status:** TODO  
+**Status:** DONE  
 **Category:** Architecture  
 **Domain:** Market Analysis  
 **Wave:** 1  
@@ -399,7 +399,7 @@ Artifacts: `tests/spike/run_mtf_polars_spike.py`
 
 ### S004-T003 — Resolved request / execution input model
 
-**Status:** TODO  
+**Status:** DONE  
 **Category:** Architecture  
 **Domain:** Market Analysis  
 **Wave:** 1  
@@ -424,7 +424,7 @@ Public API stays minimal; resolved model is internal to engine.
 
 ### S004-T004 — Layered computation identities
 
-**Status:** TODO  
+**Status:** DONE  
 **Category:** Architecture  
 **Domain:** Market Analysis  
 **Wave:** 1  
@@ -450,7 +450,7 @@ Update execution cache to key by appropriate layer per node type.
 
 ### S004-T005 — ResampleSpec and fixed UTC boundary semantics
 
-**Status:** TODO  
+**Status:** DONE  
 **Category:** Architecture  
 **Domain:** Market Analysis  
 **Wave:** 1  

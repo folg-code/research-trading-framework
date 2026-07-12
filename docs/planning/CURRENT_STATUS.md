@@ -130,7 +130,7 @@ Maintenance: `.cursor/rules/documentation.mdc`
 **Status:** IN_PROGRESS (Wave 0 complete)  
 **Plan:** `docs/planning/sprints/SPRINT_004.md`  
 **Sprint branch:** `sprint/market-analysis-mtf`  
-**Tasks:** 16 (T001 DONE; 14 remaining planned; T016 deferred)
+**Tasks:** 16 (T001–T005 DONE; Wave 2 next; T016 deferred)
 
 **Design stance:** lean MTF MVP — layered identity, `ResampleNode` (not registry component), Polars for resample/align only, Trading Calendar deferred, ~5 outcome-scoped PRs. See Design Principles in sprint plan.
 
@@ -145,7 +145,7 @@ Maintenance: `.cursor/rules/documentation.mdc`
 - Wave 4 — behavior tests + end-to-end vertical slice (T012–T013)
 - Wave 5 — one ADR (ADR-MA-012), docs, closure (T014–T015)
 
-**Next:** Wave 1 (T002–T005) — MTF request model, layered identity, `ResampleSpec`.
+**Next:** Wave 2 (T006–T008) — Polars resampling, request resolution plan, ResampleNode DAG.
 
 **Reference:** `docs/vision/MULTITIMEFRAME_MARKET_MODEL_ARCHITECTURE_UPDATED.md`, `docs/agents/AGENTS_MULTITIMEFRAME_MARKET_MODEL_UPDATED (1).md`
 
@@ -243,7 +243,7 @@ optional TA-Lib adapter (S003-T027 / S004-T034)
 | 001 | Repository foundation | COMPLETED | 22 / 22 tasks |
 | 002 | Market Data MVP | COMPLETED | 26 / 26 tasks |
 | 003 | Market Analysis Engine MVP | COMPLETED | 40 / 41 tasks (T027 deferred) |
-| 004 | Multitimeframe Foundation MVP | IN_PROGRESS | 1 / 15 tasks (T016 deferred) |
+| 004 | Multitimeframe Foundation MVP | IN_PROGRESS | 5 / 15 tasks (T016 deferred) |
 
 ---
 

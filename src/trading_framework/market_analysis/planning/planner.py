@@ -69,6 +69,7 @@ class DependencyPlanner:
                 parameters=component.parameter_schema.canonicalize(
                     planning_request.request.parameters.to_json_dict()
                 ),
+                computation_timeframe=planning_request.request.computation_timeframe,
             )
             key = request_key(canonical.component_id, canonical.parameters.fingerprint())
             if key in normalized:
@@ -117,6 +118,7 @@ class DependencyPlanner:
                     child_request = ComponentRequest(
                         component_id=dependency.output_ref.component_id,
                         parameters=dependency.output_ref.parameters,
+                        computation_timeframe=None,
                     )
                     pending.append(PlanningRequest.from_component_request(child_request))
 
@@ -212,6 +214,9 @@ class DependencyPlanner:
                 planning_request.component_id,
                 planning_request.implementation_id,
             )
+            computation_timeframe = planning_request.request.resolved_computation_timeframe(
+                source_timeframe=context.source_timeframe,
+            )
             identity = ComputationIdentity(
                 component_id=component.component_id,
                 component_version=component.component_version,
@@ -219,7 +224,7 @@ class DependencyPlanner:
                 implementation_version=implementation.implementation_version,
                 parameters=planning_request.request.parameters,
                 dataset_ref=context.dataset_ref,
-                timeframe=context.timeframe,
+                computation_timeframe=computation_timeframe,
                 requested_range=context.requested_range,
                 dependency_keys=dependency_keys,
             )
