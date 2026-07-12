@@ -5,7 +5,7 @@
 ```text
 Sprint: 005
 Phase: Phase 4 — Market Analysis Components and Multitimeframe (second increment)
-Status: PLANNED (Wave 0 complete, Wave 1 complete)
+Status: PLANNED (Wave 0–2 complete)
 Planned Start: TBD
 Planned End: TBD
 Sprint Goal Owner: Project Maintainer
@@ -208,11 +208,11 @@ Continues Phase 4 increment 2. Enables Phase 5 Signal Research path (Sprints 006
 | S005-T002 | Batch `TradingSessionResolver` protocol | DONE | S005-T001 |
 | S005-T003 | CME ES RTH resolver implementation | DONE | S005-T002 |
 | S005-T004 | Session metadata enrichment on analysis path | DONE | S005-T003 |
-| S005-T005 | Pivot Structure contract and output schema | TODO | — |
-| S005-T006 | Port/adapt Pivot detector + implementation choice (Polars/NumPy) | TODO | S005-T005 |
-| S005-T007 | Registry integration | TODO | S005-T006 |
-| S005-T008 | Pivot timing metadata (`pivot_at`, `detected_at`, `available_at`) | TODO | S005-T006 |
-| S005-T009 | Stateful HH/HL/LH/LL outputs and classification | TODO | S005-T008 |
+| S005-T005 | Pivot Structure contract and output schema | DONE | — |
+| S005-T006 | Port/adapt Pivot detector + implementation choice (Polars/NumPy) | DONE | S005-T005 |
+| S005-T007 | Registry integration | DONE | S005-T006 |
+| S005-T008 | Pivot timing metadata (`pivot_at`, `detected_at`, `available_at`) | DONE | S005-T006 |
+| S005-T009 | Stateful HH/HL/LH/LL outputs and classification | DONE | S005-T008 |
 | S005-T010 | MTF alignment: state vs point-event projection policy | TODO | S005-T009, S004-T011 |
 | S005-T011 | Calendar behavior tests | TODO | S005-T004 |
 | S005-T012 | Pivot temporal and classification tests | TODO | S005-T009 |
@@ -244,6 +244,8 @@ Batch resolver protocol, CME ES adapter, session columns on analysis/frame path 
 ### Wave 2 — T005–T009
 
 Pivot contract, detector port, registry, timing metadata, HH/HL/LH/LL state outputs, edge-case policies documented.
+
+**Done (2026-07-12):** `structure.swing` component, NumPy reference kernel, `S005_SWING_STRUCTURE_CONTRACT.md`.
 
 ### Wave 3 — T010
 

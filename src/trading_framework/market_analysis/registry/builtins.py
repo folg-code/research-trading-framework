@@ -1,5 +1,9 @@
 """Built-in Market Analysis component registration."""
 
+from trading_framework.market_analysis.components.structure import (
+    NumpySwingStructureImplementation,
+    SwingStructureComponent,
+)
 from trading_framework.market_analysis.components.trend import EmaComponent, NumpyEmaImplementation
 from trading_framework.market_analysis.components.volatility import (
     AtrComponent,
@@ -26,10 +30,20 @@ def register_ema_component(registry: ComponentRegistry) -> None:
     registry.register(EmaComponent(), NumpyEmaImplementation(), default=True)
 
 
+def register_swing_structure_component(registry: ComponentRegistry) -> None:
+    """Register the Swing Structure component."""
+    registry.register(
+        SwingStructureComponent(),
+        NumpySwingStructureImplementation(),
+        default=True,
+    )
+
+
 def register_mvp_components(registry: ComponentRegistry) -> None:
     """Register Sprint 003 MVP feature and state components."""
     register_volatility_components(registry)
     register_ema_component(registry)
+    register_swing_structure_component(registry)
 
 
 def default_mvp_registry() -> ComponentRegistry:
@@ -43,5 +57,6 @@ __all__ = [
     "default_mvp_registry",
     "register_ema_component",
     "register_mvp_components",
+    "register_swing_structure_component",
     "register_volatility_components",
 ]
