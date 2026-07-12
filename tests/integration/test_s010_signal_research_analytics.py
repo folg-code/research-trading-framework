@@ -211,6 +211,10 @@ def test_analyze_signal_research_run_market_and_signal_grouping_and_conditional(
     conditional = result.conditional_comparison.row(0, named=True)
     assert conditional["context_false_sample_size"] > 0
     assert (
-        conditional["context_true_sample_size"] + conditional["context_false_sample_size"]
+        conditional["context_true_sample_size"]
+        + conditional["context_false_sample_size"]
+        + conditional["context_missing_sample_size"]
         == result.run_summaries.row(0, named=True)["sample_size_complete"]
     )
+    assert result.join_diagnostics.height == 1
+    assert result.distribution_summaries.height == 1

@@ -297,7 +297,9 @@ def run_checks() -> list[SpikeCheck]:
             0, named=True
         )
         split_total = (
-            conditional["context_true_sample_size"] + conditional["context_false_sample_size"]
+            conditional["context_true_sample_size"]
+            + conditional["context_false_sample_size"]
+            + conditional["context_missing_sample_size"]
         )
         checks.append(
             SpikeCheck(
@@ -309,7 +311,8 @@ def run_checks() -> list[SpikeCheck]:
                 detail=(
                     f"true={conditional['context_true_sample_size']} "
                     f"false={conditional['context_false_sample_size']} "
-                    f"(fixture may have no true context rows)"
+                    f"missing={conditional['context_missing_sample_size']} "
+                    f"status={conditional['comparison_status']}"
                 ),
             )
         )

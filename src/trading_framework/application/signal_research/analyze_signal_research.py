@@ -8,13 +8,18 @@ from pathlib import Path
 import polars as pl
 
 from trading_framework.core.exceptions import ValidationError
+from trading_framework.research.analytics.diagnostics import compute_join_diagnostics
 from trading_framework.research.analytics.dimensions import (
     AnalyticsTimestampBasis,
     GroupDimension,
 )
 from trading_framework.research.analytics.filters import OutcomeAnalyticsFilter
 from trading_framework.research.analytics.frame_builder import build_analysis_frame
-from trading_framework.research.analytics.metadata import AnalyticsResultMetadata
+from trading_framework.research.analytics.metadata import (
+    DEFAULT_INTERPRETATION_MIN_SAMPLE_SIZE,
+    AnalyticsResultMetadata,
+    build_analytics_result_metadata,
+)
 from trading_framework.research.analytics.summarize import summarize_analysis_frame
 from trading_framework.research.datasets.signal_research import (
     RunDatasetRef,
@@ -40,10 +45,14 @@ class AnalyzeSignalResearchRequest:
     conditional_context: bool = False
     timestamp_basis: AnalyticsTimestampBasis = AnalyticsTimestampBasis.AVAILABLE_AT
     min_sample_size: int = 1
+    interpretation_min_sample_size: int = DEFAULT_INTERPRETATION_MIN_SAMPLE_SIZE
 
     def __post_init__(self) -> None:
         if self.min_sample_size < 1:
             msg = "min_sample_size must be at least 1"
+            raise AnalyzeSignalResearchError(msg)
+        if self.interpretation_min_sample_size < 1:
+            msg = "interpretation_min_sample_size must be at least 1"
             raise AnalyzeSignalResearchError(msg)
 
 
@@ -55,6 +64,8 @@ class AnalyzeSignalResearchResult:
     run_summaries: pl.DataFrame
     grouped_summaries: pl.DataFrame | None
     conditional_comparison: pl.DataFrame | None
+    distribution_summaries: pl.DataFrame
+    join_diagnostics: pl.DataFrame
     metadata: AnalyticsResultMetadata
 
 
@@ -78,17 +89,26 @@ def analyze_signal_research_run(
         horizons=horizons,
         outcome_filter=request.outcome_filter,
         min_sample_size=request.min_sample_size,
+        interpretation_min_sample_size=request.interpretation_min_sample_size,
         research_scope=scope,
         group_by=request.group_by,
         conditional_context=request.conditional_context,
         timestamp_basis=request.timestamp_basis,
     )
+    join_diagnostics = compute_join_diagnostics(
+        envelope,
+        frame,
+        horizons=horizons,
+        outcome_filter=request.outcome_filter,
+        evaluation_timeframe=envelope.manifest.evaluation_timeframe,
+    )
 
-    metadata = AnalyticsResultMetadata(
-        source_run_id=envelope.manifest.run_id,
-        research_scope=scope.value,
+    metadata = build_analytics_result_metadata(
+        manifest=envelope.manifest,
         timestamp_basis=request.timestamp_basis,
         outcome_filter=request.outcome_filter,
+        min_sample_size=request.min_sample_size,
+        interpretation_min_sample_size=request.interpretation_min_sample_size,
     )
 
     return AnalyzeSignalResearchResult(
@@ -96,5 +116,7 @@ def analyze_signal_research_run(
         run_summaries=summarized.run_summaries,
         grouped_summaries=summarized.grouped_summaries,
         conditional_comparison=summarized.conditional_comparison,
+        distribution_summaries=summarized.distribution_summaries,
+        join_diagnostics=join_diagnostics,
         metadata=metadata,
     )
