@@ -97,6 +97,7 @@ class NumpyEmaImplementation:
             warmup_bars=warmup_bars,
             valid_from_index=warmup_bars,
             bar_count=bar_count,
+            workspace=workspace,
         )
 
 

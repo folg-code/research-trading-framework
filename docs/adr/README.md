@@ -38,6 +38,7 @@ SUPERSEDED
 | [ADR-MA-009](ADR-MA-009-warmup-causality-and-availability.md) | Warm-up, Causality and Availability | ACCEPTED | Sprint 003 |
 | [ADR-MA-010](ADR-MA-010-external-analytical-libraries.md) | External Analytical Libraries | ACCEPTED | Sprint 003 |
 | [ADR-MA-011](ADR-MA-011-batch-versus-incremental-execution.md) | Batch Versus Incremental Execution | ACCEPTED | Sprint 003 |
+| [ADR-MA-012](ADR-MA-012-batch-multitimeframe-computation-with-polars.md) | Batch Multitimeframe Computation with Polars | ACCEPTED | Sprint 004 |
 | ADR-0004 | Independent Research and Execution Workflows | PLANNED | TBD |
 | ADR-0006 | Declarative Market and Signal Models | PLANNED | TBD |
 | ADR-0009 | Batch Backtest vs Replay Execution | PLANNED | TBD |

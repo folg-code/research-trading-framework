@@ -27,4 +27,10 @@ def test_extend_computation_range_shifts_start_by_timeframe_bars() -> None:
 def test_max_history_requirement_returns_zero_for_empty_plan() -> None:
     from trading_framework.market_analysis.planning.plan import ExecutionPlan
 
-    assert max_history_requirement(ExecutionPlan(nodes=())) == 0
+    assert (
+        max_history_requirement(
+            ExecutionPlan(nodes=()),
+            source_timeframe=Timeframe("1m"),
+        )
+        == 0
+    )

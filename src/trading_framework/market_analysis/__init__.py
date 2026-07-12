@@ -18,6 +18,7 @@ from trading_framework.market_analysis.errors import (
 )
 from trading_framework.market_analysis.execution import (
     ExecutionCache,
+    ResampleCache,
     SequentialBatchExecutor,
     validate_analysis_result,
 )
@@ -26,12 +27,15 @@ from trading_framework.market_analysis.execution.warmup import (
     max_history_requirement,
 )
 from trading_framework.market_analysis.identity import (
+    AlignmentIdentity,
     ComponentId,
     ComponentVersion,
     ComputationIdentity,
     ImplementationId,
     ImplementationVersion,
+    ResampleIdentity,
 )
+from trading_framework.market_analysis.models.alignment import AlignmentPolicy
 from trading_framework.market_analysis.models.availability import (
     AvailabilityMetadata,
     AvailabilityPolicy,
@@ -59,6 +63,7 @@ from trading_framework.market_analysis.models.parameters import (
     ParameterType,
 )
 from trading_framework.market_analysis.models.request import ComponentRequest
+from trading_framework.market_analysis.models.resample import ResampleSpec
 from trading_framework.market_analysis.models.result import (
     AnalysisResult,
     OutputSeries,
@@ -71,6 +76,13 @@ from trading_framework.market_analysis.planning import (
     PlannedNode,
     PlanningContext,
     PlanningRequest,
+    RequestResolver,
+    ResampleNode,
+    ResolvedComponentInput,
+    ResolvedComponentRequest,
+    ResolvedInputPlan,
+    ResolvedResampleRequirement,
+    RunTimeframeContext,
 )
 from trading_framework.market_analysis.protocols import (
     BatchAnalysisComponent,
@@ -84,6 +96,8 @@ from trading_framework.market_analysis.storage import (
 )
 
 __all__ = [
+    "AlignmentIdentity",
+    "AlignmentPolicy",
     "AnalysisContext",
     "AnalysisDataView",
     "AnalysisFrame",
@@ -136,6 +150,16 @@ __all__ = [
     "PlanningContext",
     "PlanningError",
     "PlanningRequest",
+    "RequestResolver",
+    "ResampleCache",
+    "ResampleIdentity",
+    "ResampleNode",
+    "ResampleSpec",
+    "ResolvedComponentInput",
+    "ResolvedComponentRequest",
+    "ResolvedInputPlan",
+    "ResolvedResampleRequirement",
+    "RunTimeframeContext",
     "SequentialBatchExecutor",
     "TimeRange",
     "ValidityMetadata",

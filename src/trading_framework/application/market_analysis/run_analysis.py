@@ -22,6 +22,7 @@ from trading_framework.market_analysis.planning import (
     DependencyPlanner,
     PlanningContext,
     PlanningRequest,
+    RequestResolver,
 )
 from trading_framework.market_analysis.planning.plan import ExecutionPlan
 from trading_framework.market_analysis.registry.builtins import default_mvp_registry
@@ -42,6 +43,7 @@ class RunAnalysisRequest:
     storage_root: Path
     component_requests: tuple[ComponentRequest, ...]
     frame_request: AnalysisFrameRequest | None = None
+    evaluation_timeframe: Timeframe | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -65,14 +67,29 @@ def run_analysis(
         dataset_ref=request.dataset_ref,
         timeframe=request.timeframe,
         requested_range=request.requested_range,
+        evaluation_timeframe=request.evaluation_timeframe,
     )
     planning_requests = tuple(
         PlanningRequest.from_component_request(component_request)
         for component_request in request.component_requests
     )
+    resolved_plan = RequestResolver.resolve_input_plan(
+        dataset_ref=request.dataset_ref,
+        requested_range=request.requested_range,
+        source_timeframe=request.timeframe,
+        component_requests=tuple(
+            (component_request.component_id, component_request, None)
+            for component_request in request.component_requests
+        ),
+        evaluation_timeframe=request.evaluation_timeframe,
+    )
     planner = DependencyPlanner(component_registry)
-    plan = planner.build_plan(planning_context, planning_requests)
-    warmup_bars = max_history_requirement(plan)
+    plan = planner.build_plan(
+        planning_context,
+        planning_requests,
+        resolved_plan=resolved_plan,
+    )
+    warmup_bars = max_history_requirement(plan, source_timeframe=request.timeframe)
     computation_range = extend_computation_range(
         request.requested_range,
         warmup_bars=warmup_bars,
@@ -91,6 +108,7 @@ def run_analysis(
         requested_range=request.requested_range,
         computation_range=computation_range,
         engine_version=engine_version,
+        evaluation_timeframe=request.evaluation_timeframe,
     )
     workspace = SequentialBatchExecutor().execute(
         plan,
@@ -99,5 +117,10 @@ def run_analysis(
     )
     frame = None
     if request.frame_request is not None:
-        frame = AnalysisFrameAssembler().assemble(workspace, request.frame_request)
+        frame = AnalysisFrameAssembler().assemble(
+            workspace,
+            request.frame_request,
+            evaluation_timeframe=context.evaluation_timeframe,
+            evaluation_range=context.requested_range,
+        )
     return AnalysisRunResult(plan=plan, workspace=workspace, frame=frame)

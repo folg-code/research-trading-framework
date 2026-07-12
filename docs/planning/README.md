@@ -30,7 +30,15 @@ Catalog of `docs/planning/`. For taxonomy and reading paths see **[../README.md]
 |------|---------|
 | [sprints/SPRINT_001.md](sprints/SPRINT_001.md) | Repository foundation (completed) |
 | [sprints/SPRINT_002.md](sprints/SPRINT_002.md) | Market Data MVP (completed) |
-| [sprints/SPRINT_003.md](sprints/SPRINT_003.md) | Market Analysis Engine MVP (in progress) |
+| [sprints/SPRINT_003.md](sprints/SPRINT_003.md) | Market Analysis Engine MVP (completed) |
+| [sprints/SPRINT_004.md](sprints/SPRINT_004.md) | Multitimeframe Foundation MVP (in progress) |
+| [sprints/S004_MTF_SPIKE_AND_DECISIONS.md](sprints/S004_MTF_SPIKE_AND_DECISIONS.md) | Sprint 004 T001 spike outcomes |
 | [sprints/S003_WAVE0_*.md](sprints/) | Sprint 003 wave 0 artefacts |
+
+## Retrospectives
+
+| File | Purpose |
+|------|---------|
+| [retrospectives/ARCHITECTURE_SIMPLIFICATION_REVIEW_S002_S003.md](retrospectives/ARCHITECTURE_SIMPLIFICATION_REVIEW_S002_S003.md) | Overengineering review; forward Polars-first direction; Sprint 004 gate |
 
 Sprint files define **intent and tasks**. Implementation status: [../reference/MODULE_MAP.md](../reference/MODULE_MAP.md).

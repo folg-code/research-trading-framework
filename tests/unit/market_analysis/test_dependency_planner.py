@@ -296,7 +296,7 @@ def test_planner_expands_nested_dependencies() -> None:
         _planning_context(),
         [PlanningRequest.from_component_request(request)],
     )
-    component_ids = [node.request.component_id for node in plan.nodes]
+    component_ids = [node.request.component_id for node in plan.component_nodes()]
     assert component_ids == [
         ComponentId("volatility.true_range"),
         ComponentId("volatility.atr"),
@@ -339,7 +339,9 @@ def test_planner_deduplicates_shared_dependency() -> None:
         ],
     )
     atr_nodes = [
-        node for node in plan.nodes if node.request.component_id == ComponentId("volatility.atr")
+        node
+        for node in plan.component_nodes()
+        if node.request.component_id == ComponentId("volatility.atr")
     ]
     assert len(atr_nodes) == 1
     assert len(plan.nodes) == 3
@@ -360,3 +362,23 @@ def test_planner_detects_cycles() -> None:
             [PlanningRequest.from_component_request(request)],
         )
     assert "cycle.a" in exc_info.value.cycle[0]
+
+
+def test_planner_uses_request_computation_timeframe_in_identity() -> None:
+    planner = DependencyPlanner(_registry())
+    request = ComponentRequest(
+        component_id=ComponentId("volatility.atr"),
+        parameters=_period_params(14),
+        computation_timeframe=Timeframe("5m"),
+    )
+    plan = planner.build_plan(
+        _planning_context(),
+        [PlanningRequest.from_component_request(request)],
+    )
+    atr_nodes = [
+        node
+        for node in plan.component_nodes()
+        if node.request.component_id == ComponentId("volatility.atr")
+    ]
+    assert len(atr_nodes) == 1
+    assert atr_nodes[0].computation_identity.computation_timeframe == Timeframe("5m")

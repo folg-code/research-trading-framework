@@ -71,7 +71,7 @@ def test_output_ref_uses_resolved_computation_identity() -> None:
         implementation_version=ImplementationVersion("1.0.0"),
         parameters=params,
         dataset_ref=dataset_ref,
-        timeframe=Timeframe("1m"),
+        computation_timeframe=Timeframe("1m"),
         requested_range=TimeRange(
             start=datetime(2024, 1, 1, tzinfo=UTC),
             end=datetime(2024, 1, 2, tzinfo=UTC),
