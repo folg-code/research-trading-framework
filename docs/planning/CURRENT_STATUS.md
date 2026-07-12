@@ -26,13 +26,13 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 ## 2. Status Metadata
 
 ```text
-Status Date: 2026-06-23
-Current Phase: Phase 3 — Market Analysis Engine MVP
+Status Date: 2026-07-12
+Current Phase: Phase 3 — Market Analysis Engine MVP (complete; merge to main pending)
 Current Milestone: Sprint 003 — Market Analysis Engine MVP
-Implementation Status: Wave 5 complete; Wave 6 (ADRs and closure) next
+Implementation Status: Sprint 003 COMPLETE (Wave 6 closure)
 Overall Status: IN_PROGRESS
-Active Sprint: SPRINT_003 (IN_PROGRESS)
-Last Completed Sprint: SPRINT_002 (COMPLETED)
+Active Sprint: none (Sprint 003 closed; integration branch ready for main PR)
+Last Completed Sprint: SPRINT_003 (COMPLETED)
 ```
 
 ---
@@ -118,12 +118,12 @@ Maintenance: `.cursor/rules/documentation.mdc`
 
 ### Sprint 003 — Market Analysis Engine MVP
 
-**Status:** IN_PROGRESS (Waves 0–5 complete)  
+**Status:** COMPLETED (2026-07-12)  
 **Plan:** `docs/planning/sprints/SPRINT_003.md`  
 **Sprint branch:** `sprint/market-analysis-mvp`  
-**Tasks:** 41 (37 done — Waves 0–5)
+**Tasks:** 41 (40 done; T027 TA-Lib optional deferred)
 
-**Completed waves:**
+**Delivered waves:**
 
 - Wave 0 — architecture closure, spike, Definition of Ready
 - Wave 1 — identity and core contracts (T005–T012)
@@ -131,10 +131,11 @@ Maintenance: `.cursor/rules/documentation.mdc`
 - Wave 3 — `AnalysisDataView`, result store, workspace, executor, cache, errors (T019–T024, T037–T038)
 - Wave 4 — TR/ATR/state/EMA components, `AnalysisFrameAssembler`, `run_analysis` (T025–T026, T028–T029, T039–T040)
 - Wave 5 — adapter contracts, integration test, workspace/frame regressions, cache and identity tests (T030–T033, T031, T041)
+- Wave 6 — ADRs (ADR-0005, ADR-MA-001–011), problem registry notes, sprint closure (T034–T036)
 
-**Next:** Wave 6 — ADRs and sprint closure (T034–T036). Optional: T027 TA-Lib extra.
+**Next:** merge `sprint/market-analysis-mvp` → `main`; begin Phase 4 planning. Optional follow-up: T027 TA-Lib extra.
 
-**Reference:** `docs/reference/MODULE_MAP.md`, `docs/reference/modules/MARKET_ANALYSIS_MODULE.md`
+**Reference:** `docs/reference/MODULE_MAP.md`, `docs/reference/modules/MARKET_ANALYSIS_MODULE.md`, `docs/adr/README.md`
 
 ---
 
@@ -159,10 +160,12 @@ Remaining high-priority items:
 2. Research Dataset physical schemas (PRB-006).
 3. Trading Calendar choice (PRB-007).
 4. Local model definition fingerprints (PRB-003).
-5. Vectorized backtest semantics (PRB-014).
-6. Research/runtime parity (PRB-013).
+5. Full component implementation fingerprints (PRB-002 — parameter identity resolved in MVP).
+6. Vectorized backtest semantics (PRB-014).
+7. Research/runtime parity (PRB-013).
 
-PRB-001, PRB-008 and PRB-010 received MVP resolution in Sprint 002.
+PRB-001, PRB-008 and PRB-010 received MVP resolution in Sprint 002.  
+PRB-002 and PRB-005 received partial MVP resolution in Sprint 003.
 
 ---
 
@@ -175,7 +178,8 @@ PRB-001, PRB-008 and PRB-010 received MVP resolution in Sprint 002.
 | ADR-0003 UTC Internal Time | ACCEPTED |
 | ADR-0007 Dataset Lifecycle | ACCEPTED (Sprint 002) |
 | ADR-0008 Parquet Storage | ACCEPTED (Sprint 002) |
-| ADR-0005 Market Analysis Domain | PLANNED — Sprint 003 Wave 6 |
+| ADR-0005 Market Analysis Domain | ACCEPTED (Sprint 003) |
+| ADR-MA-001–011 Market Analysis Engine | ACCEPTED (Sprint 003) |
 | ADR-0004, ADR-0006, ADR-0009, ADR-0010 | PLANNED |
 
 Binding decisions D-001–D-036 and workspace invariants are documented in the architecture files above; ADR materialization is Sprint 003 Wave 6 (including ADR-MA-007 workspace).
@@ -184,30 +188,32 @@ Binding decisions D-001–D-036 and workspace invariants are documented in the a
 
 ## 10. Known Risks
 
-- **Overengineering** — engine scope must stay minimal; vertical slice validates contracts.
-- **Data view lock-in** — spike required before freezing `AnalysisDataView`.
-- **Hidden copies** — read-only view and memory benchmark mitigate large-dataset risk.
-- **Sprint size** — 36 tasks; strict out-of-scope list for MTF, persistent cache, parallel execution.
+- **Phase 4 scope creep** — multitimeframe and component catalog can expand quickly; keep outcome-scoped PRs.
+- **Implementation fingerprint gap** — PRB-002 parameter identity is resolved; full implementation hashing remains for research parity.
+- **TA-Lib optional path** — deferred T027; NumPy adapter is the CI reference backend.
 
 ---
 
 ## 11. Next Planned Capability
 
 ```text
-Phase 3 — Market Analysis Engine MVP
+Phase 4 — Market Analysis Components and Multitimeframe
 ```
 
-First flow:
+Candidate first increments:
+
+```text
+multitimeframe alignment and resampling nodes
+additional Feature / Structure components
+Research consumption of AnalysisResult artifacts
+optional TA-Lib adapter (S003-T027 carry-forward)
+```
+
+Phase 3 delivered flow:
 
 ```text
 Published DatasetRef → AnalysisDataView → DAG → AnalysisResultStore → AnalysisWorkspace
 → optional AnalysisFrame (wide consumer view)
-```
-
-Vertical slice:
-
-```text
-True Range → ATR → Volatility State (+ EMA, diagnostic output)
 ```
 
 ---
@@ -218,7 +224,7 @@ True Range → ATR → Volatility State (+ EMA, diagnostic output)
 |--------|------|--------|----------|
 | 001 | Repository foundation | COMPLETED | 22 / 22 tasks |
 | 002 | Market Data MVP | COMPLETED | 26 / 26 tasks |
-| 003 | Market Analysis Engine MVP | IN_PROGRESS | 37 / 41 tasks |
+| 003 | Market Analysis Engine MVP | COMPLETED | 40 / 41 tasks (T027 deferred) |
 
 ---
 

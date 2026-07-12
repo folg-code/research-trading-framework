@@ -3,8 +3,9 @@
 > **Reference doc** — [as-implemented layer](../README.md).  
 > Expand after Sprint 003 closure. Index: [docs/README.md](../../README.md).
 
-**Status:** Sprint 003 in progress — Waves 0–4 on `sprint/market-analysis-mvp`.  
-Binding decisions (vision): [../../vision/MARKET_ANALYSIS_WITH_DECISIONS.md](../../vision/MARKET_ANALYSIS_WITH_DECISIONS.md), [../../vision/ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md](../../vision/ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md).
+**Status:** Sprint 003 complete — engine MVP on `sprint/market-analysis-mvp`.  
+Binding decisions (vision): [../../vision/MARKET_ANALYSIS_WITH_DECISIONS.md](../../vision/MARKET_ANALYSIS_WITH_DECISIONS.md), [../../vision/ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md](../../vision/ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md).  
+Accepted ADRs: [../adr/ADR-0005-market-analysis-domain-and-taxonomy.md](../adr/ADR-0005-market-analysis-domain-and-taxonomy.md), [../adr/README.md](../adr/README.md) (ADR-MA-001–011).
 
 ---
 
@@ -67,15 +68,23 @@ Application: `load_analysis_data_view`, `run_analysis`.
 
 ---
 
-## Remaining (Wave 5+)
+## Verification (Wave 5)
 
-| Capability | Sprint tasks |
-|------------|--------------|
-| Adapter contract test suite | T030 |
-| Integration test (dedicated) | T031 |
-| Workspace/frame regression tests | T041 |
-| Market Analysis ADRs | T034–T035 |
-| Optional TA-Lib adapter | T027 |
+| Area | Location |
+|------|----------|
+| Adapter contract suite (D-033) | `tests/unit/market_analysis/adapters/` |
+| Execution cache and identity | `tests/unit/market_analysis/test_execution_contracts.py` |
+| Workspace and frame assembly | `tests/unit/market_analysis/test_workspace_frame_contracts.py` |
+| Vertical slice integration | `tests/integration/test_market_analysis_vertical_slice.py` |
+
+## Deferred Beyond MVP
+
+| Capability | Notes |
+|------------|-------|
+| Optional TA-Lib adapter | S003-T027 |
+| Structure components catalog | Phase 4+ |
+| Persistent derived datasets | ADR-MA-007 consequences |
+| Multitimeframe execution | Phase 4 |
 
 ---
 
