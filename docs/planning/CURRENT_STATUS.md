@@ -27,30 +27,23 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 
 ```text
 Status Date: 2026-07-12
-Current Phase: Phase 5 — Signal Research MVP (second increment)
-Current Milestone: Sprint 009 — Combined research scopes
-Implementation Status: Sprints 003–008 COMPLETE on main; Sprint 009 COMPLETE on sprint branch
+Current Phase: Phase 5 — Signal Research MVP (analytics increment)
+Current Milestone: Sprint 010 — Signal Research analytics
+Implementation Status: Sprints 003–009 COMPLETE on main
 Overall Status: IN_PROGRESS
-Active Sprint: SPRINT_009 (COMPLETE on sprint branch; pending merge to main)
-Last Completed Sprint on main: SPRINT_008 (PR #81)
+Active Sprint: SPRINT_010 (PLANNED — kickoff)
+Last Completed Sprint: SPRINT_009 (merged to main)
 ```
 
 ---
 
 ## 3. Current Objective
 
-**Sprint 009 complete** on `sprint/combined-research-scopes` — all three explicit research scopes
-(`SIGNAL_MODEL_ONLY`, `MARKET_MODEL_ONLY`, `MARKET_AND_SIGNAL`) with envelope v2, context at
-`available_at`, integration tests and manual inspection spike.
+Kick off **Sprint 010** — analytics on stored Signal Research runs without recompute.
 
 Binding direction: `docs/planning/sprints/PHASE_4_5_SPRINT_DIRECTION.md`  
-Sprint 009 plan: `docs/planning/sprints/SPRINT_009.md`  
-Wave 0 decisions: `docs/planning/sprints/S009_WAVE0_DECISIONS.md`  
-ADR: ADR-0011 (ACCEPTED), ADR-0012 (ACCEPTED)
-
-**North star (Phase 5):** all three explicit research scopes → persistent datasets → analytics without recompute (010).
-
-**Sequence:** 009 merge to main → 010 (analytics on stored runs).
+Sprint 010 plan: `docs/planning/sprints/SPRINT_010.md`  
+Wave 0 decisions: `docs/planning/sprints/S010_WAVE0_DECISIONS.md` (locked 2026-07-12)
 
 ---
 
@@ -128,16 +121,13 @@ Completed on `main` (PR #75, 2026-07-12):
 - canonical examples, inspection overlay, ADR-0006,
 - 338 tests at sprint closure.
 
-### Phase 5 — Signal Research (Sprint 008)
+### Phase 5 — Signal Research (Sprint 008–009)
 
-Complete on `main` (PR #81, 2026-07-12):
+Complete on `main`:
 
-- `SignalOccurrence` materialization and reference-price policy,
-- `ForwardOutcomeDefinition` + calculator (long-format outcomes),
-- immutable run envelope (manifest + Parquet facts),
-- `run_signal_research` application workflow,
-- inspection spike and ADR-0011,
-- 366 tests at sprint closure.
+- Sprint 008: `SIGNAL_MODEL_ONLY` computation, outcomes, envelope v1, ADR-0011
+- Sprint 009: all three scopes, envelope v2, context at `available_at`, ADR-0012,
+  inspection spike `run_inspect_combined_research.py`
 
 ### Architectural Foundations
 
@@ -169,14 +159,23 @@ Maintenance: `.cursor/rules/documentation.mdc`
 
 ## 6. Work in Progress
 
-### Sprint 009 — Market Model and Combined Research Scopes
+### Sprint 010 — Signal Research Analytics MVP
 
-**Status:** PLANNED (kickoff)  
+**Status:** IN_PROGRESS — Wave 0 complete  
+**Plan:** `docs/planning/sprints/SPRINT_010.md`  
+**Sprint branch:** `sprint/signal-research-analytics`  
+**Tasks:** 2 / 11
+
+**Next:** Wave 1 — promote spike helpers to `research/analytics/`.
+
+---
+
+### Sprint 009 — Closed
+
+**Status:** COMPLETE on `main`  
 **Plan:** `docs/planning/sprints/SPRINT_009.md`  
-**Sprint branch (planned):** `sprint/combined-research-scopes`  
-**Tasks:** 0 / 11
-
-**First step:** Wave 0 spike — scope semantics, envelope v2 layout, context-at-`available_at` proof.
+**ADR:** ADR-0012  
+**Tasks:** 11 / 11 done
 
 ---
 
@@ -200,7 +199,7 @@ Maintenance: `.cursor/rules/documentation.mdc`
 
 ## 7. Blocked Work
 
-Nothing is technically blocked. Sprint 009 awaits merge of `sprint/combined-research-scopes` to `main`.
+Nothing is technically blocked. Sprint 010 Wave 1 awaits PR merge of Wave 0.
 
 ---
 
@@ -244,6 +243,7 @@ PRB-002 and PRB-005 received partial MVP resolution in Sprint 003.
 | ADR-0006 | ACCEPTED (Sprint 006) |
 | ADR-0011 | ACCEPTED (Sprint 008) |
 | ADR-0012 | ACCEPTED (Sprint 009) |
+| ADR-0013 | PROPOSED (Sprint 010 Wave 0 draft) |
 | ADR-0004, ADR-0009, ADR-0010 | PLANNED |
 
 Binding decisions D-001–D-036 and workspace invariants are documented in the architecture files above; ADR materialization is Sprint 003 Wave 6 (including ADR-MA-007 workspace).
@@ -282,7 +282,8 @@ See `PHASE_4_5_SPRINT_DIRECTION.md` for Sprints 009–010.
 | 006 | Declarative Market Model and Signal Model | COMPLETED | 26 / 26 tasks |
 | 007 | Research-enabling catalog | SKIPPED (scope gate) | 1 / 9 (T001 only) |
 | 008 | Signal Research computation MVP | COMPLETED | 11 / 11 tasks |
-| 009 | Combined research scopes | COMPLETE (sprint branch) | 11 / 11 tasks |
+| 009 | Combined research scopes | COMPLETED | 11 / 11 tasks |
+| 010 | Signal Research analytics | PLANNED | 2 / 11 tasks (Wave 0) |
 
 ---
 

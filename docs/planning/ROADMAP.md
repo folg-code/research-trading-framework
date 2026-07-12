@@ -417,7 +417,7 @@ Phase 4 is larger than one sprint. Planned delivery:
 | 006 | Declarative models | Market Model + Signal Model expression MVP — `SPRINT_006.md` |
 | 007 | Research-enabling catalog (conditional) | slope, wick ratio, Session Range, Trend State — as needed — `SPRINT_007.md` |
 | 008 | Signal Research computation | DONE — `SPRINT_008.md` |
-| 009 | Combined research scopes | MARKET_MODEL_ONLY, MARKET_AND_SIGNAL — `SPRINT_009.md` |
+| 009 | Combined research scopes | DONE — `SPRINT_009.md` |
 | 010 | Research analytics | Stored-dataset analytics and charts — `SPRINT_010.md` |
 
 **Direction (binding):** `docs/planning/sprints/PHASE_4_5_SPRINT_DIRECTION.md`
