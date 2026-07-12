@@ -77,6 +77,16 @@ uv run python tests/spike/run_signal_research_spike.py --json
 
 Validates occurrence materialization, forward outcome semantics, run envelope write/read.
 
+Combined research spike (S009-T001):
+
+```bash
+uv run python tests/spike/run_combined_research_spike.py
+uv run python tests/spike/run_combined_research_spike.py --json
+```
+
+Validates MARKET_MODEL_ONLY TRUE_EDGE observations, MARKET_AND_SIGNAL context at
+``available_at``, envelope v2 layout prototype and v1 read compatibility.
+
 Signal research inspection (S008-T009):
 
 ```bash
