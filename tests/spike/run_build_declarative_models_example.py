@@ -23,6 +23,18 @@ from pathlib import Path
 
 import polars as pl
 
+_SPIKE_DIR = Path(__file__).resolve().parent
+if str(_SPIKE_DIR) not in sys.path:
+    sys.path.insert(0, str(_SPIKE_DIR))
+
+from _fixture_paths import OHLCV_SAMPLE_1M, OHLCV_SAMPLE_1M_FILENAME
+from examples_component_catalog import (
+    describe_component,
+    list_mvp_components,
+    print_component_build_checklist,
+)
+from examples_model_building import ExampleModelBundle, build_example_model_bundle
+
 from trading_framework.application.model_evaluation import EvaluateModelsRequest, evaluate_models
 from trading_framework.core.identifiers import Identifier
 from trading_framework.infrastructure.storage.metadata.registry import FileDatasetRegistry
@@ -33,23 +45,7 @@ from trading_framework.model_expression.validation import validate_expression
 from trading_framework.time.models.timeframe import Timeframe
 from trading_framework.time.sessions import CmeEsRthSessionResolver
 
-_SPIKE_DIR = Path(__file__).resolve().parent
-if str(_SPIKE_DIR) not in sys.path:
-    sys.path.insert(0, str(_SPIKE_DIR))
-
-from examples_component_catalog import (  # noqa: E402
-    describe_component,
-    list_mvp_components,
-    print_component_build_checklist,
-)
-from examples_model_building import ExampleModelBundle, build_example_model_bundle  # noqa: E402
-
-FIXTURE = (
-    Path(__file__).resolve().parents[1]
-    / "fixtures"
-    / "market_data"
-    / "s005_swing_vertical_slice_1m.csv"
-)
+FIXTURE = OHLCV_SAMPLE_1M
 
 
 @dataclass(frozen=True, slots=True)
@@ -254,7 +250,7 @@ def main() -> int:
         "--fixture",
         type=Path,
         default=FIXTURE,
-        help="CSV fixture (default: s005_swing_vertical_slice_1m.csv)",
+        help=f"CSV fixture (default: {OHLCV_SAMPLE_1M_FILENAME})",
     )
     parser.add_argument(
         "--catalog",

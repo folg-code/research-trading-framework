@@ -95,10 +95,10 @@ def _assert_dense_condition_result(frame: pl.DataFrame, *, signal_id: str) -> No
 
 def test_s006_vertical_slice_canonical_examples(
     tmp_path: Path,
-    market_data_fixtures_dir: Path,
+    ohlcv_sample_1m_path: Path,
 ) -> None:
     storage_root = tmp_path / "storage"
-    fixture = market_data_fixtures_dir / "s005_swing_vertical_slice_1m.csv"
+    fixture = ohlcv_sample_1m_path
     dataset_ref = _write_published_dataset(storage_root, csv_path=fixture)
     metadata = FileDatasetRegistry(storage_root).get(dataset_ref)
     bundle = build_canonical_model_bundle()

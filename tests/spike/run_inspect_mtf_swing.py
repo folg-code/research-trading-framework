@@ -15,11 +15,18 @@ from __future__ import annotations
 
 import argparse
 import math
+import sys
 import tempfile
 import webbrowser
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
+
+_SPIKE_DIR = Path(__file__).resolve().parent
+if str(_SPIKE_DIR) not in sys.path:
+    sys.path.insert(0, str(_SPIKE_DIR))
+
+from _fixture_paths import OHLCV_SAMPLE_1M, OHLCV_SAMPLE_1M_FILENAME
 
 from trading_framework.application.market_analysis.run_analysis import (
     RunAnalysisRequest,
@@ -40,12 +47,7 @@ from trading_framework.market_analysis.components.structure import SwingStructur
 from trading_framework.time.models.timeframe import Timeframe
 from trading_framework.time.sessions import CmeEsRthSessionResolver
 
-FIXTURE = (
-    Path(__file__).resolve().parents[1]
-    / "fixtures"
-    / "market_data"
-    / "s005_swing_vertical_slice_1m.csv"
-)
+FIXTURE = OHLCV_SAMPLE_1M
 
 _SWING_OUTPUT_IDS = tuple(
     field.output_id.value for field in SwingStructureComponent().output_schema.outputs
@@ -541,7 +543,7 @@ def main() -> int:
         "--fixture",
         type=Path,
         default=FIXTURE,
-        help="CSV fixture path (default: s005_swing_vertical_slice_1m.csv)",
+        help=f"CSV fixture path (default: {OHLCV_SAMPLE_1M_FILENAME})",
     )
     parser.add_argument(
         "--output",

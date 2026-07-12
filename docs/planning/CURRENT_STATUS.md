@@ -167,11 +167,11 @@ Maintenance: `.cursor/rules/documentation.mdc`
 
 ### Sprint 008 — Signal Research Computation MVP
 
-**Status:** IN_PROGRESS (Wave 0 complete)  
+**Status:** IN_PROGRESS (Wave 1 complete)  
 **Plan:** `docs/planning/sprints/SPRINT_008.md`  
 **Wave 0:** `docs/planning/sprints/S008_WAVE0_DECISIONS.md`  
 **Sprint branch:** `sprint/signal-research-mvp`  
-**Tasks:** 1 / 11 done (T001)
+**Tasks:** 3 / 11 done (T001–T003)
 
 **Scope gate:** Sprint 007 skipped — existing components sufficient for first experiment.
 
