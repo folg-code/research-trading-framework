@@ -87,8 +87,47 @@ def _build_swing_1m_fixture() -> AnalysisDataView:
     return AnalysisDataView.from_bars(bars)
 
 
-def _execute_mtf_swing(*, pivot_range: int = 1) -> tuple[AnalysisContext, AnalysisWorkspace]:
-    source_view = _build_swing_1m_fixture()
+def _target_high_for_pivot15_bucket(bucket: int) -> float:
+    if bucket < 15:
+        return 50.0 + bucket
+    if bucket == 15:
+        return 100.0
+    if bucket <= 30:
+        return 100.0 - (bucket - 15)
+    return 60.0 + (bucket % 5)
+
+
+def _build_long_swing_1m_fixture(*, bucket_count: int = 50) -> AnalysisDataView:
+    """Enough 5m buckets for pivot_range=15 on the HTF computation grid."""
+    start = _utc(2024, 6, 3, 10, 0)
+    bars: list[MarketBar] = []
+    minute = 0
+    for bucket in range(bucket_count):
+        target_high = _target_high_for_pivot15_bucket(bucket)
+        for offset in range(5):
+            observed_at = start + timedelta(minutes=minute)
+            high = target_high if offset == 2 else target_high - 3.0
+            low = high - 1.0
+            bars.append(
+                MarketBar(
+                    open=Price(Decimal(str(high - 0.5))),
+                    high=Price(Decimal(str(high))),
+                    low=Price(Decimal(str(low))),
+                    close=Price(Decimal(str(high - 0.25))),
+                    volume=Volume(1_000 + minute),
+                    observed_at=observed_at,
+                    available_at=observed_at + timedelta(minutes=1),
+                )
+            )
+            minute += 1
+    return AnalysisDataView.from_bars(bars)
+
+
+def _execute_mtf_swing_from_view(
+    source_view: AnalysisDataView,
+    *,
+    pivot_range: int,
+) -> tuple[AnalysisContext, AnalysisWorkspace]:
     swing_schema = SwingStructureComponent().parameter_schema
     swing_request = ComponentRequest.from_raw(
         ComponentId("structure.swing"),
@@ -130,6 +169,10 @@ def _execute_mtf_swing(*, pivot_range: int = 1) -> tuple[AnalysisContext, Analys
         context=context,
     )
     return context, workspace
+
+
+def _execute_mtf_swing(*, pivot_range: int = 1) -> tuple[AnalysisContext, AnalysisWorkspace]:
+    return _execute_mtf_swing_from_view(_build_swing_1m_fixture(), pivot_range=pivot_range)
 
 
 def test_event_at_available_projects_single_bar_not_forward_filled() -> None:
@@ -252,3 +295,49 @@ def test_mtf_swing_state_outputs_include_available_at() -> None:
     htf_view = workspace.market_view_for(input_key)
     expected = derive_available_at_timestamps(htf_view.timestamps, Timeframe("5m"))
     assert state.available_at == expected
+
+
+def test_mtf_swing_pivot_range_15_aligns_events_on_long_fixture() -> None:
+    pivot_range = 15
+    source_view = _build_long_swing_1m_fixture(bucket_count=50)
+    context, workspace = _execute_mtf_swing_from_view(source_view, pivot_range=pivot_range)
+    swing_result = next(iter(workspace.result_store.results().values()))
+    assert swing_result.availability.delay_bars == pivot_range
+    assert swing_result.warmup.warmup_bars == pivot_range
+
+    htf_events = swing_result.outputs[OutputId("swing_high_event")]
+    htf_event_count = sum(value == 1.0 for value in htf_events.values)
+    assert htf_event_count >= 1
+
+    parameters = SwingStructureComponent().parameter_schema.canonicalize(
+        {"pivot_range": pivot_range}
+    )
+    frame = AnalysisFrameAssembler().assemble(
+        workspace,
+        AnalysisFrameRequest(
+            market_fields=(),
+            analysis_columns=(
+                AnalysisFrameColumnSpec(
+                    component_id=ComponentId("structure.swing"),
+                    parameters=parameters,
+                    output_id=OutputId("swing_high_event"),
+                    alias="swing_high_event_5m",
+                ),
+                AnalysisFrameColumnSpec(
+                    component_id=ComponentId("structure.swing"),
+                    parameters=parameters,
+                    output_id=OutputId("latest_swing_high_level"),
+                    alias="latest_swing_high_level_5m",
+                ),
+            ),
+        ),
+        evaluation_timeframe=context.evaluation_timeframe,
+        evaluation_range=context.requested_range,
+    )
+    ltf_events = frame.columns["swing_high_event_5m"]
+    ltf_event_count = sum(value == 1.0 for value in ltf_events)
+    assert ltf_event_count >= 1
+    assert abs(ltf_event_count - htf_event_count) <= 1
+    for index in range(1, len(ltf_events)):
+        if ltf_events[index] == 1.0:
+            assert ltf_events[index - 1] != 1.0

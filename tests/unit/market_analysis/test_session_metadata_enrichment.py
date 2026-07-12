@@ -1,8 +1,11 @@
 """Tests for trading session metadata enrichment on analysis paths."""
 
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from decimal import Decimal
 
+import pytest
+
+from trading_framework.core.exceptions import ValidationError
 from trading_framework.core.types import Price, Volume
 from trading_framework.market.models import MarketBar
 from trading_framework.market_analysis import (
@@ -70,3 +73,19 @@ def test_workspace_without_session_metadata_yields_none_on_frame() -> None:
         evaluation_range=TimeRange(start=view.timestamps[0], end=view.timestamps[-1]),
     )
     assert frame.session_metadata is None
+
+
+def test_trading_session_metadata_rejects_empty_timestamps() -> None:
+    with pytest.raises(ValidationError, match="non-empty"):
+        TradingSessionMetadata.resolve((), CmeEsRthSessionResolver())
+
+
+def test_trading_session_metadata_maps_rth_fixture_window() -> None:
+    """Bars from 13:30 UTC on 2024-06-03 align to NY RTH open and same trading day."""
+    timestamps = tuple(
+        datetime(2024, 6, 3, 13, 30, tzinfo=UTC).replace(minute=30 + offset) for offset in range(5)
+    )
+    metadata = TradingSessionMetadata.resolve(timestamps, CmeEsRthSessionResolver())
+    assert all(metadata.is_rth)
+    assert all(session_id == ES_RTH_SESSION_ID for session_id in metadata.session_ids)
+    assert all(trading_day == date(2024, 6, 3) for trading_day in metadata.trading_days)
