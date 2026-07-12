@@ -2,7 +2,7 @@
 
 ## Status
 
-PROPOSED
+ACCEPTED
 
 ## Context
 
@@ -144,6 +144,16 @@ observations attach outcomes via `observation_id` (Wave 2 schema detail).
 - one market + one signal model per run,
 - segment analysis deferred,
 - outcome row key generalization (`occurrence_id` vs `observation_id`) resolved in Wave 2.
+
+## Implementation (Sprint 009)
+
+Implemented on sprint branch `sprint/combined-research-scopes`:
+
+- `ResearchScope`, `SignalResearchRequest`, `ContextFact`, `MarketModelObservation`
+- scope-aware `run_signal_research` for all three scopes
+- envelope `signal_research.v2` with repository read/write and v1 read compatibility
+- integration tests and combined research spike
+- manual inspection: `tests/spike/run_inspect_combined_research.py`
 
 ## References
 
