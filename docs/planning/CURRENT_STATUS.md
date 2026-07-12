@@ -145,13 +145,19 @@ Maintenance: `.cursor/rules/documentation.mdc`
 
 ## 6. Work in Progress
 
-### Sprint 006 — Declarative Market/Signal Model
+### Sprint 006 — Declarative Market Model and Signal Model
 
-**Status:** PLANNED  
+**Status:** PLANNED (planning complete — implementation after S005 merge to `main`)  
 **Plan:** `docs/planning/sprints/SPRINT_006.md`  
-**Direction:** `docs/planning/sprints/PHASE_4_5_SPRINT_DIRECTION.md`
+**Direction:** `docs/planning/sprints/PHASE_4_5_SPRINT_DIRECTION.md`  
+**Sprint branch (planned):** `sprint/declarative-models`  
+**Tasks:** 26 (5 outcome PRs)
 
-**Planned follow-on (not started):** Sprints 007–010 — see direction doc.
+**Outcomes:** (A) reference + expression layer, (B) Market/Signal evaluators + firing, (C) `evaluate_models` + inspection overlay.
+
+**Start gate:** merge PR #66 and `sprint/market-analysis-components` → `main`, then branch from `main`.
+
+**Planned follow-on (not started):** Sprint 007 optional; Sprint 008 Signal Research MVP.
 
 ---
 
@@ -165,9 +171,9 @@ Maintenance: `.cursor/rules/documentation.mdc`
 
 ## 7. Blocked Work
 
-Nothing is technically blocked.
+Nothing is technically blocked for planning.
 
-Sprint 005 sprint PR to `main` is the next integration step when approved.
+Sprint 006 **implementation** is gated on Sprint 005 merge to `main` (PR #66 + sprint branch PR).
 
 ---
 
@@ -246,7 +252,7 @@ See `PHASE_4_5_SPRINT_DIRECTION.md` for Sprints 007, 009, 010.
 | 003 | Market Analysis Engine MVP | COMPLETED | 40 / 41 tasks (T027 deferred) |
 | 004 | Multitimeframe Foundation MVP | COMPLETED | 15 / 15 tasks (T016 deferred) |
 | 005 | Calendar, swing structure, visual inspection | COMPLETED (sprint branch) | 16 / 16 tasks (T017–T018 deferred) |
-| 006 | Declarative Market/Signal Model | PLANNED | 0 / TBD |
+| 006 | Declarative Market Model and Signal Model | PLANNED (planning complete) | 0 / 26 tasks |
 
 ---
 
