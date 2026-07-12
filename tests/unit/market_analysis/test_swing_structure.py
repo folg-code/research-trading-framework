@@ -1,6 +1,6 @@
 """Tests for Swing Structure component and kernel."""
 
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 
 import numpy as np
@@ -60,7 +60,7 @@ def _bars_from_high_low(highs: list[float], lows: list[float]) -> list[MarketBar
     for index, (high, low) in enumerate(zip(highs, lows, strict=True)):
         bars.append(
             _bar(
-                base.replace(minute=base.minute + index),
+                base + timedelta(minutes=index),
                 high=high,
                 low=low,
             )
@@ -70,7 +70,7 @@ def _bars_from_high_low(highs: list[float], lows: list[float]) -> list[MarketBar
 
 def _context(bar_count: int) -> AnalysisContext:
     start = datetime(2024, 6, 3, 13, 30, tzinfo=UTC)
-    end = start.replace(minute=start.minute + bar_count - 1)
+    end = start + timedelta(minutes=bar_count - 1)
     return AnalysisContext(
         dataset_ref=DatasetRef(
             DatasetId(
@@ -91,7 +91,7 @@ def _context(bar_count: int) -> AnalysisContext:
 
 def _planning_context(bar_count: int) -> PlanningContext:
     start = datetime(2024, 6, 3, 13, 30, tzinfo=UTC)
-    end = start.replace(minute=start.minute + bar_count - 1)
+    end = start + timedelta(minutes=bar_count - 1)
     return PlanningContext(
         dataset_ref=DatasetRef(
             DatasetId(
@@ -192,3 +192,94 @@ def test_executor_runs_swing_structure_with_delayed_availability() -> None:
     swing_high = result.outputs[OutputId("swing_high_event")]
     assert swing_high.available_at is not None
     assert swing_high.values[5] == pytest.approx(1.0)
+
+
+def test_swing_high_with_pivot_range_15_confirms_on_available_index() -> None:
+    bar_count = 35
+    highs = np.full(bar_count, 50.0, dtype=np.float64)
+    highs[15] = 100.0
+    lows = highs - 1.0
+    result = detect_swing_structure(highs, lows, pivot_range=15)
+    detection_index = 30
+    observed_index = 15
+    assert result.swing_high_event[detection_index] == pytest.approx(1.0)
+    assert result.swing_high_price[detection_index] == pytest.approx(100.0)
+    assert result.swing_high_observed_index[detection_index] == pytest.approx(float(observed_index))
+    assert result.swing_high_event[observed_index] == pytest.approx(0.0)
+    assert np.isnan(result.swing_high_price[observed_index])
+
+
+def test_executor_runs_swing_structure_with_pivot_range_15() -> None:
+    bar_count = 35
+    highs = [50.0] * bar_count
+    highs[15] = 100.0
+    lows = [value - 1.0 for value in highs]
+    bars = _bars_from_high_low(highs, lows)
+    registry = ComponentRegistry()
+    register_swing_structure_component(registry)
+    view = AnalysisDataView.from_bars(bars)
+    parameters = SwingStructureComponent().parameter_schema.canonicalize({"pivot_range": 15})
+    request = ComponentRequest(component_id=ComponentId("structure.swing"), parameters=parameters)
+    plan = DependencyPlanner(registry).build_plan(
+        _planning_context(len(bars)),
+        [PlanningRequest.from_component_request(request)],
+    )
+    workspace = SequentialBatchExecutor().execute(
+        plan,
+        market_view=view,
+        context=_context(len(bars)),
+    )
+    result = next(iter(workspace.result_store.results().values()))
+    assert result.availability.delay_bars == 15
+    assert result.warmup.warmup_bars == 15
+    swing_high = result.outputs[OutputId("swing_high_event")]
+    assert swing_high.values[30] == pytest.approx(1.0)
+
+
+def test_swing_low_emitted_on_available_index_not_observed_index() -> None:
+    highs = np.array([10.0, 12.0, 11.0, 13.0, 12.0, 11.0], dtype=np.float64)
+    lows = np.array([9.0, 8.0, 11.0, 7.0, 10.0, 9.0], dtype=np.float64)
+    result = detect_swing_structure(highs, lows, pivot_range=2)
+    assert result.swing_low_event[3] == pytest.approx(0.0)
+    assert result.swing_low_event[5] == pytest.approx(1.0)
+    assert result.swing_low_price[5] == pytest.approx(7.0)
+    assert result.swing_low_observed_index[5] == pytest.approx(3.0)
+    assert np.isnan(result.swing_low_price[3])
+
+
+def test_higher_low_and_lower_low_classification_events() -> None:
+    highs = np.ones(9, dtype=np.float64) * 20.0
+    lows = np.array([10.0, 8.0, 5.0, 7.0, 9.0, 6.0, 4.0, 3.0, 5.0], dtype=np.float64)
+    result = detect_swing_structure(highs, lows, pivot_range=1)
+    assert result.higher_low_event[4] == pytest.approx(1.0)
+    assert result.latest_higher_low_level[4] == pytest.approx(7.0)
+    assert result.lower_low_event[8] == pytest.approx(1.0)
+    assert result.latest_lower_low_level[8] == pytest.approx(3.0)
+
+
+def test_first_swing_high_emits_event_without_classification() -> None:
+    highs = np.array([10.0, 20.0, 15.0, 25.0, 20.0, 15.0], dtype=np.float64)
+    lows = np.array([9.0, 19.0, 14.0, 24.0, 19.0, 14.0], dtype=np.float64)
+    result = detect_swing_structure(highs, lows, pivot_range=2)
+    first_detection = 5
+    assert result.swing_high_event[first_detection] == pytest.approx(1.0)
+    assert result.higher_high_event[first_detection] == pytest.approx(0.0)
+    assert result.lower_high_event[first_detection] == pytest.approx(0.0)
+    assert np.isnan(result.latest_higher_high_level[first_detection])
+
+
+def test_nan_input_rejected_by_kernel() -> None:
+    highs = np.array([10.0, np.nan, 15.0], dtype=np.float64)
+    lows = np.array([9.0, 14.0, 14.0], dtype=np.float64)
+    with pytest.raises(ValueError, match="NaN"):
+        detect_swing_structure(highs, lows, pivot_range=1)
+
+
+def test_observed_index_never_receives_event_values() -> None:
+    highs = np.array([10.0, 20.0, 15.0, 25.0, 20.0, 15.0], dtype=np.float64)
+    lows = np.array([9.0, 19.0, 14.0, 24.0, 19.0, 14.0], dtype=np.float64)
+    result = detect_swing_structure(highs, lows, pivot_range=2)
+    observed_index = 3
+    assert result.swing_high_event[observed_index] == pytest.approx(0.0)
+    assert np.isnan(result.swing_high_price[observed_index])
+    assert np.isnan(result.latest_swing_high_level[observed_index])

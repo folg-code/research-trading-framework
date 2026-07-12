@@ -6,6 +6,7 @@ from zoneinfo import ZoneInfo
 import polars as pl
 import pytest
 
+from trading_framework.core.exceptions import ValidationError
 from trading_framework.time.sessions import (
     ES_RTH_SESSION_ID,
     OUTSIDE_RTH_SESSION_ID,
@@ -60,3 +61,24 @@ def test_batch_output_columns_and_length() -> None:
     frame = CmeEsRthSessionResolver().resolve(timestamps)
     assert frame.columns == ["timestamp", "trading_day", "session_id", "is_rth"]
     assert frame.height == 2
+
+
+def test_resolver_rejects_empty_timestamps() -> None:
+    empty = pl.Series("timestamp", [], dtype=pl.Datetime("us", "UTC"))
+    with pytest.raises(ValidationError, match="non-empty"):
+        CmeEsRthSessionResolver().resolve(empty)
+
+
+def test_resolver_rejects_non_temporal_series() -> None:
+    with pytest.raises(ValidationError, match="datetime"):
+        CmeEsRthSessionResolver().resolve(pl.Series("timestamp", ["2024-06-03"]))
+
+
+def test_resolver_rejects_non_utc_timezone() -> None:
+    timestamps = pl.Series(
+        "timestamp",
+        [_utc(2024, 6, 3, 13, 30)],
+        dtype=pl.Datetime("us", "America/New_York"),
+    )
+    with pytest.raises(ValidationError, match="UTC"):
+        CmeEsRthSessionResolver().resolve(timestamps)
