@@ -21,3 +21,12 @@ uv run python tests/spike/run_inspect_mtf_swing.py --output swing_inspection.htm
 
 Writes zoomable HTML (not PNG) with OHLCV, all swing frame columns in hover, state
 levels, event panel and RTH shading.
+
+Model expression spike (S006-T001):
+
+```bash
+uv run python tests/spike/run_model_expression_spike.py
+uv run python tests/spike/run_model_expression_spike.py --json
+```
+
+Validates AnalysisFrame → Polars adapter, three-valued logic and firing policies.

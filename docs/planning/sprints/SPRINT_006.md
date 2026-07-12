@@ -5,12 +5,13 @@
 ```text
 Sprint: 006
 Phase: Phase 4 / Phase 5 bridge
-Status: PLANNED (planning complete — implementation blocked on S005 merge to main)
-Planned Start: TBD (after SPRINT_005 merged to main)
+Status: IN_PROGRESS (Wave 0 complete)
+Planned Start: 2026-07-12
 Planned End: TBD
 Sprint Goal Owner: Project Maintainer
-Depends On: SPRINT_005 (COMPLETED on sprint branch — pending merge to main)
+Depends On: SPRINT_005 (COMPLETED, merged to main)
 Sprint Branch: sprint/declarative-models
+Task branch convention: sprint/declarative-models--<task-slug>  (Git ref collision workaround)
 Direction: docs/planning/sprints/PHASE_4_5_SPRINT_DIRECTION.md
 Architecture Sources:
   - docs/vision/ARCHITECTURE_FOUNDATIONS_UPDATED.md
@@ -396,7 +397,7 @@ Chart layer must **not** evaluate models, compute components, apply firing, or r
 
 | ID | Task | Status | Depends On |
 |----|------|--------|------------|
-| S006-T001 | Wave 0 decisions spike and note | TODO | — |
+| S006-T001 | Wave 0 decisions spike and note | DONE | — |
 | S006-T002 | `ComponentOutputReference` (reuse/wrap `ComponentOutputRef`) | TODO | S006-T001 |
 | S006-T003 | `MarketFieldReference` (canonical OHLCV) | TODO | S006-T001 |
 | S006-T004 | Expression nodes (`Compare`, `And`, `Or`, `Not`) | TODO | S006-T002, S006-T003 |
@@ -435,7 +436,8 @@ Close package ownership, AST shape, `AnalysisFrame` adapter boundary, result sch
 firing policies, null semantics, temporal rules, max expression depth, `MarketFieldReference`
 scope.
 
-**Artifact:** `docs/planning/sprints/S006_WAVE0_DECISIONS.md`
+**Done (2026-07-12):** `tests/spike/run_model_expression_spike.py`, `S006_WAVE0_DECISIONS.md`.
+Binding decisions D-S006-01 … D-S006-12.
 
 ### Wave 1 — T002–T006
 
@@ -473,11 +475,14 @@ Branch model:
 
 ```text
 sprint/declarative-models
-  → task branches sprint/declarative-models/<task-slug>
+  → task branches sprint/declarative-models--<task-slug>
   → PR to sprint/declarative-models
   → squash merge
   → sprint PR to main (after sprint complete)
 ```
+
+Git cannot nest `sprint/declarative-models/foo` when branch `sprint/declarative-models` exists;
+use double-dash task names (see D-S006-11).
 
 ---
 
@@ -607,3 +612,4 @@ see `SPRINT_008.md`.
 |------|--------|
 | 2026-07-12 | Initial outline from PHASE_4_5_SPRINT_DIRECTION |
 | 2026-07-12 | **Full planning:** domain boundary (not Strategy), condition vs firing split, null semantics, package layout, 26 tasks, 5 PRs, branching gate on S005 merge |
+| 2026-07-12 | **Wave 0 complete:** spike + S006_WAVE0_DECISIONS.md; sprint branch created from main |
