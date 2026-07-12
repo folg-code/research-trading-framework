@@ -2,21 +2,17 @@
 
 from dataclasses import dataclass
 
-from trading_framework.market_analysis import OutputId
-from trading_framework.market_analysis.components.structure import SwingStructureComponent
-from trading_framework.market_analysis.components.volatility import VolatilityStateComponent
 from trading_framework.market_model.definitions import MarketModelDefinition
-from trading_framework.model_expression.expressions import (
-    AndExpression,
-    CompareExpression,
-    ComparisonOperator,
+from trading_framework.model_authoring import (
+    LONG,
+    ON_TRUE_EDGE,
+    VolatilityState,
+    market_model,
+    signal_model,
+    structure,
+    volatility,
 )
-from trading_framework.model_expression.references import ComponentOutputReference
-from trading_framework.signal_model.definitions import (
-    SignalDirection,
-    SignalFiringPolicy,
-    SignalModelDefinition,
-)
+from trading_framework.signal_model.definitions import SignalModelDefinition
 from trading_framework.time.models.timeframe import Timeframe
 
 CANONICAL_VOLATILITY_PERIOD = 14
@@ -30,56 +26,17 @@ CANONICAL_SIGNAL_HIGH_VOLATILITY_EDGE_ID = "high_volatility_long_edge"
 CANONICAL_COMBINED_SIGNAL_ID = "high_vol_and_higher_low"
 
 
-def volatility_state_reference(
-    *,
-    period: int = CANONICAL_VOLATILITY_PERIOD,
-    threshold: float = CANONICAL_VOLATILITY_THRESHOLD,
-    alias: str | None = None,
-) -> ComponentOutputReference:
-    """Reference to canonical ``volatility.state`` output on the evaluation grid."""
-    component = VolatilityStateComponent()
-    return ComponentOutputReference(
-        component_id=component.component_id,
-        parameters=component.parameter_schema.canonicalize(
-            {"period": period, "threshold": threshold}
-        ),
-        output_id=OutputId("state"),
-        alias=alias,
-    )
-
-
-def swing_higher_low_event_reference(
-    *,
-    pivot_range: int = CANONICAL_SWING_PIVOT_RANGE,
-    computation_timeframe: Timeframe = CANONICAL_SWING_COMPUTATION_TIMEFRAME,
-    alias: str | None = None,
-) -> ComponentOutputReference:
-    """Reference to canonical ``structure.swing.higher_low_event`` output."""
-    component = SwingStructureComponent()
-    return ComponentOutputReference(
-        component_id=component.component_id,
-        parameters=component.parameter_schema.canonicalize({"pivot_range": pivot_range}),
-        output_id=OutputId("higher_low_event"),
-        computation_timeframe=computation_timeframe,
-        alias=alias,
-    )
-
-
 def build_canonical_market_model_high_volatility(
     *,
     market_model_id: str = CANONICAL_MARKET_MODEL_ID,
     period: int = CANONICAL_VOLATILITY_PERIOD,
     threshold: float = CANONICAL_VOLATILITY_THRESHOLD,
 ) -> MarketModelDefinition:
-    """Market Model: ``volatility.state == 1`` (dense high-volatility state)."""
-    return MarketModelDefinition(
-        market_model_id=market_model_id,
-        expression=CompareExpression(
-            operand=volatility_state_reference(period=period, threshold=threshold),
-            operator=ComparisonOperator.EQ,
-            value=1.0,
-        ),
-    )
+    """Market Model: ``volatility.state == HIGH`` (dense high-volatility state)."""
+    return market_model(
+        market_model_id,
+        when=(volatility.state(period=period, threshold=threshold) == VolatilityState.HIGH),
+    ).definition
 
 
 def build_canonical_signal_higher_low_on_event(
@@ -88,20 +45,15 @@ def build_canonical_signal_higher_low_on_event(
     pivot_range: int = CANONICAL_SWING_PIVOT_RANGE,
     computation_timeframe: Timeframe = CANONICAL_SWING_COMPUTATION_TIMEFRAME,
 ) -> SignalModelDefinition:
-    """Signal Model: ``structure.swing.higher_low_event == true`` with ``ON_EVENT``."""
-    return SignalModelDefinition(
-        signal_model_id=signal_model_id,
-        expression=CompareExpression(
-            operand=swing_higher_low_event_reference(
-                pivot_range=pivot_range,
-                computation_timeframe=computation_timeframe,
-            ),
-            operator=ComparisonOperator.EQ,
-            value=True,
+    """Signal Model: ``structure.swing.higher_low_event`` with ``ON_EVENT``."""
+    return signal_model(
+        signal_model_id,
+        direction=LONG,
+        when=structure.higher_low_event(
+            pivot_range=pivot_range,
+            timeframe=computation_timeframe,
         ),
-        direction=SignalDirection.LONG,
-        firing_policy=SignalFiringPolicy.ON_EVENT,
-    )
+    ).definition
 
 
 def build_canonical_signal_high_volatility_on_true_edge(
@@ -109,19 +61,14 @@ def build_canonical_signal_high_volatility_on_true_edge(
     signal_model_id: str = CANONICAL_SIGNAL_HIGH_VOLATILITY_EDGE_ID,
     period: int = CANONICAL_VOLATILITY_PERIOD,
     threshold: float = CANONICAL_VOLATILITY_THRESHOLD,
-    direction: SignalDirection = SignalDirection.LONG,
 ) -> SignalModelDefinition:
-    """Signal Model: ``volatility.state == 1`` with ``ON_TRUE_EDGE``."""
-    return SignalModelDefinition(
-        signal_model_id=signal_model_id,
-        expression=CompareExpression(
-            operand=volatility_state_reference(period=period, threshold=threshold),
-            operator=ComparisonOperator.EQ,
-            value=1.0,
-        ),
-        direction=direction,
-        firing_policy=SignalFiringPolicy.ON_TRUE_EDGE,
-    )
+    """Signal Model: ``volatility.state == HIGH`` with ``ON_TRUE_EDGE``."""
+    return signal_model(
+        signal_model_id,
+        direction=LONG,
+        when=(volatility.state(period=period, threshold=threshold) == VolatilityState.HIGH),
+        firing=ON_TRUE_EDGE,
+    ).definition
 
 
 def build_canonical_combined_signal(
@@ -132,27 +79,18 @@ def build_canonical_combined_signal(
     pivot_range: int = CANONICAL_SWING_PIVOT_RANGE,
     computation_timeframe: Timeframe = CANONICAL_SWING_COMPUTATION_TIMEFRAME,
 ) -> SignalModelDefinition:
-    """Signal Model: ``volatility.state == 1 AND higher_low_event == true``."""
-    return SignalModelDefinition(
-        signal_model_id=signal_model_id,
-        expression=AndExpression(
-            left=CompareExpression(
-                operand=volatility_state_reference(period=period, threshold=threshold),
-                operator=ComparisonOperator.EQ,
-                value=1.0,
-            ),
-            right=CompareExpression(
-                operand=swing_higher_low_event_reference(
-                    pivot_range=pivot_range,
-                    computation_timeframe=computation_timeframe,
-                ),
-                operator=ComparisonOperator.EQ,
-                value=True,
-            ),
+    """Signal Model: ``volatility.state == HIGH AND higher_low_event``."""
+    return signal_model(
+        signal_model_id,
+        direction=LONG,
+        when=(
+            (volatility.state(period=period, threshold=threshold) == VolatilityState.HIGH)
+            & structure.higher_low_event(
+                pivot_range=pivot_range,
+                timeframe=computation_timeframe,
+            )
         ),
-        direction=SignalDirection.LONG,
-        firing_policy=SignalFiringPolicy.ON_EVENT,
-    )
+    ).definition
 
 
 @dataclass(frozen=True, slots=True)

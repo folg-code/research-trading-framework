@@ -38,6 +38,15 @@ class CompareExpression:
 
 
 @dataclass(frozen=True, slots=True)
+class BinaryCompareExpression:
+    """Compare two operand references (for example close > ema)."""
+
+    left: OperandReference
+    operator: ComparisonOperator
+    right: OperandReference
+
+
+@dataclass(frozen=True, slots=True)
 class AndExpression:
     """Logical AND of two sub-expressions."""
 
@@ -60,13 +69,16 @@ class NotExpression:
     operand: "Expression"
 
 
-type Expression = CompareExpression | AndExpression | OrExpression | NotExpression
+type Expression = (
+    CompareExpression | BinaryCompareExpression | AndExpression | OrExpression | NotExpression
+)
 
 MAX_EXPRESSION_DEPTH = 8
 
 __all__ = [
     "MAX_EXPRESSION_DEPTH",
     "AndExpression",
+    "BinaryCompareExpression",
     "CompareExpression",
     "ComparisonOperator",
     "Expression",

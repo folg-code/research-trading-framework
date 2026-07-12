@@ -17,6 +17,7 @@ from trading_framework.model_expression.evaluation import (
 from trading_framework.model_expression.expressions import (
     MAX_EXPRESSION_DEPTH,
     AndExpression,
+    BinaryCompareExpression,
     CompareExpression,
     ComparisonOperator,
     Expression,
@@ -34,6 +35,7 @@ from trading_framework.model_expression.validation import validate_expression
 __all__ = [
     "MAX_EXPRESSION_DEPTH",
     "AndExpression",
+    "BinaryCompareExpression",
     "CompareExpression",
     "ComparisonOperator",
     "ComponentOutputReference",

@@ -418,11 +418,11 @@ Chart layer must **not** evaluate models, compute components, apply firing, or r
 | S006-T019 | Combined expression example | DONE | S006-T015 |
 | S006-T020 | Inspection chart overlay | DONE | S006-T016 |
 | S006-T021 | End-to-end integration test | DONE | S006-T019 |
-| S006-T022 | Temporal regression tests | TODO | S006-T012 |
-| S006-T023 | Null and warm-up tests | TODO | S006-T012 |
-| S006-T024 | Invalid reference / forbidden field tests | TODO | S006-T005 |
-| S006-T025 | ADR — model expression, domain boundary, firing, null semantics | TODO | S006-T001 |
-| S006-T026 | MODULE_MAP, reference docs, sprint closure | TODO | S006-T025 |
+| S006-T022 | Temporal regression tests | DONE | S006-T012 |
+| S006-T023 | Null and warm-up tests | DONE | S006-T012 |
+| S006-T024 | Invalid reference / forbidden field tests | DONE | S006-T005 |
+| S006-T025 | ADR — model expression, domain boundary, firing, null semantics | DONE | S006-T001 |
+| S006-T026 | MODULE_MAP, reference docs, sprint closure | DONE | S006-T025 |
 
 **Total:** 26 tasks (consolidated into ~5 outcome PRs)
 
@@ -471,6 +471,11 @@ Canonical examples, inspection overlay, end-to-end integration test.
 ### Wave 5 — T022–T026
 
 Temporal / null / negative tests, ADR, documentation closure.
+
+**Done (2026-07-12):** ADR-0006, `model_authoring/` DSL, registry-backed component catalog,
+`BinaryCompareExpression`, regression tests, MODULE_MAP update.
+
+**Also delivered (authoring increment):** `model_authoring/` user-facing DSL compiling to IR.
 
 ---
 

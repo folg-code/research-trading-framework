@@ -10,6 +10,7 @@ from trading_framework.model_expression.evaluation.column_resolver import FrameC
 from trading_framework.model_expression.evaluation.frame_adapter import build_evaluation_dataframe
 from trading_framework.model_expression.expressions import (
     AndExpression,
+    BinaryCompareExpression,
     CompareExpression,
     ComparisonOperator,
     Expression,
@@ -57,6 +58,8 @@ class ExpressionEvaluator:
     def _collect_operands(self, expression: Expression) -> tuple[OperandReference, ...]:
         if isinstance(expression, CompareExpression):
             return (expression.operand,)
+        if isinstance(expression, BinaryCompareExpression):
+            return (expression.left, expression.right)
         if isinstance(expression, AndExpression):
             return self._collect_operands(expression.left) + self._collect_operands(
                 expression.right
@@ -77,6 +80,8 @@ class ExpressionEvaluator:
     ) -> pl.Series:
         if isinstance(expression, CompareExpression):
             return self._evaluate_compare(expression, table, frame)
+        if isinstance(expression, BinaryCompareExpression):
+            return self._evaluate_binary_compare(expression, table, frame)
         if isinstance(expression, AndExpression):
             left = self._evaluate_node(expression.left, table, frame)
             right = self._evaluate_node(expression.right, table, frame)
@@ -100,6 +105,30 @@ class ExpressionEvaluator:
         if isinstance(expression.value, bool):
             return self._compare_bool(operand, expression.operator, expression.value)
         return self._compare_numeric(operand, expression.operator, float(expression.value))
+
+    def _evaluate_binary_compare(
+        self,
+        expression: BinaryCompareExpression,
+        table: pl.DataFrame,
+        frame: AnalysisFrame,
+    ) -> pl.Series:
+        left_key = self._column_resolver.resolve(expression.left, frame)
+        right_key = self._column_resolver.resolve(expression.right, frame)
+        left = table[left_key]
+        right = table[right_key]
+        frame_df = pl.DataFrame({"left": left, "right": right})
+        null_mask = pl.col("left").is_nan() | pl.col("right").is_nan()
+        comparison = {
+            ComparisonOperator.EQ: pl.col("left") == pl.col("right"),
+            ComparisonOperator.NE: pl.col("left") != pl.col("right"),
+            ComparisonOperator.GT: pl.col("left") > pl.col("right"),
+            ComparisonOperator.GE: pl.col("left") >= pl.col("right"),
+            ComparisonOperator.LT: pl.col("left") < pl.col("right"),
+            ComparisonOperator.LE: pl.col("left") <= pl.col("right"),
+        }[expression.operator]
+        return frame_df.select(pl.when(null_mask).then(None).otherwise(comparison).alias("result"))[
+            "result"
+        ]
 
     def _compare_bool(
         self,
