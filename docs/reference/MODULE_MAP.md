@@ -7,7 +7,7 @@ Package map for `src/trading_framework/`: responsibility, dependencies, status, 
 
 **Status legend:** ✅ implemented · 🟡 partial / in sprint · ⬜ skeleton · 📘 deep doc elsewhere
 
-Last updated: 2026-06-23 (Sprint 003, Waves 0–3 merged)
+Last updated: 2026-07-12 (Sprint 004 complete)
 
 ---
 
@@ -104,9 +104,10 @@ Deep reference: 📘 [modules/DATA_MODULE_UPDATED.md](modules/DATA_MODULE_UPDATE
 
 ---
 
-## Market Analysis (Sprint 003) 🟡
+## Market Analysis (Sprint 003–004) ✅
 
-Engine through Wave 4. Built-in vertical slice components, frame assembler and `run_analysis` facade are implemented. Wave 5 adds contract/integration tests and ADRs.
+Engine and MTF foundation complete. Built-in vertical slice components, frame assembler,
+`run_analysis` facade, Polars resample/align path and MTF vertical slice are implemented.
 
 Thin guide: [modules/MARKET_ANALYSIS_MODULE.md](modules/MARKET_ANALYSIS_MODULE.md)  
 Binding decisions (vision): [../vision/MARKET_ANALYSIS_WITH_DECISIONS.md](../vision/MARKET_ANALYSIS_WITH_DECISIONS.md)  
@@ -115,32 +116,33 @@ Workspace design (vision): [../vision/ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md](..
 End-to-end flow (as implemented):
 
 ```text
-Published DatasetRef
+Published DatasetRef (source timeframe, e.g. 1m)
   → run_analysis (application) or manual plan/execute
   → load_analysis_data_view → AnalysisDataView
-  → ComponentRegistry + DependencyPlanner → ExecutionPlan
-  → SequentialBatchExecutor → AnalysisWorkspace
-  → optional AnalysisFrameAssembler → AnalysisFrame
+  → RequestResolver.resolve_input_plan() → optional ResampleNode requirements
+  → ComponentRegistry + DependencyPlanner → ExecutionPlan (components + ResampleNode)
+  → SequentialBatchExecutor → AnalysisWorkspace (ResampleCache + ExecutionCache)
+  → optional AnalysisFrameAssembler → AnalysisFrame (evaluation grid alignment)
 ```
 
-### `market_analysis/` 🟡
+### `market_analysis/` ✅
 
 | Subpackage | Status | Responsibility |
 |------------|--------|----------------|
-| `identity/` | ✅ | `ComponentId`, `ComputationIdentity`, versions |
-| `models/` | ✅ | Requests, results, outputs, lineage, parameters, context |
+| `identity/` | ✅ | `ComponentId`, `ComputationIdentity`, `ResampleIdentity`, `AlignmentIdentity` |
+| `models/` | ✅ | Requests, results, outputs, lineage, parameters, context, `ResampleSpec`, `AlignmentPolicy` |
 | `protocols/` | ✅ | `BatchAnalysisComponent`, `ComponentImplementation` |
 | `registry/` | ✅ | `ComponentRegistry`, `register_mvp_components` |
-| `planning/` | ✅ | `DependencyPlanner`, `ExecutionPlan`, cycle detection |
-| `data/` | ✅ | `AnalysisDataView` |
+| `planning/` | ✅ | `RequestResolver`, `DependencyPlanner`, `ExecutionPlan`, `ResampleNode` |
+| `data/` | ✅ | `AnalysisDataView`, Polars resample/align helpers |
 | `storage/` | ✅ | `AnalysisResultStore`, `AnalysisWorkspace` |
-| `execution/` | ✅ | `SequentialBatchExecutor`, `ExecutionCache` |
-| `adapters/numpy/` | ✅ | Indicator kernels and result builder |
+| `execution/` | ✅ | `SequentialBatchExecutor`, `ExecutionCache`, `ResampleCache` |
+| `adapters/numpy/` | ✅ | Indicator kernels and result builder (`available_at` on HTF) |
 | `components/` | ✅ | TR, ATR, volatility state, EMA |
-| `assembly/` | ✅ | `AnalysisFrameAssembler`, `AnalysisFrame` |
+| `assembly/` | ✅ | `AnalysisFrameAssembler`, `AnalysisFrame`, `AlignmentCache` |
 | `errors.py` | ✅ | Analysis error hierarchy |
 
-**Talks to:** `market` (via application), `time`, `core`. NumPy in adapters only.
+**Talks to:** `market` (via application), `time`, `core`. NumPy in adapters; Polars at resample/align boundary only.
 
 ### `application/market_analysis/` ✅
 
@@ -149,7 +151,7 @@ Published DatasetRef
 | **Responsibility** | Load market input and run end-to-end analysis |
 | **Talks to** | `application/market_data`, `market_analysis` |
 | **Key paths** | `load_data_view.py`, `run_analysis.py` |
-| **Entry points** | `load_analysis_data_view`, `run_analysis` |
+| **Entry points** | `load_analysis_data_view`, `run_analysis` (supports `evaluation_timeframe`, MTF `ComponentRequest`) |
 
 ---
 
@@ -172,7 +174,7 @@ Skeleton `__init__.py` only — no public workflows.
 |------|----------------|
 | Architecture boundary | `tests/unit/test_architecture_boundaries.py` |
 | Market data integration | `tests/integration/market_data/` |
-| Market analysis | `tests/unit/market_analysis/`, `tests/unit/application/market_analysis/` |
+| Market analysis | `tests/unit/market_analysis/`, `tests/unit/application/market_analysis/`, `tests/integration/test_market_analysis_*` |
 | MA architecture boundaries | `tests/unit/market_analysis/test_market_analysis_architecture_boundaries.py` |
 
 ---

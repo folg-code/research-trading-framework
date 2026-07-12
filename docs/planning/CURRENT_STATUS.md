@@ -27,29 +27,27 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 
 ```text
 Status Date: 2026-07-12
-Current Phase: Phase 4 — Market Analysis Components and Multitimeframe (planning)
-Current Milestone: Sprint 004 — Multitimeframe Foundation MVP
-Implementation Status: Sprint 003 COMPLETE on main; Sprint 004 IN_PROGRESS (Wave 4 complete)
+Current Phase: Phase 4 — Market Analysis Components and Multitimeframe
+Current Milestone: Sprint 004 complete; sprint integration PR to main pending
+Implementation Status: Sprint 004 COMPLETE on sprint/market-analysis-mtf; merge to main pending
 Overall Status: IN_PROGRESS
-Active Sprint: SPRINT_004 (IN_PROGRESS — Wave 4 complete, Wave 5 next)
-Last Completed Sprint: SPRINT_003 (COMPLETED)
+Active Sprint: none (SPRINT_004 closed; SPRINT_005 not yet planned)
+Last Completed Sprint: SPRINT_004 (COMPLETED)
 ```
 
 ---
 
 ## 3. Current Objective
 
-Plan and execute **Sprint 004 — Multitimeframe Foundation MVP** (first increment of Phase 4).
+Close Sprint 004 integration: open PR from `sprint/market-analysis-mtf` to `main`, review and merge.
 
-Extend the Market Analysis Engine for safe multitimeframe batch analysis with a **lean MVP**:
-explicit `ResampleNode`, `computation_timeframe` on requests, layered cache identity,
-Polars resample/align path, `LAST_CLOSED_BAR` + `join_asof`, fixed UTC boundaries.
-Trading Calendar deferred. Validate through vertical slice `1m → 5m ATR (aligned to 1m) + 1m EMA`.
+Sprint 004 delivered the **Multitimeframe Foundation MVP** — lean batch MTF with explicit
+`ResampleNode`, layered identity, Polars resample/align, `LAST_CLOSED_BAR` alignment, and
+vertical slice `1m → 5m ATR (aligned to 1m) + 1m EMA`. ADR-MA-012 accepted.
 
-Sprint 004 plan: `docs/planning/sprints/SPRINT_004.md`  
-MTF architecture (vision): `docs/vision/MULTITIMEFRAME_MARKET_MODEL_ARCHITECTURE_UPDATED.md`  
-Engine baseline (complete): Sprint 003 on `main`  
-Sprint 003 record: `docs/planning/sprints/SPRINT_003.md`
+Sprint 004 record: `docs/planning/sprints/SPRINT_004.md`  
+MTF ADR: `docs/adr/ADR-MA-012-batch-multitimeframe-computation-with-polars.md`  
+Engine baseline on `main`: Sprint 003; MTF increment on sprint branch pending merge.
 
 ---
 
@@ -95,6 +93,16 @@ Completed in Sprint 003 (merged to `main`):
 - `AnalysisFrameAssembler`, `run_analysis` facade,
 - ADR-0005, ADR-MA-001–011; 208 tests at sprint closure.
 
+### Phase 4 — Multitimeframe Foundation (Sprint 004)
+
+Completed on `sprint/market-analysis-mtf` (merge to `main` pending):
+
+- timeframe roles: `computation_timeframe`, `evaluation_timeframe`, `RequestResolver`,
+- `ResampleSpec`, `ResampleNode`, Polars resample/align, layered identities,
+- `available_at` on HTF outputs, `LAST_CLOSED_BAR` + `join_asof` frame assembly,
+- MTF behavior regressions and end-to-end vertical slice via `run_analysis`,
+- ADR-MA-012; 240 tests at sprint closure.
+
 ### Architectural Foundations
 
 Conceptual architecture: `docs/vision/`. As-implemented reference: `docs/reference/`.
@@ -125,29 +133,22 @@ Maintenance: `.cursor/rules/documentation.mdc`
 
 ## 6. Work in Progress
 
-### Sprint 004 — Multitimeframe Foundation MVP
+### Sprint integration — `sprint/market-analysis-mtf` → `main`
 
-**Status:** IN_PROGRESS (Wave 4 complete)  
-**Plan:** `docs/planning/sprints/SPRINT_004.md`  
-**Sprint branch:** `sprint/market-analysis-mtf`  
-**Tasks:** 16 (T001–T013 DONE; Wave 5 next; T016 deferred)
+**Status:** ready for final sprint PR  
+**Branch:** `sprint/market-analysis-mtf`  
+**Delivered:** T001–T015 (T016 deferred)
 
-**Design stance:** lean MTF MVP — layered identity, `ResampleNode` (not registry component), Polars for resample/align only, Trading Calendar deferred, ~5 outcome-scoped PRs. See Design Principles in sprint plan.
+**Next step:** open sprint integration PR to `main`, review, merge.
 
-**Prerequisite:** [`ARCHITECTURE_SIMPLIFICATION_REVIEW_S002_S003.md`](retrospectives/ARCHITECTURE_SIMPLIFICATION_REVIEW_S002_S003.md) — forward direction Polars-first; do not rewrite S002/S003; TD-011–TD-016 track accepted debt.
+### Sprint 005 (not yet planned)
 
-**Planned waves:**
+Preview from Sprint 004 retrospective:
 
-- Wave 0 — single MTF spike + architecture decision note (T001)
-- Wave 1 — timeframe on request/context, resolved model, layered identities, `ResampleSpec` (T002–T005)
-- Wave 2 — Polars resampling, request resolution, planner/executor `ResampleNode` (T006–T008)
-- Wave 3 — `available_at`, `join_asof` alignment, frame MTF assembly (T009–T011)
-- Wave 4 — behavior tests + end-to-end vertical slice (T012–T013)
-- Wave 5 — one ADR (ADR-MA-012), docs, closure (T014–T015)
-
-**Next:** Wave 5 (T014–T015) — ADR-MA-012, module docs, sprint closure.
-
-**Reference:** `docs/vision/MULTITIMEFRAME_MARKET_MODEL_ARCHITECTURE_UPDATED.md`, `docs/agents/AGENTS_MULTITIMEFRAME_MARKET_MODEL_UPDATED (1).md`
+- TradingCalendar when CME/session use case appears (PRB-007),
+- structure components catalog,
+- published HTF dataset vs on-the-fly resample,
+- columnar boundary improvements (TD-011, TD-015).
 
 ---
 
@@ -155,16 +156,16 @@ Maintenance: `.cursor/rules/documentation.mdc`
 
 Nothing is technically blocked.
 
-Sprint 004 Wave 4 (T012–T013) complete — **Wave 5 next**.
+Sprint 004 closed — **sprint integration PR to `main` is the next gate**.
 
 ---
 
 ## 8. Open Critical Problems
 
-From `PROBLEM_REGISTRY.md` — Sprint 004 addresses:
+From `PROBLEM_REGISTRY.md` — Sprint 004 delivered:
 
-- PRB-002 — layered computation identity (Resample / Component / Alignment),
-- PRB-007 — **deferral note only** (fixed UTC resampling; exchange calendar in Sprint 005+).
+- PRB-002 — layered computation identity (Resample / Component / Alignment) — partial MVP resolution extended,
+- PRB-007 — deferral documented (fixed UTC resampling; exchange calendar in Sprint 005+).
 
 Remaining high-priority items:
 
@@ -192,6 +193,7 @@ PRB-002 and PRB-005 received partial MVP resolution in Sprint 003.
 | ADR-0008 Parquet Storage | ACCEPTED (Sprint 002) |
 | ADR-0005 Market Analysis Domain | ACCEPTED (Sprint 003) |
 | ADR-MA-001–011 Market Analysis Engine | ACCEPTED (Sprint 003) |
+| ADR-MA-012 Batch MTF with Polars | ACCEPTED (Sprint 004) |
 | ADR-0004, ADR-0006, ADR-0009, ADR-0010 | PLANNED |
 
 Binding decisions D-001–D-036 and workspace invariants are documented in the architecture files above; ADR materialization is Sprint 003 Wave 6 (including ADR-MA-007 workspace).
@@ -211,27 +213,19 @@ Binding decisions D-001–D-036 and workspace invariants are documented in the a
 ## 11. Next Planned Capability
 
 ```text
-Sprint 004 — Multitimeframe Foundation MVP (active plan)
+Sprint 005 planning (Phase 4 continuation)
 ```
 
-Target flow after Sprint 004:
+Candidate scope (see `SPRINT_004.md` Sprint 005 Preview):
 
 ```text
-Published DatasetRef (1m)
-    → explicit Resample node (e.g. 5m)
-    → timeframe-aware component DAG
-    → LAST_CLOSED_BAR alignment to evaluation grid
-    → AnalysisResultStore → AnalysisWorkspace → AnalysisFrame
-```
-
-Deferred to Sprint 005+ within Phase 4:
-
-```text
-Structure catalog (Pivot, swing labels)
-MarketFieldReference and model expression evaluation
-exchange/session calendar
+TradingCalendar when CME/session use case appears
+Structure components (Pivot, swing labels)
+Published HTF dataset vs on-the-fly resample
+ResamplingPolicy when second semantics exists
+MarketFieldReference
 persistent derived datasets
-optional TA-Lib adapter (S003-T027 / S004-T034)
+optional TA-Lib adapter (S004-T016)
 ```
 
 ---
@@ -243,7 +237,7 @@ optional TA-Lib adapter (S003-T027 / S004-T034)
 | 001 | Repository foundation | COMPLETED | 22 / 22 tasks |
 | 002 | Market Data MVP | COMPLETED | 26 / 26 tasks |
 | 003 | Market Analysis Engine MVP | COMPLETED | 40 / 41 tasks (T027 deferred) |
-| 004 | Multitimeframe Foundation MVP | IN_PROGRESS | 5 / 15 tasks (T016 deferred) |
+| 004 | Multitimeframe Foundation MVP | COMPLETED | 15 / 15 tasks (T016 deferred) |
 
 ---
 

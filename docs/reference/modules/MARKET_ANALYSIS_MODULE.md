@@ -1,11 +1,11 @@
 # Market Analysis Module (thin guide)
 
 > **Reference doc** — [as-implemented layer](../README.md).  
-> Expand after Sprint 003 closure. Index: [docs/README.md](../../README.md).
+> Index: [docs/README.md](../../README.md).
 
-**Status:** Sprint 003 complete — engine MVP on `sprint/market-analysis-mvp`.  
-Binding decisions (vision): [../../vision/MARKET_ANALYSIS_WITH_DECISIONS.md](../../vision/MARKET_ANALYSIS_WITH_DECISIONS.md), [../../vision/ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md](../../vision/ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md).  
-Accepted ADRs: [../adr/ADR-0005-market-analysis-domain-and-taxonomy.md](../adr/ADR-0005-market-analysis-domain-and-taxonomy.md), [../adr/README.md](../adr/README.md) (ADR-MA-001–011).
+**Status:** Sprint 004 complete — single-TF engine + MTF foundation on `sprint/market-analysis-mtf`.  
+Binding decisions (vision): [../../vision/MARKET_ANALYSIS_WITH_DECISIONS.md](../../vision/MARKET_ANALYSIS_WITH_DECISIONS.md), [../../vision/MULTITIMEFRAME_MARKET_MODEL_ARCHITECTURE_UPDATED.md](../../vision/MULTITIMEFRAME_MARKET_MODEL_ARCHITECTURE_UPDATED.md).  
+Accepted ADRs: [../adr/README.md](../adr/README.md) (ADR-MA-001–012).
 
 ---
 
@@ -14,29 +14,52 @@ Accepted ADRs: [../adr/ADR-0005-market-analysis-domain-and-taxonomy.md](../adr/A
 Deterministic batch analysis over published market datasets:
 
 - register analysis components and implementations,
-- resolve dependencies into a DAG,
-- execute sequentially with deduplication cache,
-- store results with identity and lineage in an execution-scoped workspace.
+- resolve dependencies and optional resampling into a DAG,
+- execute sequentially with layered deduplication caches,
+- store results with identity and lineage in an execution-scoped workspace,
+- optionally assemble a wide consumer frame on an evaluation grid.
 
-The domain does **not** use a shared mutable DataFrame as the primary model. Input is `AnalysisDataView`; outputs are `AnalysisResult` with typed output refs.
+The domain does **not** use a shared mutable DataFrame as the primary model. Input is
+`AnalysisDataView`; outputs are `AnalysisResult` with typed output refs.
 
 ---
 
-## Implemented Flow (Wave 4)
+## Implemented Flow
+
+### Single-timeframe (Sprint 003)
 
 ```text
-run_analysis()                       # application/market_analysis (facade)
+run_analysis()
     load_analysis_data_view()
+    RequestResolver.resolve_input_plan()
     DependencyPlanner.build_plan()
     SequentialBatchExecutor.execute()
     optional AnalysisFrameAssembler.assemble()
-
-Built-in components (register_mvp_components):
-    volatility.true_range → volatility.atr → volatility.state
-    trend.ema
 ```
 
-Manual flow remains available via `load_analysis_data_view` + planner + executor.
+### Multitimeframe (Sprint 004)
+
+When `ComponentRequest.computation_timeframe` is coarser than the dataset timeframe:
+
+```text
+source AnalysisDataView (e.g. 1m)
+    → ResampleNode (Polars, deduplicated, ResampleCache)
+    → resampled AnalysisDataView (e.g. 5m)
+    → component execution (unchanged NumPy path)
+    → OutputSeries.available_at on HTF outputs
+    → AnalysisFrameAssembler aligns to evaluation_timeframe grid (join_asof)
+```
+
+`RunAnalysisRequest.evaluation_timeframe` sets the frame index (defaults to source timeframe).
+
+Built-in components (`register_mvp_components`):
+
+```text
+volatility.true_range → volatility.atr → volatility.state
+trend.ema
+```
+
+Resampling is **not** a registry component — see ADR-MA-012.
 
 ---
 
@@ -49,57 +72,71 @@ Manual flow remains available via `load_analysis_data_view` + planner + executor
 | `volatility.state` | `numpy.volatility_state` | ATR + threshold; diagnostic `distance_to_threshold` |
 | `trend.ema` | `numpy.ema` | close column |
 
+All components accept optional `computation_timeframe` on `ComponentRequest`.
+
 ---
 
 ## Key Types (entry: `trading_framework.market_analysis`)
 
 | Area | Types |
 |------|-------|
-| Identity | `ComponentId`, `ComputationIdentity`, `ImplementationId` |
-| Planning | `ComponentRequest`, `DependencyPlanner`, `ExecutionPlan` |
+| Identity | `ComponentId`, `ComputationIdentity`, `ResampleIdentity`, `AlignmentIdentity` |
+| Timeframes | `ComponentRequest.computation_timeframe`; run `evaluation_timeframe` via application |
+| Resampling | `ResampleSpec`, `ResampleNode`, `ResampleCache` |
+| Resolution | `RequestResolver`, `ResolvedInputPlan`, `ResolvedComponentRequest` |
+| Planning | `DependencyPlanner`, `ExecutionPlan`, `PlanningContext` |
 | Input | `AnalysisDataView`, `AnalysisContext`, `TimeRange` |
-| Output | `AnalysisResult`, `OutputId`, `OutputRef`, `Lineage` |
+| Output | `AnalysisResult`, `OutputSeries` (`available_at` on HTF), `OutputId`, `Lineage` |
+| Alignment | `AlignmentPolicy`, `AnalysisFrameAssembler` (+ optional `AlignmentCache`) |
 | Storage | `AnalysisResultStore`, `AnalysisWorkspace` |
-| Assembly | `AnalysisFrame`, `AnalysisFrameAssembler`, `AnalysisFrameRequest` |
 | Execution | `SequentialBatchExecutor`, `ExecutionCache` |
-| Protocols | `BatchAnalysisComponent`, `ComponentImplementation` |
+| Assembly | `AnalysisFrame`, `AnalysisFrameRequest`, `AnalysisFrameColumnSpec` |
 
-Application: `load_analysis_data_view`, `run_analysis`.
+Application: `load_analysis_data_view`, `run_analysis` (`RunAnalysisRequest.evaluation_timeframe`).
 
 ---
 
-## Verification (Wave 5)
+## Verification
 
 | Area | Location |
 |------|----------|
-| Adapter contract suite (D-033) | `tests/unit/market_analysis/adapters/` |
+| Adapter contract suite | `tests/unit/market_analysis/adapters/` |
 | Execution cache and identity | `tests/unit/market_analysis/test_execution_contracts.py` |
 | Workspace and frame assembly | `tests/unit/market_analysis/test_workspace_frame_contracts.py` |
-| Vertical slice integration | `tests/integration/test_market_analysis_vertical_slice.py` |
-
-## Deferred Beyond MVP
-
-| Capability | Notes |
-|------------|-------|
-| Optional TA-Lib adapter | S003-T027 |
-| Structure components catalog | Phase 4+ |
-| Persistent derived datasets | ADR-MA-007 consequences |
-| Multitimeframe execution | Phase 4 |
+| MTF wave contracts | `tests/unit/market_analysis/test_mtf_wave1_contracts.py` … `test_mtf_wave3.py` |
+| MTF behavior regressions (7 areas) | `tests/unit/market_analysis/test_mtf_behavior.py` |
+| Single-TF vertical slice | `tests/integration/test_market_analysis_vertical_slice.py` |
+| MTF vertical slice | `tests/integration/test_market_analysis_mtf_vertical_slice.py` |
 
 ---
 
-## Design Notes (MVP)
+## Deferred Beyond Sprint 004
+
+| Capability | Notes |
+|------------|-------|
+| Exchange/session Trading Calendar (PRB-007) | fixed UTC duration buckets in S004; see ADR-MA-012 |
+| `ResamplingPolicy` / `BoundaryPolicy` enums | deferred until second semantics needed |
+| Published HTF dataset vs on-the-fly resample | noted on `ResolvedInputPlan` |
+| Optional TA-Lib adapter | S003-T027 / S004-T016 |
+| Structure components catalog | Phase 4+ |
+| Persistent derived datasets | ADR-MA-007 consequences |
+| Full columnar Polars query path | TD-011, TD-015 |
+
+---
+
+## Design Notes
 
 - **Input contract:** `list[MarketBar]` at the repository boundary; `AnalysisDataView` exposes columnar `float64` for computation.
-- **Storage vs analysis:** Parquet keeps prices as string for lossless `Decimal`; the view converts for numerics.
-- **Workspace:** executor-owned; components register outputs through the workspace API, not ad-hoc globals.
-- **Cache:** in-memory, execution-scoped; identity keyed by `ComputationIdentity`.
+- **Polars scope:** resample and align only; conversion at boundary to existing view/component path.
+- **Partial buckets:** UTC epoch-aligned `group_by_dynamic`; trailing partial bucket emitted when non-empty (ADR-MA-012).
+- **Look-ahead:** `LAST_CLOSED_BAR` + backward `join_asof` on `available_at`; behavior tests in `test_mtf_behavior.py`.
+- **Cache:** layered in-memory caches scoped to one executor run (`ResampleCache`, `ExecutionCache`, `AlignmentCache`).
 
 ---
 
 ## Where to Read Next
 
 1. Source: `src/trading_framework/market_analysis/`
-2. Tests: `tests/unit/market_analysis/`, `tests/unit/application/market_analysis/`
-3. Sprint plan: `docs/planning/sprints/SPRINT_003.md`
-4. Spike (data view): `docs/planning/sprints/S003_WAVE0_SPIKE_REPORT.md`
+2. ADR: [../adr/ADR-MA-012-batch-multitimeframe-computation-with-polars.md](../adr/ADR-MA-012-batch-multitimeframe-computation-with-polars.md)
+3. Sprint plan: `docs/planning/sprints/SPRINT_004.md`
+4. Spike: `docs/planning/sprints/S004_MTF_SPIKE_AND_DECISIONS.md`

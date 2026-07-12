@@ -407,6 +407,11 @@ Trading Calendars are required for:
 
 The contract is defined, but implementation strategy is not selected.
 
+**Sprint 004 deferral (2026-07-12):** Multitimeframe batch resampling uses fixed UTC duration
+buckets (`ResampleSpec`, Polars `group_by_dynamic`) without exchange sessions or holidays.
+Documented in ADR-MA-012. Calendar-aware resampling, missing-range detection and session
+boundaries remain blocked on this problem for Sprint 005+.
+
 ### Impact
 
 Incorrect calendars can produce false data gaps and temporal errors.
