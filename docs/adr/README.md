@@ -40,8 +40,8 @@ SUPERSEDED
 | [ADR-MA-011](ADR-MA-011-batch-versus-incremental-execution.md) | Batch Versus Incremental Execution | ACCEPTED | Sprint 003 |
 | [ADR-MA-012](ADR-MA-012-batch-multitimeframe-computation-with-polars.md) | Batch Multitimeframe Computation with Polars | ACCEPTED | Sprint 004 |
 | [ADR-MA-013](ADR-MA-013-cme-es-rth-session-and-swing-structure-mtf-projection.md) | CME ES RTH Session and Swing Structure MTF Projection | ACCEPTED | Sprint 005 |
+| [ADR-0006](ADR-0006-declarative-market-and-signal-models.md) | Declarative Market and Signal Models | ACCEPTED | Sprint 006 |
 | ADR-0004 | Independent Research and Execution Workflows | PLANNED | TBD |
-| ADR-0006 | Declarative Market and Signal Models | PLANNED | TBD |
 | ADR-0009 | Batch Backtest vs Replay Execution | PLANNED | TBD |
 | ADR-0010 | Working Component and Model Fingerprints | PLANNED | TBD |
 
