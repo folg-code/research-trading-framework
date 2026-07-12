@@ -5,7 +5,7 @@
 ```text
 Sprint: 003
 Phase: Phase 3 — Market Analysis Engine MVP
-Status: IN_PROGRESS (Waves 0–4 COMPLETE; Wave 5 next)
+Status: IN_PROGRESS (Waves 0–5 COMPLETE; Wave 6 next)
 Planned Start: 2026-06-23
 Planned End: TBD
 Sprint Goal Owner: Project Maintainer
@@ -223,11 +223,11 @@ Prefer the smallest dependency set confirmed by the Wave 0 spike.
 | S003-T028 | Volatility State + diagnostic output | DONE | S003-T026 |
 | S003-T039 | AnalysisFrameAssembler and alias policy | DONE | S003-T038, S003-T028 |
 | S003-T029 | Engine facade and run_analysis use case | DONE | S003-T022, S003-T039 |
-| S003-T030 | Adapter contract test suite | TODO | S003-T026 |
-| S003-T031 | Integration test: wide AnalysisFrame from DatasetRef | TODO | S003-T029 |
-| S003-T041 | Workspace and frame assembly tests | TODO | S003-T039 |
-| S003-T032 | Cache dedup and cycle detection tests | TODO | S003-T022, S003-T017 |
-| S003-T033 | Input immutability and identity tests | TODO | S003-T021 |
+| S003-T030 | Adapter contract test suite | DONE | S003-T026 |
+| S003-T031 | Integration test: wide AnalysisFrame from DatasetRef | DONE | S003-T029 |
+| S003-T041 | Workspace and frame assembly tests | DONE | S003-T039 |
+| S003-T032 | Cache dedup and cycle detection tests | DONE | S003-T022, S003-T017 |
+| S003-T033 | Input immutability and identity tests | DONE | S003-T021 |
 | S003-T034 | Market Analysis ADRs (ADR-0005 + MA decisions) | TODO | S003-T004 |
 | S003-T035 | Update architecture docs and problem registry notes | TODO | S003-T034 |
 | S003-T036 | Sprint review and CURRENT_STATUS update | TODO | All preceding tasks |
