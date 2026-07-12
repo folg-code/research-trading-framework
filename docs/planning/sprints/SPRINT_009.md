@@ -5,7 +5,7 @@
 ```text
 Sprint: 009
 Phase: Phase 5 — Signal Research MVP (second increment)
-Status: PLANNED — Wave 0 complete (2026-07-12); Wave 1 kickoff pending
+Status: COMPLETE — sprint branch ready for merge to main (2026-07-12)
 Planned Start: TBD
 Planned End: TBD
 Sprint Goal Owner: Project Maintainer
@@ -306,9 +306,9 @@ v1 read compatibility, deterministic run identity.
 | S009-T006 | MARKET_AND_SIGNAL workflow + context facts | DONE | S009-T004, S009-T005 |
 | S009-T007 | Envelope schema v2 + repository read/write + v1 read | DONE | S009-T004 |
 | S009-T008 | Integration tests (three scopes + deterministic fixture) | DONE | S009-T006, S009-T007 |
-| S009-T009 | Inspection spike increment (optional) | TODO | S009-T008 |
-| S009-T010 | ADR-0012 — scope and context alignment | DONE (draft) | S009-T001 |
-| S009-T011 | MODULE_MAP, CURRENT_STATUS, sprint closure | TODO | S009-T010 |
+| S009-T009 | Inspection spike increment (optional) | DONE | S009-T008 |
+| S009-T010 | ADR-0012 — scope and context alignment | ACCEPTED | S009-T001 |
+| S009-T011 | MODULE_MAP, CURRENT_STATUS, sprint closure | DONE | S009-T010 |
 
 **Total:** 11 tasks (~4 outcome PRs)
 
@@ -368,33 +368,33 @@ sprint closure
 
 ### Scope configuration
 
-- [ ] `ResearchScope` required on new runs; recorded in manifest
-- [ ] `SIGNAL_MODEL_ONLY` backward compatible with Sprint 008
-- [ ] Invalid scope/model combinations fail fast with clear errors
+- [x] `ResearchScope` required on new runs; recorded in manifest
+- [x] `SIGNAL_MODEL_ONLY` backward compatible with Sprint 008
+- [x] Invalid scope/model combinations fail fast with clear errors
 
 ### MARKET_MODEL_ONLY
 
-- [ ] `high_volatility` produces TRUE_EDGE observation facts
-- [ ] Forward outcomes use Sprint 008 calculator and sign conventions
-- [ ] Envelope v2 persists and round-trips via repository
+- [x] `high_volatility` produces TRUE_EDGE observation facts
+- [x] Forward outcomes use Sprint 008 calculator and sign conventions
+- [x] Envelope v2 persists and round-trips via repository
 
 ### MARKET_AND_SIGNAL
 
-- [ ] Context evaluated at signal `available_at` (not `detected_at`)
-- [ ] `context_met_at_available_at` preserved including `false` rows
-- [ ] Outcomes unchanged in schema; join via `occurrence_id`
+- [x] Context evaluated at signal `available_at` (not `detected_at`)
+- [x] `context_met_at_available_at` preserved including `false` rows
+- [x] Outcomes unchanged in schema; join via `occurrence_id`
 
 ### Persistence
 
-- [ ] `signal_research.v2` documented; v1 runs readable (read-only)
-- [ ] Deterministic `run_id` includes scope in hash
+- [x] `signal_research.v2` documented; v1 runs readable (read-only)
+- [x] Deterministic `run_id` includes scope in hash
 
 ### Tests
 
-- [ ] Canonical E2E: `high_volatility × higher_low_long`
-- [ ] Deterministic contract: controlled emission + threshold market model
-- [ ] Sprint 008 integration tests pass for `SIGNAL_MODEL_ONLY`
-- [ ] ADR-0011 outcome semantics unchanged
+- [x] Canonical E2E: `high_volatility × higher_low_long`
+- [x] Deterministic contract: controlled emission + threshold market model
+- [x] Sprint 008 integration tests pass for `SIGNAL_MODEL_ONLY`
+- [x] ADR-0011 outcome semantics unchanged
 
 ---
 
@@ -456,4 +456,4 @@ conditional outcome comparisons (uses context_met from 009)
 |------|--------|
 | 2026-07-12 | Initial outline |
 | 2026-07-12 | Full sprint plan: tasks, waves, binding decisions, acceptance criteria |
-| 2026-07-12 | Wave 0 decisions locked (D-S009-01 … D-S009-11); S009_WAVE0_DECISIONS.md; ContextFact in Wave 1; API shape confirmed |
+| 2026-07-12 | Wave 4 closure: inspection spike, ADR-0012 ACCEPTED, docs updated |

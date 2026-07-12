@@ -7,7 +7,7 @@ Package map for `src/trading_framework/`: responsibility, dependencies, status, 
 
 **Status legend:** ✅ implemented · 🟡 partial / in sprint · ⬜ skeleton · 📘 deep doc elsewhere
 
-Last updated: 2026-07-12 (Sprint 009 Wave 1)
+Last updated: 2026-07-12 (Sprint 009 complete on sprint branch)
 
 ---
 
@@ -24,7 +24,7 @@ market_model/         Market Model definitions and evaluator
 signal_model/         Signal Model definitions, firing, emissions
 infrastructure/       adapters — CSV, Parquet, file registry
 core/, time/, config/ shared primitives
-strategy/, research/         Signal Research MVP (Sprint 008) ✅ / 🟡
+strategy/, research/         Signal Research MVP (Sprint 008–009) ✅
 execution/, events/          ⬜ future domains
 ```
 
@@ -173,7 +173,7 @@ Published DatasetRef (source timeframe, e.g. 1m)
 
 | | |
 |---|---|
-| **Responsibility** | Signal Research run orchestration (scope-aware; `SIGNAL_MODEL_ONLY` v1, `MARKET_MODEL_ONLY` v2) |
+| **Responsibility** | Signal Research run orchestration (all three `ResearchScope` values; v1 + v2 envelopes) |
 | **Talks to** | `application/model_evaluation`, `strategy`, `research` |
 | **Key paths** | `run_signal_research.py` |
 | **Entry points** | `run_signal_research` |
@@ -217,20 +217,22 @@ model_authoring DSL (optional)
 
 ---
 
-## Signal Research (Sprint 008) ✅
+## Signal Research (Sprint 008–009) ✅
 
 End-to-end flow:
 
 ```text
 Published DatasetRef
-  → run_signal_research (or evaluate_models + materialization + outcomes)
-  → SignalOccurrence facts
+  → run_signal_research (scope-aware)
+  → SignalOccurrence and/or MarketModelObservation facts
+  → optional ContextFact (MARKET_AND_SIGNAL at available_at)
   → ForwardOutcome facts (long format)
-  → immutable run envelope (manifest + occurrences.parquet + outcomes.parquet)
-  → repository read / inspection spike
+  → immutable run envelope (manifest + scope-specific parquet tables)
+  → repository read / inspection spikes
 ```
 
-ADR: [ADR-0011](../adr/ADR-0011-signal-research-outcomes-and-persistence.md)
+ADR: [ADR-0011](../adr/ADR-0011-signal-research-outcomes-and-persistence.md),
+[ADR-0012](../adr/ADR-0012-combined-research-scopes-and-context-alignment.md)
 
 ### `strategy/` ✅ (Signal Research slice)
 
@@ -240,7 +242,7 @@ ADR: [ADR-0011](../adr/ADR-0011-signal-research-outcomes-and-persistence.md)
 | **Key paths** | `signal_occurrence.py`, `reference_price.py` |
 | **Entry points** | `materialize_signal_occurrences`, `derive_occurrence_id`, `resolve_reference_price` |
 
-### `research/` 🟡 (Signal Research — Sprint 009 Wave 1)
+### `research/` ✅ (Signal Research — Sprint 008–009)
 
 | Subpackage | Responsibility |
 |------------|----------------|
@@ -253,7 +255,7 @@ ADR: [ADR-0011](../adr/ADR-0011-signal-research-outcomes-and-persistence.md)
 
 **Entry points:** `validate_signal_research_request`, `materialize_market_model_observations`,
 `align_context_facts_at_available_at`, `compute_forward_outcomes`,
-`SignalResearchDatasetRepository.read/write`
+`SignalResearchDatasetRepository.read/write`, `run_signal_research`
 
 ---
 
@@ -275,7 +277,8 @@ Skeleton packages without public workflows beyond Signal Research slice above.
 | Architecture boundary | `tests/unit/test_architecture_boundaries.py` |
 | Market data integration | `tests/integration/market_data/` |
 | Market analysis | `tests/unit/market_analysis/`, `tests/unit/application/market_analysis/`, `tests/integration/test_market_analysis_*` |
-| Signal Research integration | `tests/integration/test_s008_run_signal_research.py` |
+| Signal Research integration | `tests/integration/test_s008_run_signal_research.py`, `tests/integration/test_s009_*` |
+| Signal Research spikes | `tests/spike/run_combined_research_spike.py`, `tests/spike/run_inspect_combined_research.py` |
 | Signal Research unit | `tests/unit/strategy/`, `tests/unit/research/` |
 | MA architecture boundaries | `tests/unit/market_analysis/test_market_analysis_architecture_boundaries.py` |
 
