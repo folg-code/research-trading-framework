@@ -147,8 +147,8 @@ Immutability: existing `run_id` directory must not be overwritten.
 | S008-T001 | Wave 0 spike and binding decisions | DONE | — |
 | S008-T002 | `SignalOccurrence` schema, stable `occurrence_id`, materialization | DONE | S008-T001 |
 | S008-T003 | Reference-price policy and materialization (not fill price) | DONE | S008-T002 |
-| S008-T004 | Forward outcome definition and calculator | TODO | S008-T001 |
-| S008-T005 | Temporal and incomplete-horizon edge cases | TODO | S008-T004 |
+| S008-T004 | Forward outcome definition and calculator | DONE | S008-T001 |
+| S008-T005 | Temporal and incomplete-horizon edge cases | DONE | S008-T004 |
 | S008-T006 | Dataset schema, manifest, writer and reader | TODO | S008-T004 |
 | S008-T007 | `run_signal_research` application workflow | TODO | S008-T003, S008-T006 |
 | S008-T008 | End-to-end integration and round-trip determinism | TODO | S008-T007 |
@@ -185,6 +185,8 @@ Strategy-domain `SignalOccurrence` with stable identity and reference-price poli
 ### Wave 2 — T004–T005
 
 `ForwardOutcomeDefinition` + calculator; incomplete horizon, nulls, temporal edge cases.
+
+**Done (2026-07-12):** `research/outcomes/` definition, calculator, OHLCV alignment; unit tests; spike uses production API.
 
 ### Wave 3 — T006–T008
 
