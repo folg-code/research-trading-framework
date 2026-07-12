@@ -30,3 +30,17 @@ uv run python tests/spike/run_model_expression_spike.py --json
 ```
 
 Validates AnalysisFrame → Polars adapter, three-valued logic and firing policies.
+
+Declarative model inspection (S006-T020):
+
+```bash
+uv pip install plotly
+uv run python tests/spike/run_inspect_declarative_models.py --open
+uv run python tests/spike/run_inspect_declarative_models.py \\
+  --market-models high_volatility \\
+  --signal-models higher_low_long,high_vol_and_higher_low \\
+  --output model_inspection.html --open
+```
+
+Overlays pre-computed Market Model state, Signal Model conditions and emission markers.
+Chart helpers do not evaluate models or run Market Analysis.

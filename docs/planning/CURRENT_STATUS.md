@@ -28,7 +28,7 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 ```text
 Status Date: 2026-07-12
 Current Phase: Phase 4 / Phase 5 bridge
-Current Milestone: Sprint 006 Wave 3 complete
+Current Milestone: Sprint 006 Wave 4 complete
 Implementation Status: Sprints 003–005 COMPLETE on main; Sprint 006 IN_PROGRESS
 Overall Status: IN_PROGRESS
 Active Sprint: SPRINT_006 (IN_PROGRESS — see SPRINT_006.md)
@@ -147,12 +147,12 @@ Maintenance: `.cursor/rules/documentation.mdc`
 
 ### Sprint 006 — Declarative Market Model and Signal Model
 
-**Status:** IN_PROGRESS (Wave 3 complete)  
+**Status:** IN_PROGRESS (Wave 4 complete)  
 **Plan:** `docs/planning/sprints/SPRINT_006.md`  
 **Wave 0:** `docs/planning/sprints/S006_WAVE0_DECISIONS.md`  
 **Direction:** `docs/planning/sprints/PHASE_4_5_SPRINT_DIRECTION.md`  
 **Sprint branch:** `sprint/declarative-models`  
-**Tasks:** 16 / 26 done (Wave 0–3)
+**Tasks:** 21 / 26 done (Wave 0–4)
 
 **Planned follow-on (not started):** Sprint 007 optional; Sprint 008 Signal Research MVP.
 
@@ -249,7 +249,7 @@ See `PHASE_4_5_SPRINT_DIRECTION.md` for Sprints 007, 009, 010.
 | 003 | Market Analysis Engine MVP | COMPLETED | 40 / 41 tasks (T027 deferred) |
 | 004 | Multitimeframe Foundation MVP | COMPLETED | 15 / 15 tasks (T016 deferred) |
 | 005 | Calendar, swing structure, visual inspection | COMPLETED (sprint branch) | 16 / 16 tasks (T017–T018 deferred) |
-| 006 | Declarative Market Model and Signal Model | IN_PROGRESS | 16 / 26 tasks |
+| 006 | Declarative Market Model and Signal Model | IN_PROGRESS | 21 / 26 tasks |
 
 ---
 
