@@ -145,8 +145,8 @@ Immutability: existing `run_id` directory must not be overwritten.
 | ID | Task | Status | Depends On |
 |----|------|--------|------------|
 | S008-T001 | Wave 0 spike and binding decisions | DONE | — |
-| S008-T002 | `SignalOccurrence` schema, stable `occurrence_id`, materialization | TODO | S008-T001 |
-| S008-T003 | Reference-price policy and materialization (not fill price) | TODO | S008-T002 |
+| S008-T002 | `SignalOccurrence` schema, stable `occurrence_id`, materialization | DONE | S008-T001 |
+| S008-T003 | Reference-price policy and materialization (not fill price) | DONE | S008-T002 |
 | S008-T004 | Forward outcome definition and calculator | TODO | S008-T001 |
 | S008-T005 | Temporal and incomplete-horizon edge cases | TODO | S008-T004 |
 | S008-T006 | Dataset schema, manifest, writer and reader | TODO | S008-T004 |
@@ -179,6 +179,8 @@ Deliverables:
 ### Wave 1 — T002–T003
 
 Strategy-domain `SignalOccurrence` with stable identity and reference-price policy.
+
+**Done (2026-07-12):** `reference_price.py`, `signal_occurrence.py`, unit tests; spike uses production strategy API.
 
 ### Wave 2 — T004–T005
 

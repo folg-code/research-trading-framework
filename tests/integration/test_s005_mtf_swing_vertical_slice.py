@@ -162,11 +162,10 @@ def _run_s005_analysis(
 
 def test_s005_vertical_slice_session_mtf_swing_and_frame(
     tmp_path: Path,
-    market_data_fixtures_dir: Path,
+    ohlcv_sample_1m_path: Path,
 ) -> None:
     storage_root = tmp_path / "storage"
-    fixture = market_data_fixtures_dir / "s005_swing_vertical_slice_1m.csv"
-    dataset_ref = _write_published_dataset(storage_root, csv_path=fixture)
+    dataset_ref = _write_published_dataset(storage_root, csv_path=ohlcv_sample_1m_path)
     metadata = FileDatasetRegistry(storage_root).get(dataset_ref)
 
     result = _run_s005_analysis(

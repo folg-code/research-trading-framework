@@ -3,6 +3,7 @@
 from datetime import UTC, datetime
 from pathlib import Path
 
+from tests.fixtures.market_data import OHLCV_SAMPLE_1M_ROW_COUNT
 from trading_framework.application.market_data import (
     ImportExternalDatasetRequest,
     QueryHistoricalRequest,
@@ -54,14 +55,13 @@ def _import_request(path: Path) -> ImportExternalDatasetRequest:
 
 def test_csv_import_finalize_publish_query_flow(
     tmp_path: Path,
-    market_data_fixtures_dir: Path,
+    ohlcv_sample_1m_path: Path,
 ) -> None:
     storage_root = tmp_path / "data"
     registry = FileDatasetRegistry(storage_root)
-    fixture = market_data_fixtures_dir / "sample_ohlcv.csv"
 
     import_result = import_external_dataset(
-        _import_request(fixture),
+        _import_request(ohlcv_sample_1m_path),
         storage_root=storage_root,
         registry=registry,
         clock=FixedClock(_IMPORTED_AT),
@@ -71,7 +71,7 @@ def test_csv_import_finalize_publish_query_flow(
     assert import_result.validation_result.is_valid is True
     assert working_metadata.lifecycle_status is DatasetLifecycleState.WORKING
     assert working_metadata.validation_status is ValidationStatus.PASSED
-    assert working_metadata.row_count == 2
+    assert working_metadata.row_count == OHLCV_SAMPLE_1M_ROW_COUNT
 
     finalize_dataset(
         import_result.dataset_ref,
@@ -102,6 +102,6 @@ def test_csv_import_finalize_publish_query_flow(
         registry=registry,
     )
 
-    assert len(bars) == 2
+    assert len(bars) == OHLCV_SAMPLE_1M_ROW_COUNT
     assert bars[0].observed_at < bars[1].observed_at
     assert all(bar.observed_at.tzinfo is not None for bar in bars)

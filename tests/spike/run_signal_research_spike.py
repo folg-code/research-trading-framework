@@ -3,7 +3,7 @@
 Not production API; not collected by pytest.
 
 Validates:
-- evaluate_models emissions → SignalOccurrence prototype
+- evaluate_models emissions → SignalOccurrence (production strategy API)
 - ForwardOutcomeDefinition + calculator semantics
 - run envelope (manifest + occurrences.parquet + outcomes.parquet)
 - repository read-back and immutability
@@ -30,6 +30,12 @@ from typing import Any
 
 import polars as pl
 
+_SPIKE_DIR = Path(__file__).resolve().parent
+if str(_SPIKE_DIR) not in sys.path:
+    sys.path.insert(0, str(_SPIKE_DIR))
+
+from _fixture_paths import OHLCV_SAMPLE_1M
+
 from trading_framework import __version__ as framework_version
 from trading_framework.application.model_evaluation import EvaluateModelsRequest, evaluate_models
 from trading_framework.application.model_evaluation.canonical_examples import (
@@ -44,21 +50,18 @@ from trading_framework.market.datasets import DatasetId, DatasetRef
 from trading_framework.market_analysis import TimeRange
 from trading_framework.market_analysis.assembly.frame import AnalysisFrame
 from trading_framework.market_analysis.data.view import AnalysisDataView
+from trading_framework.strategy import (
+    OccurrenceMaterializationContext,
+    ReferencePricePolicy,
+    derive_occurrence_id,
+    materialize_signal_occurrences,
+)
 from trading_framework.time.models.timeframe import Timeframe
 from trading_framework.time.sessions import CmeEsRthSessionResolver
 
-FIXTURE = (
-    Path(__file__).resolve().parents[1]
-    / "fixtures"
-    / "market_data"
-    / "s005_swing_vertical_slice_1m.csv"
-)
+FIXTURE = OHLCV_SAMPLE_1M
 
 SCHEMA_VERSION = "signal_research.v1"
-
-
-class ReferencePricePolicy(StrEnum):
-    CLOSE_AT_DETECTED_AT = "close_at_detected_at"
 
 
 class IncompleteHorizonPolicy(StrEnum):
@@ -169,11 +172,6 @@ def _ohlcv_for_frame(
     return {field: tuple(values) for field, values in columns.items()}
 
 
-def _occurrence_id(*, signal_model_id: str, detected_at: datetime, direction: str) -> str:
-    payload = f"{signal_model_id}|{detected_at.isoformat()}|{direction}"
-    return hashlib.sha256(payload.encode()).hexdigest()[:16]
-
-
 def _run_id(*, dataset_key: str, signal_model_id: str, horizons: tuple[int, ...]) -> str:
     payload = (
         f"{dataset_key}|{signal_model_id}|{','.join(str(h) for h in horizons)}|{framework_version}"
@@ -181,58 +179,27 @@ def _run_id(*, dataset_key: str, signal_model_id: str, horizons: tuple[int, ...]
     return hashlib.sha256(payload.encode()).hexdigest()[:16]
 
 
-def materialize_occurrences(
+def _materialize_occurrences(
     emissions: pl.DataFrame,
     *,
     frame: AnalysisFrame,
-    ohlcv: dict[str, tuple[float, ...]],
+    market_view: AnalysisDataView,
     signal_model_id: str,
     instrument: str,
     evaluation_timeframe: Timeframe,
     source_dataset_ref: str,
 ) -> pl.DataFrame:
-    """Prototype occurrence facts — descriptive reference_price at detected_at."""
-    if len(emissions) == 0:
-        return pl.DataFrame(
-            schema={
-                "occurrence_id": pl.Utf8,
-                "signal_model_id": pl.Utf8,
-                "detected_at": pl.Datetime(time_unit="us", time_zone="UTC"),
-                "available_at": pl.Datetime(time_unit="us", time_zone="UTC"),
-                "direction": pl.Utf8,
-                "reference_price": pl.Float64,
-                "instrument": pl.Utf8,
-                "evaluation_timeframe": pl.Utf8,
-                "source_dataset_ref": pl.Utf8,
-            }
-        )
-
-    index_by_timestamp = _timestamp_index(frame)
-    close = ohlcv["close"]
-    rows: list[dict[str, Any]] = []
-    for row in emissions.iter_rows(named=True):
-        detected_at = row["detected_at"]
-        direction = row["direction"]
-        index = index_by_timestamp.get(detected_at)
-        reference_price = math.nan if index is None else close[index]
-        rows.append(
-            {
-                "occurrence_id": _occurrence_id(
-                    signal_model_id=signal_model_id,
-                    detected_at=detected_at,
-                    direction=direction,
-                ),
-                "signal_model_id": signal_model_id,
-                "detected_at": detected_at,
-                "available_at": row["available_at"],
-                "direction": direction,
-                "reference_price": reference_price,
-                "instrument": instrument,
-                "evaluation_timeframe": evaluation_timeframe.value,
-                "source_dataset_ref": source_dataset_ref,
-            }
-        )
-    return pl.DataFrame(rows)
+    return materialize_signal_occurrences(
+        emissions,
+        frame=frame,
+        market_view=market_view,
+        context=OccurrenceMaterializationContext(
+            signal_model_id=signal_model_id,
+            instrument=instrument,
+            evaluation_timeframe=evaluation_timeframe,
+            source_dataset_ref=source_dataset_ref,
+        ),
+    )
 
 
 def _direction_normalize_return(*, raw_return: float, direction: str) -> float:
@@ -554,10 +521,10 @@ def run_spike() -> list[SpikeCheck]:
             )
         )
 
-        occurrences = materialize_occurrences(
+        occurrences = _materialize_occurrences(
             emissions,
             frame=frame,
-            ohlcv=ohlcv,
+            market_view=market_view,
             signal_model_id=CANONICAL_SIGNAL_HIGHER_LOW_ID,
             instrument=dataset_ref.dataset_id.instrument_id.value,
             evaluation_timeframe=Timeframe("1m"),
@@ -572,7 +539,7 @@ def run_spike() -> list[SpikeCheck]:
             )
         )
 
-        stable_id = _occurrence_id(
+        stable_id = derive_occurrence_id(
             signal_model_id=CANONICAL_SIGNAL_HIGHER_LOW_ID,
             detected_at=occurrences["detected_at"][0],
             direction=occurrences["direction"][0],
@@ -704,10 +671,10 @@ def run_spike() -> list[SpikeCheck]:
             CANONICAL_SIGNAL_HIGH_VOLATILITY_EDGE_ID
         ]
         if len(edge_emissions) > 0:
-            edge_occurrences = materialize_occurrences(
+            edge_occurrences = _materialize_occurrences(
                 edge_emissions.head(1),
                 frame=frame,
-                ohlcv=ohlcv,
+                market_view=market_view,
                 signal_model_id=CANONICAL_SIGNAL_HIGH_VOLATILITY_EDGE_ID,
                 instrument=dataset_ref.dataset_id.instrument_id.value,
                 evaluation_timeframe=Timeframe("1m"),

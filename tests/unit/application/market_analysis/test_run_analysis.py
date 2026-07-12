@@ -77,13 +77,10 @@ def _write_published_dataset(storage_root: Path, *, csv_path: Path) -> DatasetRe
 
 def test_run_analysis_executes_vertical_slice(
     tmp_path: Path,
-    market_data_fixtures_dir: Path,
+    ohlcv_sample_1m_path: Path,
 ) -> None:
     storage_root = tmp_path / "storage"
-    dataset_ref = _write_published_dataset(
-        storage_root,
-        csv_path=market_data_fixtures_dir / "sample_ohlcv.csv",
-    )
+    dataset_ref = _write_published_dataset(storage_root, csv_path=ohlcv_sample_1m_path)
     metadata = FileDatasetRegistry(storage_root).get(dataset_ref)
     state_params = VolatilityStateComponent().parameter_schema.canonicalize(
         {"period": 2, "threshold": 1.0}
@@ -153,13 +150,10 @@ def test_run_analysis_executes_vertical_slice(
 
 def test_run_analysis_attaches_session_metadata_when_resolver_provided(
     tmp_path: Path,
-    market_data_fixtures_dir: Path,
+    ohlcv_sample_1m_path: Path,
 ) -> None:
     storage_root = tmp_path / "storage"
-    dataset_ref = _write_published_dataset(
-        storage_root,
-        csv_path=market_data_fixtures_dir / "sample_ohlcv.csv",
-    )
+    dataset_ref = _write_published_dataset(storage_root, csv_path=ohlcv_sample_1m_path)
     metadata = FileDatasetRegistry(storage_root).get(dataset_ref)
     result = run_analysis(
         RunAnalysisRequest(

@@ -36,7 +36,7 @@ module-name = "trading_framework"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = ["src"]
+pythonpath = ["src", "."]
 addopts = [
     "--strict-markers",
     "--strict-config",
@@ -61,7 +61,10 @@ select = [
 ignore = []
 
 [tool.ruff.lint.isort]
-known-first-party = ["trading_framework"]
+known-first-party = ["trading_framework", "tests"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/spike/*.py" = ["E402"]
 
 [tool.ruff.format]
 quote-style = "double"
