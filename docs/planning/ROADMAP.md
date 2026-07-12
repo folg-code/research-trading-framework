@@ -46,36 +46,68 @@ The roadmap follows these rules:
 8. Update the roadmap when implementation produces new evidence.
 9. Keep later phases directional rather than over-specified.
 10. Treat rejected or deferred ideas as valid learning outcomes.
+11. **Do not retroactively rewrite completed sprint scope.** Clarify actual delivery; add new increments for future work (see **§3**).
 
 ---
 
-## 3. Phase Overview
+## 3. Capability Tracks and Phase Overview
+
+The project no longer advances as a single linear pipeline:
 
 ```text
-Phase 0 — Project Governance
-        ↓
-Phase 1 — Repository Foundation
-        ↓
-Phase 2 — Market Data MVP
-        ↓
-Phase 3 — Market Analysis Engine MVP
-        ↓
-Phase 4 — Market Analysis Components and Multitimeframe
-        ↓
-Phase 5 — Signal Research MVP
-        ↓
-Phase 6 — Strategy Research MVP
-        ↓
-Phase 7 — Robustness Research
-        ↓
-Phase 8 — Strategy Execution: Replay and Paper
-        ↓
-Phase 9 — Live and Multi-Account
+Market Data → Market Analysis → Signal Research → Strategy Research → Execution
 ```
 
-The arrows represent capability dependencies.
+Research can progress on **currently available** data types. Market Data expansion is justified by concrete research or execution need, not by collecting everything upfront.
 
-They do not mean that Signal Research, Strategy Research and Strategy Execution form one runtime workflow.
+### Parallel tracks
+
+```text
+Foundation Track
+  Phase 0 — Project Governance                    COMPLETE
+  Phase 1 — Repository Foundation               COMPLETE
+
+Data Capability Track
+  Phase 2A — OHLCV Market Data MVP                COMPLETE  (Sprint 002; roadmap label: Phase 2)
+  Phase 2B — Historical Archive Import Foundation PLANNED  (initial adapter: Databento DBN)
+  Phase 2C — Trades and Quotes                    PLANNED
+  Phase 2D — Options Snapshot Data                PLANNED
+  Phase 2E — Live Market Data                     GATED
+
+Research Capability Track
+  Phase 3  — Market Analysis Engine MVP           COMPLETE
+  Phase 4A — Bar-Based and MTF Market Analysis    COMPLETE  (Sprints 004–006)
+  Phase 4B — Orderflow Market Analysis            PLANNED
+  Phase 4C — Options-Derived Market Analysis      PLANNED
+  Phase 5  — Signal Research MVP                  COMPLETE  (Sprints 008–010)
+  Phase 6A — OHLCV Strategy Research MVP          PLANNED
+  Phase 6B — Multi-Data Strategy Research         PLANNED
+  Phase 7  — Robustness Research                  PLANNED
+
+Execution Capability Track
+  Phase 8 — Replay and Paper Execution            PLANNED
+  Phase 9 — Live and Multi-Account Execution        PLANNED
+```
+
+### Cross-track dependencies (summary)
+
+```text
+Phase 2A ──┬── Phase 5 — Signal Research
+           └── Phase 6A — OHLCV Strategy Research
+
+Phase 2C → Phase 4B → Phase 6B
+Phase 2D → Phase 4C → Phase 6B
+```
+
+Strategy Research (**Phase 6A**) may start on OHLCV without waiting for trades or options. That validates Strategy contracts first; it does **not** mean target data coverage is complete (**§15.3**).
+
+Completed phases retain their historical sprint records. New increments (2B, 4B, 6A, …) extend capability without rewriting Sprint 002–010 scope.
+
+Market Data policy (facts not indicators, vendor independence): **§14 Research Data Strategy**.
+
+Test data tiers and live-data gate: **§15**.
+
+**Recommended next sprint:** Phase 2B vertical slice — Databento DBN OHLCV archive import (**§6**, **§15.4**).
 
 ---
 
@@ -215,13 +247,23 @@ docs/planning/sprints/SPRINT_001.md
 
 ---
 
-# 6. Phase 2 — Market Data MVP
+# 6. Market Data Capability — Phase 2 Family
 
-## Purpose
+## Historical label
 
-Deliver the first complete, reproducible Market Data vertical slice.
+Roadmap sections historically titled **Phase 2 — Market Data MVP** refer to **Phase 2A** below. Sprint 002 scope is unchanged. Completion of Phase 2A does **not** close the Data Capability Track.
 
-## Primary Flow
+---
+
+## Phase 2A — OHLCV Market Data MVP (COMPLETE)
+
+**Delivered:** Sprint 002 on `main`.
+
+### Purpose
+
+Deliver the first complete, reproducible **OHLCV-only** Market Data vertical slice.
+
+### Primary Flow
 
 ```text
 External OHLCV File
@@ -283,13 +325,17 @@ Query Through Repository
 
 ## Active Sprint
 
-Sprint 002 implemented the MVP vertical slice on `sprint/market-data-mvp`:
+Sprint 002 implemented the MVP vertical slice:
 
 ```text
 docs/planning/sprints/SPRINT_002.md
 ```
 
-Status: implementation complete on the sprint integration branch; merge to `main` pending review.
+**Status:** COMPLETED on `main` (Sprint 002).
+
+## Beyond Phase 2A
+
+Phase 2A delivered the OHLCV import and publication pipeline only. Further source datasets and archive import are **Phase 2B–2E** and **§14 Research Data Strategy**. Sprint 002 history is not revised.
 
 ## Main Risks
 
@@ -300,13 +346,125 @@ Status: implementation complete on the sprint integration branch; merge to `main
 - excessive small files,
 - premature support for every provider and data type.
 
-## Out of Scope
+## Out of Scope (Phase 2A / Sprint 002)
 
-- live ingestion,
-- provider synchronization,
+The following were out of scope for the OHLCV vertical slice. They are **not rejected**; see Phase 2B–2E and **§14**:
+
+- live ingestion and provider synchronization,
 - continuous futures construction,
-- trades, quotes, DOM and options data,
+- tick trades, quotes, DOM and options data,
 - automatic missing-range fetching during Research.
+
+---
+
+## Phase 2B — Historical Archive Import Foundation (PLANNED)
+
+**Initial adapter:** Databento DBN. **Architectural outcome:** provider-independent archive import workflow (not a one-off script).
+
+### Target flow
+
+```text
+Vendor archive
+    ↓
+Import inspection
+    ↓
+Source decoding
+    ↓
+Provider-specific schema mapping
+    ↓
+Canonical market facts
+    ↓
+Validation
+    ↓
+Partitioned persistence
+    ↓
+Dataset lifecycle
+    ↓
+Published DatasetRef
+```
+
+### Capability scope
+
+- archive inspection and import manifest,
+- schema and instrument mapping, futures contract identity,
+- timestamp normalization, validation summary,
+- chunked decoding; resumable import where practical,
+- partitioned Parquet, publication as `DatasetRef`,
+- domain logic in `src/`; thin CLI under `scripts/databento/`.
+
+### First vertical slice (recommended Sprint 011)
+
+```text
+Databento DBN OHLCV archive
+    ↓
+inspection → decoding → canonical MarketBar
+    ↓
+validation → partitioned Parquet → published DatasetRef
+```
+
+Do **not** combine in one sprint: trades, quotes, options, orderflow, continuous futures, full resumability, or live adapters.
+
+### Dependencies
+
+- Phase 2A lifecycle and repository contracts.
+
+---
+
+## Phase 2C — Trades and Quotes (PLANNED)
+
+Do **not** use a single ambiguous `Tick` model. Canonical types:
+
+```text
+MarketTrade
+MarketQuote
+OrderBookUpdate   (only when justified)
+```
+
+Suggested increments:
+
+```text
+Phase 2C.1 — MarketTrade datasets
+Phase 2C.2 — MarketQuote datasets
+Phase 2C.3 — Order-book data (MBO/MBP only when justified)
+```
+
+Example `MarketTrade` fields: instrument, `event_at`, price, size, aggressor/side semantics, trade_id, sequence, flags, source metadata.
+
+Default partitioning: by day (trades, quotes); order-book updates day or hour.
+
+MBO/MBP are **not** in the first trades sprint scope.
+
+### Dependencies
+
+- Phase 2B archive import patterns (recommended).
+
+---
+
+## Phase 2D — Options Snapshot Data (PLANNED)
+
+Store vendor-provided option facts; do not assume every provider supplies Greeks, OI, volume, or quotes in every dataset.
+
+Example models:
+
+```text
+OptionContractMetadata
+OptionContractQuote
+OptionsSnapshot
+```
+
+Fields may include: underlying, option symbol, expiration, strike, option type, snapshot time, bid/ask/last, volume, open interest, IV, Greeks (when available), source fields, quality flags.
+
+Preferred source: chain snapshots (~1m), not raw option tick streams (**§14**).
+
+Initial provider direction: Intrinio (**§14**).
+
+---
+
+## Phase 2E — Live Market Data (GATED)
+
+Concrete paid live CME adapters are deferred until **§15.2 Live Market Data Entry Gate** conditions are met.
+
+Until then: historical research via archives; replay via published datasets; live **contracts** may exist without expensive adapter implementation.
 
 ---
 
@@ -400,35 +558,38 @@ Sprint 003 assessment (2026-07-12):
 
 ---
 
-# 8. Phase 4 — Market Analysis Components and Multitimeframe
+# 8. Market Analysis Capability — Phase 4 Family
 
 ## Purpose
 
 Support timeframe-aware Market Analysis safely and reproducibly.
 
-## Sprint Increments
+Phase 4 is a **family of increments**, not a single delivery:
 
-Phase 4 is larger than one sprint. Planned delivery:
+```text
+Phase 4A — Bar-Based and Multitimeframe Foundation     COMPLETE
+Phase 4B — Orderflow Market Analysis                   PLANNED
+Phase 4C — Options-Derived Market Analysis             PLANNED
+```
+
+Sprints 004–006 delivered Phase 4A. Sprints 007–010 belong to other phases (007 optional catalog; 008–010 Signal Research / Phase 5). Historical sprint files are not rewritten.
+
+---
+
+## Phase 4A — Bar-Based and Multitimeframe Foundation (COMPLETE)
+
+### Sprint increments (historical)
 
 | Sprint | Increment | Focus |
 |--------|-----------|-------|
 | 004 | Multitimeframe Foundation MVP | DONE — `SPRINT_004.md` |
-| 005 | Calendar + Pivot + visual inspection | CME ES RTH batch resolver, Pivot Structure (events + HH/HL/LH/LL), local chart — `SPRINT_005.md` |
-| 006 | Declarative models | Market Model + Signal Model expression MVP — `SPRINT_006.md` |
-| 007 | Research-enabling catalog (conditional) | slope, wick ratio, Session Range, Trend State — as needed — `SPRINT_007.md` |
-| 008 | Signal Research computation | DONE — `SPRINT_008.md` |
-| 009 | Combined research scopes | DONE — `SPRINT_009.md` |
-| 010 | Research analytics | Stored-dataset analytics and charts — `SPRINT_010.md` |
+| 005 | Calendar + Pivot + visual inspection | DONE — `SPRINT_005.md` |
+| 006 | Declarative models | DONE — `SPRINT_006.md` |
+| 007 | Research-enabling catalog (conditional) | SKIPPED — scope gate — `SPRINT_007.md` |
 
-**Direction (binding):** `docs/planning/sprints/PHASE_4_5_SPRINT_DIRECTION.md`
+**Direction (binding for 004–006):** `docs/planning/sprints/PHASE_4_5_SPRINT_DIRECTION.md`
 
-Shortest path to first research value:
-
-```text
-005 → 006 → 008   (007 optional if existing components suffice)
-```
-
-## Expected Capabilities
+### Delivered capabilities
 
 - source, computation and evaluation timeframe distinction,
 - explicit resampling nodes,
@@ -494,12 +655,64 @@ This is an initial research-enabling set, not a permanent mandatory taxonomy.
 - excessive early taxonomy,
 - divergence between Research and runtime semantics.
 
-## Out of Scope
+## Out of Scope (Phase 4A)
 
 - unrestricted component grid searches,
 - complete Strategy Research,
 - live broker execution,
-- advanced order-flow models.
+- orderflow and options-derived analysis (Phase 4B/4C).
+
+---
+
+## Phase 4B — Orderflow Market Analysis (PLANNED)
+
+Orderflow belongs in **Market Analysis**, not Market Data storage of derived indicators.
+
+```text
+MarketTrade / MarketQuote (Phase 2C)
+    ↓
+Market Data normalization
+    ↓
+Market Analysis components
+    ↓
+orderflow Features / Structures / States
+```
+
+**Features (examples):** traded volume, buy/sell volume, delta, CVD, imbalance, execution intensity, large-trade concentration, absorption ratio.
+
+**Structures (examples):** footprint bar, imbalance cluster, absorption event, aggressive sweep, volume node.
+
+**States (examples):** buying/selling pressure, balanced flow, aggressive expansion, absorption, liquidity exhaustion.
+
+Not one monolithic indicator or one giant DataFrame.
+
+### Dependencies
+
+- Phase 2C (`MarketTrade` minimum).
+
+---
+
+## Phase 4C — Options-Derived Market Analysis (PLANNED)
+
+Interpretation of options context belongs in Market Analysis.
+
+```text
+OptionsSnapshot (Phase 2D)
+    ↓
+Options-derived Features
+    ↓
+Options Structures / States
+    ↓
+Market Model inputs
+```
+
+**Examples:** net gamma proxy, gamma concentration by strike, zero-gamma estimate, call/put wall, IV regime, expiration concentration, positioning state.
+
+Market Models compose finished outputs (e.g. `negative_gamma_state AND price_below_zero_gamma`). Market Models do **not** compute GEX internally.
+
+### Dependencies
+
+- Phase 2D (options snapshots).
 
 ---
 
@@ -589,72 +802,79 @@ Conditional Signal Behaviour
 
 ---
 
-# 10. Phase 6 — Strategy Research MVP
+# 10. Strategy Research — Phase 6 Family
 
-## Purpose
-
-Evaluate complete Strategy Models under explicit historical and execution assumptions.
-
-## Strategy Composition
+Phase 6 has **not** started. Scope is split so OHLCV strategy research can proceed without waiting for trades or options.
 
 ```text
-Market Model
-×
-Signal Model
-×
-Exit Model
-×
-Risk Model
+Phase 6A — OHLCV Strategy Research MVP     PLANNED
+Phase 6B — Multi-Data Strategy Research    PLANNED
+```
+
+---
+
+## Phase 6A — OHLCV Strategy Research MVP (PLANNED)
+
+### Purpose
+
+Validate Strategy Model and historical simulation contracts using **currently supported bar-based market facts** (Phase 2A).
+
+### Strategy composition
+
+```text
+Market Model × Signal Model × Exit Model × Risk Model
 ```
 
 Position sizing remains part of the Risk Model in Version 1.
 
-## Expected Capabilities
+### Expected capabilities
 
-- Exit Model contract,
-- Risk Model contract,
+- Exit Model and Risk Model contracts,
 - Strategy Model definition,
-- batch or vectorized backtest,
-- order and fill simulation assumptions,
-- commissions and slippage,
-- trade-level results,
-- position and equity history,
+- minimal backtest or historical simulation engine,
+- order and fill assumptions, commissions and slippage,
+- trade-level results and equity history,
 - persistent Strategy Research Dataset,
-- strategy metrics,
-- strategy rankings with explicit eligibility filters,
-- family grouping.
+- basic strategy analytics and eligibility filters.
 
-## Completion Criteria
+### Completion criteria
 
-- complete Strategy Models can be simulated,
+- complete Strategy Models can be simulated on OHLCV-backed facts,
 - simulation assumptions are part of run identity,
-- raw trade-level results are preserved where practical,
-- rankings state objective and eligibility rules,
 - Strategy Research does not require a Signal Research run,
-- shared upstream Market Analysis and signal artifacts can be reused,
-- Replay Execution remains a separate capability.
+- Replay Execution remains separate.
 
-## Dependencies
+**Important:** completing Phase 6A validates the **first Strategy Research vertical slice**. It does **not** mean target research-data coverage is complete.
 
-- Signal and Market Model contracts,
-- SignalOccurrence,
-- Research Dataset infrastructure,
-- deterministic upstream reuse.
+### Dependencies
 
-## Main Risks
+- Phase 2A, Phase 4A, Phase 5 (reusable upstream artifacts),
+- Signal and Market Model contracts.
+
+### Main risks
 
 - monolithic backtest engine,
 - unclear fill assumptions,
-- insufficient raw-result retention,
-- ranking by one metric,
-- conflating batch backtest with runtime replay.
+- conflating batch backtest with runtime replay,
+- embedding bar-only assumptions permanently in the simulation engine.
 
-## Out of Scope
+---
 
-- operational broker reconciliation,
-- live account state,
-- multi-account execution,
-- full robustness validation.
+## Phase 6B — Multi-Data Strategy Research (PLANNED)
+
+Future extension when Phase 2C/2D and Phase 4B/4C exist:
+
+- orderflow-enhanced strategies,
+- options-context-enhanced strategies,
+- research datasets with heterogeneous physical schemas,
+- verification that simulation does not assume regular bars only.
+
+Detailed design deferred until Phase 6A and data increments justify it.
+
+### Dependencies
+
+- Phase 6A,
+- relevant Phase 2C/2D and Phase 4B/4C increments.
 
 ---
 
@@ -710,7 +930,7 @@ Assess candidate stability and reduce overfitting risk.
 
 ---
 
-# 12. Phase 8 — Strategy Execution: Replay and Paper
+# 12. Phase 8 — Replay and Paper Execution
 
 ## Purpose
 
@@ -828,7 +1048,300 @@ Minimum future requirements include:
 
 ---
 
-# 14. Cross-Phase Architectural Gates
+# 14. Research Data Strategy
+
+**Status:** ACCEPTED (2026-07-12)
+
+## Purpose
+
+The Market Data layer must **not** aim to collect every available market feed.
+
+It must collect the **smallest set of source datasets** from which the framework can derive the largest number of analytical features.
+
+Priorities:
+
+- information density,
+- research value,
+- long-term maintainability,
+- storage efficiency,
+- vendor independence.
+
+## Design Principles
+
+### Store facts, not indicators
+
+Persist raw market facts. Compute derived datasets internally.
+
+Examples of derived data (not primary storage formats):
+
+```text
+Footprint, Delta, CVD, Volume Profile, Imbalance, Stacked Imbalance,
+VWAP, ATR, Session statistics, Gamma Exposure, Dealer positioning
+```
+
+### Evaluate every new dataset
+
+Each new source must justify itself:
+
+- additional information,
+- implementation complexity,
+- storage requirements,
+- acquisition cost,
+- long-term usefulness.
+
+## Target Research Scope
+
+```text
+Instruments:   ES / NQ futures (initial focus)
+Style:         day trading
+Holding time:  minutes to several hours
+Not in scope:  HFT, nanosecond market reconstruction
+```
+
+## Futures Data
+
+### Initial source dataset
+
+Primary stored facts:
+
+```text
+OHLCV              (Phase 2A — Sprint 002)
+Tick Trades        (Phase 2C — primary expansion target)
+Instrument Definitions
+Market Statistics
+Market Status
+```
+
+**Tick Trades** are the primary source dataset for order-flow research.
+
+From trades, derive internally:
+
+```text
+Footprint, Bid/Ask Delta, CVD, Volume Profile, Imbalance, Stacked Imbalance,
+Absorption proxies, Session Delta, Large Trades, Execution statistics
+```
+
+### Level 1 Quotes
+
+Secondary dataset. Enables spread, mid price, microprice, quote imbalance, slippage estimation.
+
+### Level 2 Order Book (MBP-10)
+
+**Initially rejected as a primary dataset.**
+
+Reasons:
+
+- ~2 TB/year for NQ (MBP-10),
+- high storage cost,
+- uncertain marginal research value for the target holding horizon.
+
+Current decision:
+
+- do not build the framework around MBP-10,
+- validate research value on selected samples later,
+- add only if measurable improvement is demonstrated.
+
+## Order-Flow Philosophy
+
+Reproduce analyses typically available in ATAS-class tooling.
+
+Required analytical outputs (mostly reconstructible from Tick Trades without full L2 history):
+
+```text
+Footprint, Delta, CVD, Imbalance, Stacked Imbalance, Volume Profile,
+Cluster Analysis, Absorption, Execution Analysis
+```
+
+## Options Data
+
+Options are **independent market context**, not a substitute for futures order flow.
+
+Preferred source: **option chain snapshots** (not raw option tick streams).
+
+Preferred frequency: **1 minute**.
+
+Required fields include timestamp, expiry, strike, call/put, bid, ask, volume, open interest, implied volatility, delta, gamma, theta, vega.
+
+Derive internally:
+
+```text
+Gamma Exposure, Delta Exposure, Gamma Flip, Call Wall, Put Wall,
+IV Surface, IV Skew, Term Structure, Dealer Positioning metrics
+```
+
+Raw option trade streams are currently unnecessary.
+
+## Vendor Independence
+
+Providers terminate at **importer boundaries** only. The framework must not depend on any vendor API at runtime.
+
+```text
+Databento DBN OHLCV  →  Importer  →  Canonical MarketBar   →  Published Dataset   (Phase 2B)
+Databento DBN trades →  Importer  →  Canonical MarketTrade →  Published Dataset   (Phase 2C)
+Sierra SCID          →  Importer  →  Canonical MarketTrade →  Published Dataset   (Phase 2C.2+)
+```
+
+Each path must produce identical internal models for the same fact type.
+
+## Data Providers
+
+### Futures — Phase 2B / 2C (archive import)
+
+**Databento** — initial archive provider (**Phase 2B**).
+
+Reasons: startup credits, Python API, DBN format, fast pipeline development, clean normalization.
+
+Initial scope:
+
+- archive import workflow on DBN OHLCV (Sprint 011 recommended slice),
+- then `MarketTrade` import (**Phase 2C.1**),
+- instrument definitions, validation and publication wiring.
+
+### Futures — Phase 2C.2+ (historical expansion)
+
+**Sierra Chart** — acquisition tool only, not a runtime dependency.
+
+```text
+Sierra  →  SCID  →  Importer  →  Canonical MarketTrade  →  Validation  →  Parquet  →  Published Dataset
+```
+
+Download once, convert once, store locally. Never depend on Sierra afterward.
+
+### Options
+
+**Intrinio** — preferred provider for option chain snapshots (Greeks, IV, open interest).
+
+Plan: start with standard history (~5 years); purchase longer history (e.g. back to 2008) only after validating research value.
+
+## Data Acquisition Roadmap
+
+This is the **Data Capability Track** expansion sequence. It runs in parallel with Research and Execution tracks where dependencies allow.
+
+| Roadmap phase | Provider | Scope | Purpose |
+|---------------|----------|-------|---------|
+| **2B** | Databento | DBN archive import foundation; first slice: OHLCV bars | Provider-independent import workflow; validate lifecycle on archives |
+| **2C.1** | Databento | `MarketTrade` datasets, instrument definitions | Canonical trade model; orderflow input |
+| **2C.2+** | Databento / Sierra | Quotes; optional bulk historical via Sierra SCID | Spread, microprice; one-time local archive expansion |
+| **2D** | Intrinio | Option chain snapshots, Greeks, IV, OI | Options context research |
+
+Phase 2B does not block Signal Research or Phase 6A Strategy Research on existing OHLCV. Trades and options extend analytical depth when ready (**§6**, **§15**).
+
+## Architectural Principle
+
+Maximize reusable information while minimizing external dependencies, storage and vendor lock-in.
+
+The framework becomes more capable through **better analytical models**, not through continuously hoarding raw market data.
+
+---
+
+# 15. Cross-Cutting Standards
+
+These standards apply across Market Data, Market Analysis and Research. They are not separate linear phases.
+
+## 15.1 Test and Research Data Tiers
+
+Three tiers of test and research data coexist by design.
+
+### Tier 1 — Small Deterministic Fixtures
+
+```text
+Scope:     tens to hundreds of records
+Location:  committed to repository
+CI:        standard unit and contract tests
+```
+
+Use for: edge cases, temporal alignment, join semantics, incomplete outcomes, session boundaries, validation errors.
+
+Small fixtures are valid test tools. They must not be replaced by large datasets in unit tests.
+
+### Tier 2 — Representative Integration Datasets
+
+```text
+Scope:     several days to weeks per data type
+Location:  local or opt-in test fixtures (not required in standard CI)
+CI:        opt-in integration markers only
+```
+
+Separate datasets for OHLCV, trades, quotes and options snapshots where applicable.
+
+Use for: importer tests, normalization, partitioning, futures contract boundaries, multi-session behaviour, orderflow calculations, realistic distributions, local performance checks.
+
+### Tier 3 — Full Research Datasets
+
+```text
+Scope:     months to years
+Location:  user_data (not committed)
+CI:        not required
+```
+
+Use for: Signal Research, Strategy Research, robustness validation, walk-forward, Monte Carlo, stability over time.
+
+Published as concrete `DatasetRef` values with lineage, version and validation status.
+
+**Problem registry:** PRB-017 — representative integration and research-validation dataset gap.
+
+## 15.2 Live Market Data Entry Gate
+
+Concrete paid live CME adapters (**Phase 2E**) are deferred until at least one of:
+
+- a candidate strategy passes defined historical robustness validation,
+- replay and paper parity require a live normalized feed,
+- a data property available only live is required to validate a model,
+- runtime operational testing cannot continue on recorded or replayed data,
+- expected research or execution value justifies ongoing data cost.
+
+**Not sufficient alone:** a positive backtest does not justify live feed cost.
+
+Until the gate opens:
+
+- historical research uses archives (Databento and similar),
+- replay uses published datasets,
+- live provider **contracts** may exist without expensive adapter implementation.
+
+## 15.3 Strategy Research Scope Clarification
+
+Completing **Phase 6A — OHLCV Strategy Research MVP** validates Strategy Model and simulation contracts on bar-based facts.
+
+It does **not** mean:
+
+- Market Data development is complete,
+- the simulation engine's target data coverage is complete,
+- orderflow or options context is supported in Strategy Research.
+
+**Phase 6B — Multi-Data Strategy Research** extends simulation when Phase 2C/2D and Phase 4B/4C deliver new fact types.
+
+## 15.4 Planning Increment and Sprint 011
+
+Before Sprint 011 implementation, complete a short **Roadmap Revision / Phase Entry Review** (planning only):
+
+- update `ROADMAP.md`, `CURRENT_STATUS.md`, `PROBLEM_REGISTRY.md`, `DATA_MODULE.md`,
+- confirm capability tracks, test-data tiers and live-data gate,
+- decide phase entry and publish `SPRINT_011.md`.
+
+**Recommended Sprint 011 goal:** Phase 2B — Historical Archive Import Foundation.
+
+**First vertical slice:**
+
+```text
+Databento DBN OHLCV archive
+    ↓
+inspection → decoding → canonical MarketBar
+    ↓
+validation → partitioned Parquet → published DatasetRef
+```
+
+Sprint 011 must **not** simultaneously include: trades, quotes, options, orderflow, continuous futures, full resumability, live adapters, or a complete backtest engine.
+
+After this slice, choose the next sprint among:
+
+- **Phase 2C.1** — `MarketTrade` archive import, or
+- **Phase 6A** — OHLCV Strategy Research MVP.
+
+See `docs/planning/sprints/SPRINT_011.md`.
+
+---
+
+# 16. Cross-Phase Architectural Gates
 
 A phase must not be considered complete if it violates these gates.
 
@@ -870,7 +1383,7 @@ Critical contracts have unit, integration, regression or workflow tests as appro
 
 ---
 
-# 15. Deferred Capabilities
+# 17. Deferred Capabilities
 
 The following remain deferred until evidence justifies them:
 
@@ -885,8 +1398,8 @@ Dedicated feature-store product
 Remote component registry
 Visual workflow or DAG editor
 Full event sourcing
-Full DOM / L2 model
-Options snapshot model
+MBP-10 / full DOM as primary storage (see §14 — sample validation first)
+Raw option tick streams (snapshots preferred; see §14)
 Automatic ML feature vector layer
 Separate Position Sizing Model
 Distributed Strategy Execution
@@ -898,7 +1411,7 @@ Each item requires a decision trigger, design review and usually an ADR before i
 
 ---
 
-# 16. Roadmap Review
+# 18. Roadmap Review
 
 Review the roadmap:
 

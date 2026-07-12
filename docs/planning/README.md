@@ -29,20 +29,21 @@ Catalog of `docs/planning/`. For taxonomy and reading paths see **[../README.md]
 | File | Purpose |
 |------|---------|
 | [sprints/SPRINT_001.md](sprints/SPRINT_001.md) | Repository foundation (completed) |
-| [sprints/SPRINT_002.md](sprints/SPRINT_002.md) | Market Data MVP (completed) |
+| [sprints/SPRINT_002.md](sprints/SPRINT_002.md) | OHLCV Market Data MVP / Phase 2A (completed) |
 | [sprints/SPRINT_003.md](sprints/SPRINT_003.md) | Market Analysis Engine MVP (completed) |
 | [sprints/SPRINT_004.md](sprints/SPRINT_004.md) | Multitimeframe Foundation MVP (completed) |
 | [sprints/PHASE_4_5_SPRINT_DIRECTION.md](sprints/PHASE_4_5_SPRINT_DIRECTION.md) | Corrected direction Sprints 005–010 (binding) |
 | [sprints/S005_CALENDAR_SPIKE_AND_DECISIONS.md](sprints/S005_CALENDAR_SPIKE_AND_DECISIONS.md) | Sprint 005 T001 calendar spike outcomes |
 | [sprints/S005_SWING_STRUCTURE_CONTRACT.md](sprints/S005_SWING_STRUCTURE_CONTRACT.md) | Sprint 005 swing structure contract |
-| [sprints/SPRINT_005.md](sprints/SPRINT_005.md) | Calendar, Pivot Structure, visual inspection (planned) |
-| [sprints/SPRINT_006.md](sprints/SPRINT_006.md) | Declarative Market/Signal Model (planned) |
-| [sprints/SPRINT_007.md](sprints/SPRINT_007.md) | Research-enabling catalog — conditional (planned) |
-| [sprints/SPRINT_008.md](sprints/SPRINT_008.md) | Signal Research computation MVP (complete) |
-| [sprints/SPRINT_009.md](sprints/SPRINT_009.md) | Combined research scopes (complete) |
+| [sprints/SPRINT_005.md](sprints/SPRINT_005.md) | Calendar, swing structure, visual inspection (completed) |
+| [sprints/SPRINT_006.md](sprints/SPRINT_006.md) | Declarative Market/Signal Model (completed) |
+| [sprints/SPRINT_007.md](sprints/SPRINT_007.md) | Research-enabling catalog — SKIPPED (scope gate) |
+| [sprints/SPRINT_008.md](sprints/SPRINT_008.md) | Signal Research computation MVP (completed) |
+| [sprints/SPRINT_009.md](sprints/SPRINT_009.md) | Combined research scopes (completed) |
 | [sprints/S009_WAVE0_DECISIONS.md](sprints/S009_WAVE0_DECISIONS.md) | Sprint 009 binding decisions (D-S009-01 … D-S009-11) |
-| [sprints/SPRINT_010.md](sprints/SPRINT_010.md) | Signal Research analytics MVP (planned) |
+| [sprints/SPRINT_010.md](sprints/SPRINT_010.md) | Signal Research analytics MVP (completed) |
 | [sprints/S010_WAVE0_DECISIONS.md](sprints/S010_WAVE0_DECISIONS.md) | Sprint 010 binding decisions (D-S010-01 … D-S010-20) |
+| [sprints/SPRINT_011.md](sprints/SPRINT_011.md) | Historical archive import / Phase 2B (planned) |
 | [sprints/S004_MTF_SPIKE_AND_DECISIONS.md](sprints/S004_MTF_SPIKE_AND_DECISIONS.md) | Sprint 004 T001 spike outcomes |
 | [sprints/S003_WAVE0_*.md](sprints/) | Sprint 003 wave 0 artefacts |
 

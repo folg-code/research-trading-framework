@@ -144,7 +144,7 @@ Application: `load_analysis_data_view`, `run_analysis` (`RunAnalysisRequest.eval
 | `ResamplingPolicy` / `BoundaryPolicy` enums | deferred until second semantics needed |
 | Published HTF dataset vs on-the-fly resample | noted on `ResolvedInputPlan` |
 | Optional TA-Lib adapter | S003-T027 / S004-T016 / S005-T017 |
-| Additional structure components (BOS, liquidity) | Phase 4+ |
+| Additional structure components (BOS, liquidity) | Phase 4B+ or bar-catalog extension; orderflow in Phase 4B |
 | Persistent derived datasets | ADR-MA-007 consequences |
 | Full columnar Polars query path | TD-011, TD-015 |
 

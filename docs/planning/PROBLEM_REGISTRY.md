@@ -380,7 +380,7 @@ Implementation cannot proceed past MVP storage without selecting:
 
 ### Resolution Criteria
 
-Resolve during Phase 5 and Phase 6 using actual vertical-slice requirements.
+Resolve during Phase 5 (Signal Research) and Phase 6A/6B (Strategy Research) using actual vertical-slice requirements.
 
 ---
 
@@ -693,7 +693,7 @@ Attempting full realism too early may create a large, ambiguous engine.
 
 ### Resolution Criteria
 
-Define before Phase 6 implementation.
+Define before Phase 6A implementation.
 
 ---
 
@@ -769,6 +769,52 @@ Create initial ADR set from accepted decisions.
 - accepted status,
 - rationale and alternatives,
 - cross-references from architecture documents.
+
+---
+
+## PRB-017 — No Representative Integration and Research-Validation Datasets
+
+```text
+Status: OPEN
+Severity: MEDIUM
+Domain: Market Data / Research / Testing
+Owner: Unassigned
+Discovered: 2026-07-12
+```
+
+### Description
+
+Unit tests, workflow tests and demonstrations rely mainly on a small deterministic OHLCV 1m fixture (~24 hours).
+
+That fixture is appropriate for unit and contract tests. The gap is the missing layers:
+
+- **Tier 2** — representative integration datasets (days to weeks, per data type),
+- **Tier 3** — full local research-validation datasets (months to years in `user_data`).
+
+See `ROADMAP.md` §15.1.
+
+### Risk
+
+Current validation does not sufficiently cover:
+
+- multiple sessions, weekends, holidays, DST,
+- futures rollover and contract boundaries,
+- multi-month partitions and large result datasets,
+- realistic tick volume, orderflow and options snapshots,
+- realistic signal distributions and performance costs.
+
+### Possible Directions
+
+Adopt three test-data tiers: small deterministic fixtures (Tier 1), representative integration datasets (Tier 2), full research datasets (Tier 3).
+
+Tier 2 may use opt-in integration markers; Tier 3 is local-only and published as `DatasetRef`.
+
+### Resolution Criteria
+
+- Tier 1 remains in standard CI; Tier 2 and Tier 3 documented and obtainable locally,
+- at least one Tier 2 dataset per planned fact type when that type is implemented,
+- Tier 3 datasets used for robustness and long-horizon research without repo commit,
+- lineage and validation status recorded for published research datasets.
 
 ---
 

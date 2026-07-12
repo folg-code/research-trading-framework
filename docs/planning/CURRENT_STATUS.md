@@ -27,23 +27,34 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 
 ```text
 Status Date: 2026-07-12
-Current Phase: Phase 5 — Signal Research MVP (complete on sprint branch)
-Current Milestone: Sprint 010 — Signal Research analytics
-Implementation Status: Sprints 003–009 COMPLETE on main; Sprint 010 COMPLETE on sprint branch
+Current Phase: Roadmap Revision / Phase Entry Review (planning)
+Current Milestone: Phase 5 complete; Sprint 011 scope = Phase 2B recommended
+Implementation Status: Sprints 001–006, 008–010 COMPLETE on main; Sprint 007 SKIPPED
 Overall Status: IN_PROGRESS
-Active Sprint: none (awaiting sprint branch merge to main)
-Last Completed Sprint: SPRINT_010 (on sprint branch, pending merge)
+Active Sprint: none
+Last Completed Sprint: SPRINT_010 (merged to main, PR #93)
+Capability Tracks: Foundation COMPLETE; Data 2A COMPLETE; Research 3/4A/5 COMPLETE; Execution not started
 ```
 
 ---
 
 ## 3. Current Objective
 
-Close **Phase 5 — Signal Research MVP** by merging sprint branch `sprint/signal-research-analytics` to `main`.
+**Phase 5 — Signal Research MVP** is complete on `main` (PR #93, 2026-07-12).
 
-Sprint 010 delivered read-only analytics (`analyze_signal_research_run`), grouping, conditional comparison, integration tests and optional HTML report (ADR-0013 ACCEPTED).
+Complete the **Roadmap Revision / Phase Entry Review** before Sprint 011 implementation. See `ROADMAP.md` §3, §15.4.
 
-Next milestone: Phase 6 planning — Strategy Research MVP (see `ROADMAP.md`).
+**Recommended next sprint:** Phase 2B — Historical Archive Import Foundation (Databento DBN OHLCV vertical slice). Alternative after 2B slice: Phase 6A — OHLCV Strategy Research MVP.
+
+Delivered Signal Research flow:
+
+```text
+Published OHLCV → run_signal_research → persisted envelope
+    → analyze_signal_research_run → summaries / grouping / conditional
+    → optional HTML report (ADR-0013)
+```
+
+Phase 6A (Strategy Research on OHLCV) can proceed in parallel with Data track expansion once chosen; it does not require trades or options. See `ROADMAP.md` §10.
 
 ---
 
@@ -69,9 +80,9 @@ Completed in Sprint 001:
 - architecture boundary test,
 - ADR-0001, ADR-0002, ADR-0003.
 
-### Phase 2 — Market Data MVP
+### Phase 2A — OHLCV Market Data MVP (roadmap: Phase 2)
 
-Completed in Sprint 002:
+Completed in Sprint 002 — OHLCV vertical slice only; trades, quotes, options and archive import are Phase 2B–2E:
 
 - `Instrument`, `MarketBar`, `DatasetRef`, `DatasetState`, lifecycle contracts,
 - CSV inspect → normalize → validate → Parquet → register → finalize → publish → query,
@@ -89,7 +100,11 @@ Completed in Sprint 003 (merged to `main`):
 - `AnalysisFrameAssembler`, `run_analysis` facade,
 - ADR-0005, ADR-MA-001–011; 208 tests at sprint closure.
 
-### Phase 4 — Multitimeframe Foundation (Sprint 004)
+### Phase 4A — Bar-Based and Multitimeframe Market Analysis (Sprints 004–006)
+
+Roadmap label **Phase 4A**. Sprints 004–006 delivered the bar-based and MTF foundation. Orderflow (4B) and options-derived analysis (4C) are future increments.
+
+#### Sprint 004 — Multitimeframe Foundation
 
 Completed on `main` (PR #60, 2026-07-12):
 
@@ -99,7 +114,7 @@ Completed on `main` (PR #60, 2026-07-12):
 - MTF behavior regressions and end-to-end vertical slice via `run_analysis`,
 - ADR-MA-012; 240 tests at sprint closure.
 
-### Phase 4 — Market Analysis Components (Sprint 005)
+#### Sprint 005 — Calendar, swing structure, visual inspection
 
 Completed on `main` (2026-07-12):
 
@@ -110,7 +125,7 @@ Completed on `main` (2026-07-12):
 - behavior tests, S005 MTF vertical slice, Plotly inspection spike,
 - ADR-MA-013; 280 tests at sprint closure.
 
-### Phase 4 — Declarative Models (Sprint 006)
+#### Sprint 006 — Declarative Models
 
 Completed on `main` (PR #75, 2026-07-12):
 
@@ -121,13 +136,13 @@ Completed on `main` (PR #75, 2026-07-12):
 - canonical examples, inspection overlay, ADR-0006,
 - 338 tests at sprint closure.
 
-### Phase 5 — Signal Research (Sprint 008–009)
+### Phase 5 — Signal Research (Sprint 008–010)
 
 Complete on `main`:
 
-- Sprint 008: `SIGNAL_MODEL_ONLY` computation, outcomes, envelope v1, ADR-0011
-- Sprint 009: all three scopes, envelope v2, context at `available_at`, ADR-0012,
-  inspection spike `run_inspect_combined_research.py`
+- **Sprint 008:** `SIGNAL_MODEL_ONLY` computation, forward outcomes, envelope v1, ADR-0011
+- **Sprint 009:** all three scopes (`MARKET_MODEL_ONLY`, `SIGNAL_MODEL_ONLY`, `MARKET_AND_SIGNAL`), envelope v2, context at `available_at`, ADR-0012, combined inspection spike
+- **Sprint 010:** read-only analytics over persisted runs — scope-aware analysis frame, RunSummary, grouping (RTH, time-of-day, calendar month, context), conditional comparison with explicit true/false/missing context, join diagnostics, distribution quantiles, `analyze_signal_research_run`, optional HTML report, ADR-0013 ACCEPTED (PR #93)
 
 ### Architectural Foundations
 
@@ -159,9 +174,18 @@ Maintenance: `.cursor/rules/documentation.mdc`
 
 ## 6. Work in Progress
 
-### Sprint 010 — Closed (sprint branch)
+**Roadmap Revision / Phase Entry Review** (planning increment):
 
-**Status:** COMPLETE on `sprint/signal-research-analytics` (pending merge to `main`)  
+- capability tracks, test-data tiers and live-data gate in `ROADMAP.md` §3, §15,
+- PRB-017 registered,
+- `SPRINT_011.md` drafted for Phase 2B entry,
+- cross-doc alignment pass (2026-07-12): `PROJECT_MANAGEMENT_UPDATED.md`, `README.md`, `MODULE_MAP.md`, `DATA_WORKFLOWS.md`, `IDEA_INBOX`, `AGENTS_UPDATED.md`.
+
+Implementation sprint not started.
+
+### Sprint 010 — Closed
+
+**Status:** COMPLETE on `main` (PR #93, 2026-07-12)  
 **Plan:** `docs/planning/sprints/SPRINT_010.md`  
 **ADR:** ADR-0013  
 **Tasks:** 11 / 11 done
@@ -197,7 +221,7 @@ Maintenance: `.cursor/rules/documentation.mdc`
 
 ## 7. Blocked Work
 
-Nothing is technically blocked. Sprint 010 awaits sprint-branch PR to `main`.
+Nothing is technically blocked. Sprint 011 scope is drafted in `SPRINT_011.md`; implementation has not started.
 
 ---
 
@@ -219,6 +243,7 @@ Remaining high-priority items:
 5. Full component implementation fingerprints (PRB-002 — parameter identity resolved in MVP).
 6. Vectorized backtest semantics (PRB-014).
 7. Research/runtime parity (PRB-013).
+8. Representative integration and research-validation datasets (PRB-017).
 
 PRB-001, PRB-008 and PRB-010 received MVP resolution in Sprint 002.  
 PRB-002 and PRB-005 received partial MVP resolution in Sprint 003.
@@ -261,10 +286,14 @@ Binding decisions D-001–D-036 and workspace invariants are documented in the a
 ## 11. Next Planned Capability
 
 ```text
-Phase 6 — Strategy Research MVP (planning)
+Phase 2B — Historical Archive Import Foundation (recommended Sprint 011)
+    Databento DBN OHLCV archive → MarketBar → partitioned Parquet → DatasetRef
+
+Alternative after 2B slice:
+Phase 6A — OHLCV Strategy Research MVP
 ```
 
-See `ROADMAP.md` §10.
+See `ROADMAP.md` §6, §15.4 and `docs/planning/sprints/SPRINT_011.md`.
 
 ---
 
@@ -281,7 +310,7 @@ See `ROADMAP.md` §10.
 | 007 | Research-enabling catalog | SKIPPED (scope gate) | 1 / 9 (T001 only) |
 | 008 | Signal Research computation MVP | COMPLETED | 11 / 11 tasks |
 | 009 | Combined research scopes | COMPLETED | 11 / 11 tasks |
-| 010 | Signal Research analytics | COMPLETED (sprint branch) | 11 / 11 tasks |
+| 010 | Signal Research analytics | COMPLETED | 11 / 11 tasks |
 
 ---
 

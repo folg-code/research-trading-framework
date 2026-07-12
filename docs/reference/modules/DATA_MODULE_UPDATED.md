@@ -76,6 +76,22 @@ Other provider-specific market facts
 
 The architecture must not assume that every provider exposes all data types.
 
+### Roadmap alignment (2026-07-12)
+
+Market Data development follows the **Data Capability Track** in `ROADMAP.md`:
+
+```text
+Phase 2A — OHLCV Market Data MVP              COMPLETE (Sprint 002)
+Phase 2B — Historical Archive Import Foundation   PLANNED (Databento DBN first)
+Phase 2C — Trades and Quotes                      PLANNED (MarketTrade, MarketQuote)
+Phase 2D — Options Snapshot Data                  PLANNED
+Phase 2E — Live Market Data                       GATED
+```
+
+Phase 2A delivered CSV/Parquet OHLCV import only. Archive import, tick facts, options snapshots and live adapters are separate increments. Canonical trade/quote models are **`MarketTrade`** and **`MarketQuote`** — avoid a single ambiguous `Tick` type (**ROADMAP.md** §6 Phase 2C). Derived indicators (footprint, delta, GEX) belong in Market Analysis, not primary storage (**ROADMAP.md** §14).
+
+Test data tiers (small fixtures, integration datasets, full research datasets): **ROADMAP.md** §15.1. Gap tracked as **PRB-017**.
+
 ---
 
 ## 3. Domain Ownership

@@ -5,7 +5,8 @@
 
 Technical reference for how data moves through the framework: ingestion, persistence, lifecycle, query and analysis execution.
 
-**As-is scope:** Sprint 002 (Market Data MVP) + Sprint 003 Waves 0–3.  
+**As-is scope:** Market Data Phase 2A (Sprint 002 CSV OHLCV) through Signal Research (Sprints 008–010 on `main`). Multitimeframe and declarative models: Sprints 004–006.  
+**Planned next (not implemented):** Phase 2B archive import — `ROADMAP.md` §6, `SPRINT_011.md`.  
 **Deep market data reference:** [modules/DATA_MODULE_UPDATED.md](modules/DATA_MODULE_UPDATED.md)
 
 ---
