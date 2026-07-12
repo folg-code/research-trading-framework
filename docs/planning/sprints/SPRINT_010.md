@@ -5,7 +5,7 @@
 ```text
 Sprint: 010
 Phase: Phase 5 — Signal Research MVP (analytics increment — Phase 5 closure)
-Status: IN PROGRESS — Wave 3 complete (2026-07-12); Wave 4 kickoff pending
+Status: COMPLETE (2026-07-12, on sprint branch — pending merge to main)
 Planned Start: TBD
 Planned End: TBD
 Sprint Goal Owner: Project Maintainer
@@ -584,9 +584,9 @@ metrics_eligible / visible small groups
 | S010-T006 | Conditional comparison (`context_met`) | DONE | S010-T004 |
 | S010-T007 | `analyze_signal_research_run` application API | DONE | S010-T004–T006 |
 | S010-T008 | Integration tests (three scopes) | DONE | S010-T007 |
-| S010-T009 | Optional HTML report spike | TODO | S010-T007 |
-| S010-T010 | ADR-0013 — analytics boundary | DONE (draft) | S010-T001 |
-| S010-T011 | MODULE_MAP, CURRENT_STATUS, sprint closure | TODO | S010-T010 |
+| S010-T009 | Optional HTML report spike | DONE | S010-T007 |
+| S010-T010 | ADR-0013 — analytics boundary | DONE | S010-T001 |
+| S010-T011 | MODULE_MAP, CURRENT_STATUS, sprint closure | DONE | S010-T010 |
 
 **Total:** 11 tasks (~4 outcome PRs)
 
@@ -671,39 +671,39 @@ sprint/signal-research-analytics
 
 ### Read boundary
 
-- [ ] No writes to run storage; no `evaluate_models` or outcome recomputation
-- [ ] v1 and v2 loads via repository only
+- [x] No writes to run storage; no `evaluate_models` or outcome recomputation
+- [x] v1 and v2 loads via repository only
 
 ### Frame
 
-- [ ] Normalized frame uses `entity_id` + `entity_kind`
-- [ ] `context_met_at_available_at` null outside `MARKET_AND_SIGNAL`
+- [x] Normalized frame uses `entity_id` + `entity_kind`
+- [x] `context_met_at_available_at` null outside `MARKET_AND_SIGNAL`
 
 ### Metrics
 
-- [ ] COMPLETE-only aggregates; full sample diagnostics on every summary
-- [ ] Hit rate: `forward_return > 0`; flat not counted as hit
-- [ ] `metrics_eligible` and null aggregates for undersized groups
+- [x] COMPLETE-only aggregates; full sample diagnostics on every summary
+- [x] Hit rate: `forward_return > 0`; flat not counted as hit
+- [x] `metrics_eligible` and null aggregates for undersized groups
 
 ### Grouping
 
-- [ ] `RTH_MEMBERSHIP` via `CmeEsRthSessionResolver`
-- [ ] TIME_OF_DAY: 60m buckets, market-local, `[start, end)` boundaries
-- [ ] Metadata records timestamp basis and timezone
+- [x] `RTH_MEMBERSHIP` via `CmeEsRthSessionResolver`
+- [x] TIME_OF_DAY: 60m buckets, market-local, `[start, end)` boundaries
+- [x] Metadata records timestamp basis and timezone
 
 ### Conditional
 
-- [ ] True and false context groups both present; false rows not dropped
-- [ ] Deltas = true − false; no significance tests
+- [x] True and false context groups both present; false rows not dropped
+- [x] Deltas = true − false; no significance tests
 
 ### API
 
-- [ ] Single `run_ref` per request
-- [ ] Ephemeral results; optional report from result object only
+- [x] Single `run_ref` per request
+- [x] Ephemeral results; optional report from result object only
 
 ### Tests
 
-- [ ] Integration test per scope; Sprint 008/009 tests unchanged
+- [x] Integration test per scope; Sprint 008/009 tests unchanged
 
 ---
 
@@ -746,5 +746,5 @@ Post-010 (not this sprint): multi-run analytics, rankings, DuckDB, dashboard, st
 | Date | Change |
 |------|--------|
 | 2026-07-12 | Initial outline |
-| 2026-07-12 | Full sprint plan after Sprint 009 merge |
+| 2026-07-12 | Wave 4 closure: HTML report spike, ADR-0013 ACCEPTED, docs updated |
 | 2026-07-12 | Binding spec: entity_id/entity_kind, RTH_MEMBERSHIP, metrics_eligible, single-run API, D-S010-01…20 |

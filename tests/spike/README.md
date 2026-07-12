@@ -123,5 +123,11 @@ uv run python tests/spike/run_signal_research_analytics_spike.py --json
 
 Validates read-only analytics over persisted v1/v2 runs: analysis frame, RunSummary,
 RTH/time-of-day grouping, conditional context split, and ``metrics_eligible`` semantics.
-Production frame builder and schemas: ``src/trading_framework/research/analytics/``.
-Spike retains aggregate helpers until Wave 2–3 promotion.
+Production package: ``src/trading_framework/research/analytics/``.
+
+Signal research analytics HTML report (S010-T009):
+
+```bash
+uv pip install plotly
+uv run python tests/spike/run_signal_research_analytics_report.py --generate --open
+```

@@ -26,6 +26,10 @@ from trading_framework.research.analytics.metadata import (
     AnalyticsResultMetadata,
 )
 from trading_framework.research.analytics.metrics import aggregate_complete_metrics
+from trading_framework.research.analytics.reports import (
+    AnalyticsReportSource,
+    render_signal_research_report,
+)
 from trading_framework.research.analytics.schemas import (
     empty_analysis_frame,
     empty_conditional_comparison,
@@ -46,6 +50,7 @@ __all__ = [
     "DEFAULT_TIME_OF_DAY_BUCKET_MINUTES",
     "ENTITY_KIND_OBSERVATION",
     "ENTITY_KIND_SIGNAL",
+    "AnalyticsReportSource",
     "AnalyticsResultMetadata",
     "AnalyticsTimestampBasis",
     "GroupDimension",
@@ -60,6 +65,7 @@ __all__ = [
     "empty_conditional_comparison",
     "empty_grouped_summaries",
     "empty_run_summaries",
+    "render_signal_research_report",
     "summarize_analysis_frame",
     "summarize_conditional_comparison",
     "summarize_grouped_summaries",
