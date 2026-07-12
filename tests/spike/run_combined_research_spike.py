@@ -18,14 +18,12 @@ Run:
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import sys
 import tempfile
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import Any
 
 import polars as pl
 
@@ -50,6 +48,7 @@ from trading_framework.market.datasets import DatasetId, DatasetRef
 from trading_framework.market_analysis import TimeRange
 from trading_framework.market_analysis.assembly.frame import AnalysisFrame
 from trading_framework.research import (
+    SIGNAL_RESEARCH_SCHEMA_V2,
     SIGNAL_RESEARCH_SCHEMA_VERSION,
     ObservationMaterializationContext,
     ResearchScope,
@@ -60,20 +59,24 @@ from trading_framework.research import (
     align_context_facts_at_available_at,
     align_ohlcv_to_evaluation_frame,
     compute_forward_outcomes_for_horizons,
+    derive_run_id,
+    derive_run_id_v2,
     materialize_market_model_observations,
+    observations_as_outcome_occurrences,
     outcome_definition_fingerprint,
 )
+from trading_framework.research.context import empty_context_facts_dataframe
+from trading_framework.research.observations import empty_market_model_observations_dataframe
 from trading_framework.strategy import (
     OccurrenceMaterializationContext,
     ReferencePricePolicy,
     materialize_signal_occurrences,
 )
+from trading_framework.strategy.signal_occurrence import empty_signal_occurrences_dataframe
 from trading_framework.time.models.timeframe import Timeframe
 from trading_framework.time.sessions import CmeEsRthSessionResolver
 
 FIXTURE = OHLCV_SAMPLE_1M
-SIGNAL_RESEARCH_SCHEMA_V2 = "signal_research.v2"
-MARKET_ONLY_OUTCOME_DIRECTION = "long"
 # Default canonical threshold (5.0) yields no HIGH volatility on ohlcv_sample_1m.
 # Spike uses a fixture-calibrated threshold for TRUE_EDGE pipeline coverage only.
 SPIKE_FIXTURE_VOLATILITY_THRESHOLD = 0.5
@@ -84,48 +87,6 @@ class SpikeCheck:
     name: str
     passed: bool
     detail: str = ""
-
-
-def derive_run_id_v2(
-    *,
-    research_scope: ResearchScope,
-    source_dataset_ref: str,
-    market_model_ids: tuple[str, ...],
-    signal_model_ids: tuple[str, ...],
-    horizons: tuple[int, ...],
-    evaluation_timeframe: str,
-    requested_range_start: datetime,
-    requested_range_end: datetime,
-    framework_version: str,
-    outcome_definition_fingerprint: str,
-) -> str:
-    """Deterministic run identity including explicit research scope (spike helper)."""
-    payload = "|".join(
-        [
-            research_scope.value,
-            source_dataset_ref,
-            ",".join(sorted(market_model_ids)),
-            ",".join(sorted(signal_model_ids)),
-            ",".join(str(horizon) for horizon in sorted(horizons)),
-            evaluation_timeframe,
-            requested_range_start.isoformat(),
-            requested_range_end.isoformat(),
-            framework_version,
-            outcome_definition_fingerprint,
-        ]
-    )
-    return hashlib.sha256(payload.encode()).hexdigest()[:16]
-
-
-def observations_for_outcome_calculation(observations: pl.DataFrame) -> pl.DataFrame:
-    """Adapt market observations to the Sprint 008 outcome calculator shape."""
-    return observations.select(
-        pl.col("observation_id").alias("occurrence_id"),
-        pl.col("detected_at"),
-        pl.col("available_at"),
-        pl.col("reference_price"),
-        pl.lit(MARKET_ONLY_OUTCOME_DIRECTION).alias("direction"),
-    )
 
 
 def _write_published_dataset(storage_root: Path, csv_path: Path) -> DatasetRef:
@@ -170,39 +131,6 @@ def _write_published_dataset(storage_root: Path, csv_path: Path) -> DatasetRef:
     finalize_dataset(result.dataset_ref, storage_root=storage_root)
     publish_dataset(result.dataset_ref, storage_root=storage_root)
     return result.dataset_ref
-
-
-def _write_v2_envelope(
-    storage_root: Path,
-    *,
-    manifest: dict[str, Any],
-    observations: pl.DataFrame | None = None,
-    occurrences: pl.DataFrame | None = None,
-    context: pl.DataFrame | None = None,
-    outcomes: pl.DataFrame,
-) -> RunDatasetRef:
-    """Persist prototype envelope v2 layout (spike helper — Wave 2 production repository)."""
-    run_id = str(manifest["run_id"])
-    run_dir = signal_research_run_dir(storage_root, run_id)
-    if run_dir.exists():
-        msg = f"run directory already exists: {run_dir}"
-        raise FileExistsError(msg)
-
-    run_dir.mkdir(parents=True, exist_ok=False)
-    (run_dir / "manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
-    outcomes.write_parquet(run_dir / "outcomes.parquet")
-    if observations is not None and len(observations) > 0:
-        observations.write_parquet(run_dir / "observations.parquet")
-    if occurrences is not None and len(occurrences) > 0:
-        occurrences.write_parquet(run_dir / "occurrences.parquet")
-    if context is not None and len(context) > 0:
-        context.write_parquet(run_dir / "context.parquet")
-    return RunDatasetRef(run_id=run_id)
-
-
-def _read_v2_manifest(storage_root: Path, run_id: str) -> dict[str, Any]:
-    manifest_path = signal_research_run_dir(storage_root, run_id) / "manifest.json"
-    return json.loads(manifest_path.read_text(encoding="utf-8"))
 
 
 def _synthetic_context_alignment_check() -> SpikeCheck:
@@ -406,7 +334,7 @@ def run_spike() -> list[SpikeCheck]:
             )
 
             market_outcomes = compute_forward_outcomes_for_horizons(
-                observations_for_outcome_calculation(observations),
+                observations_as_outcome_occurrences(observations),
                 frame=frame,
                 ohlcv=ohlcv,
                 horizons=horizons,
@@ -431,33 +359,36 @@ def run_spike() -> list[SpikeCheck]:
                 framework_version=framework_version,
                 outcome_definition_fingerprint=outcome_fp,
             )
-            market_manifest: dict[str, Any] = {
-                "run_id": market_run_id,
-                "schema_version": SIGNAL_RESEARCH_SCHEMA_V2,
-                "research_scope": ResearchScope.MARKET_MODEL_ONLY.value,
-                "framework_version": framework_version,
-                "created_at_utc": datetime.now(tz=UTC).isoformat(),
-                "source_dataset_ref": dataset_key,
-                "evaluation_timeframe": "1m",
-                "market_model_ids": [CANONICAL_MARKET_MODEL_ID],
-                "signal_model_ids": [],
-                "horizon_bars_requested": list(horizons),
-                "reference_price_policy": ReferencePricePolicy.CLOSE_AT_DETECTED_AT.value,
-                "outcome_definition_fingerprint": outcome_fp,
-            }
-            _write_v2_envelope(
-                storage_root,
-                manifest=market_manifest,
-                observations=observations,
-                outcomes=market_outcomes,
+            market_manifest = SignalResearchRunManifest(
+                run_id=market_run_id,
+                schema_version=SIGNAL_RESEARCH_SCHEMA_V2,
+                framework_version=framework_version,
+                created_at_utc=datetime.now(tz=UTC),
+                source_dataset_ref=dataset_key,
+                evaluation_timeframe="1m",
+                signal_model_ids=(),
+                horizon_bars_requested=horizons,
+                reference_price_policy=ReferencePricePolicy.CLOSE_AT_DETECTED_AT,
+                outcome_definition_fingerprint=outcome_fp,
+                research_scope=ResearchScope.MARKET_MODEL_ONLY,
+                market_model_ids=(CANONICAL_MARKET_MODEL_ID,),
             )
-            loaded_market_manifest = _read_v2_manifest(storage_root, market_run_id)
+            repository = SignalResearchDatasetRepository(storage_root)
+            repository.write(
+                SignalResearchRunEnvelope(
+                    manifest=market_manifest,
+                    occurrences=empty_signal_occurrences_dataframe(),
+                    observations=observations,
+                    outcomes=market_outcomes,
+                    context=empty_context_facts_dataframe(),
+                )
+            )
+            loaded_market = repository.read(RunDatasetRef(run_id=market_run_id))
             checks.append(
                 SpikeCheck(
                     name="market_only_scope_in_manifest",
-                    passed=loaded_market_manifest.get("research_scope")
-                    == ResearchScope.MARKET_MODEL_ONLY.value,
-                    detail=f"scope={loaded_market_manifest.get('research_scope')}",
+                    passed=loaded_market.manifest.research_scope is ResearchScope.MARKET_MODEL_ONLY,
+                    detail=f"scope={loaded_market.manifest.research_scope}",
                 )
             )
             obs_path = signal_research_run_dir(storage_root, market_run_id) / "observations.parquet"
@@ -546,33 +477,35 @@ def run_spike() -> list[SpikeCheck]:
             framework_version=framework_version,
             outcome_definition_fingerprint=outcome_fp,
         )
-        combined_manifest: dict[str, Any] = {
-            "run_id": combined_run_id,
-            "schema_version": SIGNAL_RESEARCH_SCHEMA_V2,
-            "research_scope": ResearchScope.MARKET_AND_SIGNAL.value,
-            "framework_version": framework_version,
-            "created_at_utc": datetime.now(tz=UTC).isoformat(),
-            "source_dataset_ref": dataset_key,
-            "evaluation_timeframe": "1m",
-            "market_model_ids": [CANONICAL_MARKET_MODEL_ID],
-            "signal_model_ids": [CANONICAL_SIGNAL_HIGHER_LOW_ID],
-            "horizon_bars_requested": list(horizons),
-            "reference_price_policy": ReferencePricePolicy.CLOSE_AT_DETECTED_AT.value,
-            "outcome_definition_fingerprint": outcome_fp,
-        }
-        _write_v2_envelope(
-            storage_root,
-            manifest=combined_manifest,
-            occurrences=occurrences,
-            context=context_facts,
-            outcomes=combined_outcomes,
+        combined_manifest = SignalResearchRunManifest(
+            run_id=combined_run_id,
+            schema_version=SIGNAL_RESEARCH_SCHEMA_V2,
+            framework_version=framework_version,
+            created_at_utc=datetime.now(tz=UTC),
+            source_dataset_ref=dataset_key,
+            evaluation_timeframe="1m",
+            signal_model_ids=(CANONICAL_SIGNAL_HIGHER_LOW_ID,),
+            horizon_bars_requested=horizons,
+            reference_price_policy=ReferencePricePolicy.CLOSE_AT_DETECTED_AT,
+            outcome_definition_fingerprint=outcome_fp,
+            research_scope=ResearchScope.MARKET_AND_SIGNAL,
+            market_model_ids=(CANONICAL_MARKET_MODEL_ID,),
         )
-        loaded_combined = _read_v2_manifest(storage_root, combined_run_id)
+        combined_repository = SignalResearchDatasetRepository(storage_root)
+        combined_repository.write(
+            SignalResearchRunEnvelope(
+                manifest=combined_manifest,
+                occurrences=occurrences,
+                observations=empty_market_model_observations_dataframe(),
+                outcomes=combined_outcomes,
+                context=context_facts,
+            )
+        )
+        loaded_combined = combined_repository.read(RunDatasetRef(run_id=combined_run_id))
         checks.append(
             SpikeCheck(
                 name="market_and_signal_scope_in_manifest",
-                passed=loaded_combined.get("research_scope")
-                == ResearchScope.MARKET_AND_SIGNAL.value,
+                passed=loaded_combined.manifest.research_scope is ResearchScope.MARKET_AND_SIGNAL,
             )
         )
         context_path = signal_research_run_dir(storage_root, combined_run_id) / "context.parquet"
@@ -615,10 +548,8 @@ def run_spike() -> list[SpikeCheck]:
             )
         )
 
-        v1_run_id = derive_run_id_v2(
-            research_scope=ResearchScope.SIGNAL_MODEL_ONLY,
+        v1_run_id = derive_run_id(
             source_dataset_ref=dataset_key,
-            market_model_ids=(),
             signal_model_ids=(CANONICAL_SIGNAL_HIGHER_LOW_ID,),
             horizons=horizons,
             evaluation_timeframe="1m",
@@ -644,7 +575,9 @@ def run_spike() -> list[SpikeCheck]:
             SignalResearchRunEnvelope(
                 manifest=v1_manifest,
                 occurrences=occurrences,
+                observations=empty_market_model_observations_dataframe(),
                 outcomes=combined_outcomes,
+                context=empty_context_facts_dataframe(),
             )
         )
         loaded_v1 = v1_repository.read(RunDatasetRef(run_id=v1_run_id))

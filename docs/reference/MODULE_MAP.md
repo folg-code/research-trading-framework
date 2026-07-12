@@ -173,7 +173,7 @@ Published DatasetRef (source timeframe, e.g. 1m)
 
 | | |
 |---|---|
-| **Responsibility** | Signal Research run orchestration (`SIGNAL_MODEL_ONLY` MVP) |
+| **Responsibility** | Signal Research run orchestration (scope-aware; `SIGNAL_MODEL_ONLY` v1, `MARKET_MODEL_ONLY` v2) |
 | **Talks to** | `application/model_evaluation`, `strategy`, `research` |
 | **Key paths** | `run_signal_research.py` |
 | **Entry points** | `run_signal_research` |
@@ -249,7 +249,7 @@ ADR: [ADR-0011](../adr/ADR-0011-signal-research-outcomes-and-persistence.md)
 | `observations/` | `MarketModelObservation` TRUE_EDGE materialization |
 | `context/` | `ContextFact` alignment at signal `available_at` |
 | `outcomes/` | `ForwardOutcomeDefinition`, forward outcome calculator, OHLCV alignment |
-| `datasets/` | Run envelope manifest, `SignalResearchDatasetRepository`, deterministic `run_id` |
+| `datasets/` | Run envelope manifest (v1/v2), `SignalResearchDatasetRepository`, `derive_run_id` / `derive_run_id_v2` |
 
 **Entry points:** `validate_signal_research_request`, `materialize_market_model_observations`,
 `align_context_facts_at_available_at`, `compute_forward_outcomes`,

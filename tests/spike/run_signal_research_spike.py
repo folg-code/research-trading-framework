@@ -60,6 +60,8 @@ from trading_framework.research import (
     derive_run_id,
     outcome_definition_fingerprint,
 )
+from trading_framework.research.context import empty_context_facts_dataframe
+from trading_framework.research.observations import empty_market_model_observations_dataframe
 from trading_framework.strategy import (
     OccurrenceMaterializationContext,
     ReferencePricePolicy,
@@ -408,7 +410,9 @@ def run_spike() -> list[SpikeCheck]:
             SignalResearchRunEnvelope(
                 manifest=manifest,
                 occurrences=occurrences,
+                observations=empty_market_model_observations_dataframe(),
                 outcomes=outcomes,
+                context=empty_context_facts_dataframe(),
             )
         )
         loaded = repository.read(RunDatasetRef(run_id=run_key))
@@ -425,7 +429,9 @@ def run_spike() -> list[SpikeCheck]:
                 SignalResearchRunEnvelope(
                     manifest=manifest,
                     occurrences=occurrences,
+                    observations=empty_market_model_observations_dataframe(),
                     outcomes=outcomes,
+                    context=empty_context_facts_dataframe(),
                 )
             )
         except FileExistsError:
