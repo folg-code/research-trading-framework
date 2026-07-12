@@ -127,9 +127,30 @@ without knowing HH/LH classification internals.
 
 ---
 
+## 7. Multitimeframe projection (S005-T010)
+
+When `structure.swing` runs on a higher timeframe (for example 5m) and the
+evaluation grid is lower (for example 1m), each output declares an
+`alignment_policy` on its `OutputFieldSpec`:
+
+| Output kind | Policy | Behaviour on LTF grid |
+|-------------|--------|------------------------|
+| Event flags and event-attached values (`swing_*_event`, prices, observed indices, classification events) | `EVENT_AT_AVAILABLE` | `1.0` (or attached value) on the **first** LTF bar whose timestamp is `>= available_at`; inactive fill (`0.0` or `NaN`) elsewhere — **no forward fill** |
+| Stateful levels and indices (`latest_*`) | `LAST_CLOSED_BAR` | Backward `join_asof` on `available_at`; forward propagation on the dense grid is intentional |
+
+All swing outputs carry per-bar `available_at` (HTF bar close) so alignment
+can project without look-ahead. Sprint 004 continuous indicators keep their
+existing default (`LAST_CLOSED_BAR`).
+
+Variant A (`EVENT_AT_AVAILABLE`) is the MVP event projection policy. Sparse
+event tables remain a future option.
+
+---
+
 ## Revision History
 
 | Date | Change |
 |------|--------|
 | 2026-07-12 | Initial pivot contract (retired) |
 | 2026-07-12 | Neutral swing event/state contract; right-window geometry documented |
+| 2026-07-12 | MTF projection policies: EVENT_AT_AVAILABLE vs LAST_CLOSED_BAR |

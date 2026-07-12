@@ -8,7 +8,6 @@ import numpy as np
 
 from trading_framework.market_analysis.adapters.numpy.result_builder import (
     derive_available_at_timestamps,
-    ndarray_to_output_series,
 )
 from trading_framework.market_analysis.adapters.numpy.swing import (
     SwingStructureResult,
@@ -21,6 +20,7 @@ from trading_framework.market_analysis.identity.component import (
     ImplementationVersion,
 )
 from trading_framework.market_analysis.identity.computation import ComputationIdentity
+from trading_framework.market_analysis.models.alignment import AlignmentPolicy
 from trading_framework.market_analysis.models.availability import (
     AvailabilityMetadata,
     AvailabilityPolicy,
@@ -83,46 +83,47 @@ _LATEST_LOWER_LOW_OBSERVED_INDEX = OutputId("latest_lower_low_observed_index")
 _PARAMETER_SCHEMA = ParameterSchema(
     fields=(ParameterFieldSpec("pivot_range", ParameterType.INT, default=2, minimum=1),)
 )
+_EVENT_ALIGNMENT = AlignmentPolicy.EVENT_AT_AVAILABLE
+
+
+def _event_output(output_id: OutputId) -> OutputFieldSpec:
+    return OutputFieldSpec(
+        output_id,
+        "float64",
+        group=OutputGroup.CORE,
+        alignment_policy=_EVENT_ALIGNMENT,
+    )
+
+
+def _state_output(output_id: OutputId) -> OutputFieldSpec:
+    return OutputFieldSpec(output_id, "float64", group=OutputGroup.CORE)
+
+
 _OUTPUT_SCHEMA = OutputSchema(
     outputs=(
-        OutputFieldSpec(_SWING_HIGH_EVENT, "float64", group=OutputGroup.CORE),
-        OutputFieldSpec(_SWING_LOW_EVENT, "float64", group=OutputGroup.CORE),
-        OutputFieldSpec(_SWING_HIGH_PRICE, "float64", group=OutputGroup.CORE),
-        OutputFieldSpec(_SWING_LOW_PRICE, "float64", group=OutputGroup.CORE),
-        OutputFieldSpec(_SWING_HIGH_OBSERVED_INDEX, "float64", group=OutputGroup.CORE),
-        OutputFieldSpec(_SWING_LOW_OBSERVED_INDEX, "float64", group=OutputGroup.CORE),
-        OutputFieldSpec(_LATEST_SWING_HIGH_LEVEL, "float64", group=OutputGroup.CORE),
-        OutputFieldSpec(_LATEST_SWING_LOW_LEVEL, "float64", group=OutputGroup.CORE),
-        OutputFieldSpec(_LATEST_SWING_HIGH_OBSERVED_INDEX, "float64", group=OutputGroup.CORE),
-        OutputFieldSpec(_LATEST_SWING_LOW_OBSERVED_INDEX, "float64", group=OutputGroup.CORE),
-        OutputFieldSpec(_HIGHER_HIGH_EVENT, "float64", group=OutputGroup.CORE),
-        OutputFieldSpec(_LOWER_HIGH_EVENT, "float64", group=OutputGroup.CORE),
-        OutputFieldSpec(_HIGHER_LOW_EVENT, "float64", group=OutputGroup.CORE),
-        OutputFieldSpec(_LOWER_LOW_EVENT, "float64", group=OutputGroup.CORE),
-        OutputFieldSpec(_LATEST_HIGHER_HIGH_LEVEL, "float64", group=OutputGroup.CORE),
-        OutputFieldSpec(_LATEST_LOWER_HIGH_LEVEL, "float64", group=OutputGroup.CORE),
-        OutputFieldSpec(_LATEST_HIGHER_LOW_LEVEL, "float64", group=OutputGroup.CORE),
-        OutputFieldSpec(_LATEST_LOWER_LOW_LEVEL, "float64", group=OutputGroup.CORE),
-        OutputFieldSpec(_LATEST_HIGHER_HIGH_OBSERVED_INDEX, "float64", group=OutputGroup.CORE),
-        OutputFieldSpec(_LATEST_LOWER_HIGH_OBSERVED_INDEX, "float64", group=OutputGroup.CORE),
-        OutputFieldSpec(_LATEST_HIGHER_LOW_OBSERVED_INDEX, "float64", group=OutputGroup.CORE),
-        OutputFieldSpec(_LATEST_LOWER_LOW_OBSERVED_INDEX, "float64", group=OutputGroup.CORE),
+        _event_output(_SWING_HIGH_EVENT),
+        _event_output(_SWING_LOW_EVENT),
+        _event_output(_SWING_HIGH_PRICE),
+        _event_output(_SWING_LOW_PRICE),
+        _event_output(_SWING_HIGH_OBSERVED_INDEX),
+        _event_output(_SWING_LOW_OBSERVED_INDEX),
+        _state_output(_LATEST_SWING_HIGH_LEVEL),
+        _state_output(_LATEST_SWING_LOW_LEVEL),
+        _state_output(_LATEST_SWING_HIGH_OBSERVED_INDEX),
+        _state_output(_LATEST_SWING_LOW_OBSERVED_INDEX),
+        _event_output(_HIGHER_HIGH_EVENT),
+        _event_output(_LOWER_HIGH_EVENT),
+        _event_output(_HIGHER_LOW_EVENT),
+        _event_output(_LOWER_LOW_EVENT),
+        _state_output(_LATEST_HIGHER_HIGH_LEVEL),
+        _state_output(_LATEST_LOWER_HIGH_LEVEL),
+        _state_output(_LATEST_HIGHER_LOW_LEVEL),
+        _state_output(_LATEST_LOWER_LOW_LEVEL),
+        _state_output(_LATEST_HIGHER_HIGH_OBSERVED_INDEX),
+        _state_output(_LATEST_LOWER_HIGH_OBSERVED_INDEX),
+        _state_output(_LATEST_HIGHER_LOW_OBSERVED_INDEX),
+        _state_output(_LATEST_LOWER_LOW_OBSERVED_INDEX),
     )
-)
-
-_DELAYED_EVENT_OUTPUTS = frozenset(
-    {
-        _SWING_HIGH_EVENT,
-        _SWING_LOW_EVENT,
-        _SWING_HIGH_PRICE,
-        _SWING_LOW_PRICE,
-        _SWING_HIGH_OBSERVED_INDEX,
-        _SWING_LOW_OBSERVED_INDEX,
-        _HIGHER_HIGH_EVENT,
-        _LOWER_HIGH_EVENT,
-        _HIGHER_LOW_EVENT,
-        _LOWER_LOW_EVENT,
-    }
 )
 
 
@@ -203,10 +204,7 @@ def _build_outputs(
     }
     outputs: dict[OutputId, OutputSeries] = {}
     for output_id, values in mapping.items():
-        if output_id in _DELAYED_EVENT_OUTPUTS:
-            outputs[output_id] = _series_with_availability(values, available_at=available_at)
-        else:
-            outputs[output_id] = ndarray_to_output_series(values)
+        outputs[output_id] = _series_with_availability(values, available_at=available_at)
     return outputs
 
 

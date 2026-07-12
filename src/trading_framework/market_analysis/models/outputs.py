@@ -6,6 +6,7 @@ from enum import StrEnum
 
 from trading_framework.core.exceptions import ValidationError
 from trading_framework.market_analysis.identity.component import ComponentId
+from trading_framework.market_analysis.models.alignment import AlignmentPolicy
 from trading_framework.market_analysis.models.parameters import CanonicalParameters
 
 _OUTPUT_ID_PATTERN = re.compile(r"^[a-z][a-z0-9_]*$")
@@ -44,6 +45,7 @@ class OutputFieldSpec:
     output_id: OutputId
     dtype: str
     group: OutputGroup = OutputGroup.CORE
+    alignment_policy: AlignmentPolicy = AlignmentPolicy.LAST_CLOSED_BAR
 
     def __post_init__(self) -> None:
         normalized_dtype = self.dtype.strip().lower()

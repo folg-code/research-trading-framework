@@ -91,6 +91,7 @@ class AnalysisFrameAssembler:
             values = self._resolve_column_values(
                 result=result,
                 series=series,
+                output_id=spec.output_id,
                 evaluation_timestamps=timestamps,
                 evaluation_timeframe=evaluation_timeframe,
                 evaluation_range=eval_range,
@@ -118,6 +119,7 @@ class AnalysisFrameAssembler:
         *,
         result: AnalysisResult,
         series: OutputSeries,
+        output_id: OutputId,
         evaluation_timestamps: tuple[datetime, ...],
         evaluation_timeframe: Timeframe | None,
         evaluation_range: TimeRange,
@@ -134,11 +136,17 @@ class AnalysisFrameAssembler:
                 raise ValidationError(msg)
             return series.values
 
+        output_policy = self._alignment_policy_for_output(
+            result,
+            output_id,
+            alignment_policy,
+        )
         alignment_identity = AlignmentIdentity(
             component_computation_key=result.computation_identity.canonical_key(),
+            output_id=output_id.value,
             evaluation_timeframe=evaluation_timeframe,
             evaluation_range=evaluation_range,
-            alignment_policy=alignment_policy,
+            alignment_policy=output_policy,
         )
         cached = alignment_cache.get(alignment_identity)
         if cached is not None:
@@ -147,10 +155,21 @@ class AnalysisFrameAssembler:
         aligned = align_output_series(
             series,
             evaluation_timestamps=evaluation_timestamps,
-            policy=alignment_policy,
+            policy=output_policy,
         )
         alignment_cache.put(alignment_identity, aligned)
         return aligned
+
+    @staticmethod
+    def _alignment_policy_for_output(
+        result: AnalysisResult,
+        output_id: OutputId,
+        default_policy: AlignmentPolicy,
+    ) -> AlignmentPolicy:
+        for field in result.output_schema.outputs:
+            if field.output_id == output_id:
+                return field.alignment_policy
+        return default_policy
 
     def _find_result(
         self,

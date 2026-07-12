@@ -22,6 +22,45 @@ def needs_alignment(
     return computation_timeframe != evaluation_timeframe
 
 
+def _inactive_event_fill(values: tuple[float, ...]) -> float:
+    if any(value == 1.0 for value in values):
+        return 0.0
+    return math.nan
+
+
+def _is_active_event(value: float, inactive_fill: float) -> bool:
+    if math.isnan(value):
+        return False
+    if inactive_fill == 0.0:
+        return value != 0.0
+    return True
+
+
+def align_event_at_available(
+    *,
+    values: tuple[float, ...],
+    available_at: tuple[datetime, ...],
+    evaluation_timestamps: tuple[datetime, ...],
+) -> tuple[float, ...]:
+    """Project each HTF event onto the first evaluation bar at or after ``available_at``."""
+    if len(values) != len(available_at):
+        msg = "values and available_at must share the same length"
+        raise ValidationError(msg)
+    if not evaluation_timestamps:
+        return ()
+
+    inactive_fill = _inactive_event_fill(values)
+    aligned = [inactive_fill] * len(evaluation_timestamps)
+    for value, source_available_at in zip(values, available_at, strict=True):
+        if not _is_active_event(value, inactive_fill):
+            continue
+        for index, evaluation_at in enumerate(evaluation_timestamps):
+            if evaluation_at >= source_available_at:
+                aligned[index] = float(value)
+                break
+    return tuple(aligned)
+
+
 def align_values_to_evaluation_grid(
     *,
     values: tuple[float, ...],
@@ -29,9 +68,18 @@ def align_values_to_evaluation_grid(
     evaluation_timestamps: tuple[datetime, ...],
     policy: AlignmentPolicy,
 ) -> tuple[float, ...]:
-    """Align one HTF value series onto an evaluation grid via backward ``join_asof``."""
+    """Align one HTF value series onto an evaluation grid."""
+    if policy is AlignmentPolicy.EVENT_AT_AVAILABLE:
+        return align_event_at_available(
+            values=values,
+            available_at=available_at,
+            evaluation_timestamps=evaluation_timestamps,
+        )
     if policy != AlignmentPolicy.LAST_CLOSED_BAR:
-        msg = f"Sprint 004 MVP implements {AlignmentPolicy.LAST_CLOSED_BAR.value} only"
+        msg = (
+            f"Sprint 005 MVP implements {AlignmentPolicy.LAST_CLOSED_BAR.value} and "
+            f"{AlignmentPolicy.EVENT_AT_AVAILABLE.value}"
+        )
         raise ValidationError(msg)
     if len(values) != len(available_at):
         msg = "values and available_at must share the same length"
