@@ -152,7 +152,7 @@ Maintenance: `.cursor/rules/documentation.mdc`
 **Wave 0:** `docs/planning/sprints/S006_WAVE0_DECISIONS.md`  
 **Direction:** `docs/planning/sprints/PHASE_4_5_SPRINT_DIRECTION.md`  
 **Sprint branch:** `sprint/declarative-models`  
-**Tasks:** 7 / 26 done (Wave 0–1)
+**Tasks:** 13 / 26 done (Wave 0–2)
 
 **Planned follow-on (not started):** Sprint 007 optional; Sprint 008 Signal Research MVP.
 
@@ -249,7 +249,7 @@ See `PHASE_4_5_SPRINT_DIRECTION.md` for Sprints 007, 009, 010.
 | 003 | Market Analysis Engine MVP | COMPLETED | 40 / 41 tasks (T027 deferred) |
 | 004 | Multitimeframe Foundation MVP | COMPLETED | 15 / 15 tasks (T016 deferred) |
 | 005 | Calendar, swing structure, visual inspection | COMPLETED (sprint branch) | 16 / 16 tasks (T017–T018 deferred) |
-| 006 | Declarative Market Model and Signal Model | IN_PROGRESS | 7 / 26 tasks |
+| 006 | Declarative Market Model and Signal Model | IN_PROGRESS | 13 / 26 tasks |
 
 ---
 
