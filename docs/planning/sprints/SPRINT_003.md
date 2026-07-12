@@ -5,7 +5,7 @@
 ```text
 Sprint: 003
 Phase: Phase 3 — Market Analysis Engine MVP
-Status: IN_PROGRESS (Waves 0–3 COMPLETE; Wave 4 next)
+Status: IN_PROGRESS (Waves 0–4 COMPLETE; Wave 5 next)
 Planned Start: 2026-06-23
 Planned End: TBD
 Sprint Goal Owner: Project Maintainer
@@ -216,13 +216,13 @@ Prefer the smallest dependency set confirmed by the Wave 0 spike.
 | S003-T022 | Execution cache (exact-match, in-plan) | DONE | S003-T021, S003-T037 |
 | S003-T023 | Warm-up range extension and output validation | DONE | S003-T021 |
 | S003-T024 | Analysis error hierarchy | DONE | S003-T021 |
-| S003-T025 | True Range Feature component | TODO | S003-T014, S003-T020 |
-| S003-T026 | ATR Feature and NumPy adapter | TODO | S003-T025 |
+| S003-T025 | True Range Feature component | DONE | S003-T014, S003-T020 |
+| S003-T026 | ATR Feature and NumPy adapter | DONE | S003-T025 |
 | S003-T027 | Optional TA-Lib adapter extra | TODO | S003-T026 |
-| S003-T040 | EMA reusable Feature component | TODO | S003-T014, S003-T020 |
-| S003-T028 | Volatility State + diagnostic output | TODO | S003-T026 |
-| S003-T039 | AnalysisFrameAssembler and alias policy | TODO | S003-T038, S003-T028 |
-| S003-T029 | Engine facade and run_analysis use case | TODO | S003-T022, S003-T039 |
+| S003-T040 | EMA reusable Feature component | DONE | S003-T014, S003-T020 |
+| S003-T028 | Volatility State + diagnostic output | DONE | S003-T026 |
+| S003-T039 | AnalysisFrameAssembler and alias policy | DONE | S003-T038, S003-T028 |
+| S003-T029 | Engine facade and run_analysis use case | DONE | S003-T022, S003-T039 |
 | S003-T030 | Adapter contract test suite | TODO | S003-T026 |
 | S003-T031 | Integration test: wide AnalysisFrame from DatasetRef | TODO | S003-T029 |
 | S003-T041 | Workspace and frame assembly tests | TODO | S003-T039 |
