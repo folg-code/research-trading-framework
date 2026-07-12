@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import html
+import importlib
 from pathlib import Path
 from typing import Any, Protocol
 
@@ -136,9 +137,9 @@ class AnalyticsReportSource(Protocol):
 
 def _require_plotly() -> tuple[Any, Any, Any]:
     try:
-        import plotly.graph_objects as go  # type: ignore[import-untyped]
-        import plotly.io as pio  # type: ignore[import-untyped]
-        from plotly.subplots import make_subplots  # type: ignore[import-untyped]
+        go = importlib.import_module("plotly.graph_objects")
+        pio = importlib.import_module("plotly.io")
+        make_subplots = importlib.import_module("plotly.subplots").make_subplots
     except ImportError as exc:
         msg = "plotly is required for HTML reports; install with: uv pip install plotly"
         raise ValidationError(msg) from exc
@@ -751,12 +752,12 @@ def render_signal_research_report(
     Presentation-only: consumes ``AnalyzeSignalResearchResult`` — no Parquet reads,
     joins or aggregate recomputation.
     """
-    go, pio, make_subplots = _require_plotly()
-
     run_rows = result.run_summaries.to_dicts()
     if not run_rows:
         msg = "run_summaries must contain at least one row"
         raise ValidationError(msg)
+
+    go, pio, make_subplots = _require_plotly()
 
     metadata = result.metadata
     filter_label = _fmt_filter_label(metadata)
