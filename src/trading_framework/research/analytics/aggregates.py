@@ -2,44 +2,14 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-
 import polars as pl
 
 from trading_framework.research.analytics.filters import OutcomeAnalyticsFilter
+from trading_framework.research.analytics.metrics import aggregate_complete_metrics
 from trading_framework.research.analytics.schemas import (
     empty_run_summaries,
     validate_run_summaries,
 )
-
-
-def aggregate_complete_metrics(complete: pl.DataFrame) -> dict[str, float | None]:
-    """Compute aggregate metrics over filter-eligible complete rows."""
-    return _aggregate_complete_metrics(complete)
-
-
-def _aggregate_complete_metrics(complete: pl.DataFrame) -> dict[str, float | None]:
-    if len(complete) == 0:
-        return {
-            "forward_return_mean": None,
-            "forward_return_median": None,
-            "hit_rate": None,
-            "mfe_mean": None,
-            "mfe_median": None,
-            "mae_mean": None,
-            "mae_median": None,
-        }
-    returns = complete["forward_return"]
-    hits = complete.filter(pl.col("forward_return") > 0).height
-    return {
-        "forward_return_mean": float(returns.mean()),  # type: ignore[arg-type]
-        "forward_return_median": float(returns.median()),  # type: ignore[arg-type]
-        "hit_rate": hits / len(complete),
-        "mfe_mean": float(complete["mfe"].mean()),  # type: ignore[arg-type]
-        "mfe_median": float(complete["mfe"].median()),  # type: ignore[arg-type]
-        "mae_mean": float(complete["mae"].mean()),  # type: ignore[arg-type]
-        "mae_median": float(complete["mae"].median()),  # type: ignore[arg-type]
-    }
 
 
 def compute_run_summary(
@@ -61,7 +31,7 @@ def compute_run_summary(
 
     metrics: dict[str, float | None]
     if metrics_eligible:
-        metrics = _aggregate_complete_metrics(complete)
+        metrics = aggregate_complete_metrics(complete)
     else:
         metrics = {
             "forward_return_mean": None,
@@ -125,36 +95,3 @@ def summarize_run_summaries(
     combined = pl.concat(summaries)
     validate_run_summaries(combined)
     return combined
-
-
-@dataclass(frozen=True, slots=True)
-class SummarizeAnalysisFrameResult:
-    """Ephemeral analytics outputs derived from one normalized analysis frame."""
-
-    run_summaries: pl.DataFrame
-    grouped_summaries: pl.DataFrame | None
-    conditional_comparison: pl.DataFrame | None
-
-
-def summarize_analysis_frame(
-    frame: pl.DataFrame,
-    *,
-    horizons: tuple[int, ...],
-    outcome_filter: OutcomeAnalyticsFilter,
-    min_sample_size: int,
-) -> SummarizeAnalysisFrameResult:
-    """Compute RunSummary aggregates for one analysis frame.
-
-    Grouping and conditional comparison are populated in Wave 3.
-    """
-    run_summaries = summarize_run_summaries(
-        frame,
-        horizons=horizons,
-        min_sample_size=min_sample_size,
-        outcome_filter=outcome_filter,
-    )
-    return SummarizeAnalysisFrameResult(
-        run_summaries=run_summaries,
-        grouped_summaries=None,
-        conditional_comparison=None,
-    )

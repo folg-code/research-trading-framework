@@ -8,7 +8,6 @@ from pathlib import Path
 import polars as pl
 
 from trading_framework.core.exceptions import ValidationError
-from trading_framework.research.analytics.aggregates import summarize_analysis_frame
 from trading_framework.research.analytics.dimensions import (
     AnalyticsTimestampBasis,
     GroupDimension,
@@ -16,6 +15,7 @@ from trading_framework.research.analytics.dimensions import (
 from trading_framework.research.analytics.filters import OutcomeAnalyticsFilter
 from trading_framework.research.analytics.frame_builder import build_analysis_frame
 from trading_framework.research.analytics.metadata import AnalyticsResultMetadata
+from trading_framework.research.analytics.summarize import summarize_analysis_frame
 from trading_framework.research.datasets.signal_research import (
     RunDatasetRef,
     SignalResearchDatasetRepository,
@@ -72,14 +72,18 @@ def analyze_signal_research_run(
     if horizons is None:
         horizons = envelope.manifest.horizon_bars_requested
 
+    scope = envelope.manifest.effective_scope()
     summarized = summarize_analysis_frame(
         frame,
         horizons=horizons,
         outcome_filter=request.outcome_filter,
         min_sample_size=request.min_sample_size,
+        research_scope=scope,
+        group_by=request.group_by,
+        conditional_context=request.conditional_context,
+        timestamp_basis=request.timestamp_basis,
     )
 
-    scope = envelope.manifest.effective_scope()
     metadata = AnalyticsResultMetadata(
         source_run_id=envelope.manifest.run_id,
         research_scope=scope.value,
