@@ -7,7 +7,7 @@ Package map for `src/trading_framework/`: responsibility, dependencies, status, 
 
 **Status legend:** ✅ implemented · 🟡 partial / in sprint · ⬜ skeleton · 📘 deep doc elsewhere
 
-Last updated: 2026-07-12 (Sprint 008 complete)
+Last updated: 2026-07-12 (Sprint 009 Wave 1)
 
 ---
 
@@ -240,14 +240,19 @@ ADR: [ADR-0011](../adr/ADR-0011-signal-research-outcomes-and-persistence.md)
 | **Key paths** | `signal_occurrence.py`, `reference_price.py` |
 | **Entry points** | `materialize_signal_occurrences`, `derive_occurrence_id`, `resolve_reference_price` |
 
-### `research/` ✅ (Signal Research slice)
+### `research/` 🟡 (Signal Research — Sprint 009 Wave 1)
 
 | Subpackage | Responsibility |
 |------------|----------------|
+| `scope.py` | Explicit `ResearchScope` enum |
+| `requests.py` | `SignalResearchRequest`, scope/model validation |
+| `observations/` | `MarketModelObservation` TRUE_EDGE materialization |
+| `context/` | `ContextFact` alignment at signal `available_at` |
 | `outcomes/` | `ForwardOutcomeDefinition`, forward outcome calculator, OHLCV alignment |
 | `datasets/` | Run envelope manifest, `SignalResearchDatasetRepository`, deterministic `run_id` |
 
-**Entry points:** `compute_forward_outcomes`, `compute_forward_outcomes_for_horizons`,
+**Entry points:** `validate_signal_research_request`, `materialize_market_model_observations`,
+`align_context_facts_at_available_at`, `compute_forward_outcomes`,
 `SignalResearchDatasetRepository.read/write`
 
 ---

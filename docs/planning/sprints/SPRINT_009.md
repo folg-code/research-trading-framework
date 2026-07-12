@@ -299,8 +299,8 @@ v1 read compatibility, deterministic run identity.
 | ID | Task | Status | Depends On |
 |----|------|--------|------------|
 | S009-T001 | Wave 0 spike + binding decisions doc | DONE | — |
-| S009-T002 | `ResearchScope`, `SignalResearchRequest`, validation | TODO | S009-T001 |
-| S009-T003 | `MarketModelObservation`, `ContextFact` | TODO | S009-T001 |
+| S009-T002 | `ResearchScope`, `SignalResearchRequest`, validation | DONE | S009-T001 |
+| S009-T003 | `MarketModelObservation`, `ContextFact` | DONE | S009-T001 |
 | S009-T004 | MARKET_MODEL_ONLY workflow + persistence | TODO | S009-T002, S009-T003 |
 | S009-T005 | Context alignment at `available_at` | TODO | S009-T001 |
 | S009-T006 | MARKET_AND_SIGNAL workflow + context facts | TODO | S009-T004, S009-T005 |

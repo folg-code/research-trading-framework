@@ -24,7 +24,6 @@ import sys
 import tempfile
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
-from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
@@ -50,22 +49,24 @@ from trading_framework.infrastructure.storage.paths import signal_research_run_d
 from trading_framework.market.datasets import DatasetId, DatasetRef
 from trading_framework.market_analysis import TimeRange
 from trading_framework.market_analysis.assembly.frame import AnalysisFrame
-from trading_framework.market_analysis.data.view import AnalysisDataView
 from trading_framework.research import (
     SIGNAL_RESEARCH_SCHEMA_VERSION,
+    ObservationMaterializationContext,
+    ResearchScope,
     RunDatasetRef,
     SignalResearchDatasetRepository,
     SignalResearchRunEnvelope,
     SignalResearchRunManifest,
+    align_context_facts_at_available_at,
     align_ohlcv_to_evaluation_frame,
     compute_forward_outcomes_for_horizons,
+    materialize_market_model_observations,
     outcome_definition_fingerprint,
 )
 from trading_framework.strategy import (
     OccurrenceMaterializationContext,
     ReferencePricePolicy,
     materialize_signal_occurrences,
-    resolve_reference_price,
 )
 from trading_framework.time.models.timeframe import Timeframe
 from trading_framework.time.sessions import CmeEsRthSessionResolver
@@ -78,55 +79,11 @@ MARKET_ONLY_OUTCOME_DIRECTION = "long"
 SPIKE_FIXTURE_VOLATILITY_THRESHOLD = 0.5
 
 
-class ResearchScope(StrEnum):
-    """Explicit Signal Research scope (spike-local; Wave 1 production enum)."""
-
-    SIGNAL_MODEL_ONLY = "signal_model_only"
-    MARKET_MODEL_ONLY = "market_model_only"
-    MARKET_AND_SIGNAL = "market_and_signal"
-
-
 @dataclass(frozen=True, slots=True)
 class SpikeCheck:
     name: str
     passed: bool
     detail: str = ""
-
-
-def _observation_schema() -> dict[str, pl.DataType]:
-    return {
-        "observation_id": pl.String(),
-        "market_model_id": pl.String(),
-        "detected_at": pl.Datetime(time_unit="us", time_zone="UTC"),
-        "available_at": pl.Datetime(time_unit="us", time_zone="UTC"),
-        "reference_price": pl.Float64(),
-        "instrument": pl.String(),
-        "evaluation_timeframe": pl.String(),
-        "source_dataset_ref": pl.String(),
-    }
-
-
-def _context_schema() -> dict[str, pl.DataType]:
-    return {
-        "occurrence_id": pl.String(),
-        "market_model_id": pl.String(),
-        "context_met_at_available_at": pl.Boolean(),
-        "context_evaluated_at": pl.Datetime(time_unit="us", time_zone="UTC"),
-    }
-
-
-def _empty_observations_dataframe() -> pl.DataFrame:
-    return pl.DataFrame(schema=_observation_schema())
-
-
-def _empty_context_dataframe() -> pl.DataFrame:
-    return pl.DataFrame(schema=_context_schema())
-
-
-def derive_observation_id(*, market_model_id: str, detected_at: datetime) -> str:
-    """Stable observation identity within one research run (spike helper)."""
-    payload = f"{market_model_id}|{detected_at.isoformat()}"
-    return hashlib.sha256(payload.encode()).hexdigest()[:16]
 
 
 def derive_run_id_v2(
@@ -160,51 +117,6 @@ def derive_run_id_v2(
     return hashlib.sha256(payload.encode()).hexdigest()[:16]
 
 
-def materialize_true_edge_observations(
-    market_state: pl.DataFrame,
-    *,
-    frame: AnalysisFrame,
-    market_view: AnalysisDataView | None,
-    market_model_id: str,
-    instrument: str,
-    evaluation_timeframe: Timeframe,
-    source_dataset_ref: str,
-) -> pl.DataFrame:
-    """Select TRUE_EDGE observation points from dense market model state."""
-    if len(market_state) == 0:
-        return _empty_observations_dataframe()
-
-    sorted_state = market_state.sort("timestamp")
-    previous_result = sorted_state["model_result"].shift(1).fill_null(False)
-    edges = sorted_state.filter(pl.col("model_result") & ~previous_result)
-
-    rows: list[dict[str, Any]] = []
-    for row in edges.iter_rows(named=True):
-        detected_at = row["timestamp"]
-        reference_price = resolve_reference_price(
-            ReferencePricePolicy.CLOSE_AT_DETECTED_AT,
-            detected_at=detected_at,
-            frame=frame,
-            market_view=market_view,
-        )
-        rows.append(
-            {
-                "observation_id": derive_observation_id(
-                    market_model_id=market_model_id,
-                    detected_at=detected_at,
-                ),
-                "market_model_id": market_model_id,
-                "detected_at": detected_at,
-                "available_at": row["available_at"],
-                "reference_price": reference_price,
-                "instrument": instrument,
-                "evaluation_timeframe": evaluation_timeframe.value,
-                "source_dataset_ref": source_dataset_ref,
-            }
-        )
-    return pl.DataFrame(rows, schema=_observation_schema())
-
-
 def observations_for_outcome_calculation(observations: pl.DataFrame) -> pl.DataFrame:
     """Adapt market observations to the Sprint 008 outcome calculator shape."""
     return observations.select(
@@ -213,31 +125,6 @@ def observations_for_outcome_calculation(observations: pl.DataFrame) -> pl.DataF
         pl.col("available_at"),
         pl.col("reference_price"),
         pl.lit(MARKET_ONLY_OUTCOME_DIRECTION).alias("direction"),
-    )
-
-
-def align_context_facts_at_available_at(
-    occurrences: pl.DataFrame,
-    market_state: pl.DataFrame,
-    *,
-    market_model_id: str,
-) -> pl.DataFrame:
-    """Backward as-of join: market context at each signal ``available_at``."""
-    if len(occurrences) == 0:
-        return _empty_context_dataframe()
-
-    state = market_state.select("available_at", "model_result").sort("available_at")
-    sorted_occurrences = occurrences.sort("available_at")
-    joined = sorted_occurrences.join_asof(
-        state,
-        on="available_at",
-        strategy="backward",
-    )
-    return joined.select(
-        pl.col("occurrence_id"),
-        pl.lit(market_model_id).alias("market_model_id"),
-        pl.col("model_result").alias("context_met_at_available_at"),
-        pl.col("available_at").alias("context_evaluated_at"),
     )
 
 
@@ -391,14 +278,16 @@ def _synthetic_true_edge_observations_check() -> SpikeCheck:
         columns={"close": close, "high": close, "low": close},
         column_lineage={},
     )
-    observations = materialize_true_edge_observations(
+    observations = materialize_market_model_observations(
         market_state,
         frame=frame,
         market_view=None,
-        market_model_id="synthetic_vol",
-        instrument="TEST",
-        evaluation_timeframe=Timeframe("1m"),
-        source_dataset_ref="synthetic",
+        context=ObservationMaterializationContext(
+            market_model_id="synthetic_vol",
+            instrument="TEST",
+            evaluation_timeframe=Timeframe("1m"),
+            source_dataset_ref="synthetic",
+        ),
     )
     edge_count = len(observations)
     passed = edge_count == 2
@@ -487,14 +376,16 @@ def run_spike() -> list[SpikeCheck]:
         ohlcv = align_ohlcv_to_evaluation_frame(frame, market_view)
 
         market_state = eval_market_only.market_model_results[CANONICAL_MARKET_MODEL_ID]
-        observations = materialize_true_edge_observations(
+        observations = materialize_market_model_observations(
             market_state,
             frame=frame,
             market_view=market_view,
-            market_model_id=CANONICAL_MARKET_MODEL_ID,
-            instrument=dataset_ref.dataset_id.instrument_id.value,
-            evaluation_timeframe=Timeframe("1m"),
-            source_dataset_ref=dataset_key,
+            context=ObservationMaterializationContext(
+                market_model_id=CANONICAL_MARKET_MODEL_ID,
+                instrument=dataset_ref.dataset_id.instrument_id.value,
+                evaluation_timeframe=Timeframe("1m"),
+                source_dataset_ref=dataset_key,
+            ),
         )
         checks.append(
             SpikeCheck(
