@@ -27,26 +27,27 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 
 ```text
 Status Date: 2026-07-12
-Current Phase: Phase 4 / Phase 5 bridge
-Current Milestone: Sprint 006 complete (pending sprint PR to main)
-Implementation Status: Sprints 003–006 COMPLETE on sprint branch; Sprint 006 pending merge to main
+Current Phase: Phase 5 — Signal Research MVP (first increment)
+Current Milestone: Sprint 008 — Signal Research computation
+Implementation Status: Sprints 003–006 COMPLETE on main; Sprint 008 IN_PROGRESS
 Overall Status: IN_PROGRESS
-Active Sprint: SPRINT_006 (complete on branch — pending merge)
-Last Completed Sprint: SPRINT_005 (COMPLETED on main)
+Active Sprint: SPRINT_008 (Wave 0)
+Last Completed Sprint: SPRINT_006 (COMPLETED on main)
 ```
 
 ---
 
 ## 3. Current Objective
 
-Execute **Sprint 006** per corrected direction: declarative Market/Signal Model.
+Execute **Sprint 008** per corrected direction: first Signal Research workflow end-to-end.
 
 Binding direction: `docs/planning/sprints/PHASE_4_5_SPRINT_DIRECTION.md`  
-Sprint 006 plan: `docs/planning/sprints/SPRINT_006.md`
+Sprint 008 plan: `docs/planning/sprints/SPRINT_008.md`  
+Wave 0: `docs/planning/sprints/S008_WAVE0_DECISIONS.md`
 
-**North star:** published data → visually verified analysis → declarative Signal Model → `SignalOccurrence` → persistent research dataset (Sprints 006–008).
+**North star:** published data → Signal Model → `SignalOccurrence` → forward outcomes → persistent research dataset (Sprints 008–010).
 
-Shortest research path: `006 → 008` (Sprint 007 only as needed).
+Shortest research path: `006 → 008` (Sprint 007 skipped at scope gate 2026-07-12).
 
 ---
 
@@ -104,7 +105,7 @@ Completed on `main` (PR #60, 2026-07-12):
 
 ### Phase 4 — Market Analysis Components (Sprint 005)
 
-Completed on `sprint/market-analysis-components` (2026-07-12):
+Completed on `main` (2026-07-12):
 
 - batch `TradingSessionResolver` and `CmeEsRthSessionResolver` (CME ES RTH),
 - session metadata enrichment on `run_analysis` path,
@@ -113,7 +114,26 @@ Completed on `sprint/market-analysis-components` (2026-07-12):
 - behavior tests, S005 MTF vertical slice, Plotly inspection spike,
 - ADR-MA-013; 280 tests at sprint closure.
 
-Pending: sprint PR from `sprint/market-analysis-components` → `main`.
+### Phase 4 — Declarative Models (Sprint 006)
+
+Completed on `main` (PR #75, 2026-07-12):
+
+- `model_expression/` IR, validation, dependency extraction, evaluation,
+- `market_model/` and `signal_model/` evaluators with firing policies,
+- `model_authoring/` DSL compiling to IR,
+- `evaluate_models` application orchestration,
+- canonical examples, inspection overlay, ADR-0006,
+- 338 tests at sprint closure.
+
+### Phase 5 — Signal Research (Sprint 008)
+
+In progress on `sprint/signal-research-mvp`:
+
+- Wave 0: outcome semantics spike and architecture decisions,
+- target: `SignalOccurrence` → forward return / MFE / MAE → Parquet research dataset,
+- scope: `SIGNAL_MODEL_ONLY`.
+
+Pending: Sprint 007 skipped (scope gate — existing components sufficient).
 
 ### Architectural Foundations
 
@@ -145,32 +165,30 @@ Maintenance: `.cursor/rules/documentation.mdc`
 
 ## 6. Work in Progress
 
-### Sprint 006 — Declarative Market Model and Signal Model
+### Sprint 008 — Signal Research Computation MVP
 
-**Status:** COMPLETE on branch (pending merge to `main`)  
-**Plan:** `docs/planning/sprints/SPRINT_006.md`  
-**Wave 0:** `docs/planning/sprints/S006_WAVE0_DECISIONS.md`  
-**ADR:** ADR-0006  
-**Sprint branch:** `sprint/declarative-models`  
-**Tasks:** 26 / 26 done
+**Status:** IN_PROGRESS (Wave 0 complete)  
+**Plan:** `docs/planning/sprints/SPRINT_008.md`  
+**Wave 0:** `docs/planning/sprints/S008_WAVE0_DECISIONS.md`  
+**Sprint branch:** `sprint/signal-research-mvp`  
+**Tasks:** 1 / 11 done (T001)
 
-**Planned follow-on (not started):** Sprint 007 optional; Sprint 008 Signal Research MVP.
+**Scope gate:** Sprint 007 skipped — existing components sufficient for first experiment.
 
 ---
 
-### Sprint 005 — Closed (sprint branch)
+### Sprint 006 — Closed
 
-**Status:** COMPLETE on `sprint/market-analysis-components` — awaiting merge to `main`.  
-**Plan:** `docs/planning/sprints/SPRINT_005.md`  
-**ADR:** ADR-MA-013
+**Status:** COMPLETE on `main` (PR #75, 2026-07-12)  
+**Plan:** `docs/planning/sprints/SPRINT_006.md`  
+**ADR:** ADR-0006  
+**Tasks:** 26 / 26 done
 
 ---
 
 ## 7. Blocked Work
 
-Nothing is technically blocked for planning.
-
-Sprint 006 **implementation** is gated on Sprint 005 merge to `main` (PR #66 + sprint branch PR).
+Nothing is technically blocked for Sprint 008 Wave 0.
 
 ---
 
@@ -211,7 +229,8 @@ PRB-002 and PRB-005 received partial MVP resolution in Sprint 003.
 | ADR-MA-001–011 Market Analysis Engine | ACCEPTED (Sprint 003) |
 | ADR-MA-012 Batch MTF with Polars | ACCEPTED (Sprint 004) |
 | ADR-MA-013 CME ES RTH + Swing Structure MTF | ACCEPTED (Sprint 005) |
-| ADR-0004, ADR-0006, ADR-0009, ADR-0010 | PLANNED |
+| ADR-0006 | ACCEPTED (Sprint 006) |
+| ADR-0004, ADR-0009, ADR-0010 | PLANNED |
 
 Binding decisions D-001–D-036 and workspace invariants are documented in the architecture files above; ADR materialization is Sprint 003 Wave 6 (including ADR-MA-007 workspace).
 
@@ -230,13 +249,12 @@ Binding decisions D-001–D-036 and workspace invariants are documented in the a
 ## 11. Next Planned Capability
 
 ```text
-Sprint 006 — Declarative Market/Signal Model (active plan)
-Sprint 008 — Signal Research dataset (target milestone)
+Sprint 008 — Signal Research computation (active)
+Sprint 009 — Combined research scopes (MARKET_MODEL_ONLY, MARKET_AND_SIGNAL)
+Sprint 010 — Analytics on stored datasets
 ```
 
-Sprint 005 sprint PR to `main` is the immediate integration step.
-
-See `PHASE_4_5_SPRINT_DIRECTION.md` for Sprints 007, 009, 010.
+See `PHASE_4_5_SPRINT_DIRECTION.md` for Sprints 009–010.
 
 ---
 
@@ -248,8 +266,10 @@ See `PHASE_4_5_SPRINT_DIRECTION.md` for Sprints 007, 009, 010.
 | 002 | Market Data MVP | COMPLETED | 26 / 26 tasks |
 | 003 | Market Analysis Engine MVP | COMPLETED | 40 / 41 tasks (T027 deferred) |
 | 004 | Multitimeframe Foundation MVP | COMPLETED | 15 / 15 tasks (T016 deferred) |
-| 005 | Calendar, swing structure, visual inspection | COMPLETED (sprint branch) | 16 / 16 tasks (T017–T018 deferred) |
-| 006 | Declarative Market Model and Signal Model | COMPLETE (branch) | 26 / 26 tasks |
+| 005 | Calendar, swing structure, visual inspection | COMPLETED | 16 / 16 tasks (T017–T018 deferred) |
+| 006 | Declarative Market Model and Signal Model | COMPLETED | 26 / 26 tasks |
+| 007 | Research-enabling catalog | SKIPPED (scope gate) | 1 / 9 (T001 only) |
+| 008 | Signal Research computation MVP | IN_PROGRESS | 1 / 11 tasks |
 
 ---
 
