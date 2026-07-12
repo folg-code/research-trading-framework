@@ -22,6 +22,7 @@ from trading_framework.market_analysis.planning import (
     DependencyPlanner,
     PlanningContext,
     PlanningRequest,
+    RequestResolver,
 )
 from trading_framework.market_analysis.planning.plan import ExecutionPlan
 from trading_framework.market_analysis.registry.builtins import default_mvp_registry
@@ -72,9 +73,23 @@ def run_analysis(
         PlanningRequest.from_component_request(component_request)
         for component_request in request.component_requests
     )
+    resolved_plan = RequestResolver.resolve_input_plan(
+        dataset_ref=request.dataset_ref,
+        requested_range=request.requested_range,
+        source_timeframe=request.timeframe,
+        component_requests=tuple(
+            (component_request.component_id, component_request, None)
+            for component_request in request.component_requests
+        ),
+        evaluation_timeframe=request.evaluation_timeframe,
+    )
     planner = DependencyPlanner(component_registry)
-    plan = planner.build_plan(planning_context, planning_requests)
-    warmup_bars = max_history_requirement(plan)
+    plan = planner.build_plan(
+        planning_context,
+        planning_requests,
+        resolved_plan=resolved_plan,
+    )
+    warmup_bars = max_history_requirement(plan, source_timeframe=request.timeframe)
     computation_range = extend_computation_range(
         request.requested_range,
         warmup_bars=warmup_bars,

@@ -18,6 +18,7 @@ from trading_framework.market_analysis.errors import (
 )
 from trading_framework.market_analysis.execution import (
     ExecutionCache,
+    ResampleCache,
     SequentialBatchExecutor,
     validate_analysis_result,
 )
@@ -76,7 +77,11 @@ from trading_framework.market_analysis.planning import (
     PlanningContext,
     PlanningRequest,
     RequestResolver,
+    ResampleNode,
+    ResolvedComponentInput,
     ResolvedComponentRequest,
+    ResolvedInputPlan,
+    ResolvedResampleRequirement,
     RunTimeframeContext,
 )
 from trading_framework.market_analysis.protocols import (
@@ -146,9 +151,14 @@ __all__ = [
     "PlanningError",
     "PlanningRequest",
     "RequestResolver",
+    "ResampleCache",
     "ResampleIdentity",
+    "ResampleNode",
     "ResampleSpec",
+    "ResolvedComponentInput",
     "ResolvedComponentRequest",
+    "ResolvedInputPlan",
+    "ResolvedResampleRequirement",
     "RunTimeframeContext",
     "SequentialBatchExecutor",
     "TimeRange",

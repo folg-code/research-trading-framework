@@ -20,6 +20,7 @@ class AnalysisWorkspace:
 
     def __init__(self, market_view: AnalysisDataView) -> None:
         self._market_view = market_view
+        self._resampled_views: dict[str, AnalysisDataView] = {}
         self._store = AnalysisResultStore()
 
     @property
@@ -33,8 +34,21 @@ class AnalysisWorkspace:
     def register(self, result: AnalysisResult) -> None:
         self._store.put(result)
 
-    def view_for(self, dependency_keys: tuple[str, ...]) -> AnalysisWorkspaceView:
+    def register_resampled_view(self, identity_key: str, view: AnalysisDataView) -> None:
+        self._resampled_views[identity_key] = view
+
+    def market_view_for(self, input_identity_key: str | None) -> AnalysisDataView:
+        if input_identity_key is None:
+            return self._market_view
+        return self._resampled_views[input_identity_key]
+
+    def view_for(
+        self,
+        dependency_keys: tuple[str, ...],
+        *,
+        input_identity_key: str | None = None,
+    ) -> AnalysisWorkspaceView:
         return AnalysisWorkspaceView(
-            market=self._market_view,
+            market=self.market_view_for(input_identity_key),
             dependency_results=self._store.dependency_results(dependency_keys),
         )

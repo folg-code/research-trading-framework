@@ -118,10 +118,12 @@ def test_planner_deduplicates_duplicate_atr_requests() -> None:
         ],
     )
     atr_nodes = [
-        node for node in plan.nodes if node.request.component_id == ComponentId("volatility.atr")
+        node
+        for node in plan.component_nodes()
+        if node.request.component_id == ComponentId("volatility.atr")
     ]
     assert len(atr_nodes) == 1
-    assert len(plan.nodes) == 2
+    assert len(plan.component_nodes()) == 2
 
 
 def test_executor_runs_deduplicated_atr_once() -> None:
@@ -213,10 +215,14 @@ def test_identical_requests_resolve_to_same_computation_identity() -> None:
         [PlanningRequest.from_component_request(request)],
     )
     atr_nodes_first = [
-        node for node in first.nodes if node.request.component_id == ComponentId("volatility.atr")
+        node
+        for node in first.component_nodes()
+        if node.request.component_id == ComponentId("volatility.atr")
     ]
     atr_nodes_second = [
-        node for node in second.nodes if node.request.component_id == ComponentId("volatility.atr")
+        node
+        for node in second.component_nodes()
+        if node.request.component_id == ComponentId("volatility.atr")
     ]
     assert len(atr_nodes_first) == 1
     assert len(atr_nodes_second) == 1
@@ -255,12 +261,12 @@ def test_different_parameters_yield_different_computation_identities() -> None:
     )
     key_14 = next(
         node.computation_identity.canonical_key()
-        for node in plan_14.nodes
+        for node in plan_14.component_nodes()
         if node.request.component_id == ComponentId("volatility.atr")
     )
     key_21 = next(
         node.computation_identity.canonical_key()
-        for node in plan_21.nodes
+        for node in plan_21.component_nodes()
         if node.request.component_id == ComponentId("volatility.atr")
     )
     assert key_14 != key_21

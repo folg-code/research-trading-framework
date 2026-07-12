@@ -3,16 +3,28 @@
 from datetime import timedelta
 
 from trading_framework.market_analysis.models.time_range import TimeRange
-from trading_framework.market_analysis.planning.plan import ExecutionPlan
+from trading_framework.market_analysis.planning.plan import ExecutionPlan, PlannedNode
 from trading_framework.time.models.timeframe import Timeframe
 
 
-def max_history_requirement(plan: ExecutionPlan) -> int:
-    if not plan.nodes:
+def _source_bars_for_component(node: PlannedNode, *, source_timeframe: Timeframe) -> int:
+    warmup_bars = node.component.history_requirement(node.request.parameters).bars_before
+    if warmup_bars <= 0:
+        return 0
+    computation_timeframe = node.computation_identity.computation_timeframe
+    ratio = computation_timeframe.total_seconds // source_timeframe.total_seconds
+    if ratio <= 0:
+        return warmup_bars
+    return warmup_bars * ratio
+
+
+def max_history_requirement(plan: ExecutionPlan, *, source_timeframe: Timeframe) -> int:
+    component_nodes = plan.component_nodes()
+    if not component_nodes:
         return 0
     return max(
-        node.component.history_requirement(node.request.parameters).bars_before
-        for node in plan.nodes
+        _source_bars_for_component(node, source_timeframe=source_timeframe)
+        for node in component_nodes
     )
 
 
