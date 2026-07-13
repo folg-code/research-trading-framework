@@ -219,30 +219,30 @@ Stable configuration schemas and demonstrated user need.
 ## IDEA-005 — Databento DBN Importer
 
 ```text
-Status: INBOX
+Status: INBOX → candidate for Sprint 011 (Phase 2B)
 Category: Market Data
 Added: 2026-06-19
+Last reviewed: 2026-07-12
 ```
 
 ### Summary
 
-Import Databento DBN archives through the generic external-import contracts.
+Import Databento DBN archives through provider-independent archive import contracts. First slice: **DBN OHLCV → canonical MarketBar** (Phase 2B). Later: trades (**Phase 2C.1**).
 
 ### Potential Value
 
-High-quality futures data and efficient archive ingestion.
+High-quality futures data and efficient archive ingestion; validates archive workflow before new fact models.
 
 ### Dependencies
 
-- stable importer Protocol,
-- import inspection,
-- canonical market models,
-- dataset identity,
-- Parquet persistence.
+- Phase 2A lifecycle and repository (COMPLETE),
+- import inspection and manifest,
+- schema mapping to canonical models,
+- partitioned Parquet persistence.
 
 ### Promotion Criteria
 
-Promote after generic CSV or Parquet import vertical slice is stable.
+Promote as Sprint 011 when Roadmap Revision / Phase Entry Review is complete. See `ROADMAP.md` §6, §15.4 and `SPRINT_011.md`.
 
 ---
 
@@ -271,7 +271,7 @@ Automates dataset preparation while preserving explicit policies.
 
 ### Promotion Criteria
 
-Phase 2 MVP completed and one provider selected.
+Phase 2A (OHLCV MVP) completed; archive import foundation (2B) or provider sync may follow per `ROADMAP.md` §6.
 
 ---
 

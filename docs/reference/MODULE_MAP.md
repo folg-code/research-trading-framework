@@ -7,7 +7,9 @@ Package map for `src/trading_framework/`: responsibility, dependencies, status, 
 
 **Status legend:** ✅ implemented · 🟡 partial / in sprint · ⬜ skeleton · 📘 deep doc elsewhere
 
-Last updated: 2026-07-12 (Sprint 010 complete on sprint branch)
+Last updated: 2026-07-12 (Sprint 010 complete on `main`; next planned: Phase 2B / Sprint 011)
+
+**Roadmap:** parallel capability tracks and phase families — `docs/planning/ROADMAP.md` §3. Sprint 002 delivered Phase 2A (OHLCV only).
 
 ---
 
@@ -60,7 +62,7 @@ execution/, events/          ⬜ future domains
 
 ---
 
-## Market Data (Sprint 002) ✅
+## Market Data (Sprint 002 — Phase 2A) ✅
 
 End-to-end flow:
 
@@ -265,10 +267,12 @@ ADR: [ADR-0011](../adr/ADR-0011-signal-research-outcomes-and-persistence.md),
 
 ## Future Domains ⬜
 
-| Package | Planned role |
+| Package / track | Planned role |
 |---------|----------------|
-| `execution/` | Order execution domain (not `market_analysis/execution`) |
+| `execution/` | Order execution domain (Execution Track — Phase 8+) |
 | `events/` | Domain events |
+| **Data Track 2B–2E** | Archive import (Databento DBN), `MarketTrade`/`MarketQuote`, options snapshots, live adapters (gated) — see `ROADMAP.md` §6 |
+| **Research Track 6A–6B** | OHLCV Strategy Research, then multi-data simulation — see `ROADMAP.md` §10 |
 
 Skeleton packages without public workflows beyond Signal Research slice above.
 

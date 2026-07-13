@@ -349,7 +349,9 @@ Recommended order:
 15. Replay
 16. Futures contract datasets
 17. Continuous futures builder
-18. Databento DBN importer
+18. Databento DBN archive import (Phase 2B — after Phase 2A CSV/Parquet OHLCV slice)
 ```
+
+**Roadmap note:** Data and Research tracks run in parallel (`ROADMAP.md` §3). Phase 2B (archive import) and Phase 6A (OHLCV Strategy Research) are both valid next increments; do not assume a single linear order after Phase 5.
 
 Do not introduce Redis, Kafka, Spark, distributed schedulers or microservices unless a demonstrated requirement justifies them.

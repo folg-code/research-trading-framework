@@ -79,19 +79,39 @@ The roadmap describes major development phases and capabilities.
 
 It should remain directional and should not contain detailed task breakdowns for distant phases.
 
-Suggested roadmap structure:
+**Authoritative structure:** `ROADMAP.md` §3 (capability tracks, phase families 2A–2E / 4A–4C / 6A–6B). This section is a process summary; when it diverges from `ROADMAP.md`, trust the roadmap.
+
+The project advances on **parallel capability tracks**, not one linear pipeline:
 
 ```text
-Phase 0 — Project Governance
-Phase 1 — Repository Foundation
-Phase 2 — Market Data MVP
-Phase 3 — Market Analysis Engine MVP
-Phase 4 — Market Analysis Components and Multitimeframe
-Phase 5 — Signal Research MVP
-Phase 6 — Strategy Research MVP
-Phase 7 — Robustness Research
-Phase 8 — Strategy Execution: Replay and Paper
-Phase 9 — Live and Multi-Account
+Foundation Track     Phase 0–1 (COMPLETE)
+Data Track           Phase 2A COMPLETE; 2B–2E PLANNED/GATED
+Research Track       Phase 3, 4A, 5 COMPLETE; 4B–4C, 6A–6B, 7 PLANNED
+Execution Track      Phase 8–9 PLANNED
+```
+
+Historical sprint labels (e.g. Sprint 002 = Phase 2 / Phase 2A OHLCV MVP) remain valid. Completed sprint scope is not retroactively rewritten.
+
+Compact phase index (see `ROADMAP.md` for full detail):
+
+```text
+Phase 0 — Project Governance                         COMPLETE
+Phase 1 — Repository Foundation                      COMPLETE
+Phase 2A — OHLCV Market Data MVP                     COMPLETE
+Phase 2B — Historical Archive Import Foundation      PLANNED
+Phase 2C — Trades and Quotes                         PLANNED
+Phase 2D — Options Snapshot Data                     PLANNED
+Phase 2E — Live Market Data                          GATED
+Phase 3 — Market Analysis Engine MVP                 COMPLETE
+Phase 4A — Bar-Based and MTF Market Analysis         COMPLETE
+Phase 4B — Orderflow Market Analysis                 PLANNED
+Phase 4C — Options-Derived Market Analysis           PLANNED
+Phase 5 — Signal Research MVP                        COMPLETE
+Phase 6A — OHLCV Strategy Research MVP               PLANNED
+Phase 6B — Multi-Data Strategy Research              PLANNED
+Phase 7 — Robustness Research                        PLANNED
+Phase 8 — Replay and Paper Execution                 PLANNED
+Phase 9 — Live and Multi-Account Execution           PLANNED
 ```
 
 Each roadmap phase should define:
@@ -155,11 +175,13 @@ Expected capabilities:
 
 ---
 
-## 5.3 Phase 2 — Market Data MVP
+## 5.3 Phase 2A — OHLCV Market Data MVP (historical label: Phase 2)
 
 Purpose:
 
-- provide the first complete market data vertical slice.
+- provide the first complete **OHLCV-only** market data vertical slice (Sprint 002).
+
+Further Data Track increments (2B–2E) extend fact types and import paths; completing 2A does not close Market Data development. See `ROADMAP.md` §6.
 
 Expected flow:
 
@@ -211,11 +233,13 @@ Expected capabilities:
 
 ---
 
-## 5.5 Phase 4 — Market Analysis Components and Multitimeframe
+## 5.5 Phase 4A — Bar-Based and Multitimeframe Market Analysis (historical label: Phase 4)
 
 Purpose:
 
-- support safe timeframe-aware analytical requests.
+- support safe timeframe-aware analytical requests on bar-based facts (Sprints 004–006).
+
+Orderflow (4B) and options-derived analysis (4C) are separate Research Track increments. See `ROADMAP.md` §8.
 
 Expected capabilities:
 
@@ -252,11 +276,13 @@ Expected capabilities:
 
 ---
 
-## 5.7 Phase 6 — Strategy Research MVP
+## 5.7 Phase 6A — OHLCV Strategy Research MVP (Phase 6 family)
 
 Purpose:
 
-- evaluate complete Strategy Models.
+- evaluate complete Strategy Models on **bar-based market facts** first (Phase 6A).
+
+Phase 6B extends simulation to multi-data strategies when Phase 2C/2D and 4B/4C exist. See `ROADMAP.md` §10.
 
 Expected capabilities:
 
@@ -288,7 +314,7 @@ Expected capabilities:
 
 ---
 
-## 5.9 Phase 8 — Strategy Execution: Replay and Paper
+## 5.9 Phase 8 — Replay and Paper Execution (historical label: Strategy Execution: Replay and Paper)
 
 Purpose:
 
@@ -339,7 +365,7 @@ An epic groups related work required to deliver that capability.
 Example:
 
 ```text
-Milestone: Market Data MVP
+Milestone: OHLCV Market Data MVP (Phase 2A)
 
 Epic 1: Canonical market models
 Epic 2: Dataset identity and lifecycle
@@ -1273,13 +1299,15 @@ The first governance increment should include:
 
 Do not attempt to create detailed issues for every future roadmap phase.
 
-The initial detailed backlog should focus on:
+The initial detailed backlog should focus on the **current and next** roadmap increment only. As of 2026-07-12:
 
 ```text
-Phase 0 — Project Governance
-Phase 1 — Repository Foundation
-Phase 2 — Market Data MVP
+Planning complete: Roadmap Revision / Phase Entry Review
+Next implementation: Phase 2B — Historical Archive Import Foundation (Sprint 011)
+Alternative after 2B slice: Phase 6A — OHLCV Strategy Research MVP
 ```
+
+See `ROADMAP.md` §3 and `CURRENT_STATUS.md`.
 
 ---
 

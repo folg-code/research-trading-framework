@@ -235,7 +235,7 @@ Status: ACCEPTED
 Priority: LOW
 Domain: Strategy
 Introduced: Architecture baseline
-Target Review: Phase 6 or later
+Target Review: Phase 6A or later
 Owner: Unassigned
 ```
 
@@ -430,7 +430,7 @@ Implement preflight resource estimates and configurable policy tiers.
 Status: ACCEPTED
 Priority: HIGH
 Domain: Research
-Introduced: Planned for Phase 6
+Introduced: Planned for Phase 6A
 Target Review: Before robustness claims
 Owner: Unassigned
 ```
@@ -441,7 +441,7 @@ The first batch/vectorized backtest should support a deliberately limited, expli
 
 ### Reason
 
-Full execution simulation would significantly expand Phase 6 scope and blur the Research/Execution boundary.
+Full execution simulation would significantly expand Phase 6A scope and blur the Research/Execution boundary.
 
 ### Consequences
 
@@ -759,7 +759,7 @@ The following shortcuts may be accepted later but are not yet introduced:
 ```text
 - limited provider set,
 - limited asset-class coverage,
-- bar-only Market Data MVP,
+- bar-only OHLCV market facts (Phase 2A; trades/quotes/options are Phase 2C–2D),
 - local-only research execution,
 - no UI,
 - no distributed task scheduler,
