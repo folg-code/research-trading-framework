@@ -26,12 +26,12 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 ## 2. Status Metadata
 
 ```text
-Status Date: 2026-07-12
-Current Phase: Roadmap Revision / Phase Entry Review (planning)
-Current Milestone: Phase 5 complete; Sprint 011 scope = Phase 2B recommended
+Status Date: 2026-07-13
+Current Phase: Phase 2B — Historical Archive Import Foundation (Sprint 011 planning)
+Current Milestone: Sprint 011 planned; Wave 0 decisions drafted
 Implementation Status: Sprints 001–006, 008–010 COMPLETE on main; Sprint 007 SKIPPED
 Overall Status: IN_PROGRESS
-Active Sprint: none
+Active Sprint: SPRINT_011 (planning — not started)
 Last Completed Sprint: SPRINT_010 (merged to main, PR #93)
 Capability Tracks: Foundation COMPLETE; Data 2A COMPLETE; Research 3/4A/5 COMPLETE; Execution not started
 ```
@@ -42,9 +42,13 @@ Capability Tracks: Foundation COMPLETE; Data 2A COMPLETE; Research 3/4A/5 COMPLE
 
 **Phase 5 — Signal Research MVP** is complete on `main` (PR #93, 2026-07-12).
 
-Complete the **Roadmap Revision / Phase Entry Review** before Sprint 011 implementation. See `ROADMAP.md` §3, §15.4.
+**Sprint 011 — Historical Archive Import Foundation** is planned. Start with Wave 0 spike (S011-T001). See `SPRINT_011.md` and `S011_WAVE0_DECISIONS.md`.
 
-**Recommended next sprint:** Phase 2B — Historical Archive Import Foundation (Databento DBN OHLCV vertical slice). Alternative after 2B slice: Phase 6A — OHLCV Strategy Research MVP.
+Goal: Databento DBN **trades** archive → `MarketTrade` → day-partitioned Parquet → `DatasetRef` (`data_type=trades`, `timeframe=tick`).
+
+Delivers **Phase 2B** (archive import foundation) + **Phase 2C.1** in one sprint because available vendor data is trade/tick archives, not OHLCV DBN. Databento DBN OHLCV deferred to follow-up increment 2B.2.
+
+Phase 6A (Strategy Research on bars) remains valid on existing CSV OHLCV.
 
 Delivered Signal Research flow:
 
@@ -174,14 +178,17 @@ Maintenance: `.cursor/rules/documentation.mdc`
 
 ## 6. Work in Progress
 
-**Roadmap Revision / Phase Entry Review** (planning increment):
+### Sprint 011 — Planning
 
-- capability tracks, test-data tiers and live-data gate in `ROADMAP.md` §3, §15,
-- PRB-017 registered,
-- `SPRINT_011.md` drafted for Phase 2B entry,
-- cross-doc alignment pass (2026-07-12): `PROJECT_MANAGEMENT_UPDATED.md`, `README.md`, `MODULE_MAP.md`, `DATA_WORKFLOWS.md`, `IDEA_INBOX`, `AGENTS_UPDATED.md`.
+**Status:** PLANNED (implementation not started)  
+**Plan:** `docs/planning/sprints/SPRINT_011.md`  
+**Wave 0:** `docs/planning/sprints/S011_WAVE0_DECISIONS.md`  
+**Sprint branch:** `sprint/historical-archive-import` (to be created at kickoff)  
+**Tasks:** 0 / 27
 
-Implementation sprint not started.
+Roadmap revision docs merged via PR #94 (capability tracks, Phase 2B entry).
+
+Next implementation step: **S011-T001** — DBN decode spike and Wave 0 validation.
 
 ### Sprint 010 — Closed
 
@@ -221,7 +228,7 @@ Implementation sprint not started.
 
 ## 7. Blocked Work
 
-Nothing is technically blocked. Sprint 011 scope is drafted in `SPRINT_011.md`; implementation has not started.
+Nothing is technically blocked. Sprint 011 is fully planned; create sprint branch and begin S011-T001.
 
 ---
 
@@ -311,6 +318,7 @@ See `ROADMAP.md` §6, §15.4 and `docs/planning/sprints/SPRINT_011.md`.
 | 008 | Signal Research computation MVP | COMPLETED | 11 / 11 tasks |
 | 009 | Combined research scopes | COMPLETED | 11 / 11 tasks |
 | 010 | Signal Research analytics | COMPLETED | 11 / 11 tasks |
+| 011 | Historical archive import — trades DBN (Phase 2B + 2C.1) | PLANNED | 0 / 27 tasks |
 
 ---
 

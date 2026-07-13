@@ -125,6 +125,18 @@ Validates read-only analytics over persisted v1/v2 runs: analysis frame, RunSumm
 RTH/time-of-day grouping, conditional context split, and ``metrics_eligible`` semantics.
 Production package: ``src/trading_framework/research/analytics/``.
 
+Databento DBN trades spike (S011-T001):
+
+```bash
+# Tier 2 — requires a local trades .dbn / .dbn.zst under user_data/ (not committed)
+uv run python tests/spike/run_databento_dbn_trades_spike.py \\
+  --path user_data/samples/nq_trades.dbn.zst
+uv run python tests/spike/run_databento_dbn_trades_spike.py --path ... --json
+```
+
+Validates trades schema inspection, chunked decode, ts_event/ts_recv mapping prototype,
+day-partition signal and side semantics before MarketTrade contracts.
+
 Signal research analytics HTML report (S010-T009):
 
 ```bash
