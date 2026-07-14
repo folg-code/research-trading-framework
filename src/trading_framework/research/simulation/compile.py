@@ -10,6 +10,7 @@ import polars as pl
 
 from trading_framework.core.exceptions import ValidationError
 from trading_framework.market.models import MarketBar
+from trading_framework.market_analysis.data.columnar import OhlcvColumnBatch
 from trading_framework.research.simulation.input import (
     SIGNAL_DIRECTION_LONG,
     SIGNAL_DIRECTION_SHORT,
@@ -33,6 +34,20 @@ def compile_simulation_input(
     """Materialize ordered bars and entry signals as contiguous NumPy arrays."""
     ordered_bars = tuple(bars)
     bar_series = _compile_bar_series(ordered_bars)
+    signal_series = _compile_entry_signals(
+        entry_signals=entry_signals,
+        bar_series=bar_series,
+    )
+    return CompiledSimulationInput(bars=bar_series, entry_signals=signal_series)
+
+
+def compile_simulation_input_from_columnar(
+    *,
+    column_batch: OhlcvColumnBatch,
+    entry_signals: pl.DataFrame,
+) -> CompiledSimulationInput:
+    """Compile simulation arrays directly from columnar OHLCV without ``MarketBar`` objects."""
+    bar_series = _compile_bar_series_from_columnar(column_batch)
     signal_series = _compile_entry_signals(
         entry_signals=entry_signals,
         bar_series=bar_series,
@@ -104,6 +119,40 @@ def _compile_bar_series(bars: Sequence[MarketBar]) -> CompiledBarSeries:
         low_prices=low_prices,
         close_prices=close_prices,
         volume=volume,
+    )
+
+
+def _compile_bar_series_from_columnar(column_batch: OhlcvColumnBatch) -> CompiledBarSeries:
+    bar_count = len(column_batch.timestamps)
+    if bar_count == 0:
+        return CompiledBarSeries(
+            observed_at_ns=np.empty(0, dtype=np.int64),
+            available_at_ns=np.empty(0, dtype=np.int64),
+            open_prices=np.empty(0, dtype=np.float64),
+            high_prices=np.empty(0, dtype=np.float64),
+            low_prices=np.empty(0, dtype=np.float64),
+            close_prices=np.empty(0, dtype=np.float64),
+            volume=np.empty(0, dtype=np.float64),
+        )
+
+    observed_at_ns = np.fromiter(
+        (datetime_to_epoch_ns(timestamp) for timestamp in column_batch.timestamps),
+        dtype=np.int64,
+        count=bar_count,
+    )
+    available_at_ns = np.fromiter(
+        (datetime_to_epoch_ns(timestamp) for timestamp in column_batch.available_at),
+        dtype=np.int64,
+        count=bar_count,
+    )
+    return CompiledBarSeries(
+        observed_at_ns=observed_at_ns,
+        available_at_ns=available_at_ns,
+        open_prices=np.asarray(column_batch.open, dtype=np.float64),
+        high_prices=np.asarray(column_batch.high, dtype=np.float64),
+        low_prices=np.asarray(column_batch.low, dtype=np.float64),
+        close_prices=np.asarray(column_batch.close, dtype=np.float64),
+        volume=np.asarray(column_batch.volume, dtype=np.float64),
     )
 
 

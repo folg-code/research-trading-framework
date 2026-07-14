@@ -6,9 +6,6 @@ from datetime import UTC
 from pathlib import Path
 from unittest.mock import patch
 
-from trading_framework.application.market_data.query_historical import (
-    query_historical as real_query_historical,
-)
 from trading_framework.application.strategy_research import (
     RunStrategyResearchRequest,
     run_strategy_research,
@@ -73,25 +70,29 @@ def test_run_strategy_research_queries_historical_bars_once(
     tmp_path: Path,
     ohlcv_sample_1m_path: Path,
 ) -> None:
+    from trading_framework.application.market_data.query_historical import (
+        query_historical_columnar as real_query_historical_columnar,
+    )
+
     storage_root = tmp_path / "storage"
     dataset_ref = _write_published_dataset(storage_root, csv_path=ohlcv_sample_1m_path)
     metadata = FileDatasetRegistry(storage_root).get(dataset_ref)
     strategy_model = build_canonical_strategy_model()
     query_count = 0
 
-    def counting_query_historical(*args, **kwargs):
+    def counting_query_historical_columnar(*args, **kwargs):
         nonlocal query_count
         query_count += 1
-        return real_query_historical(*args, **kwargs)
+        return real_query_historical_columnar(*args, **kwargs)
 
     with (
         patch(
-            "trading_framework.application.strategy_research.run_strategy_research.query_historical",
-            side_effect=counting_query_historical,
+            "trading_framework.application.strategy_research.run_strategy_research.query_historical_columnar",
+            side_effect=counting_query_historical_columnar,
         ),
         patch(
-            "trading_framework.application.market_analysis.load_data_view.query_historical",
-            side_effect=counting_query_historical,
+            "trading_framework.application.market_analysis.load_data_view.query_historical_columnar",
+            side_effect=counting_query_historical_columnar,
         ),
     ):
         result = run_strategy_research(
@@ -148,5 +149,6 @@ def test_run_strategy_research_records_subphase_timings_when_timer_active(
     assert "strategy_research.simulate" in timer._stats
     assert "evaluate_models.run_analysis" in timer._stats
     assert "run_analysis.assemble_frame" in timer._stats
-    assert "ohlcv.query_bars" in timer._stats
+    assert "ohlcv.query_columnar" in timer._stats
+    assert "evaluate_models.build_evaluation_table" in timer._stats
     assert timer._stats["strategy_research.evaluate_models"].call_count == 1

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -16,14 +15,13 @@ from trading_framework.application.market_analysis.run_analysis import (
 )
 from trading_framework.application.market_data.query_historical import (
     QueryHistoricalRequest,
-    query_historical,
+    query_historical_columnar,
 )
 from trading_framework.application.model_evaluation import EvaluateModelsRequest, evaluate_models
 from trading_framework.application.strategy_research.entry_signals import build_gated_entry_signals
 from trading_framework.core.exceptions import ValidationError
 from trading_framework.core.profiling import optional_phase
 from trading_framework.market.datasets import DatasetRef
-from trading_framework.market.models import MarketBar
 from trading_framework.market_analysis.models.time_range import TimeRange
 from trading_framework.model_expression.planning import (
     build_analysis_frame_request,
@@ -113,16 +111,15 @@ def run_strategy_research(
     with optional_phase("strategy_research.plan_computation_range"):
         computation_range = resolve_analysis_computation_range(analysis_request)
     with optional_phase("strategy_research.load_ohlcv"):
-        preloaded_bars = tuple(
-            query_historical(
-                QueryHistoricalRequest(
-                    dataset_ref=request.dataset_ref,
-                    start_at=computation_range.start,
-                    end_at=computation_range.end,
-                ),
-                storage_root=request.storage_root,
-            )
+        preloaded_column_batch = query_historical_columnar(
+            QueryHistoricalRequest(
+                dataset_ref=request.dataset_ref,
+                start_at=computation_range.start,
+                end_at=computation_range.end,
+            ),
+            storage_root=request.storage_root,
         )
+        preloaded_view = preloaded_column_batch.to_analysis_view()
     with optional_phase("strategy_research.evaluate_models"):
         eval_result = evaluate_models(
             EvaluateModelsRequest(
@@ -134,7 +131,8 @@ def run_strategy_research(
                 signal_models=(strategy_model.signal_model,),
                 evaluation_timeframe=evaluation_timeframe,
                 session_resolver=request.session_resolver,
-                preloaded_bars=preloaded_bars,
+                preloaded_column_batch=preloaded_column_batch,
+                preloaded_view=preloaded_view,
             )
         )
     frame = eval_result.analysis.frame
@@ -151,13 +149,15 @@ def run_strategy_research(
             signal_emissions=signal_emissions,
             market_state=market_state,
         )
-        bars = _bars_in_requested_range(preloaded_bars, request.requested_range)
+        simulation_column_batch = preloaded_column_batch.slice_observed_range(
+            request.requested_range
+        )
 
     source_dataset_ref = str(request.dataset_ref)
     instrument = request.dataset_ref.dataset_id.instrument_id.value
     with optional_phase("strategy_research.simulate"):
-        simulation = BarSequentialSimulator().simulate(
-            bars=bars,
+        simulation = BarSequentialSimulator().simulate_from_columnar(
+            column_batch=simulation_column_batch,
             entry_signals=entry_signals,
             strategy_model=strategy_model,
             assumptions=request.assumptions,
@@ -214,13 +214,6 @@ def run_strategy_research(
         trades=simulation.trades,
         equity=simulation.equity,
     )
-
-
-def _bars_in_requested_range(
-    bars: Sequence[MarketBar],
-    requested_range: TimeRange,
-) -> list[MarketBar]:
-    return [bar for bar in bars if requested_range.start <= bar.observed_at <= requested_range.end]
 
 
 def _require_fixed_bars_exit(strategy_model: StrategyModelDefinition) -> FixedBarsExitModel:

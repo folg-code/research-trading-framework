@@ -27,20 +27,32 @@ class ExpressionEvaluator:
     def __init__(self, *, column_resolver: FrameColumnResolver | None = None) -> None:
         self._column_resolver = column_resolver or FrameColumnResolver()
 
+    def collect_operand_keys(
+        self,
+        expression: Expression,
+        frame: AnalysisFrame,
+    ) -> tuple[str, ...]:
+        """Return sorted operand column keys required by one expression."""
+        return self._collect_operand_keys(expression, frame)
+
     def evaluate(
         self,
         expression: Expression,
         frame: AnalysisFrame,
         *,
         evaluation_timeframe: Timeframe,
+        evaluation_table: pl.DataFrame | None = None,
     ) -> pl.DataFrame:
         """Return timestamp, available_at and nullable ``model_result`` columns."""
-        operand_keys = self._collect_operand_keys(expression, frame)
-        table = build_evaluation_dataframe(
-            frame,
-            evaluation_timeframe=evaluation_timeframe,
-            column_keys=operand_keys,
-        )
+        if evaluation_table is None:
+            operand_keys = self._collect_operand_keys(expression, frame)
+            table = build_evaluation_dataframe(
+                frame,
+                evaluation_timeframe=evaluation_timeframe,
+                column_keys=operand_keys,
+            )
+        else:
+            table = evaluation_table
         result = self._evaluate_node(expression, table, frame)
         return table.select("timestamp", "available_at").with_columns(result.alias("model_result"))
 

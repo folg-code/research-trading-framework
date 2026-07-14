@@ -68,8 +68,8 @@ class ParquetDatasetRepository:
         """Return sorted session dates with OHLCV partitions."""
         return list_ohlcv_session_dates(self._root, dataset_ref)
 
-    def query_bars(self, query: HistoricalBarQuery) -> Sequence[MarketBar]:
-        """Return bars in time order for the requested dataset range."""
+    def query_ohlcv_table(self, query: HistoricalBarQuery) -> pa.Table | None:
+        """Return one filtered OHLCV Arrow table without materializing ``MarketBar`` rows."""
         with optional_phase("ohlcv.list_session_dates"):
             session_dates = list_ohlcv_session_dates(self._root, query.dataset_ref)
         if session_dates:
@@ -83,22 +83,33 @@ class ParquetDatasetRepository:
             if tables:
                 with optional_phase("ohlcv.read_partitioned"):
                     combined = tables[0] if len(tables) == 1 else pa.concat_tables(tables)
-                    filtered = filter_table_by_observed_range(
+                    return filter_table_by_observed_range(
                         combined,
                         start_at=query.start_at,
                         end_at=query.end_at,
                     )
-                    bars = market_bars_from_table(filtered)
-                if bars:
-                    with optional_phase("ohlcv.sort_partitioned_bars"):
-                        return sorted(bars, key=lambda bar: bar.observed_at)
+            return None
 
         path = dataset_bars_path(self._root, query.dataset_ref)
         if not path.exists():
-            return []
+            return None
         with optional_phase("ohlcv.read_legacy_file"):
-            bars = self._writer.read(path)
-        return [bar for bar in bars if query.start_at <= bar.observed_at <= query.end_at]
+            table = self._writer.read_table(path)
+        return filter_table_by_observed_range(
+            table,
+            start_at=query.start_at,
+            end_at=query.end_at,
+        )
+
+    def query_bars(self, query: HistoricalBarQuery) -> Sequence[MarketBar]:
+        """Return bars in time order for the requested dataset range."""
+        table = self.query_ohlcv_table(query)
+        if table is None or table.num_rows == 0:
+            return []
+        with optional_phase("ohlcv.parquet.table_to_bars"):
+            bars = market_bars_from_table(table)
+        with optional_phase("ohlcv.sort_partitioned_bars"):
+            return sorted(bars, key=lambda bar: bar.observed_at)
 
     def _assert_mutable(self, dataset_ref: DatasetRef) -> None:
         if self._metadata_reader is None:

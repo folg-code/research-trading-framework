@@ -21,11 +21,13 @@ class MarketModelEvaluator:
         frame: AnalysisFrame,
         *,
         evaluation_timeframe: Timeframe,
+        evaluation_table: pl.DataFrame | None = None,
     ) -> pl.DataFrame:
         evaluation = self._expression_evaluator.evaluate(
             definition.expression,
             frame,
             evaluation_timeframe=evaluation_timeframe,
+            evaluation_table=evaluation_table,
         )
         return market_model_result_dataframe(
             market_model_id=definition.market_model_id,

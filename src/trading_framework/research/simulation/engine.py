@@ -12,8 +12,12 @@ import polars as pl
 from trading_framework.core.exceptions import ValidationError
 from trading_framework.core.profiling import optional_phase
 from trading_framework.market.models import MarketBar
+from trading_framework.market_analysis.data.columnar import OhlcvColumnBatch
 from trading_framework.research.simulation.assumptions import SimulationAssumptions
-from trading_framework.research.simulation.compile import compile_simulation_input
+from trading_framework.research.simulation.compile import (
+    compile_simulation_input,
+    compile_simulation_input_from_columnar,
+)
 from trading_framework.research.simulation.facts import (
     SimulatedTrade,
     equity_points_to_dataframe,
@@ -70,6 +74,58 @@ class BarSequentialSimulator:
         with optional_phase("simulate.compile_input"):
             compiled = compile_simulation_input(
                 bars=ordered_bars,
+                entry_signals=entry_signals,
+            )
+        quantity = risk_model.position_quantity()
+        with optional_phase("simulate.run_kernel"):
+            kernel_result = run_fixed_bars_kernel(
+                compiled,
+                exit_after_bars=exit_model.exit_after_bars,
+                quantity=float(quantity),
+                slippage_bps=float(assumptions.slippage_bps),
+                commission_per_side=float(assumptions.commission_per_side),
+                initial_capital=float(assumptions.initial_capital),
+            )
+        with optional_phase("simulate.materialize_results"):
+            trades = materialize_kernel_trades(
+                kernel_result,
+                strategy_model_id=strategy_model.strategy_model_id,
+                instrument=instrument,
+                source_dataset_ref=source_dataset_ref,
+                exit_reason=exit_model.default_exit_reason,
+                quantity=quantity,
+            )
+            equity = materialize_kernel_equity(
+                kernel_result,
+                compiled.bars.observed_at_ns,
+            )
+        return SimulationResult(
+            trades=simulated_trades_to_dataframe(trades),
+            equity=equity_points_to_dataframe(equity),
+        )
+
+    def simulate_from_columnar(
+        self,
+        *,
+        column_batch: OhlcvColumnBatch,
+        entry_signals: pl.DataFrame,
+        strategy_model: StrategyModelDefinition,
+        assumptions: SimulationAssumptions,
+        instrument: str,
+        source_dataset_ref: str,
+    ) -> SimulationResult:
+        """Simulate one strategy from columnar OHLCV without ``MarketBar`` materialization."""
+        if not column_batch.timestamps:
+            return SimulationResult(
+                trades=simulated_trades_to_dataframe([]),
+                equity=equity_points_to_dataframe([]),
+            )
+        _validate_entry_signals(entry_signals)
+        exit_model = _require_fixed_bars_exit(strategy_model)
+        risk_model = _require_fixed_quantity_risk(strategy_model)
+        with optional_phase("simulate.compile_input"):
+            compiled = compile_simulation_input_from_columnar(
+                column_batch=column_batch,
                 entry_signals=entry_signals,
             )
         quantity = risk_model.position_quantity()

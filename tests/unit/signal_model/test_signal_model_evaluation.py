@@ -122,6 +122,43 @@ def test_on_event_emits_on_sparse_event_bar(
     assert emissions["direction"][0] == "long"
 
 
+def test_evaluate_emissions_reuses_precomputed_condition(
+    build_test_frame: Callable[..., AnalysisFrame],
+) -> None:
+    component = SwingStructureComponent()
+    frame = build_test_frame(columns={"higher_low_event": (0.0, 0.0, 1.0, 0.0, 0.0)})
+    definition = SignalModelDefinition(
+        signal_model_id="higher_low",
+        expression=CompareExpression(
+            operand=ComponentOutputReference(
+                component_id=component.component_id,
+                parameters=component.parameter_schema.canonicalize({"pivot_range": 15}),
+                output_id=OutputId("higher_low_event"),
+                alias="higher_low_event",
+            ),
+            operator=ComparisonOperator.EQ,
+            value=True,
+        ),
+        direction=SignalDirection.LONG,
+        firing_policy=SignalFiringPolicy.ON_EVENT,
+    )
+    evaluator = SignalModelEvaluator()
+    condition = evaluator.evaluate_condition(
+        definition,
+        frame,
+        evaluation_timeframe=Timeframe("1m"),
+    )
+    emissions = evaluator.evaluate_emissions(
+        definition,
+        frame,
+        evaluation_timeframe=Timeframe("1m"),
+        condition=condition,
+    )
+
+    assert emissions.height == 1
+    assert emissions["detected_at"][0] == frame.timestamps[2]
+
+
 def test_null_condition_does_not_fire() -> None:
     import polars as pl
 
