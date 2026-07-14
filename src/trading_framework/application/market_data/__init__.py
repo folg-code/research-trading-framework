@@ -11,13 +11,19 @@ from trading_framework.application.market_data.query_historical import (
     QueryHistoricalRequest,
     query_historical,
 )
+from trading_framework.application.market_data.query_trades import (
+    QueryTradesRequest,
+    query_trades,
+)
 
 __all__ = [
     "ImportExternalDatasetRequest",
     "ImportExternalDatasetResult",
     "QueryHistoricalRequest",
+    "QueryTradesRequest",
     "finalize_dataset",
     "import_external_dataset",
     "publish_dataset",
     "query_historical",
+    "query_trades",
 ]

@@ -169,10 +169,10 @@ Parquet / pyarrow conventions from ADR-0008 (new trade column schema)
 | S011-T009 | `DatabentoDBNInspector` | 2 | DONE | S011-T008, S011-T002 |
 | S011-T010 | `DatabentoDBNTradeReader` (chunked) | 2 | DONE | S011-T008, S011-T007 |
 | S011-T011 | DBN trades → `MarketTrade` mapper | 2 | DONE | S011-T010 |
-| S011-T012 | Day partition path helpers | 3 | PLANNED | S011-T001 |
-| S011-T013 | `ParquetTradeWriter` (stable schema) | 3 | PLANNED | S011-T004 |
-| S011-T014 | `ParquetTradeDatasetRepository` | 3 | PLANNED | S011-T012, S011-T013 |
-| S011-T015 | `HistoricalTradeQuery` + `query_trades` | 3 | PLANNED | S011-T014 |
+| S011-T012 | Day partition path helpers | 3 | DONE | S011-T001 |
+| S011-T013 | `ParquetTradeWriter` (stable schema) | 3 | DONE | S011-T004 |
+| S011-T014 | `ParquetTradeDatasetRepository` | 3 | DONE | S011-T012, S011-T013 |
+| S011-T015 | `HistoricalTradeQuery` + `query_trades` | 3 | DONE | S011-T014 |
 | S011-T016 | `import_databento_trades_archive` workflow | 4 | PLANNED | S011-T011, S011-T006, S011-T014, S011-T003 |
 | S011-T017 | Import manifest persistence | 4 | PLANNED | S011-T016 |
 | S011-T018 | E2E: import → finalize → publish → query | 4 | PLANNED | S011-T016, S011-T015 |
@@ -186,7 +186,7 @@ Parquet / pyarrow conventions from ADR-0008 (new trade column schema)
 | S011-T026 | Update MODULE_MAP, DATA_WORKFLOWS, CURRENT_STATUS | 6 | PLANNED | S011-T021 |
 | S011-T027 | Sprint review and closure | 6 | PLANNED | All preceding |
 
-**Progress:** 11 / 27 tasks
+**Progress:** 15 / 27 tasks
 
 ---
 
