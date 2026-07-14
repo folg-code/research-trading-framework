@@ -7,9 +7,9 @@ Package map for `src/trading_framework/`: responsibility, dependencies, status, 
 
 **Status legend:** ✅ implemented · 🟡 partial / in sprint · ⬜ skeleton · 📘 deep doc elsewhere
 
-Last updated: 2026-07-14 (Sprint 015 complete on `sprint/continuous-futures-materialization`; Phase 2C.4 continuous futures materialization)
+Last updated: 2026-07-14 (Sprint 015 on `main`; simulation refactor + columnar OHLCV on `main`)
 
-**Roadmap:** parallel capability tracks and phase families — `docs/planning/ROADMAP.md` §3. Sprint 002 delivered Phase 2A (OHLCV only). Sprint 011 delivered Phase 2B + 2C.1 (Databento trades). Sprint 012 delivered Phase 2B.3 (derived 1m bars from trades). Sprint 015 delivered Phase 2C.4 (continuous futures materialization).
+**Roadmap:** parallel capability tracks — `docs/planning/ROADMAP.md` §3. Phase 2A–2C.4, 4A, 5, 6A delivered on `main`. Portfolio demo: `scripts/demo/`.
 
 ---
 
@@ -76,7 +76,8 @@ CSV file
   → Parquet write (bars.parquet)
   → register in FileDatasetRegistry
   → finalize_dataset → publish_dataset
-  → query_historical → list[MarketBar]
+  → query_historical → list[MarketBar]  (boundary API)
+  → query_historical_columnar → OhlcvColumnBatch  (batch research hot path)
 ```
 
 ### Trades archive (Phase 2B + 2C.1 — Sprint 011)
@@ -107,8 +108,9 @@ Published trades DatasetRef
   → derive_ohlcv_from_trades
   → TradesToBarsAggregator (1m UTC buckets)
   → validate → bars.parquet (single file)
-  → lineage metadata → register WORKING → finalize → publish
-  → query_historical → list[MarketBar]
+  → lineage metadata → register WORKING   → finalize → publish
+  → query_historical → list[MarketBar]  (boundary API)
+  → query_historical_columnar → OhlcvColumnBatch  (batch research hot path)
 ```
 
 CLI: `scripts/market_data/derive_bars_from_trades.py`
@@ -159,8 +161,8 @@ Deep reference: 📘 [modules/DATA_MODULE_UPDATED.md](modules/DATA_MODULE_UPDATE
 |---|---|
 | **Responsibility** | Dataset import, finalize, publish, historical query workflows (bars and trades) |
 | **Talks to** | `market` domain, `infrastructure` adapters |
-| **Key paths** | `import_external_dataset.py`, `import_databento_trades_archive.py`, `import_databento_contract_trades_archive.py`, `build_roll_schedule.py`, `materialize_continuous_trades.py`, `derive_continuous_ohlcv.py`, `build_continuous.py`, `derive_ohlcv_from_trades.py`, `finalize_dataset.py`, `publish_dataset.py`, `query_historical.py`, `query_trades.py` |
-| **Entry points** | `import_external_dataset`, `import_databento_trades_archive`, `import_databento_contract_trades_archive`, `build_roll_schedule`, `materialize_continuous_trades`, `derive_continuous_ohlcv`, `build_continuous`, `derive_ohlcv_from_trades`, `finalize_dataset`, `publish_dataset`, `query_historical`, `query_trades` |
+| **Key paths** | `import_external_dataset.py`, …, `query_historical.py`, `query_historical_columnar` (via `ohlcv_columnar.py`), `query_trades.py` |
+| **Entry points** | `import_external_dataset`, …, `query_historical`, `query_historical_columnar`, `query_trades` |
 
 ### `infrastructure/` (market data slice) ✅
 
@@ -213,7 +215,7 @@ Published DatasetRef (source timeframe, e.g. 1m)
 | `protocols/` | ✅ | `BatchAnalysisComponent`, `ComponentImplementation` |
 | `registry/` | ✅ | `ComponentRegistry`, `register_mvp_components` |
 | `planning/` | ✅ | `RequestResolver`, `DependencyPlanner`, `ExecutionPlan`, `ResampleNode` |
-| `data/` | ✅ | `AnalysisDataView`, Polars resample/align helpers |
+| `data/` | ✅ | `AnalysisDataView`, `OhlcvColumnBatch`, Polars resample/align helpers |
 | `storage/` | ✅ | `AnalysisResultStore`, `AnalysisWorkspace` |
 | `execution/` | ✅ | `SequentialBatchExecutor`, `ExecutionCache`, `ResampleCache` |
 | `adapters/numpy/` | ✅ | Indicator kernels and result builder (`available_at` on HTF) |
@@ -323,9 +325,9 @@ End-to-end flow:
 
 ```text
 Published OHLCV DatasetRef
-  → evaluate_models (Market × Signal)
+  → evaluate_models (shared evaluation table; Market × Signal)
   → build_gated_entry_signals
-  → query_historical → BarSequentialSimulator (NEXT_BAR_OPEN)
+  → simulate_from_columnar (Numba kernel) or simulate (MarketBar path)
   → trades.parquet + equity.parquet + manifest
   → analyze_strategy_research_run (read-only summary)
   → build_strategy_dashboard_view_model (read-only inspection)
@@ -362,12 +364,22 @@ ADR: [ADR-0016](../adr/ADR-0016-ohlcv-strategy-research-mvp.md),
 | `context/` | `ContextFact` alignment at signal `available_at` |
 | `outcomes/` | `ForwardOutcomeDefinition`, forward outcome calculator, OHLCV alignment |
 | `datasets/` | Signal Research envelope (v1/v2); Strategy Research envelope (`strategy_research.v1`) |
-| `simulation/` | `SimulationAssumptions`, `BarSequentialSimulator`, trade/equity fact schemas |
+| `simulation/` | `SimulationAssumptions`, `BarSequentialSimulator`, `compile_simulation_input_from_columnar`, Numba `fixed_bars` kernel, trade/equity fact schemas |
 | `analytics/` | Read-only Signal Research analysis frame, RunSummary, grouping, optional HTML report |
 
 **Entry points:** `validate_signal_research_request`, `run_signal_research`, `analyze_signal_research_run`,
 `run_strategy_research`, `analyze_strategy_research_run`, `StrategyResearchDatasetRepository.read/write`,
-`BarSequentialSimulator.simulate`
+`BarSequentialSimulator.simulate`, `BarSequentialSimulator.simulate_from_columnar`
+
+### `core/profiling.py` ✅
+
+Optional phase timing hooks (`optional_phase`) used across application and infrastructure for `--profile` CLIs.
+
+### `scripts/demo/` ✅
+
+| Script | Role |
+|--------|------|
+| `run_portfolio_demo.py` | Generate offline HTML portfolio bundle → `demo/output/` |
 
 ---
 

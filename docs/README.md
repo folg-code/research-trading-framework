@@ -45,6 +45,12 @@ Maintenance: `.cursor/rules/documentation.mdc`
 3. [Module Map](reference/MODULE_MAP.md)
 4. [Current Status](planning/CURRENT_STATUS.md)
 
+### Portfolio / demo showcase
+
+1. Repository [README.md](../README.md) — capabilities, architecture, workflows
+2. [scripts/demo/README.md](../scripts/demo/README.md) — generate offline HTML dashboards
+3. [DATA_WORKFLOWS.md](reference/DATA_WORKFLOWS.md) §3 — workflow entry points
+
 ### Implementing a change
 
 1. [Current Status](planning/CURRENT_STATUS.md)

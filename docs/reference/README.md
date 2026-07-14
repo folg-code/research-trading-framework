@@ -13,6 +13,7 @@ Index: [../README.md](../README.md). Vision docs: [../vision/README.md](../visio
 |------|---------|
 | [MODULE_MAP.md](MODULE_MAP.md) | Packages, status ✅/🟡/⬜, entry points |
 | [DATA_WORKFLOWS.md](DATA_WORKFLOWS.md) | Data movement with diagrams |
+| [../README.md](../README.md) | Project overview — stack, architecture, workflows (repository root) |
 
 ---
 

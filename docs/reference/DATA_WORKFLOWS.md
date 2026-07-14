@@ -5,8 +5,9 @@
 
 Technical reference for how data moves through the framework: ingestion, persistence, lifecycle, query and analysis execution.
 
-**As-is scope:** Market Data Phase 2A (Sprint 002 CSV OHLCV), Phase 2B + 2C.1 trades archive import (Sprint 011), Phase 2B.3 derived OHLCV from trades (Sprint 012), Phase 2C.4 continuous futures materialization (Sprint 015 on `sprint/continuous-futures-materialization`). Multitimeframe and declarative models: Sprints 004–006. Signal Research: Sprints 008–010 on `main`. Strategy Research MVP: Sprint 013 on `main`. Strategy Research dashboard (Phase A): Sprint 014 on `main`.  
-**Planned next:** Sprint 015 integration to `main`; then Phase 6B, 2C.2, or 4B — `ROADMAP.md` §6, §10.  
+**As-is scope:** Market Data Phase 2A (Sprint 002), Phase 2B + 2C.1 trades import (Sprint 011), Phase 2B.3 derived OHLCV (Sprint 012), Phase 2C.4 continuous futures (Sprint 015 on `main`). Multitimeframe and declarative models: Sprints 004–006. Signal Research: Sprints 008–010. Strategy Research MVP + dashboard Phase A: Sprints 013–014. Simulation refactor + columnar OHLCV batch path: PRs #124–#132 on `main`.  
+**Planned next:** Phase 7 robustness, Phase 4B orderflow, or Phase 6B multi-data — `ROADMAP.md` §10–§11.  
+**Portfolio demo:** `scripts/demo/run_portfolio_demo.py` → `demo/output/index.html`.  
 **Deep market data reference:** [modules/DATA_MODULE_UPDATED.md](modules/DATA_MODULE_UPDATED.md)
 
 ---
@@ -316,21 +317,25 @@ sequenceDiagram
 Integration tests: `tests/integration/market_data/test_derive_ohlcv_from_trades_flow.py`,
 `test_derive_ohlcv_from_trades_mocked.py`.
 
-### 3.8 Strategy Research Run Envelope (Sprint 013)
+### 3.8 Strategy Research Run Envelope (Sprint 013+)
 
 ```text
 Published OHLCV DatasetRef
   → run_strategy_research
-  → evaluate_models (Market × Signal) + build_gated_entry_signals
-  → query_historical + BarSequentialSimulator
+  → query_historical_columnar → OhlcvColumnBatch → AnalysisDataView (batch hot path)
+  → evaluate_models (shared evaluation table; Market × Signal)
+  → build_gated_entry_signals
+  → simulate_from_columnar (Numba fixed-bars kernel)
   → strategy_research/<run_id>/{manifest.json, trades.parquet, equity.parquet}
   → analyze_strategy_research_run (read-only summary)
 ```
 
-**Entry points:** `trading_framework.application.strategy_research.run_strategy_research`,
-`analyze_strategy_research_run`
+**Columnar path:** `query_ohlcv_table` → `OhlcvColumnBatch` avoids per-bar `MarketBar` materialization in batch research. Boundary `query_historical()` still returns `list[MarketBar]` for small consumer queries.
 
-**CLI:** `scripts/strategy_research/run_strategy_research.py`
+**Entry points:** `trading_framework.application.strategy_research.run_strategy_research`,
+`analyze_strategy_research_run`, `BarSequentialSimulator.simulate_from_columnar`
+
+**CLI:** `scripts/strategy_research/run_strategy_research.py`, `scripts/market_data/run_half_year_backtest.py`
 
 **Simulation assumptions:** `NEXT_BAR_OPEN` entry/exit fills; fingerprint in manifest (ADR-0016, TD-009).
 
@@ -426,6 +431,19 @@ enables reuse without rewrite.
 
 Integration tests: `tests/integration/test_s015_continuous_strategy_research.py`,
 `tests/unit/test_continuous_futures_consumer_boundary.py`
+
+### 3.12 Portfolio Demo (offline HTML bundle)
+
+```text
+scripts/demo/run_portfolio_demo.py
+  → fixture and/or NQ half-year strategy dashboards (Lightweight Charts)
+  → Signal Research analytics + combined/occurrence/model/swing inspection HTML (Plotly)
+  → demo/output/index.html (landing page with workflow descriptions)
+```
+
+**CLI:** `uv run python scripts/demo/run_portfolio_demo.py --full --open`
+
+Requires `uv pip install plotly` for Plotly-based reports. Strategy dashboards work without Plotly.
 
 ---
 

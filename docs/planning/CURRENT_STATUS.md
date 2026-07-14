@@ -27,13 +27,14 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 
 ```text
 Status Date: 2026-07-14
-Current Phase: Phase 2C.4 — Continuous futures materialization (Sprint 015) — COMPLETE on sprint branch
-Current Milestone: Sprint 015 COMPLETE on `sprint/continuous-futures-materialization` (pending integration PR to `main`)
-Implementation Status: Sprints 001–006, 008–015 COMPLETE on sprint branch; Sprint 007 SKIPPED; Sprint 015 pending merge to `main`
+Current Phase: Post-Sprint 015 — platform MVP on OHLCV + continuous futures (on main)
+Current Milestone: Research platform vertical slice complete; next increment TBD (Phase 7, 4B, or 6B)
+Implementation Status: Sprints 001–006, 008–015 COMPLETE on main; Sprint 007 SKIPPED
 Overall Status: IN_PROGRESS
-Active Sprint: none (Sprint 015 closure docs; integration PR next)
-Last Completed Sprint: SPRINT_015 (sprint branch, 2026-07-14)
-Capability Tracks: Foundation COMPLETE; Data 2A + 2B/2C.1 + 2B.3 + 2C.4 COMPLETE on sprint branch; Research 3/4A/5 COMPLETE; Strategy 6A COMPLETE
+Active Sprint: none (portfolio demo + next sprint selection)
+Last Completed Sprint: SPRINT_015 (merged to main, 2026-07-14)
+Capability Tracks: Foundation COMPLETE; Data 2A + 2B/2C.1 + 2B.3 + 2C.4 COMPLETE; Research 3/4A/5 COMPLETE; Strategy 6A COMPLETE
+Recent perf: columnar OHLCV batch path + shared model evaluation table (PR #132); align/searchsorted + deep profiling (PR #131)
 ```
 
 ---
@@ -90,7 +91,7 @@ StrategyResearchRunEnvelope
 
 ADR: ADR-0017. CLI: `scripts/strategy_research/render_strategy_dashboard.py`. See `SPRINT_014.md` and `S014_WAVE0_DECISIONS.md`. Phase B (FastAPI lazy bars) deferred.
 
-**Sprint 015 — Continuous Futures Materialization (Phase 2C.4)** is **complete** on `sprint/continuous-futures-materialization` (2026-07-14).
+**Sprint 015 — Continuous Futures Materialization (Phase 2C.4)** is **complete** on `main` (PR #123, 2026-07-14).
 
 Delivered preprocessing flow:
 
@@ -100,7 +101,11 @@ Raw DBN → contract datasets (NQ.NQM5, …) → roll schedule (volume-rth-close
     → query_historical / run_strategy_research (read-only)
 ```
 
-ADR: ADR-0018 (ACCEPTED). CLI: `scripts/market_data/build_continuous.py`. See `SPRINT_015.md` and `S015_WAVE0_DECISIONS.md`. Integration PR to `main` pending.
+ADR: ADR-0018 (ACCEPTED). CLI: `scripts/market_data/build_continuous.py`. See `SPRINT_015.md` and `S015_WAVE0_DECISIONS.md`.
+
+**Research simulation refactor** (PRs #124–#129, #131–#132) on `main`: deep phase profiling, Numba fixed-bars kernel, simulation compile layer, columnar OHLCV for batch strategy research, shared model evaluation table.
+
+**Portfolio demo** (scripts): `scripts/demo/run_portfolio_demo.py` — offline HTML for all major workflows.
 
 Delivered Signal Research flow (on `main`):
 
@@ -251,7 +256,7 @@ Market Analysis (vision):
 
 ### Phase 2C.4 — Continuous Futures Materialization (Sprint 015)
 
-Complete on `sprint/continuous-futures-materialization` (2026-07-14):
+Complete on `main` (2026-07-14, PR #123):
 
 - multi-contract Databento import → per-contract `session_date` partitions (`market-trade-contract-v2`),
 - volume-RTH-close roll schedule artifact with manifest,
@@ -282,13 +287,9 @@ Maintenance: `.cursor/rules/documentation.mdc`
 
 ## 6. Work in Progress
 
-**Sprint 015 integration PR** — `sprint/continuous-futures-materialization` → `main` (pending).
+**Portfolio demo packaging** — `scripts/demo/run_portfolio_demo.py` generates offline HTML artifacts for showcase (workflows + dashboards).
 
-```text
-Branch: sprint/continuous-futures-materialization
-Plan:   docs/planning/sprints/SPRINT_015.md
-ADR:    ADR-0018 (ACCEPTED)
-```
+**Next sprint selection** — no active sprint. Candidates: Phase 7 robustness, Phase 4B orderflow, Phase 6B multi-data, or research-at-scale on continuous NQ. See §11.
 
 ### Sprint 015 — Closed
 
@@ -360,7 +361,7 @@ ADR:    ADR-0018 (ACCEPTED)
 
 ## 7. Blocked Work
 
-Nothing is technically blocked. Next step: open integration PR from `sprint/continuous-futures-materialization` to `main`.
+Nothing is technically blocked. Next step: choose next sprint increment (§11) or ship portfolio demo from `scripts/demo/`.
 
 ---
 
@@ -431,10 +432,10 @@ Binding decisions D-001–D-036 and workspace invariants are documented in the a
 
 ```text
 Post-Sprint 015 (choose one):
-    A — Merge Sprint 015 to main; Strategy Research on multi-year NQ continuous OHLCV
-    B — Phase 6B: Multi-Data Strategy Research
-    C — Phase 2C.2: MarketQuote datasets
-    D — Phase 4B: orderflow on published trades
+    A — Research at scale on multi-year NQ continuous OHLCV + portfolio polish
+    B — Phase 7: Robustness Research (walk-forward, OOS on persisted strategy runs)
+    C — Phase 4B: Orderflow Market Analysis on published trades
+    D — Phase 2C.2 / 6B: MarketQuote datasets and multi-data strategy research
 ```
 
 See `ROADMAP.md` §10–§11.
