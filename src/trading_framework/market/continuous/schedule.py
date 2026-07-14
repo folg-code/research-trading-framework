@@ -16,6 +16,18 @@ from trading_framework.market.contracts.identity import (
 ROLL_SCHEDULE_SCHEMA_VERSION = "roll-schedule-v1"
 
 
+def entry_for_session(
+    schedule: RollSchedule,
+    session_date: date,
+) -> RollScheduleEntry | None:
+    """Return the winning schedule entry for ``session_date`` when segments overlap."""
+    matched: RollScheduleEntry | None = None
+    for entry in schedule.entries:
+        if entry.valid_from_session <= session_date <= entry.valid_to_session:
+            matched = entry
+    return matched
+
+
 @final
 @dataclass(frozen=True, slots=True)
 class RollScheduleEntry:
@@ -73,7 +85,5 @@ class RollSchedule:
 
     def active_contract_for_session(self, session_date: date) -> str | None:
         """Return the active contract for ``session_date`` when covered by the schedule."""
-        for entry in self.entries:
-            if entry.valid_from_session <= session_date <= entry.valid_to_session:
-                return entry.active_contract
-        return None
+        entry = entry_for_session(self, session_date)
+        return None if entry is None else entry.active_contract

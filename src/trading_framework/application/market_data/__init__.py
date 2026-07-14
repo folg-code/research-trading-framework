@@ -24,6 +24,11 @@ from trading_framework.application.market_data.import_external_dataset import (
     ImportExternalDatasetResult,
     import_external_dataset,
 )
+from trading_framework.application.market_data.materialize_continuous_trades import (
+    MaterializeContinuousTradesRequest,
+    MaterializeContinuousTradesResult,
+    materialize_continuous_trades,
+)
 from trading_framework.application.market_data.publish_dataset import publish_dataset
 from trading_framework.application.market_data.query_historical import (
     QueryHistoricalRequest,
@@ -43,6 +48,8 @@ __all__ = [
     "ImportDatabentoTradesArchiveResult",
     "ImportExternalDatasetRequest",
     "ImportExternalDatasetResult",
+    "MaterializeContinuousTradesRequest",
+    "MaterializeContinuousTradesResult",
     "QueryHistoricalRequest",
     "QueryTradesRequest",
     "build_roll_schedule",
@@ -51,6 +58,7 @@ __all__ = [
     "import_databento_contract_trades_archive",
     "import_databento_trades_archive",
     "import_external_dataset",
+    "materialize_continuous_trades",
     "publish_dataset",
     "query_historical",
     "query_trades",

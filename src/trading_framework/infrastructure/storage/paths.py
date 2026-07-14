@@ -176,3 +176,13 @@ def roll_schedule_manifest_path(
         )
         / "manifest.json"
     )
+
+
+def continuous_trades_manifest_path(root: Path, dataset_ref: DatasetRef) -> Path:
+    """Return the continuous trades manifest path for one dataset version."""
+    return dataset_trades_version_dir(root, dataset_ref) / "continuous_manifest.json"
+
+
+def list_continuous_session_dates(root: Path, dataset_ref: DatasetRef) -> list[date]:
+    """Return sorted session dates present for a continuous trade dataset version."""
+    return list_contract_session_dates(root, dataset_ref)
