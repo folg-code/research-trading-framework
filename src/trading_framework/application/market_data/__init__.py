@@ -5,6 +5,11 @@ from trading_framework.application.market_data.derive_ohlcv_from_trades import (
     derive_ohlcv_from_trades,
 )
 from trading_framework.application.market_data.finalize_dataset import finalize_dataset
+from trading_framework.application.market_data.import_databento_contract_trades_archive import (
+    ContractTradesImportResult,
+    ImportDatabentoContractTradesArchiveResult,
+    import_databento_contract_trades_archive,
+)
 from trading_framework.application.market_data.import_databento_trades_archive import (
     ImportDatabentoTradesArchiveResult,
     import_databento_trades_archive,
@@ -25,7 +30,9 @@ from trading_framework.application.market_data.query_trades import (
 )
 
 __all__ = [
+    "ContractTradesImportResult",
     "DeriveOhlcvFromTradesResult",
+    "ImportDatabentoContractTradesArchiveResult",
     "ImportDatabentoTradesArchiveResult",
     "ImportExternalDatasetRequest",
     "ImportExternalDatasetResult",
@@ -33,6 +40,7 @@ __all__ = [
     "QueryTradesRequest",
     "derive_ohlcv_from_trades",
     "finalize_dataset",
+    "import_databento_contract_trades_archive",
     "import_databento_trades_archive",
     "import_external_dataset",
     "publish_dataset",

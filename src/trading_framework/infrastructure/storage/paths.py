@@ -82,6 +82,24 @@ def dataset_trades_version_dir(root: Path, dataset_ref: DatasetRef) -> Path:
     )
 
 
+def dataset_contract_trades_partitions_dir(root: Path, dataset_ref: DatasetRef) -> Path:
+    """Return the session-date partition root for a contract trade dataset version."""
+    return dataset_trades_version_dir(root, dataset_ref) / "partitions"
+
+
+def dataset_contract_trades_partition_path(
+    root: Path,
+    dataset_ref: DatasetRef,
+    session_date: date,
+) -> Path:
+    """Return the Parquet path for one session-date partition."""
+    partition_dir = (
+        dataset_contract_trades_partitions_dir(root, dataset_ref)
+        / f"session_date={session_date.isoformat()}"
+    )
+    return partition_dir / "trades.parquet"
+
+
 def dataset_trades_partitions_dir(root: Path, dataset_ref: DatasetRef) -> Path:
     """Return the day-partition root for a trade dataset version."""
     return dataset_trades_version_dir(root, dataset_ref) / "partitions"
