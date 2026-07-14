@@ -5,8 +5,8 @@
 
 Technical reference for how data moves through the framework: ingestion, persistence, lifecycle, query and analysis execution.
 
-**As-is scope:** Market Data Phase 2A (Sprint 002 CSV OHLCV) through Signal Research (Sprints 008–010 on `main`). Multitimeframe and declarative models: Sprints 004–006.  
-**Planned next (not implemented):** Phase 2B archive import — `ROADMAP.md` §6, `SPRINT_011.md`.  
+**As-is scope:** Market Data Phase 2A (Sprint 002 CSV OHLCV) and Phase 2B + 2C.1 trades archive import (Sprint 011 on `sprint/historical-archive-import`). Multitimeframe and declarative models: Sprints 004–006. Signal Research: Sprints 008–010 on `main`.  
+**Planned next:** Phase 2B.2 (DBN OHLCV), Phase 4B orderflow, or Phase 6A Strategy Research — `ROADMAP.md` §6, §10.  
 **Deep market data reference:** [modules/DATA_MODULE_UPDATED.md](modules/DATA_MODULE_UPDATED.md)
 
 ---
@@ -232,9 +232,68 @@ storage_root/
 {instrument}|{data_type}|{timeframe}|{provider}|{source_id}@{version}
 ```
 
-Path helpers: `infrastructure/storage/paths.py` — `dataset_metadata_path`, `dataset_bars_path`.
+Path helpers: `infrastructure/storage/paths.py` — `dataset_metadata_path`, `dataset_bars_path`, `dataset_trades_partition_path`, `dataset_import_manifest_path`.
 
-### 3.5 Parquet Schema (canonical)
+Trade datasets use **day partitions** under `partitions/day=YYYY-MM-DD/trades.parquet` (ADR-0014). OHLCV remains single `bars.parquet` (ADR-0008).
+
+### 3.6 Databento Trades Archive Import (Sprint 011)
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant App as import_databento_trades_archive
+    participant Insp as DatabentoDBNInspector
+    participant Read as DatabentoDBNTradeReader
+    participant Val as TradeBatchValidator
+    participant Repo as ParquetTradeDatasetRepository
+    participant Man as write_import_manifest
+    participant Reg as FileDatasetRegistry
+
+    User->>App: DatabentoTradesArchiveImportConfig
+    App->>Insp: inspect_with_checksum(path)
+    Insp-->>App: ArchiveInspectionResult + SHA-256
+    App->>Read: iter_trades(path, provider_symbol)
+    Read-->>App: MarketTrade stream
+    App->>Val: validate(trades)
+    Val-->>App: ValidationResult
+    App->>Reg: allocate_ref(dataset_id)
+    App->>Man: write import_manifest.json
+    alt validation passed
+        App->>Repo: write_trades(ref, trades)
+        Repo->>Repo: group by UTC day → partitions/
+    end
+    App->>Reg: register(WORKING metadata, checksum=source SHA-256)
+    App-->>User: ImportDatabentoTradesArchiveResult
+```
+
+**Entry point:** `trading_framework.application.market_data.import_databento_trades_archive`
+
+**Consumer query:** `query_trades` (PUBLISHED only) via `ParquetTradeDatasetRepository.query_trades`.
+
+**Lifecycle:** same ADR-0007 transitions; `finalize_dataset` supports `data_type=trades`.
+
+**CLI:** `scripts/databento/inspect_dbn.py`, `scripts/databento/import_trades.py`
+
+Integration tests: `tests/integration/market_data/test_databento_trades_import_flow.py` (injected reader),
+`test_databento_trades_import_mocked.py` (mocked `DBNStore`).
+
+### 3.7 Trade Parquet Schema
+
+Defined in `infrastructure/storage/parquet/trade_writer.py`:
+
+| Column | Arrow type | Domain field |
+|--------|------------|--------------|
+| `price` | `string` | `Price.value` as decimal text |
+| `size` | `int64` | `Volume.value` |
+| `event_at` | `timestamp(us)` | trade event time (UTC) |
+| `side` | `string` | `TradeSide` value |
+| `received_at` | `timestamp(us)`, nullable | optional receive time |
+| `trade_id` | `string`, nullable | provider id |
+| `sequence` | `int64`, nullable | venue sequence |
+
+---
+
+### 3.5 OHLCV Parquet Schema (canonical)
 
 Defined in `infrastructure/storage/parquet/writer.py`:
 
