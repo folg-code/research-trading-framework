@@ -173,9 +173,9 @@ Parquet / pyarrow conventions from ADR-0008 (new trade column schema)
 | S011-T013 | `ParquetTradeWriter` (stable schema) | 3 | DONE | S011-T004 |
 | S011-T014 | `ParquetTradeDatasetRepository` | 3 | DONE | S011-T012, S011-T013 |
 | S011-T015 | `HistoricalTradeQuery` + `query_trades` | 3 | DONE | S011-T014 |
-| S011-T016 | `import_databento_trades_archive` workflow | 4 | PLANNED | S011-T011, S011-T006, S011-T014, S011-T003 |
-| S011-T017 | Import manifest persistence | 4 | PLANNED | S011-T016 |
-| S011-T018 | E2E: import → finalize → publish → query | 4 | PLANNED | S011-T016, S011-T015 |
+| S011-T016 | `import_databento_trades_archive` workflow | 4 | DONE | S011-T011, S011-T006, S011-T014, S011-T003 |
+| S011-T017 | Import manifest persistence | 4 | DONE | S011-T016 |
+| S011-T018 | E2E: import → finalize → publish → query | 4 | DONE | S011-T016, S011-T015 |
 | S011-T019 | Tier 1 mocks + synthetic trade rows | 5 | PLANNED | S011-T011 |
 | S011-T020 | Unit tests (model, mapper, validator, manifest) | 5 | PLANNED | S011-T009–T017 |
 | S011-T021 | CI integration test (mocked DBN decode) | 5 | PLANNED | S011-T018, S011-T019 |
@@ -186,7 +186,7 @@ Parquet / pyarrow conventions from ADR-0008 (new trade column schema)
 | S011-T026 | Update MODULE_MAP, DATA_WORKFLOWS, CURRENT_STATUS | 6 | PLANNED | S011-T021 |
 | S011-T027 | Sprint review and closure | 6 | PLANNED | All preceding |
 
-**Progress:** 15 / 27 tasks
+**Progress:** 18 / 27 tasks
 
 ---
 
