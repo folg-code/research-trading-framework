@@ -74,13 +74,23 @@ def market_bars_from_table(table: pa.Table) -> list[MarketBar]:
 class ParquetBarWriter:
     """Write canonical OHLCV bars to Parquet files."""
 
+    def write_table(self, path: Path, table: pa.Table) -> None:
+        """Persist one OHLCV table to ``path`` using the canonical schema."""
+        path.parent.mkdir(parents=True, exist_ok=True)
+        column_names = [field.name for field in MARKET_BAR_PARQUET_SCHEMA]
+        normalized = table.select(column_names).cast(MARKET_BAR_PARQUET_SCHEMA, safe=False)
+        pq.write_table(normalized, path)  # type: ignore[no-untyped-call]
+
+    def read_table(self, path: Path) -> pa.Table:
+        """Read OHLCV parquet without materializing domain bars."""
+        table = pq.read_table(path)  # type: ignore[no-untyped-call]
+        column_names = [field.name for field in MARKET_BAR_PARQUET_SCHEMA]
+        return table.select(column_names).cast(MARKET_BAR_PARQUET_SCHEMA, safe=False)
+
     def write(self, path: Path, bars: Sequence[MarketBar]) -> None:
         """Persist bars to ``path`` using the canonical market bar schema."""
-        path.parent.mkdir(parents=True, exist_ok=True)
-        table = market_bars_to_table(bars)
-        pq.write_table(table, path)  # type: ignore[no-untyped-call]
+        self.write_table(path, market_bars_to_table(bars))
 
     def read(self, path: Path) -> list[MarketBar]:
         """Read bars written with the canonical market bar schema."""
-        table = pq.read_table(path)  # type: ignore[no-untyped-call]
-        return market_bars_from_table(table)
+        return market_bars_from_table(self.read_table(path))

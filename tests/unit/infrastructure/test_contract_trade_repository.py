@@ -1,17 +1,17 @@
 """Contract trade repository tests."""
 
 from datetime import UTC, date, datetime
-from decimal import Decimal
 from pathlib import Path
 
+from tests.fixtures.contracts.trade_record import make_contract_trade_record
 from trading_framework.core.identifiers import Identifier
-from trading_framework.core.types import Price, Volume
 from trading_framework.infrastructure.storage.parquet.contract_trade_repository import (
     ParquetContractTradeDatasetRepository,
 )
-from trading_framework.market.contracts.trade_record import ContractTradeRecord
+from trading_framework.infrastructure.storage.parquet.contract_trade_writer import (
+    ParquetContractTradeWriter,
+)
 from trading_framework.market.datasets import DatasetId, DatasetRef
-from trading_framework.market.models import MarketTrade, TradeSide
 from trading_framework.market.repositories import HistoricalTradeQuery
 from trading_framework.time.models.timeframe import Timeframe
 
@@ -29,26 +29,14 @@ def _dataset_ref() -> DatasetRef:
     )
 
 
-def _record(second: int, session_date: date) -> ContractTradeRecord:
-    return ContractTradeRecord(
-        trade=MarketTrade(
-            price=Price(Decimal("22860.75")),
-            size=Volume(2),
-            event_at=datetime(2025, 7, 13, 22, 0, second, tzinfo=UTC),
-            side=TradeSide.BUY,
-        ),
-        actual_contract="NQU5",
-        product="NQ",
-        session_date=session_date,
-        source_file="sample.dbn.zst",
-    )
-
-
 def test_contract_trade_repository_writes_session_date_partitions(tmp_path: Path) -> None:
     storage_root = tmp_path / "data"
     repository = ParquetContractTradeDatasetRepository(storage_root)
     dataset_ref = _dataset_ref()
-    records = [_record(0, date(2025, 7, 13)), _record(1, date(2025, 7, 14))]
+    records = [
+        make_contract_trade_record(second=0, session_date=date(2025, 7, 13)),
+        make_contract_trade_record(second=1, session_date=date(2025, 7, 14)),
+    ]
 
     repository.write_records(dataset_ref, records)
 
@@ -60,11 +48,46 @@ def test_contract_trade_repository_writes_session_date_partitions(tmp_path: Path
     assert (partition_root / "session_date=2025-07-14/trades.parquet").exists()
 
 
+def test_contract_trade_repository_merges_partitions_without_domain_round_trip(
+    tmp_path: Path,
+) -> None:
+    storage_root = tmp_path / "data"
+    writer = ParquetContractTradeWriter()
+    repository = ParquetContractTradeDatasetRepository(storage_root, writer=writer)
+    dataset_ref = _dataset_ref()
+    first_batch = [make_contract_trade_record(second=0, session_date=date(2025, 7, 13))]
+    second_batch = [make_contract_trade_record(second=1, session_date=date(2025, 7, 13))]
+
+    repository.write_session_partition(
+        dataset_ref,
+        date(2025, 7, 13),
+        first_batch,
+        merge_existing=False,
+    )
+    repository.write_session_partition(
+        dataset_ref,
+        date(2025, 7, 13),
+        second_batch,
+        merge_existing=True,
+    )
+
+    partition_path = (
+        storage_root
+        / "normalized/NQ.NQU5/trades/tick/databento/nq-cme-trades-20250713/v1/partitions"
+        / "session_date=2025-07-13/trades.parquet"
+    )
+    merged_table = writer.read_table(partition_path)
+    assert merged_table.num_rows == 2
+
+
 def test_contract_trade_repository_queries_by_event_time_range(tmp_path: Path) -> None:
     storage_root = tmp_path / "data"
     repository = ParquetContractTradeDatasetRepository(storage_root)
     dataset_ref = _dataset_ref()
-    records = [_record(0, date(2025, 7, 13)), _record(1, date(2025, 7, 13))]
+    records = [
+        make_contract_trade_record(second=0, session_date=date(2025, 7, 13)),
+        make_contract_trade_record(second=1, session_date=date(2025, 7, 13)),
+    ]
 
     repository.write_records(dataset_ref, records)
     queried = repository.query_records(

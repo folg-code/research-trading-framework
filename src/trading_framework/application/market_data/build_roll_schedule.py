@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
+from contextlib import AbstractContextManager, nullcontext
 from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
 
 from trading_framework.core.exceptions import ValidationError
+from trading_framework.infrastructure.observability.memory_stats import process_rss_mb
+from trading_framework.infrastructure.observability.profile_context import active_phase_timer
 from trading_framework.infrastructure.storage.metadata.registry import FileDatasetRegistry
 from trading_framework.infrastructure.storage.parquet.contract_trade_repository import (
     ParquetContractTradeDatasetRepository,
@@ -35,6 +38,13 @@ from trading_framework.market.repositories import HistoricalTradeQuery
 from trading_framework.time.clocks.protocol import Clock
 from trading_framework.time.clocks.system import SystemClock
 from trading_framework.time.sessions import CmeEsRthSessionResolver
+
+
+def _optional_phase(name: str) -> AbstractContextManager[None]:
+    timer = active_phase_timer()
+    if timer is None:
+        return nullcontext()
+    return timer.phase(name)
 
 
 @dataclass(frozen=True, slots=True)
@@ -96,24 +106,45 @@ def _load_contract_records(
     end_session: date,
     registry: FileDatasetRegistry,
 ) -> dict[str, list[ContractTradeRecord]]:
+    timer = active_phase_timer()
     repository = ParquetContractTradeDatasetRepository(storage_root)
     records_by_contract: dict[str, list[ContractTradeRecord]] = {}
-    for dataset_ref in contract_dataset_refs:
+    for index, dataset_ref in enumerate(contract_dataset_refs, start=1):
         metadata = registry.get(dataset_ref)
         contract_code = _contract_code_from_dataset_ref(dataset_ref)
-        records = list(
-            repository.query_records(
-                HistoricalTradeQuery(
-                    dataset_ref=dataset_ref,
-                    start_at=metadata.start_at,
-                    end_at=metadata.end_at,
+        phase_name = f"roll_schedule.load.{contract_code}"
+        if timer is not None:
+            with timer.phase(phase_name):
+                records = list(
+                    repository.query_records(
+                        HistoricalTradeQuery(
+                            dataset_ref=dataset_ref,
+                            start_at=metadata.start_at,
+                            end_at=metadata.end_at,
+                        )
+                    )
+                )
+        else:
+            records = list(
+                repository.query_records(
+                    HistoricalTradeQuery(
+                        dataset_ref=dataset_ref,
+                        start_at=metadata.start_at,
+                        end_at=metadata.end_at,
+                    )
                 )
             )
-        )
         filtered = [
             record for record in records if start_session <= record.session_date <= end_session
         ]
         records_by_contract[contract_code] = filtered
+        if timer is not None:
+            rss_mb = process_rss_mb()
+            rss_text = f" rss_mb={rss_mb:.1f}" if rss_mb is not None else ""
+            timer.log(
+                f"[{index}/{len(contract_dataset_refs)}] roll_schedule loaded {contract_code} "
+                f"rows={len(filtered)}{rss_text}"
+            )
     return records_by_contract
 
 
@@ -135,32 +166,36 @@ def build_roll_schedule(
     utc_clock = clock or SystemClock()
     resolver = session_resolver or CmeEsRthSessionResolver()
 
-    start_session, end_session = _session_bounds(
-        request.storage_root,
-        request.contract_dataset_refs,
-        start_session=request.start_session,
-        end_session=request.end_session,
-    )
+    with _optional_phase("roll_schedule.session_bounds"):
+        start_session, end_session = _session_bounds(
+            request.storage_root,
+            request.contract_dataset_refs,
+            start_session=request.start_session,
+            end_session=request.end_session,
+        )
     policy = VolumeRthCloseRollPolicy(
         product=request.product,
         confirmation_sessions=request.confirmation_sessions,
     )
-    records_by_contract = _load_contract_records(
-        request.storage_root,
-        request.contract_dataset_refs,
-        start_session=start_session,
-        end_session=end_session,
-        registry=dataset_registry,
-    )
-    session_volumes = aggregate_rth_session_volumes(
-        records_by_contract,
-        resolver=resolver,
-    )
+    with _optional_phase("roll_schedule.load_contract_records"):
+        records_by_contract = _load_contract_records(
+            request.storage_root,
+            request.contract_dataset_refs,
+            start_session=start_session,
+            end_session=end_session,
+            registry=dataset_registry,
+        )
+    with _optional_phase("roll_schedule.aggregate_volumes"):
+        session_volumes = aggregate_rth_session_volumes(
+            records_by_contract,
+            resolver=resolver,
+        )
     if not session_volumes:
         msg = "no RTH session volumes found for roll schedule build"
         raise ValidationError(msg)
 
-    entries = build_volume_rth_close_schedule(session_volumes, policy=policy)
+    with _optional_phase("roll_schedule.build_entries"):
+        entries = build_volume_rth_close_schedule(session_volumes, policy=policy)
     if not entries:
         msg = "roll schedule builder produced no entries"
         raise ValidationError(msg)
@@ -196,7 +231,8 @@ def build_roll_schedule(
         ),
         created_at_utc=utc_clock.now(),
     )
-    version_dir = roll_repository.write(schedule, manifest=manifest)
+    with _optional_phase("roll_schedule.persist"):
+        version_dir = roll_repository.write(schedule, manifest=manifest)
     return BuildRollScheduleResult(
         schedule=schedule,
         manifest=manifest,

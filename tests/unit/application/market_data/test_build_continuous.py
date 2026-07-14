@@ -1,19 +1,19 @@
 """Build continuous workflow tests."""
 
 from datetime import UTC, date, datetime
-from decimal import Decimal
 from pathlib import Path
 
+from tests.fixtures.contracts.trade_record import make_rth_contract_trade_record
 from trading_framework.application.market_data.build_continuous import (
     BuildContinuousRequest,
     build_continuous,
 )
 from trading_framework.core.identifiers import Identifier
-from trading_framework.core.types import Price, Volume
 from trading_framework.infrastructure.storage.metadata.registry import FileDatasetRegistry
 from trading_framework.infrastructure.storage.parquet.contract_trade_repository import (
     ParquetContractTradeDatasetRepository,
 )
+from trading_framework.infrastructure.storage.paths import dataset_metadata_path
 from trading_framework.market.contracts.trade_record import ContractTradeRecord
 from trading_framework.market.datasets import (
     DatasetId,
@@ -22,7 +22,6 @@ from trading_framework.market.datasets import (
     DatasetRef,
     ValidationStatus,
 )
-from trading_framework.market.models import MarketTrade, TradeSide
 from trading_framework.time.clocks.fixed import FixedClock
 from trading_framework.time.models.timeframe import Timeframe
 
@@ -49,24 +48,11 @@ def _rth_record(
     minute: int,
     size: int,
 ) -> ContractTradeRecord:
-    return ContractTradeRecord(
-        trade=MarketTrade(
-            price=Price(Decimal("22860.75")),
-            size=Volume(size),
-            event_at=datetime(
-                session_date.year,
-                session_date.month,
-                session_date.day,
-                14,
-                minute,
-                tzinfo=UTC,
-            ),
-            side=TradeSide.BUY,
-        ),
-        actual_contract=contract,
-        product="NQ",
+    return make_rth_contract_trade_record(
+        contract=contract,
         session_date=session_date,
-        source_file="sample.dbn.zst",
+        minute=minute,
+        size=size,
     )
 
 
@@ -88,7 +74,7 @@ def _seed_contract_datasets(storage_root: Path) -> tuple[DatasetRef, DatasetRef]
                 data_type=dataset_ref.dataset_id.data_type,
                 start_at=start_at,
                 end_at=end_at,
-                schema_version="market-trade-contract-v1",
+                schema_version="market-trade-contract-v2",
                 normalization_version="databento-contract-trades-v1",
                 validation_status=ValidationStatus.PASSED,
                 lifecycle_status=DatasetLifecycleState.WORKING,
@@ -167,3 +153,31 @@ def test_build_continuous_reuses_unchanged_outputs(tmp_path: Path) -> None:
     assert second.continuous_ohlcv_dataset_ref == first.continuous_ohlcv_dataset_ref
     assert second.published_trades is False
     assert second.published_ohlcv is False
+
+
+def test_build_continuous_derives_ohlcv_when_trades_reused_but_ohlcv_missing(
+    tmp_path: Path,
+) -> None:
+    storage_root = tmp_path / "data"
+    nqu5_ref, nqz5_ref = _seed_contract_datasets(storage_root)
+    registry = FileDatasetRegistry(storage_root)
+    clock = FixedClock(_BUILD_AT)
+    request = BuildContinuousRequest(
+        storage_root=storage_root,
+        product="NQ",
+        contract_dataset_refs=(nqu5_ref, nqz5_ref),
+    )
+
+    first = build_continuous(request, registry=registry, clock=clock)
+    ohlcv_metadata_path = dataset_metadata_path(storage_root, first.continuous_ohlcv_dataset_ref)
+    ohlcv_metadata_path.unlink()
+
+    second = build_continuous(request, registry=registry, clock=clock)
+
+    assert second.trades_reused is True
+    assert second.ohlcv_reused is False
+    assert second.published_ohlcv is True
+    assert second.continuous_trades_dataset_ref == first.continuous_trades_dataset_ref
+    assert registry.get(second.continuous_ohlcv_dataset_ref).lifecycle_status is (
+        DatasetLifecycleState.PUBLISHED
+    )

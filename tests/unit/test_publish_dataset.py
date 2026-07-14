@@ -122,3 +122,33 @@ def test_publish_dataset_blocks_repository_writes_for_published_version(
     repository = ParquetDatasetRepository(storage_root, metadata_reader=registry)
     with pytest.raises(ValidationError, match="immutable"):
         repository.write_bars(dataset_ref, [_bar()])
+
+
+def test_publish_dataset_is_idempotent_when_already_published(tmp_path: Path) -> None:
+    storage_root = tmp_path / "data"
+    registry = FileDatasetRegistry(storage_root)
+    dataset_ref = _dataset_ref()
+    registry.register(
+        replace(
+            _finalized_metadata(dataset_ref),
+            lifecycle_status=DatasetLifecycleState.WORKING,
+        )
+    )
+    registry.update(
+        replace(
+            _finalized_metadata(dataset_ref),
+            lifecycle_status=DatasetLifecycleState.PUBLISHED,
+            published_at=_PUBLISHED_AT,
+        )
+    )
+
+    publish_dataset(
+        dataset_ref,
+        storage_root=storage_root,
+        registry=registry,
+        clock=FixedClock(datetime(2024, 6, 3, 8, 0, tzinfo=UTC)),
+    )
+    metadata = registry.get(dataset_ref)
+
+    assert metadata.lifecycle_status is DatasetLifecycleState.PUBLISHED
+    assert metadata.published_at == _PUBLISHED_AT

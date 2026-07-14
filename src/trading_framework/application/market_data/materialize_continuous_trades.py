@@ -2,11 +2,19 @@
 
 from __future__ import annotations
 
+import time
+from contextlib import nullcontext
 from dataclasses import dataclass
 from datetime import date, datetime
 from pathlib import Path
 
+import pyarrow as pa
+import pyarrow.compute as pc
+import pyarrow.parquet as pq
+
 from trading_framework.core.exceptions import ValidationError
+from trading_framework.infrastructure.observability.memory_stats import process_rss_mb
+from trading_framework.infrastructure.observability.profile_context import active_phase_timer
 from trading_framework.infrastructure.storage.continuous_manifest_store import (
     CONTINUOUS_MANIFEST_VERSION,
     ContinuousTradesManifest,
@@ -20,7 +28,11 @@ from trading_framework.infrastructure.storage.metadata.registry import FileDatas
 from trading_framework.infrastructure.storage.parquet.continuous_trade_repository import (
     ParquetContinuousTradeDatasetRepository,
 )
+from trading_framework.infrastructure.storage.parquet.continuous_trade_table_mapper import (
+    contract_table_to_continuous_table,
+)
 from trading_framework.infrastructure.storage.parquet.contract_trade_writer import (
+    MARKET_TRADE_CONTRACT_PARQUET_SCHEMA,
     ParquetContractTradeWriter,
 )
 from trading_framework.infrastructure.storage.paths import (
@@ -34,17 +46,13 @@ from trading_framework.market.continuous.identity import (
     CONTINUOUS_TRADES_PROVIDER,
     continuous_instrument_id,
 )
-from trading_framework.market.continuous.materializer import (
-    materialize_session_records,
-    sessions_covered_by_schedule,
-)
+from trading_framework.market.continuous.materializer import sessions_covered_by_schedule
 from trading_framework.market.continuous.policy import (
     VOLUME_RTH_CLOSE_POLICY_SLUG,
     VolumeRthCloseRollPolicy,
 )
 from trading_framework.market.continuous.schedule import RollSchedule
 from trading_framework.market.continuous.trade_record import MARKET_TRADE_CONTINUOUS_SCHEMA_VERSION
-from trading_framework.market.contracts.trade_record import ContractTradeRecord
 from trading_framework.market.datasets import (
     DatasetId,
     DatasetLifecycleState,
@@ -102,17 +110,27 @@ def _contract_refs_by_code(
     return mapping
 
 
-def _load_contract_session_records(
+def _empty_contract_session_table() -> pa.Table:
+    return pa.table(
+        {
+            field.name: pa.array([], type=field.type)
+            for field in MARKET_TRADE_CONTRACT_PARQUET_SCHEMA
+        },
+        schema=MARKET_TRADE_CONTRACT_PARQUET_SCHEMA,
+    )
+
+
+def _load_contract_session_table(
     storage_root: Path,
     dataset_ref: DatasetRef,
     session_date: date,
     *,
     writer: ParquetContractTradeWriter,
-) -> list[ContractTradeRecord]:
+) -> pa.Table:
     path = dataset_contract_trades_partition_path(storage_root, dataset_ref, session_date)
     if not path.exists():
-        return []
-    return writer.read(path)
+        return _empty_contract_session_table()
+    return writer.read_table(path)
 
 
 def _sessions_to_materialize(
@@ -143,29 +161,137 @@ def _sessions_to_materialize(
 
 def _count_dataset_records(
     storage_root: Path,
-    repository: ParquetContinuousTradeDatasetRepository,
     dataset_ref: DatasetRef,
 ) -> int:
     total = 0
     for session_date in list_continuous_session_dates(storage_root, dataset_ref):
-        total += len(repository.read_session_records(dataset_ref, session_date))
+        path = dataset_contract_trades_partition_path(storage_root, dataset_ref, session_date)
+        if not path.exists():
+            continue
+        total += pq.ParquetFile(path).metadata.num_rows  # type: ignore[no-untyped-call]
     return total
 
 
 def _dataset_time_bounds(
     storage_root: Path,
-    repository: ParquetContinuousTradeDatasetRepository,
     dataset_ref: DatasetRef,
     *,
     fallback: datetime,
 ) -> tuple[datetime, datetime]:
-    event_times: list[datetime] = []
+    from datetime import UTC
+
+    min_at: datetime | None = None
+    max_at: datetime | None = None
     for session_date in list_continuous_session_dates(storage_root, dataset_ref):
-        for record in repository.read_session_records(dataset_ref, session_date):
-            event_times.append(record.trade.event_at)
-    if not event_times:
+        path = dataset_contract_trades_partition_path(storage_root, dataset_ref, session_date)
+        if not path.exists():
+            continue
+        table = pq.ParquetFile(path).read(columns=["event_at"])  # type: ignore[no-untyped-call]
+        if table.num_rows == 0:
+            continue
+        session_min = pc.min(table["event_at"]).as_py()  # type: ignore[attr-defined]
+        session_max = pc.max(table["event_at"]).as_py()  # type: ignore[attr-defined]
+        if session_min is None or session_max is None:
+            continue
+        session_min_at = session_min.replace(tzinfo=UTC)
+        session_max_at = session_max.replace(tzinfo=UTC)
+        min_at = session_min_at if min_at is None else min(min_at, session_min_at)
+        max_at = session_max_at if max_at is None else max(max_at, session_max_at)
+    if min_at is None or max_at is None:
         return fallback, fallback
-    return min(event_times), max(event_times)
+    return min_at, max_at
+
+
+_IMMUTABLE_LIFECYCLE = frozenset(
+    {
+        DatasetLifecycleState.FINALIZED,
+        DatasetLifecycleState.PUBLISHED,
+    }
+)
+
+
+def _register_working_continuous_dataset(
+    dataset_registry: FileDatasetRegistry,
+    *,
+    dataset_ref: DatasetRef,
+    created_at: datetime,
+    schedule: RollSchedule,
+    roll_manifest_source_fingerprint: str,
+) -> None:
+    dataset_registry.register(
+        DatasetMetadata(
+            dataset_ref=dataset_ref,
+            instrument_id=dataset_ref.dataset_id.instrument_id,
+            timeframe=dataset_ref.dataset_id.timeframe,
+            provider=dataset_ref.dataset_id.provider,
+            source_id=dataset_ref.dataset_id.source_id,
+            data_type=dataset_ref.dataset_id.data_type,
+            start_at=created_at,
+            end_at=created_at,
+            schema_version=MARKET_TRADE_CONTINUOUS_SCHEMA_VERSION,
+            normalization_version=CONTINUOUS_BUILDER_VERSION,
+            validation_status=ValidationStatus.PASSED,
+            lifecycle_status=DatasetLifecycleState.WORKING,
+            row_count=0,
+            checksum="pending",
+            created_at=created_at,
+            lineage={
+                "roll_schedule_version": str(schedule.version),
+                "roll_schedule_fingerprint": roll_manifest_source_fingerprint,
+            },
+        )
+    )
+
+
+def _writable_continuous_dataset_ref(
+    request: MaterializeContinuousTradesRequest,
+    *,
+    dataset_registry: FileDatasetRegistry,
+    schedule: RollSchedule,
+    roll_manifest_source_fingerprint: str,
+    utc_clock: Clock,
+) -> DatasetRef:
+    """Return a WORKING dataset ref that can accept new session partitions."""
+    created_at = utc_clock.now()
+    if request.existing_dataset_ref is None:
+        dataset_ref = dataset_registry.allocate_ref(
+            DatasetId(
+                instrument_id=continuous_instrument_id(request.product),
+                data_type="trades",
+                timeframe=Timeframe("tick"),
+                provider=CONTINUOUS_TRADES_PROVIDER,
+                source_id=request.policy_slug,
+            )
+        )
+        _register_working_continuous_dataset(
+            dataset_registry,
+            dataset_ref=dataset_ref,
+            created_at=created_at,
+            schedule=schedule,
+            roll_manifest_source_fingerprint=roll_manifest_source_fingerprint,
+        )
+        return dataset_ref
+
+    existing_metadata = dataset_registry.get(request.existing_dataset_ref)
+    if existing_metadata.lifecycle_status not in _IMMUTABLE_LIFECYCLE:
+        return request.existing_dataset_ref
+
+    dataset_ref = dataset_registry.allocate_ref(request.existing_dataset_ref.dataset_id)
+    _register_working_continuous_dataset(
+        dataset_registry,
+        dataset_ref=dataset_ref,
+        created_at=created_at,
+        schedule=schedule,
+        roll_manifest_source_fingerprint=roll_manifest_source_fingerprint,
+    )
+    timer = active_phase_timer()
+    if timer is not None:
+        timer.log(
+            f"materialize_continuous_trades: allocated v{dataset_ref.version} "
+            f"because v{request.existing_dataset_ref.version} is "
+            f"{existing_metadata.lifecycle_status.value}"
+        )
+    return dataset_ref
 
 
 def materialize_continuous_trades(
@@ -230,7 +356,6 @@ def materialize_continuous_trades(
             if existing_manifest.source_fingerprint == source_fingerprint:
                 record_count = _count_dataset_records(
                     request.storage_root,
-                    continuous_repo,
                     request.existing_dataset_ref,
                 )
                 return MaterializeContinuousTradesResult(
@@ -241,42 +366,14 @@ def materialize_continuous_trades(
                     reused=True,
                 )
 
-    dataset_ref = request.existing_dataset_ref
+    dataset_ref = _writable_continuous_dataset_ref(
+        request,
+        dataset_registry=dataset_registry,
+        schedule=schedule,
+        roll_manifest_source_fingerprint=roll_manifest.source_fingerprint,
+        utc_clock=utc_clock,
+    )
     created_at = utc_clock.now()
-    if dataset_ref is None:
-        dataset_ref = dataset_registry.allocate_ref(
-            DatasetId(
-                instrument_id=continuous_instrument_id(request.product),
-                data_type="trades",
-                timeframe=Timeframe("tick"),
-                provider=CONTINUOUS_TRADES_PROVIDER,
-                source_id=request.policy_slug,
-            )
-        )
-        start_at, end_at = created_at, created_at
-        dataset_registry.register(
-            DatasetMetadata(
-                dataset_ref=dataset_ref,
-                instrument_id=dataset_ref.dataset_id.instrument_id,
-                timeframe=dataset_ref.dataset_id.timeframe,
-                provider=dataset_ref.dataset_id.provider,
-                source_id=dataset_ref.dataset_id.source_id,
-                data_type=dataset_ref.dataset_id.data_type,
-                start_at=start_at,
-                end_at=end_at,
-                schema_version=MARKET_TRADE_CONTINUOUS_SCHEMA_VERSION,
-                normalization_version=CONTINUOUS_BUILDER_VERSION,
-                validation_status=ValidationStatus.PASSED,
-                lifecycle_status=DatasetLifecycleState.WORKING,
-                row_count=0,
-                checksum="pending",
-                created_at=created_at,
-                lineage={
-                    "roll_schedule_version": str(schedule.version),
-                    "roll_schedule_fingerprint": roll_manifest.source_fingerprint,
-                },
-            )
-        )
 
     contract_refs_by_code = _contract_refs_by_code(request.contract_dataset_refs)
     existing_sessions = list_continuous_session_dates(request.storage_root, dataset_ref)
@@ -289,7 +386,9 @@ def materialize_continuous_trades(
         rebuild_window_sessions=request.rebuild_window_sessions,
     )
 
-    for session_date in sessions:
+    timer = active_phase_timer()
+    materialize_started = time.perf_counter()
+    for index, session_date in enumerate(sessions, start=1):
         active_contract = schedule.active_contract_for_session(session_date)
         if active_contract is None:
             continue
@@ -297,23 +396,58 @@ def materialize_continuous_trades(
         if contract_ref is None:
             msg = f"missing contract dataset for active contract {active_contract!r}"
             raise ValidationError(msg)
-        contract_records = _load_contract_session_records(
-            request.storage_root,
-            contract_ref,
-            session_date,
-            writer=contract_trade_writer,
-        )
-        continuous_records = materialize_session_records(
-            schedule,
-            session_date=session_date,
-            contract_records=contract_records,
-        )
-        continuous_repo.write_session_records(dataset_ref, session_date, continuous_records)
 
-    record_count = _count_dataset_records(request.storage_root, continuous_repo, dataset_ref)
+        session_started = time.perf_counter()
+        load_started = time.perf_counter()
+        load_context = timer.phase("materialize.load") if timer is not None else nullcontext()
+        with load_context:
+            contract_table = _load_contract_session_table(
+                request.storage_root,
+                contract_ref,
+                session_date,
+                writer=contract_trade_writer,
+            )
+        load_seconds = time.perf_counter() - load_started
+
+        transform_started = time.perf_counter()
+        transform_context = (
+            timer.phase("materialize.transform") if timer is not None else nullcontext()
+        )
+        with transform_context:
+            continuous_table = contract_table_to_continuous_table(
+                contract_table,
+                schedule=schedule,
+                session_date=session_date,
+                active_contract=active_contract,
+            )
+        transform_seconds = time.perf_counter() - transform_started
+
+        write_started = time.perf_counter()
+        write_context = timer.phase("materialize.write") if timer is not None else nullcontext()
+        with write_context:
+            continuous_repo.write_session_table(
+                dataset_ref,
+                session_date,
+                continuous_table,
+            )
+        write_seconds = time.perf_counter() - write_started
+        total_seconds = time.perf_counter() - session_started
+
+        if timer is not None and (index == 1 or index % 10 == 0 or index == len(sessions)):
+            elapsed = time.perf_counter() - materialize_started
+            rss_mb = process_rss_mb()
+            rss_text = f" rss_mb={rss_mb:.1f}" if rss_mb is not None else ""
+            timer.log(
+                f"[{index}/{len(sessions)}] materialize {session_date} "
+                f"rows={continuous_table.num_rows} "
+                f"load={load_seconds:.1f}s transform={transform_seconds:.1f}s "
+                f"write={write_seconds:.1f}s total={total_seconds:.1f}s "
+                f"elapsed={elapsed:.1f}s{rss_text}"
+            )
+
+    record_count = _count_dataset_records(request.storage_root, dataset_ref)
     start_at, end_at = _dataset_time_bounds(
         request.storage_root,
-        continuous_repo,
         dataset_ref,
         fallback=created_at,
     )

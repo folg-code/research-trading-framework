@@ -22,11 +22,17 @@ def aggregate_rth_session_volumes(
     volumes: dict[date, dict[str, int]] = defaultdict(lambda: defaultdict(int))
 
     for contract_code, records in records_by_contract.items():
-        for record in records:
-            resolved = session_resolver.resolve(pl.Series([record.trade.event_at]))
-            if not resolved.row(0, named=True)["is_rth"]:
+        record_list = list(records)
+        if not record_list:
+            continue
+        resolved = session_resolver.resolve(
+            pl.Series([record.event_at() for record in record_list])
+        )
+        is_rth_flags = resolved.get_column("is_rth").to_list()
+        for record, is_rth in zip(record_list, is_rth_flags, strict=True):
+            if not is_rth:
                 continue
-            volumes[record.session_date][contract_code] += record.trade.size.value
+            volumes[record.session_date][contract_code] += record.size
 
     return {
         session: dict(contract_volumes)

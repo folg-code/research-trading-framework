@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import time
 from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
@@ -21,9 +22,11 @@ from trading_framework.application.market_data.materialize_continuous_trades imp
 )
 from trading_framework.application.market_data.publish_dataset import publish_dataset
 from trading_framework.core.exceptions import ValidationError
+from trading_framework.infrastructure.observability.memory_stats import process_rss_mb
+from trading_framework.infrastructure.observability.phase_timer import PhaseTimer
+from trading_framework.infrastructure.observability.profile_context import active_phase_timer
 from trading_framework.infrastructure.storage.metadata.discovery import (
     latest_dataset_ref,
-    latest_published_dataset_ref,
 )
 from trading_framework.infrastructure.storage.metadata.registry import FileDatasetRegistry
 from trading_framework.infrastructure.storage.paths import (
@@ -63,6 +66,17 @@ from trading_framework.time.models.timeframe import Timeframe
 _CONTINUOUS_OHLCV_SCHEMA_VERSION = "market-bar-v1"
 
 
+def _log_stage_start(timer: PhaseTimer, message: str) -> None:
+    timer.log(f"{message}...")
+
+
+def _log_stage(timer: PhaseTimer, message: str, *, started_at: float) -> None:
+    elapsed = time.perf_counter() - started_at
+    rss_mb = process_rss_mb()
+    rss_text = f" rss_mb={rss_mb:.1f}" if rss_mb is not None else ""
+    timer.log(f"{message} done in {elapsed:.1f}s{rss_text}")
+
+
 @dataclass(frozen=True, slots=True)
 class BuildContinuousRequest:
     """Input for one end-to-end continuous futures build."""
@@ -78,6 +92,7 @@ class BuildContinuousRequest:
     rebuild_window_sessions: int = 10
     publish: bool = True
     ohlcv_schema_version: str = _CONTINUOUS_OHLCV_SCHEMA_VERSION
+    profile: bool = False
 
 
 @dataclass(frozen=True, slots=True)
@@ -245,39 +260,93 @@ def build_continuous(
 
     dataset_registry = registry or FileDatasetRegistry(request.storage_root)
     utc_clock = clock or SystemClock()
+    parent_timer = active_phase_timer()
+    timer = (
+        parent_timer
+        if parent_timer is not None and parent_timer.enabled
+        else PhaseTimer(enabled=request.profile)
+    )
+    owns_timer = timer is not parent_timer
+    timer.log(
+        f"build_continuous: product={request.product} "
+        f"contracts={len(request.contract_dataset_refs)} "
+        f"storage={request.storage_root}"
+    )
+    if owns_timer:
+        timer.begin_session()
 
-    roll_result = _resolve_roll_schedule(
-        request,
-        registry=dataset_registry,
-        clock=utc_clock,
+    _log_stage_start(timer, "roll_schedule")
+    roll_started = time.perf_counter()
+    with timer.phase("roll_schedule"):
+        roll_result = _resolve_roll_schedule(
+            request,
+            registry=dataset_registry,
+            clock=utc_clock,
+        )
+    _log_stage(
+        timer,
+        (
+            f"roll_schedule v{roll_result.schedule.version} "
+            f"entries={len(roll_result.schedule.entries)}"
+        ),
+        started_at=roll_started,
     )
 
     trades_dataset_id = _continuous_trades_dataset_id(request.product, request.policy_slug)
     existing_trades_ref = latest_dataset_ref(request.storage_root, trades_dataset_id)
-    materialize_result = materialize_continuous_trades(
-        MaterializeContinuousTradesRequest(
-            storage_root=request.storage_root,
-            product=request.product,
-            roll_schedule_version=roll_result.schedule.version,
-            contract_dataset_refs=request.contract_dataset_refs,
-            policy_slug=request.policy_slug,
-            start_session=request.start_session,
-            end_session=request.end_session,
-            rebuild_all=request.rebuild_all,
-            rebuild_window_sessions=request.rebuild_window_sessions,
-            existing_dataset_ref=existing_trades_ref,
+    _log_stage_start(
+        timer,
+        (
+            f"materialize_continuous_trades existing="
+            f"{existing_trades_ref if existing_trades_ref is not None else 'none'}"
         ),
-        registry=dataset_registry,
-        clock=utc_clock,
+    )
+    materialize_started = time.perf_counter()
+    with timer.phase("materialize_continuous_trades"):
+        materialize_result = materialize_continuous_trades(
+            MaterializeContinuousTradesRequest(
+                storage_root=request.storage_root,
+                product=request.product,
+                roll_schedule_version=roll_result.schedule.version,
+                contract_dataset_refs=request.contract_dataset_refs,
+                policy_slug=request.policy_slug,
+                start_session=request.start_session,
+                end_session=request.end_session,
+                rebuild_all=request.rebuild_all,
+                rebuild_window_sessions=request.rebuild_window_sessions,
+                existing_dataset_ref=existing_trades_ref,
+            ),
+            registry=dataset_registry,
+            clock=utc_clock,
+        )
+    _log_stage(
+        timer,
+        (
+            f"materialize_continuous_trades reused={materialize_result.reused} "
+            f"rows={materialize_result.record_count} "
+            f"sessions={len(materialize_result.sessions_materialized)}"
+        ),
+        started_at=materialize_started,
     )
 
     published_trades = False
     if request.publish:
-        published_trades = _ensure_published_trades(
-            materialize_result.dataset_ref,
-            storage_root=request.storage_root,
-            registry=dataset_registry,
-            clock=utc_clock,
+        _log_stage_start(
+            timer,
+            f"publish_continuous_trades ref={materialize_result.dataset_ref}",
+        )
+        publish_trades_started = time.perf_counter()
+        with timer.phase("publish_continuous_trades"):
+            published_trades = _ensure_published_trades(
+                materialize_result.dataset_ref,
+                storage_root=request.storage_root,
+                registry=dataset_registry,
+                clock=utc_clock,
+            )
+        _log_stage(
+            timer,
+            f"publish_continuous_trades published={published_trades}",
+            started_at=publish_trades_started,
         )
     elif not materialize_result.reused:
         trades_metadata = dataset_registry.get(materialize_result.dataset_ref)
@@ -286,16 +355,17 @@ def build_continuous(
             raise ValidationError(msg)
 
     ohlcv_dataset_id = _continuous_ohlcv_dataset_id(request.product, request.policy_slug)
-    ohlcv_reused = False
-    published_ohlcv = False
-    if materialize_result.reused:
-        existing_ohlcv_ref = latest_published_dataset_ref(request.storage_root, ohlcv_dataset_id)
-        if existing_ohlcv_ref is None:
-            msg = "reused continuous trades require a published derived OHLCV dataset"
-            raise ValidationError(msg)
-        ohlcv_ref = existing_ohlcv_ref
-        ohlcv_reused = True
-    else:
+    existing_ohlcv_ref = latest_dataset_ref(request.storage_root, ohlcv_dataset_id)
+    _log_stage_start(
+        timer,
+        (
+            f"derive_continuous_ohlcv source={materialize_result.dataset_ref} "
+            f"rows={materialize_result.record_count} "
+            f"existing_ohlcv={existing_ohlcv_ref if existing_ohlcv_ref is not None else 'none'}"
+        ),
+    )
+    derive_started = time.perf_counter()
+    with timer.phase("derive_continuous_ohlcv"):
         derive_result = derive_continuous_ohlcv(
             DerivedContinuousOhlcvConfig(
                 source_continuous_trades_ref=materialize_result.dataset_ref,
@@ -305,21 +375,53 @@ def build_continuous(
             storage_root=request.storage_root,
             registry=dataset_registry,
             clock=utc_clock,
+            existing_dataset_ref=existing_ohlcv_ref,
+            rebuild_all=request.rebuild_all,
+            rebuild_window_sessions=request.rebuild_window_sessions,
         )
-        ohlcv_ref = derive_result.dataset_ref
-        if request.publish:
-            finalize_dataset(
-                ohlcv_ref,
-                storage_root=request.storage_root,
-                registry=dataset_registry,
-            )
-            publish_dataset(
-                ohlcv_ref,
-                storage_root=request.storage_root,
-                registry=dataset_registry,
-                clock=utc_clock,
-            )
-            published_ohlcv = True
+    ohlcv_ref = derive_result.dataset_ref
+    ohlcv_reused = derive_result.reused
+    derive_metadata = dataset_registry.get(ohlcv_ref)
+    stage_message = (
+        f"reuse_continuous_ohlcv ref={ohlcv_ref} rows={derive_metadata.row_count}"
+        if derive_result.reused
+        else (
+            f"derive_continuous_ohlcv rows={derive_metadata.row_count} "
+            f"sessions={len(derive_result.sessions_derived)}"
+        )
+    )
+    _log_stage(timer, stage_message, started_at=derive_started)
+
+    published_ohlcv = False
+    if request.publish:
+        _log_stage_start(timer, f"publish_continuous_ohlcv ref={ohlcv_ref}")
+        publish_ohlcv_started = time.perf_counter()
+        with timer.phase("publish_continuous_ohlcv"):
+            ohlcv_metadata = dataset_registry.get(ohlcv_ref)
+            if ohlcv_metadata.lifecycle_status is DatasetLifecycleState.PUBLISHED:
+                published_ohlcv = False
+            else:
+                if ohlcv_metadata.lifecycle_status is DatasetLifecycleState.WORKING:
+                    finalize_dataset(
+                        ohlcv_ref,
+                        storage_root=request.storage_root,
+                        registry=dataset_registry,
+                    )
+                publish_dataset(
+                    ohlcv_ref,
+                    storage_root=request.storage_root,
+                    registry=dataset_registry,
+                    clock=utc_clock,
+                )
+                published_ohlcv = True
+        _log_stage(
+            timer,
+            f"publish_continuous_ohlcv published={published_ohlcv}",
+            started_at=publish_ohlcv_started,
+        )
+
+    if owns_timer:
+        timer.report(title="build_continuous phase report")
 
     return BuildContinuousResult(
         roll_schedule_version=roll_result.schedule.version,

@@ -7,6 +7,8 @@ from datetime import date
 from pathlib import Path
 from typing import Protocol
 
+import pyarrow as pa
+
 from trading_framework.core.exceptions import ValidationError
 from trading_framework.infrastructure.storage.parquet.continuous_trade_writer import (
     ParquetContinuousTradeWriter,
@@ -54,6 +56,17 @@ class ParquetContinuousTradeDatasetRepository:
         path = dataset_contract_trades_partition_path(self._root, dataset_ref, session_date)
         self._writer.write(path, records)
 
+    def write_session_table(
+        self,
+        dataset_ref: DatasetRef,
+        session_date: date,
+        table: pa.Table,
+    ) -> None:
+        """Replace one session-date partition from a continuous-layer Arrow table."""
+        self._assert_mutable(dataset_ref)
+        path = dataset_contract_trades_partition_path(self._root, dataset_ref, session_date)
+        self._writer.write_table(path, table)
+
     def read_session_records(
         self,
         dataset_ref: DatasetRef,
@@ -64,6 +77,21 @@ class ParquetContinuousTradeDatasetRepository:
         if not path.exists():
             return []
         return self._writer.read(path)
+
+    def read_session_table(
+        self,
+        dataset_ref: DatasetRef,
+        session_date: date,
+    ) -> pa.Table:
+        """Read one session-date partition as Arrow without domain materialization."""
+        path = dataset_contract_trades_partition_path(self._root, dataset_ref, session_date)
+        if not path.exists():
+            from trading_framework.infrastructure.storage.parquet.continuous_trade_writer import (
+                empty_continuous_trade_table,
+            )
+
+            return empty_continuous_trade_table()
+        return self._writer.read_table(path)
 
     def query_records(self, query: HistoricalTradeQuery) -> Sequence[ContinuousTradeRecord]:
         """Return continuous records in event-time order for the requested dataset range."""

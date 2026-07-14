@@ -1,14 +1,13 @@
 """CLI tests for build_continuous script."""
 
 from datetime import UTC, date, datetime
-from decimal import Decimal
 from pathlib import Path
 
 import pytest
 from scripts.market_data import build_continuous as build_continuous_cli
 
+from tests.fixtures.contracts.trade_record import make_rth_contract_trade_record
 from trading_framework.core.identifiers import Identifier
-from trading_framework.core.types import Price, Volume
 from trading_framework.infrastructure.storage.metadata.registry import FileDatasetRegistry
 from trading_framework.infrastructure.storage.parquet.contract_trade_repository import (
     ParquetContractTradeDatasetRepository,
@@ -21,7 +20,6 @@ from trading_framework.market.datasets import (
     DatasetRef,
     ValidationStatus,
 )
-from trading_framework.market.models import MarketTrade, TradeSide
 from trading_framework.time.models.timeframe import Timeframe
 
 
@@ -68,24 +66,11 @@ def _seed_contract_datasets(storage_root: Path) -> tuple[str, str]:
         )
 
     def _record(contract: str, session_date: date, minute: int, size: int) -> ContractTradeRecord:
-        return ContractTradeRecord(
-            trade=MarketTrade(
-                price=Price(Decimal("22860.75")),
-                size=Volume(size),
-                event_at=datetime(
-                    session_date.year,
-                    session_date.month,
-                    session_date.day,
-                    14,
-                    minute,
-                    tzinfo=UTC,
-                ),
-                side=TradeSide.BUY,
-            ),
-            actual_contract=contract,
-            product="NQ",
+        return make_rth_contract_trade_record(
+            contract=contract,
             session_date=session_date,
-            source_file="sample.dbn.zst",
+            minute=minute,
+            size=size,
         )
 
     contract_repo.write_records(

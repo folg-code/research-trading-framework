@@ -76,7 +76,7 @@ def materialize_session_records(
     symbol = continuous_symbol_label(schedule.product)
     return tuple(
         ContinuousTradeRecord(
-            trade=record.trade,
+            trade=record.to_market_trade(),
             actual_contract=record.actual_contract,
             product=record.product,
             session_date=record.session_date,
@@ -84,5 +84,5 @@ def materialize_session_records(
             roll_id=entry.roll_id,
             is_roll_boundary=boundary,
         )
-        for record in sorted(session_records, key=lambda item: item.trade.event_at)
+        for record in sorted(session_records, key=lambda item: item.ts_event_ns)
     )
