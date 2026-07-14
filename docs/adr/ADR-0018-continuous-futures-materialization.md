@@ -2,7 +2,7 @@
 
 ## Status
 
-PROPOSED
+ACCEPTED
 
 ## Context
 
@@ -50,12 +50,15 @@ Spread symbols are excluded in MVP.
 Contract trades storage:
 
 ```text
-schema_version     = market-trade-contract-v1
+schema_version     = market-trade-contract-v2
 partition key      = session_date (CME RTH, via CmeEsRthSessionResolver)
-extra columns      = actual_contract, product, session_date, source_file
+storage columns    = ts_event_ns, ts_recv_ns, price_nanos, size, instrument_id,
+                     sequence, publisher_id, side, product, contract_code,
+                     session_date, source_file
 ```
 
-Domain `MarketTrade` remains unchanged; extra fields are storage projections in infrastructure.
+Domain `MarketTrade` remains unchanged; `ContractTradeRecord` is the contract-layer storage
+projection mapped at read/write in infrastructure. Legacy v1 Parquet rows are upgraded on read.
 
 Legacy `import_databento_trades_archive` (single symbol mapping) stays supported.
 
@@ -87,7 +90,9 @@ Derived OHLCV (1m):
 NQ.c.0 | ohlcv | 1m | derived | volume-rth-close@N
 ```
 
-Partitioned by `session_date`. No monolithic single-file continuous Parquet.
+Partitioned by `session_date`. No monolithic single-file continuous Parquet. OHLCV 1m uses
+`session_date` partitions under `partitions/session_date=*/bars.parquet` with
+`continuous_ohlcv_manifest.json` for fingerprint reuse.
 
 Continuous trade rows preserve:
 
@@ -137,6 +142,43 @@ WORKING → FINALIZED → PUBLISHED
 
 Immutability after publish unchanged.
 
+### Implementation (Sprint 015)
+
+Application workflows (orchestrated by `build_continuous`):
+
+| Workflow | Module |
+|----------|--------|
+| `import_databento_contract_trades_archive` | `application/market_data/import_databento_contract_trades_archive.py` |
+| `build_roll_schedule` | `application/market_data/build_roll_schedule.py` |
+| `materialize_continuous_trades` | `application/market_data/materialize_continuous_trades.py` |
+| `derive_continuous_ohlcv` | `application/market_data/derive_continuous_ohlcv.py` |
+| `build_continuous` | `application/market_data/build_continuous.py` |
+
+Domain: `market/contracts/` (identity, `ContractTradeRecord`), `market/continuous/` (roll policy,
+schedule builder, materializer config).
+
+Infrastructure highlights:
+
+```text
+contract trades     — ParquetContractTradeDatasetRepository (session_date partitions)
+roll schedule       — RollScheduleRepository under continuous/schedules/
+continuous trades   — ParquetContinuousTradeDatasetRepository + continuous_manifest.json
+continuous OHLCV    — ContinuousOhlcvRepository + continuous_ohlcv_manifest.json
+roll RTH volumes    — contract_rth_volumes.py (Arrow/Polars per-session, no domain materialization)
+```
+
+CLI:
+
+```text
+scripts/market_data/build_continuous.py
+scripts/market_data/batch_import_contract_trades_range.py
+scripts/market_data/run_half_year_backtest.py   (operator validation script)
+```
+
+Columnar batch paths (vectorized DBN → Parquet, per-session Polars aggregation) are the
+reference implementation for large archives. Full query-path columnar migration (TD-011) remains
+deferred for consumer `query_trades` / `query_historical` list contracts.
+
 ## Consequences
 
 ### Positive
@@ -153,7 +195,7 @@ Immutability after publish unchanged.
 - `session_date` partitions diverge from Sprint 011 UTC `day=` layout,
 - MVP limited to NQ trades / volume roll / no back-adjust,
 - spread and multi-product orchestration deferred,
-- columnar batch reads (TD-011) still future work.
+- columnar batch reads (TD-011) still future work for consumer query list contracts.
 
 ## References
 

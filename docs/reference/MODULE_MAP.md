@@ -7,9 +7,9 @@ Package map for `src/trading_framework/`: responsibility, dependencies, status, 
 
 **Status legend:** ✅ implemented · 🟡 partial / in sprint · ⬜ skeleton · 📘 deep doc elsewhere
 
-Last updated: 2026-07-14 (Sprint 012 complete on `sprint/trades-to-ohlcv-derived`; Phase 2B.3 derived OHLCV from trades)
+Last updated: 2026-07-14 (Sprint 015 complete on `sprint/continuous-futures-materialization`; Phase 2C.4 continuous futures materialization)
 
-**Roadmap:** parallel capability tracks and phase families — `docs/planning/ROADMAP.md` §3. Sprint 002 delivered Phase 2A (OHLCV only). Sprint 011 delivered Phase 2B + 2C.1 (Databento trades). Sprint 012 delivered Phase 2B.3 (derived 1m bars from trades).
+**Roadmap:** parallel capability tracks and phase families — `docs/planning/ROADMAP.md` §3. Sprint 002 delivered Phase 2A (OHLCV only). Sprint 011 delivered Phase 2B + 2C.1 (Databento trades). Sprint 012 delivered Phase 2B.3 (derived 1m bars from trades). Sprint 015 delivered Phase 2C.4 (continuous futures materialization).
 
 ---
 
@@ -62,7 +62,7 @@ execution/, events/          ⬜ future domains
 
 ---
 
-## Market Data (Sprint 002 — Phase 2A; Sprint 011 — Phase 2B + 2C.1; Sprint 012 — Phase 2B.3) ✅
+## Market Data (Sprint 002 — Phase 2A; Sprint 011 — Phase 2B + 2C.1; Sprint 012 — Phase 2B.3; Sprint 015 — Phase 2C.4) ✅
 
 ### OHLCV (Phase 2A)
 
@@ -115,7 +115,34 @@ CLI: `scripts/market_data/derive_bars_from_trades.py`
 
 ADR: [ADR-0015](../adr/ADR-0015-derived-ohlcv-from-trades.md)
 
+### Continuous futures materialization (Phase 2C.4 — Sprint 015)
+
+End-to-end flow:
+
+```text
+Databento DBN (multi-contract)
+  → import_databento_contract_trades_archive (split by actual_contract)
+  → session_date-partitioned contract Parquet (NQ.NQM5, …)
+  → build_roll_schedule (volume-rth-close, RTH session volumes)
+  → materialize_continuous_trades (roll_id, is_roll_boundary)
+  → derive_continuous_ohlcv (1m, same roll schedule)
+  → finalize → publish
+  → query_trades / query_historical (PUBLISHED only)
+  → run_strategy_research (read-only consumer)
+```
+
+CLI: `scripts/market_data/build_continuous.py`, `scripts/market_data/batch_import_contract_trades_range.py`
+
+ADR: [ADR-0018](../adr/ADR-0018-continuous-futures-materialization.md)
+
 Deep reference: 📘 [modules/DATA_MODULE_UPDATED.md](modules/DATA_MODULE_UPDATED.md)
+
+### `market/contracts/` · `market/continuous/` ✅ (Sprint 015)
+
+| Package | Responsibility |
+|---------|----------------|
+| `market/contracts/` | Contract identity (`NQ.<CODE>`), `ContractTradeRecord`, session_date helpers, storage codec |
+| `market/continuous/` | `RollPolicy`, `RollSchedule`, volume-RTH-close builder, materializer config, RTH volume aggregation |
 
 ### `market/` ✅
 
@@ -132,20 +159,23 @@ Deep reference: 📘 [modules/DATA_MODULE_UPDATED.md](modules/DATA_MODULE_UPDATE
 |---|---|
 | **Responsibility** | Dataset import, finalize, publish, historical query workflows (bars and trades) |
 | **Talks to** | `market` domain, `infrastructure` adapters |
-| **Key paths** | `import_external_dataset.py`, `import_databento_trades_archive.py`, `derive_ohlcv_from_trades.py`, `finalize_dataset.py`, `publish_dataset.py`, `query_historical.py`, `query_trades.py` |
-| **Entry points** | `import_external_dataset`, `import_databento_trades_archive`, `derive_ohlcv_from_trades`, `finalize_dataset`, `publish_dataset`, `query_historical`, `query_trades` |
+| **Key paths** | `import_external_dataset.py`, `import_databento_trades_archive.py`, `import_databento_contract_trades_archive.py`, `build_roll_schedule.py`, `materialize_continuous_trades.py`, `derive_continuous_ohlcv.py`, `build_continuous.py`, `derive_ohlcv_from_trades.py`, `finalize_dataset.py`, `publish_dataset.py`, `query_historical.py`, `query_trades.py` |
+| **Entry points** | `import_external_dataset`, `import_databento_trades_archive`, `import_databento_contract_trades_archive`, `build_roll_schedule`, `materialize_continuous_trades`, `derive_continuous_ohlcv`, `build_continuous`, `derive_ohlcv_from_trades`, `finalize_dataset`, `publish_dataset`, `query_historical`, `query_trades` |
 
 ### `infrastructure/` (market data slice) ✅
 
 | Subpackage | Responsibility |
 |------------|----------------|
 | `importers/csv/` | CSV inspection and OHLCV import |
-| `importers/databento/` | Databento DBN inspect, chunked trades decode, row mapping |
+| `importers/databento/` | Databento DBN inspect, chunked/batch trades decode, contract split, storage normalizer |
 | `normalization/` | UTC OHLCV normalizer |
 | `validation/` | OHLCV and trade batch validators |
-| `storage/parquet/` | Bar and trade Parquet read/write; day-partitioned trade repository |
-| `storage/metadata/` | `FileDatasetRegistry` |
+| `storage/parquet/` | Bar/trade Parquet; contract + continuous session partitions; roll schedule persistence |
+| `storage/metadata/` | `FileDatasetRegistry`, contract dataset discovery |
+| `storage/roll_schedule_repository.py` | Versioned roll schedule artifact |
+| `storage/continuous_ohlcv_repository.py` | Partitioned continuous OHLCV read/write |
 | `storage/import_manifest_store.py` | Persist/load `import_manifest.json` |
+| `observability/` | Phase timing, RSS profiling for long preprocessing runs |
 
 **Talks to:** `market` protocols only — not `market_analysis` or `strategy`.
 
@@ -360,6 +390,9 @@ Skeleton packages without public workflows beyond Signal Research slice above.
 |------|----------------|
 | Architecture boundary | `tests/unit/test_architecture_boundaries.py` |
 | Market data integration | `tests/integration/market_data/` (CSV, mocked DBN trades, derived OHLCV from trades, Tier 2 Databento opt-in) |
+| Continuous futures integration | `tests/integration/test_s015_continuous_strategy_research.py` |
+| Continuous futures boundary | `tests/unit/test_continuous_futures_consumer_boundary.py` |
+| Contract / continuous parquet | `tests/unit/infrastructure/test_contract_trade_repository.py`, `test_contract_rth_volumes.py`, `test_continuous_trades_to_ohlcv_table.py` |
 | Databento unit tests | `tests/unit/infrastructure/databento/`, `tests/fixtures/databento/` |
 | Databento CLI | `tests/unit/scripts/test_databento_cli.py` |
 | Market analysis | `tests/unit/market_analysis/`, `tests/unit/application/market_analysis/`, `tests/integration/test_market_analysis_*` |

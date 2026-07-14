@@ -433,7 +433,7 @@ Example `MarketTrade` fields: instrument, `event_at`, price, size, aggressor/sid
 
 Default partitioning: by day (trades, quotes) for legacy single-contract import; **by `session_date` for contract-layer datasets** (Sprint 015).
 
-### Phase 2C.4 — Continuous Futures Materialization (IN_PROGRESS — Sprint 015)
+### Phase 2C.4 — Continuous Futures Materialization (COMPLETE — Sprint 015)
 
 Materialize versioned continuous datasets from normalized contract trades:
 
@@ -444,7 +444,7 @@ Raw DBN → contract datasets → roll schedule → continuous trades → derive
 Consumers (`run_strategy_research`, `run_signal_research`) read published continuous `DatasetRef`
 values only — no runtime roll construction.
 
-ADR: ADR-0018 (PROPOSED). See `SPRINT_015.md`, `S015_WAVE0_DECISIONS.md`.
+ADR: ADR-0018 (ACCEPTED). See `SPRINT_015.md`, `S015_WAVE0_DECISIONS.md`. On `sprint/continuous-futures-materialization`; integration PR to `main` pending.
 
 MBO/MBP are **not** in the first trades sprint scope.
 

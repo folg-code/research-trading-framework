@@ -288,7 +288,7 @@ Promoted: 2026-07-14
 
 Build continuous futures datasets from explicit contract datasets.
 
-Sprint 015 (`SPRINT_015.md`, ADR-0018 PROPOSED) delivers four-layer materialization:
+Sprint 015 (`SPRINT_015.md`, ADR-0018 ACCEPTED) delivers four-layer materialization:
 raw DBN → contract datasets → roll schedule → continuous trades + derived OHLCV.
 
 ### Potential Value
