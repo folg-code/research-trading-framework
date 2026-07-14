@@ -27,13 +27,13 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 
 ```text
 Status Date: 2026-07-14
-Current Phase: Phase 2B.3 complete (Sprint 012); pending sprint integration PR to main
-Current Milestone: Sprint 012 COMPLETE on sprint/trades-to-ohlcv-derived
-Implementation Status: Sprints 001–006, 008–012 COMPLETE on sprint branch; 008–011 on main; Sprint 007 SKIPPED
-Overall Status: IN_PROGRESS (sprint integration to main pending)
-Active Sprint: none (Sprint 012 closed on sprint branch)
-Last Completed Sprint: SPRINT_012 (sprint branch, PRs #101–#105)
-Capability Tracks: Foundation COMPLETE; Data 2A + 2B/2C.1 + 2B.3 COMPLETE; Research 3/4A/5 COMPLETE; Execution not started
+Current Phase: Phase 6A — OHLCV Strategy Research MVP (Sprint 013 planning)
+Current Milestone: Sprint 012 COMPLETE on main (PR #107); Sprint 013 IN_PROGRESS
+Implementation Status: Sprints 001–006, 008–012 COMPLETE on main; Sprint 007 SKIPPED
+Overall Status: IN_PROGRESS
+Active Sprint: SPRINT_013 (sprint/ohlcv-strategy-research-mvp)
+Last Completed Sprint: SPRINT_012 (main, PR #107)
+Capability Tracks: Foundation COMPLETE; Data 2A + 2B/2C.1 + 2B.3 COMPLETE; Research 3/4A/5 COMPLETE; Strategy 6A starting
 ```
 
 ---
@@ -54,7 +54,7 @@ Databento DBN trades → import_databento_trades_archive
 
 ADR: ADR-0014. See `SPRINT_011.md` and `S011_WAVE0_DECISIONS.md`.
 
-**Sprint 012 — Derived OHLCV from Trades (Phase 2B.3)** is **complete** on `sprint/trades-to-ohlcv-derived` (PRs #101–#105, 2026-07-14). Pending: sprint integration PR to `main`.
+**Sprint 012 — Derived OHLCV from Trades (Phase 2B.3)** is **complete** on `main` (PR #107, 2026-07-14).
 
 Delivered derived bar flow:
 
@@ -66,7 +66,19 @@ Published trades → derive_ohlcv_from_trades
 
 ADR: ADR-0015. CLI: `scripts/market_data/derive_bars_from_trades.py`. See `SPRINT_012.md` and `S012_WAVE0_DECISIONS.md`.
 
-**Next decision (post-Sprint 012):** Phase 2C.2 (quotes), Phase 4B (orderflow on trades), or Phase 6A (Strategy Research) — see `ROADMAP.md` §10.
+**Post-Sprint 012 track (chosen):** **Phase 6A — OHLCV Strategy Research MVP** (Sprint 013). Deferred for now: Phase 2C.2 (quotes), Phase 4B (orderflow on trades).
+
+**Sprint 013 — OHLCV Strategy Research MVP** is **in progress** on `sprint/ohlcv-strategy-research-mvp`.
+
+Target flow:
+
+```text
+Published OHLCV → Strategy Model (Market × Signal × Exit × Risk)
+    → bar-sequential simulation → trades + equity envelope
+    → analyze_strategy_research_run
+```
+
+See `SPRINT_013.md` and `S013_WAVE0_DECISIONS.md`. ADR-0016 planned on closure.
 
 Delivered Signal Research flow (on `main`):
 
@@ -126,7 +138,7 @@ Complete on `main` (2026-07-14, PR #99):
 
 ### Phase 2B.3 — Derived OHLCV from Trades (Sprint 012)
 
-Complete on `sprint/trades-to-ohlcv-derived` (2026-07-14):
+Complete on `main` (2026-07-14, PR #107):
 
 - `market/derivation/`: `DerivedOhlcvFromTradesConfig`, `TradesToBarsAggregator`,
 - `derive_ohlcv_from_trades` workflow with lineage on derived `DatasetMetadata`,
@@ -217,7 +229,13 @@ Maintenance: `.cursor/rules/documentation.mdc`
 
 ## 6. Work in Progress
 
-Nothing actively in development. Sprint 011 closed on `sprint/historical-archive-import`; open sprint integration PR to `main` when ready.
+### Sprint 013 — Active
+
+**Status:** IN_PROGRESS (Wave 0 planning, 2026-07-14)  
+**Plan:** `docs/planning/sprints/SPRINT_013.md`  
+**Decisions:** `docs/planning/sprints/S013_WAVE0_DECISIONS.md`  
+**Branch:** `sprint/ohlcv-strategy-research-mvp`  
+**Tasks:** 1 / 15 done (T001 planning)
 
 ### Sprint 011 — Closed
 
@@ -265,7 +283,7 @@ Nothing actively in development. Sprint 011 closed on `sprint/historical-archive
 
 ## 7. Blocked Work
 
-Nothing is technically blocked. Next step: merge `sprint/trades-to-ohlcv-derived` → `main`, then choose post-sprint track (2C.2, 4B, or 6A).
+Nothing is technically blocked. Next step: Wave 1 implementation (Exit/Risk/Strategy contracts) on Sprint 013 branch.
 
 ---
 
@@ -331,15 +349,13 @@ Binding decisions D-001–D-036 and workspace invariants are documented in the a
 ## 11. Next Planned Capability
 
 ```text
-Post-Sprint 012 decision (choose one):
-    A — Phase 2C.2: MarketQuote datasets
-    B — Phase 4B: orderflow features on published trade datasets
-    C — Phase 6A: OHLCV Strategy Research MVP
+Active: Phase 6A — OHLCV Strategy Research MVP (Sprint 013)
+    Strategy Model composition + bar-sequential simulation + persistent envelope
 ```
 
-Deferred: Databento DBN OHLCV direct import (2B.2) — optional if vendor-native bar archives are acquired.
+Deferred (parallel later): Phase 2C.2 (quotes), Phase 4B (orderflow), Databento OHLCV DBN import (2B.2).
 
-See `ROADMAP.md` §6, §10 and `SPRINT_012.md` §11.
+See `ROADMAP.md` §10 and `SPRINT_013.md`.
 
 ---
 
@@ -359,6 +375,7 @@ See `ROADMAP.md` §6, §10 and `SPRINT_012.md` §11.
 | 010 | Signal Research analytics | COMPLETED | 11 / 11 tasks |
 | 011 | Historical archive import — trades DBN (Phase 2B + 2C.1) | COMPLETED | 27 / 27 tasks |
 | 012 | Derived OHLCV from trades (Phase 2B.3) | COMPLETED | 12 / 12 tasks |
+| 013 | OHLCV Strategy Research MVP (Phase 6A) | IN_PROGRESS | 1 / 15 tasks |
 
 ---
 
