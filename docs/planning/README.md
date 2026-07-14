@@ -47,6 +47,8 @@ Catalog of `docs/planning/`. For taxonomy and reading paths see **[../README.md]
 | [sprints/S011_WAVE0_DECISIONS.md](sprints/S011_WAVE0_DECISIONS.md) | Sprint 011 binding decisions (D-S011-01 … D-S011-16) |
 | [sprints/SPRINT_012.md](sprints/SPRINT_012.md) | Derived OHLCV from trades / Phase 2B.3 (completed) |
 | [sprints/S012_WAVE0_DECISIONS.md](sprints/S012_WAVE0_DECISIONS.md) | Sprint 012 binding decisions (D-S012-01 … D-S012-10) |
+| [sprints/SPRINT_013.md](sprints/SPRINT_013.md) | OHLCV Strategy Research MVP / Phase 6A (completed) |
+| [sprints/S013_WAVE0_DECISIONS.md](sprints/S013_WAVE0_DECISIONS.md) | Sprint 013 binding decisions (D-S013-01 … D-S013-16) |
 | [sprints/S004_MTF_SPIKE_AND_DECISIONS.md](sprints/S004_MTF_SPIKE_AND_DECISIONS.md) | Sprint 004 T001 spike outcomes |
 | [sprints/S003_WAVE0_*.md](sprints/) | Sprint 003 wave 0 artefacts |
 

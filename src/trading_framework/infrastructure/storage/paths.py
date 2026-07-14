@@ -43,6 +43,11 @@ def signal_research_run_dir(root: Path, run_id: str) -> Path:
     return root / run_id
 
 
+def strategy_research_run_dir(root: Path, run_id: str) -> Path:
+    """Return the run envelope directory for one Strategy Research run."""
+    return root / "strategy_research" / run_id
+
+
 def trade_event_partition_day(event_at: datetime) -> date:
     """Return the UTC calendar day used for trade dataset partitioning."""
     return require_utc_aware(event_at).date()
