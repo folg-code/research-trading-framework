@@ -5,9 +5,9 @@
 ```text
 Sprint: 011
 Phase: Phase 2B + Phase 2C.1 (archive import + MarketTrade)
-Status: PLANNED
+Status: COMPLETE
 Planned Start: 2026-07-13
-Planned End: TBD
+Planned End: 2026-07-14
 Sprint Goal Owner: Project Maintainer
 Depends On: SPRINT_002 (Phase 2A OHLCV MVP, COMPLETE on main)
 Sprint Branch: sprint/historical-archive-import
@@ -182,11 +182,11 @@ Parquet / pyarrow conventions from ADR-0008 (new trade column schema)
 | S011-T022 | `tier2_databento` marker + Tier 2 docs | 5 | DONE | S011-T021 |
 | S011-T023 | `scripts/databento/inspect_dbn.py` | 5 | DONE | S011-T009 |
 | S011-T024 | `scripts/databento/import_trades.py` | 5 | DONE | S011-T016 |
-| S011-T025 | ADR-0014 | 6 | PLANNED | S011-T014, S011-T016 |
-| S011-T026 | Update MODULE_MAP, DATA_WORKFLOWS, CURRENT_STATUS | 6 | PLANNED | S011-T021 |
-| S011-T027 | Sprint review and closure | 6 | PLANNED | All preceding |
+| S011-T025 | ADR-0014 | 6 | DONE | S011-T014, S011-T016 |
+| S011-T026 | Update MODULE_MAP, DATA_WORKFLOWS, CURRENT_STATUS | 6 | DONE | S011-T021 |
+| S011-T027 | Sprint review and closure | 6 | DONE | All preceding |
 
-**Progress:** 24 / 27 tasks
+**Progress:** 27 / 27 tasks
 
 ---
 
@@ -210,10 +210,10 @@ Parquet / pyarrow conventions from ADR-0008 (new trade column schema)
 - [x] Trades decode to `MarketTrade` with validation results,
 - [x] Day-partitioned Parquet + `query_trades` on published `DatasetRef`,
 - [x] Manifest + checksum on every import,
-- [ ] CSV OHLCV regression tests still pass,
-- [ ] CI green without Tier 2 DBN file,
-- [ ] ADR-0014 accepted,
-- [ ] No `databento` imports outside infrastructure.
+- [x] CSV OHLCV regression tests still pass,
+- [x] CI green without Tier 2 DBN file,
+- [x] ADR-0014 accepted,
+- [x] No `databento` imports outside infrastructure.
 
 ---
 
@@ -232,3 +232,54 @@ Option C — Phase 6A: OHLCV Strategy Research (still on CSV / future bar archiv
 - Wave 0: `S011_WAVE0_DECISIONS.md`
 - Roadmap: `ROADMAP.md` §6 (2B, 2C), §14, §15.1
 - IDEA-005 (Databento importer)
+
+---
+
+## 13. Sprint Closure (2026-07-14)
+
+### Delivered outcomes
+
+```text
+A — Archive adapter     DatabentoDBNInspector, DatabentoDBNTradeReader, side mapper
+B — MarketTrade storage day partitions, ParquetTradeWriter, ParquetTradeDatasetRepository
+C — Import workflow       import_databento_trades_archive, query_trades, CLI, Tier 1/2 tests
+```
+
+### PRs (working → sprint branch)
+
+| PR | Outcome |
+|----|---------|
+| #95 | Wave 3 — trade Parquet persistence + query_trades |
+| #96 | Wave 4 — import workflow + manifest |
+| #97 | Wave 5 — Tier 1 tests, CLI, tier2 docs |
+| pending | Wave 6 — ADR-0014, reference docs, closure |
+
+### Quality at closure
+
+```text
+458 tests passed
+ruff / mypy / pre-commit green
+CI excludes tier2_databento in integration job
+```
+
+### Deferred (explicit)
+
+```text
+Databento DBN OHLCV → MarketBar     Phase 2B.2
+MarketQuote / order book              Phase 2C.2+
+Resume-after-failure on import        later increment
+Streaming validate-then-write         large-archive follow-up
+```
+
+### Post-sprint decision
+
+See §11 — choose Phase 2B.2, 4B prep, or 6A before next sprint kickoff.
+
+---
+
+## 14. Revision History
+
+| Date | Change |
+|------|--------|
+| 2026-07-13 | Initial sprint plan; Wave 0 trades slice |
+| 2026-07-14 | Waves 0–6 complete; ADR-0014; sprint closure |

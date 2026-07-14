@@ -5,7 +5,7 @@
 ```text
 Task: S011-T001
 Sprint: 011 — Historical Archive Import Foundation
-Status: IN_PROGRESS (spike landed; Tier 2 validation pending local DBN)
+Status: COMPLETE
 Planned Start: 2026-07-13
 Branch: sprint/historical-archive-import--wave0-decisions
 Spike script: tests/spike/run_databento_dbn_trades_spike.py (to be created in T001)
