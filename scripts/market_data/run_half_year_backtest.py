@@ -13,7 +13,10 @@ from trading_framework.application.market_data import (
     finalize_dataset,
     publish_dataset,
 )
-from trading_framework.application.market_data.build_continuous import BuildContinuousRequest
+from trading_framework.application.market_data.build_continuous import (
+    BuildContinuousRequest,
+    BuildContinuousResult,
+)
 from trading_framework.application.strategy_research import (
     RunStrategyResearchRequest,
     run_strategy_research,
@@ -23,8 +26,14 @@ from trading_framework.infrastructure.observability.function_profiler import Fun
 from trading_framework.infrastructure.observability.memory_stats import process_rss_mb
 from trading_framework.infrastructure.observability.phase_timer import PhaseTimer
 from trading_framework.infrastructure.observability.profile_context import phase_timer_context
+from trading_framework.infrastructure.storage.metadata.discovery import (
+    latest_published_dataset_ref,
+)
 from trading_framework.infrastructure.storage.metadata.registry import FileDatasetRegistry
-from trading_framework.market.datasets import DatasetLifecycleState, DatasetRef
+from trading_framework.market.continuous.identity import continuous_instrument_id
+from trading_framework.market.continuous.policy import VOLUME_RTH_CLOSE_POLICY_SLUG
+from trading_framework.market.datasets import DatasetId, DatasetLifecycleState, DatasetRef
+from trading_framework.market.derivation import DERIVED_OHLCV_PROVIDER
 from trading_framework.market_analysis.models.time_range import TimeRange
 from trading_framework.research.simulation import SimulationAssumptions
 from trading_framework.strategy import build_canonical_strategy_model
@@ -38,9 +47,42 @@ def _build_parser() -> argparse.ArgumentParser:
 
     parser.add_argument("--storage-root", required=True, type=Path)
 
-    parser.add_argument("--contract-dataset-ref", action="append", required=True, dest="refs")
+    parser.add_argument(
+        "--contract-dataset-ref",
+        action="append",
+        default=None,
+        dest="refs",
+        help="Contract dataset ref; required unless --skip-build with published continuous OHLCV",
+    )
 
     parser.add_argument("--product", default="NQ")
+
+    parser.add_argument(
+        "--policy-slug",
+        default=VOLUME_RTH_CLOSE_POLICY_SLUG,
+        help="Roll policy slug used to resolve continuous OHLCV when --skip-build",
+    )
+
+    parser.add_argument(
+        "--continuous-ohlcv-dataset-ref",
+        default=None,
+        help=(
+            "Published continuous OHLCV ref for strategy research "
+            "(default: latest published when --skip-build)"
+        ),
+    )
+
+    parser.add_argument(
+        "--skip-build",
+        action="store_true",
+        help="Skip contract publish and build_continuous; run strategy research only",
+    )
+
+    parser.add_argument(
+        "--no-persist",
+        action="store_true",
+        help="Run strategy research without writing the run envelope (safe for repeat profiling)",
+    )
 
     parser.add_argument(
         "--profile",
@@ -64,6 +106,40 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--json", action="store_true")
 
     return parser
+
+
+def _continuous_ohlcv_dataset_id(product: str, policy_slug: str) -> DatasetId:
+    return DatasetId(
+        instrument_id=continuous_instrument_id(product),
+        data_type="ohlcv",
+        timeframe=Timeframe("1m"),
+        provider=DERIVED_OHLCV_PROVIDER,
+        source_id=policy_slug,
+    )
+
+
+def resolve_continuous_ohlcv_dataset_ref(
+    *,
+    storage_root: Path,
+    product: str,
+    policy_slug: str,
+    explicit_ref: str | None,
+) -> DatasetRef:
+    """Resolve the continuous OHLCV dataset used for strategy research."""
+    if explicit_ref is not None:
+        return DatasetRef.parse(explicit_ref)
+
+    dataset_ref = latest_published_dataset_ref(
+        storage_root,
+        _continuous_ohlcv_dataset_id(product, policy_slug),
+    )
+    if dataset_ref is None:
+        msg = (
+            f"no published continuous OHLCV dataset for {product} "
+            f"(policy={policy_slug}); pass --continuous-ohlcv-dataset-ref"
+        )
+        raise ValidationError(msg)
+    return dataset_ref
 
 
 def _log_step(timer: PhaseTimer, message: str, *, started_at: float) -> None:
@@ -104,12 +180,25 @@ def main(argv: list[str] | None = None) -> int:
 
     args = _build_parser().parse_args(argv)
 
-    try:
-        contract_refs = tuple(DatasetRef.parse(value) for value in args.refs)
+    if not args.skip_build and not args.refs:
+        print(
+            "at least one --contract-dataset-ref is required unless --skip-build is set",
+            file=sys.stderr,
+        )
+        return 1
 
+    try:
+        contract_refs = (
+            () if not args.refs else tuple(DatasetRef.parse(value) for value in args.refs)
+        )
+        continuous_ohlcv_ref = resolve_continuous_ohlcv_dataset_ref(
+            storage_root=args.storage_root,
+            product=args.product,
+            policy_slug=args.policy_slug,
+            explicit_ref=args.continuous_ohlcv_dataset_ref,
+        )
     except ValidationError as exc:
         print(str(exc), file=sys.stderr)
-
         return 1
 
     profiling_enabled = args.profile or args.profile_deep
@@ -122,54 +211,62 @@ def main(argv: list[str] | None = None) -> int:
 
     clock = SystemClock()
 
+    build_result: BuildContinuousResult | None = None
+
     with function_profiler.session(), phase_timer_context(timer):
         timer.begin_session()
 
         timer.log(
             f"half_year_backtest: product={args.product} "
-            f"contracts={len(contract_refs)} storage={args.storage_root}"
+            f"contracts={len(contract_refs)} storage={args.storage_root} "
+            f"skip_build={args.skip_build} persist={not args.no_persist}"
         )
 
-        with timer.phase("publish_contract_datasets"):
-            for index, dataset_ref in enumerate(contract_refs, start=1):
-                contract_code = dataset_ref.dataset_id.instrument_id.value.split(".", 1)[-1]
-                step_started = time.perf_counter()
-                with timer.phase(f"publish.{contract_code}"):
-                    _ensure_published_contract(
-                        dataset_ref,
+        if not args.skip_build:
+            with timer.phase("publish_contract_datasets"):
+                for index, dataset_ref in enumerate(contract_refs, start=1):
+                    contract_code = dataset_ref.dataset_id.instrument_id.value.split(".", 1)[-1]
+                    step_started = time.perf_counter()
+                    with timer.phase(f"publish.{contract_code}"):
+                        _ensure_published_contract(
+                            dataset_ref,
+                            storage_root=args.storage_root,
+                            registry=registry,
+                            clock=clock,
+                            timer=timer,
+                            contract_code=contract_code,
+                        )
+                    timer.log(f"[{index}/{len(contract_refs)}] ready {contract_code}")
+                    _log_step(timer, f"publish {contract_code}", started_at=step_started)
+
+            build_started = time.perf_counter()
+
+            with timer.phase("build_continuous"):
+                build_result = build_continuous(
+                    BuildContinuousRequest(
                         storage_root=args.storage_root,
-                        registry=registry,
-                        clock=clock,
-                        timer=timer,
-                        contract_code=contract_code,
-                    )
-                timer.log(f"[{index}/{len(contract_refs)}] ready {contract_code}")
-                _log_step(timer, f"publish {contract_code}", started_at=step_started)
+                        product=args.product,
+                        contract_dataset_refs=contract_refs,
+                        policy_slug=args.policy_slug,
+                        profile=profiling_enabled,
+                    ),
+                    registry=registry,
+                    clock=clock,
+                )
+                continuous_ohlcv_ref = build_result.continuous_ohlcv_dataset_ref
 
-        build_started = time.perf_counter()
-
-        with timer.phase("build_continuous"):
-            build_result = build_continuous(
-                BuildContinuousRequest(
-                    storage_root=args.storage_root,
-                    product=args.product,
-                    contract_dataset_refs=contract_refs,
-                    profile=profiling_enabled,
-                ),
-                registry=registry,
-                clock=clock,
-            )
-
-        _log_step(timer, "build_continuous", started_at=build_started)
+            _log_step(timer, "build_continuous", started_at=build_started)
+        else:
+            timer.log(f"skip_build: using continuous OHLCV ref={continuous_ohlcv_ref}")
 
         research_started = time.perf_counter()
 
         with timer.phase("strategy_research"):
-            ohlcv_metadata = registry.get(build_result.continuous_ohlcv_dataset_ref)
+            ohlcv_metadata = registry.get(continuous_ohlcv_ref)
 
             research_result = run_strategy_research(
                 RunStrategyResearchRequest(
-                    dataset_ref=build_result.continuous_ohlcv_dataset_ref,
+                    dataset_ref=continuous_ohlcv_ref,
                     timeframe=Timeframe("1m"),
                     requested_range=TimeRange(
                         start=ohlcv_metadata.start_at,
@@ -180,6 +277,7 @@ def main(argv: list[str] | None = None) -> int:
                     assumptions=SimulationAssumptions(),
                     evaluation_timeframe=Timeframe("1m"),
                     session_resolver=CmeEsRthSessionResolver(),
+                    persist=not args.no_persist,
                 )
             )
 
@@ -193,12 +291,10 @@ def main(argv: list[str] | None = None) -> int:
             top_n=args.profile_top,
         )
 
-    payload = {
-        "continuous_trades_dataset_ref": str(build_result.continuous_trades_dataset_ref),
-        "continuous_ohlcv_dataset_ref": str(build_result.continuous_ohlcv_dataset_ref),
-        "roll_schedule_version": build_result.roll_schedule_version,
-        "trades_reused": build_result.trades_reused,
-        "ohlcv_reused": build_result.ohlcv_reused,
+    payload: dict[str, object] = {
+        "skipped_build": args.skip_build,
+        "persisted": not args.no_persist,
+        "continuous_ohlcv_dataset_ref": str(continuous_ohlcv_ref),
         "run_id": research_result.run_id,
         "strategy_model_id": research_result.manifest.strategy_model_id,
         "trade_count": len(research_result.trades),
@@ -207,6 +303,15 @@ def main(argv: list[str] | None = None) -> int:
         "ohlcv_end_at": ohlcv_metadata.end_at.isoformat(),
         "ohlcv_row_count": ohlcv_metadata.row_count,
     }
+    if build_result is not None:
+        payload.update(
+            {
+                "continuous_trades_dataset_ref": str(build_result.continuous_trades_dataset_ref),
+                "roll_schedule_version": build_result.roll_schedule_version,
+                "trades_reused": build_result.trades_reused,
+                "ohlcv_reused": build_result.ohlcv_reused,
+            }
+        )
 
     if args.json:
         print(json.dumps(payload, indent=2))

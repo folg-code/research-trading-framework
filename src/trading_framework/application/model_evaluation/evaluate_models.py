@@ -11,6 +11,7 @@ from trading_framework.application.market_analysis.run_analysis import (
     run_analysis,
 )
 from trading_framework.market.datasets import DatasetRef
+from trading_framework.market.models import MarketBar
 from trading_framework.market_analysis.assembly.frame import AnalysisFrame
 from trading_framework.market_analysis.models.time_range import TimeRange
 from trading_framework.market_analysis.registry.builtins import default_mvp_registry
@@ -45,6 +46,7 @@ class EvaluateModelsRequest:
     signal_models: tuple[SignalModelDefinition, ...] = ()
     evaluation_timeframe: Timeframe | None = None
     session_resolver: TradingSessionResolver | None = None
+    preloaded_bars: tuple[MarketBar, ...] | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -84,6 +86,7 @@ def evaluate_models(
             frame_request=frame_request,
             evaluation_timeframe=request.evaluation_timeframe,
             session_resolver=request.session_resolver,
+            preloaded_bars=request.preloaded_bars,
         ),
         registry=component_registry,
     )
