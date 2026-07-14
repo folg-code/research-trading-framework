@@ -5,9 +5,9 @@
 ```text
 Sprint: 012
 Phase: Phase 2B.3 (derived dataset — published trades → MarketBar)
-Status: PLANNED
+Status: COMPLETE
 Planned Start: 2026-07-14
-Planned End: TBD
+Planned End: 2026-07-14
 Sprint Goal Owner: Project Maintainer
 Depends On: SPRINT_011 (Phase 2B + 2C.1, COMPLETE on main)
 Sprint Branch: sprint/trades-to-ohlcv-derived
@@ -143,11 +143,11 @@ derive_bar_interval, BarTimestampSemantics.INTERVAL_START
 | S012-T007 | Unit tests (aggregator + workflow) | 3 | DONE | S012-T004 |
 | S012-T008 | Integration test with synthetic trades dataset | 4 | DONE | S012-T006 |
 | S012-T009 | `derive_bars_from_trades.py` CLI + tests | 4 | DONE | S012-T006 |
-| S012-T010 | ADR-0015 | 5 | PLANNED | S012-T008 |
-| S012-T011 | Update MODULE_MAP, DATA_WORKFLOWS, CURRENT_STATUS | 5 | PLANNED | S012-T008 |
-| S012-T012 | Sprint review and closure | 5 | PLANNED | All preceding |
+| S012-T010 | ADR-0015 | 5 | DONE | S012-T008 |
+| S012-T011 | Update MODULE_MAP, DATA_WORKFLOWS, CURRENT_STATUS | 5 | DONE | S012-T008 |
+| S012-T012 | Sprint review and closure | 5 | DONE | All preceding |
 
-**Progress:** 9 / 12 tasks
+**Progress:** 12 / 12 tasks
 
 ---
 
@@ -166,19 +166,85 @@ derive_bar_interval, BarTimestampSemantics.INTERVAL_START
 
 ## 9. Completion Criteria
 
-- [ ] Published trades dataset can be aggregated to `MarketBar` with OHLCV validation,
-- [ ] Single-file `bars.parquet` + `query_historical` on published derived `DatasetRef`,
-- [ ] Lineage points to source trades `DatasetRef` and derivation version,
-- [ ] Trade import regression tests still pass,
-- [ ] CI green without local DBN files,
-- [ ] ADR-0015 accepted,
-- [ ] No `databento` imports outside infrastructure.
+- [x] Published trades dataset can be aggregated to `MarketBar` with OHLCV validation,
+- [x] Single-file `bars.parquet` + `query_historical` on published derived `DatasetRef`,
+- [x] Lineage points to source trades `DatasetRef` and derivation version,
+- [x] Trade import regression tests still pass,
+- [x] CI green without local DBN files,
+- [x] ADR-0015 accepted,
+- [x] No `databento` imports outside infrastructure.
 
 ---
 
-## 10. References
+## 10. Post-Sprint Decision
+
+```text
+Option A — Phase 2C.2: MarketQuote datasets
+Option B — Phase 4B: orderflow features on published trade datasets
+Option C — Phase 6A: OHLCV Strategy Research MVP
+```
+
+Deferred: Databento DBN OHLCV direct import (2B.2) if vendor-native bar archives are acquired later.
+
+---
+
+## 11. References
 
 - Wave 0: `S012_WAVE0_DECISIONS.md`
 - Prior sprint: `SPRINT_011.md`, `ADR-0014`
+- ADR: `ADR-0015`
 - Roadmap: `ROADMAP.md` §6 Phase 2B, §14 Research Data Strategy
 - Closed pivot PR: #100
+
+---
+
+## 12. Sprint Closure (2026-07-14)
+
+### Delivered outcomes
+
+```text
+A — Domain aggregation   DerivedOhlcvFromTradesConfig, TradesToBarsAggregator
+B — Bar persistence      ParquetDatasetRepository reuse (single bars.parquet)
+C — Derivation workflow  derive_ohlcv_from_trades, derive_bars CLI, Tier 1 tests
+```
+
+### PRs (working → sprint branch)
+
+| PR | Outcome |
+|----|---------|
+| #101 | Pivot planning + Wave 0 spike (trades→bars) |
+| #102 | Wave 1 — config + aggregator |
+| #103 | Wave 2 — derive_ohlcv_from_trades workflow |
+| #104 | Wave 3 — E2E integration test |
+| #105 | Wave 4 — CLI + mocked integration |
+| pending | Wave 5 — ADR-0015, reference docs, closure |
+
+### Quality at closure
+
+```text
+469 tests passed
+ruff / mypy / pre-commit green
+```
+
+### Deferred (explicit)
+
+```text
+Databento DBN OHLCV direct import     Phase 2B.2 (optional)
+5m / 1h / other bar timeframes        follow-up sprint
+Chunked/streaming trades→bars         large-archive follow-up
+MarketQuote / order book              Phase 2C.2+
+Orderflow analytics                   Phase 4B
+```
+
+### Post-sprint decision
+
+See §10 — choose Phase 2C.2, 4B, or 6A before next sprint kickoff.
+
+---
+
+## 13. Revision History
+
+| Date | Change |
+|------|--------|
+| 2026-07-14 | Initial sprint plan (pivot from 2B.2 OHLCV DBN to derived bars) |
+| 2026-07-14 | Waves 0–5 complete; ADR-0015; sprint closure |

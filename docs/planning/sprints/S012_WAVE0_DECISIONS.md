@@ -5,7 +5,7 @@
 ```text
 Task: S012-T001
 Sprint: 012 — Derived OHLCV from Trades
-Status: PLANNED
+Status: COMPLETE
 Planned Start: 2026-07-14
 Branch: sprint/trades-to-ohlcv-derived
 Direction: docs/planning/sprints/SPRINT_012.md

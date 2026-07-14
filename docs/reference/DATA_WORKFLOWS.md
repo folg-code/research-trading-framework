@@ -5,8 +5,8 @@
 
 Technical reference for how data moves through the framework: ingestion, persistence, lifecycle, query and analysis execution.
 
-**As-is scope:** Market Data Phase 2A (Sprint 002 CSV OHLCV) and Phase 2B + 2C.1 trades archive import (Sprint 011 on `sprint/historical-archive-import`). Multitimeframe and declarative models: Sprints 004–006. Signal Research: Sprints 008–010 on `main`.  
-**Planned next:** Phase 2B.2 (DBN OHLCV), Phase 4B orderflow, or Phase 6A Strategy Research — `ROADMAP.md` §6, §10.  
+**As-is scope:** Market Data Phase 2A (Sprint 002 CSV OHLCV), Phase 2B + 2C.1 trades archive import (Sprint 011), and Phase 2B.3 derived OHLCV from trades (Sprint 012 on `sprint/trades-to-ohlcv-derived`). Multitimeframe and declarative models: Sprints 004–006. Signal Research: Sprints 008–010 on `main`.  
+**Planned next:** Phase 2C.2 (quotes), Phase 4B orderflow on trades, or Phase 6A Strategy Research — `ROADMAP.md` §6, §10.  
 **Deep market data reference:** [modules/DATA_MODULE_UPDATED.md](modules/DATA_MODULE_UPDATED.md)
 
 ---
@@ -277,7 +277,46 @@ sequenceDiagram
 Integration tests: `tests/integration/market_data/test_databento_trades_import_flow.py` (injected reader),
 `test_databento_trades_import_mocked.py` (mocked `DBNStore`).
 
-### 3.7 Trade Parquet Schema
+### 3.7 Derived OHLCV from Trades (Sprint 012)
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant App as derive_ohlcv_from_trades
+    participant TrRepo as ParquetTradeDatasetRepository
+    participant Agg as TradesToBarsAggregator
+    participant Val as OhlcvBarValidator
+    participant BarRepo as ParquetDatasetRepository
+    participant Reg as FileDatasetRegistry
+
+    User->>App: DerivedOhlcvFromTradesConfig (published trades ref)
+    App->>Reg: get(source_dataset_ref)
+    App->>TrRepo: query_trades(source range)
+    App->>Agg: aggregate(trades, 1m)
+    App->>Val: validate(bars)
+    alt validation passed
+        App->>BarRepo: write_bars(derived_ref, bars)
+    end
+    App->>Reg: register(metadata + lineage)
+    App-->>User: DeriveOhlcvFromTradesResult
+```
+
+**Prerequisite:** source trades dataset must be **PUBLISHED** (`data_type=trades`, `timeframe=tick`).
+
+**Entry point:** `trading_framework.application.market_data.derive_ohlcv_from_trades`
+
+**Consumer query:** `query_historical` (PUBLISHED only) on derived `DatasetRef` (`provider=derived`, `timeframe=1m`).
+
+**Lifecycle:** same ADR-0007 transitions; `finalize_dataset` uses bar content checksum (ADR-0008).
+
+**Lineage:** `DatasetMetadata.lineage` records `source_dataset_ref`, `derivation_method`, `derivation_version` (ADR-0015).
+
+**CLI:** `scripts/market_data/derive_bars_from_trades.py`
+
+Integration tests: `tests/integration/market_data/test_derive_ohlcv_from_trades_flow.py`,
+`test_derive_ohlcv_from_trades_mocked.py`.
+
+### 3.8 Trade Parquet Schema
 
 Defined in `infrastructure/storage/parquet/trade_writer.py`:
 
