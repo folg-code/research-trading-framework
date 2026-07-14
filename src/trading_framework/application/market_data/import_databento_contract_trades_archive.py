@@ -9,8 +9,9 @@ from pathlib import Path
 from typing import Protocol
 
 from trading_framework import __version__ as framework_version
-from trading_framework.infrastructure.importers.databento import (
-    DatabentoDBNInspector,
+from trading_framework.infrastructure.importers.databento import DatabentoDBNInspector
+from trading_framework.infrastructure.importers.databento.contract_reader import (
+    StorageTradeFields,
 )
 from trading_framework.infrastructure.storage.import_manifest_store import write_import_manifest
 from trading_framework.infrastructure.storage.metadata.registry import FileDatasetRegistry
@@ -20,7 +21,9 @@ from trading_framework.infrastructure.storage.parquet.contract_trade_repository 
 from trading_framework.infrastructure.validation.trade_validator import TradeBatchValidator
 from trading_framework.market.contracts import (
     contract_instrument_id,
-    trade_session_date,
+    trade_session_dates_from_ns,
+    validate_contract_code,
+    validate_product_code,
 )
 from trading_framework.market.contracts.trade_record import ContractTradeRecord
 from trading_framework.market.datasets import (
@@ -37,7 +40,7 @@ from trading_framework.market.importers import (
     ImportManifest,
 )
 from trading_framework.market.models import MarketTrade
-from trading_framework.market.validation import TradeValidator, ValidationResult
+from trading_framework.market.validation import ValidationResult
 from trading_framework.time.clocks.protocol import Clock
 from trading_framework.time.clocks.system import SystemClock
 from trading_framework.time.models.timeframe import Timeframe
@@ -88,8 +91,8 @@ def _dataset_time_range(
 ) -> tuple[datetime, datetime]:
     if not records:
         return fallback, fallback
-    ordered = sorted(records, key=lambda record: record.trade.event_at)
-    return ordered[0].trade.event_at, ordered[-1].trade.event_at
+    ordered = sorted(records, key=lambda record: record.ts_event_ns)
+    return ordered[0].event_at(), ordered[-1].event_at()
 
 
 def _build_lineage(
@@ -115,22 +118,35 @@ def _build_lineage(
 
 
 def _records_for_contract(
-    trades: list[MarketTrade],
+    storage_trades: list[StorageTradeFields],
     *,
     product: str,
     contract_code: str,
     source_file: str,
     resolver: CmeEsRthSessionResolver,
 ) -> list[ContractTradeRecord]:
+    validated_product = validate_product_code(product)
+    validated_contract_code = validate_contract_code(contract_code)
+    session_dates = trade_session_dates_from_ns(
+        [trade["ts_event_ns"] for trade in storage_trades],
+        resolver=resolver,
+    )
     return [
-        ContractTradeRecord(
-            trade=trade,
-            actual_contract=contract_code,
-            product=product,
-            session_date=trade_session_date(trade.event_at, resolver=resolver),
+        ContractTradeRecord.from_prevalidated_identity(
+            validated_product=validated_product,
+            validated_contract_code=validated_contract_code,
+            ts_event_ns=trade["ts_event_ns"],
+            ts_recv_ns=trade["ts_recv_ns"],
+            price_nanos=trade["price_nanos"],
+            size=trade["size"],
+            instrument_id=trade["instrument_id"],
+            sequence=trade["sequence"],
+            publisher_id=trade["publisher_id"],
+            side=trade["side"],
+            session_date=session_date,
             source_file=source_file,
         )
-        for trade in trades
+        for trade, session_date in zip(storage_trades, session_dates, strict=True)
     ]
 
 
@@ -140,7 +156,7 @@ def import_databento_contract_trades_archive(
     storage_root: Path,
     inspector: TradesArchiveInspector | None = None,
     reader: ContractTradesArchiveReader | None = None,
-    validator: TradeValidator | None = None,
+    trade_validator: TradeBatchValidator | None = None,
     repository: ParquetContractTradeDatasetRepository | None = None,
     registry: FileDatasetRegistry | None = None,
     clock: Clock | None = None,
@@ -153,30 +169,62 @@ def import_databento_contract_trades_archive(
 
     archive_inspector = inspector or DatabentoDBNInspector()
     archive_reader = reader or DatabentoDBNContractTradeReader()
-    trade_validator = validator or TradeBatchValidator()
+    trade_validator = trade_validator or TradeBatchValidator()
     contract_repository = repository or ParquetContractTradeDatasetRepository(storage_root)
     dataset_registry = registry or FileDatasetRegistry(storage_root)
     utc_clock = clock or SystemClock()
     resolver = session_resolver or CmeEsRthSessionResolver()
 
     inspection, source_checksum = archive_inspector.inspect_with_checksum(config.path)
-    trades_by_contract, rejected_spread_rows = archive_reader.decode_contract_trades(
-        config.path,
-        product=config.product,
-    )
+    if isinstance(archive_reader, DatabentoDBNContractTradeReader):
+        storage_by_contract, rejected_spread_rows = archive_reader.decode_contract_storage_trades(
+            config.path,
+            product=config.product,
+        )
+    else:
+        trades_by_contract, rejected_spread_rows = archive_reader.decode_contract_trades(
+            config.path,
+            product=config.product,
+        )
+        from trading_framework.market.contracts.storage_codec import (
+            MISSING_TS_RECV_NS,
+            price_nanos_from_decimal,
+            utc_ns_from_datetime,
+        )
+
+        storage_by_contract = {
+            contract_code: [
+                StorageTradeFields(
+                    ts_event_ns=utc_ns_from_datetime(trade.event_at),
+                    ts_recv_ns=(
+                        MISSING_TS_RECV_NS
+                        if trade.received_at is None
+                        else utc_ns_from_datetime(trade.received_at)
+                    ),
+                    price_nanos=price_nanos_from_decimal(trade.price.value),
+                    size=trade.size.value,
+                    instrument_id=0,
+                    sequence=trade.sequence or 0,
+                    publisher_id=0,
+                    side=trade.side.value,
+                )
+                for trade in trades
+            ]
+            for contract_code, trades in trades_by_contract.items()
+        }
 
     imported_at = utc_clock.now()
     contract_results: list[ContractTradesImportResult] = []
-    for contract_code in sorted(trades_by_contract):
-        trades = trades_by_contract[contract_code]
+    for contract_code in sorted(storage_by_contract):
+        storage_trades = storage_by_contract[contract_code]
         records = _records_for_contract(
-            trades,
+            storage_trades,
             product=config.product,
             contract_code=contract_code,
             source_file=config.path.name,
             resolver=resolver,
         )
-        validation_result = trade_validator.validate(trades)
+        validation_result = trade_validator.validate_records(records)
         validation_status = (
             ValidationStatus.PASSED if validation_result.is_valid else ValidationStatus.FAILED
         )

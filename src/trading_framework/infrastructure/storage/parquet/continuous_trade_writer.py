@@ -63,16 +63,21 @@ def _column_from_records(records: Sequence[ContinuousTradeRecord], field: str) -
 def continuous_trade_records_to_table(records: Sequence[ContinuousTradeRecord]) -> pa.Table:
     """Convert continuous trade records to the continuous-layer Parquet schema."""
     if not records:
-        return pa.table(
-            {
-                field.name: pa.array([], type=field.type)
-                for field in MARKET_TRADE_CONTINUOUS_PARQUET_SCHEMA
-            },
-            schema=MARKET_TRADE_CONTINUOUS_PARQUET_SCHEMA,
-        )
+        return empty_continuous_trade_table()
     return pa.table(
         {
             field.name: _column_from_records(records, field.name)
+            for field in MARKET_TRADE_CONTINUOUS_PARQUET_SCHEMA
+        },
+        schema=MARKET_TRADE_CONTINUOUS_PARQUET_SCHEMA,
+    )
+
+
+def empty_continuous_trade_table() -> pa.Table:
+    """Return an empty table using the continuous trade Parquet schema."""
+    return pa.table(
+        {
+            field.name: pa.array([], type=field.type)
             for field in MARKET_TRADE_CONTINUOUS_PARQUET_SCHEMA
         },
         schema=MARKET_TRADE_CONTINUOUS_PARQUET_SCHEMA,
@@ -119,13 +124,21 @@ def continuous_trade_records_from_table(table: pa.Table) -> list[ContinuousTrade
 class ParquetContinuousTradeWriter:
     """Write continuous-layer trade records to Parquet files."""
 
+    def write_table(self, path: Path, table: pa.Table) -> None:
+        """Persist one continuous trade table to ``path``."""
+        path.parent.mkdir(parents=True, exist_ok=True)
+        normalized = table.cast(MARKET_TRADE_CONTINUOUS_PARQUET_SCHEMA, safe=False)
+        pq.write_table(normalized, path)  # type: ignore[no-untyped-call]
+
+    def read_table(self, path: Path) -> pa.Table:
+        """Read continuous trade parquet without materializing domain records."""
+        table = pq.ParquetFile(path).read()  # type: ignore[no-untyped-call]
+        return table.cast(MARKET_TRADE_CONTINUOUS_PARQUET_SCHEMA, safe=False)
+
     def write(self, path: Path, records: Sequence[ContinuousTradeRecord]) -> None:
         """Persist continuous trade records to ``path``."""
-        path.parent.mkdir(parents=True, exist_ok=True)
-        table = continuous_trade_records_to_table(records)
-        pq.write_table(table, path)  # type: ignore[no-untyped-call]
+        self.write_table(path, continuous_trade_records_to_table(records))
 
     def read(self, path: Path) -> list[ContinuousTradeRecord]:
         """Read continuous trade records from ``path``."""
-        table = pq.ParquetFile(path).read()  # type: ignore[no-untyped-call]
-        return continuous_trade_records_from_table(table)
+        return continuous_trade_records_from_table(self.read_table(path))

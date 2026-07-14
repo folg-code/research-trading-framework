@@ -38,6 +38,63 @@ def dataset_bars_path(root: Path, dataset_ref: DatasetRef) -> Path:
     )
 
 
+def dataset_ohlcv_partitions_dir(root: Path, dataset_ref: DatasetRef) -> Path:
+    """Return the session-date partition root for a partitioned OHLCV dataset version."""
+    dataset_id = dataset_ref.dataset_id
+    return (
+        root
+        / "normalized"
+        / dataset_id.instrument_id.value
+        / dataset_id.data_type
+        / dataset_id.timeframe.value
+        / dataset_id.provider
+        / dataset_id.source_id
+        / f"v{dataset_ref.version}"
+        / "partitions"
+    )
+
+
+def dataset_ohlcv_partition_path(
+    root: Path,
+    dataset_ref: DatasetRef,
+    session_date: date,
+) -> Path:
+    """Return the Parquet path for one session-date OHLCV partition."""
+    partition_dir = (
+        dataset_ohlcv_partitions_dir(root, dataset_ref) / f"session_date={session_date.isoformat()}"
+    )
+    return partition_dir / "bars.parquet"
+
+
+def list_ohlcv_session_dates(root: Path, dataset_ref: DatasetRef) -> list[date]:
+    """Return sorted session dates present for a partitioned OHLCV dataset version."""
+    partitions_dir = dataset_ohlcv_partitions_dir(root, dataset_ref)
+    if not partitions_dir.exists():
+        return []
+    session_dates: list[date] = []
+    for partition_dir in partitions_dir.iterdir():
+        if not partition_dir.is_dir() or not partition_dir.name.startswith("session_date="):
+            continue
+        session_dates.append(date.fromisoformat(partition_dir.name.split("=", 1)[1]))
+    return sorted(session_dates)
+
+
+def continuous_ohlcv_manifest_path(root: Path, dataset_ref: DatasetRef) -> Path:
+    """Return the continuous OHLCV manifest path for one dataset version."""
+    dataset_id = dataset_ref.dataset_id
+    return (
+        root
+        / "normalized"
+        / dataset_id.instrument_id.value
+        / dataset_id.data_type
+        / dataset_id.timeframe.value
+        / dataset_id.provider
+        / dataset_id.source_id
+        / f"v{dataset_ref.version}"
+        / "continuous_ohlcv_manifest.json"
+    )
+
+
 def signal_research_run_dir(root: Path, run_id: str) -> Path:
     """Return the run envelope directory for one Signal Research run."""
     return root / run_id

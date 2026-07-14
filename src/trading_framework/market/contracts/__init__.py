@@ -7,7 +7,11 @@ from trading_framework.market.contracts.identity import (
     validate_contract_code,
     validate_product_code,
 )
-from trading_framework.market.contracts.session_date import trade_session_date
+from trading_framework.market.contracts.session_date import (
+    trade_session_date,
+    trade_session_dates,
+    trade_session_dates_from_ns,
+)
 from trading_framework.market.contracts.trade_record import (
     MARKET_TRADE_CONTRACT_SCHEMA_VERSION,
     ContractTradeRecord,
@@ -20,6 +24,8 @@ __all__ = [
     "is_outright_contract_symbol",
     "parse_outright_contract_symbol",
     "trade_session_date",
+    "trade_session_dates",
+    "trade_session_dates_from_ns",
     "validate_contract_code",
     "validate_product_code",
 ]

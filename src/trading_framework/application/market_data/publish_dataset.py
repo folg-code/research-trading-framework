@@ -24,6 +24,8 @@ def publish_dataset(
     dataset_registry = registry or FileDatasetRegistry(storage_root)
     utc_clock = clock or SystemClock()
     metadata = dataset_registry.get(dataset_ref)
+    if metadata.lifecycle_status is DatasetLifecycleState.PUBLISHED:
+        return dataset_ref
     lifecycle_status = transition_dataset_lifecycle(
         metadata.lifecycle_status,
         DatasetLifecycleState.PUBLISHED,

@@ -7,9 +7,16 @@ from trading_framework.application.market_data.checksum import compute_dataset_c
 from trading_framework.core.exceptions import ValidationError
 from trading_framework.infrastructure.storage.metadata.registry import FileDatasetRegistry
 from trading_framework.infrastructure.storage.parquet.repository import ParquetDatasetRepository
+from trading_framework.infrastructure.storage.paths import (
+    list_continuous_session_dates,
+    list_contract_session_dates,
+    list_ohlcv_session_dates,
+)
 from trading_framework.infrastructure.storage.trade_repository_factory import (
     trade_dataset_repository_for,
 )
+from trading_framework.market.continuous.identity import is_continuous_instrument_id
+from trading_framework.market.contracts.identity import is_contract_instrument_id
 from trading_framework.market.datasets import (
     DatasetLifecycleState,
     DatasetMetadata,
@@ -17,6 +24,7 @@ from trading_framework.market.datasets import (
     ValidationStatus,
     transition_dataset_lifecycle,
 )
+from trading_framework.market.derivation.config import DERIVED_OHLCV_PROVIDER
 from trading_framework.market.repositories import (
     DatasetRepository,
     HistoricalBarQuery,
@@ -36,6 +44,11 @@ def finalize_dataset(
     """Transition a validated WORKING dataset version to FINALIZED."""
     dataset_registry = registry or FileDatasetRegistry(storage_root)
     metadata = dataset_registry.get(dataset_ref)
+    if metadata.lifecycle_status in (
+        DatasetLifecycleState.FINALIZED,
+        DatasetLifecycleState.PUBLISHED,
+    ):
+        return dataset_ref
     if metadata.validation_status is not ValidationStatus.PASSED:
         msg = "dataset validation must pass before finalization"
         raise ValidationError(msg)
@@ -44,6 +57,7 @@ def finalize_dataset(
         return _finalize_trades_dataset(
             dataset_ref,
             metadata=metadata,
+            storage_root=storage_root,
             dataset_registry=dataset_registry,
             trade_repository=trade_repository
             or trade_dataset_repository_for(storage_root, dataset_ref),
@@ -54,25 +68,39 @@ def finalize_dataset(
         metadata.lifecycle_status,
         DatasetLifecycleState.FINALIZED,
     )
-    bars = list(
-        bar_repository.query_bars(
-            HistoricalBarQuery(
-                dataset_ref=dataset_ref,
-                start_at=metadata.start_at,
-                end_at=metadata.end_at,
+    use_partitioned_fast_path = (
+        is_continuous_instrument_id(dataset_ref.dataset_id.instrument_id)
+        and metadata.provider == DERIVED_OHLCV_PROVIDER
+    )
+    if use_partitioned_fast_path:
+        session_dates = list_ohlcv_session_dates(storage_root, dataset_ref)
+        if not session_dates or metadata.row_count <= 0:
+            msg = "dataset contains no bars to finalize"
+            raise ValidationError(msg)
+        updated = replace(
+            metadata,
+            lifecycle_status=lifecycle_status,
+            row_count=metadata.row_count,
+        )
+    else:
+        bars = list(
+            bar_repository.query_bars(
+                HistoricalBarQuery(
+                    dataset_ref=dataset_ref,
+                    start_at=metadata.start_at,
+                    end_at=metadata.end_at,
+                )
             )
         )
-    )
-    if not bars:
-        msg = "dataset contains no bars to finalize"
-        raise ValidationError(msg)
-
-    updated = replace(
-        metadata,
-        lifecycle_status=lifecycle_status,
-        row_count=len(bars),
-        checksum=compute_dataset_checksum(bars),
-    )
+        if not bars:
+            msg = "dataset contains no bars to finalize"
+            raise ValidationError(msg)
+        updated = replace(
+            metadata,
+            lifecycle_status=lifecycle_status,
+            row_count=len(bars),
+            checksum=compute_dataset_checksum(bars),
+        )
     dataset_registry.update(updated)
     return dataset_ref
 
@@ -81,6 +109,7 @@ def _finalize_trades_dataset(
     dataset_ref: DatasetRef,
     *,
     metadata: DatasetMetadata,
+    storage_root: Path,
     dataset_registry: FileDatasetRegistry,
     trade_repository: TradeDatasetRepository,
 ) -> DatasetRef:
@@ -88,23 +117,38 @@ def _finalize_trades_dataset(
         metadata.lifecycle_status,
         DatasetLifecycleState.FINALIZED,
     )
-    trades = list(
-        trade_repository.query_trades(
-            HistoricalTradeQuery(
-                dataset_ref=dataset_ref,
-                start_at=metadata.start_at,
-                end_at=metadata.end_at,
+    instrument_id = dataset_ref.dataset_id.instrument_id
+    if is_contract_instrument_id(instrument_id):
+        session_dates = list_contract_session_dates(storage_root, dataset_ref)
+        if not session_dates or metadata.row_count <= 0:
+            msg = "dataset contains no trades to finalize"
+            raise ValidationError(msg)
+        row_count = metadata.row_count
+    elif is_continuous_instrument_id(instrument_id):
+        session_dates = list_continuous_session_dates(storage_root, dataset_ref)
+        if not session_dates or metadata.row_count <= 0:
+            msg = "dataset contains no trades to finalize"
+            raise ValidationError(msg)
+        row_count = metadata.row_count
+    else:
+        trades = list(
+            trade_repository.query_trades(
+                HistoricalTradeQuery(
+                    dataset_ref=dataset_ref,
+                    start_at=metadata.start_at,
+                    end_at=metadata.end_at,
+                )
             )
         )
-    )
-    if not trades:
-        msg = "dataset contains no trades to finalize"
-        raise ValidationError(msg)
+        if not trades:
+            msg = "dataset contains no trades to finalize"
+            raise ValidationError(msg)
+        row_count = len(trades)
 
     updated = replace(
         metadata,
         lifecycle_status=lifecycle_status,
-        row_count=len(trades),
+        row_count=row_count,
     )
     dataset_registry.update(updated)
     return dataset_ref

@@ -103,3 +103,21 @@ def test_finalize_dataset_rejects_failed_validation(tmp_path: Path) -> None:
 
     with pytest.raises(ValidationError, match="validation must pass"):
         finalize_dataset(dataset_ref, storage_root=storage_root, registry=registry)
+
+
+def test_finalize_dataset_is_idempotent_for_published(tmp_path: Path) -> None:
+    storage_root = tmp_path / "data"
+    registry = FileDatasetRegistry(storage_root)
+    dataset_ref = DatasetRef(dataset_id=_dataset_id(), version=1)
+    registry.register(_working_metadata(dataset_ref))
+    registry.update(
+        replace(
+            _working_metadata(dataset_ref),
+            lifecycle_status=DatasetLifecycleState.PUBLISHED,
+        )
+    )
+
+    result_ref = finalize_dataset(dataset_ref, storage_root=storage_root, registry=registry)
+
+    assert result_ref == dataset_ref
+    assert registry.get(result_ref).lifecycle_status is DatasetLifecycleState.PUBLISHED

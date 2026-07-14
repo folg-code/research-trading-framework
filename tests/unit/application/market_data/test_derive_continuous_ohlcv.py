@@ -1,11 +1,11 @@
 """Derive continuous OHLCV workflow tests."""
 
 from datetime import UTC, date, datetime
-from decimal import Decimal
 from pathlib import Path
 
 import pytest
 
+from tests.fixtures.contracts.trade_record import make_rth_contract_trade_record
 from trading_framework.application.market_data.build_roll_schedule import (
     BuildRollScheduleRequest,
     build_roll_schedule,
@@ -25,12 +25,18 @@ from trading_framework.application.market_data.query_historical import (
 )
 from trading_framework.application.market_data.query_trades import QueryTradesRequest, query_trades
 from trading_framework.core.identifiers import Identifier
-from trading_framework.core.types import Price, Volume
+from trading_framework.infrastructure.storage.continuous_ohlcv_manifest_store import (
+    read_continuous_ohlcv_manifest,
+)
 from trading_framework.infrastructure.storage.metadata.registry import FileDatasetRegistry
 from trading_framework.infrastructure.storage.parquet.contract_trade_repository import (
     ParquetContractTradeDatasetRepository,
 )
 from trading_framework.infrastructure.storage.parquet.repository import ParquetDatasetRepository
+from trading_framework.infrastructure.storage.paths import (
+    continuous_ohlcv_manifest_path,
+    list_ohlcv_session_dates,
+)
 from trading_framework.market.continuous.identity import CONTINUOUS_TRADES_PROVIDER
 from trading_framework.market.continuous.policy import VOLUME_RTH_CLOSE_POLICY_SLUG
 from trading_framework.market.contracts.trade_record import ContractTradeRecord
@@ -48,7 +54,6 @@ from trading_framework.market.derivation import (
     DerivedContinuousOhlcvConfig,
     roll_schedule_ref,
 )
-from trading_framework.market.models import MarketTrade, TradeSide
 from trading_framework.market.repositories import HistoricalBarQuery
 from trading_framework.time.clocks.fixed import FixedClock
 from trading_framework.time.models.timeframe import Timeframe
@@ -77,24 +82,11 @@ def _rth_record(
     minute: int,
     size: int,
 ) -> ContractTradeRecord:
-    return ContractTradeRecord(
-        trade=MarketTrade(
-            price=Price(Decimal("22860.75")),
-            size=Volume(size),
-            event_at=datetime(
-                session_date.year,
-                session_date.month,
-                session_date.day,
-                14,
-                minute,
-                tzinfo=UTC,
-            ),
-            side=TradeSide.BUY,
-        ),
-        actual_contract=contract,
-        product="NQ",
+    return make_rth_contract_trade_record(
+        contract=contract,
         session_date=session_date,
-        source_file="sample.dbn.zst",
+        minute=minute,
+        size=size,
     )
 
 
@@ -233,6 +225,14 @@ def test_derive_continuous_ohlcv_registers_working_dataset_with_roll_lineage(
     )
     assert lineage["derivation_method"] == TRADES_TO_BARS_DERIVATION_METHOD
     assert lineage["derivation_version"] == TRADES_TO_BARS_VERSION
+    assert "continuous_ohlcv_manifest_fingerprint" in lineage
+    assert list_ohlcv_session_dates(storage_root, result.dataset_ref)
+    assert continuous_ohlcv_manifest_path(storage_root, result.dataset_ref).exists()
+    manifest = read_continuous_ohlcv_manifest(
+        continuous_ohlcv_manifest_path(storage_root, result.dataset_ref)
+    )
+    assert manifest.source_continuous_trades_ref == str(source_ref)
+    assert manifest.source_continuous_manifest_fingerprint
 
 
 def test_derive_continuous_ohlcv_rejects_unpublished_source(tmp_path: Path) -> None:
@@ -331,3 +331,25 @@ def test_query_trades_and_historical_read_published_continuous_datasets(tmp_path
         )
     )
     assert len(stored) == len(bars)
+
+
+def test_derive_continuous_ohlcv_reuses_matching_manifest(tmp_path: Path) -> None:
+    storage_root, registry, source_ref = _publish_continuous_pipeline(tmp_path)
+
+    first = derive_continuous_ohlcv(
+        _derive_config(source_ref),
+        storage_root=storage_root,
+        registry=registry,
+        clock=FixedClock(_DERIVED_AT),
+    )
+    second = derive_continuous_ohlcv(
+        _derive_config(source_ref),
+        storage_root=storage_root,
+        registry=registry,
+        clock=FixedClock(_DERIVED_AT),
+        existing_dataset_ref=first.dataset_ref,
+    )
+
+    assert second.reused is True
+    assert second.dataset_ref == first.dataset_ref
+    assert second.sessions_derived == ()

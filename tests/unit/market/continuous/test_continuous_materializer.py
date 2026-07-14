@@ -1,9 +1,8 @@
 """Continuous trade materializer tests."""
 
-from datetime import UTC, date, datetime
-from decimal import Decimal
+from datetime import date
 
-from trading_framework.core.types import Price, Volume
+from tests.fixtures.contracts.trade_record import make_rth_contract_trade_record
 from trading_framework.market.continuous.materializer import (
     is_roll_boundary_session,
     materialize_session_records,
@@ -11,28 +10,13 @@ from trading_framework.market.continuous.materializer import (
 from trading_framework.market.continuous.policy import VolumeRthCloseRollPolicy
 from trading_framework.market.continuous.schedule import RollSchedule, RollScheduleEntry
 from trading_framework.market.contracts.trade_record import ContractTradeRecord
-from trading_framework.market.models import MarketTrade, TradeSide
 
 
 def _contract_record(*, contract: str, session_date: date, size: int) -> ContractTradeRecord:
-    return ContractTradeRecord(
-        trade=MarketTrade(
-            price=Price(Decimal("22860.75")),
-            size=Volume(size),
-            event_at=datetime(
-                session_date.year,
-                session_date.month,
-                session_date.day,
-                14,
-                30,
-                tzinfo=UTC,
-            ),
-            side=TradeSide.BUY,
-        ),
-        actual_contract=contract,
-        product="NQ",
+    return make_rth_contract_trade_record(
+        contract=contract,
         session_date=session_date,
-        source_file="sample.dbn.zst",
+        size=size,
     )
 
 

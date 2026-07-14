@@ -41,6 +41,20 @@ def contract_instrument_id(*, product: str, contract_code: str) -> Identifier:
     return Identifier(f"{normalized_product}.{normalized_contract}")
 
 
+def is_contract_instrument_id(instrument_id: Identifier) -> bool:
+    """Return whether ``instrument_id`` identifies one outright futures contract."""
+    value = instrument_id.value
+    if "." not in value:
+        return False
+    product, contract_code = value.split(".", 1)
+    try:
+        normalized_product = validate_product_code(product)
+        normalized_contract = validate_contract_code(contract_code)
+    except ValidationError:
+        return False
+    return normalized_contract.startswith(normalized_product)
+
+
 def is_outright_contract_symbol(symbol: str, *, product: str) -> bool:
     """Return whether ``symbol`` is an outright contract for ``product``."""
     normalized_product = validate_product_code(product)

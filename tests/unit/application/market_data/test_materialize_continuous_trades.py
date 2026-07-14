@@ -1,19 +1,20 @@
 """Materialize continuous trades workflow tests."""
 
 from datetime import UTC, date, datetime
-from decimal import Decimal
 from pathlib import Path
 
+from tests.fixtures.contracts.trade_record import make_rth_contract_trade_record
 from trading_framework.application.market_data.build_roll_schedule import (
     BuildRollScheduleRequest,
     build_roll_schedule,
 )
+from trading_framework.application.market_data.finalize_dataset import finalize_dataset
 from trading_framework.application.market_data.materialize_continuous_trades import (
     MaterializeContinuousTradesRequest,
     materialize_continuous_trades,
 )
+from trading_framework.application.market_data.publish_dataset import publish_dataset
 from trading_framework.core.identifiers import Identifier
-from trading_framework.core.types import Price, Volume
 from trading_framework.infrastructure.storage.continuous_manifest_store import (
     read_continuous_trades_manifest,
 )
@@ -33,7 +34,6 @@ from trading_framework.market.datasets import (
     DatasetRef,
     ValidationStatus,
 )
-from trading_framework.market.models import MarketTrade, TradeSide
 from trading_framework.time.clocks.fixed import FixedClock
 from trading_framework.time.models.timeframe import Timeframe
 
@@ -58,24 +58,11 @@ def _rth_record(
     hour_utc: int,
     size: int,
 ) -> ContractTradeRecord:
-    return ContractTradeRecord(
-        trade=MarketTrade(
-            price=Price(Decimal("22860.75")),
-            size=Volume(size),
-            event_at=datetime(
-                session_date.year,
-                session_date.month,
-                session_date.day,
-                hour_utc,
-                30,
-                tzinfo=UTC,
-            ),
-            side=TradeSide.BUY,
-        ),
-        actual_contract=contract,
-        product="NQ",
+    return make_rth_contract_trade_record(
+        contract=contract,
         session_date=session_date,
-        source_file="sample.dbn.zst",
+        hour_utc=hour_utc,
+        size=size,
     )
 
 
@@ -220,3 +207,53 @@ def test_materialize_continuous_trades_reuses_unchanged_fingerprint(tmp_path: Pa
     assert second.reused is True
     assert second.dataset_ref == first.dataset_ref
     assert second.sessions_materialized == ()
+
+
+def test_materialize_continuous_trades_allocates_new_version_when_published(
+    tmp_path: Path,
+) -> None:
+    storage_root = tmp_path / "data"
+    nqu5_ref, nqz5_ref = _seed_contract_data(storage_root)
+    clock = FixedClock(datetime(2025, 7, 15, 20, 0, tzinfo=UTC))
+    registry = FileDatasetRegistry(storage_root)
+
+    build_roll_schedule(
+        BuildRollScheduleRequest(
+            storage_root=storage_root,
+            product="NQ",
+            contract_dataset_refs=(nqu5_ref, nqz5_ref),
+            confirmation_sessions=1,
+        ),
+        registry=registry,
+        clock=clock,
+    )
+
+    first = materialize_continuous_trades(
+        MaterializeContinuousTradesRequest(
+            storage_root=storage_root,
+            product="NQ",
+            roll_schedule_version=1,
+            contract_dataset_refs=(nqu5_ref, nqz5_ref),
+        ),
+        registry=registry,
+        clock=clock,
+    )
+    finalize_dataset(first.dataset_ref, storage_root=storage_root, registry=registry)
+    publish_dataset(first.dataset_ref, storage_root=storage_root, registry=registry, clock=clock)
+
+    second = materialize_continuous_trades(
+        MaterializeContinuousTradesRequest(
+            storage_root=storage_root,
+            product="NQ",
+            roll_schedule_version=1,
+            contract_dataset_refs=(nqu5_ref, nqz5_ref),
+            existing_dataset_ref=first.dataset_ref,
+            rebuild_all=True,
+        ),
+        registry=registry,
+        clock=clock,
+    )
+
+    assert second.reused is False
+    assert second.dataset_ref.version == first.dataset_ref.version + 1
+    assert registry.get(second.dataset_ref).lifecycle_status is DatasetLifecycleState.WORKING
