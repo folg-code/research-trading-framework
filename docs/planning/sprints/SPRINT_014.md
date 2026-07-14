@@ -222,17 +222,17 @@ Phase B: `bars` may be empty when `data_mode=fetch`; frontend loads via API.
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S014-T005 | `render_strategy_research_dashboard` — Lightweight Charts (CDN) | PLANNED |
-| S014-T006 | Entry/exit markers, crosshair, trade table click-to-focus | PLANNED |
-| S014-T007 | Equity pane + summary metrics panel | PLANNED |
+| S014-T005 | `render_strategy_research_dashboard` — Lightweight Charts (CDN) | DONE |
+| S014-T006 | Entry/exit markers, crosshair, trade table click-to-focus | DONE |
+| S014-T007 | Equity pane + summary metrics panel | DONE |
 
 ### Phase A — Wave 3: Workflow and tests
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S014-T008 | `analyze_strategy_research_dashboard` application orchestration (optional thin wrapper) | PLANNED |
-| S014-T009 | CLI `scripts/strategy_research/render_strategy_dashboard.py` | PLANNED |
-| S014-T010 | Unit + integration tests (fixture run → HTML smoke, view model round-trip) | PLANNED |
+| S014-T008 | `analyze_strategy_research_dashboard` application orchestration (optional thin wrapper) | DONE |
+| S014-T009 | CLI `scripts/strategy_research/render_strategy_dashboard.py` | DONE |
+| S014-T010 | Unit + integration tests (fixture run → HTML smoke, view model round-trip) | DONE |
 
 ### Phase A — Wave 4: ADR and closure
 
@@ -258,7 +258,7 @@ Phase B: `bars` may be empty when `data_mode=fetch`; frontend loads via API.
 | S014-T018 | CLI `scripts/strategy_research/serve_strategy_dashboard.py` | PLANNED |
 | S014-T019 | API tests (`httpx` / `TestClient`) + size-threshold documentation | PLANNED |
 
-**Progress:** 3 / 19 tasks (Phase A required: T001–T013; Phase B optional: T014–T019)
+**Progress:** 9 / 19 tasks (Phase A required: T001–T013; Phase B optional: T014–T019)
 
 ---
 
