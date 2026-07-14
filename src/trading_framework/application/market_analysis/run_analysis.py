@@ -8,6 +8,7 @@ from trading_framework.application.market_analysis.load_data_view import (
     load_analysis_data_view,
 )
 from trading_framework.market.datasets import DatasetRef
+from trading_framework.market.models import MarketBar
 from trading_framework.market_analysis.assembly.assembler import AnalysisFrameAssembler
 from trading_framework.market_analysis.assembly.frame import AnalysisFrame, AnalysisFrameRequest
 from trading_framework.market_analysis.assembly.session_metadata import TradingSessionMetadata
@@ -47,6 +48,7 @@ class RunAnalysisRequest:
     frame_request: AnalysisFrameRequest | None = None
     evaluation_timeframe: Timeframe | None = None
     session_resolver: TradingSessionResolver | None = None
+    preloaded_bars: tuple[MarketBar, ...] | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -58,14 +60,11 @@ class AnalysisRunResult:
     frame: AnalysisFrame | None = None
 
 
-def run_analysis(
+def _plan_analysis_execution(
     request: RunAnalysisRequest,
     *,
-    registry: ComponentRegistry | None = None,
-    engine_version: str = ENGINE_VERSION,
-) -> AnalysisRunResult:
-    """Load data, plan, execute and optionally assemble a consumer frame."""
-    component_registry = registry or default_mvp_registry()
+    registry: ComponentRegistry,
+) -> tuple[ExecutionPlan, TimeRange]:
     planning_context = PlanningContext(
         dataset_ref=request.dataset_ref,
         timeframe=request.timeframe,
@@ -86,7 +85,7 @@ def run_analysis(
         ),
         evaluation_timeframe=request.evaluation_timeframe,
     )
-    planner = DependencyPlanner(component_registry)
+    planner = DependencyPlanner(registry)
     plan = planner.build_plan(
         planning_context,
         planning_requests,
@@ -98,12 +97,41 @@ def run_analysis(
         warmup_bars=warmup_bars,
         timeframe=request.timeframe,
     )
+    return plan, computation_range
+
+
+def resolve_analysis_computation_range(
+    request: RunAnalysisRequest,
+    *,
+    registry: ComponentRegistry | None = None,
+) -> TimeRange:
+    """Return the warmup-extended bar range required for one analysis run."""
+    _, computation_range = _plan_analysis_execution(
+        request,
+        registry=registry or default_mvp_registry(),
+    )
+    return computation_range
+
+
+def run_analysis(
+    request: RunAnalysisRequest,
+    *,
+    registry: ComponentRegistry | None = None,
+    engine_version: str = ENGINE_VERSION,
+) -> AnalysisRunResult:
+    """Load data, plan, execute and optionally assemble a consumer frame."""
+    component_registry = registry or default_mvp_registry()
+    plan, computation_range = _plan_analysis_execution(
+        request,
+        registry=component_registry,
+    )
     market_view = load_analysis_data_view(
         LoadAnalysisDataViewRequest(
             dataset_ref=request.dataset_ref,
             computation_range=computation_range,
         ),
         storage_root=request.storage_root,
+        preloaded_bars=request.preloaded_bars,
     )
     context = AnalysisContext(
         dataset_ref=request.dataset_ref,

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -9,6 +10,10 @@ from pathlib import Path
 import polars as pl
 
 from trading_framework import __version__ as framework_version
+from trading_framework.application.market_analysis.run_analysis import (
+    RunAnalysisRequest,
+    resolve_analysis_computation_range,
+)
 from trading_framework.application.market_data.query_historical import (
     QueryHistoricalRequest,
     query_historical,
@@ -17,7 +22,12 @@ from trading_framework.application.model_evaluation import EvaluateModelsRequest
 from trading_framework.application.strategy_research.entry_signals import build_gated_entry_signals
 from trading_framework.core.exceptions import ValidationError
 from trading_framework.market.datasets import DatasetRef
+from trading_framework.market.models import MarketBar
 from trading_framework.market_analysis.models.time_range import TimeRange
+from trading_framework.model_expression.planning import (
+    build_analysis_frame_request,
+    collect_model_dependencies,
+)
 from trading_framework.research.datasets.strategy_research import (
     STRATEGY_RESEARCH_SCHEMA_VERSION,
     StrategyResearchDatasetRepository,
@@ -84,6 +94,32 @@ def run_strategy_research(
     risk_model = _require_fixed_quantity_risk(strategy_model)
 
     evaluation_timeframe = request.evaluation_timeframe or request.timeframe
+    dependencies = collect_model_dependencies(
+        market_models=(strategy_model.market_model,),
+        signal_models=(strategy_model.signal_model,),
+    )
+    frame_request = build_analysis_frame_request(dependencies)
+    analysis_request = RunAnalysisRequest(
+        dataset_ref=request.dataset_ref,
+        timeframe=request.timeframe,
+        requested_range=request.requested_range,
+        storage_root=request.storage_root,
+        component_requests=dependencies.component_requests,
+        frame_request=frame_request,
+        evaluation_timeframe=evaluation_timeframe,
+        session_resolver=request.session_resolver,
+    )
+    computation_range = resolve_analysis_computation_range(analysis_request)
+    preloaded_bars = tuple(
+        query_historical(
+            QueryHistoricalRequest(
+                dataset_ref=request.dataset_ref,
+                start_at=computation_range.start,
+                end_at=computation_range.end,
+            ),
+            storage_root=request.storage_root,
+        )
+    )
     eval_result = evaluate_models(
         EvaluateModelsRequest(
             dataset_ref=request.dataset_ref,
@@ -94,6 +130,7 @@ def run_strategy_research(
             signal_models=(strategy_model.signal_model,),
             evaluation_timeframe=evaluation_timeframe,
             session_resolver=request.session_resolver,
+            preloaded_bars=preloaded_bars,
         )
     )
     frame = eval_result.analysis.frame
@@ -110,14 +147,7 @@ def run_strategy_research(
         market_state=market_state,
     )
 
-    bars = query_historical(
-        QueryHistoricalRequest(
-            dataset_ref=request.dataset_ref,
-            start_at=request.requested_range.start,
-            end_at=request.requested_range.end,
-        ),
-        storage_root=request.storage_root,
-    )
+    bars = _bars_in_requested_range(preloaded_bars, request.requested_range)
     source_dataset_ref = str(request.dataset_ref)
     instrument = request.dataset_ref.dataset_id.instrument_id.value
     simulation = BarSequentialSimulator().simulate(
@@ -177,6 +207,13 @@ def run_strategy_research(
         trades=simulation.trades,
         equity=simulation.equity,
     )
+
+
+def _bars_in_requested_range(
+    bars: Sequence[MarketBar],
+    requested_range: TimeRange,
+) -> list[MarketBar]:
+    return [bar for bar in bars if requested_range.start <= bar.observed_at <= requested_range.end]
 
 
 def _require_fixed_bars_exit(strategy_model: StrategyModelDefinition) -> FixedBarsExitModel:
