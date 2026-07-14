@@ -180,9 +180,9 @@ Referenced from continuous dataset lineage; shared by trades and OHLCV derivatio
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S015-T009 | `materialize_continuous_trades` workflow | PLANNED |
-| S015-T010 | Continuous manifest + source fingerprint | PLANNED |
-| S015-T011 | Incremental rebuild window (default 10 sessions) | PLANNED |
+| S015-T009 | `materialize_continuous_trades` workflow | DONE |
+| S015-T010 | Continuous manifest + source fingerprint | DONE |
+| S015-T011 | Incremental rebuild window (default 10 sessions) | DONE |
 
 ### Wave 4 — Continuous derived OHLCV
 
@@ -207,7 +207,7 @@ Referenced from continuous dataset lineage; shared by trades and OHLCV derivatio
 | S015-T018 | `MODULE_MAP.md`, `DATA_WORKFLOWS.md`, `CURRENT_STATUS.md` | PLANNED |
 | S015-T019 | Sprint closure | PLANNED |
 
-**Progress:** 8 / 19 tasks (Waves 0–2 complete)
+**Progress:** 11 / 19 tasks (Waves 0–3 complete)
 
 ---
 
