@@ -8,6 +8,8 @@ from datetime import date
 from pathlib import Path
 from typing import Protocol
 
+import pyarrow as pa
+
 from trading_framework.core.exceptions import ValidationError
 from trading_framework.infrastructure.importers.databento.contract_chunk_columns import (
     ContractChunkColumns,
@@ -20,6 +22,7 @@ from trading_framework.infrastructure.storage.parquet.contract_trade_writer impo
     ParquetContractTradeWriter,
     contract_trade_columns_to_table,
     contract_trade_records_to_table,
+    empty_contract_trade_table,
 )
 from trading_framework.infrastructure.storage.paths import (
     dataset_contract_trades_partition_path,
@@ -157,6 +160,17 @@ class ParquetContractTradeDatasetRepository:
     ) -> None:
         """Append records without reading existing partition data."""
         self.write_records(dataset_ref, records, merge_existing=False)
+
+    def read_session_table(
+        self,
+        dataset_ref: DatasetRef,
+        session_date: date,
+    ) -> pa.Table:
+        """Read one session-date partition as Arrow without domain materialization."""
+        path = dataset_contract_trades_partition_path(self._root, dataset_ref, session_date)
+        if not path.exists():
+            return empty_contract_trade_table()
+        return self._writer.read_table(path)
 
     def query_records(self, query: HistoricalTradeQuery) -> Sequence[ContractTradeRecord]:
         """Return contract records in event-time order for the requested dataset range."""

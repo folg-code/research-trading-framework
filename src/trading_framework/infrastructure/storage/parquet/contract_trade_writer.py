@@ -34,6 +34,18 @@ MARKET_TRADE_CONTRACT_PARQUET_SCHEMA = pa.schema(
     ]
 )
 
+
+def empty_contract_trade_table() -> pa.Table:
+    """Return an empty table using the contract trade Parquet schema."""
+    return pa.table(
+        {
+            field.name: pa.array([], type=field.type)
+            for field in MARKET_TRADE_CONTRACT_PARQUET_SCHEMA
+        },
+        schema=MARKET_TRADE_CONTRACT_PARQUET_SCHEMA,
+    )
+
+
 MARKET_TRADE_CONTRACT_PARQUET_SCHEMA_V1 = pa.schema(
     [
         ("price", pa.string()),

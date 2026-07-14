@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections import defaultdict
 from contextlib import AbstractContextManager, nullcontext
 from dataclasses import dataclass
 from datetime import date
@@ -11,6 +12,9 @@ from trading_framework.core.exceptions import ValidationError
 from trading_framework.infrastructure.observability.memory_stats import process_rss_mb
 from trading_framework.infrastructure.observability.profile_context import active_phase_timer
 from trading_framework.infrastructure.storage.metadata.registry import FileDatasetRegistry
+from trading_framework.infrastructure.storage.parquet.contract_rth_volumes import (
+    rth_session_volume_from_trade_table,
+)
 from trading_framework.infrastructure.storage.parquet.contract_trade_repository import (
     ParquetContractTradeDatasetRepository,
 )
@@ -28,13 +32,10 @@ from trading_framework.market.continuous import (
     ROLL_SCHEDULE_BUILDER_VERSION,
     ROLL_SCHEDULE_SCHEMA_VERSION,
     VolumeRthCloseRollPolicy,
-    aggregate_rth_session_volumes,
     build_volume_rth_close_schedule,
 )
 from trading_framework.market.continuous.schedule import RollSchedule
-from trading_framework.market.contracts.trade_record import ContractTradeRecord
 from trading_framework.market.datasets import DatasetRef
-from trading_framework.market.repositories import HistoricalTradeQuery
 from trading_framework.time.clocks.protocol import Clock
 from trading_framework.time.clocks.system import SystemClock
 from trading_framework.time.sessions import CmeEsRthSessionResolver
@@ -98,54 +99,64 @@ def _session_bounds(
     return resolved_start, resolved_end
 
 
-def _load_contract_records(
+def _aggregate_rth_session_volumes_from_partitions(
     storage_root: Path,
     contract_dataset_refs: tuple[DatasetRef, ...],
     *,
     start_session: date,
     end_session: date,
-    registry: FileDatasetRegistry,
-) -> dict[str, list[ContractTradeRecord]]:
+    resolver: CmeEsRthSessionResolver,
+) -> dict[date, dict[str, int]]:
     timer = active_phase_timer()
     repository = ParquetContractTradeDatasetRepository(storage_root)
-    records_by_contract: dict[str, list[ContractTradeRecord]] = {}
+    volumes: dict[date, dict[str, int]] = defaultdict(dict)
+
     for index, dataset_ref in enumerate(contract_dataset_refs, start=1):
-        metadata = registry.get(dataset_ref)
         contract_code = _contract_code_from_dataset_ref(dataset_ref)
+        session_dates = [
+            session_date
+            for session_date in list_contract_session_dates(storage_root, dataset_ref)
+            if start_session <= session_date <= end_session
+        ]
+        rows_total = 0
         phase_name = f"roll_schedule.load.{contract_code}"
         if timer is not None:
             with timer.phase(phase_name):
-                records = list(
-                    repository.query_records(
-                        HistoricalTradeQuery(
-                            dataset_ref=dataset_ref,
-                            start_at=metadata.start_at,
-                            end_at=metadata.end_at,
-                        )
+                for session_date in session_dates:
+                    table = repository.read_session_table(dataset_ref, session_date)
+                    rows_total += table.num_rows
+                    volume = rth_session_volume_from_trade_table(
+                        table,
+                        session_date=session_date,
+                        resolver=resolver,
                     )
-                )
+                    if volume > 0:
+                        volumes[session_date][contract_code] = volume
         else:
-            records = list(
-                repository.query_records(
-                    HistoricalTradeQuery(
-                        dataset_ref=dataset_ref,
-                        start_at=metadata.start_at,
-                        end_at=metadata.end_at,
-                    )
+            for session_date in session_dates:
+                table = repository.read_session_table(dataset_ref, session_date)
+                rows_total += table.num_rows
+                volume = rth_session_volume_from_trade_table(
+                    table,
+                    session_date=session_date,
+                    resolver=resolver,
                 )
-            )
-        filtered = [
-            record for record in records if start_session <= record.session_date <= end_session
-        ]
-        records_by_contract[contract_code] = filtered
+                if volume > 0:
+                    volumes[session_date][contract_code] = volume
+
         if timer is not None:
             rss_mb = process_rss_mb()
             rss_text = f" rss_mb={rss_mb:.1f}" if rss_mb is not None else ""
             timer.log(
                 f"[{index}/{len(contract_dataset_refs)}] roll_schedule loaded {contract_code} "
-                f"rows={len(filtered)}{rss_text}"
+                f"sessions={len(session_dates)} rows={rows_total}{rss_text}"
             )
-    return records_by_contract
+
+    return {
+        session_date: dict(contract_volumes)
+        for session_date, contract_volumes in volumes.items()
+        if contract_volumes
+    }
 
 
 def build_roll_schedule(
@@ -161,7 +172,6 @@ def build_roll_schedule(
         msg = "contract_dataset_refs must not be empty"
         raise ValidationError(msg)
 
-    dataset_registry = registry or FileDatasetRegistry(request.storage_root)
     roll_repository = repository or RollScheduleRepository(request.storage_root)
     utc_clock = clock or SystemClock()
     resolver = session_resolver or CmeEsRthSessionResolver()
@@ -177,17 +187,12 @@ def build_roll_schedule(
         product=request.product,
         confirmation_sessions=request.confirmation_sessions,
     )
-    with _optional_phase("roll_schedule.load_contract_records"):
-        records_by_contract = _load_contract_records(
+    with _optional_phase("roll_schedule.aggregate_volumes"):
+        session_volumes = _aggregate_rth_session_volumes_from_partitions(
             request.storage_root,
             request.contract_dataset_refs,
             start_session=start_session,
             end_session=end_session,
-            registry=dataset_registry,
-        )
-    with _optional_phase("roll_schedule.aggregate_volumes"):
-        session_volumes = aggregate_rth_session_volumes(
-            records_by_contract,
             resolver=resolver,
         )
     if not session_volumes:
