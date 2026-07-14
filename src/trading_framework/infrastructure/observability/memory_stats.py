@@ -34,9 +34,12 @@ def _windows_working_set_mb() -> float | None:
 
     counters = ProcessMemoryCounters()
     counters.cb = ctypes.sizeof(ProcessMemoryCounters)
-    process_handle = ctypes.windll.kernel32.GetCurrentProcess()
+    windll = getattr(ctypes, "windll", None)
+    if windll is None:
+        return None
+    process_handle = windll.kernel32.GetCurrentProcess()
     if (
-        ctypes.windll.psapi.GetProcessMemoryInfo(
+        windll.psapi.GetProcessMemoryInfo(
             process_handle,
             ctypes.byref(counters),
             counters.cb,
