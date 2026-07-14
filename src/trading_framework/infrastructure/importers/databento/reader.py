@@ -39,8 +39,17 @@ class DatabentoDBNTradeReader:
             return
         yield from iterator
 
-    def iter_trades(self, path: Path) -> Iterator[MarketTrade]:
+    def iter_trades(
+        self,
+        path: Path,
+        *,
+        provider_symbol: str | None = None,
+    ) -> Iterator[MarketTrade]:
         """Yield canonical market trades from a trades DBN archive."""
         for chunk in self.iter_raw_chunks(path):
             for row in chunk.itertuples(index=False):
+                if provider_symbol is not None:
+                    symbol = getattr(row, "symbol", None)
+                    if symbol is not None and str(symbol) != provider_symbol:
+                        continue
                 yield map_databento_trades_row(row)
