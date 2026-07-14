@@ -19,7 +19,7 @@ def _windows_working_set_mb() -> float | None:
         return None
 
     class ProcessMemoryCounters(ctypes.Structure):
-        _fields_ = [  # noqa: RUF012
+        _fields_ = [
             ("cb", wintypes.DWORD),
             ("PageFaultCount", wintypes.DWORD),
             ("PeakWorkingSetSize", ctypes.c_size_t),
