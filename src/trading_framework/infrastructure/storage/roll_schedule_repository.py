@@ -30,15 +30,21 @@ from trading_framework.market.continuous.schedule import (
 
 def allocate_roll_schedule_version(root: Path, *, product: str, policy_slug: str) -> int:
     """Allocate the next roll schedule version for one product and policy."""
+    latest = latest_roll_schedule_version(root, product=product, policy_slug=policy_slug)
+    return 1 if latest is None else latest + 1
+
+
+def latest_roll_schedule_version(root: Path, *, product: str, policy_slug: str) -> int | None:
+    """Return the latest persisted roll schedule version when present."""
     base = root / "continuous" / "schedules" / product / policy_slug
     if not base.exists():
-        return 1
+        return None
     versions = [
         int(path.name.removeprefix("v"))
         for path in base.iterdir()
         if path.is_dir() and path.name.startswith("v") and path.name.removeprefix("v").isdigit()
     ]
-    return max(versions, default=0) + 1
+    return None if not versions else max(versions)
 
 
 def compute_roll_schedule_source_fingerprint(
