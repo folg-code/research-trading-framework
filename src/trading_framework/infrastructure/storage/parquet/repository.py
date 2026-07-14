@@ -8,7 +8,12 @@ from typing import Protocol
 import pyarrow as pa
 
 from trading_framework.core.exceptions import ValidationError
-from trading_framework.infrastructure.storage.parquet.writer import ParquetBarWriter
+from trading_framework.core.profiling import optional_phase
+from trading_framework.infrastructure.storage.parquet.writer import (
+    ParquetBarWriter,
+    filter_table_by_observed_range,
+    market_bars_from_table,
+)
 from trading_framework.infrastructure.storage.paths import (
     dataset_bars_path,
     dataset_ohlcv_partition_path,
@@ -65,23 +70,34 @@ class ParquetDatasetRepository:
 
     def query_bars(self, query: HistoricalBarQuery) -> Sequence[MarketBar]:
         """Return bars in time order for the requested dataset range."""
-        session_dates = list_ohlcv_session_dates(self._root, query.dataset_ref)
+        with optional_phase("ohlcv.list_session_dates"):
+            session_dates = list_ohlcv_session_dates(self._root, query.dataset_ref)
         if session_dates:
-            matched: list[MarketBar] = []
-            for session_date in session_dates:
-                path = dataset_ohlcv_partition_path(self._root, query.dataset_ref, session_date)
-                if not path.exists():
-                    continue
-                for bar in self._writer.read(path):
-                    if query.start_at <= bar.observed_at <= query.end_at:
-                        matched.append(bar)
-            if matched:
-                return sorted(matched, key=lambda bar: bar.observed_at)
+            tables: list[pa.Table] = []
+            with optional_phase("ohlcv.read_partition_files"):
+                for session_date in session_dates:
+                    path = dataset_ohlcv_partition_path(self._root, query.dataset_ref, session_date)
+                    if not path.exists():
+                        continue
+                    tables.append(self._writer.read_table(path))
+            if tables:
+                with optional_phase("ohlcv.read_partitioned"):
+                    combined = tables[0] if len(tables) == 1 else pa.concat_tables(tables)
+                    filtered = filter_table_by_observed_range(
+                        combined,
+                        start_at=query.start_at,
+                        end_at=query.end_at,
+                    )
+                    bars = market_bars_from_table(filtered)
+                if bars:
+                    with optional_phase("ohlcv.sort_partitioned_bars"):
+                        return sorted(bars, key=lambda bar: bar.observed_at)
 
         path = dataset_bars_path(self._root, query.dataset_ref)
         if not path.exists():
             return []
-        bars = self._writer.read(path)
+        with optional_phase("ohlcv.read_legacy_file"):
+            bars = self._writer.read(path)
         return [bar for bar in bars if query.start_at <= bar.observed_at <= query.end_at]
 
     def _assert_mutable(self, dataset_ref: DatasetRef) -> None:

@@ -21,6 +21,7 @@ from trading_framework.application.market_data.query_historical import (
 from trading_framework.application.model_evaluation import EvaluateModelsRequest, evaluate_models
 from trading_framework.application.strategy_research.entry_signals import build_gated_entry_signals
 from trading_framework.core.exceptions import ValidationError
+from trading_framework.core.profiling import optional_phase
 from trading_framework.market.datasets import DatasetRef
 from trading_framework.market.models import MarketBar
 from trading_framework.market_analysis.models.time_range import TimeRange
@@ -109,55 +110,60 @@ def run_strategy_research(
         evaluation_timeframe=evaluation_timeframe,
         session_resolver=request.session_resolver,
     )
-    computation_range = resolve_analysis_computation_range(analysis_request)
-    preloaded_bars = tuple(
-        query_historical(
-            QueryHistoricalRequest(
+    with optional_phase("strategy_research.plan_computation_range"):
+        computation_range = resolve_analysis_computation_range(analysis_request)
+    with optional_phase("strategy_research.load_ohlcv"):
+        preloaded_bars = tuple(
+            query_historical(
+                QueryHistoricalRequest(
+                    dataset_ref=request.dataset_ref,
+                    start_at=computation_range.start,
+                    end_at=computation_range.end,
+                ),
+                storage_root=request.storage_root,
+            )
+        )
+    with optional_phase("strategy_research.evaluate_models"):
+        eval_result = evaluate_models(
+            EvaluateModelsRequest(
                 dataset_ref=request.dataset_ref,
-                start_at=computation_range.start,
-                end_at=computation_range.end,
-            ),
-            storage_root=request.storage_root,
+                timeframe=request.timeframe,
+                requested_range=request.requested_range,
+                storage_root=request.storage_root,
+                market_models=(strategy_model.market_model,),
+                signal_models=(strategy_model.signal_model,),
+                evaluation_timeframe=evaluation_timeframe,
+                session_resolver=request.session_resolver,
+                preloaded_bars=preloaded_bars,
+            )
         )
-    )
-    eval_result = evaluate_models(
-        EvaluateModelsRequest(
-            dataset_ref=request.dataset_ref,
-            timeframe=request.timeframe,
-            requested_range=request.requested_range,
-            storage_root=request.storage_root,
-            market_models=(strategy_model.market_model,),
-            signal_models=(strategy_model.signal_model,),
-            evaluation_timeframe=evaluation_timeframe,
-            session_resolver=request.session_resolver,
-            preloaded_bars=preloaded_bars,
-        )
-    )
     frame = eval_result.analysis.frame
     if frame is None:
         msg = "strategy research requires an assembled AnalysisFrame"
         raise StrategyResearchError(msg)
 
-    signal_emissions = eval_result.signal_model_emissions[
-        strategy_model.signal_model.signal_model_id
-    ]
-    market_state = eval_result.market_model_results[strategy_model.market_model.market_model_id]
-    entry_signals = build_gated_entry_signals(
-        signal_emissions=signal_emissions,
-        market_state=market_state,
-    )
+    with optional_phase("strategy_research.build_entry_signals"):
+        signal_emissions = eval_result.signal_model_emissions[
+            strategy_model.signal_model.signal_model_id
+        ]
+        market_state = eval_result.market_model_results[strategy_model.market_model.market_model_id]
+        entry_signals = build_gated_entry_signals(
+            signal_emissions=signal_emissions,
+            market_state=market_state,
+        )
+        bars = _bars_in_requested_range(preloaded_bars, request.requested_range)
 
-    bars = _bars_in_requested_range(preloaded_bars, request.requested_range)
     source_dataset_ref = str(request.dataset_ref)
     instrument = request.dataset_ref.dataset_id.instrument_id.value
-    simulation = BarSequentialSimulator().simulate(
-        bars=bars,
-        entry_signals=entry_signals,
-        strategy_model=strategy_model,
-        assumptions=request.assumptions,
-        instrument=instrument,
-        source_dataset_ref=source_dataset_ref,
-    )
+    with optional_phase("strategy_research.simulate"):
+        simulation = BarSequentialSimulator().simulate(
+            bars=bars,
+            entry_signals=entry_signals,
+            strategy_model=strategy_model,
+            assumptions=request.assumptions,
+            instrument=instrument,
+            source_dataset_ref=source_dataset_ref,
+        )
 
     assumptions_fingerprint = simulation_assumptions_fingerprint(request.assumptions)
     run_id = derive_strategy_run_id(
@@ -197,8 +203,9 @@ def run_strategy_research(
     )
     run_ref = StrategyResearchRunRef(run_id=run_id)
     if request.persist:
-        repo = repository or StrategyResearchDatasetRepository(request.storage_root)
-        run_ref = repo.write(envelope)
+        with optional_phase("strategy_research.persist_run"):
+            repo = repository or StrategyResearchDatasetRepository(request.storage_root)
+            run_ref = repo.write(envelope)
 
     return RunStrategyResearchResult(
         run_id=run_id,

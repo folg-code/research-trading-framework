@@ -46,6 +46,7 @@ class OutputFieldSpec:
     dtype: str
     group: OutputGroup = OutputGroup.CORE
     alignment_policy: AlignmentPolicy = AlignmentPolicy.LAST_CLOSED_BAR
+    inactive_event_fill: float | None = None
 
     def __post_init__(self) -> None:
         normalized_dtype = self.dtype.strip().lower()
@@ -54,6 +55,16 @@ class OutputFieldSpec:
             raise ValidationError(msg)
         if normalized_dtype != self.dtype:
             object.__setattr__(self, "dtype", normalized_dtype)
+        if self.alignment_policy is AlignmentPolicy.EVENT_AT_AVAILABLE:
+            if self.inactive_event_fill is None:
+                msg = (
+                    f"output {self.output_id.value!r} with EVENT_AT_AVAILABLE "
+                    "must declare inactive_event_fill"
+                )
+                raise ValidationError(msg)
+        elif self.inactive_event_fill is not None:
+            msg = "inactive_event_fill is only valid for EVENT_AT_AVAILABLE outputs"
+            raise ValidationError(msg)
 
 
 @dataclass(frozen=True, slots=True)

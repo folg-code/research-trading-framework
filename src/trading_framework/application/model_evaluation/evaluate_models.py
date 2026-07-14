@@ -10,6 +10,7 @@ from trading_framework.application.market_analysis.run_analysis import (
     RunAnalysisRequest,
     run_analysis,
 )
+from trading_framework.core.profiling import optional_phase
 from trading_framework.market.datasets import DatasetRef
 from trading_framework.market.models import MarketBar
 from trading_framework.market_analysis.assembly.frame import AnalysisFrame
@@ -66,58 +67,68 @@ def evaluate_models(
 ) -> EvaluateModelsResult:
     """Run Market Analysis once and evaluate all requested models on one frame."""
     component_registry = registry or default_mvp_registry()
-    _validate_models(
-        market_models=request.market_models,
-        signal_models=request.signal_models,
-        registry=component_registry,
-    )
-    dependencies = collect_model_dependencies(
-        market_models=request.market_models,
-        signal_models=request.signal_models,
-    )
-    frame_request = build_analysis_frame_request(dependencies)
-    analysis = run_analysis(
-        RunAnalysisRequest(
-            dataset_ref=request.dataset_ref,
-            timeframe=request.timeframe,
-            requested_range=request.requested_range,
-            storage_root=request.storage_root,
-            component_requests=dependencies.component_requests,
-            frame_request=frame_request,
-            evaluation_timeframe=request.evaluation_timeframe,
-            session_resolver=request.session_resolver,
-            preloaded_bars=request.preloaded_bars,
-        ),
-        registry=component_registry,
-    )
+    with optional_phase("evaluate_models.validate"):
+        _validate_models(
+            market_models=request.market_models,
+            signal_models=request.signal_models,
+            registry=component_registry,
+        )
+    with optional_phase("evaluate_models.collect_dependencies"):
+        dependencies = collect_model_dependencies(
+            market_models=request.market_models,
+            signal_models=request.signal_models,
+        )
+        frame_request = build_analysis_frame_request(dependencies)
+    with optional_phase("evaluate_models.run_analysis"):
+        analysis = run_analysis(
+            RunAnalysisRequest(
+                dataset_ref=request.dataset_ref,
+                timeframe=request.timeframe,
+                requested_range=request.requested_range,
+                storage_root=request.storage_root,
+                component_requests=dependencies.component_requests,
+                frame_request=frame_request,
+                evaluation_timeframe=request.evaluation_timeframe,
+                session_resolver=request.session_resolver,
+                preloaded_bars=request.preloaded_bars,
+            ),
+            registry=component_registry,
+        )
     frame = _require_frame(analysis.frame)
     evaluation_timeframe = request.evaluation_timeframe or request.timeframe
     market_evaluator = MarketModelEvaluator()
     signal_evaluator = SignalModelEvaluator()
-    market_results = {
-        definition.market_model_id: market_evaluator.evaluate(
-            definition,
-            frame,
-            evaluation_timeframe=evaluation_timeframe,
-        )
-        for definition in request.market_models
-    }
-    signal_conditions = {
-        definition.signal_model_id: signal_evaluator.evaluate_condition(
-            definition,
-            frame,
-            evaluation_timeframe=evaluation_timeframe,
-        )
-        for definition in request.signal_models
-    }
-    signal_emissions = {
-        definition.signal_model_id: signal_evaluator.evaluate_emissions(
-            definition,
-            frame,
-            evaluation_timeframe=evaluation_timeframe,
-        )
-        for definition in request.signal_models
-    }
+    market_results: dict[str, pl.DataFrame] = {}
+    with optional_phase("evaluate_models.market_models"):
+        for market_model in request.market_models:
+            with optional_phase(f"evaluate_models.market_model.{market_model.market_model_id}"):
+                market_results[market_model.market_model_id] = market_evaluator.evaluate(
+                    market_model,
+                    frame,
+                    evaluation_timeframe=evaluation_timeframe,
+                )
+    signal_conditions: dict[str, pl.DataFrame] = {}
+    with optional_phase("evaluate_models.signal_conditions"):
+        for signal_model in request.signal_models:
+            with optional_phase(f"evaluate_models.signal_condition.{signal_model.signal_model_id}"):
+                signal_conditions[signal_model.signal_model_id] = (
+                    signal_evaluator.evaluate_condition(
+                        signal_model,
+                        frame,
+                        evaluation_timeframe=evaluation_timeframe,
+                    )
+                )
+    signal_emissions: dict[str, pl.DataFrame] = {}
+    with optional_phase("evaluate_models.signal_emissions"):
+        for signal_model in request.signal_models:
+            with optional_phase(f"evaluate_models.signal_emission.{signal_model.signal_model_id}"):
+                signal_emissions[signal_model.signal_model_id] = (
+                    signal_evaluator.evaluate_emissions(
+                        signal_model,
+                        frame,
+                        evaluation_timeframe=evaluation_timeframe,
+                    )
+                )
     return EvaluateModelsResult(
         analysis=analysis,
         market_model_results=market_results,

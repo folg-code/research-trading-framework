@@ -187,6 +187,7 @@ def test_event_at_available_projects_single_bar_not_forward_filled() -> None:
         values=values,
         available_at=available_at,
         evaluation_timestamps=evaluation_timestamps,
+        inactive_event_fill=0.0,
     )
     assert aligned[evaluation_timestamps.index(_utc(2024, 6, 3, 10, 9))] == 0.0
     assert aligned[evaluation_timestamps.index(_utc(2024, 6, 3, 10, 10))] == 1.0
@@ -211,6 +212,7 @@ def test_last_closed_bar_would_forward_fill_event_flags() -> None:
         values=values,
         available_at=available_at,
         evaluation_timestamps=evaluation_timestamps,
+        inactive_event_fill=0.0,
     )
     assert sum(value == 1.0 for value in last_closed) > sum(
         value == 1.0 for value in event_at_available

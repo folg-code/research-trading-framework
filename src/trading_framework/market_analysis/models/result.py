@@ -19,6 +19,7 @@ class OutputSeries:
     values: tuple[float, ...]
     dtype: str = "float64"
     available_at: tuple[datetime, ...] | None = None
+    inactive_event_fill: float | None = None
 
     def __post_init__(self) -> None:
         normalized_dtype = self.dtype.strip().lower()

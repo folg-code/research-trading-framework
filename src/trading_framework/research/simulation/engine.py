@@ -10,6 +10,7 @@ from decimal import Decimal
 import polars as pl
 
 from trading_framework.core.exceptions import ValidationError
+from trading_framework.core.profiling import optional_phase
 from trading_framework.market.models import MarketBar
 from trading_framework.research.simulation.assumptions import SimulationAssumptions
 from trading_framework.research.simulation.compile import compile_simulation_input
@@ -66,31 +67,34 @@ class BarSequentialSimulator:
         _validate_entry_signals(entry_signals)
         exit_model = _require_fixed_bars_exit(strategy_model)
         risk_model = _require_fixed_quantity_risk(strategy_model)
-        compiled = compile_simulation_input(
-            bars=ordered_bars,
-            entry_signals=entry_signals,
-        )
+        with optional_phase("simulate.compile_input"):
+            compiled = compile_simulation_input(
+                bars=ordered_bars,
+                entry_signals=entry_signals,
+            )
         quantity = risk_model.position_quantity()
-        kernel_result = run_fixed_bars_kernel(
-            compiled,
-            exit_after_bars=exit_model.exit_after_bars,
-            quantity=float(quantity),
-            slippage_bps=float(assumptions.slippage_bps),
-            commission_per_side=float(assumptions.commission_per_side),
-            initial_capital=float(assumptions.initial_capital),
-        )
-        trades = materialize_kernel_trades(
-            kernel_result,
-            strategy_model_id=strategy_model.strategy_model_id,
-            instrument=instrument,
-            source_dataset_ref=source_dataset_ref,
-            exit_reason=exit_model.default_exit_reason,
-            quantity=quantity,
-        )
-        equity = materialize_kernel_equity(
-            kernel_result,
-            compiled.bars.observed_at_ns,
-        )
+        with optional_phase("simulate.run_kernel"):
+            kernel_result = run_fixed_bars_kernel(
+                compiled,
+                exit_after_bars=exit_model.exit_after_bars,
+                quantity=float(quantity),
+                slippage_bps=float(assumptions.slippage_bps),
+                commission_per_side=float(assumptions.commission_per_side),
+                initial_capital=float(assumptions.initial_capital),
+            )
+        with optional_phase("simulate.materialize_results"):
+            trades = materialize_kernel_trades(
+                kernel_result,
+                strategy_model_id=strategy_model.strategy_model_id,
+                instrument=instrument,
+                source_dataset_ref=source_dataset_ref,
+                exit_reason=exit_model.default_exit_reason,
+                quantity=quantity,
+            )
+            equity = materialize_kernel_equity(
+                kernel_result,
+                compiled.bars.observed_at_ns,
+            )
         return SimulationResult(
             trades=simulated_trades_to_dataframe(trades),
             equity=equity_points_to_dataframe(equity),
