@@ -1,5 +1,9 @@
 """Market data application workflows."""
 
+from trading_framework.application.market_data.derive_ohlcv_from_trades import (
+    DeriveOhlcvFromTradesResult,
+    derive_ohlcv_from_trades,
+)
 from trading_framework.application.market_data.finalize_dataset import finalize_dataset
 from trading_framework.application.market_data.import_databento_trades_archive import (
     ImportDatabentoTradesArchiveResult,
@@ -21,11 +25,13 @@ from trading_framework.application.market_data.query_trades import (
 )
 
 __all__ = [
+    "DeriveOhlcvFromTradesResult",
     "ImportDatabentoTradesArchiveResult",
     "ImportExternalDatasetRequest",
     "ImportExternalDatasetResult",
     "QueryHistoricalRequest",
     "QueryTradesRequest",
+    "derive_ohlcv_from_trades",
     "finalize_dataset",
     "import_databento_trades_archive",
     "import_external_dataset",
