@@ -146,14 +146,14 @@ effective date range, framework version.
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S013-T008 | `StrategyResearchRunEnvelope`, manifest, repository (write + read) | TODO |
-| S013-T009 | `run_strategy_research` application workflow | TODO |
+| S013-T008 | `StrategyResearchRunEnvelope`, manifest, repository (write + read) | DONE |
+| S013-T009 | `run_strategy_research` application workflow | DONE |
 
 ### Wave 4 — Integration and tests
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S013-T010 | E2E integration: published OHLCV → run → read-back | TODO |
+| S013-T010 | E2E integration: published OHLCV → run → read-back | DONE |
 | S013-T011 | Unit tests: assumptions, fill math, engine edge cases | TODO |
 
 ### Wave 5 — Analytics, CLI, closure
@@ -165,7 +165,7 @@ effective date range, framework version.
 | S013-T014 | ADR-0016 + `MODULE_MAP.md` + `DATA_WORKFLOWS.md` | TODO |
 | S013-T015 | Sprint closure + `CURRENT_STATUS.md` update | TODO |
 
-**Progress:** 7 / 15 tasks
+**Progress:** 10 / 15 tasks
 
 ---
 
