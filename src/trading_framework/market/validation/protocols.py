@@ -27,7 +27,7 @@ class ValidationIssue:
 
 @dataclass(frozen=True, slots=True)
 class ValidationResult:
-    """Explicit validation outcome for OHLCV data."""
+    """Explicit validation outcome for market fact batches."""
 
     issues: tuple[ValidationIssue, ...]
 

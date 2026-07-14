@@ -7,9 +7,9 @@ Package map for `src/trading_framework/`: responsibility, dependencies, status, 
 
 **Status legend:** ✅ implemented · 🟡 partial / in sprint · ⬜ skeleton · 📘 deep doc elsewhere
 
-Last updated: 2026-07-12 (Sprint 010 complete on `main`; next planned: Phase 2B / Sprint 011)
+Last updated: 2026-07-14 (Sprint 011 complete on `sprint/historical-archive-import`; Phase 2B + 2C.1 trades import)
 
-**Roadmap:** parallel capability tracks and phase families — `docs/planning/ROADMAP.md` §3. Sprint 002 delivered Phase 2A (OHLCV only).
+**Roadmap:** parallel capability tracks and phase families — `docs/planning/ROADMAP.md` §3. Sprint 002 delivered Phase 2A (OHLCV only). Sprint 011 delivered Phase 2B + 2C.1 (Databento trades).
 
 ---
 
@@ -62,7 +62,9 @@ execution/, events/          ⬜ future domains
 
 ---
 
-## Market Data (Sprint 002 — Phase 2A) ✅
+## Market Data (Sprint 002 — Phase 2A; Sprint 011 — Phase 2B + 2C.1) ✅
+
+### OHLCV (Phase 2A)
 
 End-to-end flow:
 
@@ -71,11 +73,30 @@ CSV file
   → import_external_dataset
   → normalize (UTC OHLCV)
   → validate
-  → Parquet write
+  → Parquet write (bars.parquet)
   → register in FileDatasetRegistry
   → finalize_dataset → publish_dataset
   → query_historical → list[MarketBar]
 ```
+
+### Trades archive (Phase 2B + 2C.1 — Sprint 011)
+
+End-to-end flow:
+
+```text
+Databento DBN trades archive
+  → import_databento_trades_archive
+  → inspect + source SHA-256
+  → chunked decode → MarketTrade
+  → validate → day-partitioned Parquet
+  → import_manifest.json
+  → register WORKING → finalize → publish
+  → query_trades → list[MarketTrade]
+```
+
+CLI: `scripts/databento/inspect_dbn.py`, `scripts/databento/import_trades.py`
+
+ADR: [ADR-0014](../adr/ADR-0014-historical-archive-import-and-market-trade-storage.md)
 
 Deep reference: 📘 [modules/DATA_MODULE_UPDATED.md](modules/DATA_MODULE_UPDATED.md)
 
@@ -83,29 +104,31 @@ Deep reference: 📘 [modules/DATA_MODULE_UPDATED.md](modules/DATA_MODULE_UPDATE
 
 | | |
 |---|---|
-| **Responsibility** | Domain models: instrument, bar, dataset identity, lifecycle, repository protocols |
+| **Responsibility** | Domain models: instrument, bar, **trade**, dataset identity, lifecycle, repository protocols |
 | **Talks to** | `application/market_data`, `infrastructure/storage`, `market_analysis` (via `DatasetRef`, bars) |
-| **Key paths** | `models/bar.py`, `datasets/identity.py`, `datasets/metadata.py`, `repositories/protocols.py` |
-| **Public types** | `MarketBar`, `DatasetRef`, `DatasetState`, `Instrument` |
+| **Key paths** | `models/bar.py`, `models/trade.py`, `datasets/identity.py`, `datasets/metadata.py`, `repositories/protocols.py`, `importers/archive.py`, `importers/trades_config.py` |
+| **Public types** | `MarketBar`, `MarketTrade`, `TradeSide`, `DatasetRef`, `DatasetState`, `Instrument`, `ImportManifest` |
 
 ### `application/market_data/` ✅
 
 | | |
 |---|---|
-| **Responsibility** | Dataset import, finalize, publish, historical query workflows |
+| **Responsibility** | Dataset import, finalize, publish, historical query workflows (bars and trades) |
 | **Talks to** | `market` domain, `infrastructure` adapters |
-| **Key paths** | `import_external_dataset.py`, `finalize_dataset.py`, `publish_dataset.py`, `query_historical.py` |
-| **Entry points** | `import_external_dataset`, `finalize_dataset`, `publish_dataset`, `query_historical` |
+| **Key paths** | `import_external_dataset.py`, `import_databento_trades_archive.py`, `finalize_dataset.py`, `publish_dataset.py`, `query_historical.py`, `query_trades.py` |
+| **Entry points** | `import_external_dataset`, `import_databento_trades_archive`, `finalize_dataset`, `publish_dataset`, `query_historical`, `query_trades` |
 
 ### `infrastructure/` (market data slice) ✅
 
 | Subpackage | Responsibility |
 |------------|----------------|
 | `importers/csv/` | CSV inspection and OHLCV import |
+| `importers/databento/` | Databento DBN inspect, chunked trades decode, row mapping |
 | `normalization/` | UTC OHLCV normalizer |
-| `validation/` | OHLCV validator |
-| `storage/parquet/` | Parquet read/write (`Decimal` prices as string in storage) |
+| `validation/` | OHLCV and trade batch validators |
+| `storage/parquet/` | Bar and trade Parquet read/write; day-partitioned trade repository |
 | `storage/metadata/` | `FileDatasetRegistry` |
+| `storage/import_manifest_store.py` | Persist/load `import_manifest.json` |
 
 **Talks to:** `market` protocols only — not `market_analysis` or `strategy`.
 
@@ -271,8 +294,8 @@ ADR: [ADR-0011](../adr/ADR-0011-signal-research-outcomes-and-persistence.md),
 |---------|----------------|
 | `execution/` | Order execution domain (Execution Track — Phase 8+) |
 | `events/` | Domain events |
-| **Data Track 2B–2E** | Archive import (Databento DBN), `MarketTrade`/`MarketQuote`, options snapshots, live adapters (gated) — see `ROADMAP.md` §6 |
-| **Research Track 6A–6B** | OHLCV Strategy Research, then multi-data simulation — see `ROADMAP.md` §10 |
+| **Data Track 2B.2–2E** | Databento DBN OHLCV → `MarketBar`, quotes, options snapshots, live adapters (gated) — see `ROADMAP.md` §6 |
+| **Research Track 4B, 6A–6B** | Orderflow analysis, OHLCV Strategy Research, multi-data simulation — see `ROADMAP.md` §10 |
 
 Skeleton packages without public workflows beyond Signal Research slice above.
 
@@ -283,7 +306,9 @@ Skeleton packages without public workflows beyond Signal Research slice above.
 | Area | Test location |
 |------|----------------|
 | Architecture boundary | `tests/unit/test_architecture_boundaries.py` |
-| Market data integration | `tests/integration/market_data/` |
+| Market data integration | `tests/integration/market_data/` (CSV, mocked DBN trades, Tier 2 Databento opt-in) |
+| Databento unit tests | `tests/unit/infrastructure/databento/`, `tests/fixtures/databento/` |
+| Databento CLI | `tests/unit/scripts/test_databento_cli.py` |
 | Market analysis | `tests/unit/market_analysis/`, `tests/unit/application/market_analysis/`, `tests/integration/test_market_analysis_*` |
 | Signal Research integration | `tests/integration/test_s008_run_signal_research.py`, `tests/integration/test_s009_*`, `tests/integration/test_s010_signal_research_analytics.py` |
 | Signal Research spikes | `tests/spike/run_combined_research_spike.py`, `tests/spike/run_inspect_combined_research.py`, `tests/spike/run_signal_research_analytics_spike.py`, `tests/spike/run_signal_research_analytics_report.py` |

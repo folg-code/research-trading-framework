@@ -104,7 +104,7 @@ jobs:
         run: uv sync --locked --dev
 
       - name: Run integration tests
-        run: uv run pytest tests/integration -q
+        run: uv run pytest tests/integration -m "not tier2_databento" -q
 
   build:
     name: Build package

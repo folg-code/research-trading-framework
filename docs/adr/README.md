@@ -44,6 +44,7 @@ SUPERSEDED
 | [ADR-0011](ADR-0011-signal-research-outcomes-and-persistence.md) | Signal Research Outcomes and Persistence | ACCEPTED | Sprint 008 |
 | [ADR-0012](ADR-0012-combined-research-scopes-and-context-alignment.md) | Combined Research Scopes and Context Alignment | ACCEPTED | Sprint 009 |
 | [ADR-0013](ADR-0013-signal-research-analytics-boundary.md) | Signal Research Analytics Boundary | ACCEPTED | Sprint 010 |
+| [ADR-0014](ADR-0014-historical-archive-import-and-market-trade-storage.md) | Historical Archive Import and MarketTrade Partitioned Storage | ACCEPTED | Sprint 011 |
 | ADR-0004 | Independent Research and Execution Workflows | PLANNED | TBD |
 | ADR-0009 | Batch Backtest vs Replay Execution | PLANNED | TBD |
 | ADR-0010 | Working Component and Model Fingerprints | PLANNED | TBD |

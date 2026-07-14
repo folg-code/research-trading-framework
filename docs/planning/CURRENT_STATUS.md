@@ -26,14 +26,14 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 ## 2. Status Metadata
 
 ```text
-Status Date: 2026-07-12
-Current Phase: Roadmap Revision / Phase Entry Review (planning)
-Current Milestone: Phase 5 complete; Sprint 011 scope = Phase 2B recommended
-Implementation Status: Sprints 001–006, 008–010 COMPLETE on main; Sprint 007 SKIPPED
-Overall Status: IN_PROGRESS
-Active Sprint: none
-Last Completed Sprint: SPRINT_010 (merged to main, PR #93)
-Capability Tracks: Foundation COMPLETE; Data 2A COMPLETE; Research 3/4A/5 COMPLETE; Execution not started
+Status Date: 2026-07-14
+Current Phase: Phase 2B + 2C.1 complete (Sprint 011); pending sprint integration PR to main
+Current Milestone: Sprint 011 COMPLETE on sprint/historical-archive-import
+Implementation Status: Sprints 001–006, 008–011 COMPLETE on sprint branch; 008–010 on main; Sprint 007 SKIPPED
+Overall Status: IN_PROGRESS (sprint integration to main pending)
+Active Sprint: none (Sprint 011 closed on sprint branch)
+Last Completed Sprint: SPRINT_011 (sprint branch, PRs #95–#97)
+Capability Tracks: Foundation COMPLETE; Data 2A + 2B/2C.1 COMPLETE; Research 3/4A/5 COMPLETE; Execution not started
 ```
 
 ---
@@ -42,11 +42,21 @@ Capability Tracks: Foundation COMPLETE; Data 2A COMPLETE; Research 3/4A/5 COMPLE
 
 **Phase 5 — Signal Research MVP** is complete on `main` (PR #93, 2026-07-12).
 
-Complete the **Roadmap Revision / Phase Entry Review** before Sprint 011 implementation. See `ROADMAP.md` §3, §15.4.
+**Sprint 011 — Historical Archive Import Foundation** is **complete** on `sprint/historical-archive-import` (PRs #95–#97, 2026-07-14). Pending: sprint integration PR to `main`.
 
-**Recommended next sprint:** Phase 2B — Historical Archive Import Foundation (Databento DBN OHLCV vertical slice). Alternative after 2B slice: Phase 6A — OHLCV Strategy Research MVP.
+Delivered trades import flow:
 
-Delivered Signal Research flow:
+```text
+Databento DBN trades → import_databento_trades_archive
+    → day-partitioned MarketTrade Parquet + import_manifest.json
+    → finalize → publish → query_trades
+```
+
+ADR: ADR-0014. See `SPRINT_011.md` and `S011_WAVE0_DECISIONS.md`.
+
+**Next decision (post-Sprint 011):** Phase 2B.2 (DBN OHLCV), Phase 4B orderflow prep, or Phase 6A Strategy Research on CSV OHLCV — see `ROADMAP.md` §11 and `SPRINT_011.md` §11.
+
+Delivered Signal Research flow (on `main`):
 
 ```text
 Published OHLCV → run_signal_research → persisted envelope
@@ -90,6 +100,17 @@ Completed in Sprint 002 — OHLCV vertical slice only; trades, quotes, options a
 - integration test for full CSV import flow,
 - ADR-0007 (dataset lifecycle), ADR-0008 (Parquet storage),
 - CI triggers for `main` and `sprint/**` branches.
+
+### Phase 2B + 2C.1 — Trades Archive Import (Sprint 011)
+
+Complete on `sprint/historical-archive-import` (2026-07-14):
+
+- `MarketTrade`, `Timeframe("tick")`, archive import contracts, `ImportManifest`,
+- Databento adapter: inspect, chunked decode, side mapping,
+- day-partitioned trade Parquet, `ParquetTradeDatasetRepository`, `query_trades`,
+- `import_databento_trades_archive` workflow, CLI (`inspect_dbn.py`, `import_trades.py`),
+- Tier 1 mocked tests + opt-in `tier2_databento` integration tests,
+- ADR-0014; 458 tests at sprint closure.
 
 ### Phase 3 — Market Analysis Engine MVP
 
@@ -174,14 +195,15 @@ Maintenance: `.cursor/rules/documentation.mdc`
 
 ## 6. Work in Progress
 
-**Roadmap Revision / Phase Entry Review** (planning increment):
+Nothing actively in development. Sprint 011 closed on `sprint/historical-archive-import`; open sprint integration PR to `main` when ready.
 
-- capability tracks, test-data tiers and live-data gate in `ROADMAP.md` §3, §15,
-- PRB-017 registered,
-- `SPRINT_011.md` drafted for Phase 2B entry,
-- cross-doc alignment pass (2026-07-12): `PROJECT_MANAGEMENT_UPDATED.md`, `README.md`, `MODULE_MAP.md`, `DATA_WORKFLOWS.md`, `IDEA_INBOX`, `AGENTS_UPDATED.md`.
+### Sprint 011 — Closed
 
-Implementation sprint not started.
+**Status:** COMPLETE on `sprint/historical-archive-import` (2026-07-14)  
+**Plan:** `docs/planning/sprints/SPRINT_011.md`  
+**ADR:** ADR-0014  
+**Tasks:** 27 / 27 done  
+**PRs:** #95 (Wave 3), #96 (Wave 4), #97 (Wave 5); closure PR pending
 
 ### Sprint 010 — Closed
 
@@ -221,7 +243,7 @@ Implementation sprint not started.
 
 ## 7. Blocked Work
 
-Nothing is technically blocked. Sprint 011 scope is drafted in `SPRINT_011.md`; implementation has not started.
+Nothing is technically blocked. Next step: merge `sprint/historical-archive-import` → `main`, then choose post-sprint track (2B.2, 4B prep, or 6A).
 
 ---
 
@@ -267,6 +289,7 @@ PRB-002 and PRB-005 received partial MVP resolution in Sprint 003.
 | ADR-0011 | ACCEPTED (Sprint 008) |
 | ADR-0012 | ACCEPTED (Sprint 009) |
 | ADR-0013 | ACCEPTED (Sprint 010) |
+| ADR-0014 | ACCEPTED (Sprint 011) |
 | ADR-0004, ADR-0009, ADR-0010 | PLANNED |
 
 Binding decisions D-001–D-036 and workspace invariants are documented in the architecture files above; ADR materialization is Sprint 003 Wave 6 (including ADR-MA-007 workspace).
@@ -286,14 +309,13 @@ Binding decisions D-001–D-036 and workspace invariants are documented in the a
 ## 11. Next Planned Capability
 
 ```text
-Phase 2B — Historical Archive Import Foundation (recommended Sprint 011)
-    Databento DBN OHLCV archive → MarketBar → partitioned Parquet → DatasetRef
-
-Alternative after 2B slice:
-Phase 6A — OHLCV Strategy Research MVP
+Post-Sprint 011 decision (choose one):
+    A — Phase 2B.2: Databento DBN OHLCV → MarketBar (if archives acquired)
+    B — Phase 4B prep: orderflow on published trade datasets
+    C — Phase 6A: OHLCV Strategy Research MVP (CSV bars on main today)
 ```
 
-See `ROADMAP.md` §6, §15.4 and `docs/planning/sprints/SPRINT_011.md`.
+See `ROADMAP.md` §6, §10 and `SPRINT_011.md` §11.
 
 ---
 
@@ -311,6 +333,7 @@ See `ROADMAP.md` §6, §15.4 and `docs/planning/sprints/SPRINT_011.md`.
 | 008 | Signal Research computation MVP | COMPLETED | 11 / 11 tasks |
 | 009 | Combined research scopes | COMPLETED | 11 / 11 tasks |
 | 010 | Signal Research analytics | COMPLETED | 11 / 11 tasks |
+| 011 | Historical archive import — trades DBN (Phase 2B + 2C.1) | COMPLETED | 27 / 27 tasks |
 
 ---
 

@@ -6,9 +6,11 @@ from trading_framework.market.validation.protocols import (
     ValidationResult,
     ValidationSeverity,
 )
+from trading_framework.market.validation.trade_protocols import TradeValidator
 
 __all__ = [
     "OhlcvValidator",
+    "TradeValidator",
     "ValidationIssue",
     "ValidationResult",
     "ValidationSeverity",

@@ -20,6 +20,17 @@ def test_timeframe_total_seconds(value: str, expected_seconds: int) -> None:
     assert timeframe.total_seconds == expected_seconds
 
 
+def test_tick_timeframe_is_event_level() -> None:
+    timeframe = Timeframe("tick")
+    assert timeframe.is_event_level
+    assert timeframe.value == "tick"
+
+
+def test_tick_timeframe_has_no_bar_duration() -> None:
+    with pytest.raises(ValidationError, match="event-level timeframe tick"):
+        _ = Timeframe("tick").total_seconds
+
+
 def test_timeframe_normalizes_case_and_whitespace() -> None:
     timeframe = Timeframe(" 1H ")
     assert timeframe.value == "1h"
