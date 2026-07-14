@@ -139,8 +139,8 @@ effective date range, framework version.
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S013-T006 | `BarSequentialSimulator` domain engine | TODO |
-| S013-T007 | `SimulatedTrade` + `EquityPoint` fact types and Polars schemas | TODO |
+| S013-T006 | `BarSequentialSimulator` domain engine | DONE |
+| S013-T007 | `SimulatedTrade` + `EquityPoint` fact types and Polars schemas | DONE |
 
 ### Wave 3 — Persistence and workflow
 
@@ -165,7 +165,7 @@ effective date range, framework version.
 | S013-T014 | ADR-0016 + `MODULE_MAP.md` + `DATA_WORKFLOWS.md` | TODO |
 | S013-T015 | Sprint closure + `CURRENT_STATUS.md` update | TODO |
 
-**Progress:** 5 / 15 tasks
+**Progress:** 7 / 15 tasks
 
 ---
 
