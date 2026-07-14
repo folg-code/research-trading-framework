@@ -14,12 +14,17 @@ from trading_framework.core.profiling import optional_phase
 from trading_framework.market.datasets import DatasetRef
 from trading_framework.market.models import MarketBar
 from trading_framework.market_analysis.assembly.frame import AnalysisFrame
+from trading_framework.market_analysis.data.columnar import OhlcvColumnBatch
+from trading_framework.market_analysis.data.view import AnalysisDataView
 from trading_framework.market_analysis.models.time_range import TimeRange
 from trading_framework.market_analysis.registry.builtins import default_mvp_registry
 from trading_framework.market_analysis.registry.registry import ComponentRegistry
 from trading_framework.market_model.definitions import MarketModelDefinition
 from trading_framework.market_model.evaluation import MarketModelEvaluator
 from trading_framework.model_expression.errors import ModelExpressionError
+from trading_framework.model_expression.evaluation.evaluator import ExpressionEvaluator
+from trading_framework.model_expression.evaluation.frame_adapter import build_evaluation_dataframe
+from trading_framework.model_expression.expressions import Expression
 from trading_framework.model_expression.planning import (
     build_analysis_frame_request,
     collect_model_dependencies,
@@ -48,6 +53,8 @@ class EvaluateModelsRequest:
     evaluation_timeframe: Timeframe | None = None
     session_resolver: TradingSessionResolver | None = None
     preloaded_bars: tuple[MarketBar, ...] | None = None
+    preloaded_column_batch: OhlcvColumnBatch | None = None
+    preloaded_view: AnalysisDataView | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -91,13 +98,24 @@ def evaluate_models(
                 evaluation_timeframe=request.evaluation_timeframe,
                 session_resolver=request.session_resolver,
                 preloaded_bars=request.preloaded_bars,
+                preloaded_column_batch=request.preloaded_column_batch,
+                preloaded_view=request.preloaded_view,
             ),
             registry=component_registry,
         )
     frame = _require_frame(analysis.frame)
     evaluation_timeframe = request.evaluation_timeframe or request.timeframe
-    market_evaluator = MarketModelEvaluator()
-    signal_evaluator = SignalModelEvaluator()
+    expression_evaluator = ExpressionEvaluator()
+    market_evaluator = MarketModelEvaluator(expression_evaluator=expression_evaluator)
+    signal_evaluator = SignalModelEvaluator(expression_evaluator=expression_evaluator)
+    with optional_phase("evaluate_models.build_evaluation_table"):
+        evaluation_table = _build_shared_evaluation_table(
+            frame=frame,
+            market_models=request.market_models,
+            signal_models=request.signal_models,
+            evaluation_timeframe=evaluation_timeframe,
+            expression_evaluator=expression_evaluator,
+        )
     market_results: dict[str, pl.DataFrame] = {}
     with optional_phase("evaluate_models.market_models"):
         for market_model in request.market_models:
@@ -106,27 +124,28 @@ def evaluate_models(
                     market_model,
                     frame,
                     evaluation_timeframe=evaluation_timeframe,
+                    evaluation_table=evaluation_table,
                 )
     signal_conditions: dict[str, pl.DataFrame] = {}
-    with optional_phase("evaluate_models.signal_conditions"):
+    signal_emissions: dict[str, pl.DataFrame] = {}
+    with optional_phase("evaluate_models.signal_models"):
         for signal_model in request.signal_models:
             with optional_phase(f"evaluate_models.signal_condition.{signal_model.signal_model_id}"):
-                signal_conditions[signal_model.signal_model_id] = (
-                    signal_evaluator.evaluate_condition(
-                        signal_model,
-                        frame,
-                        evaluation_timeframe=evaluation_timeframe,
-                    )
+                condition = signal_evaluator.evaluate_condition(
+                    signal_model,
+                    frame,
+                    evaluation_timeframe=evaluation_timeframe,
+                    evaluation_table=evaluation_table,
                 )
-    signal_emissions: dict[str, pl.DataFrame] = {}
-    with optional_phase("evaluate_models.signal_emissions"):
-        for signal_model in request.signal_models:
+                signal_conditions[signal_model.signal_model_id] = condition
             with optional_phase(f"evaluate_models.signal_emission.{signal_model.signal_model_id}"):
                 signal_emissions[signal_model.signal_model_id] = (
                     signal_evaluator.evaluate_emissions(
                         signal_model,
                         frame,
                         evaluation_timeframe=evaluation_timeframe,
+                        condition=condition,
+                        evaluation_table=evaluation_table,
                     )
                 )
     return EvaluateModelsResult(
@@ -135,6 +154,45 @@ def evaluate_models(
         signal_model_conditions=signal_conditions,
         signal_model_emissions=signal_emissions,
     )
+
+
+def _build_shared_evaluation_table(
+    *,
+    frame: AnalysisFrame,
+    market_models: tuple[MarketModelDefinition, ...],
+    signal_models: tuple[SignalModelDefinition, ...],
+    evaluation_timeframe: Timeframe,
+    expression_evaluator: ExpressionEvaluator,
+) -> pl.DataFrame | None:
+    expressions: list[Expression] = [
+        *(market_model.expression for market_model in market_models),
+        *(signal_model.expression for signal_model in signal_models),
+    ]
+    if not expressions:
+        return None
+    operand_keys = _union_operand_keys(
+        frame=frame,
+        expressions=expressions,
+        expression_evaluator=expression_evaluator,
+    )
+    return build_evaluation_dataframe(
+        frame,
+        evaluation_timeframe=evaluation_timeframe,
+        column_keys=operand_keys,
+    )
+
+
+def _union_operand_keys(
+    *,
+    frame: AnalysisFrame,
+    expressions: list[Expression],
+    expression_evaluator: ExpressionEvaluator,
+) -> tuple[str, ...]:
+    keys: dict[str, str] = {}
+    for expression in expressions:
+        for key in expression_evaluator.collect_operand_keys(expression, frame):
+            keys[key] = key
+    return tuple(keys[key] for key in sorted(keys))
 
 
 def _validate_models(

@@ -13,6 +13,8 @@ from trading_framework.market.models import MarketBar
 from trading_framework.market_analysis.assembly.assembler import AnalysisFrameAssembler
 from trading_framework.market_analysis.assembly.frame import AnalysisFrame, AnalysisFrameRequest
 from trading_framework.market_analysis.assembly.session_metadata import TradingSessionMetadata
+from trading_framework.market_analysis.data.columnar import OhlcvColumnBatch
+from trading_framework.market_analysis.data.view import AnalysisDataView
 from trading_framework.market_analysis.execution import SequentialBatchExecutor
 from trading_framework.market_analysis.execution.warmup import (
     extend_computation_range,
@@ -50,6 +52,8 @@ class RunAnalysisRequest:
     evaluation_timeframe: Timeframe | None = None
     session_resolver: TradingSessionResolver | None = None
     preloaded_bars: tuple[MarketBar, ...] | None = None
+    preloaded_column_batch: OhlcvColumnBatch | None = None
+    preloaded_view: AnalysisDataView | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -135,6 +139,8 @@ def run_analysis(
             ),
             storage_root=request.storage_root,
             preloaded_bars=request.preloaded_bars,
+            preloaded_column_batch=request.preloaded_column_batch,
+            preloaded_view=request.preloaded_view,
         )
     context = AnalysisContext(
         dataset_ref=request.dataset_ref,

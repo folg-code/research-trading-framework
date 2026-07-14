@@ -71,13 +71,36 @@ class AnalysisDataView:
             raise ValidationError(msg)
 
         timestamps = tuple(bar.observed_at for bar in ordered)
+        return cls.from_columnar(
+            timestamps=timestamps,
+            open=_as_float64_tuple(bar.open.value for bar in ordered),
+            high=_as_float64_tuple(bar.high.value for bar in ordered),
+            low=_as_float64_tuple(bar.low.value for bar in ordered),
+            close=_as_float64_tuple(bar.close.value for bar in ordered),
+            volume=_as_float64_tuple(float(bar.volume.value) for bar in ordered),
+        )
+
+    @classmethod
+    def from_columnar(
+        cls,
+        *,
+        timestamps: tuple[datetime, ...],
+        open: tuple[float, ...],
+        high: tuple[float, ...],
+        low: tuple[float, ...],
+        close: tuple[float, ...],
+        volume: tuple[float, ...],
+    ) -> "AnalysisDataView":
+        if not timestamps:
+            msg = "timestamps must be non-empty"
+            raise ValidationError(msg)
         return cls(
             timestamps=timestamps,
-            open=DataColumn(_as_float64_tuple(bar.open.value for bar in ordered)),
-            high=DataColumn(_as_float64_tuple(bar.high.value for bar in ordered)),
-            low=DataColumn(_as_float64_tuple(bar.low.value for bar in ordered)),
-            close=DataColumn(_as_float64_tuple(bar.close.value for bar in ordered)),
-            volume=DataColumn(_as_float64_tuple(float(bar.volume.value) for bar in ordered)),
+            open=DataColumn(open),
+            high=DataColumn(high),
+            low=DataColumn(low),
+            close=DataColumn(close),
+            volume=DataColumn(volume),
         )
 
     def column(self, field: str) -> DataColumn:

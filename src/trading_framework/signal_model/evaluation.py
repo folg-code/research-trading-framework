@@ -22,11 +22,13 @@ class SignalModelEvaluator:
         frame: AnalysisFrame,
         *,
         evaluation_timeframe: Timeframe,
+        evaluation_table: pl.DataFrame | None = None,
     ) -> pl.DataFrame:
         evaluation = self._expression_evaluator.evaluate(
             definition.expression,
             frame,
             evaluation_timeframe=evaluation_timeframe,
+            evaluation_table=evaluation_table,
         )
         return signal_model_condition_dataframe(
             signal_model_id=definition.signal_model_id,
@@ -39,12 +41,16 @@ class SignalModelEvaluator:
         frame: AnalysisFrame,
         *,
         evaluation_timeframe: Timeframe,
+        condition: pl.DataFrame | None = None,
+        evaluation_table: pl.DataFrame | None = None,
     ) -> pl.DataFrame:
-        condition = self.evaluate_condition(
-            definition,
-            frame,
-            evaluation_timeframe=evaluation_timeframe,
-        )
+        if condition is None:
+            condition = self.evaluate_condition(
+                definition,
+                frame,
+                evaluation_timeframe=evaluation_timeframe,
+                evaluation_table=evaluation_table,
+            )
         emissions = apply_firing_policy(
             condition["condition_met"],
             policy=definition.firing_policy,
