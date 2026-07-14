@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from datetime import datetime
 
 import numpy as np
@@ -84,14 +85,27 @@ _PARAMETER_SCHEMA = ParameterSchema(
     fields=(ParameterFieldSpec("pivot_range", ParameterType.INT, default=2, minimum=1),)
 )
 _EVENT_ALIGNMENT = AlignmentPolicy.EVENT_AT_AVAILABLE
+_BINARY_EVENT_INACTIVE_FILL = 0.0
+_VALUE_EVENT_INACTIVE_FILL = math.nan
 
 
-def _event_output(output_id: OutputId) -> OutputFieldSpec:
+def _binary_event_output(output_id: OutputId) -> OutputFieldSpec:
     return OutputFieldSpec(
         output_id,
         "float64",
         group=OutputGroup.CORE,
         alignment_policy=_EVENT_ALIGNMENT,
+        inactive_event_fill=_BINARY_EVENT_INACTIVE_FILL,
+    )
+
+
+def _value_event_output(output_id: OutputId) -> OutputFieldSpec:
+    return OutputFieldSpec(
+        output_id,
+        "float64",
+        group=OutputGroup.CORE,
+        alignment_policy=_EVENT_ALIGNMENT,
+        inactive_event_fill=_VALUE_EVENT_INACTIVE_FILL,
     )
 
 
@@ -101,20 +115,20 @@ def _state_output(output_id: OutputId) -> OutputFieldSpec:
 
 _OUTPUT_SCHEMA = OutputSchema(
     outputs=(
-        _event_output(_SWING_HIGH_EVENT),
-        _event_output(_SWING_LOW_EVENT),
-        _event_output(_SWING_HIGH_PRICE),
-        _event_output(_SWING_LOW_PRICE),
-        _event_output(_SWING_HIGH_OBSERVED_INDEX),
-        _event_output(_SWING_LOW_OBSERVED_INDEX),
+        _binary_event_output(_SWING_HIGH_EVENT),
+        _binary_event_output(_SWING_LOW_EVENT),
+        _value_event_output(_SWING_HIGH_PRICE),
+        _value_event_output(_SWING_LOW_PRICE),
+        _value_event_output(_SWING_HIGH_OBSERVED_INDEX),
+        _value_event_output(_SWING_LOW_OBSERVED_INDEX),
         _state_output(_LATEST_SWING_HIGH_LEVEL),
         _state_output(_LATEST_SWING_LOW_LEVEL),
         _state_output(_LATEST_SWING_HIGH_OBSERVED_INDEX),
         _state_output(_LATEST_SWING_LOW_OBSERVED_INDEX),
-        _event_output(_HIGHER_HIGH_EVENT),
-        _event_output(_LOWER_HIGH_EVENT),
-        _event_output(_HIGHER_LOW_EVENT),
-        _event_output(_LOWER_LOW_EVENT),
+        _binary_event_output(_HIGHER_HIGH_EVENT),
+        _binary_event_output(_LOWER_HIGH_EVENT),
+        _binary_event_output(_HIGHER_LOW_EVENT),
+        _binary_event_output(_LOWER_LOW_EVENT),
         _state_output(_LATEST_HIGHER_HIGH_LEVEL),
         _state_output(_LATEST_LOWER_HIGH_LEVEL),
         _state_output(_LATEST_HIGHER_LOW_LEVEL),
@@ -166,10 +180,12 @@ def _series_with_availability(
     values: np.ndarray,
     *,
     available_at: tuple[datetime, ...],
+    inactive_event_fill: float | None,
 ) -> OutputSeries:
     return OutputSeries(
         values=tuple(float(value) for value in values),
         available_at=available_at,
+        inactive_event_fill=inactive_event_fill,
     )
 
 
@@ -178,6 +194,7 @@ def _build_outputs(
     *,
     available_at: tuple[datetime, ...],
 ) -> dict[OutputId, OutputSeries]:
+    schema_by_id = {field.output_id: field for field in _OUTPUT_SCHEMA.outputs}
     mapping: dict[OutputId, np.ndarray] = {
         _SWING_HIGH_EVENT: detected.swing_high_event,
         _SWING_LOW_EVENT: detected.swing_low_event,
@@ -204,7 +221,12 @@ def _build_outputs(
     }
     outputs: dict[OutputId, OutputSeries] = {}
     for output_id, values in mapping.items():
-        outputs[output_id] = _series_with_availability(values, available_at=available_at)
+        field = schema_by_id[output_id]
+        outputs[output_id] = _series_with_availability(
+            values,
+            available_at=available_at,
+            inactive_event_fill=field.inactive_event_fill,
+        )
     return outputs
 
 

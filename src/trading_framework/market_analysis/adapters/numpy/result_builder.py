@@ -61,6 +61,7 @@ def attach_htf_available_at(
             values=series.values,
             dtype=series.dtype,
             available_at=available_at,
+            inactive_event_fill=series.inactive_event_fill,
         )
         for output_id, series in outputs.items()
     }
