@@ -163,10 +163,10 @@ Referenced from continuous dataset lineage; shared by trades and OHLCV derivatio
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S015-T002 | Contract instrument identity (`NQ.<CONTRACT>`) + validation | PLANNED |
-| S015-T003 | Multi-contract DBN decode and split by `actual_contract` | PLANNED |
-| S015-T004 | `session_date` partition layout + `market-trade-contract-v1` Parquet schema | PLANNED |
-| S015-T005 | `import_databento_contract_trades` workflow + import manifest | PLANNED |
+| S015-T002 | Contract instrument identity (`NQ.<CONTRACT>`) + validation | DONE |
+| S015-T003 | Multi-contract DBN decode and split by `actual_contract` | DONE |
+| S015-T004 | `session_date` partition layout + `market-trade-contract-v1` Parquet schema | DONE |
+| S015-T005 | `import_databento_contract_trades` workflow + import manifest | DONE |
 
 ### Wave 2 — Roll schedule
 
@@ -207,7 +207,7 @@ Referenced from continuous dataset lineage; shared by trades and OHLCV derivatio
 | S015-T018 | `MODULE_MAP.md`, `DATA_WORKFLOWS.md`, `CURRENT_STATUS.md` | PLANNED |
 | S015-T019 | Sprint closure | PLANNED |
 
-**Progress:** 1 / 19 tasks (Wave 0 complete)
+**Progress:** 5 / 19 tasks (Wave 1 complete)
 
 ---
 

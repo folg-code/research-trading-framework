@@ -8,6 +8,9 @@ from trading_framework.market.importers.archive import (
     ImportManifest,
 )
 from trading_framework.market.importers.checksum import compute_source_checksum_sha256
+from trading_framework.market.importers.contract_trades_config import (
+    DatabentoContractTradesArchiveImportConfig,
+)
 from trading_framework.market.importers.protocols import (
     DetectedFileFormat,
     FileInspectionResult,
@@ -23,6 +26,7 @@ __all__ = [
     "ArchiveInspectionResult",
     "ArchiveInspector",
     "ArchiveSourceFormat",
+    "DatabentoContractTradesArchiveImportConfig",
     "DatabentoTradesArchiveImportConfig",
     "DetectedFileFormat",
     "FileInspectionResult",
