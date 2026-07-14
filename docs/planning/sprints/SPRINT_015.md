@@ -172,9 +172,9 @@ Referenced from continuous dataset lineage; shared by trades and OHLCV derivatio
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S015-T006 | `RollPolicy` / `RollSchedule` domain types | PLANNED |
-| S015-T007 | Volume-based roll builder (RTH close evaluation, confirmation sessions) | PLANNED |
-| S015-T008 | Persist roll schedule artifact + manifest | PLANNED |
+| S015-T006 | `RollPolicy` / `RollSchedule` domain types | DONE |
+| S015-T007 | Volume-based roll builder (RTH close evaluation, confirmation sessions) | DONE |
+| S015-T008 | Persist roll schedule artifact + manifest | DONE |
 
 ### Wave 3 — Continuous trades materialization
 
@@ -207,7 +207,7 @@ Referenced from continuous dataset lineage; shared by trades and OHLCV derivatio
 | S015-T018 | `MODULE_MAP.md`, `DATA_WORKFLOWS.md`, `CURRENT_STATUS.md` | PLANNED |
 | S015-T019 | Sprint closure | PLANNED |
 
-**Progress:** 5 / 19 tasks (Wave 1 complete)
+**Progress:** 8 / 19 tasks (Waves 0–2 complete)
 
 ---
 
