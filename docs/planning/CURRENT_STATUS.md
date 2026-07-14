@@ -27,13 +27,13 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 
 ```text
 Status Date: 2026-07-14
-Current Phase: Phase 6A complete (Sprint 013); pending sprint integration PR to main
-Current Milestone: Sprint 013 COMPLETE on sprint/ohlcv-strategy-research-mvp
-Implementation Status: Sprints 001–006, 008–013 COMPLETE on sprint branch; 008–012 on main; Sprint 007 SKIPPED
-Overall Status: IN_PROGRESS (sprint integration to main pending)
-Active Sprint: none (Sprint 013 closed on sprint branch)
-Last Completed Sprint: SPRINT_013 (sprint branch, PRs #109–#112 pending closure PR)
-Capability Tracks: Foundation COMPLETE; Data 2A + 2B/2C.1 + 2B.3 COMPLETE; Research 3/4A/5 COMPLETE; Strategy 6A COMPLETE (sprint branch)
+Current Phase: Phase 6A inspection complete (Sprint 014 Phase A on main)
+Current Milestone: Sprint 014 Phase A COMPLETE on main
+Implementation Status: Sprints 001–006, 008–014 Phase A COMPLETE on main; Sprint 007 SKIPPED
+Overall Status: IN_PROGRESS (next track selection)
+Active Sprint: none
+Last Completed Sprint: SPRINT_014 Phase A (main, 2026-07-14)
+Capability Tracks: Foundation COMPLETE; Data 2A + 2B/2C.1 + 2B.3 COMPLETE; Research 3/4A/5 COMPLETE; Strategy 6A COMPLETE (simulation + dashboard Phase A)
 ```
 
 ---
@@ -66,7 +66,7 @@ Published trades → derive_ohlcv_from_trades
 
 ADR: ADR-0015. CLI: `scripts/market_data/derive_bars_from_trades.py`. See `SPRINT_012.md` and `S012_WAVE0_DECISIONS.md`.
 
-**Sprint 013 — OHLCV Strategy Research MVP (Phase 6A)** is **complete** on `sprint/ohlcv-strategy-research-mvp` (PRs #109–#111, 2026-07-14). Pending: sprint integration PR to `main`.
+**Sprint 013 — OHLCV Strategy Research MVP (Phase 6A)** is **complete** on `main` (PR #113, 2026-07-14).
 
 Delivered strategy research flow:
 
@@ -78,7 +78,19 @@ Published OHLCV → Strategy Model (Market × Signal × Exit × Risk)
 
 ADR: ADR-0016. CLI: `scripts/strategy_research/run_strategy_research.py`. See `SPRINT_013.md` and `S013_WAVE0_DECISIONS.md`.
 
-**Next step:** merge `sprint/ohlcv-strategy-research-mvp` → `main`, then choose post-sprint track (6B, 2C.2, 4B, or Phase 7).
+**Sprint 014 — Strategy Research Dashboard (Phase 6A Inspection, Phase A)** is **complete** on `main` (2026-07-14).
+
+Delivered inspection flow:
+
+```text
+StrategyResearchRunEnvelope
+    → build_strategy_dashboard_view_model (12 KPIs + panels + source bars)
+    → render_strategy_research_dashboard → standalone HTML (Lightweight Charts, offline)
+```
+
+ADR: ADR-0017. CLI: `scripts/strategy_research/render_strategy_dashboard.py`. See `SPRINT_014.md` and `S014_WAVE0_DECISIONS.md`. Phase B (FastAPI lazy bars) deferred.
+
+**Next decision:** choose next capability track — continuous futures materialization, Phase 6B, 2C.2 (quotes), 4B (orderflow), or Phase 7 (robustness). See `ROADMAP.md` §10–§11.
 
 Delivered Signal Research flow (on `main`):
 
@@ -88,7 +100,7 @@ Published OHLCV → run_signal_research → persisted envelope
     → optional HTML report (ADR-0013)
 ```
 
-Phase 6A (Strategy Research on OHLCV) is complete on the sprint branch. See `ROADMAP.md` §10.
+Phase 6A (Strategy Research on OHLCV + dashboard Phase A) is complete on `main`. See `ROADMAP.md` §10.
 
 ---
 
@@ -193,13 +205,22 @@ Completed on `main` (PR #75, 2026-07-12):
 
 ### Phase 6A — OHLCV Strategy Research MVP (Sprint 013)
 
-Complete on `sprint/ohlcv-strategy-research-mvp` (2026-07-14):
+Complete on `main` (2026-07-14, PR #113):
 
 - `strategy/`: Exit/Risk/Strategy model contracts, canonical example
 - `research/simulation/`: `SimulationAssumptions`, `BarSequentialSimulator`, trade/equity facts
 - `run_strategy_research`, `analyze_strategy_research_run`, `StrategyResearchDatasetRepository`
 - CLI `run_strategy_research.py`; integration test E2E round-trip
 - ADR-0016; 495 tests at sprint closure.
+
+### Phase 6A — Strategy Research Dashboard Phase A (Sprint 014)
+
+Complete on `main` (2026-07-14):
+
+- `build_strategy_dashboard_view_model` — 12 KPIs, performance/conditional panels, metric warnings
+- `render_strategy_research_dashboard` — Lightweight Charts OHLCV + markers, equity/drawdown panes
+- CLI `render_strategy_dashboard.py`; integration tests view model + HTML smoke
+- ADR-0017; Phase B (inspection API) deferred
 
 ### Phase 5 — Signal Research (Sprint 008–010)
 
@@ -239,15 +260,23 @@ Maintenance: `.cursor/rules/documentation.mdc`
 
 ## 6. Work in Progress
 
-Nothing actively in development. Sprint 013 closed on `sprint/ohlcv-strategy-research-mvp`; open sprint integration PR to `main` when ready.
+Nothing actively in development. Choose next capability track per `ROADMAP.md` §10–§11.
+
+### Sprint 014 — Closed (Phase A)
+
+**Status:** Phase A COMPLETE on `main` (2026-07-14)  
+**Plan:** `docs/planning/sprints/SPRINT_014.md`  
+**ADR:** ADR-0017  
+**Tasks:** 13 / 13 Phase A done; Phase B (T014–T019) deferred  
+**Commits:** `3808d1d` (view model), `9c14c7a` (HTML report + CLI); closure docs pending PR
 
 ### Sprint 013 — Closed
 
-**Status:** COMPLETE on `sprint/ohlcv-strategy-research-mvp` (2026-07-14)  
+**Status:** COMPLETE on `main` (PR #113, 2026-07-14)  
 **Plan:** `docs/planning/sprints/SPRINT_013.md`  
 **ADR:** ADR-0016  
 **Tasks:** 15 / 15 done  
-**PRs:** #109 (contracts), #110 (simulator), #111 (workflow); closure PR pending
+**PRs:** #108–#112 (sprint waves), #113 (integration to main)
 
 ### Sprint 011 — Closed
 
@@ -295,7 +324,7 @@ Nothing actively in development. Sprint 013 closed on `sprint/ohlcv-strategy-res
 
 ## 7. Blocked Work
 
-Nothing is technically blocked. Next step: sprint integration PR `sprint/ohlcv-strategy-research-mvp` → `main`.
+Nothing is technically blocked. Next step: choose next capability track (continuous futures, 6B, 2C.2, 4B, or Phase 7).
 
 ---
 
@@ -363,14 +392,14 @@ Binding decisions D-001–D-036 and workspace invariants are documented in the a
 ## 11. Next Planned Capability
 
 ```text
-Post-Sprint 013: sprint integration PR to main, then choose:
+Post-Sprint 013 (choose one):
     A — Phase 6B: Multi-Data Strategy Research
     B — Phase 2C.2: MarketQuote datasets
     C — Phase 4B: orderflow on published trades
     D — Phase 7: robustness on strategy runs
 ```
 
-See `ROADMAP.md` §10–§11 and `SPRINT_013.md` §11.
+See `ROADMAP.md` §10–§11.
 
 ---
 

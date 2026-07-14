@@ -26,7 +26,7 @@ market_model/         Market Model definitions and evaluator
 signal_model/         Signal Model definitions, firing, emissions
 infrastructure/       adapters — CSV, Parquet, file registry
 core/, time/, config/ shared primitives
-strategy/, research/         Signal Research MVP (Sprint 008–010) ✅; Strategy Research MVP (Sprint 013) ✅
+strategy/, research/         Signal Research MVP (Sprint 008–010) ✅; Strategy Research MVP (Sprint 013) ✅; Strategy dashboard (Sprint 014) ✅
 execution/, events/          ⬜ future domains
 ```
 
@@ -224,10 +224,10 @@ Published DatasetRef (source timeframe, e.g. 1m)
 
 | | |
 |---|---|
-| **Responsibility** | Strategy Research run orchestration and read-only summary analytics |
+| **Responsibility** | Strategy Research run orchestration, read-only summary analytics and dashboard view model |
 | **Talks to** | `application/model_evaluation`, `application/market_data`, `strategy`, `research` |
-| **Key paths** | `run_strategy_research.py`, `analyze_strategy_research.py`, `entry_signals.py`, `summarize.py` |
-| **Entry points** | `run_strategy_research`, `analyze_strategy_research_run`, `build_gated_entry_signals` |
+| **Key paths** | `run_strategy_research.py`, `analyze_strategy_research.py`, `dashboard.py`, `entry_signals.py`, `summarize.py` |
+| **Entry points** | `run_strategy_research`, `analyze_strategy_research_run`, `build_strategy_dashboard_view_model`, `build_gated_entry_signals` |
 
 ---
 
@@ -287,7 +287,7 @@ ADR: [ADR-0011](../adr/ADR-0011-signal-research-outcomes-and-persistence.md),
 [ADR-0012](../adr/ADR-0012-combined-research-scopes-and-context-alignment.md),
 [ADR-0013](../adr/ADR-0013-signal-research-analytics-boundary.md)
 
-## Strategy Research (Sprint 013) ✅
+## Strategy Research (Sprint 013–014) ✅
 
 End-to-end flow:
 
@@ -298,9 +298,21 @@ Published OHLCV DatasetRef
   → query_historical → BarSequentialSimulator (NEXT_BAR_OPEN)
   → trades.parquet + equity.parquet + manifest
   → analyze_strategy_research_run (read-only summary)
+  → build_strategy_dashboard_view_model (read-only inspection)
+  → render_strategy_research_dashboard → standalone HTML (Phase A)
 ```
 
-ADR: [ADR-0016](../adr/ADR-0016-ohlcv-strategy-research-mvp.md)
+ADR: [ADR-0016](../adr/ADR-0016-ohlcv-strategy-research-mvp.md),
+[ADR-0017](../adr/ADR-0017-strategy-research-inspection-boundary.md)
+
+### `research/analytics/` — Strategy dashboard (Sprint 014) ✅
+
+| | |
+|---|---|
+| **Responsibility** | Dashboard view model types, KPI/panel metrics, HTML report renderer |
+| **Key paths** | `strategy_dashboard.py`, `strategy_dashboard_metrics.py`, `strategy_dashboard_report.py`, `strategy_summarize.py` |
+| **Entry points** | `compute_strategy_dashboard_analytics`, `render_strategy_research_dashboard` |
+| **Boundary** | Presentation-only in report renderer; no Parquet I/O in renderer (ADR-0017) |
 
 ### `strategy/` ✅ (Signal Research + Strategy Research)
 
@@ -352,7 +364,8 @@ Skeleton packages without public workflows beyond Signal Research slice above.
 | Databento CLI | `tests/unit/scripts/test_databento_cli.py` |
 | Market analysis | `tests/unit/market_analysis/`, `tests/unit/application/market_analysis/`, `tests/integration/test_market_analysis_*` |
 | Signal Research integration | `tests/integration/test_s008_run_signal_research.py`, `tests/integration/test_s009_*`, `tests/integration/test_s010_signal_research_analytics.py` |
-| Strategy Research integration | `tests/integration/test_s013_run_strategy_research.py` |
+| Strategy Research integration | `tests/integration/test_s013_run_strategy_research.py`, `tests/integration/test_s014_strategy_dashboard_view_model.py`, `tests/integration/test_s014_strategy_dashboard_report.py` |
+| Strategy dashboard unit | `tests/unit/research/analytics/test_strategy_dashboard*.py` |
 | Signal Research spikes | `tests/spike/run_combined_research_spike.py`, `tests/spike/run_inspect_combined_research.py`, `tests/spike/run_signal_research_analytics_spike.py`, `tests/spike/run_signal_research_analytics_report.py` |
 | Signal Research unit | `tests/unit/strategy/`, `tests/unit/research/`, `tests/unit/application/signal_research/` |
 | MA architecture boundaries | `tests/unit/market_analysis/test_market_analysis_architecture_boundaries.py` |

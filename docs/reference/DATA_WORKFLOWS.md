@@ -5,7 +5,7 @@
 
 Technical reference for how data moves through the framework: ingestion, persistence, lifecycle, query and analysis execution.
 
-**As-is scope:** Market Data Phase 2A (Sprint 002 CSV OHLCV), Phase 2B + 2C.1 trades archive import (Sprint 011), Phase 2B.3 derived OHLCV from trades (Sprint 012 on `main`). Multitimeframe and declarative models: Sprints 004–006. Signal Research: Sprints 008–010 on `main`. Strategy Research MVP: Sprint 013 on `sprint/ohlcv-strategy-research-mvp`.  
+**As-is scope:** Market Data Phase 2A (Sprint 002 CSV OHLCV), Phase 2B + 2C.1 trades archive import (Sprint 011), Phase 2B.3 derived OHLCV from trades (Sprint 012 on `main`). Multitimeframe and declarative models: Sprints 004–006. Signal Research: Sprints 008–010 on `main`. Strategy Research MVP: Sprint 013 on `main`. Strategy Research dashboard (Phase A): Sprint 014 on `main`.  
 **Planned next:** Sprint 013 integration to `main`; then Phase 6B, 2C.2, or 4B — `ROADMAP.md` §6, §10.  
 **Deep market data reference:** [modules/DATA_MODULE_UPDATED.md](modules/DATA_MODULE_UPDATED.md)
 
@@ -336,7 +336,29 @@ Published OHLCV DatasetRef
 
 Integration test: `tests/integration/test_s013_run_strategy_research.py`
 
-### 3.9 Trade Parquet Schema
+### 3.9 Strategy Research Dashboard (Sprint 014 — Phase A)
+
+```text
+StrategyResearchRunRef + storage_root
+  → StrategyResearchDatasetRepository.read
+  → build_strategy_dashboard_view_model (metrics + source OHLCV bars via query_historical)
+  → render_strategy_research_dashboard → standalone HTML (Lightweight Charts, offline)
+```
+
+**Entry points:** `build_strategy_dashboard_view_model`,
+`render_strategy_research_dashboard`
+
+**CLI:** `scripts/strategy_research/render_strategy_dashboard.py`
+
+**Boundary:** read-only — no `run_strategy_research`, no `evaluate_models`, no envelope writes
+(ADR-0017). Renderer consumes view model only (ADR-0013 presentation split).
+
+Integration tests: `tests/integration/test_s014_strategy_dashboard_view_model.py`,
+`tests/integration/test_s014_strategy_dashboard_report.py`
+
+Phase B (FastAPI lazy bars) deferred — see `SPRINT_014.md` T014–T019.
+
+### 3.10 Trade Parquet Schema
 
 Defined in `infrastructure/storage/parquet/trade_writer.py`:
 
@@ -626,6 +648,7 @@ These appear in architecture diagrams and sprint plans but **have no production 
 | Finalize / publish | `application.market_data` | `finalize_dataset`, `publish_dataset` |
 | Historical bars | `application.market_data` | `query_historical` → `list[MarketBar]` |
 | Strategy Research run | `application.strategy_research` | `run_strategy_research`, `analyze_strategy_research_run` |
+| Strategy Research dashboard | `application.strategy_research`, `research/analytics` | `build_strategy_dashboard_view_model`, `render_strategy_research_dashboard` |
 | Analysis input | `application.market_analysis` | `load_analysis_data_view` → `AnalysisDataView` |
 | Register components | `market_analysis.registry` | `ComponentRegistry` |
 | Build DAG | `market_analysis.planning` | `DependencyPlanner.build_plan` |

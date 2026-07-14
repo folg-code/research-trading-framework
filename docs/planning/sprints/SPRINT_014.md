@@ -5,9 +5,9 @@
 ```text
 Sprint: 014
 Phase: Phase 6A follow-up — Strategy Research inspection layer
-Status: PLANNED
+Status: COMPLETE — Phase A (2026-07-14); Phase B deferred
 Planned Start: 2026-07-14
-Planned End: TBD
+Planned End: 2026-07-14
 Sprint Goal Owner: Project Maintainer
 Depends On: SPRINT_013 (main), SPRINT_010 (ADR-0013 pattern reference)
 Sprint Branch: sprint/strategy-research-dashboard
@@ -208,7 +208,7 @@ Phase B: `bars` may be empty when `data_mode=fetch`; frontend loads via API.
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S014-T001 | Wave 0 decisions (`S014_WAVE0_DECISIONS.md`) + dashboard spike script | PLANNED |
+| S014-T001 | Wave 0 decisions (`S014_WAVE0_DECISIONS.md`) + dashboard spike script | DONE |
 
 ### Phase A — Wave 1: View model and metrics
 
@@ -238,9 +238,9 @@ Phase B: `bars` may be empty when `data_mode=fetch`; frontend loads via API.
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S014-T011 | ADR-0017 — Strategy Research inspection boundary + stack | PLANNED |
-| S014-T012 | `MODULE_MAP.md`, `DATA_WORKFLOWS.md`, `CURRENT_STATUS.md` | PLANNED |
-| S014-T013 | Sprint closure | PLANNED |
+| S014-T011 | ADR-0017 — Strategy Research inspection boundary + stack | DONE |
+| S014-T012 | `MODULE_MAP.md`, `DATA_WORKFLOWS.md`, `CURRENT_STATUS.md` | DONE |
+| S014-T013 | Sprint closure | DONE |
 
 ### Phase B — Wave 5: Inspection API (optional)
 
@@ -258,7 +258,7 @@ Phase B: `bars` may be empty when `data_mode=fetch`; frontend loads via API.
 | S014-T018 | CLI `scripts/strategy_research/serve_strategy_dashboard.py` | PLANNED |
 | S014-T019 | API tests (`httpx` / `TestClient`) + size-threshold documentation | PLANNED |
 
-**Progress:** 9 / 19 tasks (Phase A required: T001–T013; Phase B optional: T014–T019)
+**Progress:** 13 / 19 tasks — Phase A complete (T001–T013); Phase B deferred (T014–T019)
 
 ---
 
@@ -364,3 +364,23 @@ After Sprint 014 merges to `main`:
 - **Replay Execution** — separate sprint family under `execution/`.
 
 See `ROADMAP.md` §10–§11 and `CURRENT_STATUS.md`.
+
+---
+
+## 13. Sprint closure (Phase A)
+
+```text
+Closed: 2026-07-14
+Phase A: COMPLETE on main
+Phase B: DEFERRED (T014–T019)
+ADR: ADR-0017 ACCEPTED
+```
+
+Implementation commits on `main`:
+
+```text
+3808d1d — feat: add strategy dashboard view model for Sprint 014 wave 1
+9c14c7a — feat: add static strategy dashboard HTML report and CLI
+```
+
+Closure deliverables: ADR-0017, `MODULE_MAP.md`, `DATA_WORKFLOWS.md`, `CURRENT_STATUS.md`.

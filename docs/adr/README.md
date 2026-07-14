@@ -47,6 +47,7 @@ SUPERSEDED
 | [ADR-0014](ADR-0014-historical-archive-import-and-market-trade-storage.md) | Historical Archive Import and MarketTrade Partitioned Storage | ACCEPTED | Sprint 011 |
 | [ADR-0015](ADR-0015-derived-ohlcv-from-trades.md) | Derived OHLCV from Published Trades | ACCEPTED | Sprint 012 |
 | [ADR-0016](ADR-0016-ohlcv-strategy-research-mvp.md) | OHLCV Strategy Research MVP | ACCEPTED | Sprint 013 |
+| [ADR-0017](ADR-0017-strategy-research-inspection-boundary.md) | Strategy Research Inspection Boundary | ACCEPTED | Sprint 014 |
 | ADR-0004 | Independent Research and Execution Workflows | PLANNED | TBD |
 | ADR-0009 | Batch Backtest vs Replay Execution | PLANNED | TBD |
 | ADR-0010 | Working Component and Model Fingerprints | PLANNED | TBD |

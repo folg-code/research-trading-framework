@@ -5,7 +5,7 @@
 ```text
 Task: S014-T001
 Sprint: 014 — Strategy Research Dashboard (Phase 6A Inspection)
-Status: PLANNED
+Status: ACCEPTED
 Planned Start: 2026-07-14
 Branch: sprint/strategy-research-dashboard
 Direction: docs/planning/sprints/SPRINT_014.md
