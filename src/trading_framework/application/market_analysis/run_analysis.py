@@ -7,6 +7,7 @@ from trading_framework.application.market_analysis.load_data_view import (
     LoadAnalysisDataViewRequest,
     load_analysis_data_view,
 )
+from trading_framework.core.profiling import optional_phase
 from trading_framework.market.datasets import DatasetRef
 from trading_framework.market.models import MarketBar
 from trading_framework.market_analysis.assembly.assembler import AnalysisFrameAssembler
@@ -121,18 +122,20 @@ def run_analysis(
 ) -> AnalysisRunResult:
     """Load data, plan, execute and optionally assemble a consumer frame."""
     component_registry = registry or default_mvp_registry()
-    plan, computation_range = _plan_analysis_execution(
-        request,
-        registry=component_registry,
-    )
-    market_view = load_analysis_data_view(
-        LoadAnalysisDataViewRequest(
-            dataset_ref=request.dataset_ref,
-            computation_range=computation_range,
-        ),
-        storage_root=request.storage_root,
-        preloaded_bars=request.preloaded_bars,
-    )
+    with optional_phase("run_analysis.plan"):
+        plan, computation_range = _plan_analysis_execution(
+            request,
+            registry=component_registry,
+        )
+    with optional_phase("run_analysis.load_market_view"):
+        market_view = load_analysis_data_view(
+            LoadAnalysisDataViewRequest(
+                dataset_ref=request.dataset_ref,
+                computation_range=computation_range,
+            ),
+            storage_root=request.storage_root,
+            preloaded_bars=request.preloaded_bars,
+        )
     context = AnalysisContext(
         dataset_ref=request.dataset_ref,
         timeframe=request.timeframe,
@@ -142,23 +145,26 @@ def run_analysis(
         evaluation_timeframe=request.evaluation_timeframe,
     )
     session_metadata = None
-    if request.session_resolver is not None:
-        session_metadata = TradingSessionMetadata.resolve(
-            market_view.timestamps,
-            request.session_resolver,
+    with optional_phase("run_analysis.resolve_sessions"):
+        if request.session_resolver is not None:
+            session_metadata = TradingSessionMetadata.resolve(
+                market_view.timestamps,
+                request.session_resolver,
+            )
+    with optional_phase("run_analysis.execute"):
+        workspace = SequentialBatchExecutor().execute(
+            plan,
+            market_view=market_view,
+            context=context,
+            session_metadata=session_metadata,
         )
-    workspace = SequentialBatchExecutor().execute(
-        plan,
-        market_view=market_view,
-        context=context,
-        session_metadata=session_metadata,
-    )
     frame = None
     if request.frame_request is not None:
-        frame = AnalysisFrameAssembler().assemble(
-            workspace,
-            request.frame_request,
-            evaluation_timeframe=context.evaluation_timeframe,
-            evaluation_range=context.requested_range,
-        )
+        with optional_phase("run_analysis.assemble_frame"):
+            frame = AnalysisFrameAssembler().assemble(
+                workspace,
+                request.frame_request,
+                evaluation_timeframe=context.evaluation_timeframe,
+                evaluation_range=context.requested_range,
+            )
     return AnalysisRunResult(plan=plan, workspace=workspace, frame=frame)

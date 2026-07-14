@@ -9,6 +9,7 @@ import numpy as np
 import polars as pl
 
 from trading_framework.core.exceptions import ValidationError
+from trading_framework.core.profiling import optional_phase
 from trading_framework.market_analysis.models.alignment import AlignmentPolicy
 from trading_framework.market_analysis.models.result import OutputSeries
 from trading_framework.time.models.timeframe import Timeframe
@@ -58,12 +59,13 @@ def align_event_at_available(
     values_arr = np.asarray(values, dtype=np.float64)
     aligned = np.full(len(evaluation_timestamps), inactive_event_fill, dtype=np.float64)
 
-    for index, value in enumerate(values_arr):
-        if not _is_active_event(float(value), inactive_event_fill):
-            continue
-        target_index = int(np.searchsorted(evaluation_ns, available_ns[index], side="left"))
-        if target_index < len(evaluation_ns):
-            aligned[target_index] = value
+    with optional_phase("align.event_at_available"):
+        for index, value in enumerate(values_arr):
+            if not _is_active_event(float(value), inactive_event_fill):
+                continue
+            target_index = int(np.searchsorted(evaluation_ns, available_ns[index], side="left"))
+            if target_index < len(evaluation_ns):
+                aligned[target_index] = value
 
     return tuple(float(value) for value in aligned)
 
@@ -106,12 +108,13 @@ def align_values_to_evaluation_grid(
     if valid.is_empty():
         return tuple(math.nan for _ in evaluation_timestamps)
 
-    aligned = ltf.sort("evaluation_at").join_asof(
-        valid.sort("available_at"),
-        left_on="evaluation_at",
-        right_on="available_at",
-        strategy="backward",
-    )
+    with optional_phase("align.last_closed_bar"):
+        aligned = ltf.sort("evaluation_at").join_asof(
+            valid.sort("available_at"),
+            left_on="evaluation_at",
+            right_on="available_at",
+            strategy="backward",
+        )
     return tuple(
         float(value)
         if value is not None and not (isinstance(value, float) and math.isnan(value))

@@ -3,6 +3,7 @@
 from datetime import datetime
 
 from trading_framework.core.exceptions import ValidationError
+from trading_framework.core.profiling import optional_phase
 from trading_framework.market_analysis.assembly.alignment_cache import AlignmentCache
 from trading_framework.market_analysis.assembly.frame import (
     AnalysisFrame,
@@ -70,15 +71,16 @@ class AnalysisFrameAssembler:
         used_aliases: set[str] = set()
 
         for field in request.market_fields:
-            column = workspace.market_view.column(field)
-            self._register_column(
-                alias=field,
-                values=column.values,
-                output_ref=None,
-                columns=columns,
-                lineage=lineage,
-                used_aliases=used_aliases,
-            )
+            with optional_phase(f"assemble.market_field.{field}"):
+                column = workspace.market_view.column(field)
+                self._register_column(
+                    alias=field,
+                    values=column.values,
+                    output_ref=None,
+                    columns=columns,
+                    lineage=lineage,
+                    used_aliases=used_aliases,
+                )
 
         for spec in request.analysis_columns:
             result = self._find_result(workspace, spec)
@@ -87,25 +89,26 @@ class AnalysisFrameAssembler:
                 output_id=spec.output_id,
             )
             alias = spec.alias or default_alias(result.computation_identity, spec.output_id)
-            series = result.outputs[spec.output_id]
-            values = self._resolve_column_values(
-                result=result,
-                series=series,
-                output_id=spec.output_id,
-                evaluation_timestamps=timestamps,
-                evaluation_timeframe=evaluation_timeframe,
-                evaluation_range=eval_range,
-                alignment_policy=alignment_policy,
-                alignment_cache=cache,
-            )
-            self._register_column(
-                alias=alias,
-                values=values,
-                output_ref=output_ref,
-                columns=columns,
-                lineage=lineage,
-                used_aliases=used_aliases,
-            )
+            with optional_phase(f"assemble.column.{alias}"):
+                series = result.outputs[spec.output_id]
+                values = self._resolve_column_values(
+                    result=result,
+                    series=series,
+                    output_id=spec.output_id,
+                    evaluation_timestamps=timestamps,
+                    evaluation_timeframe=evaluation_timeframe,
+                    evaluation_range=eval_range,
+                    alignment_policy=alignment_policy,
+                    alignment_cache=cache,
+                )
+                self._register_column(
+                    alias=alias,
+                    values=values,
+                    output_ref=output_ref,
+                    columns=columns,
+                    lineage=lineage,
+                    used_aliases=used_aliases,
+                )
 
         return AnalysisFrame(
             timestamps=timestamps,

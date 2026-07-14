@@ -5,6 +5,7 @@ from datetime import datetime
 from pathlib import Path
 
 from trading_framework.core.exceptions import ValidationError
+from trading_framework.core.profiling import optional_phase
 from trading_framework.infrastructure.storage.metadata.registry import FileDatasetRegistry
 from trading_framework.infrastructure.storage.parquet.repository import ParquetDatasetRepository
 from trading_framework.market.datasets import DatasetLifecycleState, DatasetRef
@@ -32,18 +33,21 @@ def query_historical(
     dataset_registry = registry or FileDatasetRegistry(storage_root)
     bar_repository = repository or ParquetDatasetRepository(storage_root)
 
-    metadata = dataset_registry.get(request.dataset_ref)
-    if metadata.lifecycle_status is not DatasetLifecycleState.PUBLISHED:
-        msg = "only published datasets can be queried by consumers"
-        raise ValidationError(msg)
+    with optional_phase("ohlcv.load_metadata"):
+        metadata = dataset_registry.get(request.dataset_ref)
+        if metadata.lifecycle_status is not DatasetLifecycleState.PUBLISHED:
+            msg = "only published datasets can be queried by consumers"
+            raise ValidationError(msg)
 
-    bars = list(
-        bar_repository.query_bars(
-            HistoricalBarQuery(
-                dataset_ref=request.dataset_ref,
-                start_at=request.start_at,
-                end_at=request.end_at,
+    with optional_phase("ohlcv.query_bars"):
+        bars = list(
+            bar_repository.query_bars(
+                HistoricalBarQuery(
+                    dataset_ref=request.dataset_ref,
+                    start_at=request.start_at,
+                    end_at=request.end_at,
+                )
             )
         )
-    )
-    return sorted(bars, key=lambda bar: bar.observed_at)
+    with optional_phase("ohlcv.sort_bars"):
+        return sorted(bars, key=lambda bar: bar.observed_at)

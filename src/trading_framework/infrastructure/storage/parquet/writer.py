@@ -1,13 +1,15 @@
 """Parquet writer for MarketBar batches."""
 
 from collections.abc import Sequence
-from datetime import UTC
+from datetime import UTC, datetime
 from decimal import Decimal
 from pathlib import Path
 
 import pyarrow as pa
+import pyarrow.compute as pc
 import pyarrow.parquet as pq
 
+from trading_framework.core.profiling import optional_phase
 from trading_framework.core.types import Price, Volume
 from trading_framework.market.models import MarketBar
 
@@ -56,19 +58,50 @@ def market_bars_to_table(bars: Sequence[MarketBar]) -> pa.Table:
 def market_bars_from_table(table: pa.Table) -> list[MarketBar]:
     """Materialize market bars from a canonical Parquet table."""
     normalized = table.cast(MARKET_BAR_PARQUET_SCHEMA)
-    rows = normalized.to_pylist()
+    row_count = normalized.num_rows
+    if row_count == 0:
+        return []
+
+    opens = normalized.column("open").to_pylist()
+    highs = normalized.column("high").to_pylist()
+    lows = normalized.column("low").to_pylist()
+    closes = normalized.column("close").to_pylist()
+    volumes = normalized.column("volume").to_pylist()
+    observed_ats = normalized.column("observed_at").to_pylist()
+    available_ats = normalized.column("available_at").to_pylist()
+
     return [
         MarketBar(
-            open=Price(Decimal(str(row["open"]))),
-            high=Price(Decimal(str(row["high"]))),
-            low=Price(Decimal(str(row["low"]))),
-            close=Price(Decimal(str(row["close"]))),
-            volume=Volume(int(row["volume"])),
-            observed_at=row["observed_at"].replace(tzinfo=UTC),
-            available_at=row["available_at"].replace(tzinfo=UTC),
+            open=Price(Decimal(str(opens[index]))),
+            high=Price(Decimal(str(highs[index]))),
+            low=Price(Decimal(str(lows[index]))),
+            close=Price(Decimal(str(closes[index]))),
+            volume=Volume(int(volumes[index])),
+            observed_at=observed_ats[index].replace(tzinfo=UTC),
+            available_at=available_ats[index].replace(tzinfo=UTC),
         )
-        for row in rows
+        for index in range(row_count)
     ]
+
+
+def filter_table_by_observed_range(
+    table: pa.Table,
+    *,
+    start_at: datetime,
+    end_at: datetime,
+) -> pa.Table:
+    """Return rows whose ``observed_at`` lies in the closed UTC range."""
+    normalized = table.cast(MARKET_BAR_PARQUET_SCHEMA)
+    if normalized.num_rows == 0:
+        return normalized
+    start_scalar = pa.scalar(start_at.astimezone(UTC).replace(tzinfo=None), type=pa.timestamp("us"))
+    end_scalar = pa.scalar(end_at.astimezone(UTC).replace(tzinfo=None), type=pa.timestamp("us"))
+    observed = normalized.column("observed_at")
+    mask = pc.and_(  # type: ignore[attr-defined]
+        pc.greater_equal(observed, start_scalar),  # type: ignore[attr-defined]
+        pc.less_equal(observed, end_scalar),  # type: ignore[attr-defined]
+    )
+    return normalized.filter(mask)
 
 
 class ParquetBarWriter:
@@ -93,4 +126,7 @@ class ParquetBarWriter:
 
     def read(self, path: Path) -> list[MarketBar]:
         """Read bars written with the canonical market bar schema."""
-        return market_bars_from_table(self.read_table(path))
+        with optional_phase("ohlcv.parquet.read_table"):
+            table = self.read_table(path)
+        with optional_phase("ohlcv.parquet.table_to_bars"):
+            return market_bars_from_table(table)

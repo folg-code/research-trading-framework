@@ -4,26 +4,30 @@ from __future__ import annotations
 
 from collections.abc import Iterator
 from contextlib import contextmanager
-from contextvars import ContextVar
 
+from trading_framework.core import profiling as core_profiling
+from trading_framework.core.profiling import optional_phase
 from trading_framework.infrastructure.observability.phase_timer import PhaseTimer
 
-_active_timer: ContextVar[PhaseTimer | None] = ContextVar("active_phase_timer", default=None)
+__all__ = ["PhaseTimer", "active_phase_timer", "optional_phase", "phase_timer_context"]
 
 
 def active_phase_timer() -> PhaseTimer | None:
-    """Return the timer installed by :func:`phase_timer_context`, if any."""
-    return _active_timer.get()
+    """Return the infrastructure timer installed by :func:`phase_timer_context`."""
+    timer = core_profiling.active_phase_timer()
+    if isinstance(timer, PhaseTimer):
+        return timer
+    return None
 
 
 @contextmanager
 def phase_timer_context(timer: PhaseTimer | None) -> Iterator[None]:
-    """Install ``timer`` for nested infrastructure profiling hooks."""
+    """Install ``timer`` for nested profiling hooks."""
     if timer is None or not timer.enabled:
         yield
         return
-    token = _active_timer.set(timer)
+    token = core_profiling._set_active_phase_timer(timer)
     try:
         yield
     finally:
-        _active_timer.reset(token)
+        core_profiling._reset_active_phase_timer(token)
