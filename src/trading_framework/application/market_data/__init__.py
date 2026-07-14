@@ -1,5 +1,10 @@
 """Market data application workflows."""
 
+from trading_framework.application.market_data.build_roll_schedule import (
+    BuildRollScheduleRequest,
+    BuildRollScheduleResult,
+    build_roll_schedule,
+)
 from trading_framework.application.market_data.derive_ohlcv_from_trades import (
     DeriveOhlcvFromTradesResult,
     derive_ohlcv_from_trades,
@@ -30,6 +35,8 @@ from trading_framework.application.market_data.query_trades import (
 )
 
 __all__ = [
+    "BuildRollScheduleRequest",
+    "BuildRollScheduleResult",
     "ContractTradesImportResult",
     "DeriveOhlcvFromTradesResult",
     "ImportDatabentoContractTradesArchiveResult",
@@ -38,6 +45,7 @@ __all__ = [
     "ImportExternalDatasetResult",
     "QueryHistoricalRequest",
     "QueryTradesRequest",
+    "build_roll_schedule",
     "derive_ohlcv_from_trades",
     "finalize_dataset",
     "import_databento_contract_trades_archive",
