@@ -5,8 +5,8 @@
 
 Technical reference for how data moves through the framework: ingestion, persistence, lifecycle, query and analysis execution.
 
-**As-is scope:** Market Data Phase 2A (Sprint 002 CSV OHLCV), Phase 2B + 2C.1 trades archive import (Sprint 011), and Phase 2B.3 derived OHLCV from trades (Sprint 012 on `sprint/trades-to-ohlcv-derived`). Multitimeframe and declarative models: Sprints 004–006. Signal Research: Sprints 008–010 on `main`.  
-**Planned next:** Phase 2C.2 (quotes), Phase 4B orderflow on trades, or Phase 6A Strategy Research — `ROADMAP.md` §6, §10.  
+**As-is scope:** Market Data Phase 2A (Sprint 002 CSV OHLCV), Phase 2B + 2C.1 trades archive import (Sprint 011), Phase 2B.3 derived OHLCV from trades (Sprint 012 on `main`). Multitimeframe and declarative models: Sprints 004–006. Signal Research: Sprints 008–010 on `main`. Strategy Research MVP: Sprint 013 on `sprint/ohlcv-strategy-research-mvp`.  
+**Planned next:** Sprint 013 integration to `main`; then Phase 6B, 2C.2, or 4B — `ROADMAP.md` §6, §10.  
 **Deep market data reference:** [modules/DATA_MODULE_UPDATED.md](modules/DATA_MODULE_UPDATED.md)
 
 ---
@@ -316,7 +316,27 @@ sequenceDiagram
 Integration tests: `tests/integration/market_data/test_derive_ohlcv_from_trades_flow.py`,
 `test_derive_ohlcv_from_trades_mocked.py`.
 
-### 3.8 Trade Parquet Schema
+### 3.8 Strategy Research Run Envelope (Sprint 013)
+
+```text
+Published OHLCV DatasetRef
+  → run_strategy_research
+  → evaluate_models (Market × Signal) + build_gated_entry_signals
+  → query_historical + BarSequentialSimulator
+  → strategy_research/<run_id>/{manifest.json, trades.parquet, equity.parquet}
+  → analyze_strategy_research_run (read-only summary)
+```
+
+**Entry points:** `trading_framework.application.strategy_research.run_strategy_research`,
+`analyze_strategy_research_run`
+
+**CLI:** `scripts/strategy_research/run_strategy_research.py`
+
+**Simulation assumptions:** `NEXT_BAR_OPEN` entry/exit fills; fingerprint in manifest (ADR-0016, TD-009).
+
+Integration test: `tests/integration/test_s013_run_strategy_research.py`
+
+### 3.9 Trade Parquet Schema
 
 Defined in `infrastructure/storage/parquet/trade_writer.py`:
 
@@ -605,6 +625,7 @@ These appear in architecture diagrams and sprint plans but **have no production 
 | CSV import | `application.market_data` | `import_external_dataset` |
 | Finalize / publish | `application.market_data` | `finalize_dataset`, `publish_dataset` |
 | Historical bars | `application.market_data` | `query_historical` → `list[MarketBar]` |
+| Strategy Research run | `application.strategy_research` | `run_strategy_research`, `analyze_strategy_research_run` |
 | Analysis input | `application.market_analysis` | `load_analysis_data_view` → `AnalysisDataView` |
 | Register components | `market_analysis.registry` | `ComponentRegistry` |
 | Build DAG | `market_analysis.planning` | `DependencyPlanner.build_plan` |

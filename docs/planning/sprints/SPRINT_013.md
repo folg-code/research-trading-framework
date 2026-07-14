@@ -5,7 +5,7 @@
 ```text
 Sprint: 013
 Phase: Phase 6A — OHLCV Strategy Research MVP
-Status: IN_PROGRESS (Wave 0 planning)
+Status: COMPLETE (2026-07-14)
 Planned Start: 2026-07-14
 Planned End: TBD
 Sprint Goal Owner: Project Maintainer
@@ -154,18 +154,18 @@ effective date range, framework version.
 | Task | Description | Status |
 |------|-------------|--------|
 | S013-T010 | E2E integration: published OHLCV → run → read-back | DONE |
-| S013-T011 | Unit tests: assumptions, fill math, engine edge cases | TODO |
+| S013-T011 | Unit tests: assumptions, fill math, engine edge cases | DONE |
 
 ### Wave 5 — Analytics, CLI, closure
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S013-T012 | `analyze_strategy_research_run` minimal summary | TODO |
-| S013-T013 | CLI `scripts/strategy_research/run_strategy_research.py` (optional) | TODO |
-| S013-T014 | ADR-0016 + `MODULE_MAP.md` + `DATA_WORKFLOWS.md` | TODO |
-| S013-T015 | Sprint closure + `CURRENT_STATUS.md` update | TODO |
+| S013-T012 | `analyze_strategy_research_run` minimal summary | DONE |
+| S013-T013 | CLI `scripts/strategy_research/run_strategy_research.py` (optional) | DONE |
+| S013-T014 | ADR-0016 + `MODULE_MAP.md` + `DATA_WORKFLOWS.md` | DONE |
+| S013-T015 | Sprint closure + `CURRENT_STATUS.md` update | DONE |
 
-**Progress:** 10 / 15 tasks
+**Progress:** 15 / 15 tasks
 
 ---
 

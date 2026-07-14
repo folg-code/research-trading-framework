@@ -26,7 +26,7 @@ market_model/         Market Model definitions and evaluator
 signal_model/         Signal Model definitions, firing, emissions
 infrastructure/       adapters — CSV, Parquet, file registry
 core/, time/, config/ shared primitives
-strategy/, research/         Signal Research MVP (Sprint 008–010) ✅
+strategy/, research/         Signal Research MVP (Sprint 008–010) ✅; Strategy Research MVP (Sprint 013) ✅
 execution/, events/          ⬜ future domains
 ```
 
@@ -220,6 +220,15 @@ Published DatasetRef (source timeframe, e.g. 1m)
 | **Key paths** | `run_signal_research.py`, `analyze_signal_research.py` |
 | **Entry points** | `run_signal_research`, `analyze_signal_research_run` |
 
+### `application/strategy_research/` ✅
+
+| | |
+|---|---|
+| **Responsibility** | Strategy Research run orchestration and read-only summary analytics |
+| **Talks to** | `application/model_evaluation`, `application/market_data`, `strategy`, `research` |
+| **Key paths** | `run_strategy_research.py`, `analyze_strategy_research.py`, `entry_signals.py`, `summarize.py` |
+| **Entry points** | `run_strategy_research`, `analyze_strategy_research_run`, `build_gated_entry_signals` |
+
 ---
 
 ## Declarative Models (Sprint 006) ✅
@@ -278,15 +287,30 @@ ADR: [ADR-0011](../adr/ADR-0011-signal-research-outcomes-and-persistence.md),
 [ADR-0012](../adr/ADR-0012-combined-research-scopes-and-context-alignment.md),
 [ADR-0013](../adr/ADR-0013-signal-research-analytics-boundary.md)
 
-### `strategy/` ✅ (Signal Research slice)
+## Strategy Research (Sprint 013) ✅
+
+End-to-end flow:
+
+```text
+Published OHLCV DatasetRef
+  → evaluate_models (Market × Signal)
+  → build_gated_entry_signals
+  → query_historical → BarSequentialSimulator (NEXT_BAR_OPEN)
+  → trades.parquet + equity.parquet + manifest
+  → analyze_strategy_research_run (read-only summary)
+```
+
+ADR: [ADR-0016](../adr/ADR-0016-ohlcv-strategy-research-mvp.md)
+
+### `strategy/` ✅ (Signal Research + Strategy Research)
 
 | | |
 |---|---|
-| **Responsibility** | `SignalOccurrence` materialization, reference-price policy |
-| **Key paths** | `signal_occurrence.py`, `reference_price.py` |
-| **Entry points** | `materialize_signal_occurrences`, `derive_occurrence_id`, `resolve_reference_price` |
+| **Responsibility** | `SignalOccurrence` materialization; Exit/Risk/Strategy model contracts (Sprint 013) |
+| **Key paths** | `signal_occurrence.py`, `reference_price.py`, `exit_model.py`, `risk_model.py`, `strategy_model.py`, `canonical_examples.py` |
+| **Entry points** | `materialize_signal_occurrences`, `build_canonical_strategy_model`, `validate_strategy_model_definition` |
 
-### `research/` ✅ (Signal Research — Sprint 008–010)
+### `research/` ✅ (Signal Research — Sprint 008–010; Strategy Research — Sprint 013)
 
 | Subpackage | Responsibility |
 |------------|----------------|
@@ -295,13 +319,13 @@ ADR: [ADR-0011](../adr/ADR-0011-signal-research-outcomes-and-persistence.md),
 | `observations/` | `MarketModelObservation` TRUE_EDGE materialization |
 | `context/` | `ContextFact` alignment at signal `available_at` |
 | `outcomes/` | `ForwardOutcomeDefinition`, forward outcome calculator, OHLCV alignment |
-| `datasets/` | Run envelope manifest (v1/v2), `SignalResearchDatasetRepository`, `derive_run_id` / `derive_run_id_v2` |
-| `analytics/` | Read-only analysis frame, RunSummary, grouping, conditional comparison, optional HTML report |
+| `datasets/` | Signal Research envelope (v1/v2); Strategy Research envelope (`strategy_research.v1`) |
+| `simulation/` | `SimulationAssumptions`, `BarSequentialSimulator`, trade/equity fact schemas |
+| `analytics/` | Read-only Signal Research analysis frame, RunSummary, grouping, optional HTML report |
 
-**Entry points:** `validate_signal_research_request`, `materialize_market_model_observations`,
-`align_context_facts_at_available_at`, `compute_forward_outcomes`,
-`SignalResearchDatasetRepository.read/write`, `run_signal_research`,
-`build_analysis_frame`, `analyze_signal_research_run`, `render_signal_research_report`
+**Entry points:** `validate_signal_research_request`, `run_signal_research`, `analyze_signal_research_run`,
+`run_strategy_research`, `analyze_strategy_research_run`, `StrategyResearchDatasetRepository.read/write`,
+`BarSequentialSimulator.simulate`
 
 ---
 
@@ -312,7 +336,7 @@ ADR: [ADR-0011](../adr/ADR-0011-signal-research-outcomes-and-persistence.md),
 | `execution/` | Order execution domain (Execution Track — Phase 8+) |
 | `events/` | Domain events |
 | **Data Track 2B.2–2E** | Databento DBN OHLCV → `MarketBar`, quotes, options snapshots, live adapters (gated) — see `ROADMAP.md` §6 |
-| **Research Track 4B, 6A–6B** | Orderflow analysis, OHLCV Strategy Research, multi-data simulation — see `ROADMAP.md` §10 |
+| **Research Track 4B, 6B** | Orderflow analysis, multi-data strategy simulation — see `ROADMAP.md` §10 |
 
 Skeleton packages without public workflows beyond Signal Research slice above.
 
@@ -328,6 +352,7 @@ Skeleton packages without public workflows beyond Signal Research slice above.
 | Databento CLI | `tests/unit/scripts/test_databento_cli.py` |
 | Market analysis | `tests/unit/market_analysis/`, `tests/unit/application/market_analysis/`, `tests/integration/test_market_analysis_*` |
 | Signal Research integration | `tests/integration/test_s008_run_signal_research.py`, `tests/integration/test_s009_*`, `tests/integration/test_s010_signal_research_analytics.py` |
+| Strategy Research integration | `tests/integration/test_s013_run_strategy_research.py` |
 | Signal Research spikes | `tests/spike/run_combined_research_spike.py`, `tests/spike/run_inspect_combined_research.py`, `tests/spike/run_signal_research_analytics_spike.py`, `tests/spike/run_signal_research_analytics_report.py` |
 | Signal Research unit | `tests/unit/strategy/`, `tests/unit/research/`, `tests/unit/application/signal_research/` |
 | MA architecture boundaries | `tests/unit/market_analysis/test_market_analysis_architecture_boundaries.py` |
