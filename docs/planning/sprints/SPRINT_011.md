@@ -176,17 +176,17 @@ Parquet / pyarrow conventions from ADR-0008 (new trade column schema)
 | S011-T016 | `import_databento_trades_archive` workflow | 4 | DONE | S011-T011, S011-T006, S011-T014, S011-T003 |
 | S011-T017 | Import manifest persistence | 4 | DONE | S011-T016 |
 | S011-T018 | E2E: import → finalize → publish → query | 4 | DONE | S011-T016, S011-T015 |
-| S011-T019 | Tier 1 mocks + synthetic trade rows | 5 | PLANNED | S011-T011 |
-| S011-T020 | Unit tests (model, mapper, validator, manifest) | 5 | PLANNED | S011-T009–T017 |
-| S011-T021 | CI integration test (mocked DBN decode) | 5 | PLANNED | S011-T018, S011-T019 |
-| S011-T022 | `tier2_databento` marker + Tier 2 docs | 5 | PLANNED | S011-T021 |
-| S011-T023 | `scripts/databento/inspect_dbn.py` | 5 | PLANNED | S011-T009 |
-| S011-T024 | `scripts/databento/import_trades.py` | 5 | PLANNED | S011-T016 |
+| S011-T019 | Tier 1 mocks + synthetic trade rows | 5 | DONE | S011-T011 |
+| S011-T020 | Unit tests (model, mapper, validator, manifest) | 5 | DONE | S011-T009–T017 |
+| S011-T021 | CI integration test (mocked DBN decode) | 5 | DONE | S011-T018, S011-T019 |
+| S011-T022 | `tier2_databento` marker + Tier 2 docs | 5 | DONE | S011-T021 |
+| S011-T023 | `scripts/databento/inspect_dbn.py` | 5 | DONE | S011-T009 |
+| S011-T024 | `scripts/databento/import_trades.py` | 5 | DONE | S011-T016 |
 | S011-T025 | ADR-0014 | 6 | PLANNED | S011-T014, S011-T016 |
 | S011-T026 | Update MODULE_MAP, DATA_WORKFLOWS, CURRENT_STATUS | 6 | PLANNED | S011-T021 |
 | S011-T027 | Sprint review and closure | 6 | PLANNED | All preceding |
 
-**Progress:** 18 / 27 tasks
+**Progress:** 24 / 27 tasks
 
 ---
 
@@ -206,10 +206,10 @@ Parquet / pyarrow conventions from ADR-0008 (new trade column schema)
 
 ## 10. Completion Criteria
 
-- [ ] Local trades DBN inspectable via API and `inspect_dbn.py`,
-- [ ] Trades decode to `MarketTrade` with validation results,
-- [ ] Day-partitioned Parquet + `query_trades` on published `DatasetRef`,
-- [ ] Manifest + checksum on every import,
+- [x] Local trades DBN inspectable via API and `inspect_dbn.py`,
+- [x] Trades decode to `MarketTrade` with validation results,
+- [x] Day-partitioned Parquet + `query_trades` on published `DatasetRef`,
+- [x] Manifest + checksum on every import,
 - [ ] CSV OHLCV regression tests still pass,
 - [ ] CI green without Tier 2 DBN file,
 - [ ] ADR-0014 accepted,
