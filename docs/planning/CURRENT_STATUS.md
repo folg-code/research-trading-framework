@@ -27,13 +27,13 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 
 ```text
 Status Date: 2026-07-14
-Current Phase: Phase 6A inspection complete (Sprint 014 Phase A on main)
-Current Milestone: Sprint 014 Phase A COMPLETE on main
+Current Phase: Phase 2C.4 — Continuous futures materialization (Sprint 015)
+Current Milestone: Sprint 014 Phase A COMPLETE on main (PR #114)
 Implementation Status: Sprints 001–006, 008–014 Phase A COMPLETE on main; Sprint 007 SKIPPED
-Overall Status: IN_PROGRESS (next track selection)
-Active Sprint: none
-Last Completed Sprint: SPRINT_014 Phase A (main, 2026-07-14)
-Capability Tracks: Foundation COMPLETE; Data 2A + 2B/2C.1 + 2B.3 COMPLETE; Research 3/4A/5 COMPLETE; Strategy 6A COMPLETE (simulation + dashboard Phase A)
+Overall Status: IN_PROGRESS
+Active Sprint: SPRINT_015 (planning / Wave 0)
+Last Completed Sprint: SPRINT_014 Phase A (main, PR #114)
+Capability Tracks: Foundation COMPLETE; Data 2A + 2B/2C.1 + 2B.3 COMPLETE; Research 3/4A/5 COMPLETE; Strategy 6A COMPLETE; Continuous futures IN_PROGRESS
 ```
 
 ---
@@ -90,7 +90,17 @@ StrategyResearchRunEnvelope
 
 ADR: ADR-0017. CLI: `scripts/strategy_research/render_strategy_dashboard.py`. See `SPRINT_014.md` and `S014_WAVE0_DECISIONS.md`. Phase B (FastAPI lazy bars) deferred.
 
-**Next decision:** choose next capability track — continuous futures materialization, Phase 6B, 2C.2 (quotes), 4B (orderflow), or Phase 7 (robustness). See `ROADMAP.md` §10–§11.
+**Sprint 015 — Continuous Futures Materialization (Phase 2C.4)** is **active** on `sprint/continuous-futures-materialization` (2026-07-14).
+
+Target preprocessing flow:
+
+```text
+Raw DBN → contract datasets (NQ.NQM5, …) → roll schedule (volume-rth-close)
+    → materialized continuous trades + derived OHLCV (NQ.c.0)
+    → query_historical / run_strategy_research (read-only)
+```
+
+ADR: ADR-0018 (PROPOSED). See `SPRINT_015.md` and `S015_WAVE0_DECISIONS.md`.
 
 Delivered Signal Research flow (on `main`):
 
@@ -260,7 +270,13 @@ Maintenance: `.cursor/rules/documentation.mdc`
 
 ## 6. Work in Progress
 
-Nothing actively in development. Choose next capability track per `ROADMAP.md` §10–§11.
+**Sprint 015 — Continuous Futures Materialization** (Wave 0 planning).
+
+```text
+Branch: sprint/continuous-futures-materialization
+Plan:   docs/planning/sprints/SPRINT_015.md
+ADR:    ADR-0018 (PROPOSED)
+```
 
 ### Sprint 014 — Closed (Phase A)
 
@@ -324,7 +340,7 @@ Nothing actively in development. Choose next capability track per `ROADMAP.md` �
 
 ## 7. Blocked Work
 
-Nothing is technically blocked. Next step: choose next capability track (continuous futures, 6B, 2C.2, 4B, or Phase 7).
+Nothing is technically blocked. Active work: Sprint 015 Wave 0 → contract import (Wave 1).
 
 ---
 
