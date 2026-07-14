@@ -130,10 +130,10 @@ effective date range, framework version.
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S013-T002 | `ExitModel` protocol + `FixedBarsExitModel` | TODO |
-| S013-T003 | `RiskModel` protocol + `FixedQuantityRiskModel` | TODO |
-| S013-T004 | `StrategyModelDefinition` composition + validation | TODO |
-| S013-T005 | `SimulationAssumptions` + fill policy types + fingerprint | TODO |
+| S013-T002 | `ExitModel` protocol + `FixedBarsExitModel` | DONE |
+| S013-T003 | `RiskModel` protocol + `FixedQuantityRiskModel` | DONE |
+| S013-T004 | `StrategyModelDefinition` composition + validation | DONE |
+| S013-T005 | `SimulationAssumptions` + fill policy types + fingerprint | DONE |
 
 ### Wave 2 — Simulation engine
 
@@ -165,7 +165,7 @@ effective date range, framework version.
 | S013-T014 | ADR-0016 + `MODULE_MAP.md` + `DATA_WORKFLOWS.md` | TODO |
 | S013-T015 | Sprint closure + `CURRENT_STATUS.md` update | TODO |
 
-**Progress:** 1 / 15 tasks (planning)
+**Progress:** 5 / 15 tasks
 
 ---
 
