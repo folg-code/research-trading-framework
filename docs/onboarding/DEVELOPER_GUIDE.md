@@ -1,9 +1,10 @@
 # Developer Guide
 
-Day-one setup. Documentation index: **[../README.md](../README.md)**.  
-Project overview (workflows, stack, architecture): **[../../README.md](../../README.md)**.
+Day-one setup for **developers joining the repo**.
 
-AI agents: `AGENTS.md` at the repository root.
+- **Role-based overview** (recruiter, data engineer, quant, …): **[README § Start here](../../README.md#start-here--pick-your-path)**
+- **Documentation index:** [docs/README.md](../README.md)
+- **AI agents:** `AGENTS.md` at the repository root
 
 ---
 
@@ -82,13 +83,15 @@ See [scripts/demo/README.md](../../scripts/demo/README.md).
 
 ## What to read next
 
-| Step | Document | Why |
-|------|----------|-----|
-| 1 | [Data Workflows](../reference/DATA_WORKFLOWS.md) | How data moves (diagrams) |
-| 2 | [Module Map](../reference/MODULE_MAP.md) | Packages and status |
-| 3 | [Current Status](../planning/CURRENT_STATUS.md) | Sprint progress |
-| 4 | [Vision catalog](../vision/README.md) | Binding decisions when designing |
-| 5 | [Reference catalog](../reference/README.md) | Deep module docs |
+Depends on your focus — the README [Start here](../../README.md#start-here--pick-your-path) table links to the right depth.
+
+| Focus | Read next |
+|-------|-----------|
+| **Data / pipelines** | [DATA_WORKFLOWS.md](../reference/DATA_WORKFLOWS.md) → [DATA_MODULE_UPDATED.md](../reference/modules/DATA_MODULE_UPDATED.md) |
+| **Code / architecture** | [MODULE_MAP.md](../reference/MODULE_MAP.md) → [adr/](../adr/README.md) |
+| **Research workflows** | [DATA_WORKFLOWS.md](../reference/DATA_WORKFLOWS.md) §3 → [README § For quant developers](../../README.md#for-quant-developers) |
+| **Sprint context** | [CURRENT_STATUS.md](../planning/CURRENT_STATUS.md) → [ROADMAP.md](../planning/ROADMAP.md) |
+| **Design decisions** | [Vision catalog](../vision/README.md) → [Reference catalog](../reference/README.md) |
 
 ---
 

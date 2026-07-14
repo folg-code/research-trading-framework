@@ -1,279 +1,254 @@
 # Trading Research Framework
 
-Modular quantitative trading research platform in Python. Separates **market data**, **market analysis**, **declarative models**, **signal research**, **strategy research** and (future) **execution** into independent domains with explicit contracts, reproducible runs and offline HTML inspection.
+A **modular Python platform for quantitative trading research**: ingest market data, run reproducible analysis, evaluate signals and strategies, and inspect results in **offline HTML dashboards** — without coupling research to live trading.
 
-**Status (2026-07-14):** Sprints 001–006 and 008–015 are integrated on `main`. End-to-end workflows run from Databento archives through continuous futures, analysis, model evaluation, signal/strategy research and standalone dashboards.
-
----
-
-## Capabilities (as implemented)
-
-| Track | What works today |
-|-------|------------------|
-| **Market Data** | CSV OHLCV import; Databento DBN trades; derived 1m bars from trades; multi-contract continuous futures (`NQ.c.0`) with volume-RTH-close roll schedule |
-| **Market Analysis** | Component registry, DAG planner, sequential executor, MTF resample/align, CME ES RTH sessions, swing structure, volatility state |
-| **Declarative Models** | Market Model and Signal Model expressions; `evaluate_models` on one shared `AnalysisFrame` |
-| **Signal Research** | Three scopes (`MARKET_MODEL_ONLY`, `SIGNAL_MODEL_ONLY`, `MARKET_AND_SIGNAL`); forward outcomes; read-only analytics and HTML reports |
-| **Strategy Research** | Market × Signal × Exit × Risk composition; bar-sequential simulation (Numba kernel); persisted run envelope; 12-KPI dashboard (Lightweight Charts) |
-| **Portfolio demo** | One command generates all offline HTML artifacts — see [Demo](#portfolio-demo) |
-
-Not yet built: live execution, orderflow components (Phase 4B), options data (Phase 2D), robustness research (Phase 7). See [ROADMAP](docs/planning/ROADMAP.md).
+**Status (2026-07-14):** Production-ready vertical slice on `main` — from Databento archives and continuous NQ futures through analysis, model evaluation, signal/strategy research and dashboards (~600 tests, CI on every change).
 
 ---
 
-## Tech stack
+## Start here — pick your path
 
-| Layer | Choices |
-|-------|---------|
-| Language | Python 3.12+ |
-| Packaging | [uv](https://docs.astral.sh/uv/), `uv_build` |
-| Data / compute | **Polars** (resample, align, analytics), **NumPy** (indicator adapters), **Numba** (simulation hot path), **PyArrow** (Parquet I/O) |
-| Storage | Local Parquet partitions + JSON metadata registry (`user_data/`, not in git) |
-| Validation / config | Pydantic v2 |
-| Market data import | Databento SDK (DBN decode at adapter boundary only) |
-| Quality | Ruff, mypy (strict on `src/`), pytest (~600+ tests), pre-commit, GitHub Actions |
-| Dashboards | Standalone HTML — Lightweight Charts (strategy), Plotly (inspection spikes; optional `uv pip install plotly`) |
+| If you are… | Read this first | What you get |
+|-------------|-----------------|--------------|
+| **Recruiter / hiring manager** | [In 60 seconds](#in-60-seconds) → [Portfolio demo](#portfolio-demo-try-it-in-the-browser) | Plain-language scope, deliverables you can open in a browser |
+| **Data engineer** | [Data pipeline](#for-data-engineers) → [Storage layout](#storage-layout) → [DATA_WORKFLOWS](docs/reference/DATA_WORKFLOWS.md) | Parquet partitions, dataset lifecycle, continuous futures materialization |
+| **Software engineer** | [Architecture](#for-software-engineers) → [Project structure](#project-structure) → [MODULE_MAP](docs/reference/MODULE_MAP.md) | Layering, boundaries, packages, quality gates |
+| **Quant / researcher** | [Research workflows](#for-quant-developers) → [Capabilities](#capabilities) → demo dashboards | Signal vs strategy research, models, simulation, KPIs |
+| **Developer (new to repo)** | [Quick start](#quick-start) → [DEVELOPER_GUIDE](docs/onboarding/DEVELOPER_GUIDE.md) | Install, tests, where code lives |
 
-Domain logic does **not** call vendor APIs at runtime. Importers normalize to canonical `MarketBar` / `MarketTrade` models; consumers use `DatasetRef` and repository protocols.
+**Fastest showcase** (no prior setup beyond `uv sync`):
+
+```bash
+uv pip install plotly
+uv run python scripts/demo/run_portfolio_demo.py --full --open
+```
+
+Opens `demo/output/index.html` with strategy dashboards and inspection reports.
 
 ---
 
-## Architecture
+## In 60 seconds
 
-Modular monolith: **application** orchestrates **domain** packages; **infrastructure** implements adapters. `src/trading_framework/` never imports `user_data/`.
+**Problem:** Research code often mixes data loading, indicators, backtests and reporting in one script — hard to reproduce, review or extend.
+
+**Approach:** Separate **pipelines** with explicit contracts:
+
+1. **Market Data** — import and publish versioned datasets (CSV, Databento DBN, continuous futures).
+2. **Market Analysis** — reusable components (volatility, swing structure, MTF alignment) on a shared execution engine.
+3. **Declarative models** — Market Model and Signal Model as expressions, not ad-hoc scripts.
+4. **Signal Research** — measure whether signals predict forward price behaviour (MFE, MAE, hit rate).
+5. **Strategy Research** — simulate entries/exits/risk on historical bars; persist trades, equity and a **12-KPI dashboard**.
+
+**Evidence of depth:** partitioned Parquet storage, dataset immutability after publish, Numba simulation kernel, columnar batch reads for half-year NQ runs (~6–15 s), architecture docs and ADRs.
+
+**Not in scope yet:** live broker execution, orderflow features, options data, walk-forward robustness suite.
+
+---
+
+## Portfolio demo (try it in the browser)
+
+One command builds offline HTML artifacts — useful for **portfolio reviews** and **technical demos**:
+
+```bash
+uv pip install plotly   # optional — extra inspection charts
+uv run python scripts/demo/run_portfolio_demo.py --full --open
+```
+
+| Output | Audience | Shows |
+|--------|----------|-------|
+| `00_strategy_dashboard_nq_half_year.html` | Everyone | Real NQ half-year backtest: KPIs, equity, OHLCV + trade markers |
+| `01_strategy_dashboard_fixture.html` | Engineers | Same pipeline on small committed fixture |
+| `02`–`06` inspection reports | Quants / engineers | Signal analytics, model overlays, MTF swing charts |
+
+Details: [scripts/demo/README.md](scripts/demo/README.md) (includes a **recruiter** section — no Python required if you already have the HTML).
+
+---
+
+## Capabilities
+
+| Area | What works today |
+|------|------------------|
+| **Ingestion** | CSV OHLCV; Databento DBN trades; 1m bars derived from trades; **continuous NQ** (`NQ.c.0`) with volume-based roll schedule |
+| **Analysis** | Component DAG, MTF resample/align, CME ES RTH sessions, swing structure, volatility state |
+| **Models** | Declarative Market Model × Signal Model; single shared evaluation pass per research run |
+| **Signal Research** | Three scopes (market-only, signal-only, combined); forward outcomes; analytics HTML |
+| **Strategy Research** | Full strategy (market × signal × exit × risk); bar simulation; persisted run + dashboard |
+| **Quality** | Ruff, mypy, pytest, pre-commit, GitHub Actions |
+
+Roadmap: [docs/planning/ROADMAP.md](docs/planning/ROADMAP.md).
+
+---
+
+## For data engineers
+
+**Mental model:** external files → **normalize** → **Parquet** → **register** → **publish** → consumers query by `DatasetRef` (not by file path). Published versions are **immutable**.
+
+**Main pipelines:**
+
+```text
+CSV / Databento DBN
+  → validate → partitioned Parquet → metadata JSON
+  → WORKING → FINALIZED → PUBLISHED
+
+Multi-contract trades (NQ.NQM5, NQ.NQU5, …)
+  → roll schedule (volume-RTH-close)
+  → continuous trades + 1m OHLCV (NQ.c.0)
+```
+
+**Storage under `storage_root/`** (typically `user_data/storage/`):
+
+```text
+metadata/…/vN.json
+normalized/…/partitions/session_date=…/*.parquet
+continuous/schedules/…/
+signal_research/<run_id>/
+strategy_research/<run_id>/{manifest.json, trades.parquet, equity.parquet}
+```
+
+**Tech:** PyArrow Parquet, Polars aggregation, day/session partitions, import manifests, lineage on derived datasets.
+
+Deep reference: [DATA_WORKFLOWS.md](docs/reference/DATA_WORKFLOWS.md) · [DATA_MODULE](docs/reference/modules/DATA_MODULE_UPDATED.md)
+
+---
+
+## For software engineers
+
+**Style:** modular monolith — domain packages stay pure; **infrastructure** holds CSV/Databento/Parquet adapters; **`user_data/` is never imported** from `src/`.
 
 ```mermaid
-flowchart TB
-    subgraph external["External sources"]
-        CSV["CSV OHLCV"]
-        DBN["Databento DBN"]
+flowchart LR
+    subgraph app["application"]
+        MD[market_data]
+        MA[market_analysis]
+        SR[signal_research]
+        STR[strategy_research]
     end
-
-    subgraph userdata["user_data/ (runtime)"]
-        STORE["storage_root/"]
+    subgraph domain["domain"]
+        MKT[market]
+        MAN[market_analysis]
+        RES[research]
     end
-
-    subgraph app["application/"]
-        MD["market_data"]
-        MA["market_analysis"]
-        ME["model_evaluation"]
-        SR["signal_research"]
-        STR["strategy_research"]
+    subgraph infra["infrastructure"]
+        PQ[parquet]
+        REG[registry]
     end
-
-    subgraph domain["Domain"]
-        MKT["market/"]
-        MAN["market_analysis/"]
-        MX["model_expression/"]
-        MM["market_model/"]
-        SM["signal_model/"]
-        ST["strategy/"]
-        RES["research/"]
-    end
-
-    subgraph infra["infrastructure/"]
-        IMP["importers/"]
-        PQ["storage/parquet"]
-        REG["metadata/registry"]
-    end
-
-    CSV --> MD
-    DBN --> MD
-    MD --> IMP --> PQ --> STORE
-    MD --> REG --> STORE
-
+    MD --> PQ
+    MD --> REG
     MA --> MAN
-    ME --> MAN
-    ME --> MM
-    ME --> SM
-    SR --> ME
     SR --> RES
-    STR --> ME
     STR --> RES
-
     MAN --> MKT
-    MM --> MX
-    SM --> MX
-    ST --> RES
 ```
 
-### Layer responsibilities
+**Dependency rule:** `application` → domain + infrastructure. Domain does not import infrastructure.
 
-```text
-application/     Use cases — import, publish, run_analysis, evaluate_models,
-                   run_signal_research, run_strategy_research, dashboards
-market/            Dataset identity, lifecycle, MarketBar/MarketTrade, repository protocols
-market_analysis/   Components, planning, execution, frames, temporal alignment
-model_expression/  Declarative IR, validation, Polars evaluation
-market_model/      Market Model definitions and evaluator
-signal_model/      Signal Model definitions, firing policies, emissions
-strategy/          Exit, Risk, Strategy model contracts
-research/          Signal/Strategy run envelopes, simulation, analytics, dashboards
-infrastructure/    CSV, Databento, Parquet, file registry, observability
-core/, time/, config/   Identifiers, UTC time, Clock, framework config
-execution/, events/     Reserved for future execution track
+**Stack:** Python 3.12 · uv · Polars · NumPy · Numba · PyArrow · Pydantic · pytest · Ruff · mypy
+
+**Quality (run locally):**
+
+```bash
+uv sync --locked --dev
+uv run ruff check . && uv run ruff format --check .
+uv run mypy && uv run pytest
 ```
 
-**Dependency rule:** `application` → domain + infrastructure. Domain packages do not import infrastructure or `user_data/`.
+Package map and entry points: [MODULE_MAP.md](docs/reference/MODULE_MAP.md) · Architecture ADRs: [docs/adr/](docs/adr/)
 
 ---
 
-## Research workflows
+## For quant developers
 
-Three independent research paths share **published datasets** and **market analysis**, but not each other's workflow state (ADR-0011–0013).
+Three **independent** research workflows share published OHLCV and analysis — they do not share mutable run state.
 
-### 1. Signal Research — edge discovery
-
-```text
-Published OHLCV
-  → run_analysis + evaluate_models
-  → SignalOccurrence / MarketModelObservation (+ optional ContextFact)
-  → forward outcomes (MFE, MAE, terminal return)
-  → persisted Signal Research envelope
-  → analyze_signal_research_run → HTML analytics report
-```
-
-**Scopes:** market-only, signal-only, or combined (context at `available_at`).
-
-### 2. Strategy Research — PnL simulation
+### Signal Research — does the signal predict future moves?
 
 ```text
-Published OHLCV (columnar batch path in hot research)
-  → run_analysis + evaluate_models (shared evaluation table)
-  → gated entry signals (market state × signal emissions)
-  → BarSequentialSimulator (Numba fixed-bars kernel)
-  → trades.parquet + equity.parquet + manifest
-  → build_strategy_dashboard_view_model → offline HTML dashboard
+OHLCV → analysis + models → occurrences / observations
+      → forward outcomes (MFE, MAE, return at horizon)
+      → persisted run → analytics & HTML report
 ```
 
-### 3. Continuous futures preprocessing (data track)
+Use when exploring **edge** before committing to a full strategy (no position sizing required).
+
+### Strategy Research — what is the PnL of a complete rule set?
 
 ```text
-Databento DBN (NQ.NQM5, NQ.NQU5, …)
-  → contract trades partitions
-  → volume-RTH-close roll schedule
-  → materialized continuous trades + derived 1m OHLCV (NQ.c.0)
-  → publish → query_historical / run_strategy_research (read-only)
+OHLCV → analysis + models → gated entry signals
+      → bar-sequential simulator (slippage, commission)
+      → trades + equity → 12-KPI dashboard (Sharpe, drawdown, win rate, …)
 ```
 
-Detailed sequence diagrams: [docs/reference/DATA_WORKFLOWS.md](docs/reference/DATA_WORKFLOWS.md).
+Canonical example: high-volatility market filter × higher-low signal × fixed-bar exit.
+
+### Continuous futures — research-grade NQ series
+
+```text
+Contract DBN → roll schedule → NQ.c.0 trades & 1m OHLCV → strategy backtest
+```
+
+Example scale: **~177k** 1m bars (half-year), **~1.5k** trades on canonical strategy (demo dataset).
+
+Expression layer: `market_model/`, `signal_model/`, `model_expression/` — compose conditions without rewriting indicator code.
 
 ---
 
 ## Project structure
 
 ```text
-research-trading-framework/
-├── src/trading_framework/          # Framework code (installable package)
-│   ├── application/                # Use cases (market_data, market_analysis, …)
-│   ├── market/                     # Domain: bars, trades, datasets, contracts, continuous
-│   ├── market_analysis/            # Analysis engine, components, assembly
-│   ├── model_expression/           # Expression IR and evaluation
-│   ├── model_authoring/            # Optional DSL → IR
-│   ├── market_model/ · signal_model/
-│   ├── strategy/ · research/
-│   ├── infrastructure/             # Parquet, Databento, CSV, registry
-│   └── core/ · time/ · config/
-├── scripts/                        # Thin CLIs (not imported by domain)
-│   ├── databento/                  # DBN inspect, trades import
-│   ├── market_data/                # derive bars, build_continuous, half-year backtest
-│   ├── strategy_research/          # run research, render dashboard
-│   └── demo/                       # Portfolio demo generator
-├── tests/
-│   ├── unit/ · integration/        # CI test suites
-│   ├── fixtures/                   # Small deterministic CSV/DBN samples
-│   └── spike/                      # Manual inspection HTML scripts (Plotly)
-├── docs/
-│   ├── vision/                     # Target design and binding decisions
-│   ├── reference/                  # As-implemented: MODULE_MAP, DATA_WORKFLOWS
-│   ├── planning/                   # ROADMAP, CURRENT_STATUS, sprints
-│   └── adr/                        # Architecture decision records
-├── user_data/                      # Gitignored: storage, config, proprietary models
-├── demo/output/                    # Generated portfolio HTML (from demo script)
-├── AGENTS.md                       # AI agent instructions
-└── pyproject.toml
-```
+src/trading_framework/
+  application/      orchestration (run_analysis, evaluate_models, run_strategy_research, …)
+  market/           bars, trades, datasets, continuous futures
+  market_analysis/  components, planner, executor, frames
+  model_expression/ market_model/ signal_model/ strategy/
+  research/         simulation, envelopes, analytics, dashboards
+  infrastructure/   Parquet, Databento, CSV, file registry
 
-Package index and entry points: [docs/reference/MODULE_MAP.md](docs/reference/MODULE_MAP.md).
+scripts/            CLIs (import, build_continuous, backtest, demo, dashboard)
+tests/              unit + integration + fixtures
+docs/               vision, reference, planning, ADR
+user_data/          local storage & config (gitignored)
+```
 
 ---
 
-## Storage layout (under `storage_root`)
+## Storage layout
 
-Published datasets are immutable. Identity is `DatasetRef`, not file path.
-
-```text
-storage_root/
-├── metadata/…/vN.json              # DatasetMetadata (lifecycle, checksum, lineage)
-├── normalized/                     # Per-dataset Parquet
-│   ├── ES.c.0/ohlcv/1m/…/bars.parquet
-│   ├── NQ.NQU5/trades/tick/…/partitions/session_date=…/trades.parquet
-│   └── NQ.c.0/ohlcv/1m/derived/…/partitions/session_date=…/bars.parquet
-├── continuous/schedules/…/         # Roll schedule artifacts (Sprint 015)
-├── signal_research/<run_id>/       # Signal Research envelope tables
-└── strategy_research/<run_id>/     # manifest.json, trades.parquet, equity.parquet
-```
-
-OHLCV Parquet stores decimals as strings; batch research uses a **columnar float path** (`OhlcvColumnBatch`) to avoid per-bar `MarketBar` materialization. Boundary API `query_historical()` still returns `list[MarketBar]` for small queries.
+See [For data engineers](#for-data-engineers). OHLCV decimals are stored as strings in Parquet; batch research uses a **columnar float path** (`OhlcvColumnBatch`) for performance. Small queries still use `query_historical()` → `MarketBar` objects.
 
 ---
 
 ## Quick start
 
-### Prerequisites
-
-- Python 3.12+
-- [uv](https://docs.astral.sh/uv/)
-
-### Install and verify
+**Prerequisites:** Python 3.12+, [uv](https://docs.astral.sh/uv/)
 
 ```bash
+git clone <repo-url>
+cd research-trading-framework
 uv sync --locked --dev
-uv run ruff check .
-uv run ruff format --check .
-uv run mypy
 uv run pytest
 ```
 
-### Portfolio demo
-
-Generates offline HTML dashboards for all major workflows (~30 s on fixtures; includes NQ half-year dashboard when `user_data/storage_nq_half_year` exists):
+**With local NQ storage** (optional):
 
 ```bash
-uv pip install plotly   # optional — inspection reports
-uv run python scripts/demo/run_portfolio_demo.py --full --open
-```
-
-Output: `demo/output/index.html`. Details: [scripts/demo/README.md](scripts/demo/README.md).
-
-### Example CLIs
-
-```bash
-# Half-year NQ continuous backtest (requires built storage)
 uv run python scripts/market_data/run_half_year_backtest.py \
   --storage-root user_data/storage_nq_half_year --skip-build
-
-# Strategy dashboard from persisted run
-uv run python scripts/strategy_research/render_strategy_dashboard.py \
-  --storage-root user_data/storage_nq_half_year \
-  --run-id <run_id> \
-  --output strategy_dashboard.html
 ```
 
 ---
 
 ## Documentation
 
-| Document | Purpose |
-|----------|---------|
-| **[docs/README.md](docs/README.md)** | Documentation index and reading paths |
-| [DATA_WORKFLOWS.md](docs/reference/DATA_WORKFLOWS.md) | Technical data-flow reference (diagrams) |
-| [MODULE_MAP.md](docs/reference/MODULE_MAP.md) | Packages, status, entry points |
-| [CURRENT_STATUS.md](docs/planning/CURRENT_STATUS.md) | Sprint progress and next steps |
-| [ROADMAP.md](docs/planning/ROADMAP.md) | Capability tracks and phased plan |
+| Document | Best for |
+|----------|----------|
+| [docs/README.md](docs/README.md) | Documentation index |
 | [DEVELOPER_GUIDE.md](docs/onboarding/DEVELOPER_GUIDE.md) | Day-one setup |
+| [DATA_WORKFLOWS.md](docs/reference/DATA_WORKFLOWS.md) | Data engineers — diagrams & sequences |
+| [MODULE_MAP.md](docs/reference/MODULE_MAP.md) | Software engineers — packages & APIs |
+| [CURRENT_STATUS.md](docs/planning/CURRENT_STATUS.md) | Sprint status |
+| [ROADMAP.md](docs/planning/ROADMAP.md) | What is planned next |
 
-AI agents: read `AGENTS.md` first.
+AI contributors: start with [AGENTS.md](AGENTS.md).
 
 ---
 

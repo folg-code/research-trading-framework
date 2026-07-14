@@ -2,6 +2,8 @@
 
 **Start here.** Single index — folder READMEs are catalogs only.
 
+For a **role-based entry point** (recruiter, data engineer, software engineer, quant, new developer), see the table at the top of the repository **[README.md](../README.md#start-here--pick-your-path)**.
+
 ---
 
 ## Folder Layout
@@ -38,18 +40,13 @@ Maintenance: `.cursor/rules/documentation.mdc`
 
 ## Reading Paths
 
-### New developer
-
-1. [Developer Guide](onboarding/DEVELOPER_GUIDE.md)
-2. [Data Workflows](reference/DATA_WORKFLOWS.md)
-3. [Module Map](reference/MODULE_MAP.md)
-4. [Current Status](planning/CURRENT_STATUS.md)
-
-### Portfolio / demo showcase
-
-1. Repository [README.md](../README.md) — capabilities, architecture, workflows
-2. [scripts/demo/README.md](../scripts/demo/README.md) — generate offline HTML dashboards
-3. [DATA_WORKFLOWS.md](reference/DATA_WORKFLOWS.md) §3 — workflow entry points
+| Role | Path |
+|------|------|
+| **Recruiter / hiring manager** | [README § In 60 seconds](../README.md#in-60-seconds) → [Portfolio demo](../README.md#portfolio-demo-try-it-in-the-browser) → [scripts/demo/README.md](../scripts/demo/README.md) |
+| **Data engineer** | [README § For data engineers](../README.md#for-data-engineers) → [DATA_WORKFLOWS.md](reference/DATA_WORKFLOWS.md) → [DATA_MODULE_UPDATED.md](reference/modules/DATA_MODULE_UPDATED.md) |
+| **Software engineer** | [README § For software engineers](../README.md#for-software-engineers) → [MODULE_MAP.md](reference/MODULE_MAP.md) → [adr/](adr/README.md) |
+| **Quant / researcher** | [README § For quant developers](../README.md#for-quant-developers) → [DATA_WORKFLOWS.md](reference/DATA_WORKFLOWS.md) §3 → [MARKET_ANALYSIS_MODULE.md](reference/modules/MARKET_ANALYSIS_MODULE.md) |
+| **New developer** | [Developer Guide](onboarding/DEVELOPER_GUIDE.md) → [DATA_WORKFLOWS.md](reference/DATA_WORKFLOWS.md) → [MODULE_MAP.md](reference/MODULE_MAP.md) |
 
 ### Implementing a change
 

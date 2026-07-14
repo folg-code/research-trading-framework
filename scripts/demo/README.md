@@ -2,6 +2,20 @@
 
 Offline HTML artifacts for showcasing research workflows and dashboards.
 
+## For recruiters and hiring managers
+
+You do **not** need to run Python to review the project — ask for `demo/output/index.html` or the hero file `00_strategy_dashboard_nq_half_year.html`.
+
+**What it proves in one click:**
+
+- End-to-end quantitative research platform (data → analysis → simulation → dashboard)
+- Real NQ futures half-year backtest with KPIs, equity curve and trade markers on the chart
+- Separate inspection reports for signal analytics and market-structure analysis
+
+**One-line pitch:** modular Python research stack with reproducible pipelines and browser-based deliverables — no live trading dependency.
+
+Full project context (plain language): [README § In 60 seconds](../../README.md#in-60-seconds).
+
 ## Quick start
 
 ```powershell
