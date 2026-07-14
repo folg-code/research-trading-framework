@@ -116,6 +116,23 @@ def test_load_analysis_data_view_materializes_published_dataset(tmp_path: Path) 
     assert view.close.values == (103.0, 103.0, 103.0)
 
 
+def test_load_analysis_data_view_uses_preloaded_bars(tmp_path: Path) -> None:
+    bars = [_bar(0), _bar(1)]
+    view = load_analysis_data_view(
+        LoadAnalysisDataViewRequest(
+            dataset_ref=_dataset_ref(),
+            computation_range=TimeRange(
+                start=datetime(2024, 1, 1, 12, 0, tzinfo=UTC),
+                end=datetime(2024, 1, 1, 12, 1, tzinfo=UTC),
+            ),
+        ),
+        storage_root=tmp_path / "data",
+        preloaded_bars=bars,
+    )
+    assert len(view) == 2
+    assert view.close.values == (103.0, 103.0)
+
+
 def test_load_analysis_data_view_rejects_non_published_dataset(tmp_path: Path) -> None:
     storage_root = tmp_path / "data"
     dataset_ref = _dataset_ref()
