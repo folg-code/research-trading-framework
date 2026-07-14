@@ -1,5 +1,10 @@
 """Market data application workflows."""
 
+from trading_framework.application.market_data.build_continuous import (
+    BuildContinuousRequest,
+    BuildContinuousResult,
+    build_continuous,
+)
 from trading_framework.application.market_data.build_roll_schedule import (
     BuildRollScheduleRequest,
     BuildRollScheduleResult,
@@ -44,6 +49,8 @@ from trading_framework.application.market_data.query_trades import (
 )
 
 __all__ = [
+    "BuildContinuousRequest",
+    "BuildContinuousResult",
     "BuildRollScheduleRequest",
     "BuildRollScheduleResult",
     "ContractTradesImportResult",
@@ -57,6 +64,7 @@ __all__ = [
     "MaterializeContinuousTradesResult",
     "QueryHistoricalRequest",
     "QueryTradesRequest",
+    "build_continuous",
     "build_roll_schedule",
     "derive_continuous_ohlcv",
     "derive_ohlcv_from_trades",

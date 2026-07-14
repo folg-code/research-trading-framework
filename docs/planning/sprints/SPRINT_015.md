@@ -195,9 +195,9 @@ Referenced from continuous dataset lineage; shared by trades and OHLCV derivatio
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S015-T014 | CLI `scripts/market_data/build_continuous.py` | PLANNED |
-| S015-T015 | Integration test: multi-contract fixture → continuous → strategy research read | PLANNED |
-| S015-T016 | Consumer boundary test (research paths do not import roll builders) | PLANNED |
+| S015-T014 | CLI `scripts/market_data/build_continuous.py` | DONE |
+| S015-T015 | Integration test: multi-contract fixture → continuous → strategy research read | DONE |
+| S015-T016 | Consumer boundary test (research paths do not import roll builders) | DONE |
 
 ### Wave 6 — ADR and closure
 
@@ -207,7 +207,7 @@ Referenced from continuous dataset lineage; shared by trades and OHLCV derivatio
 | S015-T018 | `MODULE_MAP.md`, `DATA_WORKFLOWS.md`, `CURRENT_STATUS.md` | PLANNED |
 | S015-T019 | Sprint closure | PLANNED |
 
-**Progress:** 13 / 19 tasks (Waves 0–4 complete)
+**Progress:** 16 / 19 tasks (Waves 0–5 complete)
 
 ---
 
