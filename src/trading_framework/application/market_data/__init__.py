@@ -5,6 +5,10 @@ from trading_framework.application.market_data.build_roll_schedule import (
     BuildRollScheduleResult,
     build_roll_schedule,
 )
+from trading_framework.application.market_data.derive_continuous_ohlcv import (
+    DeriveContinuousOhlcvResult,
+    derive_continuous_ohlcv,
+)
 from trading_framework.application.market_data.derive_ohlcv_from_trades import (
     DeriveOhlcvFromTradesResult,
     derive_ohlcv_from_trades,
@@ -43,6 +47,7 @@ __all__ = [
     "BuildRollScheduleRequest",
     "BuildRollScheduleResult",
     "ContractTradesImportResult",
+    "DeriveContinuousOhlcvResult",
     "DeriveOhlcvFromTradesResult",
     "ImportDatabentoContractTradesArchiveResult",
     "ImportDatabentoTradesArchiveResult",
@@ -53,6 +58,7 @@ __all__ = [
     "QueryHistoricalRequest",
     "QueryTradesRequest",
     "build_roll_schedule",
+    "derive_continuous_ohlcv",
     "derive_ohlcv_from_trades",
     "finalize_dataset",
     "import_databento_contract_trades_archive",
