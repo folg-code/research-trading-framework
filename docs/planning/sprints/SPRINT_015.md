@@ -188,8 +188,8 @@ Referenced from continuous dataset lineage; shared by trades and OHLCV derivatio
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S015-T012 | `derive_continuous_ohlcv` using shared roll schedule | PLANNED |
-| S015-T013 | Publish + query continuous `DatasetRef` through existing contracts | PLANNED |
+| S015-T012 | `derive_continuous_ohlcv` using shared roll schedule | DONE |
+| S015-T013 | Publish + query continuous `DatasetRef` through existing contracts | DONE |
 
 ### Wave 5 — CLI and integration
 
@@ -207,7 +207,7 @@ Referenced from continuous dataset lineage; shared by trades and OHLCV derivatio
 | S015-T018 | `MODULE_MAP.md`, `DATA_WORKFLOWS.md`, `CURRENT_STATUS.md` | PLANNED |
 | S015-T019 | Sprint closure | PLANNED |
 
-**Progress:** 11 / 19 tasks (Waves 0–3 complete)
+**Progress:** 13 / 19 tasks (Waves 0–4 complete)
 
 ---
 

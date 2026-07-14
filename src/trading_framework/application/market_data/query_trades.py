@@ -6,8 +6,8 @@ from pathlib import Path
 
 from trading_framework.core.exceptions import ValidationError
 from trading_framework.infrastructure.storage.metadata.registry import FileDatasetRegistry
-from trading_framework.infrastructure.storage.parquet.trade_repository import (
-    ParquetTradeDatasetRepository,
+from trading_framework.infrastructure.storage.trade_repository_factory import (
+    trade_dataset_repository_for,
 )
 from trading_framework.market.datasets import DatasetLifecycleState, DatasetRef
 from trading_framework.market.models import MarketTrade
@@ -32,7 +32,10 @@ def query_trades(
 ) -> list[MarketTrade]:
     """Return UTC-aware trades for a published dataset version."""
     dataset_registry = registry or FileDatasetRegistry(storage_root)
-    trade_repository = repository or ParquetTradeDatasetRepository(storage_root)
+    trade_repository = repository or trade_dataset_repository_for(
+        storage_root,
+        request.dataset_ref,
+    )
 
     metadata = dataset_registry.get(request.dataset_ref)
     if metadata.lifecycle_status is not DatasetLifecycleState.PUBLISHED:

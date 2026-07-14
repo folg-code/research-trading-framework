@@ -7,8 +7,8 @@ from trading_framework.application.market_data.checksum import compute_dataset_c
 from trading_framework.core.exceptions import ValidationError
 from trading_framework.infrastructure.storage.metadata.registry import FileDatasetRegistry
 from trading_framework.infrastructure.storage.parquet.repository import ParquetDatasetRepository
-from trading_framework.infrastructure.storage.parquet.trade_repository import (
-    ParquetTradeDatasetRepository,
+from trading_framework.infrastructure.storage.trade_repository_factory import (
+    trade_dataset_repository_for,
 )
 from trading_framework.market.datasets import (
     DatasetLifecycleState,
@@ -45,7 +45,8 @@ def finalize_dataset(
             dataset_ref,
             metadata=metadata,
             dataset_registry=dataset_registry,
-            trade_repository=trade_repository or ParquetTradeDatasetRepository(storage_root),
+            trade_repository=trade_repository
+            or trade_dataset_repository_for(storage_root, dataset_ref),
         )
 
     bar_repository = repository or ParquetDatasetRepository(storage_root)
