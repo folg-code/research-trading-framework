@@ -34,6 +34,26 @@ class SimulationEngineError(ValidationError):
 
 
 @dataclass(frozen=True, slots=True)
+class _BarTimestampIndex:
+    """Lookup bar index by observed_at or available_at without scanning all bars."""
+
+    observed_at_to_index: dict[datetime, int]
+    available_at_to_index: dict[datetime, int]
+
+
+def _build_bar_timestamp_index(bars: Sequence[MarketBar]) -> _BarTimestampIndex:
+    observed_at_to_index: dict[datetime, int] = {}
+    available_at_to_index: dict[datetime, int] = {}
+    for index, bar in enumerate(bars):
+        observed_at_to_index.setdefault(bar.observed_at, index)
+        available_at_to_index.setdefault(bar.available_at, index)
+    return _BarTimestampIndex(
+        observed_at_to_index=observed_at_to_index,
+        available_at_to_index=available_at_to_index,
+    )
+
+
+@dataclass(frozen=True, slots=True)
 class SimulationResult:
     """Outcome of one bar-sequential simulation pass."""
 
@@ -99,11 +119,12 @@ class BarSequentialSimulator:
         trades: list[SimulatedTrade] = []
         position_open_until_bar_index: int | None = None
         sorted_signals = entry_signals.sort("available_at")
+        bar_index = _build_bar_timestamp_index(bars)
 
         for row in sorted_signals.iter_rows(named=True):
             available_at = row["available_at"]
             direction = SignalDirection(str(row["direction"]))
-            signal_bar_index = _resolve_signal_bar_index(bars, available_at=available_at)
+            signal_bar_index = _resolve_signal_bar_index(bar_index, available_at=available_at)
             if signal_bar_index is None:
                 continue
 
@@ -233,14 +254,15 @@ def _require_fixed_quantity_risk(strategy_model: StrategyModelDefinition) -> Fix
     return risk_model
 
 
-def _resolve_signal_bar_index(bars: Sequence[MarketBar], *, available_at: datetime) -> int | None:
-    for index, bar in enumerate(bars):
-        if bar.observed_at == available_at:
-            return index
-    for index, bar in enumerate(bars):
-        if bar.available_at == available_at:
-            return index
-    return None
+def _resolve_signal_bar_index(
+    bar_index: _BarTimestampIndex,
+    *,
+    available_at: datetime,
+) -> int | None:
+    observed_match = bar_index.observed_at_to_index.get(available_at)
+    if observed_match is not None:
+        return observed_match
+    return bar_index.available_at_to_index.get(available_at)
 
 
 def _gross_pnl(

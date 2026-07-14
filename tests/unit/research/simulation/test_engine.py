@@ -18,6 +18,10 @@ from trading_framework.research.simulation import (
     BarSequentialSimulator,
     SimulationAssumptions,
 )
+from trading_framework.research.simulation.engine import (
+    _build_bar_timestamp_index,
+    _resolve_signal_bar_index,
+)
 from trading_framework.strategy import (
     FixedBarsExitModel,
     FixedQuantityRiskModel,
@@ -124,4 +128,79 @@ def test_simulator_ignores_overlapping_signals_while_position_open() -> None:
         instrument="ES.c.0",
         source_dataset_ref="dataset:test:1",
     )
+    assert len(result.trades) == 1
+
+
+def test_resolve_signal_bar_index_prefers_observed_at_match() -> None:
+    bars = [_bar(0), _bar(1)]
+    bar_index = _build_bar_timestamp_index(bars)
+
+    assert _resolve_signal_bar_index(bar_index, available_at=bars[0].observed_at) == 0
+    assert _resolve_signal_bar_index(bar_index, available_at=bars[1].available_at) == 1
+
+
+def test_resolve_signal_bar_index_returns_none_for_unknown_timestamp() -> None:
+    bars = [_bar(0)]
+    bar_index = _build_bar_timestamp_index(bars)
+
+    assert (
+        _resolve_signal_bar_index(
+            bar_index,
+            available_at=datetime(2024, 1, 1, 13, 0, tzinfo=UTC),
+        )
+        is None
+    )
+
+
+def test_bar_timestamp_index_keeps_first_bar_on_duplicate_observed_at() -> None:
+    shared_observed_at = datetime(2024, 1, 1, 12, 0, tzinfo=UTC)
+    bars = [
+        MarketBar(
+            open=Price(Decimal("100")),
+            high=Price(Decimal("101")),
+            low=Price(Decimal("99")),
+            close=Price(Decimal("100")),
+            volume=Volume(1),
+            observed_at=shared_observed_at,
+            available_at=shared_observed_at + timedelta(minutes=1),
+        ),
+        MarketBar(
+            open=Price(Decimal("101")),
+            high=Price(Decimal("102")),
+            low=Price(Decimal("100")),
+            close=Price(Decimal("101")),
+            volume=Volume(1),
+            observed_at=shared_observed_at,
+            available_at=shared_observed_at + timedelta(minutes=2),
+        ),
+    ]
+    bar_index = _build_bar_timestamp_index(bars)
+
+    assert _resolve_signal_bar_index(bar_index, available_at=shared_observed_at) == 0
+
+
+def test_simulator_resolves_signal_on_available_at_when_observed_at_differs() -> None:
+    bars = [
+        _bar(0),
+        _bar(1, open_price="100"),
+        _bar(2),
+        _bar(3),
+        _bar(4, open_price="103"),
+        _bar(5),
+    ]
+    entry_signals = pl.DataFrame(
+        {
+            "available_at": [bars[0].available_at],
+            "direction": ["long"],
+        }
+    )
+    result = BarSequentialSimulator().simulate(
+        bars=bars,
+        entry_signals=entry_signals,
+        strategy_model=_strategy_model(exit_after_bars=2),
+        assumptions=SimulationAssumptions(),
+        instrument="ES.c.0",
+        source_dataset_ref="dataset:test:1",
+    )
+
     assert len(result.trades) == 1
