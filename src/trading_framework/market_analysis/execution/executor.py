@@ -1,6 +1,7 @@
 """Sequential batch execution."""
 
 from trading_framework.core.exceptions import TradingFrameworkError
+from trading_framework.core.profiling import optional_phase
 from trading_framework.market_analysis.assembly.session_metadata import TradingSessionMetadata
 from trading_framework.market_analysis.data.resample import resample_analysis_view
 from trading_framework.market_analysis.data.view import AnalysisDataView
@@ -88,14 +89,17 @@ class SequentialBatchExecutor:
 
         for node in plan.nodes:
             if isinstance(node, ResampleNode):
-                self._execute_resample_node(node, workspace, resample_stage_cache)
+                with optional_phase(f"execute.resample.{node.resample_identity.canonical_key()}"):
+                    self._execute_resample_node(node, workspace, resample_stage_cache)
             elif isinstance(node, PlannedNode):
-                self._execute_component_node(
-                    node,
-                    workspace=workspace,
-                    context=context,
-                    execution_cache=execution_cache,
-                )
+                component_id = node.component.component_id.value
+                with optional_phase(f"execute.component.{component_id}"):
+                    self._execute_component_node(
+                        node,
+                        workspace=workspace,
+                        context=context,
+                        execution_cache=execution_cache,
+                    )
 
         return workspace
 

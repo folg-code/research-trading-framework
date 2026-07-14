@@ -8,6 +8,7 @@ from pathlib import Path
 import pyarrow as pa
 import pyarrow.parquet as pq
 
+from trading_framework.core.profiling import optional_phase
 from trading_framework.core.types import Price, Volume
 from trading_framework.market.models import MarketBar
 
@@ -93,4 +94,7 @@ class ParquetBarWriter:
 
     def read(self, path: Path) -> list[MarketBar]:
         """Read bars written with the canonical market bar schema."""
-        return market_bars_from_table(self.read_table(path))
+        with optional_phase("ohlcv.parquet.read_table"):
+            table = self.read_table(path)
+        with optional_phase("ohlcv.parquet.table_to_bars"):
+            return market_bars_from_table(table)
