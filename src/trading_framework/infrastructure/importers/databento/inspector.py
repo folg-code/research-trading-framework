@@ -12,7 +12,7 @@ from trading_framework.market.importers import (
     compute_source_checksum_sha256,
 )
 
-_TRADES_SCHEMA = "trades"
+_SUPPORTED_SCHEMAS = frozenset({"trades", "ohlcv-1m"})
 
 
 def _schema_name(store: db.DBNStore) -> str:
@@ -39,8 +39,9 @@ class DatabentoDBNInspector:
         """Return archive metadata for supported Databento schemas."""
         store = db.DBNStore.from_file(path)
         schema_name = _schema_name(store)
-        if schema_name != _TRADES_SCHEMA:
-            msg = f"unsupported databento schema {schema_name!r}; expected {_TRADES_SCHEMA!r}"
+        if schema_name not in _SUPPORTED_SCHEMAS:
+            supported = ", ".join(sorted(_SUPPORTED_SCHEMAS))
+            msg = f"unsupported databento schema {schema_name!r}; supported: {supported}"
             raise ValueError(msg)
 
         symbols = tuple(store.symbols or ())

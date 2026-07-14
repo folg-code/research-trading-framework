@@ -8,6 +8,7 @@ from trading_framework.market.importers.archive import (
     ImportManifest,
 )
 from trading_framework.market.importers.checksum import compute_source_checksum_sha256
+from trading_framework.market.importers.ohlcv_config import DatabentoOhlcvArchiveImportConfig
 from trading_framework.market.importers.protocols import (
     DetectedFileFormat,
     FileInspectionResult,
@@ -23,6 +24,7 @@ __all__ = [
     "ArchiveInspectionResult",
     "ArchiveInspector",
     "ArchiveSourceFormat",
+    "DatabentoOhlcvArchiveImportConfig",
     "DatabentoTradesArchiveImportConfig",
     "DetectedFileFormat",
     "FileInspectionResult",
