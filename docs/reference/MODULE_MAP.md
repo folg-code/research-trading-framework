@@ -7,9 +7,9 @@ Package map for `src/trading_framework/`: responsibility, dependencies, status, 
 
 **Status legend:** ✅ implemented · 🟡 partial / in sprint · ⬜ skeleton · 📘 deep doc elsewhere
 
-Last updated: 2026-07-14 (Sprint 011 complete on `sprint/historical-archive-import`; Phase 2B + 2C.1 trades import)
+Last updated: 2026-07-14 (Sprint 012 complete on `sprint/trades-to-ohlcv-derived`; Phase 2B.3 derived OHLCV from trades)
 
-**Roadmap:** parallel capability tracks and phase families — `docs/planning/ROADMAP.md` §3. Sprint 002 delivered Phase 2A (OHLCV only). Sprint 011 delivered Phase 2B + 2C.1 (Databento trades).
+**Roadmap:** parallel capability tracks and phase families — `docs/planning/ROADMAP.md` §3. Sprint 002 delivered Phase 2A (OHLCV only). Sprint 011 delivered Phase 2B + 2C.1 (Databento trades). Sprint 012 delivered Phase 2B.3 (derived 1m bars from trades).
 
 ---
 
@@ -62,7 +62,7 @@ execution/, events/          ⬜ future domains
 
 ---
 
-## Market Data (Sprint 002 — Phase 2A; Sprint 011 — Phase 2B + 2C.1) ✅
+## Market Data (Sprint 002 — Phase 2A; Sprint 011 — Phase 2B + 2C.1; Sprint 012 — Phase 2B.3) ✅
 
 ### OHLCV (Phase 2A)
 
@@ -98,6 +98,23 @@ CLI: `scripts/databento/inspect_dbn.py`, `scripts/databento/import_trades.py`
 
 ADR: [ADR-0014](../adr/ADR-0014-historical-archive-import-and-market-trade-storage.md)
 
+### Derived OHLCV from trades (Phase 2B.3 — Sprint 012)
+
+End-to-end flow:
+
+```text
+Published trades DatasetRef
+  → derive_ohlcv_from_trades
+  → TradesToBarsAggregator (1m UTC buckets)
+  → validate → bars.parquet (single file)
+  → lineage metadata → register WORKING → finalize → publish
+  → query_historical → list[MarketBar]
+```
+
+CLI: `scripts/market_data/derive_bars_from_trades.py`
+
+ADR: [ADR-0015](../adr/ADR-0015-derived-ohlcv-from-trades.md)
+
 Deep reference: 📘 [modules/DATA_MODULE_UPDATED.md](modules/DATA_MODULE_UPDATED.md)
 
 ### `market/` ✅
@@ -106,8 +123,8 @@ Deep reference: 📘 [modules/DATA_MODULE_UPDATED.md](modules/DATA_MODULE_UPDATE
 |---|---|
 | **Responsibility** | Domain models: instrument, bar, **trade**, dataset identity, lifecycle, repository protocols |
 | **Talks to** | `application/market_data`, `infrastructure/storage`, `market_analysis` (via `DatasetRef`, bars) |
-| **Key paths** | `models/bar.py`, `models/trade.py`, `datasets/identity.py`, `datasets/metadata.py`, `repositories/protocols.py`, `importers/archive.py`, `importers/trades_config.py` |
-| **Public types** | `MarketBar`, `MarketTrade`, `TradeSide`, `DatasetRef`, `DatasetState`, `Instrument`, `ImportManifest` |
+| **Key paths** | `models/bar.py`, `models/trade.py`, `derivation/`, `datasets/identity.py`, `datasets/metadata.py`, `repositories/protocols.py`, `importers/archive.py`, `importers/trades_config.py` |
+| **Public types** | `MarketBar`, `MarketTrade`, `TradeSide`, `DatasetRef`, `DatasetState`, `Instrument`, `ImportManifest`, `DerivedOhlcvFromTradesConfig`, `TradesToBarsAggregator` |
 
 ### `application/market_data/` ✅
 
@@ -115,8 +132,8 @@ Deep reference: 📘 [modules/DATA_MODULE_UPDATED.md](modules/DATA_MODULE_UPDATE
 |---|---|
 | **Responsibility** | Dataset import, finalize, publish, historical query workflows (bars and trades) |
 | **Talks to** | `market` domain, `infrastructure` adapters |
-| **Key paths** | `import_external_dataset.py`, `import_databento_trades_archive.py`, `finalize_dataset.py`, `publish_dataset.py`, `query_historical.py`, `query_trades.py` |
-| **Entry points** | `import_external_dataset`, `import_databento_trades_archive`, `finalize_dataset`, `publish_dataset`, `query_historical`, `query_trades` |
+| **Key paths** | `import_external_dataset.py`, `import_databento_trades_archive.py`, `derive_ohlcv_from_trades.py`, `finalize_dataset.py`, `publish_dataset.py`, `query_historical.py`, `query_trades.py` |
+| **Entry points** | `import_external_dataset`, `import_databento_trades_archive`, `derive_ohlcv_from_trades`, `finalize_dataset`, `publish_dataset`, `query_historical`, `query_trades` |
 
 ### `infrastructure/` (market data slice) ✅
 
@@ -306,7 +323,7 @@ Skeleton packages without public workflows beyond Signal Research slice above.
 | Area | Test location |
 |------|----------------|
 | Architecture boundary | `tests/unit/test_architecture_boundaries.py` |
-| Market data integration | `tests/integration/market_data/` (CSV, mocked DBN trades, Tier 2 Databento opt-in) |
+| Market data integration | `tests/integration/market_data/` (CSV, mocked DBN trades, derived OHLCV from trades, Tier 2 Databento opt-in) |
 | Databento unit tests | `tests/unit/infrastructure/databento/`, `tests/fixtures/databento/` |
 | Databento CLI | `tests/unit/scripts/test_databento_cli.py` |
 | Market analysis | `tests/unit/market_analysis/`, `tests/unit/application/market_analysis/`, `tests/integration/test_market_analysis_*` |

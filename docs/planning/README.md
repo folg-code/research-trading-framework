@@ -43,8 +43,10 @@ Catalog of `docs/planning/`. For taxonomy and reading paths see **[../README.md]
 | [sprints/S009_WAVE0_DECISIONS.md](sprints/S009_WAVE0_DECISIONS.md) | Sprint 009 binding decisions (D-S009-01 … D-S009-11) |
 | [sprints/SPRINT_010.md](sprints/SPRINT_010.md) | Signal Research analytics MVP (completed) |
 | [sprints/S010_WAVE0_DECISIONS.md](sprints/S010_WAVE0_DECISIONS.md) | Sprint 010 binding decisions (D-S010-01 … D-S010-20) |
-| [sprints/SPRINT_011.md](sprints/SPRINT_011.md) | Historical archive import / Phase 2B (planned) |
-| [sprints/S011_WAVE0_DECISIONS.md](sprints/S011_WAVE0_DECISIONS.md) | Sprint 011 binding decisions (D-S011-01 … D-S011-14) |
+| [sprints/SPRINT_011.md](sprints/SPRINT_011.md) | Historical archive import — trades DBN (completed) |
+| [sprints/S011_WAVE0_DECISIONS.md](sprints/S011_WAVE0_DECISIONS.md) | Sprint 011 binding decisions (D-S011-01 … D-S011-16) |
+| [sprints/SPRINT_012.md](sprints/SPRINT_012.md) | Derived OHLCV from trades / Phase 2B.3 (completed) |
+| [sprints/S012_WAVE0_DECISIONS.md](sprints/S012_WAVE0_DECISIONS.md) | Sprint 012 binding decisions (D-S012-01 … D-S012-10) |
 | [sprints/S004_MTF_SPIKE_AND_DECISIONS.md](sprints/S004_MTF_SPIKE_AND_DECISIONS.md) | Sprint 004 T001 spike outcomes |
 | [sprints/S003_WAVE0_*.md](sprints/) | Sprint 003 wave 0 artefacts |
 

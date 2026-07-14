@@ -15,6 +15,7 @@ class SyntheticTradeRowSpec:
     """One synthetic Databento trades row."""
 
     second: int
+    minute: int = 0
     symbol: str = "NQ.FUT"
     side: str = "B"
     price: float = 22860.75
@@ -34,8 +35,8 @@ def synthetic_trades_rows(
     ]
     return [
         SimpleNamespace(
-            ts_event=datetime(2025, 7, 13, 22, 0, spec.second, tzinfo=UTC),
-            ts_recv=datetime(2025, 7, 13, 22, 0, spec.second, 1000, tzinfo=UTC),
+            ts_event=datetime(2025, 7, 13, 22, spec.minute, spec.second, tzinfo=UTC),
+            ts_recv=datetime(2025, 7, 13, 22, spec.minute, spec.second, 1000, tzinfo=UTC),
             price=spec.price,
             size=spec.size,
             side=spec.side,
