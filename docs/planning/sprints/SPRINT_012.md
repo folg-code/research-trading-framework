@@ -135,8 +135,8 @@ derive_bar_interval, BarTimestampSemantics.INTERVAL_START
 | ID | Task | Wave | Status | Depends On |
 |----|------|------|--------|------------|
 | S012-T001 | Wave 0 decisions + trades→bars spike script | 0 | DONE | — |
-| S012-T002 | `DerivedOhlcvFromTradesConfig` | 1 | PLANNED | S012-T001 |
-| S012-T003 | `TradesToBarsAggregator` | 1 | PLANNED | S012-T001 |
+| S012-T002 | `DerivedOhlcvFromTradesConfig` | 1 | DONE | S012-T001 |
+| S012-T003 | `TradesToBarsAggregator` | 1 | DONE | S012-T001 |
 | S012-T004 | `derive_ohlcv_from_trades` workflow | 2 | PLANNED | S012-T002, S012-T003 |
 | S012-T005 | Lineage metadata on derived dataset | 2 | PLANNED | S012-T004 |
 | S012-T006 | E2E: trades publish → derive → publish → query_historical | 3 | PLANNED | S012-T005 |
@@ -147,7 +147,7 @@ derive_bar_interval, BarTimestampSemantics.INTERVAL_START
 | S012-T011 | Update MODULE_MAP, DATA_WORKFLOWS, CURRENT_STATUS | 5 | PLANNED | S012-T008 |
 | S012-T012 | Sprint review and closure | 5 | PLANNED | All preceding |
 
-**Progress:** 1 / 12 tasks
+**Progress:** 3 / 12 tasks
 
 ---
 
