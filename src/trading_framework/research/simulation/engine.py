@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal
 
+import numpy as np
 import polars as pl
 
 from trading_framework.core.exceptions import ValidationError
@@ -16,12 +17,22 @@ from trading_framework.research.simulation.assumptions import (
     apply_entry_slippage,
     apply_exit_slippage,
 )
+from trading_framework.research.simulation.compile import (
+    compile_simulation_input,
+    datetime_to_epoch_ns,
+    epoch_ns_to_datetime,
+)
 from trading_framework.research.simulation.facts import (
     EquityPoint,
     SimulatedTrade,
     derive_trade_id,
     equity_points_to_dataframe,
     simulated_trades_to_dataframe,
+)
+from trading_framework.research.simulation.input import (
+    SIGNAL_DIRECTION_LONG,
+    UNRESOLVED_BAR_INDEX,
+    CompiledSimulationInput,
 )
 from trading_framework.signal_model.definitions import SignalDirection
 from trading_framework.strategy.exit_model import FixedBarsExitModel
@@ -31,26 +42,6 @@ from trading_framework.strategy.strategy_model import StrategyModelDefinition
 
 class SimulationEngineError(ValidationError):
     """Raised when bar-sequential simulation inputs are invalid."""
-
-
-@dataclass(frozen=True, slots=True)
-class _BarTimestampIndex:
-    """Lookup bar index by observed_at or available_at without scanning all bars."""
-
-    observed_at_to_index: dict[datetime, int]
-    available_at_to_index: dict[datetime, int]
-
-
-def _build_bar_timestamp_index(bars: Sequence[MarketBar]) -> _BarTimestampIndex:
-    observed_at_to_index: dict[datetime, int] = {}
-    available_at_to_index: dict[datetime, int] = {}
-    for index, bar in enumerate(bars):
-        observed_at_to_index.setdefault(bar.observed_at, index)
-        available_at_to_index.setdefault(bar.available_at, index)
-    return _BarTimestampIndex(
-        observed_at_to_index=observed_at_to_index,
-        available_at_to_index=available_at_to_index,
-    )
 
 
 @dataclass(frozen=True, slots=True)
@@ -83,25 +74,24 @@ class BarSequentialSimulator:
         _validate_entry_signals(entry_signals)
         exit_model = _require_fixed_bars_exit(strategy_model)
         risk_model = _require_fixed_quantity_risk(strategy_model)
-
-        bar_index = _build_bar_timestamp_index(ordered_bars)
-
-        trades = self._simulate_trades(
+        compiled = compile_simulation_input(
             bars=ordered_bars,
             entry_signals=entry_signals,
+        )
+
+        trades = self._simulate_trades(
+            compiled=compiled,
             strategy_model=strategy_model,
             assumptions=assumptions,
             instrument=instrument,
             source_dataset_ref=source_dataset_ref,
             exit_model=exit_model,
             risk_model=risk_model,
-            bar_index=bar_index,
         )
         equity = self._build_equity_curve(
-            bars=ordered_bars,
+            compiled=compiled,
             trades=trades,
             assumptions=assumptions,
-            bar_index=bar_index,
         )
         return SimulationResult(
             trades=simulated_trades_to_dataframe(trades),
@@ -111,29 +101,28 @@ class BarSequentialSimulator:
     def _simulate_trades(
         self,
         *,
-        bars: Sequence[MarketBar],
-        entry_signals: pl.DataFrame,
+        compiled: CompiledSimulationInput,
         strategy_model: StrategyModelDefinition,
         assumptions: SimulationAssumptions,
         instrument: str,
         source_dataset_ref: str,
         exit_model: FixedBarsExitModel,
         risk_model: FixedQuantityRiskModel,
-        bar_index: _BarTimestampIndex,
     ) -> list[SimulatedTrade]:
+        bar_series = compiled.bars
+        signal_series = compiled.entry_signals
+        bar_count = bar_series.bar_count
         trades: list[SimulatedTrade] = []
         position_open_until_bar_index: int | None = None
-        sorted_signals = entry_signals.sort("available_at")
+        quantity = risk_model.position_quantity()
 
-        for row in sorted_signals.iter_rows(named=True):
-            available_at = row["available_at"]
-            direction = SignalDirection(str(row["direction"]))
-            signal_bar_index = _resolve_signal_bar_index(bar_index, available_at=available_at)
-            if signal_bar_index is None:
+        for signal_index in range(signal_series.available_at_ns.shape[0]):
+            signal_bar_index = int(signal_series.signal_bar_index[signal_index])
+            if signal_bar_index == UNRESOLVED_BAR_INDEX:
                 continue
 
             entry_fill_bar_index = signal_bar_index + 1
-            if entry_fill_bar_index >= len(bars):
+            if entry_fill_bar_index >= bar_count:
                 continue
             if (
                 position_open_until_bar_index is not None
@@ -145,21 +134,26 @@ class BarSequentialSimulator:
                 entry_fill_bar_index=entry_fill_bar_index
             )
             exit_fill_bar_index = exit_signal_bar_index + 1
-            if exit_fill_bar_index >= len(bars):
+            if exit_fill_bar_index >= bar_count:
                 continue
 
-            entry_bar = bars[entry_fill_bar_index]
-            exit_bar = bars[exit_fill_bar_index]
-            exit_signal_bar = bars[exit_signal_bar_index]
-            quantity = risk_model.position_quantity()
+            direction = _decode_signal_direction(int(signal_series.direction[signal_index]))
+            entry_signal_at = epoch_ns_to_datetime(int(signal_series.available_at_ns[signal_index]))
+            entry_fill_at = epoch_ns_to_datetime(
+                int(bar_series.observed_at_ns[entry_fill_bar_index])
+            )
+            exit_signal_at = epoch_ns_to_datetime(
+                int(bar_series.observed_at_ns[exit_signal_bar_index])
+            )
+            exit_fill_at = epoch_ns_to_datetime(int(bar_series.observed_at_ns[exit_fill_bar_index]))
 
             entry_fill_price = apply_entry_slippage(
-                price=entry_bar.open.value,
+                price=_price_from_array(bar_series.open_prices[entry_fill_bar_index]),
                 direction=direction,
                 slippage_bps=assumptions.slippage_bps,
             )
             exit_fill_price = apply_exit_slippage(
-                price=exit_bar.open.value,
+                price=_price_from_array(bar_series.open_prices[exit_fill_bar_index]),
                 direction=direction,
                 slippage_bps=assumptions.slippage_bps,
             )
@@ -176,17 +170,17 @@ class BarSequentialSimulator:
                 SimulatedTrade(
                     trade_id=derive_trade_id(
                         strategy_model_id=strategy_model.strategy_model_id,
-                        entry_signal_at=available_at,
+                        entry_signal_at=entry_signal_at,
                         direction=direction.value,
                     ),
                     strategy_model_id=strategy_model.strategy_model_id,
                     instrument=instrument,
                     direction=direction.value,
-                    entry_signal_at=available_at,
-                    entry_fill_at=entry_bar.observed_at,
+                    entry_signal_at=entry_signal_at,
+                    entry_fill_at=entry_fill_at,
                     entry_fill_price=entry_fill_price,
-                    exit_signal_at=exit_signal_bar.observed_at,
-                    exit_fill_at=exit_bar.observed_at,
+                    exit_signal_at=exit_signal_at,
+                    exit_fill_at=exit_fill_at,
                     exit_fill_price=exit_fill_price,
                     quantity=quantity,
                     gross_pnl=gross_pnl,
@@ -204,28 +198,29 @@ class BarSequentialSimulator:
     def _build_equity_curve(
         self,
         *,
-        bars: Sequence[MarketBar],
+        compiled: CompiledSimulationInput,
         trades: list[SimulatedTrade],
         assumptions: SimulationAssumptions,
-        bar_index: _BarTimestampIndex,
     ) -> list[EquityPoint]:
-        closed_pnl_by_exit = _closed_pnl_by_exit_observed_at(trades)
+        bar_series = compiled.bars
+        closed_pnl_by_exit_ns = _closed_pnl_by_exit_observed_at_ns(trades)
         open_counts = _open_position_counts_by_bar_index(
             trades,
-            bar_index=bar_index,
-            bar_count=len(bars),
+            observed_at_to_index=_observed_at_index_by_ns(bar_series.observed_at_ns),
+            bar_count=bar_series.bar_count,
         )
         equity = assumptions.initial_capital
         peak_equity = equity
         points: list[EquityPoint] = []
 
-        for index, bar in enumerate(bars):
-            equity += closed_pnl_by_exit.get(bar.observed_at, Decimal("0"))
+        for index in range(bar_series.bar_count):
+            observed_at_ns = int(bar_series.observed_at_ns[index])
+            equity += closed_pnl_by_exit_ns.get(observed_at_ns, Decimal("0"))
             peak_equity = max(peak_equity, equity)
             drawdown = equity - peak_equity
             points.append(
                 EquityPoint(
-                    observed_at=bar.observed_at,
+                    observed_at=epoch_ns_to_datetime(observed_at_ns),
                     equity=equity,
                     drawdown=drawdown,
                     open_position_count=open_counts[index],
@@ -234,21 +229,27 @@ class BarSequentialSimulator:
         return points
 
 
-def _closed_pnl_by_exit_observed_at(
+def _observed_at_index_by_ns(observed_at_ns: np.ndarray) -> dict[int, int]:
+    index_by_timestamp: dict[int, int] = {}
+    for index, timestamp_ns in enumerate(observed_at_ns.tolist()):
+        index_by_timestamp.setdefault(int(timestamp_ns), index)
+    return index_by_timestamp
+
+
+def _closed_pnl_by_exit_observed_at_ns(
     trades: Sequence[SimulatedTrade],
-) -> dict[datetime, Decimal]:
-    closed_pnl: dict[datetime, Decimal] = {}
+) -> dict[int, Decimal]:
+    closed_pnl: dict[int, Decimal] = {}
     for trade in trades:
-        closed_pnl[trade.exit_fill_at] = (
-            closed_pnl.get(trade.exit_fill_at, Decimal("0")) + trade.net_pnl
-        )
+        exit_at_ns = datetime_to_epoch_ns(trade.exit_fill_at)
+        closed_pnl[exit_at_ns] = closed_pnl.get(exit_at_ns, Decimal("0")) + trade.net_pnl
     return closed_pnl
 
 
 def _open_position_counts_by_bar_index(
     trades: Sequence[SimulatedTrade],
     *,
-    bar_index: _BarTimestampIndex,
+    observed_at_to_index: dict[int, int],
     bar_count: int,
 ) -> list[int]:
     if bar_count == 0:
@@ -256,8 +257,8 @@ def _open_position_counts_by_bar_index(
 
     open_delta = [0] * bar_count
     for trade in trades:
-        entry_index = bar_index.observed_at_to_index.get(trade.entry_fill_at)
-        exit_index = bar_index.observed_at_to_index.get(trade.exit_fill_at)
+        entry_index = observed_at_to_index.get(datetime_to_epoch_ns(trade.entry_fill_at))
+        exit_index = observed_at_to_index.get(datetime_to_epoch_ns(trade.exit_fill_at))
         if entry_index is None or exit_index is None:
             continue
         open_delta[entry_index] += 1
@@ -295,15 +296,14 @@ def _require_fixed_quantity_risk(strategy_model: StrategyModelDefinition) -> Fix
     return risk_model
 
 
-def _resolve_signal_bar_index(
-    bar_index: _BarTimestampIndex,
-    *,
-    available_at: datetime,
-) -> int | None:
-    observed_match = bar_index.observed_at_to_index.get(available_at)
-    if observed_match is not None:
-        return observed_match
-    return bar_index.available_at_to_index.get(available_at)
+def _decode_signal_direction(direction_code: int) -> SignalDirection:
+    if direction_code == SIGNAL_DIRECTION_LONG:
+        return SignalDirection.LONG
+    return SignalDirection.SHORT
+
+
+def _price_from_array(value: float) -> Decimal:
+    return Decimal(str(value))
 
 
 def _gross_pnl(
@@ -317,3 +317,44 @@ def _gross_pnl(
     if direction is SignalDirection.LONG:
         return price_delta * quantity
     return -price_delta * quantity
+
+
+# Backward-compatible helpers retained for unit tests.
+def _build_bar_timestamp_index(bars: Sequence[MarketBar]) -> _LegacyBarTimestampIndex:
+    observed_at_to_index: dict[datetime, int] = {}
+    available_at_to_index: dict[datetime, int] = {}
+    for index, bar in enumerate(bars):
+        observed_at_to_index.setdefault(bar.observed_at, index)
+        available_at_to_index.setdefault(bar.available_at, index)
+    return _LegacyBarTimestampIndex(
+        observed_at_to_index=observed_at_to_index,
+        available_at_to_index=available_at_to_index,
+    )
+
+
+@dataclass(frozen=True, slots=True)
+class _LegacyBarTimestampIndex:
+    observed_at_to_index: dict[datetime, int]
+    available_at_to_index: dict[datetime, int]
+
+
+def _resolve_signal_bar_index(
+    bar_index: _LegacyBarTimestampIndex,
+    *,
+    available_at: datetime,
+) -> int | None:
+    observed_match = bar_index.observed_at_to_index.get(available_at)
+    if observed_match is not None:
+        return observed_match
+    return bar_index.available_at_to_index.get(available_at)
+
+
+def _closed_pnl_by_exit_observed_at(
+    trades: Sequence[SimulatedTrade],
+) -> dict[datetime, Decimal]:
+    closed_pnl: dict[datetime, Decimal] = {}
+    for trade in trades:
+        closed_pnl[trade.exit_fill_at] = (
+            closed_pnl.get(trade.exit_fill_at, Decimal("0")) + trade.net_pnl
+        )
+    return closed_pnl
