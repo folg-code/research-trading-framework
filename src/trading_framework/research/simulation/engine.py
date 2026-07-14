@@ -84,6 +84,8 @@ class BarSequentialSimulator:
         exit_model = _require_fixed_bars_exit(strategy_model)
         risk_model = _require_fixed_quantity_risk(strategy_model)
 
+        bar_index = _build_bar_timestamp_index(ordered_bars)
+
         trades = self._simulate_trades(
             bars=ordered_bars,
             entry_signals=entry_signals,
@@ -93,11 +95,13 @@ class BarSequentialSimulator:
             source_dataset_ref=source_dataset_ref,
             exit_model=exit_model,
             risk_model=risk_model,
+            bar_index=bar_index,
         )
         equity = self._build_equity_curve(
             bars=ordered_bars,
             trades=trades,
             assumptions=assumptions,
+            bar_index=bar_index,
         )
         return SimulationResult(
             trades=simulated_trades_to_dataframe(trades),
@@ -115,11 +119,11 @@ class BarSequentialSimulator:
         source_dataset_ref: str,
         exit_model: FixedBarsExitModel,
         risk_model: FixedQuantityRiskModel,
+        bar_index: _BarTimestampIndex,
     ) -> list[SimulatedTrade]:
         trades: list[SimulatedTrade] = []
         position_open_until_bar_index: int | None = None
         sorted_signals = entry_signals.sort("available_at")
-        bar_index = _build_bar_timestamp_index(bars)
 
         for row in sorted_signals.iter_rows(named=True):
             available_at = row["available_at"]
@@ -203,31 +207,68 @@ class BarSequentialSimulator:
         bars: Sequence[MarketBar],
         trades: list[SimulatedTrade],
         assumptions: SimulationAssumptions,
+        bar_index: _BarTimestampIndex,
     ) -> list[EquityPoint]:
+        closed_pnl_by_exit = _closed_pnl_by_exit_observed_at(trades)
+        open_counts = _open_position_counts_by_bar_index(
+            trades,
+            bar_index=bar_index,
+            bar_count=len(bars),
+        )
         equity = assumptions.initial_capital
         peak_equity = equity
         points: list[EquityPoint] = []
 
-        for bar in bars:
-            closed_pnl = sum(
-                (trade.net_pnl for trade in trades if trade.exit_fill_at == bar.observed_at),
-                start=Decimal("0"),
-            )
-            equity += closed_pnl
+        for index, bar in enumerate(bars):
+            equity += closed_pnl_by_exit.get(bar.observed_at, Decimal("0"))
             peak_equity = max(peak_equity, equity)
             drawdown = equity - peak_equity
-            open_position_count = sum(
-                1 for trade in trades if trade.entry_fill_at <= bar.observed_at < trade.exit_fill_at
-            )
             points.append(
                 EquityPoint(
                     observed_at=bar.observed_at,
                     equity=equity,
                     drawdown=drawdown,
-                    open_position_count=open_position_count,
+                    open_position_count=open_counts[index],
                 )
             )
         return points
+
+
+def _closed_pnl_by_exit_observed_at(
+    trades: Sequence[SimulatedTrade],
+) -> dict[datetime, Decimal]:
+    closed_pnl: dict[datetime, Decimal] = {}
+    for trade in trades:
+        closed_pnl[trade.exit_fill_at] = (
+            closed_pnl.get(trade.exit_fill_at, Decimal("0")) + trade.net_pnl
+        )
+    return closed_pnl
+
+
+def _open_position_counts_by_bar_index(
+    trades: Sequence[SimulatedTrade],
+    *,
+    bar_index: _BarTimestampIndex,
+    bar_count: int,
+) -> list[int]:
+    if bar_count == 0:
+        return []
+
+    open_delta = [0] * bar_count
+    for trade in trades:
+        entry_index = bar_index.observed_at_to_index.get(trade.entry_fill_at)
+        exit_index = bar_index.observed_at_to_index.get(trade.exit_fill_at)
+        if entry_index is None or exit_index is None:
+            continue
+        open_delta[entry_index] += 1
+        open_delta[exit_index] -= 1
+
+    open_counts: list[int] = []
+    running_open = 0
+    for delta in open_delta:
+        running_open += delta
+        open_counts.append(running_open)
+    return open_counts
 
 
 def _validate_entry_signals(entry_signals: pl.DataFrame) -> None:
