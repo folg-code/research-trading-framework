@@ -278,14 +278,18 @@ Phase 2A (OHLCV MVP) completed; archive import foundation (2B) or provider sync 
 ## IDEA-007 — Continuous Futures Builder
 
 ```text
-Status: INBOX
+Status: PROMOTED → Sprint 015
 Category: Market Data
 Added: 2026-06-19
+Promoted: 2026-07-14
 ```
 
 ### Summary
 
 Build continuous futures datasets from explicit contract datasets.
+
+Sprint 015 (`SPRINT_015.md`, ADR-0018 ACCEPTED) delivers four-layer materialization:
+raw DBN → contract datasets → roll schedule → continuous trades + derived OHLCV.
 
 ### Potential Value
 
@@ -293,9 +297,9 @@ Supports long-term NQ, ES and other futures research.
 
 ### Main Questions
 
-- calendar, volume or open-interest roll,
-- adjusted or unadjusted series,
-- Research use by purpose.
+- calendar, volume or open-interest roll — **MVP: volume @ RTH close**
+- adjusted or unadjusted series — **MVP: unadjusted trades; back-adjust deferred**
+- Research use by purpose — **continuous for long backtests; contract datasets for roll validation**
 
 ### Dependencies
 
@@ -306,7 +310,7 @@ Supports long-term NQ, ES and other futures research.
 
 ### Promotion Criteria
 
-Contract-level futures datasets are stable.
+Contract-level futures datasets are stable. — **Sprint 011 trades import on main satisfies input path; Sprint 015 extends to multi-contract materialization.**
 
 ---
 

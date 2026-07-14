@@ -426,11 +426,25 @@ Suggested increments:
 Phase 2C.1 — MarketTrade datasets
 Phase 2C.2 — MarketQuote datasets
 Phase 2C.3 — Order-book data (MBO/MBP only when justified)
+Phase 2C.4 — Continuous futures materialization (Sprint 015)
 ```
 
 Example `MarketTrade` fields: instrument, `event_at`, price, size, aggressor/side semantics, trade_id, sequence, flags, source metadata.
 
-Default partitioning: by day (trades, quotes); order-book updates day or hour.
+Default partitioning: by day (trades, quotes) for legacy single-contract import; **by `session_date` for contract-layer datasets** (Sprint 015).
+
+### Phase 2C.4 — Continuous Futures Materialization (COMPLETE — Sprint 015)
+
+Materialize versioned continuous datasets from normalized contract trades:
+
+```text
+Raw DBN → contract datasets → roll schedule → continuous trades → derived continuous OHLCV
+```
+
+Consumers (`run_strategy_research`, `run_signal_research`) read published continuous `DatasetRef`
+values only — no runtime roll construction.
+
+ADR: ADR-0018 (ACCEPTED). See `SPRINT_015.md`, `S015_WAVE0_DECISIONS.md`. On `sprint/continuous-futures-materialization`; integration PR to `main` pending.
 
 MBO/MBP are **not** in the first trades sprint scope.
 

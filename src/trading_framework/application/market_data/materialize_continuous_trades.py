@@ -1,0 +1,505 @@
+"""Materialize continuous trades from contract datasets and a roll schedule."""
+
+from __future__ import annotations
+
+import time
+from contextlib import nullcontext
+from dataclasses import dataclass
+from datetime import date, datetime
+from pathlib import Path
+
+import pyarrow as pa
+import pyarrow.compute as pc
+import pyarrow.parquet as pq
+
+from trading_framework.core.exceptions import ValidationError
+from trading_framework.infrastructure.observability.memory_stats import process_rss_mb
+from trading_framework.infrastructure.observability.profile_context import active_phase_timer
+from trading_framework.infrastructure.storage.continuous_manifest_store import (
+    CONTINUOUS_MANIFEST_VERSION,
+    ContinuousTradesManifest,
+    read_continuous_trades_manifest,
+)
+from trading_framework.infrastructure.storage.continuous_trades_repository import (
+    compute_continuous_source_fingerprint,
+    write_dataset_continuous_manifest,
+)
+from trading_framework.infrastructure.storage.metadata.registry import FileDatasetRegistry
+from trading_framework.infrastructure.storage.parquet.continuous_trade_repository import (
+    ParquetContinuousTradeDatasetRepository,
+)
+from trading_framework.infrastructure.storage.parquet.continuous_trade_table_mapper import (
+    contract_table_to_continuous_table,
+)
+from trading_framework.infrastructure.storage.parquet.contract_trade_writer import (
+    MARKET_TRADE_CONTRACT_PARQUET_SCHEMA,
+    ParquetContractTradeWriter,
+)
+from trading_framework.infrastructure.storage.paths import (
+    continuous_trades_manifest_path,
+    dataset_contract_trades_partition_path,
+    list_continuous_session_dates,
+)
+from trading_framework.infrastructure.storage.roll_schedule_repository import RollScheduleRepository
+from trading_framework.market.continuous.identity import (
+    CONTINUOUS_BUILDER_VERSION,
+    CONTINUOUS_TRADES_PROVIDER,
+    continuous_instrument_id,
+)
+from trading_framework.market.continuous.materializer import sessions_covered_by_schedule
+from trading_framework.market.continuous.policy import (
+    VOLUME_RTH_CLOSE_POLICY_SLUG,
+    VolumeRthCloseRollPolicy,
+)
+from trading_framework.market.continuous.schedule import RollSchedule
+from trading_framework.market.continuous.trade_record import MARKET_TRADE_CONTINUOUS_SCHEMA_VERSION
+from trading_framework.market.datasets import (
+    DatasetId,
+    DatasetLifecycleState,
+    DatasetMetadata,
+    DatasetRef,
+    ValidationStatus,
+)
+from trading_framework.time.clocks.protocol import Clock
+from trading_framework.time.clocks.system import SystemClock
+from trading_framework.time.models.timeframe import Timeframe
+
+
+@dataclass(frozen=True, slots=True)
+class MaterializeContinuousTradesRequest:
+    """Input for materializing one continuous trades dataset version."""
+
+    storage_root: Path
+    product: str
+    roll_schedule_version: int
+    contract_dataset_refs: tuple[DatasetRef, ...]
+    policy_slug: str = VOLUME_RTH_CLOSE_POLICY_SLUG
+    start_session: date | None = None
+    end_session: date | None = None
+    rebuild_all: bool = False
+    rebuild_window_sessions: int = 10
+    existing_dataset_ref: DatasetRef | None = None
+    reuse_if_unchanged: bool = True
+
+
+@dataclass(frozen=True, slots=True)
+class MaterializeContinuousTradesResult:
+    """Outcome of one continuous trades materialization."""
+
+    dataset_ref: DatasetRef
+    manifest: ContinuousTradesManifest
+    sessions_materialized: tuple[date, ...]
+    record_count: int
+    reused: bool
+
+
+def _contract_code_from_dataset_ref(dataset_ref: DatasetRef) -> str:
+    instrument = dataset_ref.dataset_id.instrument_id.value
+    if "." not in instrument:
+        msg = f"contract dataset instrument must be PRODUCT.CONTRACT, got {instrument!r}"
+        raise ValidationError(msg)
+    return instrument.split(".", 1)[1]
+
+
+def _contract_refs_by_code(
+    contract_dataset_refs: tuple[DatasetRef, ...],
+) -> dict[str, DatasetRef]:
+    mapping: dict[str, DatasetRef] = {}
+    for dataset_ref in contract_dataset_refs:
+        mapping[_contract_code_from_dataset_ref(dataset_ref)] = dataset_ref
+    return mapping
+
+
+def _empty_contract_session_table() -> pa.Table:
+    return pa.table(
+        {
+            field.name: pa.array([], type=field.type)
+            for field in MARKET_TRADE_CONTRACT_PARQUET_SCHEMA
+        },
+        schema=MARKET_TRADE_CONTRACT_PARQUET_SCHEMA,
+    )
+
+
+def _load_contract_session_table(
+    storage_root: Path,
+    dataset_ref: DatasetRef,
+    session_date: date,
+    *,
+    writer: ParquetContractTradeWriter,
+) -> pa.Table:
+    path = dataset_contract_trades_partition_path(storage_root, dataset_ref, session_date)
+    if not path.exists():
+        return _empty_contract_session_table()
+    return writer.read_table(path)
+
+
+def _sessions_to_materialize(
+    schedule: RollSchedule,
+    *,
+    start_session: date,
+    end_session: date,
+    existing_sessions: list[date],
+    rebuild_all: bool,
+    rebuild_window_sessions: int,
+) -> tuple[date, ...]:
+    covered = sessions_covered_by_schedule(
+        schedule,
+        start_session=start_session,
+        end_session=end_session,
+    )
+    if rebuild_all or not existing_sessions:
+        return covered
+    if rebuild_window_sessions < 1:
+        msg = "rebuild_window_sessions must be at least 1"
+        raise ValidationError(msg)
+    tail_start_index = max(0, len(existing_sessions) - rebuild_window_sessions)
+    tail_sessions = set(existing_sessions[tail_start_index:])
+    max_existing = max(existing_sessions)
+    new_sessions = {session for session in covered if session > max_existing}
+    return tuple(sorted(tail_sessions | new_sessions))
+
+
+def _count_dataset_records(
+    storage_root: Path,
+    dataset_ref: DatasetRef,
+) -> int:
+    total = 0
+    for session_date in list_continuous_session_dates(storage_root, dataset_ref):
+        path = dataset_contract_trades_partition_path(storage_root, dataset_ref, session_date)
+        if not path.exists():
+            continue
+        total += pq.ParquetFile(path).metadata.num_rows  # type: ignore[no-untyped-call]
+    return total
+
+
+def _dataset_time_bounds(
+    storage_root: Path,
+    dataset_ref: DatasetRef,
+    *,
+    fallback: datetime,
+) -> tuple[datetime, datetime]:
+    from datetime import UTC
+
+    min_at: datetime | None = None
+    max_at: datetime | None = None
+    for session_date in list_continuous_session_dates(storage_root, dataset_ref):
+        path = dataset_contract_trades_partition_path(storage_root, dataset_ref, session_date)
+        if not path.exists():
+            continue
+        table = pq.ParquetFile(path).read(columns=["event_at"])  # type: ignore[no-untyped-call]
+        if table.num_rows == 0:
+            continue
+        session_min = pc.min(table["event_at"]).as_py()  # type: ignore[attr-defined]
+        session_max = pc.max(table["event_at"]).as_py()  # type: ignore[attr-defined]
+        if session_min is None or session_max is None:
+            continue
+        session_min_at = session_min.replace(tzinfo=UTC)
+        session_max_at = session_max.replace(tzinfo=UTC)
+        min_at = session_min_at if min_at is None else min(min_at, session_min_at)
+        max_at = session_max_at if max_at is None else max(max_at, session_max_at)
+    if min_at is None or max_at is None:
+        return fallback, fallback
+    return min_at, max_at
+
+
+_IMMUTABLE_LIFECYCLE = frozenset(
+    {
+        DatasetLifecycleState.FINALIZED,
+        DatasetLifecycleState.PUBLISHED,
+    }
+)
+
+
+def _register_working_continuous_dataset(
+    dataset_registry: FileDatasetRegistry,
+    *,
+    dataset_ref: DatasetRef,
+    created_at: datetime,
+    schedule: RollSchedule,
+    roll_manifest_source_fingerprint: str,
+) -> None:
+    dataset_registry.register(
+        DatasetMetadata(
+            dataset_ref=dataset_ref,
+            instrument_id=dataset_ref.dataset_id.instrument_id,
+            timeframe=dataset_ref.dataset_id.timeframe,
+            provider=dataset_ref.dataset_id.provider,
+            source_id=dataset_ref.dataset_id.source_id,
+            data_type=dataset_ref.dataset_id.data_type,
+            start_at=created_at,
+            end_at=created_at,
+            schema_version=MARKET_TRADE_CONTINUOUS_SCHEMA_VERSION,
+            normalization_version=CONTINUOUS_BUILDER_VERSION,
+            validation_status=ValidationStatus.PASSED,
+            lifecycle_status=DatasetLifecycleState.WORKING,
+            row_count=0,
+            checksum="pending",
+            created_at=created_at,
+            lineage={
+                "roll_schedule_version": str(schedule.version),
+                "roll_schedule_fingerprint": roll_manifest_source_fingerprint,
+            },
+        )
+    )
+
+
+def _writable_continuous_dataset_ref(
+    request: MaterializeContinuousTradesRequest,
+    *,
+    dataset_registry: FileDatasetRegistry,
+    schedule: RollSchedule,
+    roll_manifest_source_fingerprint: str,
+    utc_clock: Clock,
+) -> DatasetRef:
+    """Return a WORKING dataset ref that can accept new session partitions."""
+    created_at = utc_clock.now()
+    if request.existing_dataset_ref is None:
+        dataset_ref = dataset_registry.allocate_ref(
+            DatasetId(
+                instrument_id=continuous_instrument_id(request.product),
+                data_type="trades",
+                timeframe=Timeframe("tick"),
+                provider=CONTINUOUS_TRADES_PROVIDER,
+                source_id=request.policy_slug,
+            )
+        )
+        _register_working_continuous_dataset(
+            dataset_registry,
+            dataset_ref=dataset_ref,
+            created_at=created_at,
+            schedule=schedule,
+            roll_manifest_source_fingerprint=roll_manifest_source_fingerprint,
+        )
+        return dataset_ref
+
+    existing_metadata = dataset_registry.get(request.existing_dataset_ref)
+    if existing_metadata.lifecycle_status not in _IMMUTABLE_LIFECYCLE:
+        return request.existing_dataset_ref
+
+    dataset_ref = dataset_registry.allocate_ref(request.existing_dataset_ref.dataset_id)
+    _register_working_continuous_dataset(
+        dataset_registry,
+        dataset_ref=dataset_ref,
+        created_at=created_at,
+        schedule=schedule,
+        roll_manifest_source_fingerprint=roll_manifest_source_fingerprint,
+    )
+    timer = active_phase_timer()
+    if timer is not None:
+        timer.log(
+            f"materialize_continuous_trades: allocated v{dataset_ref.version} "
+            f"because v{request.existing_dataset_ref.version} is "
+            f"{existing_metadata.lifecycle_status.value}"
+        )
+    return dataset_ref
+
+
+def materialize_continuous_trades(
+    request: MaterializeContinuousTradesRequest,
+    *,
+    registry: FileDatasetRegistry | None = None,
+    roll_repository: RollScheduleRepository | None = None,
+    continuous_repository: ParquetContinuousTradeDatasetRepository | None = None,
+    contract_writer: ParquetContractTradeWriter | None = None,
+    clock: Clock | None = None,
+) -> MaterializeContinuousTradesResult:
+    """Stitch contract trades into a versioned continuous trades dataset."""
+    if not request.contract_dataset_refs:
+        msg = "contract_dataset_refs must not be empty"
+        raise ValidationError(msg)
+
+    dataset_registry = registry or FileDatasetRegistry(request.storage_root)
+    schedule_repository = roll_repository or RollScheduleRepository(request.storage_root)
+    continuous_repo = continuous_repository or ParquetContinuousTradeDatasetRepository(
+        request.storage_root,
+        metadata_reader=dataset_registry,
+    )
+    contract_trade_writer = contract_writer or ParquetContractTradeWriter()
+    utc_clock = clock or SystemClock()
+
+    policy = VolumeRthCloseRollPolicy(product=request.product)
+    if request.policy_slug != policy.slug:
+        msg = f"unsupported roll policy slug: {request.policy_slug!r}"
+        raise ValidationError(msg)
+
+    schedule, roll_manifest = schedule_repository.read(
+        product=request.product,
+        policy_slug=request.policy_slug,
+        version=request.roll_schedule_version,
+        policy=policy,
+    )
+    start_session = request.start_session or roll_manifest.start_session
+    end_session = request.end_session or roll_manifest.end_session
+    if end_session < start_session:
+        msg = "end_session must not be before start_session"
+        raise ValidationError(msg)
+
+    contract_refs = tuple(str(dataset_ref) for dataset_ref in request.contract_dataset_refs)
+    source_fingerprint = compute_continuous_source_fingerprint(
+        roll_schedule_fingerprint=roll_manifest.source_fingerprint,
+        roll_schedule_version=schedule.version,
+        contract_dataset_refs=contract_refs,
+        schema_version=MARKET_TRADE_CONTINUOUS_SCHEMA_VERSION,
+        builder_version=CONTINUOUS_BUILDER_VERSION,
+        policy_slug=request.policy_slug,
+        start_session=start_session,
+        end_session=end_session,
+    )
+
+    if request.existing_dataset_ref is not None and request.reuse_if_unchanged:
+        manifest_path = continuous_trades_manifest_path(
+            request.storage_root,
+            request.existing_dataset_ref,
+        )
+        if manifest_path.exists() and not request.rebuild_all:
+            existing_manifest = read_continuous_trades_manifest(manifest_path)
+            if existing_manifest.source_fingerprint == source_fingerprint:
+                record_count = _count_dataset_records(
+                    request.storage_root,
+                    request.existing_dataset_ref,
+                )
+                return MaterializeContinuousTradesResult(
+                    dataset_ref=request.existing_dataset_ref,
+                    manifest=existing_manifest,
+                    sessions_materialized=(),
+                    record_count=record_count,
+                    reused=True,
+                )
+
+    dataset_ref = _writable_continuous_dataset_ref(
+        request,
+        dataset_registry=dataset_registry,
+        schedule=schedule,
+        roll_manifest_source_fingerprint=roll_manifest.source_fingerprint,
+        utc_clock=utc_clock,
+    )
+    created_at = utc_clock.now()
+
+    contract_refs_by_code = _contract_refs_by_code(request.contract_dataset_refs)
+    existing_sessions = list_continuous_session_dates(request.storage_root, dataset_ref)
+    sessions = _sessions_to_materialize(
+        schedule,
+        start_session=start_session,
+        end_session=end_session,
+        existing_sessions=existing_sessions,
+        rebuild_all=request.rebuild_all,
+        rebuild_window_sessions=request.rebuild_window_sessions,
+    )
+
+    timer = active_phase_timer()
+    materialize_started = time.perf_counter()
+    for index, session_date in enumerate(sessions, start=1):
+        active_contract = schedule.active_contract_for_session(session_date)
+        if active_contract is None:
+            continue
+        contract_ref = contract_refs_by_code.get(active_contract)
+        if contract_ref is None:
+            msg = f"missing contract dataset for active contract {active_contract!r}"
+            raise ValidationError(msg)
+
+        session_started = time.perf_counter()
+        load_started = time.perf_counter()
+        load_context = timer.phase("materialize.load") if timer is not None else nullcontext()
+        with load_context:
+            contract_table = _load_contract_session_table(
+                request.storage_root,
+                contract_ref,
+                session_date,
+                writer=contract_trade_writer,
+            )
+        load_seconds = time.perf_counter() - load_started
+
+        transform_started = time.perf_counter()
+        transform_context = (
+            timer.phase("materialize.transform") if timer is not None else nullcontext()
+        )
+        with transform_context:
+            continuous_table = contract_table_to_continuous_table(
+                contract_table,
+                schedule=schedule,
+                session_date=session_date,
+                active_contract=active_contract,
+            )
+        transform_seconds = time.perf_counter() - transform_started
+
+        write_started = time.perf_counter()
+        write_context = timer.phase("materialize.write") if timer is not None else nullcontext()
+        with write_context:
+            continuous_repo.write_session_table(
+                dataset_ref,
+                session_date,
+                continuous_table,
+            )
+        write_seconds = time.perf_counter() - write_started
+        total_seconds = time.perf_counter() - session_started
+
+        if timer is not None and (index == 1 or index % 10 == 0 or index == len(sessions)):
+            elapsed = time.perf_counter() - materialize_started
+            rss_mb = process_rss_mb()
+            rss_text = f" rss_mb={rss_mb:.1f}" if rss_mb is not None else ""
+            timer.log(
+                f"[{index}/{len(sessions)}] materialize {session_date} "
+                f"rows={continuous_table.num_rows} "
+                f"load={load_seconds:.1f}s transform={transform_seconds:.1f}s "
+                f"write={write_seconds:.1f}s total={total_seconds:.1f}s "
+                f"elapsed={elapsed:.1f}s{rss_text}"
+            )
+
+    record_count = _count_dataset_records(request.storage_root, dataset_ref)
+    start_at, end_at = _dataset_time_bounds(
+        request.storage_root,
+        dataset_ref,
+        fallback=created_at,
+    )
+    manifest = ContinuousTradesManifest(
+        manifest_version=CONTINUOUS_MANIFEST_VERSION,
+        product=request.product,
+        schema="trades",
+        schema_version=MARKET_TRADE_CONTINUOUS_SCHEMA_VERSION,
+        roll_policy_slug=request.policy_slug,
+        price_adjustment="none",
+        builder_version=CONTINUOUS_BUILDER_VERSION,
+        roll_schedule_version=schedule.version,
+        roll_schedule_fingerprint=roll_manifest.source_fingerprint,
+        contract_dataset_refs=contract_refs,
+        start_session=start_session,
+        end_session=end_session,
+        rebuild_window_sessions=request.rebuild_window_sessions,
+        source_fingerprint=source_fingerprint,
+        created_at_utc=utc_clock.now(),
+    )
+    write_dataset_continuous_manifest(request.storage_root, dataset_ref, manifest)
+
+    existing_metadata = dataset_registry.get(dataset_ref)
+    dataset_registry.update(
+        DatasetMetadata(
+            dataset_ref=dataset_ref,
+            instrument_id=existing_metadata.instrument_id,
+            timeframe=existing_metadata.timeframe,
+            provider=existing_metadata.provider,
+            source_id=existing_metadata.source_id,
+            data_type=existing_metadata.data_type,
+            start_at=start_at,
+            end_at=end_at,
+            schema_version=existing_metadata.schema_version,
+            normalization_version=existing_metadata.normalization_version,
+            validation_status=ValidationStatus.PASSED,
+            lifecycle_status=DatasetLifecycleState.WORKING,
+            row_count=record_count,
+            checksum=existing_metadata.checksum,
+            created_at=existing_metadata.created_at,
+            lineage={
+                "roll_schedule_version": str(schedule.version),
+                "roll_schedule_fingerprint": roll_manifest.source_fingerprint,
+                "continuous_manifest_fingerprint": source_fingerprint,
+            },
+        )
+    )
+
+    return MaterializeContinuousTradesResult(
+        dataset_ref=dataset_ref,
+        manifest=manifest,
+        sessions_materialized=sessions,
+        record_count=record_count,
+        reused=False,
+    )

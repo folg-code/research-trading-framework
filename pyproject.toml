@@ -69,6 +69,7 @@ known-first-party = ["trading_framework", "tests"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/spike/*.py" = ["E402"]
+"src/trading_framework/infrastructure/observability/memory_stats.py" = ["RUF012"]
 
 [tool.ruff.format]
 quote-style = "double"

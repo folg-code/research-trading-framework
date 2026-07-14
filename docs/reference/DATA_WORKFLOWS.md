@@ -5,8 +5,8 @@
 
 Technical reference for how data moves through the framework: ingestion, persistence, lifecycle, query and analysis execution.
 
-**As-is scope:** Market Data Phase 2A (Sprint 002 CSV OHLCV), Phase 2B + 2C.1 trades archive import (Sprint 011), Phase 2B.3 derived OHLCV from trades (Sprint 012 on `main`). Multitimeframe and declarative models: Sprints 004–006. Signal Research: Sprints 008–010 on `main`. Strategy Research MVP: Sprint 013 on `main`. Strategy Research dashboard (Phase A): Sprint 014 on `main`.  
-**Planned next:** Sprint 013 integration to `main`; then Phase 6B, 2C.2, or 4B — `ROADMAP.md` §6, §10.  
+**As-is scope:** Market Data Phase 2A (Sprint 002 CSV OHLCV), Phase 2B + 2C.1 trades archive import (Sprint 011), Phase 2B.3 derived OHLCV from trades (Sprint 012), Phase 2C.4 continuous futures materialization (Sprint 015 on `sprint/continuous-futures-materialization`). Multitimeframe and declarative models: Sprints 004–006. Signal Research: Sprints 008–010 on `main`. Strategy Research MVP: Sprint 013 on `main`. Strategy Research dashboard (Phase A): Sprint 014 on `main`.  
+**Planned next:** Sprint 015 integration to `main`; then Phase 6B, 2C.2, or 4B — `ROADMAP.md` §6, §10.  
 **Deep market data reference:** [modules/DATA_MODULE_UPDATED.md](modules/DATA_MODULE_UPDATED.md)
 
 ---
@@ -372,6 +372,61 @@ Defined in `infrastructure/storage/parquet/trade_writer.py`:
 | `trade_id` | `string`, nullable | provider id |
 | `sequence` | `int64`, nullable | venue sequence |
 
+### 3.11 Continuous Futures Materialization (Sprint 015)
+
+```text
+Databento DBN archives (multi-contract, user_data)
+  → import_databento_contract_trades_archive
+  → split by actual_contract → NQ.NQM5, NQ.NQU5, …
+  → session_date partitions (market-trade-contract-v2 Parquet)
+  → finalize/publish per contract dataset
+  → build_roll_schedule (Arrow/Polars RTH volumes per session)
+  → roll schedule artifact: continuous/schedules/NQ/volume-rth-close/vN/
+  → materialize_continuous_trades (fingerprint reuse, incremental window)
+  → derive_continuous_ohlcv (per-session Polars, partitioned OHLCV)
+  → finalize/publish continuous trades + OHLCV
+  → query_trades / query_historical (PUBLISHED only)
+  → run_strategy_research (read-only; no roll builders)
+```
+
+**Entry points:**
+
+- `trading_framework.application.market_data.import_databento_contract_trades_archive`
+- `trading_framework.application.market_data.build_roll_schedule`
+- `trading_framework.application.market_data.materialize_continuous_trades`
+- `trading_framework.application.market_data.derive_continuous_ohlcv`
+- `trading_framework.application.market_data.build_continuous` (orchestration)
+
+**Continuous `DatasetRef` examples:**
+
+```text
+NQ.c.0|trades|tick|continuous|volume-rth-close@1
+NQ.c.0|ohlcv|1m|derived|volume-rth-close@1
+```
+
+**Physical layout (additions under `storage_root/`):**
+
+```text
+normalized/NQ.NQU5/trades/tick/databento/<source>/vN/partitions/session_date=…/trades.parquet
+continuous/schedules/NQ/volume-rth-close/vN/{schedule.parquet, manifest.json}
+normalized/NQ.c.0/trades/tick/continuous/volume-rth-close/vN/
+  partitions/session_date=…/trades.parquet
+  continuous_manifest.json
+normalized/NQ.c.0/ohlcv/1m/derived/volume-rth-close/vN/
+  partitions/session_date=…/bars.parquet
+  continuous_ohlcv_manifest.json
+```
+
+**Lifecycle:** ADR-0007 unchanged. Published continuous datasets are immutable; fingerprint match
+enables reuse without rewrite.
+
+**CLI:** `scripts/market_data/build_continuous.py`
+
+**ADR:** ADR-0018
+
+Integration tests: `tests/integration/test_s015_continuous_strategy_research.py`,
+`tests/unit/test_continuous_futures_consumer_boundary.py`
+
 ---
 
 ### 3.5 OHLCV Parquet Schema (canonical)
@@ -645,6 +700,7 @@ These appear in architecture diagrams and sprint plans but **have no production 
 | Workflow step | Module | Function / type |
 |---------------|--------|-----------------|
 | CSV import | `application.market_data` | `import_external_dataset` |
+| Contract / continuous build | `application.market_data` | `build_continuous`, `build_roll_schedule`, `materialize_continuous_trades`, `derive_continuous_ohlcv` |
 | Finalize / publish | `application.market_data` | `finalize_dataset`, `publish_dataset` |
 | Historical bars | `application.market_data` | `query_historical` → `list[MarketBar]` |
 | Strategy Research run | `application.strategy_research` | `run_strategy_research`, `analyze_strategy_research_run` |
