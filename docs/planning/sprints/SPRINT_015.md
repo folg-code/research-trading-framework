@@ -5,9 +5,9 @@
 ```text
 Sprint: 015
 Phase: Phase 2C.4 — materialized continuous futures datasets
-Status: PLANNED
+Status: COMPLETE
 Planned Start: 2026-07-14
-Planned End: TBD
+Planned End: 2026-07-14
 Sprint Goal Owner: Project Maintainer
 Depends On: SPRINT_011 (main), SPRINT_012 (main), SPRINT_013 (main)
 Sprint Branch: sprint/continuous-futures-materialization
@@ -203,11 +203,11 @@ Referenced from continuous dataset lineage; shared by trades and OHLCV derivatio
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S015-T017 | ADR-0018 — Continuous futures materialization | PLANNED |
-| S015-T018 | `MODULE_MAP.md`, `DATA_WORKFLOWS.md`, `CURRENT_STATUS.md` | PLANNED |
-| S015-T019 | Sprint closure | PLANNED |
+| S015-T017 | ADR-0018 — Continuous futures materialization | DONE |
+| S015-T018 | `MODULE_MAP.md`, `DATA_WORKFLOWS.md`, `CURRENT_STATUS.md` | DONE |
+| S015-T019 | Sprint closure | DONE |
 
-**Progress:** 16 / 19 tasks (Waves 0–5 complete)
+**Progress:** 19 / 19 tasks (all waves complete)
 
 ---
 
@@ -295,3 +295,52 @@ After Sprint 015 merges to `main`:
 - Sierra SCID contract import adapter.
 
 See `ROADMAP.md` §6 Phase 2C.4 and `CURRENT_STATUS.md`.
+
+---
+
+## 12. Sprint Closure (2026-07-14)
+
+### Delivered outcomes
+
+```text
+A — Contract normalization   multi-contract DBN import, session_date partitions, contract schema v2
+B — Roll schedule              volume-rth-close policy, versioned artifact + manifest
+C — Continuous materialization partitioned trades, manifest + fingerprint, incremental rebuild
+D — Continuous derived OHLCV   per-session Polars aggregation, partitioned bars, build_continuous CLI
+```
+
+### PRs (working → sprint branch)
+
+| PR | Outcome |
+|----|---------|
+| #115 | Contract-level Databento trades import |
+| #116 | Volume-based roll schedule builder |
+| #117 | Materialize continuous trades from roll schedule |
+| #118 | Derive continuous OHLCV and query routing |
+| #119 | `build_continuous` CLI and integration tests |
+| #120 | Pipeline optimization (batch import, partitioned OHLCV) |
+| #121 | Arrow roll-schedule RTH volumes |
+| pending | Wave 6 — ADR-0018 ACCEPTED, reference docs, closure |
+
+### Quality at closure
+
+```text
+570 tests passed
+ruff / mypy / pre-commit green
+half-year NQ operator validation: ~44M continuous trades, ~177k 1m bars, strategy research read OK
+```
+
+### Deferred (explicit)
+
+```text
+Price back-adjustment for trades/orderflow     separate future artifact
+Open-interest / calendar roll policies         follow-up increment
+Spread symbol import                           excluded in MVP
+Consumer query columnar path (TD-011)          list[MarketTrade]/list[MarketBar] unchanged
+Sprint 014 Phase B inspection API              deferred
+```
+
+### Post-sprint decision
+
+Merge `sprint/continuous-futures-materialization` → `main`, then choose continuous OHLCV strategy
+research at scale, Phase 6B, 2C.2, or 4B — see `CURRENT_STATUS.md` §11.
