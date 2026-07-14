@@ -18,9 +18,11 @@ from trading_framework.research.simulation import (
     BarSequentialSimulator,
     SimulationAssumptions,
 )
+from trading_framework.research.simulation.compile import compile_simulation_input
 from trading_framework.research.simulation.engine import (
     _build_bar_timestamp_index,
     _closed_pnl_by_exit_observed_at,
+    _observed_at_index_by_ns,
     _open_position_counts_by_bar_index,
     _resolve_signal_bar_index,
 )
@@ -212,7 +214,15 @@ def test_simulator_resolves_signal_on_available_at_when_observed_at_differs() ->
 
 def test_open_position_counts_track_entry_and_exit_bar_indices() -> None:
     bars = [_bar(minute) for minute in range(6)]
-    bar_index = _build_bar_timestamp_index(bars)
+    compiled = compile_simulation_input(
+        bars=bars,
+        entry_signals=pl.DataFrame(
+            schema={
+                "available_at": pl.Datetime(time_unit="us", time_zone="UTC"),
+                "direction": pl.String,
+            }
+        ),
+    )
     trades = [
         SimulatedTrade(
             trade_id="t1",
@@ -237,7 +247,7 @@ def test_open_position_counts_track_entry_and_exit_bar_indices() -> None:
 
     open_counts = _open_position_counts_by_bar_index(
         trades,
-        bar_index=bar_index,
+        observed_at_to_index=_observed_at_index_by_ns(compiled.bars.observed_at_ns),
         bar_count=len(bars),
     )
 

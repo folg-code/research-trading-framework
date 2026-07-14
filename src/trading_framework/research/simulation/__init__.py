@@ -8,6 +8,10 @@ from trading_framework.research.simulation.assumptions import (
     apply_exit_slippage,
     simulation_assumptions_fingerprint,
 )
+from trading_framework.research.simulation.compile import (
+    CompileSimulationInputError,
+    compile_simulation_input,
+)
 from trading_framework.research.simulation.engine import (
     BarSequentialSimulator,
     SimulationEngineError,
@@ -22,9 +26,12 @@ from trading_framework.research.simulation.facts import (
     equity_points_to_dataframe,
     simulated_trades_to_dataframe,
 )
+from trading_framework.research.simulation.input import CompiledSimulationInput
 
 __all__ = [
     "BarSequentialSimulator",
+    "CompileSimulationInputError",
+    "CompiledSimulationInput",
     "EquityPoint",
     "FillPolicy",
     "SimulatedTrade",
@@ -34,6 +41,7 @@ __all__ = [
     "SimulationResult",
     "apply_entry_slippage",
     "apply_exit_slippage",
+    "compile_simulation_input",
     "derive_trade_id",
     "empty_equity_points_dataframe",
     "empty_simulated_trades_dataframe",
