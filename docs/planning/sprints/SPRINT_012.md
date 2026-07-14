@@ -139,15 +139,15 @@ derive_bar_interval, BarTimestampSemantics.INTERVAL_START
 | S012-T003 | `TradesToBarsAggregator` | 1 | DONE | S012-T001 |
 | S012-T004 | `derive_ohlcv_from_trades` workflow | 2 | DONE | S012-T002, S012-T003 |
 | S012-T005 | Lineage metadata on derived dataset | 2 | DONE | S012-T004 |
-| S012-T006 | E2E: trades publish → derive → publish → query_historical | 3 | PLANNED | S012-T005 |
-| S012-T007 | Unit tests (aggregator + workflow) | 3 | PLANNED | S012-T004 |
+| S012-T006 | E2E: trades publish → derive → publish → query_historical | 3 | DONE | S012-T005 |
+| S012-T007 | Unit tests (aggregator + workflow) | 3 | DONE | S012-T004 |
 | S012-T008 | Integration test with synthetic trades dataset | 4 | PLANNED | S012-T006 |
 | S012-T009 | `derive_bars_from_trades.py` CLI + tests | 4 | PLANNED | S012-T006 |
 | S012-T010 | ADR-0015 | 5 | PLANNED | S012-T008 |
 | S012-T011 | Update MODULE_MAP, DATA_WORKFLOWS, CURRENT_STATUS | 5 | PLANNED | S012-T008 |
 | S012-T012 | Sprint review and closure | 5 | PLANNED | All preceding |
 
-**Progress:** 5 / 12 tasks
+**Progress:** 7 / 12 tasks
 
 ---
 
