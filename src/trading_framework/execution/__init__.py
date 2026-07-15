@@ -22,6 +22,8 @@ from trading_framework.execution.models import (
 )
 from trading_framework.execution.modes import ExecutionMode
 from trading_framework.execution.runtime import (
+    EmaMomentumLiveSignalEvaluator,
+    LiveSignalEvaluation,
     LocalExecutionRuntimeSession,
     RuntimeDecisionStep,
     RuntimeDecisionStepResult,
@@ -35,11 +37,13 @@ from trading_framework.execution.safety import DRY_RUN_SAFETY_POLICY, ExecutionS
 __all__ = [
     "DRY_RUN_SAFETY_POLICY",
     "BestBidAskSnapshot",
+    "EmaMomentumLiveSignalEvaluator",
     "ExecutionEvent",
     "ExecutionEventType",
     "ExecutionMode",
     "ExecutionSafetyPolicy",
     "Heartbeat",
+    "LiveSignalEvaluation",
     "LocalExecutionRuntimeSession",
     "MarketFeedConnectionState",
     "MarketFeedStatusSnapshot",

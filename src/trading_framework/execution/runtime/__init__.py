@@ -5,6 +5,10 @@ from trading_framework.execution.runtime.decision_step import (
     RuntimeDecisionStepResult,
 )
 from trading_framework.execution.runtime.fill_reference import closed_bar_close_reference_quote
+from trading_framework.execution.runtime.live_signals import (
+    EmaMomentumLiveSignalEvaluator,
+    LiveSignalEvaluation,
+)
 from trading_framework.execution.runtime.session import LocalExecutionRuntimeSession
 from trading_framework.execution.runtime.strategy_orders import (
     StrategyModelOrderAdapter,
@@ -13,6 +17,8 @@ from trading_framework.execution.runtime.strategy_orders import (
 )
 
 __all__ = [
+    "EmaMomentumLiveSignalEvaluator",
+    "LiveSignalEvaluation",
     "LocalExecutionRuntimeSession",
     "RuntimeDecisionStep",
     "RuntimeDecisionStepResult",
