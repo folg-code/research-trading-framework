@@ -36,6 +36,18 @@ Output: `demo/output/index.html` (landing page with links to all reports).
 | `04_model_inspection.html` | Declarative model overlays | Market + signal conditions on OHLCV. |
 | `05_signal_occurrence_inspection.html` | Single occurrence inspection | |
 | `06_mtf_swing_inspection.html` | MTF swing structure | RTH shading, event panel. |
+| `07_robustness_dashboard.html` | Robustness Research verdict dashboard | Parameter sweep, walk-forward, stress, Monte Carlo. |
+| `08_model_research_nq_half_year.html` | Model Research Methodology (Sprint 017) | Index linking 3 scope reports under `model_research/`. |
+
+## Model Research demo (Sprint 017)
+
+```powershell
+uv pip install plotly
+uv run python scripts/demo/run_model_research_nq_demo.py --open
+uv run python scripts/demo/run_model_research_nq_demo.py --fixture --open
+```
+
+Output: `08_model_research_nq_half_year.html` plus per-scope Plotly dashboards in `demo/output/model_research/`.
 
 ## Portfolio tips
 

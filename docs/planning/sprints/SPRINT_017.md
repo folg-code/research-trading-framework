@@ -5,7 +5,7 @@
 ```text
 Sprint: 017
 Phase: Phase 5B — Model Research Methodology (Signal Research increment)
-Status: PLANNED (Wave 0)
+Status: COMPLETE (Wave 6 closure)
 Planned Start: 2026-07-15
 Planned End: TBD
 Sprint Goal Owner: Project Maintainer
@@ -84,21 +84,21 @@ quality diagnostics — **without re-running model evaluation** when adding visu
 
 Phase 5B MVP is complete when the system can:
 
-- [ ] Declare a reproducible Signal Research study (`SignalResearchDefinitionSpec`).
-- [ ] Load definition from YAML/JSON and map to `run_signal_research` / `analyze_signal_research_run`.
-- [ ] Run bounded experiments (explicit candidate count, no unbounded grid search).
-- [ ] Analyze a persisted Signal Research run without recompute (ADR-0013).
-- [ ] Support all three research scopes with scope-appropriate baselines.
-- [ ] Report sample size, mean/median return, hit rate, MFE, MAE, quantiles per horizon.
-- [ ] Group results by horizon, calendar period, session, and time-of-day.
-- [ ] Compare signal-only vs signal-under-market-model (marginal contribution).
-- [ ] Apply occurrence policy semantics (`KEEP_ALL`, `FIRST_PER_BAR`, `COOLDOWN`) at definition level.
-- [ ] Compare small model families (manual variant list, not auto-optimization).
-- [ ] Emit quality diagnostic flags (`LOW_SAMPLE_SIZE`, `HIGH_PERIOD_CONCENTRATION`, …).
-- [ ] Generate offline HTML report with interactive Plotly charts.
-- [ ] Show incomplete and filtered observations in diagnostics.
-- [ ] Preserve dataset, model and component lineage in report metadata.
-- [ ] Run NQ half-year vertical slice demo producing portfolio-ready HTML.
+- [x] Declare a reproducible Signal Research study (`SignalResearchDefinitionSpec`).
+- [x] Load definition from YAML/JSON and map to `run_signal_research` / `analyze_signal_research_run`.
+- [x] Run bounded experiments (explicit candidate count, no unbounded grid search).
+- [x] Analyze a persisted Signal Research run without recompute (ADR-0013).
+- [x] Support all three research scopes with scope-appropriate baselines.
+- [x] Report sample size, mean/median return, hit rate, MFE, MAE, quantiles per horizon.
+- [x] Group results by horizon, calendar period, session, and time-of-day.
+- [x] Compare signal-only vs signal-under-market-model (marginal contribution).
+- [x] Apply occurrence policy semantics (`KEEP_ALL`, `FIRST_PER_BAR`, `COOLDOWN`) at definition level.
+- [x] Compare small model families (manual variant list, not auto-optimization).
+- [x] Emit quality diagnostic flags (`LOW_SAMPLE_SIZE`, `HIGH_PERIOD_CONCENTRATION`, …).
+- [x] Generate offline HTML report with interactive Plotly charts.
+- [x] Show incomplete and filtered observations in diagnostics.
+- [x] Preserve dataset, model and component lineage in report metadata.
+- [x] Run NQ half-year vertical slice demo producing portfolio-ready HTML.
 
 ---
 
