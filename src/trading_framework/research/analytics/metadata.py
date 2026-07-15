@@ -28,6 +28,10 @@ class AnalyticsResultMetadata:
     signal_model_ids: tuple[str, ...]
     min_sample_size: int
     interpretation_min_sample_size: int
+    source_dataset_ref: str | None = None
+    research_id: str | None = None
+    research_question: str | None = None
+    definition_hash: str | None = None
     time_of_day_timezone: str = CME_ES_TIME_OF_DAY_TIMEZONE
     time_of_day_bucket_minutes: int = DEFAULT_TIME_OF_DAY_BUCKET_MINUTES
 
@@ -52,6 +56,10 @@ def build_analytics_result_metadata(
         signal_model_ids=manifest.signal_model_ids,
         min_sample_size=min_sample_size,
         interpretation_min_sample_size=interpretation_min_sample_size,
+        source_dataset_ref=manifest.source_dataset_ref,
+        research_id=manifest.research_id,
+        research_question=manifest.research_question,
+        definition_hash=manifest.definition_hash,
     )
 
 

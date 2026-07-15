@@ -12,7 +12,10 @@ from typing import Any, assert_never
 import polars as pl
 
 from trading_framework.core.exceptions import ValidationError
-from trading_framework.infrastructure.storage.paths import signal_research_run_dir
+from trading_framework.infrastructure.storage.paths import (
+    signal_research_analytics_summary_path,
+    signal_research_run_dir,
+)
 from trading_framework.research.context.context_fact import (
     empty_context_facts_dataframe,
     validate_context_facts_dataframe,
@@ -67,6 +70,10 @@ class SignalResearchRunManifest:
     experiment_id: str | None = None
     research_scope: ResearchScope | None = None
     market_model_ids: tuple[str, ...] = ()
+    research_id: str | None = None
+    research_question: str | None = None
+    definition_hash: str | None = None
+    occurrence_policy: dict[str, Any] | None = None
 
     def effective_scope(self) -> ResearchScope:
         """Resolve explicit v2 scope or infer ``SIGNAL_MODEL_ONLY`` for legacy v1 runs."""
@@ -93,6 +100,14 @@ class SignalResearchRunManifest:
             payload["research_scope"] = self.research_scope.value
         if self.market_model_ids:
             payload["market_model_ids"] = list(self.market_model_ids)
+        if self.research_id is not None:
+            payload["research_id"] = self.research_id
+        if self.research_question is not None:
+            payload["research_question"] = self.research_question
+        if self.definition_hash is not None:
+            payload["definition_hash"] = self.definition_hash
+        if self.occurrence_policy is not None:
+            payload["occurrence_policy"] = self.occurrence_policy
         return payload
 
     @classmethod
@@ -118,6 +133,24 @@ class SignalResearchRunManifest:
             ),
             research_scope=research_scope,
             market_model_ids=tuple(str(value) for value in market_model_ids_raw),
+            research_id=(
+                str(payload["research_id"]) if payload.get("research_id") is not None else None
+            ),
+            research_question=(
+                str(payload["research_question"])
+                if payload.get("research_question") is not None
+                else None
+            ),
+            definition_hash=(
+                str(payload["definition_hash"])
+                if payload.get("definition_hash") is not None
+                else None
+            ),
+            occurrence_policy=(
+                dict(payload["occurrence_policy"])
+                if payload.get("occurrence_policy") is not None
+                else None
+            ),
         )
 
 
@@ -368,3 +401,31 @@ class SignalResearchDatasetRepository:
             observations=observations,
             context=context,
         )
+
+    def write_analytics_summary(self, run_id: str, payload: dict[str, Any]) -> Path:
+        """Persist one cached analytics envelope under ``analytics/summary.json``."""
+        run_dir = signal_research_run_dir(self._root, run_id)
+        if not run_dir.exists():
+            msg = f"run directory not found: {run_dir}"
+            raise FileNotFoundError(msg)
+
+        summary_path = signal_research_analytics_summary_path(self._root, run_id)
+        summary_path.parent.mkdir(parents=True, exist_ok=True)
+        summary_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+        return summary_path
+
+    def read_analytics_summary_payload(self, run_id: str) -> dict[str, Any]:
+        """Load the raw cached analytics summary mapping."""
+        summary_path = signal_research_analytics_summary_path(self._root, run_id)
+        if not summary_path.exists():
+            msg = f"missing analytics summary: {summary_path}"
+            raise FileNotFoundError(msg)
+        payload = json.loads(summary_path.read_text(encoding="utf-8"))
+        if not isinstance(payload, dict):
+            msg = f"analytics summary must be a mapping: {summary_path}"
+            raise ValidationError(msg)
+        return payload
+
+    def has_analytics_summary(self, run_id: str) -> bool:
+        """Return whether a cached analytics summary exists for one run."""
+        return signal_research_analytics_summary_path(self._root, run_id).exists()

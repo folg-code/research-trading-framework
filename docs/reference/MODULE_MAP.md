@@ -1,13 +1,13 @@
 # Module Map
 
 > **Reference doc** — [as-implemented layer](../README.md).  
-> Data flows: [DATA_WORKFLOWS.md](DATA_WORKFLOWS.md). Index: [docs/README.md](../README.md).
+> Data flows: [DATA_WORKFLOWS.md](DATA_WORKFLOWS.md). Research workflows: [RESEARCH_METHODOLOGIES.md](RESEARCH_METHODOLOGIES.md). Index: [docs/README.md](../README.md).
 
 Package map for `src/trading_framework/`: responsibility, dependencies, status, entry points.
 
 **Status legend:** ✅ implemented · 🟡 partial / in sprint · ⬜ skeleton · 📘 deep doc elsewhere
 
-Last updated: 2026-07-14 (Sprint 015 on `main`; simulation refactor + columnar OHLCV on `main`)
+Last updated: 2026-07-15 (Sprint 017 complete on `sprint/model-research-methodology-mvp`; Sprint 016 on `main`)
 
 **Roadmap:** parallel capability tracks — `docs/planning/ROADMAP.md` §3. Phase 2A–2C.4, 4A, 5, 6A delivered on `main`. Portfolio demo: `scripts/demo/`.
 
@@ -247,10 +247,10 @@ Published DatasetRef (source timeframe, e.g. 1m)
 
 | | |
 |---|---|
-| **Responsibility** | Signal Research run orchestration and read-only analytics |
+| **Responsibility** | Signal Research run orchestration, definition mapping, analytics persistence, HTML report rendering |
 | **Talks to** | `application/model_evaluation`, `strategy`, `research` |
-| **Key paths** | `run_signal_research.py`, `analyze_signal_research.py` |
-| **Entry points** | `run_signal_research`, `analyze_signal_research_run` |
+| **Key paths** | `run_signal_research.py`, `analyze_signal_research.py`, `map_definition.py`, `persist_analytics.py`, `render_signal_research_report.py`, `run_signal_research_family.py` |
+| **Entry points** | `run_signal_research`, `analyze_signal_research_run`, `resolve_signal_research_definition`, `map_definition_to_run_request`, `persist_signal_research_analytics`, `render_signal_research_report`, `run_signal_research_family_experiment` |
 
 ### `application/strategy_research/` ✅
 
@@ -318,6 +318,52 @@ Published DatasetRef
 ADR: [ADR-0011](../adr/ADR-0011-signal-research-outcomes-and-persistence.md),
 [ADR-0012](../adr/ADR-0012-combined-research-scopes-and-context-alignment.md),
 [ADR-0013](../adr/ADR-0013-signal-research-analytics-boundary.md)
+
+## Model Research Methodology (Sprint 017) ✅
+
+Phase 5B increment on Signal Research — declarative study contracts, quality diagnostics, Plotly
+dashboard, production CLI, bounded model-family comparison, NQ half-year demo.
+
+```text
+SignalResearchDefinitionSpec (YAML/JSON)
+  → resolve_signal_research_definition + map_definition_to_run_request
+  → run_signal_research (bounded, lineage-recorded)
+  → analyze_signal_research_run + SignalResearchQualityFlags
+  → persist_signal_research_analytics (optional analytics/summary.json sidecar)
+  → build_signal_research_report → offline Plotly HTML
+  → optional run_signal_research_family_experiment (bounded variant comparison)
+```
+
+ADR: [ADR-0020](../adr/ADR-0020-model-research-methodology-mvp.md)
+
+### `research/signal_research/` — Definition contracts (Sprint 017) ✅
+
+| | |
+|---|---|
+| **Responsibility** | `SignalResearchDefinitionSpec`, occurrence policy, quality rules, model-family bounds |
+| **Key paths** | `definition.py`, `loader.py`, `horizons.py`, `model_registry.py`, `family_planning.py` |
+| **Entry points** | `load_signal_research_definition`, `validate_signal_research_definition`, `resolve_models_from_definition` |
+
+### `research/reporting/signal_research/` — HTML dashboard (Sprint 017) ✅
+
+| | |
+|---|---|
+| **Responsibility** | View models, Plotly figures, baseline comparison table, family comparison HTML |
+| **Key paths** | `view_models.py`, `plotly_figures.py`, `report_html.py`, `family_report_html.py` |
+| **Entry points** | `build_signal_research_report`, `build_family_comparison_report` |
+| **Boundary** | Presentation-only; no model evaluation or Parquet I/O (ADR-0013, ADR-0020) |
+
+### `research/analytics/quality_flags.py` — Quality diagnostics (Sprint 017) ✅
+
+| | |
+|---|---|
+| **Responsibility** | Configurable warning flags (`LOW_SAMPLE_SIZE`, `HIGH_PERIOD_CONCENTRATION`, …) |
+| **Entry points** | `compute_signal_research_quality_warnings` |
+
+**CLI:** `scripts/signal_research/run_signal_research.py`, `analyze_signal_research.py`,
+`render_signal_research_report.py`, `run_model_family.py`
+
+**Demo:** `scripts/demo/run_model_research_nq_demo.py` → `demo/output/08_model_research_nq_half_year.html`
 
 ## Strategy Research (Sprint 013–014) ✅
 

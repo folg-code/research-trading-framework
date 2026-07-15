@@ -5,7 +5,9 @@
 
 Technical reference for how data moves through the framework: ingestion, persistence, lifecycle, query and analysis execution.
 
-**As-is scope:** Market Data Phase 2A (Sprint 002), Phase 2B + 2C.1 trades import (Sprint 011), Phase 2B.3 derived OHLCV (Sprint 012), Phase 2C.4 continuous futures (Sprint 015 on `main`). Multitimeframe and declarative models: Sprints 004–006. Signal Research: Sprints 008–010. Strategy Research MVP + dashboard Phase A: Sprints 013–014. Simulation refactor + columnar OHLCV batch path: PRs #124–#132 on `main`. Robustness Research MVP: Sprint 016 on `sprint/robustness-mvp` (ADR-0019).  
+**Research methodologies (all workflows):** [RESEARCH_METHODOLOGIES.md](RESEARCH_METHODOLOGIES.md) — Signal, Model Research, Strategy, Robustness; scope comparison and CLI index.
+
+**As-is scope:** Market Data Phase 2A (Sprint 002), Phase 2B + 2C.1 trades import (Sprint 011), Phase 2B.3 derived OHLCV (Sprint 012), Phase 2C.4 continuous futures (Sprint 015 on `main`). Multitimeframe and declarative models: Sprints 004–006. Signal Research: Sprints 008–010. Model Research Methodology: Sprint 017 (Phase 5B, ADR-0020). Strategy Research MVP + dashboard Phase A: Sprints 013–014. Simulation refactor + columnar OHLCV batch path: PRs #124–#132 on `main`. Robustness Research MVP: Sprint 016 on `main` (ADR-0019).  
 **Planned next:** Phase 4B orderflow, Phase 6B multi-data deferred.  
 **Portfolio demo:** `scripts/demo/run_portfolio_demo.py` → `demo/output/index.html`.  
 **Deep market data reference:** [modules/DATA_MODULE_UPDATED.md](modules/DATA_MODULE_UPDATED.md)
@@ -501,6 +503,79 @@ scripts/demo/run_portfolio_demo.py
 
 Requires `uv pip install plotly` for Plotly-based reports. Strategy dashboards work without Plotly.
 
+### 3.13 Model Research Methodology (Sprint 017 — Phase 5B)
+
+```text
+SignalResearchDefinitionSpec (YAML/JSON under tests/fixtures/signal_research/ or inline)
+  → scripts/signal_research/run_signal_research.py
+  → {storage_root}/{run_id}/manifest.json + scope-specific parquet facts
+  → scripts/signal_research/analyze_signal_research.py --persist-analytics
+  → {storage_root}/{run_id}/analytics/summary.json (optional sidecar)
+  → scripts/signal_research/render_signal_research_report.py
+  → {storage_root}/{run_id}/report/report.html or demo/output/model_research/*.html
+
+Optional bounded family comparison:
+  → scripts/signal_research/run_model_family.py
+  → {storage_root}/signal_research_experiments/{experiment_id}/
+```
+
+**NQ half-year vertical slice (3 scopes):**
+
+```text
+scripts/demo/run_model_research_nq_demo.py
+  → storage: user_data/storage_nq_half_year
+  → dataset: NQ.c.0|ohlcv|1m|derived|volume-rth-close@1
+  → scopes: MARKET_MODEL_ONLY (high_volatility), SIGNAL_MODEL_ONLY (higher_low_long),
+             MARKET_AND_SIGNAL (combined + SIGNAL_ONLY baseline)
+  → horizons: 5m, 15m, 30m, 60m
+  → demo/output/08_model_research_nq_half_year.html (index)
+  → demo/output/model_research/{market_model_only,signal_model_only,market_and_signal}.html
+```
+
+**CLI:** `uv run python scripts/demo/run_model_research_nq_demo.py --open`  
+**Fixture fallback:** `--fixture` (committed ES OHLCV CSV, single 5m horizon, signal + combined scopes only)
+
+**ADR:** ADR-0020
+
+Unit tests: `tests/unit/scripts/test_signal_research_cli.py`,
+`tests/unit/scripts/test_run_model_research_nq_demo.py`
+
+### 3.14 Robustness Research (Sprint 016 — Phase 7)
+
+```text
+RobustnessExperimentSpec
+  → run_robustness_experiment / run_walk_forward_experiment / run_stress_experiment / …
+  → robustness_experiments/{experiment_id}/ + Strategy Research child runs
+  → analyze_robustness_experiment → verdict (PASS / CONDITIONAL / FAIL)
+  → render_robustness_report → report/robustness_report.html
+```
+
+**Kinds (MVP):** parameter sweep, walk-forward, stress test, Monte Carlo, statistical diagnostics.
+
+**CLIs:** `scripts/robustness_research/`  
+**Demo:** `scripts/demo/run_robustness_demo.py` → `demo/output/07_robustness_dashboard.html`
+
+**ADR:** ADR-0019
+
+Overview: [RESEARCH_METHODOLOGIES.md §6](RESEARCH_METHODOLOGIES.md#6-robustness-research-phase-7)
+
+### 3.15 Signal Research kernel (Sprint 008–010 — Phase 5)
+
+```text
+Published DatasetRef + ResearchScope + horizons
+  → run_signal_research
+  → {storage_root}/{run_id}/manifest.json + scope-specific parquet facts
+  → analyze_signal_research_run (read-only; no model re-evaluation)
+```
+
+**Scopes:** `MARKET_MODEL_ONLY`, `SIGNAL_MODEL_ONLY`, `MARKET_AND_SIGNAL` (ADR-0012).
+
+**CLIs (production):** `scripts/signal_research/` — see §3.13 for Model Research Methodology layer.
+
+**ADR:** ADR-0011, ADR-0012, ADR-0013
+
+Overview: [RESEARCH_METHODOLOGIES.md §3](RESEARCH_METHODOLOGIES.md#3-signal-research-phase-5)
+
 ---
 
 ### 3.5 OHLCV Parquet Schema (canonical)
@@ -779,6 +854,8 @@ These appear in architecture diagrams and sprint plans but **have no production 
 | Historical bars | `application.market_data` | `query_historical` → `list[MarketBar]` |
 | Strategy Research run | `application.strategy_research` | `run_strategy_research`, `analyze_strategy_research_run` |
 | Strategy Research dashboard | `application.strategy_research`, `research/analytics` | `build_strategy_dashboard_view_model`, `render_strategy_research_dashboard` |
+| Signal Research run | `application.signal_research` | `run_signal_research`, `analyze_signal_research_run` |
+| Model Research report | `application.signal_research`, `research/reporting/signal_research` | `render_signal_research_report`, `build_signal_research_report` |
 | Robustness experiment | `application.robustness_research` | `run_robustness_experiment`, `run_*_experiment`, `analyze_robustness_experiment` |
 | Robustness report | `research/robustness` | `render_robustness_report` → `report/robustness_report.html` |
 | Analysis input | `application.market_analysis` | `load_analysis_data_view` → `AnalysisDataView` |

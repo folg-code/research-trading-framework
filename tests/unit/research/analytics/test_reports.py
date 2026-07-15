@@ -10,14 +10,22 @@ import pytest
 
 from trading_framework.core.exceptions import ValidationError
 from trading_framework.research.analytics.conditional import ConditionalComparisonStatus
-from trading_framework.research.analytics.dimensions import AnalyticsTimestampBasis
+from trading_framework.research.analytics.dimensions import (
+    AnalyticsTimestampBasis,
+    GroupDimension,
+)
 from trading_framework.research.analytics.filters import OutcomeAnalyticsFilter
 from trading_framework.research.analytics.metadata import AnalyticsResultMetadata
+from trading_framework.research.analytics.quality_flags import (
+    SignalResearchQualityFlag,
+    SignalResearchQualityWarning,
+)
 from trading_framework.research.analytics.reports import render_signal_research_report
 from trading_framework.research.analytics.schemas import (
     empty_conditional_comparison,
     empty_distribution_summaries,
     empty_join_diagnostics,
+    empty_metric_histograms,
     empty_run_summaries,
 )
 from trading_framework.research.scope import ResearchScope
@@ -33,6 +41,8 @@ class _ReportFixtureResult:
     distribution_summaries: pl.DataFrame
     join_diagnostics: pl.DataFrame
     metadata: AnalyticsResultMetadata
+    quality_warnings: tuple[SignalResearchQualityWarning, ...] = ()
+    metric_histograms: pl.DataFrame | None = None
 
 
 def _metadata(*, scope: str = ResearchScope.MARKET_AND_SIGNAL.value) -> AnalyticsResultMetadata:
@@ -94,6 +104,58 @@ def _join_diagnostics() -> pl.DataFrame:
     )
 
 
+def _conditional_payload(**overrides: object) -> dict[str, object]:
+    payload: dict[str, object] = {
+        "run_id": "run-1",
+        "horizon_bars": 5,
+        "context_true_sample_size": 10,
+        "context_false_sample_size": 40,
+        "context_missing_sample_size": 0,
+        "comparison_status": ConditionalComparisonStatus.AVAILABLE.value,
+        "status_reason": "Both context arms have complete outcomes.",
+        "forward_return_mean_true": 0.0002,
+        "forward_return_mean_false": 0.00005,
+        "forward_return_mean_delta": 0.00015,
+        "forward_return_median_true": 0.00018,
+        "forward_return_median_false": 0.00004,
+        "forward_return_median_delta": 0.00014,
+        "hit_rate_true": 0.7,
+        "hit_rate_false": 0.55,
+        "hit_rate_delta": 0.15,
+        "mfe_mean_true": 0.0003,
+        "mfe_mean_false": 0.00018,
+        "mfe_mean_delta": 0.00012,
+        "mfe_median_true": 0.00025,
+        "mfe_median_false": 0.00015,
+        "mfe_median_delta": 0.0001,
+        "mae_mean_true": -0.00008,
+        "mae_mean_false": -0.00011,
+        "mae_mean_delta": 0.00003,
+        "mae_median_true": -0.00007,
+        "mae_median_false": -0.0001,
+        "mae_median_delta": 0.00003,
+    }
+    payload.update(overrides)
+    return payload
+
+
+def _metric_histograms() -> pl.DataFrame:
+    return pl.DataFrame(
+        {
+            "run_id": ["run-1", "run-1"],
+            "horizon_bars": [5, 5],
+            "metric": ["forward_return", "forward_return"],
+            "bin_index": [0, 1],
+            "bin_start": [-0.0002, 0.0],
+            "bin_end": [0.0, 0.0002],
+            "count": [20, 30],
+            "reference_mean": [0.0001, 0.0001],
+            "reference_median": [0.00005, 0.00005],
+        },
+        schema=empty_metric_histograms().schema,
+    )
+
+
 def _sample_result(*, include_conditional: bool) -> _ReportFixtureResult:
     run_summaries = pl.DataFrame(
         {
@@ -118,28 +180,9 @@ def _sample_result(*, include_conditional: bool) -> _ReportFixtureResult:
     )
     conditional = None
     if include_conditional:
+        payload = _conditional_payload()
         conditional = pl.DataFrame(
-            {
-                "run_id": ["run-1"],
-                "horizon_bars": [5],
-                "context_true_sample_size": [10],
-                "context_false_sample_size": [40],
-                "context_missing_sample_size": [0],
-                "comparison_status": [ConditionalComparisonStatus.AVAILABLE.value],
-                "status_reason": ["Both context arms have complete outcomes."],
-                "forward_return_mean_true": [0.0002],
-                "forward_return_mean_false": [0.00005],
-                "forward_return_mean_delta": [0.00015],
-                "hit_rate_true": [0.7],
-                "hit_rate_false": [0.55],
-                "hit_rate_delta": [0.15],
-                "mfe_mean_true": [0.0003],
-                "mfe_mean_false": [0.00018],
-                "mfe_mean_delta": [0.00012],
-                "mae_mean_true": [-0.00008],
-                "mae_mean_false": [-0.00011],
-                "mae_mean_delta": [0.00003],
-            },
+            {key: [value] for key, value in payload.items()},
             schema=empty_conditional_comparison().schema,
         )
     return _ReportFixtureResult(
@@ -150,6 +193,7 @@ def _sample_result(*, include_conditional: bool) -> _ReportFixtureResult:
         distribution_summaries=_distribution_summaries(),
         join_diagnostics=_join_diagnostics(),
         metadata=_metadata(),
+        metric_histograms=_metric_histograms(),
     )
 
 
@@ -168,19 +212,41 @@ def test_render_signal_research_report_rejects_empty_summaries(tmp_path: Path) -
 
 
 def test_render_signal_research_report_writes_html(tmp_path: Path) -> None:
-    plotly = pytest.importorskip("plotly")
-    assert plotly is not None
+    pytest.importorskip("plotly")
 
     output = tmp_path / "report.html"
-    path = render_signal_research_report(_sample_result(include_conditional=True), output)
+    result = _sample_result(include_conditional=True)
+    result = _ReportFixtureResult(
+        source_run_id=result.source_run_id,
+        run_summaries=result.run_summaries,
+        grouped_summaries=result.grouped_summaries,
+        conditional_comparison=result.conditional_comparison,
+        distribution_summaries=result.distribution_summaries,
+        join_diagnostics=result.join_diagnostics,
+        metadata=result.metadata,
+        metric_histograms=result.metric_histograms,
+        quality_warnings=(
+            SignalResearchQualityWarning(
+                code=SignalResearchQualityFlag.LOW_SAMPLE_SIZE,
+                message="Complete sample size 50 is below the configured minimum of 100.",
+                horizon_bars=5,
+            ),
+        ),
+    )
+    path = render_signal_research_report(result, output)
 
     assert path == output
     assert output.exists()
     content = output.read_text(encoding="utf-8")
     assert "run-1" in content
-    assert "Join diagnostics" in content
-    assert "Signal baseline metrics" in content
-    assert "Interpretation eligible" in content
+    assert "Key metrics" in content
+    assert "Metrics by horizon" in content
+    assert "Forward return histogram" in content
+    assert "MFE distribution" in content
+    assert "MAE distribution" in content
+    assert "Signal-only vs conditioned signal" in content
+    assert "Diagnostics" in content
+    assert "LOW_SAMPLE_SIZE" in content
     assert "bps" in content
     assert "plotly" in content.lower()
 
@@ -188,28 +254,28 @@ def test_render_signal_research_report_writes_html(tmp_path: Path) -> None:
 def test_render_signal_research_report_warns_on_empty_conditioned_sample(tmp_path: Path) -> None:
     pytest.importorskip("plotly")
     result = _sample_result(include_conditional=True)
+    payload = _conditional_payload(
+        context_true_sample_size=0,
+        context_false_sample_size=50,
+        comparison_status=ConditionalComparisonStatus.EMPTY_CONDITIONED_SAMPLE.value,
+        status_reason="No complete outcomes matched context_met_at_available_at=true.",
+        forward_return_mean_true=None,
+        forward_return_mean_delta=None,
+        forward_return_median_true=None,
+        forward_return_median_delta=None,
+        hit_rate_true=None,
+        hit_rate_delta=None,
+        mfe_mean_true=None,
+        mfe_mean_delta=None,
+        mfe_median_true=None,
+        mfe_median_delta=None,
+        mae_mean_true=None,
+        mae_mean_delta=None,
+        mae_median_true=None,
+        mae_median_delta=None,
+    )
     conditional = pl.DataFrame(
-        {
-            "run_id": ["run-1"],
-            "horizon_bars": [5],
-            "context_true_sample_size": [0],
-            "context_false_sample_size": [50],
-            "context_missing_sample_size": [0],
-            "comparison_status": [ConditionalComparisonStatus.EMPTY_CONDITIONED_SAMPLE.value],
-            "status_reason": ["No complete outcomes matched context_met_at_available_at=true."],
-            "forward_return_mean_true": [None],
-            "forward_return_mean_false": [0.0001],
-            "forward_return_mean_delta": [None],
-            "hit_rate_true": [None],
-            "hit_rate_false": [0.6],
-            "hit_rate_delta": [None],
-            "mfe_mean_true": [None],
-            "mfe_mean_false": [0.0002],
-            "mfe_mean_delta": [None],
-            "mae_mean_true": [None],
-            "mae_mean_false": [-0.0001],
-            "mae_mean_delta": [None],
-        },
+        {key: [value] for key, value in payload.items()},
         schema=empty_conditional_comparison().schema,
     )
     result = _ReportFixtureResult(
@@ -220,12 +286,13 @@ def test_render_signal_research_report_warns_on_empty_conditioned_sample(tmp_pat
         distribution_summaries=result.distribution_summaries,
         join_diagnostics=result.join_diagnostics,
         metadata=result.metadata,
+        metric_histograms=result.metric_histograms,
     )
     output = tmp_path / "report.html"
     render_signal_research_report(result, output)
     content = output.read_text(encoding="utf-8")
-    assert "Conditional comparison unavailable" in content
-    assert "signal baseline" in content.lower()
+    assert "Conditioned sample empty" in content
+    assert "Signal-only vs conditioned signal" in content
 
 
 def test_render_signal_research_report_includes_grouped_summaries(tmp_path: Path) -> None:
@@ -238,7 +305,7 @@ def test_render_signal_research_report_includes_grouped_summaries(tmp_path: Path
             "run_id": ["run-1"],
             "research_scope": [ResearchScope.MARKET_AND_SIGNAL.value],
             "horizon_bars": [5],
-            "group_dimension": ["RTH_MEMBERSHIP"],
+            "group_dimension": [GroupDimension.RTH_MEMBERSHIP.value],
             "group_value": ["RTH"],
             "sample_size_total": [30],
             "sample_size_complete": [28],
@@ -262,9 +329,10 @@ def test_render_signal_research_report_includes_grouped_summaries(tmp_path: Path
         distribution_summaries=result.distribution_summaries,
         join_diagnostics=result.join_diagnostics,
         metadata=result.metadata,
+        metric_histograms=result.metric_histograms,
     )
     output = tmp_path / "report.html"
     render_signal_research_report(result, output)
     content = output.read_text(encoding="utf-8")
-    assert "Grouped summaries" in content
-    assert "signal-time session membership" in content
+    assert "Results by session" in content
+    assert "RTH" in content

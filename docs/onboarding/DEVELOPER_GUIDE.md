@@ -58,7 +58,7 @@ src/trading_framework/   framework code (never imports user_data)
 ├── infrastructure/      Parquet, Databento, CSV, registry
 └── core/ · time/ · config/
 
-scripts/                 thin CLIs (databento, market_data, strategy_research, demo)
+scripts/                 thin CLIs (databento, market_data, signal_research, strategy_research, robustness_research, demo)
 tests/                   unit, integration, fixtures, spike (manual HTML)
 user_data/               your storage, config, models (gitignored)
 docs/                    vision, reference, planning, adr
@@ -89,7 +89,7 @@ Depends on your focus — the README [Start here](../../README.md#start-here--pi
 |-------|-----------|
 | **Data / pipelines** | [DATA_WORKFLOWS.md](../reference/DATA_WORKFLOWS.md) → [DATA_MODULE_UPDATED.md](../reference/modules/DATA_MODULE_UPDATED.md) |
 | **Code / architecture** | [MODULE_MAP.md](../reference/MODULE_MAP.md) → [adr/](../adr/README.md) |
-| **Research workflows** | [DATA_WORKFLOWS.md](../reference/DATA_WORKFLOWS.md) §1.1 + §3 |
+| **Research workflows** | [RESEARCH_METHODOLOGIES.md](../reference/RESEARCH_METHODOLOGIES.md) → [DATA_WORKFLOWS.md](../reference/DATA_WORKFLOWS.md) |
 | **Sprint context** | [CURRENT_STATUS.md](../planning/CURRENT_STATUS.md) → [ROADMAP.md](../planning/ROADMAP.md) |
 | **Design decisions** | [Vision catalog](../vision/README.md) → [Reference catalog](../reference/README.md) |
 

@@ -110,15 +110,24 @@ def _conditional_comparison_schema() -> dict[str, pl.DataType]:
         "forward_return_mean_true": pl.Float64(),
         "forward_return_mean_false": pl.Float64(),
         "forward_return_mean_delta": pl.Float64(),
+        "forward_return_median_true": pl.Float64(),
+        "forward_return_median_false": pl.Float64(),
+        "forward_return_median_delta": pl.Float64(),
         "hit_rate_true": pl.Float64(),
         "hit_rate_false": pl.Float64(),
         "hit_rate_delta": pl.Float64(),
         "mfe_mean_true": pl.Float64(),
         "mfe_mean_false": pl.Float64(),
         "mfe_mean_delta": pl.Float64(),
+        "mfe_median_true": pl.Float64(),
+        "mfe_median_false": pl.Float64(),
+        "mfe_median_delta": pl.Float64(),
         "mae_mean_true": pl.Float64(),
         "mae_mean_false": pl.Float64(),
         "mae_mean_delta": pl.Float64(),
+        "mae_median_true": pl.Float64(),
+        "mae_median_false": pl.Float64(),
+        "mae_median_delta": pl.Float64(),
     }
 
 
@@ -195,6 +204,67 @@ def validate_distribution_summaries(frame: pl.DataFrame) -> None:
         frame,
         expected=empty_distribution_summaries(),
         label="distribution summaries",
+    )
+
+
+def _metric_histograms_schema() -> dict[str, pl.DataType]:
+    return {
+        "run_id": pl.String(),
+        "horizon_bars": pl.Int64(),
+        "metric": pl.String(),
+        "bin_index": pl.Int64(),
+        "bin_start": pl.Float64(),
+        "bin_end": pl.Float64(),
+        "count": pl.Int64(),
+        "reference_mean": pl.Float64(),
+        "reference_median": pl.Float64(),
+    }
+
+
+def empty_metric_histograms() -> pl.DataFrame:
+    """Return an empty metric histogram table with the canonical schema."""
+    return pl.DataFrame(schema=_metric_histograms_schema())
+
+
+def validate_metric_histograms(frame: pl.DataFrame) -> None:
+    """Validate metric histogram output columns and dtypes."""
+    _validate_frame_schema(
+        frame,
+        expected=empty_metric_histograms(),
+        label="metric histograms",
+    )
+
+
+def _family_comparison_schema() -> dict[str, pl.DataType]:
+    return {
+        "variant_id": pl.String(),
+        "run_id": pl.String(),
+        "horizon_bars": pl.Int64(),
+        "sample_size_complete": pl.Int64(),
+        "sample_size_total": pl.Int64(),
+        "metrics_eligible": pl.Boolean(),
+        "forward_return_mean": pl.Float64(),
+        "forward_return_median": pl.Float64(),
+        "hit_rate": pl.Float64(),
+        "mfe_mean": pl.Float64(),
+        "mfe_median": pl.Float64(),
+        "mae_mean": pl.Float64(),
+        "mae_median": pl.Float64(),
+        "quality_warning_count": pl.Int64(),
+    }
+
+
+def empty_family_comparison() -> pl.DataFrame:
+    """Return an empty model-family comparison table with the canonical schema."""
+    return pl.DataFrame(schema=_family_comparison_schema())
+
+
+def validate_family_comparison(frame: pl.DataFrame) -> None:
+    """Validate model-family comparison output columns and dtypes."""
+    _validate_frame_schema(
+        frame,
+        expected=empty_family_comparison(),
+        label="family comparison",
     )
 
 
