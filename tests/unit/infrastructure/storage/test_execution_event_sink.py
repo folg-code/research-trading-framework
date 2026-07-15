@@ -5,7 +5,7 @@ from pathlib import Path
 
 from trading_framework.execution import ExecutionEvent, ExecutionEventType, ExecutionMode
 from trading_framework.execution.protocols import ExecutionEventSink
-from trading_framework.infrastructure.storage import (
+from trading_framework.infrastructure.storage.execution_events import (
     JsonlExecutionEventSink,
     read_jsonl_execution_events,
 )
