@@ -1490,6 +1490,7 @@ name = "trading-framework"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "aiohttp" },
     { name = "databento" },
     { name = "numba" },
     { name = "numpy" },
@@ -1515,6 +1516,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "aiohttp", specifier = ">=3.14.1" },
     { name = "databento", specifier = ">=0.81.0" },
     { name = "numba", specifier = ">=0.66.0" },
     { name = "numpy", specifier = ">=2.0.0,<2.5" },
