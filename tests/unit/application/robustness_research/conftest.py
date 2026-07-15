@@ -15,6 +15,10 @@ from trading_framework.research.robustness.experiment import (
     RobustnessExperimentSpec,
 )
 from trading_framework.research.robustness.kinds import RobustnessExperimentKind
+from trading_framework.research.robustness.walk_forward import (
+    WalkForwardSpec,
+    WalkForwardWindowMode,
+)
 from trading_framework.strategy.canonical_examples import CANONICAL_STRATEGY_MODEL_ID
 from trading_framework.time.models.timeframe import Timeframe
 
@@ -82,5 +86,32 @@ def build_parameter_sweep_spec(
         evaluation_timeframe="1m",
         parameter_sweep=ParameterSweepSpec(
             axes=(ParameterSweepAxis(name="exit_after_bars", values=("5", "10")),)
+        ),
+    )
+
+
+def build_walk_forward_spec(
+    *,
+    experiment_id: str,
+    dataset_ref: DatasetRef,
+    requested_range: TimeRange,
+) -> RobustnessExperimentSpec:
+    return RobustnessExperimentSpec(
+        experiment_id=experiment_id,
+        kinds=(RobustnessExperimentKind.WALK_FORWARD,),
+        dataset_ref=str(dataset_ref),
+        timeframe="1m",
+        requested_range_start=requested_range.start,
+        requested_range_end=requested_range.end,
+        strategy_template_id=CANONICAL_STRATEGY_MODEL_ID,
+        evaluation_timeframe="1m",
+        parameter_sweep=ParameterSweepSpec(
+            axes=(ParameterSweepAxis(name="exit_after_bars", values=("5", "10")),)
+        ),
+        walk_forward=WalkForwardSpec(
+            window_mode=WalkForwardWindowMode.ROLLING,
+            train_duration_seconds=4 * 3600,
+            oos_duration_seconds=3600,
+            step_duration_seconds=2 * 3600,
         ),
     )

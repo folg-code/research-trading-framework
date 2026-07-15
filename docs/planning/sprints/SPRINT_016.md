@@ -172,10 +172,10 @@ Verdict ≠ best grid rank
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S016-T014 | Fold planner (rolling + expanding) | PLANNED |
-| S016-T015 | Train-only parameter selection per fold | PLANNED |
-| S016-T016 | OOS evaluation per fold | PLANNED |
-| S016-T017 | Stitched OOS equity curve builder | PLANNED |
+| S016-T014 | Fold planner (rolling + expanding) | DONE |
+| S016-T015 | Train-only parameter selection per fold | DONE |
+| S016-T016 | OOS evaluation per fold | DONE |
+| S016-T017 | Stitched OOS equity curve builder | DONE |
 
 ### Wave 4 — Stress Testing
 
@@ -209,7 +209,7 @@ Verdict ≠ best grid rank
 | S016-T033 | Update MODULE_MAP, DATA_WORKFLOWS, CURRENT_STATUS, ROADMAP | PLANNED |
 | S016-T034 | Sprint closure | PLANNED |
 
-**Progress:** 13 / 34 tasks
+**Progress:** 17 / 34 tasks
 
 ---
 

@@ -13,9 +13,15 @@ from trading_framework.core.exceptions import ValidationError
 from trading_framework.infrastructure.storage.paths import (
     robustness_experiment_analytics_dir,
     robustness_experiment_dir,
+    robustness_experiment_folds_dir,
 )
 from trading_framework.research.robustness.analytics.parameter_sweep import ParameterSweepAnalytics
+from trading_framework.research.robustness.analytics.walk_forward import WalkForwardAnalytics
 from trading_framework.research.robustness.experiment import RobustnessExperimentSpec
+from trading_framework.research.robustness.walk_forward import (
+    WalkForwardFoldPlan,
+    WalkForwardResults,
+)
 
 ROBUSTNESS_EXPERIMENT_SCHEMA_VERSION = "robustness_experiment.v1"
 
@@ -255,3 +261,53 @@ class RobustnessExperimentRepository:
             robustness_experiment_analytics_dir(self._root, experiment_id) / "parameter_sweep.json"
         )
         return analytics_path.exists()
+
+    def write_walk_forward_plan(self, plan: WalkForwardFoldPlan) -> None:
+        folds_dir = robustness_experiment_folds_dir(self._root, plan.experiment_id)
+        folds_dir.mkdir(parents=True, exist_ok=True)
+        plan_path = folds_dir / "plan.json"
+        if plan_path.exists():
+            msg = f"walk-forward plan already exists: {plan_path}"
+            raise FileExistsError(msg)
+        plan_path.write_text(json.dumps(plan.to_dict(), indent=2), encoding="utf-8")
+
+    def read_walk_forward_plan(self, experiment_id: str) -> WalkForwardFoldPlan:
+        plan_path = robustness_experiment_folds_dir(self._root, experiment_id) / "plan.json"
+        if not plan_path.exists():
+            msg = f"missing walk-forward plan: {plan_path}"
+            raise FileNotFoundError(msg)
+        return WalkForwardFoldPlan.from_dict(json.loads(plan_path.read_text(encoding="utf-8")))
+
+    def write_walk_forward_results(self, results: WalkForwardResults) -> None:
+        folds_dir = robustness_experiment_folds_dir(self._root, results.experiment_id)
+        folds_dir.mkdir(parents=True, exist_ok=True)
+        results_path = folds_dir / "results.json"
+        results_path.write_text(json.dumps(results.to_dict(), indent=2), encoding="utf-8")
+
+    def read_walk_forward_results(self, experiment_id: str) -> WalkForwardResults:
+        results_path = robustness_experiment_folds_dir(self._root, experiment_id) / "results.json"
+        if not results_path.exists():
+            msg = f"missing walk-forward results: {results_path}"
+            raise FileNotFoundError(msg)
+        return WalkForwardResults.from_dict(json.loads(results_path.read_text(encoding="utf-8")))
+
+    def walk_forward_plan_exists(self, experiment_id: str) -> bool:
+        plan_path = robustness_experiment_folds_dir(self._root, experiment_id) / "plan.json"
+        return plan_path.exists()
+
+    def write_walk_forward_analytics(self, analytics: WalkForwardAnalytics) -> None:
+        analytics_dir = robustness_experiment_analytics_dir(self._root, analytics.experiment_id)
+        analytics_dir.mkdir(parents=True, exist_ok=True)
+        analytics_path = analytics_dir / "walk_forward.json"
+        analytics_path.write_text(json.dumps(analytics.to_dict(), indent=2), encoding="utf-8")
+
+    def read_walk_forward_analytics(self, experiment_id: str) -> WalkForwardAnalytics:
+        analytics_path = (
+            robustness_experiment_analytics_dir(self._root, experiment_id) / "walk_forward.json"
+        )
+        if not analytics_path.exists():
+            msg = f"missing walk-forward analytics: {analytics_path}"
+            raise FileNotFoundError(msg)
+        return WalkForwardAnalytics.from_dict(
+            json.loads(analytics_path.read_text(encoding="utf-8"))
+        )

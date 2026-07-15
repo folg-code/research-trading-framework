@@ -8,8 +8,14 @@ from typing import Any
 
 from trading_framework.core.exceptions import ValidationError
 from trading_framework.research.robustness.kinds import RobustnessExperimentKind
+from trading_framework.research.robustness.walk_forward import WalkForwardSpec
 
-SUPPORTED_WAVE1_KINDS = frozenset({RobustnessExperimentKind.PARAMETER_SWEEP})
+SUPPORTED_WAVE3_KINDS = frozenset(
+    {
+        RobustnessExperimentKind.PARAMETER_SWEEP,
+        RobustnessExperimentKind.WALK_FORWARD,
+    }
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -67,6 +73,7 @@ class RobustnessExperimentSpec:
     requested_range_end: datetime
     strategy_template_id: str
     parameter_sweep: ParameterSweepSpec | None = None
+    walk_forward: WalkForwardSpec | None = None
     evaluation_timeframe: str | None = None
 
     def __post_init__(self) -> None:
@@ -102,6 +109,8 @@ class RobustnessExperimentSpec:
                     for axis in self.parameter_sweep.axes
                 ]
             }
+        if self.walk_forward is not None:
+            payload["walk_forward"] = self.walk_forward.to_dict()
         return payload
 
     @classmethod
@@ -117,6 +126,12 @@ class RobustnessExperimentSpec:
                 for axis in sweep_payload["axes"]
             )
             parameter_sweep = ParameterSweepSpec(axes=axes)
+        walk_forward_payload = payload.get("walk_forward")
+        walk_forward = (
+            WalkForwardSpec.from_dict(walk_forward_payload)
+            if walk_forward_payload is not None
+            else None
+        )
         return cls(
             experiment_id=str(payload["experiment_id"]),
             kinds=tuple(RobustnessExperimentKind(kind) for kind in payload["kinds"]),
@@ -126,6 +141,7 @@ class RobustnessExperimentSpec:
             requested_range_end=datetime.fromisoformat(str(payload["requested_range_end"])),
             strategy_template_id=str(payload["strategy_template_id"]),
             parameter_sweep=parameter_sweep,
+            walk_forward=walk_forward,
             evaluation_timeframe=(
                 str(payload["evaluation_timeframe"])
                 if payload.get("evaluation_timeframe") is not None
@@ -135,12 +151,19 @@ class RobustnessExperimentSpec:
 
 
 def validate_robustness_experiment_spec(spec: RobustnessExperimentSpec) -> None:
-    """Validate wave-1-supported experiment declarations."""
-    unsupported = [kind for kind in spec.kinds if kind not in SUPPORTED_WAVE1_KINDS]
+    """Validate wave-3-supported experiment declarations."""
+    unsupported = [kind for kind in spec.kinds if kind not in SUPPORTED_WAVE3_KINDS]
     if unsupported:
         names = ", ".join(kind.value for kind in unsupported)
-        msg = f"wave 1 supports PARAMETER_SWEEP only; unsupported kinds: {names}"
+        msg = f"unsupported experiment kinds: {names}"
         raise ValidationError(msg)
     if RobustnessExperimentKind.PARAMETER_SWEEP in spec.kinds and spec.parameter_sweep is None:
         msg = "PARAMETER_SWEEP requires parameter_sweep"
         raise ValidationError(msg)
+    if RobustnessExperimentKind.WALK_FORWARD in spec.kinds:
+        if spec.walk_forward is None:
+            msg = "WALK_FORWARD requires walk_forward"
+            raise ValidationError(msg)
+        if spec.parameter_sweep is None:
+            msg = "WALK_FORWARD requires parameter_sweep for train selection"
+            raise ValidationError(msg)
