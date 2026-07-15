@@ -27,7 +27,8 @@ signal_model/         Signal Model definitions, firing, emissions
 infrastructure/       adapters — CSV, Parquet, file registry
 core/, time/, config/ shared primitives
 strategy/, research/         Signal Research MVP (Sprint 008–010) ✅; Strategy Research MVP (Sprint 013) ✅; Strategy dashboard (Sprint 014) ✅
-execution/, events/          ⬜ future domains
+execution/                   🟡 dry-run contracts only (Sprint 018); no runtime/provider yet
+events/                      ⬜ future domain events
 ```
 
 **Boundary:** `src/trading_framework/` must not import `user_data/`. User-owned paths are passed in at runtime.
@@ -452,16 +453,52 @@ Optional phase timing hooks (`optional_phase`) used across application and infra
 
 ---
 
+## Execution (Sprint 018 - Phase 8A contracts) 🟡
+
+Sprint 018 introduces provider-independent **dry-run Execution contracts** for the BTC futures live-data
+demo. It does **not** implement the Binance adapter, runtime loop, persistence, AWS deployment or
+dashboard.
+
+```text
+live market data (future Sprint 019)
+  -> ExecutionMode.DRY_RUN contracts
+  -> simulated orders / fills / positions / PnL
+  -> read-only status model (future Sprint 021+)
+```
+
+ADR: [ADR-0021](../adr/ADR-0021-live-dry-run-execution-demo.md)
+
+### `execution/` 🟡
+
+| Subpackage / file | Status | Responsibility |
+|-------------------|--------|----------------|
+| `modes.py` | ✅ | `ExecutionMode.DRY_RUN`, supported-mode boundary |
+| `safety.py` | ✅ | `ExecutionSafetyPolicy`, `DRY_RUN_SAFETY_POLICY`, no real orders / no credentials |
+| `models/events.py` | ✅ | immutable `ExecutionEvent`, `ExecutionEventType` |
+| `models/orders.py` | ✅ | `OrderIntent`, `SimulatedOrder`, `SimulatedFill`, dry-run order enums |
+| `models/positions.py` | ✅ | `PaperPosition`, `PositionSide` |
+| `models/account.py` | ✅ | `PaperAccountSnapshot` for paper equity / PnL reporting |
+| `models/status.py` | ✅ | `Heartbeat`, `RuntimeStatusSnapshot`, `RuntimeHealth` |
+| `protocols.py` | ✅ | read/event ports for future persistence and dashboard status |
+
+**Boundary:** all orders, fills, positions and PnL in this increment are simulated. `execution/` must not
+import `research`, concrete `infrastructure` or `user_data`.
+
+**Tests:** `tests/unit/execution/`
+
+---
+
 ## Future Domains ⬜
 
 | Package / track | Planned role |
 |---------|----------------|
-| `execution/` | Order execution domain (Execution Track — Phase 8+) |
 | `events/` | Domain events |
+| **Execution Track 8A.2+** | Binance live feed, local dry-run runtime, persistence/read model, AWS runtime, OVH dashboard — see Sprints 019–025 |
 | **Data Track 2B.2–2E** | Databento DBN OHLCV → `MarketBar`, quotes, options snapshots, live adapters (gated) — see `ROADMAP.md` §6 |
 | **Research Track 4B, 6B** | Orderflow analysis, multi-data strategy simulation — see `ROADMAP.md` §10 |
 
-Skeleton packages without public workflows beyond Signal Research slice above.
+`events/` remains a skeleton package. Execution has contracts only; public workflows begin in later
+Phase 8A sprints.
 
 ---
 
@@ -483,6 +520,8 @@ Skeleton packages without public workflows beyond Signal Research slice above.
 | Signal Research spikes | `tests/spike/run_combined_research_spike.py`, `tests/spike/run_inspect_combined_research.py`, `tests/spike/run_signal_research_analytics_spike.py`, `tests/spike/run_signal_research_analytics_report.py` |
 | Signal Research unit | `tests/unit/strategy/`, `tests/unit/research/`, `tests/unit/application/signal_research/` |
 | MA architecture boundaries | `tests/unit/market_analysis/test_market_analysis_architecture_boundaries.py` |
+| Execution contracts | `tests/unit/execution/test_dry_run_contracts.py` |
+| Execution architecture boundaries | `tests/unit/execution/test_execution_architecture_boundaries.py` |
 
 ---
 

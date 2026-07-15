@@ -5,7 +5,7 @@
 ```text
 Sprint: 018
 Phase: Phase 8A - BTC Futures Live Dry-Run Execution Demo
-Status: IN_PROGRESS (Wave 0)
+Status: COMPLETE (contracts + reference)
 Planned Start: TBD
 Planned End: TBD
 Sprint Goal Owner: Project Maintainer
@@ -65,15 +65,15 @@ exchange credentials.
 
 ## 2. MVP Scope Checklist
 
-- [ ] Define `ExecutionMode` with `DRY_RUN` as the only supported runtime mode in this increment.
-- [ ] Define immutable execution event base contracts.
-- [ ] Define order intent, simulated order, simulated fill and position snapshots.
-- [ ] Define a minimal account/equity snapshot for simulated PnL.
-- [ ] Define runtime status and heartbeat contracts for public read models.
-- [ ] Add negative safety tests proving no real order adapter exists in this slice.
-- [ ] Add architecture boundary tests for Execution not importing Research workflows.
-- [ ] Document dry-run semantics: live market data, simulated execution, no funds at risk.
-- [ ] Record open questions for Phase 8B Paper Execution.
+- [x] Define `ExecutionMode` with `DRY_RUN` as the only supported runtime mode in this increment.
+- [x] Define immutable execution event base contracts.
+- [x] Define order intent, simulated order, simulated fill and position snapshots.
+- [x] Define a minimal account/equity snapshot for simulated PnL.
+- [x] Define runtime status and heartbeat contracts for public read models.
+- [x] Add negative safety tests proving no real order adapter exists in this slice.
+- [x] Add architecture boundary tests for Execution not importing Research workflows.
+- [x] Document dry-run semantics: live market data, simulated execution, no funds at risk.
+- [x] Record open questions for Phase 8B Paper Execution.
 
 ---
 
@@ -111,12 +111,12 @@ Domain contracts must remain provider-independent.
 |------|---------|--------|
 | S018-T001 | Create Wave 0 decisions document for BTC futures dry-run scope | DONE |
 | S018-T002 | Create ADR draft for Live Dry-Run Execution Demo | DONE |
-| S018-T003 | Add Execution mode and safety contracts | TODO |
-| S018-T004 | Add execution event, order, fill and position models | TODO |
-| S018-T005 | Add runtime status and heartbeat read-model contracts | TODO |
-| S018-T006 | Add unit tests for lifecycle invariants and UTC timestamps | TODO |
-| S018-T007 | Add architecture boundary tests for Execution dependencies | TODO |
-| S018-T008 | Update MODULE_MAP / DATA_WORKFLOWS only for new public contracts | TODO |
+| S018-T003 | Add Execution mode and safety contracts | DONE |
+| S018-T004 | Add execution event, order, fill and position models | DONE |
+| S018-T005 | Add runtime status and heartbeat read-model contracts | DONE |
+| S018-T006 | Add unit tests for lifecycle invariants and UTC timestamps | DONE |
+| S018-T007 | Add architecture boundary tests for Execution dependencies | DONE |
+| S018-T008 | Update MODULE_MAP / DATA_WORKFLOWS only for new public contracts | DONE |
 
 ---
 
@@ -152,3 +152,35 @@ uv run pytest
 
 Sprint 019 implements the Binance USD-M futures live data adapter for BTCUSDT and maps provider
 payloads into the provider-independent contracts established here.
+
+---
+
+## 8. Sprint closure (2026-07-15)
+
+Sprint 018 completed the planning and provider-independent contract layer for the BTC futures dry-run
+Execution track.
+
+Delivered:
+
+```text
+ADR-0021 + S018 Wave 0 decisions
+ExecutionMode.DRY_RUN
+ExecutionSafetyPolicy
+ExecutionEvent / OrderIntent / SimulatedOrder / SimulatedFill
+PaperPosition / PaperAccountSnapshot
+Heartbeat / RuntimeStatusSnapshot
+ExecutionEventSink / RuntimeStatusReader protocols
+unit tests + architecture boundary tests
+```
+
+Not delivered by design:
+
+```text
+Binance WebSocket adapter
+runtime orchestration loop
+persistence adapters
+AWS deployment
+OVH dashboard
+```
+
+Next sprint: `SPRINT_019.md` - Binance BTC Futures Live Data Adapter.
