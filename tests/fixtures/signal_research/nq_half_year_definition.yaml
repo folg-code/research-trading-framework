@@ -1,0 +1,38 @@
+research:
+  id: nq_half_year_model_research
+  scope: MARKET_AND_SIGNAL
+  research_question: >
+    Does higher-low structure show repeatable forward returns when filtered by high volatility?
+
+  dataset_ref:
+    dataset_id: NQ.c.0|ohlcv|1m|derived|volume-rth-close@1
+    version: 1
+
+  time_range:
+    start: 2025-07-14
+    end: 2026-01-13
+
+  market_model: high_volatility
+  signal_model: higher_low_long
+
+  horizons:
+    - 5m
+    - 15m
+    - 30m
+    - 60m
+
+  baseline:
+    type: SIGNAL_ONLY
+
+  occurrence_policy:
+    type: COOLDOWN
+    duration: 15m
+
+  grouping:
+    - month
+    - session
+    - time_of_day
+
+  quality_rules:
+    minimum_sample_size: 100
+    maximum_single_period_contribution: 0.40
