@@ -21,6 +21,11 @@ from trading_framework.infrastructure.providers.binance.futures_reconnect import
     DEFAULT_RECONNECT_BACKOFF_POLICY,
     ReconnectBackoffPolicy,
 )
+from trading_framework.infrastructure.providers.binance.futures_smoke import (
+    BinanceFuturesSmokeConfig,
+    normalize_smoke_message,
+    run_binance_futures_feed_smoke,
+)
 from trading_framework.infrastructure.providers.binance.futures_streams import (
     BINANCE_USDM_MAX_STREAMS_PER_CONNECTION,
     BINANCE_USDM_WS_BASE_URL,
@@ -51,6 +56,7 @@ __all__ = [
     "AiohttpBinanceWebSocketError",
     "BinanceBookTickerPayload",
     "BinanceCombinedStreamPayload",
+    "BinanceFuturesSmokeConfig",
     "BinanceFuturesStream",
     "BinanceFuturesStreamEndpoint",
     "BinanceFuturesWebSocketClient",
@@ -68,8 +74,10 @@ __all__ = [
     "kline_1m_stream",
     "map_book_ticker_payload",
     "map_kline_payload",
+    "normalize_smoke_message",
     "normalize_stream_symbol",
     "parse_book_ticker_payload",
     "parse_combined_stream_payload",
     "parse_kline_payload",
+    "run_binance_futures_feed_smoke",
 ]
