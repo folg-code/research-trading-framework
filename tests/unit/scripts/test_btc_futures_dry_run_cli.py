@@ -10,6 +10,7 @@ from unittest.mock import patch
 import pytest
 from scripts.execution import run_btc_futures_dry_run
 
+from trading_framework.application.execution import LocalBtcFuturesBinanceFeedState
 from trading_framework.execution import RuntimeHealth, RuntimeStatusSnapshot
 from trading_framework.execution.modes import ExecutionMode
 
@@ -32,6 +33,8 @@ class FakeRuntime:
 class FakeResult:
     runtime: FakeRuntime
     stopped_status: RuntimeStatusSnapshot
+    feed_state: LocalBtcFuturesBinanceFeedState
+    received_message_count: int
 
 
 def test_btc_futures_dry_run_cli_runs_with_bounded_arguments(
@@ -40,9 +43,11 @@ def test_btc_futures_dry_run_cli_runs_with_bounded_arguments(
 ) -> None:
     event_log = tmp_path / "events.jsonl"
 
-    def fake_run(request: Any) -> FakeResult:
-        assert request.duration_minutes == 0
+    async def fake_run(request: Any) -> FakeResult:
+        assert request.duration_seconds == 6
         assert request.heartbeat_seconds == 2
+        assert request.max_closed_bars == 5
+        assert request.max_messages == 3
         assert request.config.event_log_path == event_log
         assert request.config.symbol == "BTCUSDT"
         assert request.config.strategy_config.quantity == Decimal("0.002")
@@ -62,19 +67,32 @@ def test_btc_futures_dry_run_cli_runs_with_bounded_arguments(
                 symbol=request.config.symbol,
                 last_heartbeat_at=NOW,
             ),
+            feed_state=LocalBtcFuturesBinanceFeedState(
+                closed_bar_count=2,
+                ignored_message_count=1,
+            ),
+            received_message_count=3,
         )
 
-    with patch.object(run_btc_futures_dry_run, "run_local_btc_futures_dry_run", fake_run):
+    with patch.object(
+        run_btc_futures_dry_run,
+        "run_local_btc_futures_binance_dry_run",
+        fake_run,
+    ):
         exit_code = run_btc_futures_dry_run.main(
             [
                 "--event-log",
                 str(event_log),
                 "--duration-minutes",
-                "0",
+                "0.1",
                 "--heartbeat-seconds",
                 "2",
                 "--quantity",
                 "0.002",
+                "--max-closed-bars",
+                "5",
+                "--max-messages",
+                "3",
             ]
         )
 
@@ -83,6 +101,9 @@ def test_btc_futures_dry_run_cli_runs_with_bounded_arguments(
     assert '"event": "summary"' in output
     assert '"status": "stopped"' in output
     assert '"simulated": true' in output
+    assert '"received_messages": 3' in output
+    assert '"closed_bars": 2' in output
+    assert '"ignored_messages": 1' in output
 
 
 def test_btc_futures_dry_run_cli_rejects_invalid_duration(
