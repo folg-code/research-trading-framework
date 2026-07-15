@@ -28,10 +28,10 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 ```text
 Status Date: 2026-07-14
 Current Phase: Post-Sprint 015 — platform MVP on OHLCV + continuous futures (on main)
-Current Milestone: Research platform vertical slice complete; next increment TBD (Phase 7, 4B, or 6B)
-Implementation Status: Sprints 001–006, 008–015 COMPLETE on main; Sprint 007 SKIPPED
+Current Milestone: Phase 7 Robustness MVP planned (Sprint 016); platform vertical slice complete on main
+Implementation Status: Sprints 001–006, 008–015 COMPLETE on main; Sprint 007 SKIPPED; Sprint 016 PLANNED
 Overall Status: IN_PROGRESS
-Active Sprint: none (portfolio demo + next sprint selection)
+Active Sprint: SPRINT_016 (planning — Phase 7 Robustness)
 Last Completed Sprint: SPRINT_015 (merged to main, 2026-07-14)
 Capability Tracks: Foundation COMPLETE; Data 2A + 2B/2C.1 + 2B.3 + 2C.4 COMPLETE; Research 3/4A/5 COMPLETE; Strategy 6A COMPLETE
 Recent perf: columnar OHLCV + shared eval → **~6 s** half-year NQ strategy research (178k bars, 45M ticks ingested); see README § Scale & performance and DATA_WORKFLOWS §1.1
@@ -289,7 +289,17 @@ Maintenance: `.cursor/rules/documentation.mdc`
 
 **Portfolio demo packaging** — `scripts/demo/run_portfolio_demo.py` generates offline HTML artifacts for showcase (workflows + dashboards).
 
-**Next sprint selection** — no active sprint. Candidates: Phase 7 robustness, Phase 4B orderflow, Phase 6B multi-data, or research-at-scale on continuous NQ. See §11.
+**Sprint 016 — Robustness Research MVP (Phase 7)** — Wave 0 planning complete (3/34 tasks). Implementation not started.
+
+**Plan:** `docs/planning/sprints/SPRINT_016.md` · **Wave 0:** `S016_WAVE0_DECISIONS.md` · **ADR:** ADR-0019 · **Branch target:** `sprint/robustness-mvp`
+
+### Sprint 016 — Planned (Phase 7)
+
+**Status:** PLANNED (2026-07-15)  
+**Plan:** `docs/planning/sprints/SPRINT_016.md`  
+**ADR:** ADR-0019  
+**Tasks:** 3 / 34 (Wave 0 done)  
+**Scope:** experiment infra, parameter sweep, walk-forward, stress, diagnostics, **Monte Carlo**, verdict report
 
 ### Sprint 015 — Closed
 
@@ -412,6 +422,7 @@ PRB-002 and PRB-005 received partial MVP resolution in Sprint 003.
 | ADR-0016 | ACCEPTED (Sprint 013) |
 | ADR-0017 | ACCEPTED (Sprint 014) |
 | ADR-0018 | ACCEPTED (Sprint 015) |
+| ADR-0019 | ACCEPTED — planning (Sprint 016) |
 | ADR-0004, ADR-0009, ADR-0010 | PLANNED |
 
 Binding decisions D-001–D-036 and workspace invariants are documented in the architecture files above; ADR materialization is Sprint 003 Wave 6 (including ADR-MA-007 workspace).
@@ -431,14 +442,21 @@ Binding decisions D-001–D-036 and workspace invariants are documented in the a
 ## 11. Next Planned Capability
 
 ```text
-Post-Sprint 015 (choose one):
-    A — Research at scale on multi-year NQ continuous OHLCV + portfolio polish
-    B — Phase 7: Robustness Research (walk-forward, OOS on persisted strategy runs)
-    C — Phase 4B: Orderflow Market Analysis on published trades
-    D — Phase 2C.2 / 6B: MarketQuote datasets and multi-data strategy research
+Sprint 016 — Phase 7 Robustness Research MVP (SELECTED 2026-07-15)
+    Experiment infrastructure + parameter sweep + walk-forward
+    + stress testing + diagnostics + Monte Carlo (trade-level)
+    + Robustness Report + PASS / CONDITIONAL / FAIL verdict
+
+Plan: docs/planning/sprints/SPRINT_016.md
+Wave 0: docs/planning/sprints/S016_WAVE0_DECISIONS.md
+ADR: docs/adr/ADR-0019-robustness-research-mvp.md
+
+Deferred candidates:
+    Phase 4B — Orderflow Market Analysis on published trades
+    Phase 6B — Multi-data Strategy Research
 ```
 
-See `ROADMAP.md` §10–§11.
+See `ROADMAP.md` §11.
 
 ---
 
@@ -461,6 +479,7 @@ See `ROADMAP.md` §10–§11.
 | 013 | OHLCV Strategy Research MVP (Phase 6A) | COMPLETED | 15 / 15 tasks |
 | 014 | Strategy Research dashboard Phase A | COMPLETED | 13 / 13 Phase A tasks |
 | 015 | Continuous futures materialization (Phase 2C.4) | COMPLETED | 19 / 19 tasks |
+| 016 | Robustness Research MVP (Phase 7) | PLANNED | 3 / 34 tasks (Wave 0) |
 
 ---
 

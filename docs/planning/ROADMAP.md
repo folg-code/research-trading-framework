@@ -107,7 +107,7 @@ Market Data policy (facts not indicators, vendor independence): **§14 Research 
 
 Test data tiers and live-data gate: **§15**.
 
-**Recommended next increment:** Phase 7 robustness, Phase 4B orderflow, or research-at-scale — see `CURRENT_STATUS.md` §11.
+**Recommended next increment:** **Phase 7 Robustness** (Sprint 016 planned) — see `SPRINT_016.md`, ADR-0019.
 
 ---
 
@@ -898,47 +898,108 @@ Detailed design deferred until Phase 6A and data increments justify it.
 
 ## Purpose
 
-Assess candidate stability and reduce overfitting risk.
+Assess whether a candidate Strategy Model is **stable enough** to justify paper execution or deeper
+validation — not merely which parameter set ranked highest in-sample.
 
-## Expected Capabilities
+**Sprint plan:** `SPRINT_016.md` · **Wave 0:** `S016_WAVE0_DECISIONS.md` · **ADR:** ADR-0019
 
-- walk-forward analysis,
-- out-of-sample evaluation,
-- Monte Carlo methods,
-- parameter perturbation,
-- timeframe sensitivity,
-- cost sensitivity,
-- delayed and missed trade simulation,
-- cross-asset evaluation,
-- Market Model and Strategy Family analysis,
-- complexity metrics,
-- multiple-testing metadata,
-- Pareto or multi-objective evaluation.
+## MVP Scope (Sprint 016)
+
+### Experiment Infrastructure
+
+- declarative experiment specification,
+- configuration generator (grids, folds, scenarios),
+- batch execution via `run_strategy_research`,
+- experiment registry and resume after interrupt,
+- comparison of multiple experiments.
+
+### Parameter Robustness
+
+- parameter grid sweep,
+- configuration ranking,
+- neighbor-parameter stability,
+- heatmaps,
+- isolated-optimum detection.
+
+### Walk-Forward
+
+- rolling and expanding windows,
+- train-only parameter selection,
+- out-of-sample evaluation per fold,
+- stitched OOS equity curve.
+
+### Stress Testing
+
+- commission and slippage scenarios,
+- entry and exit delay,
+- remove top trades and top days by PnL.
+
+### Statistical Diagnostics
+
+- temporal stability,
+- PnL concentration,
+- trade bootstrap,
+- block bootstrap,
+- IS/OOS degradation (walk-forward linked).
+
+### Monte Carlo (trade-level, MVP)
+
+- trade-sequence shuffle (permutation without replacement),
+- trade PnL bootstrap (with replacement),
+- block bootstrap (session-day blocks),
+- equity path envelope (percentile bands, tail probabilities).
+
+Monte Carlo operates on **persisted simulated trades** — not synthetic price paths or order-book
+simulation.
+
+### Deliverable
+
+One **Robustness Report** (offline HTML) plus explicit **verdict**: PASS / CONDITIONAL / FAIL with
+documented strengths and weaknesses.
+
+## Outside MVP (deferred)
+
+- full order-book simulation, market impact models,
+- portfolio-level and cross-asset robustness,
+- distributed experiment execution,
+- Bayesian and genetic optimization,
+- Probability of Backtest Overfitting, CSCV, Deflated Sharpe Ratio, White's Reality Check,
+  Hansen's SPA.
 
 ## Completion Criteria
 
+Phase 7 MVP is complete when the system can:
+
+- define a reproducible robustness experiment,
+- generate and run a parameter sweep with ranking and neighbor stability,
+- run rolling and expanding walk-forward with train-only selection and stitched OOS equity,
+- execute stress scenarios (costs, delays, trade/day removal),
+- run trade shuffle, bootstrap, block bootstrap, and Monte Carlo equity envelopes,
+- assess temporal stability, PnL concentration, and IS/OOS degradation,
+- emit one coherent Robustness Report with an explicit verdict.
+
+Binding principles (unchanged):
+
 - robustness methods record their assumptions,
-- research spaces preserve generated and evaluated candidate counts,
-- family analysis identifies isolated optima,
-- complexity is measurable,
-- top ranking is not treated as validation,
-- validation outputs are stored separately from base computation.
+- top ranking is **not** treated as validation,
+- validation outputs are stored separately from base Strategy Research runs,
+- no train/OOS leakage in walk-forward.
 
 ## Dependencies
 
-- persistent Strategy Research Datasets,
-- stable strategy metrics,
-- experiment-family identity.
+- persistent Strategy Research envelopes (ADR-0016),
+- stable strategy metrics and simulation assumptions fingerprint,
+- published OHLCV datasets (including continuous NQ, ADR-0018).
 
 ## Main Risks
 
 - false confidence from sophisticated statistics,
-- misuse of Monte Carlo,
+- misuse of Monte Carlo (mitigated: trade-level only, verdict gates),
 - data leakage between train and test periods,
-- uncontrolled optimization,
-- robustness analytics coupled to one strategy type.
+- uncontrolled grid size / runtime explosion,
+- robustness analytics coupled to one strategy type only in first slice.
 
-## Out of Scope
+## Out of Scope (phase family)
 
 - automatic live deployment,
 - universal hard-coded candidate score,
