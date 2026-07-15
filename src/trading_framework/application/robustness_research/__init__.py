@@ -15,6 +15,11 @@ from trading_framework.application.robustness_research.analyze_parameter_sweep i
     AnalyzeParameterSweepResult,
     analyze_parameter_sweep,
 )
+from trading_framework.application.robustness_research.analyze_robustness_experiment import (
+    AnalyzeRobustnessExperimentRequest,
+    AnalyzeRobustnessExperimentResult,
+    analyze_robustness_experiment,
+)
 from trading_framework.application.robustness_research.analyze_stress_experiment import (
     AnalyzeStressExperimentRequest,
     AnalyzeStressExperimentResult,
@@ -30,6 +35,11 @@ from trading_framework.application.robustness_research.compare_experiments impor
     CompareRobustnessExperimentsResult,
     RobustnessExperimentComparisonRow,
     compare_robustness_experiments,
+)
+from trading_framework.application.robustness_research.render_robustness_report import (
+    RenderRobustnessReportRequest,
+    RenderRobustnessReportResult,
+    render_robustness_experiment_report,
 )
 from trading_framework.application.robustness_research.run_monte_carlo_experiment import (
     RunMonteCarloExperimentRequest,
@@ -60,12 +70,16 @@ __all__ = [
     "AnalyzeMonteCarloExperimentResult",
     "AnalyzeParameterSweepRequest",
     "AnalyzeParameterSweepResult",
+    "AnalyzeRobustnessExperimentRequest",
+    "AnalyzeRobustnessExperimentResult",
     "AnalyzeStressExperimentRequest",
     "AnalyzeStressExperimentResult",
     "AnalyzeWalkForwardRequest",
     "AnalyzeWalkForwardResult",
     "CompareRobustnessExperimentsRequest",
     "CompareRobustnessExperimentsResult",
+    "RenderRobustnessReportRequest",
+    "RenderRobustnessReportResult",
     "RobustnessExperimentComparisonRow",
     "RobustnessResearchError",
     "RunMonteCarloExperimentRequest",
@@ -79,9 +93,11 @@ __all__ = [
     "analyze_diagnostics_experiment",
     "analyze_monte_carlo_experiment",
     "analyze_parameter_sweep",
+    "analyze_robustness_experiment",
     "analyze_stress_experiment",
     "analyze_walk_forward",
     "compare_robustness_experiments",
+    "render_robustness_experiment_report",
     "run_monte_carlo_experiment",
     "run_robustness_experiment",
     "run_stress_experiment",

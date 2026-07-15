@@ -210,7 +210,8 @@ def _load_or_initialize_plan(
         spec=spec,
         simulation_assumptions_fingerprint=assumptions_fingerprint,
     )
-    repo.write_manifest(manifest)
+    if not repo.manifest_exists(spec.experiment_id):
+        repo.write_manifest(manifest)
     plan = WalkForwardFoldPlan(experiment_id=spec.experiment_id, folds=folds)
     repo.write_walk_forward_plan(plan)
     return plan, WalkForwardResults(experiment_id=spec.experiment_id, folds=())

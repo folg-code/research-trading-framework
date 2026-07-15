@@ -120,6 +120,11 @@ def robustness_experiment_monte_carlo_dir(root: Path, experiment_id: str) -> Pat
     return robustness_experiment_dir(root, experiment_id) / "monte_carlo"
 
 
+def robustness_experiment_report_dir(root: Path, experiment_id: str) -> Path:
+    """Return the report directory for one robustness experiment."""
+    return robustness_experiment_dir(root, experiment_id) / "report"
+
+
 def robustness_experiment_folds_dir(root: Path, experiment_id: str) -> Path:
     """Return the folds directory for one robustness experiment."""
     return robustness_experiment_dir(root, experiment_id) / "folds"

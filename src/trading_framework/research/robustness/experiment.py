@@ -11,9 +11,10 @@ from trading_framework.research.robustness.diagnostics import StatisticalDiagnos
 from trading_framework.research.robustness.kinds import RobustnessExperimentKind
 from trading_framework.research.robustness.monte_carlo import MonteCarloSpec
 from trading_framework.research.robustness.stress import StressTestSpec
+from trading_framework.research.robustness.verdict_thresholds import VerdictThresholds
 from trading_framework.research.robustness.walk_forward import WalkForwardSpec
 
-SUPPORTED_WAVE5_KINDS = frozenset(
+SUPPORTED_KINDS = frozenset(
     {
         RobustnessExperimentKind.PARAMETER_SWEEP,
         RobustnessExperimentKind.WALK_FORWARD,
@@ -83,6 +84,7 @@ class RobustnessExperimentSpec:
     stress_test: StressTestSpec | None = None
     monte_carlo: MonteCarloSpec | None = None
     statistical_diagnostics: StatisticalDiagnosticsSpec | None = None
+    verdict_thresholds: VerdictThresholds | None = None
     evaluation_timeframe: str | None = None
 
     def __post_init__(self) -> None:
@@ -126,6 +128,8 @@ class RobustnessExperimentSpec:
             payload["monte_carlo"] = self.monte_carlo.to_dict()
         if self.statistical_diagnostics is not None:
             payload["statistical_diagnostics"] = self.statistical_diagnostics.to_dict()
+        if self.verdict_thresholds is not None:
+            payload["verdict_thresholds"] = self.verdict_thresholds.to_dict()
         return payload
 
     @classmethod
@@ -163,6 +167,10 @@ class RobustnessExperimentSpec:
             if diagnostics_payload is not None
             else None
         )
+        verdict_payload = payload.get("verdict_thresholds")
+        verdict_thresholds = (
+            VerdictThresholds.from_dict(verdict_payload) if verdict_payload is not None else None
+        )
         return cls(
             experiment_id=str(payload["experiment_id"]),
             kinds=tuple(RobustnessExperimentKind(kind) for kind in payload["kinds"]),
@@ -176,6 +184,7 @@ class RobustnessExperimentSpec:
             stress_test=stress_test,
             monte_carlo=monte_carlo,
             statistical_diagnostics=statistical_diagnostics,
+            verdict_thresholds=verdict_thresholds,
             evaluation_timeframe=(
                 str(payload["evaluation_timeframe"])
                 if payload.get("evaluation_timeframe") is not None
@@ -185,8 +194,8 @@ class RobustnessExperimentSpec:
 
 
 def validate_robustness_experiment_spec(spec: RobustnessExperimentSpec) -> None:
-    """Validate wave-5-supported experiment declarations."""
-    unsupported = [kind for kind in spec.kinds if kind not in SUPPORTED_WAVE5_KINDS]
+    """Validate supported experiment declarations."""
+    unsupported = [kind for kind in spec.kinds if kind not in SUPPORTED_KINDS]
     if unsupported:
         names = ", ".join(kind.value for kind in unsupported)
         msg = f"unsupported experiment kinds: {names}"

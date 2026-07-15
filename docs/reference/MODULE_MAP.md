@@ -337,6 +337,29 @@ Published OHLCV DatasetRef
 ADR: [ADR-0016](../adr/ADR-0016-ohlcv-strategy-research-mvp.md),
 [ADR-0017](../adr/ADR-0017-strategy-research-inspection-boundary.md)
 
+## Robustness Research (Sprint 016) ✅
+
+End-to-end flow:
+
+```text
+RobustnessExperimentSpec (kinds + thresholds)
+  → run_robustness_experiment / run_*_experiment (batch Strategy Research + resume)
+  → analyze_*_experiment (read-only per kind)
+  → analyze_robustness_experiment (verdict + report view model)
+  → render_robustness_report → standalone HTML dashboard (Phase A)
+```
+
+ADR: [ADR-0019](../adr/ADR-0019-robustness-research-mvp.md)
+
+### `research/robustness/` — Experiment contracts + analytics (Sprint 016) ✅
+
+| | |
+|---|---|
+| **Responsibility** | Experiment spec, verdict thresholds, Monte Carlo / stress / WF analytics, HTML dashboard |
+| **Key paths** | `experiment.py`, `verdict.py`, `report.py`, `report_html.py`, `analytics/` |
+| **Entry points** | `run_robustness_experiment`, `analyze_robustness_experiment`, `render_robustness_experiment_report` |
+| **Boundary** | Analytics read-only over persisted artifacts; stress/MC operate on trades (ADR-0019) |
+
 ### `research/analytics/` — Strategy dashboard (Sprint 014) ✅
 
 | | |

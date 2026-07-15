@@ -15,6 +15,7 @@ from trading_framework.infrastructure.storage.paths import (
     robustness_experiment_dir,
     robustness_experiment_folds_dir,
     robustness_experiment_monte_carlo_dir,
+    robustness_experiment_report_dir,
     robustness_experiment_stress_dir,
 )
 from trading_framework.research.robustness.analytics.diagnostics import (
@@ -26,7 +27,9 @@ from trading_framework.research.robustness.analytics.stress import StressTestAna
 from trading_framework.research.robustness.analytics.walk_forward import WalkForwardAnalytics
 from trading_framework.research.robustness.experiment import RobustnessExperimentSpec
 from trading_framework.research.robustness.monte_carlo import MonteCarloResults
+from trading_framework.research.robustness.report import RobustnessReportViewModel
 from trading_framework.research.robustness.stress import StressTestResults
+from trading_framework.research.robustness.verdict import RobustnessVerdict
 from trading_framework.research.robustness.walk_forward import (
     WalkForwardFoldPlan,
     WalkForwardResults,
@@ -405,3 +408,42 @@ class RobustnessExperimentRepository:
         return StatisticalDiagnosticsAnalytics.from_dict(
             json.loads(analytics_path.read_text(encoding="utf-8"))
         )
+
+    def write_verdict(self, verdict: RobustnessVerdict) -> None:
+        analytics_dir = robustness_experiment_analytics_dir(self._root, verdict.experiment_id)
+        analytics_dir.mkdir(parents=True, exist_ok=True)
+        verdict_path = analytics_dir / "verdict.json"
+        verdict_path.write_text(json.dumps(verdict.to_dict(), indent=2), encoding="utf-8")
+
+    def read_verdict(self, experiment_id: str) -> RobustnessVerdict:
+        verdict_path = (
+            robustness_experiment_analytics_dir(self._root, experiment_id) / "verdict.json"
+        )
+        if not verdict_path.exists():
+            msg = f"missing verdict: {verdict_path}"
+            raise FileNotFoundError(msg)
+        return RobustnessVerdict.from_dict(json.loads(verdict_path.read_text(encoding="utf-8")))
+
+    def write_report_view_model(self, view_model: RobustnessReportViewModel) -> None:
+        analytics_dir = robustness_experiment_analytics_dir(self._root, view_model.experiment_id)
+        analytics_dir.mkdir(parents=True, exist_ok=True)
+        view_model_path = analytics_dir / "report_view.json"
+        view_model_path.write_text(json.dumps(view_model.to_dict(), indent=2), encoding="utf-8")
+
+    def read_report_view_model(self, experiment_id: str) -> RobustnessReportViewModel:
+        view_model_path = (
+            robustness_experiment_analytics_dir(self._root, experiment_id) / "report_view.json"
+        )
+        if not view_model_path.exists():
+            msg = f"missing report view model: {view_model_path}"
+            raise FileNotFoundError(msg)
+        return RobustnessReportViewModel.from_dict(
+            json.loads(view_model_path.read_text(encoding="utf-8"))
+        )
+
+    def write_report_html(self, experiment_id: str, html_content: str) -> Path:
+        report_dir = robustness_experiment_report_dir(self._root, experiment_id)
+        report_dir.mkdir(parents=True, exist_ok=True)
+        report_path = report_dir / "robustness_report.html"
+        report_path.write_text(html_content, encoding="utf-8")
+        return report_path
