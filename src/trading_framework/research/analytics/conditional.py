@@ -108,15 +108,28 @@ def compute_conditional_comparison(
             "forward_return_mean_delta": [
                 _delta(true_metrics["forward_return_mean"], false_metrics["forward_return_mean"])
             ],
+            "forward_return_median_true": [true_metrics["forward_return_median"]],
+            "forward_return_median_false": [false_metrics["forward_return_median"]],
+            "forward_return_median_delta": [
+                _delta(
+                    true_metrics["forward_return_median"], false_metrics["forward_return_median"]
+                )
+            ],
             "hit_rate_true": [true_metrics["hit_rate"]],
             "hit_rate_false": [false_metrics["hit_rate"]],
             "hit_rate_delta": [_delta(true_metrics["hit_rate"], false_metrics["hit_rate"])],
             "mfe_mean_true": [true_metrics["mfe_mean"]],
             "mfe_mean_false": [false_metrics["mfe_mean"]],
             "mfe_mean_delta": [_delta(true_metrics["mfe_mean"], false_metrics["mfe_mean"])],
+            "mfe_median_true": [true_metrics["mfe_median"]],
+            "mfe_median_false": [false_metrics["mfe_median"]],
+            "mfe_median_delta": [_delta(true_metrics["mfe_median"], false_metrics["mfe_median"])],
             "mae_mean_true": [true_metrics["mae_mean"]],
             "mae_mean_false": [false_metrics["mae_mean"]],
             "mae_mean_delta": [_delta(true_metrics["mae_mean"], false_metrics["mae_mean"])],
+            "mae_median_true": [true_metrics["mae_median"]],
+            "mae_median_false": [false_metrics["mae_median"]],
+            "mae_median_delta": [_delta(true_metrics["mae_median"], false_metrics["mae_median"])],
         },
         schema=empty_conditional_comparison().schema,
     )

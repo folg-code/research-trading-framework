@@ -15,6 +15,7 @@ from trading_framework.research.analytics.dimensions import (
 )
 from trading_framework.research.analytics.filters import OutcomeAnalyticsFilter
 from trading_framework.research.analytics.frame_builder import build_analysis_frame
+from trading_framework.research.analytics.histograms import summarize_metric_histograms
 from trading_framework.research.analytics.metadata import (
     DEFAULT_INTERPRETATION_MIN_SAMPLE_SIZE,
     AnalyticsResultMetadata,
@@ -74,6 +75,7 @@ class AnalyzeSignalResearchResult:
     join_diagnostics: pl.DataFrame
     metadata: AnalyticsResultMetadata
     quality_warnings: tuple[SignalResearchQualityWarning, ...] = ()
+    metric_histograms: pl.DataFrame | None = None
 
 
 def analyze_signal_research_run(
@@ -127,6 +129,11 @@ def analyze_signal_research_run(
         rules=request.quality_rules,
         outcome_filter=request.outcome_filter,
     )
+    metric_histograms = summarize_metric_histograms(
+        frame,
+        horizons=horizons,
+        outcome_filter=request.outcome_filter,
+    )
 
     return AnalyzeSignalResearchResult(
         source_run_id=envelope.manifest.run_id,
@@ -137,4 +144,5 @@ def analyze_signal_research_run(
         join_diagnostics=join_diagnostics,
         metadata=metadata,
         quality_warnings=quality_warnings,
+        metric_histograms=metric_histograms,
     )
