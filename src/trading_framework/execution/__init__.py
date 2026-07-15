@@ -1,6 +1,7 @@
 """Execution domain package."""
 
 from trading_framework.execution.models import (
+    BestBidAskSnapshot,
     ExecutionEvent,
     ExecutionEventType,
     Heartbeat,
@@ -21,6 +22,7 @@ from trading_framework.execution.safety import DRY_RUN_SAFETY_POLICY, ExecutionS
 
 __all__ = [
     "DRY_RUN_SAFETY_POLICY",
+    "BestBidAskSnapshot",
     "ExecutionEvent",
     "ExecutionEventType",
     "ExecutionMode",
