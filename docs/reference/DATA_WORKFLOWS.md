@@ -7,8 +7,8 @@ Technical reference for how data moves through the framework: ingestion, persist
 
 **Research methodologies (all workflows):** [RESEARCH_METHODOLOGIES.md](RESEARCH_METHODOLOGIES.md) — Signal, Model Research, Strategy, Robustness; scope comparison and CLI index.
 
-**As-is scope:** Market Data Phase 2A (Sprint 002), Phase 2B + 2C.1 trades import (Sprint 011), Phase 2B.3 derived OHLCV (Sprint 012), Phase 2C.4 continuous futures (Sprint 015 on `main`). Multitimeframe and declarative models: Sprints 004–006. Signal Research: Sprints 008–010. Model Research Methodology: Sprint 017 (Phase 5B, ADR-0020). Strategy Research MVP + dashboard Phase A: Sprints 013–014. Simulation refactor + columnar OHLCV batch path: PRs #124–#132 on `main`. Robustness Research MVP: Sprint 016 on `main` (ADR-0019). Dry-run Execution contracts: Sprint 018 (ADR-0021). Binance BTC futures live-data adapter: Sprint 019.  
-**Planned next:** local BTC futures dry-run runtime (Sprint 020); Phase 4B orderflow and Phase 6B multi-data deferred.  
+**As-is scope:** Market Data Phase 2A (Sprint 002), Phase 2B + 2C.1 trades import (Sprint 011), Phase 2B.3 derived OHLCV (Sprint 012), Phase 2C.4 continuous futures (Sprint 015 on `main`). Multitimeframe and declarative models: Sprints 004–006. Signal Research: Sprints 008–010. Model Research Methodology: Sprint 017 (Phase 5B, ADR-0020). Strategy Research MVP + dashboard Phase A: Sprints 013–014. Simulation refactor + columnar OHLCV batch path: PRs #124–#132 on `main`. Robustness Research MVP: Sprint 016 on `main` (ADR-0019). Dry-run Execution contracts: Sprint 018 (ADR-0021). Binance BTC futures live-data adapter: Sprint 019. Local BTC futures dry-run runtime: Sprint 020.  
+**Planned next:** local execution read model/persistence (Sprint 021); Phase 4B orderflow and Phase 6B multi-data deferred.  
 **Portfolio demo:** `scripts/demo/run_portfolio_demo.py` → `demo/output/index.html`.  
 **Deep market data reference:** [modules/DATA_MODULE_UPDATED.md](modules/DATA_MODULE_UPDATED.md)
 
@@ -637,6 +637,41 @@ Integration test: `tests/integration/live_data/test_binance_futures_network_smok
 
 ---
 
+### 3.18 Local BTC Futures Dry-Run Runtime (Sprint 020 - Phase 8A)
+
+Sprint 020 consumes Binance BTCUSDT closed `kline_1m` messages in a local dry-run runtime. All orders,
+fills, positions and PnL are simulated and written to a local JSONL event log under an operator-provided
+path, typically `user_data/runtime/btc_futures_dry_run/events.jsonl`.
+
+```text
+Binance BTCUSDT kline_1m WebSocket
+  -> BinanceFuturesWebSocketClient
+  -> handle_local_btc_futures_binance_message
+  -> MarketBar rolling closed-bar history
+  -> run_local_btc_futures_closed_bar_feed_step
+  -> signal evaluation from shared StrategyModelDefinition
+  -> StrategyModelOrderAdapter
+  -> PaperBroker
+  -> JsonlExecutionEventSink
+```
+
+**Boundary:** no real orders, no private Binance API, no exchange credentials, no AWS deployment. The
+demo Strategy Model is unvalidated and is labeled as dry-run only.
+
+**CLI:**
+
+```bash
+uv run python scripts/execution/run_btc_futures_dry_run.py \
+  --symbol BTCUSDT --duration-minutes 30
+```
+
+**Entry points:** `run_local_btc_futures_binance_dry_run`,
+`handle_local_btc_futures_binance_message`, `run_local_btc_futures_closed_bar_feed_step`.
+
+Operator guide: [LOCAL_BTC_FUTURES_DRY_RUN.md](LOCAL_BTC_FUTURES_DRY_RUN.md)
+
+---
+
 ### 3.5 OHLCV Parquet Schema (canonical)
 
 Defined in `infrastructure/storage/parquet/writer.py`:
@@ -919,6 +954,7 @@ These appear in architecture diagrams and sprint plans but **have no production 
 | Robustness report | `research/robustness` | `render_robustness_report` → `report/robustness_report.html` |
 | Dry-run Execution contracts | `execution` | `ExecutionMode`, `OrderIntent`, `SimulatedOrder`, `SimulatedFill`, `PaperPosition`, `RuntimeStatusSnapshot` |
 | Binance live feed smoke | `infrastructure.providers.binance`, `scripts/live_data` | `run_binance_futures_feed_smoke`, `scripts/live_data/run_binance_futures_smoke.py` |
+| Local BTC dry-run runtime | `application.execution`, `scripts/execution` | `run_local_btc_futures_binance_dry_run`, `scripts/execution/run_btc_futures_dry_run.py` |
 | Analysis input | `application.market_analysis` | `load_analysis_data_view` → `AnalysisDataView` |
 | Register components | `market_analysis.registry` | `ComponentRegistry` |
 | Build DAG | `market_analysis.planning` | `DependencyPlanner.build_plan` |
