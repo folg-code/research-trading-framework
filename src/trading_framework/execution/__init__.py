@@ -23,6 +23,8 @@ from trading_framework.execution.models import (
 from trading_framework.execution.modes import ExecutionMode
 from trading_framework.execution.runtime import (
     LocalExecutionRuntimeSession,
+    RuntimeDecisionStep,
+    RuntimeDecisionStepResult,
     StrategyModelOrderAdapter,
     StrategyOrderDecision,
     StrategyOrderDecisionType,
@@ -50,6 +52,8 @@ __all__ = [
     "PaperBrokerState",
     "PaperPosition",
     "PositionSide",
+    "RuntimeDecisionStep",
+    "RuntimeDecisionStepResult",
     "RuntimeHealth",
     "RuntimeStatusSnapshot",
     "SimulatedFill",
