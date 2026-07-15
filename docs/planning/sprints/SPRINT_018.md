@@ -5,14 +5,14 @@
 ```text
 Sprint: 018
 Phase: Phase 8A - BTC Futures Live Dry-Run Execution Demo
-Status: PLANNED
+Status: IN_PROGRESS (Wave 0)
 Planned Start: TBD
 Planned End: TBD
 Sprint Goal Owner: Project Maintainer
 Depends On: SPRINT_013-017 merged to main; Execution and Events packages are skeletons
 Sprint Branch: sprint/btc-futures-dry-run-execution
 Task branch convention: feat/ | fix/ | docs/ | test/ (separate prefix, not nested under sprint ref)
-Wave 0 decisions: docs/planning/sprints/S018_WAVE0_DECISIONS.md (to be created)
+Wave 0 decisions: docs/planning/sprints/S018_WAVE0_DECISIONS.md
 Architecture Sources:
   - docs/planning/ROADMAP.md (Phase 8 - Replay and Paper Execution)
   - docs/vision/ARCHITECTURE_FOUNDATIONS_UPDATED.md (Execution domain)
@@ -109,8 +109,8 @@ Domain contracts must remain provider-independent.
 
 | Task | Outcome | Status |
 |------|---------|--------|
-| S018-T001 | Create Wave 0 decisions document for BTC futures dry-run scope | TODO |
-| S018-T002 | Create ADR draft for Live Dry-Run Execution Demo | TODO |
+| S018-T001 | Create Wave 0 decisions document for BTC futures dry-run scope | DONE |
+| S018-T002 | Create ADR draft for Live Dry-Run Execution Demo | DONE |
 | S018-T003 | Add Execution mode and safety contracts | TODO |
 | S018-T004 | Add execution event, order, fill and position models | TODO |
 | S018-T005 | Add runtime status and heartbeat read-model contracts | TODO |
