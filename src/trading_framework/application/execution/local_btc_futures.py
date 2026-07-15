@@ -95,6 +95,15 @@ class LocalBtcFuturesClosedBarStepResult:
 
 @final
 @dataclass(frozen=True, slots=True)
+class LocalBtcFuturesClosedBarFeedStepResult:
+    """Result of appending one closed bar to the local dry-run feed state."""
+
+    closed_bars: tuple[MarketBar, ...]
+    step_result: LocalBtcFuturesClosedBarStepResult
+
+
+@final
+@dataclass(frozen=True, slots=True)
 class RunLocalBtcFuturesDryRunRequest:
     """Request for a bounded local BTCUSDT futures dry-run lifecycle."""
 
@@ -203,6 +212,25 @@ def run_local_btc_futures_closed_bar_step(
         signal_evaluation=signal_evaluation,
         decision_result=decision_result,
         broker_state=broker_state,
+    )
+
+
+def run_local_btc_futures_closed_bar_feed_step(
+    runtime: LocalBtcFuturesDryRunRuntime,
+    *,
+    closed_bars: tuple[MarketBar, ...],
+    bar: MarketBar,
+    max_closed_bars: int = 200,
+) -> LocalBtcFuturesClosedBarFeedStepResult:
+    """Append one closed bar and run one deterministic local dry-run step."""
+    if max_closed_bars < 1:
+        msg = "max_closed_bars must be positive"
+        raise ValidationError(msg)
+    updated_bars = (*closed_bars, bar)[-max_closed_bars:]
+    step_result = run_local_btc_futures_closed_bar_step(runtime, updated_bars)
+    return LocalBtcFuturesClosedBarFeedStepResult(
+        closed_bars=updated_bars,
+        step_result=step_result,
     )
 
 

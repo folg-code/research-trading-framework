@@ -10,6 +10,7 @@ from trading_framework.application.execution import (
     LocalBtcFuturesDryRunConfig,
     RunLocalBtcFuturesDryRunRequest,
     create_local_btc_futures_dry_run_runtime,
+    run_local_btc_futures_closed_bar_feed_step,
     run_local_btc_futures_closed_bar_step,
     run_local_btc_futures_dry_run,
 )
@@ -135,6 +136,52 @@ def test_local_btc_futures_closed_bar_step_runs_signal_to_paper_fill(
         ExecutionEventType.POSITION_UPDATED.value,
     ]
     assert rows[-1]["payload"]["simulated"] == "true"
+
+
+def test_local_btc_futures_closed_bar_feed_step_keeps_rolling_history(
+    tmp_path: Path,
+) -> None:
+    runtime = create_local_btc_futures_dry_run_runtime(
+        LocalBtcFuturesDryRunConfig(
+            event_log_path=tmp_path / "events.jsonl",
+            strategy_config=BtcFuturesDemoStrategyConfig(ema_period=3),
+        ),
+        clock=FixedClock(NOW),
+    )
+    closed_bars: tuple[MarketBar, ...] = ()
+
+    first = run_local_btc_futures_closed_bar_feed_step(
+        runtime,
+        closed_bars=closed_bars,
+        bar=_bar("100", 0),
+        max_closed_bars=3,
+    )
+    second = run_local_btc_futures_closed_bar_feed_step(
+        runtime,
+        closed_bars=first.closed_bars,
+        bar=_bar("100", 1),
+        max_closed_bars=3,
+    )
+    third = run_local_btc_futures_closed_bar_feed_step(
+        runtime,
+        closed_bars=second.closed_bars,
+        bar=_bar("101", 2),
+        max_closed_bars=3,
+    )
+    fourth = run_local_btc_futures_closed_bar_feed_step(
+        runtime,
+        closed_bars=third.closed_bars,
+        bar=_bar("102", 3),
+        max_closed_bars=3,
+    )
+
+    assert not first.step_result.decision_result.order_submitted
+    assert not second.step_result.decision_result.order_submitted
+    assert third.step_result.decision_result.order_submitted
+    assert len(fourth.closed_bars) == 3
+    assert fourth.closed_bars[0].close.value == Decimal("100")
+    assert fourth.closed_bars[-1].close.value == Decimal("102")
+    assert not fourth.step_result.decision_result.order_submitted
 
 
 def test_run_local_btc_futures_dry_run_records_bounded_lifecycle(tmp_path: Path) -> None:
