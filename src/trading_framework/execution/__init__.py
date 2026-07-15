@@ -22,6 +22,7 @@ from trading_framework.execution.models import (
 )
 from trading_framework.execution.modes import ExecutionMode
 from trading_framework.execution.runtime import (
+    LocalExecutionRuntimeSession,
     StrategyModelOrderAdapter,
     StrategyOrderDecision,
     StrategyOrderDecisionType,
@@ -36,6 +37,7 @@ __all__ = [
     "ExecutionMode",
     "ExecutionSafetyPolicy",
     "Heartbeat",
+    "LocalExecutionRuntimeSession",
     "MarketFeedConnectionState",
     "MarketFeedStatusSnapshot",
     "OrderIntent",
