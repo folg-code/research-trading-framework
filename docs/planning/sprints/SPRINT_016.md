@@ -163,10 +163,10 @@ Verdict ≠ best grid rank
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S016-T010 | Sweep ranking over child run metrics | PLANNED |
-| S016-T011 | Neighbor-parameter stability analysis | PLANNED |
-| S016-T012 | Heatmap view model (grid × metric) | PLANNED |
-| S016-T013 | Isolated optimum detection | PLANNED |
+| S016-T010 | Sweep ranking over child run metrics | DONE |
+| S016-T011 | Neighbor-parameter stability analysis | DONE |
+| S016-T012 | Heatmap view model (grid × metric) | DONE |
+| S016-T013 | Isolated optimum detection | DONE |
 
 ### Wave 3 — Walk-Forward
 
@@ -209,7 +209,7 @@ Verdict ≠ best grid rank
 | S016-T033 | Update MODULE_MAP, DATA_WORKFLOWS, CURRENT_STATUS, ROADMAP | PLANNED |
 | S016-T034 | Sprint closure | PLANNED |
 
-**Progress:** 3 / 34 tasks
+**Progress:** 13 / 34 tasks
 
 ---
 

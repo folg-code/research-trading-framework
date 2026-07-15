@@ -110,6 +110,11 @@ def robustness_experiment_dir(root: Path, experiment_id: str) -> Path:
     return root / "robustness_experiments" / experiment_id
 
 
+def robustness_experiment_analytics_dir(root: Path, experiment_id: str) -> Path:
+    """Return the analytics directory for one robustness experiment."""
+    return robustness_experiment_dir(root, experiment_id) / "analytics"
+
+
 def trade_event_partition_day(event_at: datetime) -> date:
     """Return the UTC calendar day used for trade dataset partitioning."""
     return require_utc_aware(event_at).date()
