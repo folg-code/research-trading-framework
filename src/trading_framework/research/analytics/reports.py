@@ -16,6 +16,7 @@ from trading_framework.research.analytics.metadata import (
     describe_horizon_label,
     describe_return_semantics,
 )
+from trading_framework.research.analytics.quality_flags import SignalResearchQualityWarning
 from trading_framework.research.scope import ResearchScope
 
 _REPORT_CSS = """
@@ -133,6 +134,9 @@ class AnalyticsReportSource(Protocol):
 
     @property
     def metadata(self) -> AnalyticsResultMetadata: ...
+
+    @property
+    def quality_warnings(self) -> tuple[SignalResearchQualityWarning, ...]: ...
 
 
 def _require_plotly() -> tuple[Any, Any, Any]:
@@ -688,6 +692,31 @@ def _statistical_disclaimer() -> str:
     )
 
 
+def _quality_warnings_section(
+    warnings: tuple[SignalResearchQualityWarning, ...],
+    *,
+    metadata: AnalyticsResultMetadata,
+) -> str:
+    if not warnings:
+        return "<p class='note'>No quality diagnostic flags triggered for the configured rules.</p>"
+    blocks: list[str] = []
+    for warning in warnings:
+        horizon_suffix = ""
+        if warning.horizon_bars is not None:
+            horizon_label = describe_horizon_label(
+                horizon_bars=warning.horizon_bars,
+                metadata=metadata,
+            )
+            horizon_suffix = f" ({html.escape(horizon_label)})"
+        blocks.append(
+            "<div class='warning'>"
+            f"<strong>{html.escape(warning.code.value)}</strong>"
+            f"{html.escape(warning.message)}{horizon_suffix}"
+            "</div>"
+        )
+    return "<h3>Quality diagnostic flags</h3>" + "".join(blocks)
+
+
 def _assemble_html(
     *,
     title: str,
@@ -697,6 +726,7 @@ def _assemble_html(
     statistical_disclaimer: str,
     join_section: str,
     sample_table: str,
+    quality_warnings_section: str,
     distribution_section: str,
     metrics_section: str,
     grouped_section: str,
@@ -731,6 +761,7 @@ def _assemble_html(
         size is reached; interpretation eligibility uses a higher threshold.
       </p>
       {overlap_warning}
+      {quality_warnings_section}
       {sample_table}
     </section>
     {distribution_section}
@@ -876,6 +907,10 @@ def render_signal_research_report(
         sample_table=_sample_diagnostics_table(
             run_rows,
             distribution_rows=distribution_rows,
+            metadata=metadata,
+        ),
+        quality_warnings_section=_quality_warnings_section(
+            result.quality_warnings,
             metadata=metadata,
         ),
         distribution_section=distribution_section,

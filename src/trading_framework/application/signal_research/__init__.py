@@ -19,6 +19,7 @@ from trading_framework.application.signal_research.run_signal_research import (
     SignalResearchError,
     run_signal_research,
 )
+from trading_framework.research.analytics.quality_flags import SignalResearchQualityWarning
 
 __all__ = [
     "AnalyzeSignalResearchError",
@@ -29,6 +30,7 @@ __all__ = [
     "RunSignalResearchRequest",
     "RunSignalResearchResult",
     "SignalResearchError",
+    "SignalResearchQualityWarning",
     "analyze_signal_research_run",
     "map_definition_to_analyze_request",
     "map_definition_to_run_request",
