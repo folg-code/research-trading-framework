@@ -22,6 +22,7 @@ from trading_framework.research.robustness.stress import (
     StressScenarioSpec,
     StressTestSpec,
 )
+from trading_framework.research.robustness.verdict_thresholds import VerdictThresholds
 from trading_framework.research.robustness.walk_forward import (
     WalkForwardSpec,
     WalkForwardWindowMode,
@@ -156,6 +157,10 @@ def build_monte_carlo_diagnostics_spec(
             top_k_trades=2,
             top_k_days=2,
             parameter_overrides={"exit_after_bars": "5"},
+        ),
+        verdict_thresholds=VerdictThresholds(
+            max_mc_loss_probability=Decimal("0.99"),
+            max_top_trades_concentration=Decimal("1"),
         ),
     )
 

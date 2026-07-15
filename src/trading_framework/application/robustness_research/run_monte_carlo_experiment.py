@@ -113,7 +113,8 @@ def run_monte_carlo_experiment(
         spec=spec,
         simulation_assumptions_fingerprint=assumptions_fingerprint,
     )
-    repo.write_manifest(manifest)
+    if not repo.manifest_exists(spec.experiment_id):
+        repo.write_manifest(manifest)
 
     baseline_ref = _execute_baseline_run(
         spec=spec,

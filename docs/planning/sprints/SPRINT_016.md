@@ -5,7 +5,7 @@
 ```text
 Sprint: 016
 Phase: Phase 7 — Robustness Research
-Status: PLANNED
+Status: COMPLETE (sprint branch)
 Planned Start: 2026-07-15
 Planned End: TBD
 Sprint Goal Owner: Project Maintainer
@@ -201,15 +201,17 @@ Verdict ≠ best grid rank
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S016-T028 | `RobustnessVerdict` model + threshold evaluation | PLANNED |
-| S016-T029 | `analyze_robustness_experiment` orchestrator | PLANNED |
-| S016-T030 | Offline Robustness Report HTML renderer | PLANNED |
-| S016-T031 | CLIs: run / analyze / render | PLANNED |
-| S016-T032 | Integration test on canonical strategy + fixture OHLCV | PLANNED |
-| S016-T033 | Update MODULE_MAP, DATA_WORKFLOWS, CURRENT_STATUS, ROADMAP | PLANNED |
-| S016-T034 | Sprint closure | PLANNED |
+| S016-T028 | `RobustnessVerdict` model + threshold evaluation | DONE |
+| S016-T029 | `analyze_robustness_experiment` orchestrator | DONE |
+| S016-T030 | Offline Robustness Report HTML renderer | DONE |
+| S016-T031 | CLIs: run / analyze / render | DONE |
+| S016-T032 | Integration test on canonical strategy + fixture OHLCV | DONE |
+| S016-T033 | Update MODULE_MAP, DATA_WORKFLOWS, CURRENT_STATUS, ROADMAP | DONE |
+| S016-T034 | Sprint closure | DONE |
 
-**Progress:** 27 / 34 tasks
+**Progress:** 34 / 34 tasks
+
+**Status:** COMPLETE on `sprint/robustness-mvp` (pending integration PR to `main`)
 
 ---
 

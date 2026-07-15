@@ -289,17 +289,17 @@ Maintenance: `.cursor/rules/documentation.mdc`
 
 **Portfolio demo packaging** — `scripts/demo/run_portfolio_demo.py` generates offline HTML artifacts for showcase (workflows + dashboards).
 
-**Sprint 016 — Robustness Research MVP (Phase 7)** — Wave 0 planning complete (3/34 tasks). Implementation not started.
+**Sprint 016 — Robustness Research MVP (Phase 7)** — COMPLETE on `sprint/robustness-mvp` (34/34 tasks). Integration PR to `main` pending.
 
-**Plan:** `docs/planning/sprints/SPRINT_016.md` · **Wave 0:** `S016_WAVE0_DECISIONS.md` · **ADR:** ADR-0019 · **Branch target:** `sprint/robustness-mvp`
+**Plan:** `docs/planning/sprints/SPRINT_016.md` · **Wave 0:** `S016_WAVE0_DECISIONS.md` · **ADR:** ADR-0019 · **Branch:** `sprint/robustness-mvp`
 
-### Sprint 016 — Planned (Phase 7)
+### Sprint 016 — Complete (Phase 7)
 
-**Status:** PLANNED (2026-07-15)  
+**Status:** COMPLETE on `sprint/robustness-mvp` (2026-07-15)  
 **Plan:** `docs/planning/sprints/SPRINT_016.md`  
 **ADR:** ADR-0019  
-**Tasks:** 3 / 34 (Wave 0 done)  
-**Scope:** experiment infra, parameter sweep, walk-forward, stress, diagnostics, **Monte Carlo**, verdict report
+**Tasks:** 34 / 34  
+**Scope:** experiment infra, parameter sweep, walk-forward, stress, diagnostics, Monte Carlo, verdict + HTML dashboard report
 
 ### Sprint 015 — Closed
 
