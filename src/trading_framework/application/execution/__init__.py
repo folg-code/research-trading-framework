@@ -3,7 +3,10 @@
 from trading_framework.application.execution.binance_local_btc_futures import (
     LocalBtcFuturesBinanceFeedState,
     LocalBtcFuturesBinanceMessageResult,
+    RunLocalBtcFuturesBinanceDryRunRequest,
+    RunLocalBtcFuturesBinanceDryRunResult,
     handle_local_btc_futures_binance_message,
+    run_local_btc_futures_binance_dry_run,
 )
 from trading_framework.application.execution.local_btc_futures import (
     LocalBtcFuturesClosedBarFeedStepResult,
@@ -25,10 +28,13 @@ __all__ = [
     "LocalBtcFuturesClosedBarStepResult",
     "LocalBtcFuturesDryRunConfig",
     "LocalBtcFuturesDryRunRuntime",
+    "RunLocalBtcFuturesBinanceDryRunRequest",
+    "RunLocalBtcFuturesBinanceDryRunResult",
     "RunLocalBtcFuturesDryRunRequest",
     "RunLocalBtcFuturesDryRunResult",
     "create_local_btc_futures_dry_run_runtime",
     "handle_local_btc_futures_binance_message",
+    "run_local_btc_futures_binance_dry_run",
     "run_local_btc_futures_closed_bar_feed_step",
     "run_local_btc_futures_closed_bar_step",
     "run_local_btc_futures_dry_run",

@@ -1,6 +1,8 @@
 """Tests for Binance message handling in the local BTC futures dry-run runtime."""
 
+import asyncio
 import json
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from decimal import Decimal
 from pathlib import Path
@@ -9,8 +11,10 @@ from typing import cast
 from trading_framework.application.execution import (
     LocalBtcFuturesBinanceFeedState,
     LocalBtcFuturesDryRunConfig,
+    RunLocalBtcFuturesBinanceDryRunRequest,
     create_local_btc_futures_dry_run_runtime,
     handle_local_btc_futures_binance_message,
+    run_local_btc_futures_binance_dry_run,
 )
 from trading_framework.infrastructure.providers.binance import (
     BinanceFuturesStreamEndpoint,
@@ -22,6 +26,21 @@ from trading_framework.time.clocks.fixed import FixedClock
 
 FIXTURE_ROOT = Path(__file__).resolve().parents[3] / "fixtures" / "binance"
 NOW = datetime(2026, 7, 15, 12, 0, tzinfo=UTC)
+
+
+@dataclass(slots=True)
+class FakeBinanceMessageClient:
+    messages: list[BinanceFuturesWebSocketMessage]
+    closed: bool = False
+
+    async def receive(self) -> BinanceFuturesWebSocketMessage:
+        if not self.messages:
+            await asyncio.sleep(3600)
+            raise AssertionError("fake Binance client exhausted")
+        return self.messages.pop(0)
+
+    async def close(self) -> None:
+        self.closed = True
 
 
 def _load_fixture(name: str) -> dict[str, object]:
@@ -112,3 +131,42 @@ def test_binance_non_matching_message_is_ignored(tmp_path: Path) -> None:
     assert wrong_symbol.ignored_reason == "symbol_mismatch"
     assert wrong_symbol.state.closed_bar_count == 0
     assert wrong_symbol.state.ignored_message_count == 2
+
+
+def test_binance_dry_run_loop_processes_bounded_fake_messages(tmp_path: Path) -> None:
+    client = FakeBinanceMessageClient(
+        messages=[
+            _message(_load_fixture("usdm_kline_1m_closed.json")),
+            _message(_load_fixture("usdm_kline_1m_open.json")),
+            _message(_load_fixture("usdm_kline_1m_closed.json")),
+        ]
+    )
+
+    result = asyncio.run(
+        run_local_btc_futures_binance_dry_run(
+            RunLocalBtcFuturesBinanceDryRunRequest(
+                config=LocalBtcFuturesDryRunConfig(
+                    event_log_path=tmp_path / "events.jsonl",
+                    strategy_config=BtcFuturesDemoStrategyConfig(ema_period=2),
+                ),
+                duration_seconds=10,
+                max_messages=3,
+            ),
+            clock=FixedClock(NOW),
+            clients=(client,),
+        )
+    )
+
+    assert client.closed
+    assert result.received_message_count == 3
+    assert result.feed_state.closed_bar_count == 2
+    assert result.feed_state.ignored_message_count == 1
+    event_rows = read_jsonl_execution_events(tmp_path / "events.jsonl")
+    assert [row["event_type"] for row in event_rows] == [
+        "runtime_started",
+        "heartbeat_recorded",
+        "market_event_received",
+        "market_event_received",
+        "heartbeat_recorded",
+        "runtime_stopped",
+    ]
