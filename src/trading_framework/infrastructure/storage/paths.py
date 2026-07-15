@@ -120,6 +120,11 @@ def signal_research_report_path(root: Path, run_id: str) -> Path:
     return signal_research_report_dir(root, run_id) / "report.html"
 
 
+def signal_research_family_experiment_dir(root: Path, experiment_id: str) -> Path:
+    """Return the storage directory for one bounded model-family experiment."""
+    return root / "signal_research_experiments" / experiment_id
+
+
 def strategy_research_run_dir(root: Path, run_id: str) -> Path:
     """Return the run envelope directory for one Strategy Research run."""
     return root / "strategy_research" / run_id

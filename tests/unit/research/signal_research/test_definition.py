@@ -19,6 +19,9 @@ from trading_framework.research.datasets import RunDatasetRef
 from trading_framework.research.scope import ResearchScope
 from trading_framework.research.signal_research.definition import (
     BaselineType,
+    CandidateBounds,
+    ModelFamilySpec,
+    ModelFamilyVariant,
     OccurrencePolicyType,
     ResearchGroupingDimension,
     SignalResearchDefinitionError,
@@ -157,3 +160,29 @@ def test_definition_to_dict_round_trip() -> None:
     assert restored.research_scope == original.research_scope
     assert restored.market_model_id == original.market_model_id
     assert restored.signal_model_id == original.signal_model_id
+
+
+def test_signal_family_definition_without_root_signal_model() -> None:
+    spec = SignalResearchDefinitionSpec(
+        research_id="signal_family_study",
+        research_scope=ResearchScope.SIGNAL_MODEL_ONLY,
+        dataset_ref=_dataset_ref(),
+        time_range=_time_range(),
+        horizons=("5m",),
+        candidate_bounds=CandidateBounds(max_candidates=2),
+        model_family=ModelFamilySpec(
+            family_id="canonical_signal_family",
+            variants=(
+                ModelFamilyVariant(
+                    variant_id="higher_low",
+                    signal_model_id="higher_low_long",
+                ),
+                ModelFamilyVariant(
+                    variant_id="vol_edge",
+                    signal_model_id="high_volatility_long_edge",
+                ),
+            ),
+        ),
+    )
+    assert spec.model_family is not None
+    assert spec.model_family.family_id == "canonical_signal_family"

@@ -235,6 +235,39 @@ def validate_metric_histograms(frame: pl.DataFrame) -> None:
     )
 
 
+def _family_comparison_schema() -> dict[str, pl.DataType]:
+    return {
+        "variant_id": pl.String(),
+        "run_id": pl.String(),
+        "horizon_bars": pl.Int64(),
+        "sample_size_complete": pl.Int64(),
+        "sample_size_total": pl.Int64(),
+        "metrics_eligible": pl.Boolean(),
+        "forward_return_mean": pl.Float64(),
+        "forward_return_median": pl.Float64(),
+        "hit_rate": pl.Float64(),
+        "mfe_mean": pl.Float64(),
+        "mfe_median": pl.Float64(),
+        "mae_mean": pl.Float64(),
+        "mae_median": pl.Float64(),
+        "quality_warning_count": pl.Int64(),
+    }
+
+
+def empty_family_comparison() -> pl.DataFrame:
+    """Return an empty model-family comparison table with the canonical schema."""
+    return pl.DataFrame(schema=_family_comparison_schema())
+
+
+def validate_family_comparison(frame: pl.DataFrame) -> None:
+    """Validate model-family comparison output columns and dtypes."""
+    _validate_frame_schema(
+        frame,
+        expected=empty_family_comparison(),
+        label="family comparison",
+    )
+
+
 def _validate_frame_schema(
     frame: pl.DataFrame,
     *,

@@ -250,3 +250,51 @@ def build_baseline_chart(
     figure.update_yaxes(title_text="Hit rate", tickformat=".0%", row=1, col=2)
     figure.update_layout(height=360, showlegend=False, margin={"t": 50, "b": 40})
     return figure
+
+
+def build_family_comparison_chart(
+    go: Any,
+    *,
+    comparison_rows: list[dict[str, Any]],
+) -> Any:
+    labels = [
+        (
+            f"{row['variant_id']}"
+            f"<br><span style='font-size:11px;color:#64748b'>"
+            f"n={row['sample_size_complete']}"
+            f"</span>"
+        )
+        for row in comparison_rows
+    ]
+    means = [
+        row["forward_return_mean"] if row["metrics_eligible"] else None for row in comparison_rows
+    ]
+    medians = [
+        row["forward_return_median"] if row["metrics_eligible"] else None for row in comparison_rows
+    ]
+    figure = go.Figure()
+    figure.add_trace(
+        go.Bar(
+            name="Mean",
+            x=labels,
+            y=means,
+            marker_color="#2563eb",
+        )
+    )
+    figure.add_trace(
+        go.Bar(
+            name="Median",
+            x=labels,
+            y=medians,
+            marker_color="#7c3aed",
+        )
+    )
+    figure.update_layout(
+        barmode="group",
+        height=380,
+        margin={"t": 40, "b": 40},
+        yaxis_title="Return",
+        yaxis_tickformat=".3%",
+        title="Model family comparison",
+    )
+    return figure
