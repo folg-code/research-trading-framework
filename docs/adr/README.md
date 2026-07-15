@@ -49,7 +49,8 @@ SUPERSEDED
 | [ADR-0016](ADR-0016-ohlcv-strategy-research-mvp.md) | OHLCV Strategy Research MVP | ACCEPTED | Sprint 013 |
 | [ADR-0017](ADR-0017-strategy-research-inspection-boundary.md) | Strategy Research Inspection Boundary | ACCEPTED | Sprint 014 |
 | [ADR-0018](ADR-0018-continuous-futures-materialization.md) | Continuous Futures Materialization | ACCEPTED | Sprint 015 |
-| [ADR-0019](ADR-0019-robustness-research-mvp.md) | Robustness Research MVP | ACCEPTED (planning) | Sprint 016 |
+| [ADR-0019](ADR-0019-robustness-research-mvp.md) | Robustness Research MVP | ACCEPTED | Sprint 016 |
+| [ADR-0020](ADR-0020-model-research-methodology-mvp.md) | Model Research Methodology MVP | PROPOSED | Sprint 017 |
 | ADR-0004 | Independent Research and Execution Workflows | PLANNED | TBD |
 | ADR-0009 | Batch Backtest vs Replay Execution | PLANNED | TBD |
 | ADR-0010 | Working Component and Model Fingerprints | PLANNED | TBD |
