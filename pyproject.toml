@@ -8,6 +8,7 @@ authors = [
 ]
 requires-python = ">=3.12"
 dependencies = [
+    "aiohttp>=3.14.1",
     "databento>=0.81.0",
     "numba>=0.66.0",
     "numpy>=2.0.0,<2.5",
@@ -48,6 +49,7 @@ addopts = [
 ]
 markers = [
     "tier2_databento: opt-in integration tests requiring a local Databento DBN archive",
+    "binance_network: opt-in integration tests requiring public Binance network access",
 ]
 
 [tool.ruff]

@@ -5,7 +5,7 @@
 ```text
 Sprint: 019
 Phase: Phase 8A - BTC Futures Live Dry-Run Execution Demo
-Status: PLANNED
+Status: COMPLETE
 Planned Start: TBD
 Planned End: TBD
 Sprint Goal Owner: Project Maintainer
@@ -74,11 +74,16 @@ book ticker snapshots being normalized without leaking Binance-specific schemas 
 
 ```text
 infrastructure/providers/binance/
-  futures_websocket.py       concrete WebSocket client
+  futures_streams.py         routed stream specs and combined-stream URL building
+  aiohttp_websocket.py       aiohttp transport adapter
+  futures_websocket.py       transport-agnostic client with reconnect
   futures_payloads.py        provider DTO parsing
   futures_mapper.py          provider -> framework runtime market facts
+  futures_reconnect.py       bounded reconnect policy
+  futures_smoke.py           bounded local smoke runner
 
-execution/market_data/       provider-independent live market facts if needed
+execution/models/market_data.py
+                              provider-independent live market facts and feed status
 application/execution/       still minimal; no strategy runtime yet
 ```
 
@@ -98,15 +103,15 @@ Network-dependent tests are opt-in.
 
 | Task | Outcome | Status |
 |------|---------|--------|
-| S019-T001 | Add Binance futures provider package skeleton | TODO |
-| S019-T002 | Add payload fixtures for `kline_1m` and `bookTicker` | TODO |
-| S019-T003 | Implement payload parsing and UTC normalization | TODO |
-| S019-T004 | Implement WebSocket subscription client with reconnect | TODO |
-| S019-T005 | Add feed status and heartbeat model | TODO |
-| S019-T006 | Add local smoke CLI for BTCUSDT feed | TODO |
-| S019-T007 | Add unit tests for parser and mapper | TODO |
-| S019-T008 | Add opt-in network smoke test marker | TODO |
-| S019-T009 | Update docs/reference for provider boundary | TODO |
+| S019-T001 | Add Binance futures provider package skeleton | DONE |
+| S019-T002 | Add payload fixtures for `kline_1m` and `bookTicker` | DONE |
+| S019-T003 | Implement payload parsing and UTC normalization | DONE |
+| S019-T004 | Implement WebSocket subscription client with reconnect | DONE |
+| S019-T005 | Add feed status and heartbeat model | DONE |
+| S019-T006 | Add local smoke CLI for BTCUSDT feed | DONE |
+| S019-T007 | Add unit tests for parser and mapper | DONE |
+| S019-T008 | Add opt-in network smoke test marker | DONE |
+| S019-T009 | Update docs/reference for provider boundary | DONE |
 
 ---
 
@@ -136,3 +141,32 @@ Network-dependent tests are opt-in.
 
 Sprint 020 consumes the live BTCUSDT market facts in a local dry-run execution loop with a basic
 strategy and simulated broker.
+
+---
+
+## 8. Completion Notes
+
+Sprint 019 delivered a Binance USD-M futures live-data adapter for public BTCUSDT streams.
+Provider-specific payloads, routed endpoints and `aiohttp` transport stay under
+`infrastructure/providers/binance/`. The normalized boundary is provider-independent:
+
+```text
+Binance combined stream payload
+  -> Binance DTO parser
+  -> mapper
+  -> MarketBar / BestBidAskSnapshot / MarketFeedStatusSnapshot
+```
+
+Local smoke command:
+
+```bash
+uv run python scripts/live_data/run_binance_futures_smoke.py \
+  --symbol BTCUSDT --duration-seconds 10 --max-messages 20
+```
+
+Network smoke test is opt-in and skipped by default:
+
+```bash
+TRADING_FRAMEWORK_RUN_BINANCE_NETWORK_SMOKE=1 \
+  uv run pytest tests/integration/live_data/test_binance_futures_network_smoke.py
+```

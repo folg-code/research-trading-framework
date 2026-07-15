@@ -51,6 +51,7 @@ SUPERSEDED
 | [ADR-0018](ADR-0018-continuous-futures-materialization.md) | Continuous Futures Materialization | ACCEPTED | Sprint 015 |
 | [ADR-0019](ADR-0019-robustness-research-mvp.md) | Robustness Research MVP | ACCEPTED | Sprint 016 |
 | [ADR-0020](ADR-0020-model-research-methodology-mvp.md) | Model Research Methodology MVP | PROPOSED | Sprint 017 |
+| [ADR-0021](ADR-0021-live-dry-run-execution-demo.md) | Live Dry-Run Execution Demo | ACCEPTED | Sprint 018 |
 | ADR-0004 | Independent Research and Execution Workflows | PLANNED | TBD |
 | ADR-0009 | Batch Backtest vs Replay Execution | PLANNED | TBD |
 | ADR-0010 | Working Component and Model Fingerprints | PLANNED | TBD |
