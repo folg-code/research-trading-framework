@@ -105,6 +105,11 @@ def strategy_research_run_dir(root: Path, run_id: str) -> Path:
     return root / "strategy_research" / run_id
 
 
+def robustness_experiment_dir(root: Path, experiment_id: str) -> Path:
+    """Return the storage directory for one robustness experiment."""
+    return root / "robustness_experiments" / experiment_id
+
+
 def trade_event_partition_day(event_at: datetime) -> date:
     """Return the UTC calendar day used for trade dataset partitioning."""
     return require_utc_aware(event_at).date()

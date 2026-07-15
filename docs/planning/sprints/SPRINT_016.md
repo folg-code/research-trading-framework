@@ -152,12 +152,12 @@ Verdict ≠ best grid rank
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S016-T004 | `RobustnessExperiment` spec + validation (kinds, grids, thresholds) | PLANNED |
-| S016-T005 | Config generator (parameter grid expansion) | PLANNED |
-| S016-T006 | `run_robustness_experiment` batch executor | PLANNED |
-| S016-T007 | Experiment registry + resume cursor | PLANNED |
-| S016-T008 | Child run linkage (`experiment_id` on strategy manifest) | PLANNED |
-| S016-T009 | Compare multiple experiments (read-only summary) | PLANNED |
+| S016-T004 | `RobustnessExperiment` spec + validation (kinds, grids, thresholds) | DONE |
+| S016-T005 | Config generator (parameter grid expansion) | DONE |
+| S016-T006 | `run_robustness_experiment` batch executor | DONE |
+| S016-T007 | Experiment registry + resume cursor | DONE |
+| S016-T008 | Child run linkage (`experiment_id` on strategy manifest) | DONE |
+| S016-T009 | Compare multiple experiments (read-only summary) | DONE |
 
 ### Wave 2 — Parameter Robustness
 
