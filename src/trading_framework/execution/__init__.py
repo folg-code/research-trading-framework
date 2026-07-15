@@ -28,6 +28,7 @@ from trading_framework.execution.runtime import (
     StrategyModelOrderAdapter,
     StrategyOrderDecision,
     StrategyOrderDecisionType,
+    closed_bar_close_reference_quote,
 )
 from trading_framework.execution.safety import DRY_RUN_SAFETY_POLICY, ExecutionSafetyPolicy
 
@@ -61,4 +62,5 @@ __all__ = [
     "StrategyModelOrderAdapter",
     "StrategyOrderDecision",
     "StrategyOrderDecisionType",
+    "closed_bar_close_reference_quote",
 ]
