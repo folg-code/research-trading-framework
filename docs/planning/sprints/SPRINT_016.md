@@ -211,7 +211,7 @@ Verdict ≠ best grid rank
 
 **Progress:** 34 / 34 tasks
 
-**Status:** COMPLETE on `sprint/robustness-mvp` (pending integration PR to `main`)
+**Status:** COMPLETE on `sprint/robustness-mvp` — integration PR to `main` pending
 
 ---
 

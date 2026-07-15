@@ -82,7 +82,7 @@ Research Capability Track
   Phase 5  — Signal Research MVP                  COMPLETE  (Sprints 008–010)
   Phase 6A — OHLCV Strategy Research MVP          COMPLETE  (Sprints 013–014)
   Phase 6B — Multi-Data Strategy Research         PLANNED
-  Phase 7  — Robustness Research                  PLANNED
+  Phase 7  — Robustness Research                  COMPLETE  (Sprint 016)
 
 Execution Capability Track
   Phase 8 — Replay and Paper Execution            PLANNED
@@ -107,7 +107,7 @@ Market Data policy (facts not indicators, vendor independence): **§14 Research 
 
 Test data tiers and live-data gate: **§15**.
 
-**Recommended next increment:** **Phase 7 Robustness** (Sprint 016 planned) — see `SPRINT_016.md`, ADR-0019.
+**Recommended next increment:** **Phase 8 Replay and Paper Execution** (candidate) — see `ROADMAP.md` §12. Deferred: Phase 4B orderflow, Phase 6B multi-data, PBO/CSCV (separate ADR).
 
 ---
 

@@ -2,7 +2,7 @@
 
 ## Status
 
-ACCEPTED (planning — implementation in Sprint 016)
+ACCEPTED (Sprint 016)
 
 ## Context
 
