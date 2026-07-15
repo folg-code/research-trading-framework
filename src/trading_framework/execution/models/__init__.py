@@ -2,6 +2,7 @@
 
 from trading_framework.execution.models.account import PaperAccountSnapshot
 from trading_framework.execution.models.events import ExecutionEvent, ExecutionEventType
+from trading_framework.execution.models.market_data import BestBidAskSnapshot
 from trading_framework.execution.models.orders import (
     OrderIntent,
     OrderSide,
@@ -18,6 +19,7 @@ from trading_framework.execution.models.status import (
 )
 
 __all__ = [
+    "BestBidAskSnapshot",
     "ExecutionEvent",
     "ExecutionEventType",
     "Heartbeat",
