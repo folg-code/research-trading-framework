@@ -12,7 +12,10 @@ from typing import Any, assert_never
 import polars as pl
 
 from trading_framework.core.exceptions import ValidationError
-from trading_framework.infrastructure.storage.paths import signal_research_run_dir
+from trading_framework.infrastructure.storage.paths import (
+    signal_research_analytics_summary_path,
+    signal_research_run_dir,
+)
 from trading_framework.research.context.context_fact import (
     empty_context_facts_dataframe,
     validate_context_facts_dataframe,
@@ -398,3 +401,31 @@ class SignalResearchDatasetRepository:
             observations=observations,
             context=context,
         )
+
+    def write_analytics_summary(self, run_id: str, payload: dict[str, Any]) -> Path:
+        """Persist one cached analytics envelope under ``analytics/summary.json``."""
+        run_dir = signal_research_run_dir(self._root, run_id)
+        if not run_dir.exists():
+            msg = f"run directory not found: {run_dir}"
+            raise FileNotFoundError(msg)
+
+        summary_path = signal_research_analytics_summary_path(self._root, run_id)
+        summary_path.parent.mkdir(parents=True, exist_ok=True)
+        summary_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+        return summary_path
+
+    def read_analytics_summary_payload(self, run_id: str) -> dict[str, Any]:
+        """Load the raw cached analytics summary mapping."""
+        summary_path = signal_research_analytics_summary_path(self._root, run_id)
+        if not summary_path.exists():
+            msg = f"missing analytics summary: {summary_path}"
+            raise FileNotFoundError(msg)
+        payload = json.loads(summary_path.read_text(encoding="utf-8"))
+        if not isinstance(payload, dict):
+            msg = f"analytics summary must be a mapping: {summary_path}"
+            raise ValidationError(msg)
+        return payload
+
+    def has_analytics_summary(self, run_id: str) -> bool:
+        """Return whether a cached analytics summary exists for one run."""
+        return signal_research_analytics_summary_path(self._root, run_id).exists()
