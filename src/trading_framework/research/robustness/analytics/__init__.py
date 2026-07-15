@@ -14,6 +14,14 @@ from trading_framework.research.robustness.analytics.parameter_sweep import (
     detect_isolated_optima,
     rank_parameter_sweep,
 )
+from trading_framework.research.robustness.analytics.stress import (
+    StressComparisonRow,
+    StressTestAnalytics,
+    apply_remove_top_days_stress,
+    apply_remove_top_trades_stress,
+    build_stress_comparison_table,
+    rebuild_equity_from_trades,
+)
 from trading_framework.research.robustness.analytics.walk_forward import (
     StitchedOosEquity,
     WalkForwardAnalytics,
@@ -30,6 +38,8 @@ __all__ = [
     "ParameterHeatmapView",
     "ParameterSweepAnalytics",
     "StitchedOosEquity",
+    "StressComparisonRow",
+    "StressTestAnalytics",
     "SweepMetric",
     "SweepRankingRow",
     "SweepRunMetrics",
@@ -37,11 +47,15 @@ __all__ = [
     "WalkForwardFoldEvaluation",
     "WalkForwardTrainSelection",
     "analyze_neighbor_stability",
+    "apply_remove_top_days_stress",
+    "apply_remove_top_trades_stress",
     "build_parameter_heatmaps",
     "build_parameter_sweep_analytics",
+    "build_stress_comparison_table",
     "build_walk_forward_analytics",
     "detect_isolated_optima",
     "rank_parameter_sweep",
+    "rebuild_equity_from_trades",
     "select_best_train_config",
     "stitch_oos_equity_curves",
 ]

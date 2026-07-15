@@ -181,9 +181,9 @@ Verdict ≠ best grid rank
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S016-T018 | Stress scenario spec (commission, slippage, delay) | PLANNED |
-| S016-T019 | Remove-top-trades / remove-top-days scenarios | PLANNED |
-| S016-T020 | Stress batch execution + comparison table | PLANNED |
+| S016-T018 | Stress scenario spec (commission, slippage, delay) | DONE |
+| S016-T019 | Remove-top-trades / remove-top-days scenarios | DONE |
+| S016-T020 | Stress batch execution + comparison table | DONE |
 
 ### Wave 5 — Statistical Diagnostics + Monte Carlo
 
@@ -209,7 +209,7 @@ Verdict ≠ best grid rank
 | S016-T033 | Update MODULE_MAP, DATA_WORKFLOWS, CURRENT_STATUS, ROADMAP | PLANNED |
 | S016-T034 | Sprint closure | PLANNED |
 
-**Progress:** 17 / 34 tasks
+**Progress:** 20 / 34 tasks
 
 ---
 

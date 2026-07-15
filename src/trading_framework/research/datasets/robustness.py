@@ -14,10 +14,13 @@ from trading_framework.infrastructure.storage.paths import (
     robustness_experiment_analytics_dir,
     robustness_experiment_dir,
     robustness_experiment_folds_dir,
+    robustness_experiment_stress_dir,
 )
 from trading_framework.research.robustness.analytics.parameter_sweep import ParameterSweepAnalytics
+from trading_framework.research.robustness.analytics.stress import StressTestAnalytics
 from trading_framework.research.robustness.analytics.walk_forward import WalkForwardAnalytics
 from trading_framework.research.robustness.experiment import RobustnessExperimentSpec
+from trading_framework.research.robustness.stress import StressTestResults
 from trading_framework.research.robustness.walk_forward import (
     WalkForwardFoldPlan,
     WalkForwardResults,
@@ -311,3 +314,35 @@ class RobustnessExperimentRepository:
         return WalkForwardAnalytics.from_dict(
             json.loads(analytics_path.read_text(encoding="utf-8"))
         )
+
+    def write_stress_results(self, results: StressTestResults) -> None:
+        stress_dir = robustness_experiment_stress_dir(self._root, results.experiment_id)
+        stress_dir.mkdir(parents=True, exist_ok=True)
+        results_path = stress_dir / "results.json"
+        results_path.write_text(json.dumps(results.to_dict(), indent=2), encoding="utf-8")
+
+    def read_stress_results(self, experiment_id: str) -> StressTestResults:
+        results_path = robustness_experiment_stress_dir(self._root, experiment_id) / "results.json"
+        if not results_path.exists():
+            msg = f"missing stress results: {results_path}"
+            raise FileNotFoundError(msg)
+        return StressTestResults.from_dict(json.loads(results_path.read_text(encoding="utf-8")))
+
+    def stress_results_exist(self, experiment_id: str) -> bool:
+        results_path = robustness_experiment_stress_dir(self._root, experiment_id) / "results.json"
+        return results_path.exists()
+
+    def write_stress_analytics(self, analytics: StressTestAnalytics) -> None:
+        analytics_dir = robustness_experiment_analytics_dir(self._root, analytics.experiment_id)
+        analytics_dir.mkdir(parents=True, exist_ok=True)
+        analytics_path = analytics_dir / "stress.json"
+        analytics_path.write_text(json.dumps(analytics.to_dict(), indent=2), encoding="utf-8")
+
+    def read_stress_analytics(self, experiment_id: str) -> StressTestAnalytics:
+        analytics_path = (
+            robustness_experiment_analytics_dir(self._root, experiment_id) / "stress.json"
+        )
+        if not analytics_path.exists():
+            msg = f"missing stress analytics: {analytics_path}"
+            raise FileNotFoundError(msg)
+        return StressTestAnalytics.from_dict(json.loads(analytics_path.read_text(encoding="utf-8")))

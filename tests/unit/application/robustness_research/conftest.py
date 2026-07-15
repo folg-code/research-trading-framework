@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import UTC
+from decimal import Decimal
 from pathlib import Path
 
 from trading_framework.core.identifiers import Identifier
@@ -15,6 +16,10 @@ from trading_framework.research.robustness.experiment import (
     RobustnessExperimentSpec,
 )
 from trading_framework.research.robustness.kinds import RobustnessExperimentKind
+from trading_framework.research.robustness.stress import (
+    StressScenarioSpec,
+    StressTestSpec,
+)
 from trading_framework.research.robustness.walk_forward import (
     WalkForwardSpec,
     WalkForwardWindowMode,
@@ -86,6 +91,37 @@ def build_parameter_sweep_spec(
         evaluation_timeframe="1m",
         parameter_sweep=ParameterSweepSpec(
             axes=(ParameterSweepAxis(name="exit_after_bars", values=("5", "10")),)
+        ),
+    )
+
+
+def build_stress_test_spec(
+    *,
+    experiment_id: str,
+    dataset_ref: DatasetRef,
+    requested_range: TimeRange,
+) -> RobustnessExperimentSpec:
+    return RobustnessExperimentSpec(
+        experiment_id=experiment_id,
+        kinds=(RobustnessExperimentKind.STRESS_TEST,),
+        dataset_ref=str(dataset_ref),
+        timeframe="1m",
+        requested_range_start=requested_range.start,
+        requested_range_end=requested_range.end,
+        strategy_template_id=CANONICAL_STRATEGY_MODEL_ID,
+        evaluation_timeframe="1m",
+        stress_test=StressTestSpec(
+            scenarios=(
+                StressScenarioSpec(
+                    scenario_id="double_commission",
+                    commission_multiplier=Decimal("2"),
+                ),
+                StressScenarioSpec(
+                    scenario_id="remove_top_trade",
+                    remove_top_n_trades=1,
+                ),
+            ),
+            parameter_overrides={"exit_after_bars": "5"},
         ),
     )
 
