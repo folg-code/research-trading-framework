@@ -31,6 +31,13 @@ from trading_framework.application.signal_research.run_signal_research import (
     SignalResearchError,
     run_signal_research,
 )
+from trading_framework.application.signal_research.run_signal_research_family import (
+    FamilyVariantResult,
+    RunSignalResearchFamilyError,
+    RunSignalResearchFamilyRequest,
+    RunSignalResearchFamilyResult,
+    run_signal_research_family_experiment,
+)
 from trading_framework.research.analytics.quality_flags import SignalResearchQualityWarning
 
 __all__ = [
@@ -38,12 +45,16 @@ __all__ = [
     "AnalyzeSignalResearchRequest",
     "AnalyzeSignalResearchResult",
     "DefinitionMappingError",
+    "FamilyVariantResult",
     "PersistSignalResearchAnalyticsError",
     "PersistSignalResearchAnalyticsResult",
     "RenderSignalResearchReportError",
     "RenderSignalResearchReportRequest",
     "RenderSignalResearchReportResult",
     "ResolvedSignalResearchDefinition",
+    "RunSignalResearchFamilyError",
+    "RunSignalResearchFamilyRequest",
+    "RunSignalResearchFamilyResult",
     "RunSignalResearchRequest",
     "RunSignalResearchResult",
     "SignalResearchError",
@@ -56,4 +67,5 @@ __all__ = [
     "render_signal_research_report",
     "resolve_signal_research_definition",
     "run_signal_research",
+    "run_signal_research_family_experiment",
 ]

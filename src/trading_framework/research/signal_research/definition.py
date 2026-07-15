@@ -141,6 +141,76 @@ class CandidateBounds:
 
 
 @dataclass(frozen=True, slots=True)
+class ModelFamilyVariant:
+    """One manually declared variant inside a model family."""
+
+    variant_id: str
+    market_model_id: str | None = None
+    signal_model_id: str | None = None
+
+    def __post_init__(self) -> None:
+        normalized = self.variant_id.strip()
+        if not normalized:
+            msg = "model family variant_id must be non-empty"
+            raise SignalResearchDefinitionError(msg)
+        object.__setattr__(self, "variant_id", normalized)
+
+    def to_dict(self) -> dict[str, Any]:
+        payload: dict[str, Any] = {"id": self.variant_id}
+        if self.market_model_id is not None:
+            payload["market_model"] = self.market_model_id
+        if self.signal_model_id is not None:
+            payload["signal_model"] = self.signal_model_id
+        return payload
+
+    @classmethod
+    def from_dict(cls, payload: dict[str, Any]) -> ModelFamilyVariant:
+        variant_id = str(payload.get("id") or payload["variant_id"])
+        market_model = payload.get("market_model")
+        signal_model = payload.get("signal_model")
+        return cls(
+            variant_id=variant_id,
+            market_model_id=str(market_model) if market_model is not None else None,
+            signal_model_id=str(signal_model) if signal_model is not None else None,
+        )
+
+
+@dataclass(frozen=True, slots=True)
+class ModelFamilySpec:
+    """Ordered list of bounded model variants for comparison."""
+
+    family_id: str
+    variants: tuple[ModelFamilyVariant, ...]
+
+    def __post_init__(self) -> None:
+        normalized = self.family_id.strip()
+        if not normalized:
+            msg = "model_family id must be non-empty"
+            raise SignalResearchDefinitionError(msg)
+        object.__setattr__(self, "family_id", normalized)
+        if not self.variants:
+            msg = "model_family variants must contain at least one entry"
+            raise SignalResearchDefinitionError(msg)
+        variant_ids = [variant.variant_id for variant in self.variants]
+        if len(set(variant_ids)) != len(variant_ids):
+            msg = "model_family variant ids must be unique"
+            raise SignalResearchDefinitionError(msg)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "id": self.family_id,
+            "variants": [variant.to_dict() for variant in self.variants],
+        }
+
+    @classmethod
+    def from_dict(cls, payload: dict[str, Any]) -> ModelFamilySpec:
+        family_id = str(payload.get("id") or payload["family_id"])
+        variants_payload = payload.get("variants", ())
+        variants = tuple(ModelFamilyVariant.from_dict(item) for item in variants_payload)
+        return cls(family_id=family_id, variants=variants)
+
+
+@dataclass(frozen=True, slots=True)
 class SignalResearchDefinitionSpec:
     """Declarative study contract for one bounded Signal Research run."""
 
@@ -160,6 +230,7 @@ class SignalResearchDefinitionSpec:
     )
     quality_rules: SignalResearchQualityRules = field(default_factory=SignalResearchQualityRules)
     candidate_bounds: CandidateBounds = field(default_factory=CandidateBounds)
+    model_family: ModelFamilySpec | None = None
     resolved_parameters: dict[str, Any] = field(default_factory=dict)
     component_lineage_hashes: dict[str, str] = field(default_factory=dict)
     definition_hash: str | None = None
@@ -197,6 +268,7 @@ class SignalResearchDefinitionSpec:
             occurrence_policy=self.occurrence_policy,
             quality_rules=self.quality_rules,
             candidate_bounds=self.candidate_bounds,
+            model_family=self.model_family,
             resolved_parameters=resolved_parameters,
             component_lineage_hashes=component_lineage_hashes,
             definition_hash=None,
@@ -226,6 +298,8 @@ class SignalResearchDefinitionSpec:
             "quality_rules": self.quality_rules.to_dict(),
             "candidate_bounds": self.candidate_bounds.to_dict(),
         }
+        if self.model_family is not None:
+            payload["model_family"] = self.model_family.to_dict()
         if self.research_question is not None:
             payload["research_question"] = self.research_question
         if self.market_model_id is not None:
@@ -293,6 +367,11 @@ class SignalResearchDefinitionSpec:
             else CandidateBounds()
         )
 
+        family_payload = normalized.get("model_family")
+        model_family = (
+            ModelFamilySpec.from_dict(family_payload) if family_payload is not None else None
+        )
+
         return cls(
             research_id=str(normalized.get("id") or normalized["research_id"]),
             research_scope=_parse_research_scope(
@@ -322,6 +401,7 @@ class SignalResearchDefinitionSpec:
             occurrence_policy=occurrence_policy,
             quality_rules=quality_rules,
             candidate_bounds=candidate_bounds,
+            model_family=model_family,
             resolved_parameters=dict(normalized.get("resolved_parameters", {})),
             component_lineage_hashes=dict(normalized.get("component_lineage_hashes", {})),
             definition_hash=(
@@ -333,7 +413,11 @@ class SignalResearchDefinitionSpec:
 
 
 def validate_signal_research_definition(spec: SignalResearchDefinitionSpec) -> None:
-    """Validate scope, models, baseline and candidate bounds."""
+    """Validate scope, models, baseline, candidate bounds and model families."""
+    if spec.model_family is not None:
+        _validate_model_family(spec)
+        return
+
     scope = spec.research_scope
     market_id = spec.market_model_id
     signal_id = spec.signal_model_id
@@ -366,6 +450,48 @@ def validate_signal_research_definition(spec: SignalResearchDefinitionSpec) -> N
         return
 
     assert_never(scope)
+
+
+def _validate_model_family(spec: SignalResearchDefinitionSpec) -> None:
+    family = spec.model_family
+    if family is None:
+        return
+
+    scope = spec.research_scope
+    for variant in family.variants:
+        market_model_id = variant.market_model_id or spec.market_model_id
+        signal_model_id = variant.signal_model_id or spec.signal_model_id
+        if scope is ResearchScope.SIGNAL_MODEL_ONLY:
+            if market_model_id is not None:
+                msg = (
+                    f"variant {variant.variant_id!r} must not declare market_model "
+                    "for SIGNAL_MODEL_ONLY"
+                )
+                raise SignalResearchDefinitionError(msg)
+            if signal_model_id is None:
+                msg = f"variant {variant.variant_id!r} requires signal_model"
+                raise SignalResearchDefinitionError(msg)
+        elif scope is ResearchScope.MARKET_MODEL_ONLY:
+            if signal_model_id is not None:
+                msg = (
+                    f"variant {variant.variant_id!r} must not declare signal_model "
+                    "for MARKET_MODEL_ONLY"
+                )
+                raise SignalResearchDefinitionError(msg)
+            if market_model_id is None:
+                msg = f"variant {variant.variant_id!r} requires market_model"
+                raise SignalResearchDefinitionError(msg)
+        elif scope is ResearchScope.MARKET_AND_SIGNAL:
+            if market_model_id is None or signal_model_id is None:
+                msg = (
+                    f"variant {variant.variant_id!r} requires market_model and signal_model "
+                    "for MARKET_AND_SIGNAL"
+                )
+                raise SignalResearchDefinitionError(msg)
+        else:
+            assert_never(scope)
+
+    _validate_baseline(scope, spec.baseline)
 
 
 def _validate_baseline(scope: ResearchScope, baseline: BaselineType | None) -> None:
