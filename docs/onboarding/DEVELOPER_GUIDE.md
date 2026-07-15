@@ -2,7 +2,7 @@
 
 Day-one setup for **developers joining the repo**.
 
-- **Role-based overview** (recruiter, data engineer, quant, …): **[README § Start here](../../README.md#start-here--pick-your-path)**
+- **Role-based overview** (recruiter, data engineer, software engineer, …): **[README § Start here](../../README.md#start-here--pick-your-path)**
 - **Documentation index:** [docs/README.md](../README.md)
 - **AI agents:** `AGENTS.md` at the repository root
 
@@ -89,7 +89,7 @@ Depends on your focus — the README [Start here](../../README.md#start-here--pi
 |-------|-----------|
 | **Data / pipelines** | [DATA_WORKFLOWS.md](../reference/DATA_WORKFLOWS.md) → [DATA_MODULE_UPDATED.md](../reference/modules/DATA_MODULE_UPDATED.md) |
 | **Code / architecture** | [MODULE_MAP.md](../reference/MODULE_MAP.md) → [adr/](../adr/README.md) |
-| **Research workflows** | [DATA_WORKFLOWS.md](../reference/DATA_WORKFLOWS.md) §3 → [README § For quant developers](../../README.md#for-quant-developers) |
+| **Research workflows** | [DATA_WORKFLOWS.md](../reference/DATA_WORKFLOWS.md) §1.1 + §3 |
 | **Sprint context** | [CURRENT_STATUS.md](../planning/CURRENT_STATUS.md) → [ROADMAP.md](../planning/ROADMAP.md) |
 | **Design decisions** | [Vision catalog](../vision/README.md) → [Reference catalog](../reference/README.md) |
 

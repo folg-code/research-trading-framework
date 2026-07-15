@@ -34,7 +34,7 @@ Overall Status: IN_PROGRESS
 Active Sprint: none (portfolio demo + next sprint selection)
 Last Completed Sprint: SPRINT_015 (merged to main, 2026-07-14)
 Capability Tracks: Foundation COMPLETE; Data 2A + 2B/2C.1 + 2B.3 + 2C.4 COMPLETE; Research 3/4A/5 COMPLETE; Strategy 6A COMPLETE
-Recent perf: columnar OHLCV batch path + shared model evaluation table (PR #132); align/searchsorted + deep profiling (PR #131)
+Recent perf: columnar OHLCV + shared eval → **~6 s** half-year NQ strategy research (178k bars, 45M ticks ingested); see README § Scale & performance and DATA_WORKFLOWS §1.1
 ```
 
 ---

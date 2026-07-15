@@ -8,9 +8,9 @@ You do **not** need to run Python to review the project — ask for `demo/output
 
 **What it proves in one click:**
 
-- End-to-end quantitative research platform (data → analysis → simulation → dashboard)
-- Real NQ futures half-year backtest with KPIs, equity curve and trade markers on the chart
-- Separate inspection reports for signal analytics and market-structure analysis
+- **45M+** tick trades → **178k** 1m OHLCV bars → analysis + simulation → dashboard (full platform depth)
+- Real NQ futures half-year backtest: **1,464** trades, KPIs, equity curve, trade markers on chart
+- End-to-end run on laptop in **~6 seconds** once data is materialized (see [README § Scale](../../README.md#scale--performance-reference-run))
 
 **One-line pitch:** modular Python research stack with reproducible pipelines and browser-based deliverables — no live trading dependency.
 
@@ -29,7 +29,7 @@ Output: `demo/output/index.html` (landing page with links to all reports).
 
 | Artifact | Workflow | Notes |
 |----------|----------|-------|
-| `00_strategy_dashboard_nq_half_year.html` | Continuous NQ → strategy simulation → dashboard | **Hero demo** — 177k bars, Lightweight Charts, 12 KPIs. ~55 MB (embedded bars). Requires `user_data/storage_nq_half_year`. |
+| `00_strategy_dashboard_nq_half_year.html` | Continuous NQ → strategy simulation → dashboard | **Hero demo** — 177,507 bars, 1,464 trades, Lightweight Charts, 12 KPIs. ~55 MB (embedded bars). Requires `user_data/storage_nq_half_year`. |
 | `01_strategy_dashboard_fixture.html` | Same pipeline on committed CSV fixture | Fast, small — good for CI/screenshots. |
 | `02_signal_research_analytics.html` | Signal Research → analytics report | Grouped metrics, conditional context. |
 | `03_combined_research_inspection.html` | MARKET_AND_SIGNAL drill-down | MFE/MAE outcome window. |

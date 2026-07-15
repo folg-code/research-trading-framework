@@ -12,6 +12,62 @@ Technical reference for how data moves through the framework: ingestion, persist
 
 ---
 
+## 1.1 Reference scale (NQ half-year demo)
+
+Concrete numbers from `user_data/storage_nq_half_year` (not in git). Use for portfolio narrative and regression checks.
+
+### Dataset inventory
+
+| Artifact | Instrument / provider | Row count | Notes |
+|----------|----------------------|-----------|-------|
+| Contract ticks | `NQ.NQU5`, `NQ.NQZ5`, … (7 contracts) | **45,237,885** | Databento DBN → day-partitioned Parquet |
+| Continuous ticks | `NQ.c.0` / `continuous` | **44,322,865** | Volume-RTH-close roll; materialized once |
+| Continuous 1m OHLCV | `NQ.c.0` / `derived` | **177,507** | Jul 2025 – Jan 2026 UTC; ~250:1 tick→bar |
+| Strategy run (canonical) | `high_vol_higher_low_fixed_exit` | **1,464** trades | `run_id` example: `14e36fe5fbb5d9f2` |
+
+### Research pass (canonical strategy components)
+
+One `run_strategy_research` on the full OHLCV range:
+
+| Metric | Value |
+|--------|-------|
+| OHLCV bars loaded (columnar) | 177,507 |
+| Market OHLCV cells | 887,535 (5 × bars) |
+| Component output series (ATR, TR, volatility state, 5m swing, MTF align, …) | 26 |
+| Total aligned analytical cells | **~2.38M** |
+| Wall clock (`--skip-build --no-persist`) | **~6 s** (2026-07-14, Windows laptop) |
+
+Consumer `AnalysisFrame` exposes only model-facing columns (2 for the canonical strategy); the executor still computes the full component DAG above.
+
+### Throughput improvements (same dataset family)
+
+| Pipeline step | Before | After | Change |
+|---------------|--------|-------|--------|
+| DBN contract import (3 archives) | ~807 s | ~89 s | Vectorized CME session date mapping |
+| Strategy research (half-year) | ~40 s | **~6 s** | `searchsorted` align + columnar OHLCV + shared eval table + Numba kernel |
+
+### Reproduce timings
+
+```bash
+uv run python scripts/market_data/run_half_year_backtest.py \
+  --storage-root user_data/storage_nq_half_year \
+  --skip-build --no-persist --profile
+```
+
+Row counts from published metadata:
+
+```bash
+uv run python -c "
+import json
+from pathlib import Path
+for p in sorted(Path('user_data/storage_nq_half_year/metadata').rglob('v1.json')):
+    d = json.loads(p.read_text())
+    print(d['instrument_id'], d['data_type'], f\"{d['row_count']:,}\")
+"
+```
+
+---
+
 ## 1. System Overview
 
 The framework separates **user-owned storage** (`user_data/`, passed at runtime) from **framework code** (`src/trading_framework/`). All workflows below use a `storage_root: Path` argument — typically `user_data/storage`.
