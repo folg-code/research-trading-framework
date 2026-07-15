@@ -11,15 +11,20 @@ from typing import final
 
 from trading_framework.core.exceptions import ValidationError
 from trading_framework.execution import (
+    EmaMomentumLiveSignalEvaluator,
+    LiveSignalEvaluation,
     LocalExecutionRuntimeSession,
     PaperBroker,
     PaperBrokerState,
     RuntimeDecisionStep,
+    RuntimeDecisionStepResult,
     RuntimeStatusSnapshot,
     StrategyModelOrderAdapter,
+    closed_bar_close_reference_quote,
 )
 from trading_framework.execution.models import Heartbeat
 from trading_framework.infrastructure.storage.execution_events import JsonlExecutionEventSink
+from trading_framework.market.models import MarketBar
 from trading_framework.strategy import (
     BTC_FUTURES_DEMO_DISCLOSURE,
     BtcFuturesDemoStrategyConfig,
@@ -74,7 +79,27 @@ class LocalBtcFuturesDryRunRuntime:
     session: LocalExecutionRuntimeSession
     broker: PaperBroker
     decision_step: RuntimeDecisionStep
+    signal_evaluator: EmaMomentumLiveSignalEvaluator
     initial_state: PaperBrokerState
+
+
+@final
+@dataclass(frozen=True, slots=True)
+class LocalBtcFuturesClosedBarStepResult:
+    """Result of one closed-bar local BTCUSDT dry-run step."""
+
+    signal_evaluation: LiveSignalEvaluation
+    decision_result: RuntimeDecisionStepResult
+    broker_state: PaperBrokerState
+
+
+@final
+@dataclass(frozen=True, slots=True)
+class LocalBtcFuturesClosedBarFeedStepResult:
+    """Result of appending one closed bar to the local dry-run feed state."""
+
+    closed_bars: tuple[MarketBar, ...]
+    step_result: LocalBtcFuturesClosedBarStepResult
 
 
 @final
@@ -129,6 +154,7 @@ def create_local_btc_futures_dry_run_runtime(
     )
     strategy_config = config.strategy_config or BtcFuturesDemoStrategyConfig()
     strategy_model = build_btc_futures_demo_strategy_model(strategy_config)
+    signal_evaluator = EmaMomentumLiveSignalEvaluator(strategy_model)
     strategy_adapter = StrategyModelOrderAdapter(
         strategy_model=strategy_model,
         symbol=config.symbol,
@@ -139,12 +165,72 @@ def create_local_btc_futures_dry_run_runtime(
         strategy_adapter=strategy_adapter,
         broker=broker,
     )
+    initial_state = broker.initial_state(runtime_clock.now())
     return LocalBtcFuturesDryRunRuntime(
         config=config,
         session=session,
         broker=broker,
         decision_step=decision_step,
-        initial_state=broker.initial_state(runtime_clock.now()),
+        signal_evaluator=signal_evaluator,
+        initial_state=initial_state,
+    )
+
+
+def run_local_btc_futures_closed_bar_step(
+    runtime: LocalBtcFuturesDryRunRuntime,
+    closed_bars: tuple[MarketBar, ...],
+) -> LocalBtcFuturesClosedBarStepResult:
+    """Run one deterministic closed-bar dry-run step."""
+    if not closed_bars:
+        msg = "closed_bars must contain at least one bar"
+        raise ValidationError(msg)
+    latest_bar = closed_bars[-1]
+    signal_evaluation = runtime.signal_evaluator.evaluate(closed_bars)
+    quote = closed_bar_close_reference_quote(
+        symbol=runtime.config.symbol,
+        bar=latest_bar,
+    )
+    broker_state_before_decision = runtime.broker.mark_to_market(
+        latest_bar.close,
+        latest_bar.available_at,
+    )
+    decision_result = runtime.decision_step.run(
+        entry_signal_active=signal_evaluation.entry_signal_active,
+        exit_signal_active=signal_evaluation.exit_signal_active,
+        position=broker_state_before_decision.position,
+        quote=quote,
+    )
+    broker_state = (
+        PaperBrokerState(
+            account=decision_result.broker_result.account,
+            position=decision_result.broker_result.position,
+        )
+        if decision_result.broker_result is not None
+        else broker_state_before_decision
+    )
+    return LocalBtcFuturesClosedBarStepResult(
+        signal_evaluation=signal_evaluation,
+        decision_result=decision_result,
+        broker_state=broker_state,
+    )
+
+
+def run_local_btc_futures_closed_bar_feed_step(
+    runtime: LocalBtcFuturesDryRunRuntime,
+    *,
+    closed_bars: tuple[MarketBar, ...],
+    bar: MarketBar,
+    max_closed_bars: int = 200,
+) -> LocalBtcFuturesClosedBarFeedStepResult:
+    """Append one closed bar and run one deterministic local dry-run step."""
+    if max_closed_bars < 1:
+        msg = "max_closed_bars must be positive"
+        raise ValidationError(msg)
+    updated_bars = (*closed_bars, bar)[-max_closed_bars:]
+    step_result = run_local_btc_futures_closed_bar_step(runtime, updated_bars)
+    return LocalBtcFuturesClosedBarFeedStepResult(
+        closed_bars=updated_bars,
+        step_result=step_result,
     )
 
 
