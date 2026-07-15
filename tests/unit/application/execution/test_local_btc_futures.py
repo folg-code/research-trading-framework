@@ -8,7 +8,9 @@ import pytest
 
 from trading_framework.application.execution import (
     LocalBtcFuturesDryRunConfig,
+    RunLocalBtcFuturesDryRunRequest,
     create_local_btc_futures_dry_run_runtime,
+    run_local_btc_futures_dry_run,
 )
 from trading_framework.core.exceptions import ValidationError
 from trading_framework.core.types import Price
@@ -89,6 +91,27 @@ def test_local_btc_futures_runtime_accepts_strategy_config(tmp_path: Path) -> No
     assert result.broker_result.position.quantity == Decimal("0.002")
 
 
+def test_run_local_btc_futures_dry_run_records_bounded_lifecycle(tmp_path: Path) -> None:
+    event_log_path = tmp_path / "events.jsonl"
+
+    result = run_local_btc_futures_dry_run(
+        RunLocalBtcFuturesDryRunRequest(
+            config=LocalBtcFuturesDryRunConfig(event_log_path=event_log_path),
+            duration_minutes=0,
+            heartbeat_seconds=1,
+        ),
+        clock=FixedClock(NOW),
+    )
+
+    assert result.stopped_status.status.value == "stopped"
+    rows = read_jsonl_execution_events(event_log_path)
+    assert [row["event_type"] for row in rows] == [
+        "runtime_started",
+        "heartbeat_recorded",
+        "runtime_stopped",
+    ]
+
+
 def test_local_btc_futures_config_rejects_invalid_values(tmp_path: Path) -> None:
     with pytest.raises(ValidationError, match="runtime_id"):
         LocalBtcFuturesDryRunConfig(
@@ -100,4 +123,10 @@ def test_local_btc_futures_config_rejects_invalid_values(tmp_path: Path) -> None
         LocalBtcFuturesDryRunConfig(
             event_log_path=tmp_path / "events.jsonl",
             starting_equity=Decimal("0"),
+        )
+
+    with pytest.raises(ValidationError, match="duration_minutes"):
+        RunLocalBtcFuturesDryRunRequest(
+            config=LocalBtcFuturesDryRunConfig(event_log_path=tmp_path / "events.jsonl"),
+            duration_minutes=-1,
         )

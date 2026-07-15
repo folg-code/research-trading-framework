@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import time
+from collections.abc import Callable
 from dataclasses import dataclass
 from decimal import Decimal
 from pathlib import Path
@@ -13,8 +15,10 @@ from trading_framework.execution import (
     PaperBroker,
     PaperBrokerState,
     RuntimeDecisionStep,
+    RuntimeStatusSnapshot,
     StrategyModelOrderAdapter,
 )
+from trading_framework.execution.models import Heartbeat
 from trading_framework.infrastructure.storage.execution_events import JsonlExecutionEventSink
 from trading_framework.strategy import (
     BTC_FUTURES_DEMO_DISCLOSURE,
@@ -73,6 +77,35 @@ class LocalBtcFuturesDryRunRuntime:
     initial_state: PaperBrokerState
 
 
+@final
+@dataclass(frozen=True, slots=True)
+class RunLocalBtcFuturesDryRunRequest:
+    """Request for a bounded local BTCUSDT futures dry-run lifecycle."""
+
+    config: LocalBtcFuturesDryRunConfig
+    duration_minutes: float
+    heartbeat_seconds: float = 30.0
+
+    def __post_init__(self) -> None:
+        if self.duration_minutes < 0:
+            msg = "duration_minutes must be non-negative"
+            raise ValidationError(msg)
+        if self.heartbeat_seconds <= 0:
+            msg = "heartbeat_seconds must be positive"
+            raise ValidationError(msg)
+
+
+@final
+@dataclass(frozen=True, slots=True)
+class RunLocalBtcFuturesDryRunResult:
+    """Result of a bounded local BTCUSDT futures dry-run lifecycle."""
+
+    runtime: LocalBtcFuturesDryRunRuntime
+    started_status: RuntimeStatusSnapshot
+    heartbeat: Heartbeat
+    stopped_status: RuntimeStatusSnapshot
+
+
 def create_local_btc_futures_dry_run_runtime(
     config: LocalBtcFuturesDryRunConfig,
     *,
@@ -112,6 +145,35 @@ def create_local_btc_futures_dry_run_runtime(
         broker=broker,
         decision_step=decision_step,
         initial_state=broker.initial_state(runtime_clock.now()),
+    )
+
+
+def run_local_btc_futures_dry_run(
+    request: RunLocalBtcFuturesDryRunRequest,
+    *,
+    clock: Clock | None = None,
+    sleeper: Callable[[float], object] = time.sleep,
+) -> RunLocalBtcFuturesDryRunResult:
+    """Run a bounded local dry-run lifecycle without starting live market IO."""
+    runtime = create_local_btc_futures_dry_run_runtime(
+        request.config,
+        clock=clock,
+    )
+    started = runtime.session.start()
+    heartbeat = runtime.session.record_heartbeat(message="local dry-run runtime alive")
+    deadline = time.monotonic() + request.duration_minutes * 60
+    while True:
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            break
+        sleeper(min(request.heartbeat_seconds, remaining))
+        heartbeat = runtime.session.record_heartbeat(message="local dry-run runtime alive")
+    stopped = runtime.session.stop(message="bounded local dry-run complete")
+    return RunLocalBtcFuturesDryRunResult(
+        runtime=runtime,
+        started_status=started,
+        heartbeat=heartbeat,
+        stopped_status=stopped,
     )
 
 
