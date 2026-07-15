@@ -1,6 +1,6 @@
 """Tests for local BTC futures dry-run runtime assembly."""
 
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from pathlib import Path
 
@@ -10,16 +10,32 @@ from trading_framework.application.execution import (
     LocalBtcFuturesDryRunConfig,
     RunLocalBtcFuturesDryRunRequest,
     create_local_btc_futures_dry_run_runtime,
+    run_local_btc_futures_closed_bar_step,
     run_local_btc_futures_dry_run,
 )
 from trading_framework.core.exceptions import ValidationError
-from trading_framework.core.types import Price
+from trading_framework.core.types import Price, Volume
 from trading_framework.execution import BestBidAskSnapshot, ExecutionEventType
 from trading_framework.infrastructure.storage.execution_events import read_jsonl_execution_events
+from trading_framework.market.models import MarketBar
 from trading_framework.strategy import BtcFuturesDemoStrategyConfig
 from trading_framework.time.clocks.fixed import FixedClock
 
 NOW = datetime(2026, 7, 15, 12, 0, tzinfo=UTC)
+
+
+def _bar(close: str, index: int) -> MarketBar:
+    close_price = Price(Decimal(close))
+    observed_at = NOW + timedelta(minutes=index)
+    return MarketBar(
+        open=close_price,
+        high=close_price,
+        low=close_price,
+        close=close_price,
+        volume=Volume(1),
+        observed_at=observed_at,
+        available_at=observed_at + timedelta(minutes=1),
+    )
 
 
 def test_create_local_btc_futures_dry_run_runtime_assembles_components(tmp_path: Path) -> None:
@@ -89,6 +105,36 @@ def test_local_btc_futures_runtime_accepts_strategy_config(tmp_path: Path) -> No
 
     assert result.broker_result is not None
     assert result.broker_result.position.quantity == Decimal("0.002")
+
+
+def test_local_btc_futures_closed_bar_step_runs_signal_to_paper_fill(
+    tmp_path: Path,
+) -> None:
+    event_log_path = tmp_path / "events.jsonl"
+    runtime = create_local_btc_futures_dry_run_runtime(
+        LocalBtcFuturesDryRunConfig(
+            event_log_path=event_log_path,
+            strategy_config=BtcFuturesDemoStrategyConfig(ema_period=3),
+        ),
+        clock=FixedClock(NOW),
+    )
+
+    result = run_local_btc_futures_closed_bar_step(
+        runtime,
+        (_bar("100", 0), _bar("100", 1), _bar("101", 2)),
+    )
+
+    assert result.signal_evaluation.entry_signal_active
+    assert result.decision_result.order_submitted
+    assert result.broker_state.position.quantity == Decimal("0.001")
+    rows = read_jsonl_execution_events(event_log_path)
+    assert [row["event_type"] for row in rows] == [
+        ExecutionEventType.MARKET_EVENT_RECEIVED.value,
+        ExecutionEventType.ORDER_INTENT_CREATED.value,
+        ExecutionEventType.SIMULATED_ORDER_FILLED.value,
+        ExecutionEventType.POSITION_UPDATED.value,
+    ]
+    assert rows[-1]["payload"]["simulated"] == "true"
 
 
 def test_run_local_btc_futures_dry_run_records_bounded_lifecycle(tmp_path: Path) -> None:
