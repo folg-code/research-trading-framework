@@ -36,11 +36,15 @@ Opens `demo/output/index.html` with strategy dashboards and inspection reports.
 2. **Market Analysis** — reusable components (volatility, swing structure, MTF alignment) on a shared execution engine.
 3. **Declarative models** — Market Model and Signal Model as expressions, not ad-hoc scripts.
 4. **Signal Research** — measure whether signals predict forward price behaviour (MFE, MAE, hit rate).
-5. **Strategy Research** — simulate entries/exits/risk on historical bars; persist trades, equity and a **12-KPI dashboard**.
+5. **Model Research Methodology** — declarative study specs, quality diagnostics, Plotly dashboards (Phase 5B).
+6. **Strategy Research** — simulate entries/exits/risk on historical bars; persist trades, equity and a **12-KPI dashboard**.
+7. **Robustness Research** — parameter sweep, walk-forward, stress and Monte Carlo verdicts on strategy edge.
 
 **Evidence of depth:** **45M+** tick trades ingested, **178k** 1m OHLCV bars materialized, full strategy backtest in **~6 s** on a laptop — see [Scale & performance](#scale--performance-reference-run).
 
-**Not in scope yet:** live broker execution, orderflow features, options data, walk-forward robustness suite.
+**Not in scope yet:** live broker execution, orderflow features, options data.
+
+Research methodology reference: [docs/reference/RESEARCH_METHODOLOGIES.md](docs/reference/RESEARCH_METHODOLOGIES.md).
 
 ---
 
@@ -98,8 +102,12 @@ uv run python scripts/demo/run_portfolio_demo.py --full --open
 | `00_strategy_dashboard_nq_half_year.html` | Everyone | **177,507** bars · **1,464** trades · KPIs, equity, OHLCV + markers |
 | `01_strategy_dashboard_fixture.html` | Engineers | Same pipeline on small committed fixture |
 | `02`–`06` inspection reports | Engineers | Signal analytics, model overlays, MTF swing charts |
+| `07_robustness_dashboard.html` | Engineers | Robustness Research verdict dashboard |
+| `08_model_research_nq_half_year.html` | Everyone | Model Research — 3 scopes on NQ half-year |
 
 Details: [scripts/demo/README.md](scripts/demo/README.md) (includes a **recruiter** section — no Python required if you already have the HTML).
+
+All research workflows: [RESEARCH_METHODOLOGIES.md](docs/reference/RESEARCH_METHODOLOGIES.md).
 
 ---
 
@@ -111,7 +119,9 @@ Details: [scripts/demo/README.md](scripts/demo/README.md) (includes a **recruite
 | **Analysis** | Component DAG, MTF resample/align, CME ES RTH sessions, swing structure, volatility state |
 | **Models** | Declarative Market Model × Signal Model; single shared evaluation pass per research run |
 | **Signal Research** | Three scopes (market-only, signal-only, combined); forward outcomes; analytics HTML |
+| **Model Research** | YAML/JSON study definitions, quality flags, baseline comparison, Plotly report v2, NQ demo |
 | **Strategy Research** | Full strategy (market × signal × exit × risk); bar simulation; persisted run + dashboard |
+| **Robustness Research** | Parameter sweep, walk-forward, stress, Monte Carlo; PASS/CONDITIONAL/FAIL verdict |
 | **Quality** | Ruff, mypy, pytest, pre-commit, GitHub Actions |
 
 Roadmap: [docs/planning/ROADMAP.md](docs/planning/ROADMAP.md).

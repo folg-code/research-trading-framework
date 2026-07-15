@@ -1,13 +1,13 @@
 # Module Map
 
 > **Reference doc** — [as-implemented layer](../README.md).  
-> Data flows: [DATA_WORKFLOWS.md](DATA_WORKFLOWS.md). Index: [docs/README.md](../README.md).
+> Data flows: [DATA_WORKFLOWS.md](DATA_WORKFLOWS.md). Research workflows: [RESEARCH_METHODOLOGIES.md](RESEARCH_METHODOLOGIES.md). Index: [docs/README.md](../README.md).
 
 Package map for `src/trading_framework/`: responsibility, dependencies, status, entry points.
 
 **Status legend:** ✅ implemented · 🟡 partial / in sprint · ⬜ skeleton · 📘 deep doc elsewhere
 
-Last updated: 2026-07-14 (Sprint 015 on `main`; simulation refactor + columnar OHLCV on `main`)
+Last updated: 2026-07-15 (Sprint 017 complete on `sprint/model-research-methodology-mvp`; Sprint 016 on `main`)
 
 **Roadmap:** parallel capability tracks — `docs/planning/ROADMAP.md` §3. Phase 2A–2C.4, 4A, 5, 6A delivered on `main`. Portfolio demo: `scripts/demo/`.
 
