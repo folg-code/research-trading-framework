@@ -1,0 +1,114 @@
+"""Tests for Binance message handling in the local BTC futures dry-run runtime."""
+
+import json
+from datetime import UTC, datetime
+from decimal import Decimal
+from pathlib import Path
+from typing import cast
+
+from trading_framework.application.execution import (
+    LocalBtcFuturesBinanceFeedState,
+    LocalBtcFuturesDryRunConfig,
+    create_local_btc_futures_dry_run_runtime,
+    handle_local_btc_futures_binance_message,
+)
+from trading_framework.infrastructure.providers.binance import (
+    BinanceFuturesStreamEndpoint,
+    BinanceFuturesWebSocketMessage,
+)
+from trading_framework.infrastructure.storage.execution_events import read_jsonl_execution_events
+from trading_framework.strategy import BtcFuturesDemoStrategyConfig
+from trading_framework.time.clocks.fixed import FixedClock
+
+FIXTURE_ROOT = Path(__file__).resolve().parents[3] / "fixtures" / "binance"
+NOW = datetime(2026, 7, 15, 12, 0, tzinfo=UTC)
+
+
+def _load_fixture(name: str) -> dict[str, object]:
+    return cast(
+        dict[str, object],
+        json.loads((FIXTURE_ROOT / name).read_text(encoding="utf-8")),
+    )
+
+
+def _message(payload: object, stream: str = "btcusdt@kline_1m") -> BinanceFuturesWebSocketMessage:
+    wrapped_payload = payload
+    if not isinstance(payload, dict) or "stream" not in payload or "data" not in payload:
+        wrapped_payload = {"stream": stream, "data": payload}
+    return BinanceFuturesWebSocketMessage(
+        endpoint=BinanceFuturesStreamEndpoint.MARKET,
+        url=f"wss://fstream.binance.com/market/stream?streams={stream}",
+        payload=wrapped_payload,
+    )
+
+
+def test_binance_closed_kline_message_runs_local_dry_run_step(tmp_path: Path) -> None:
+    runtime = create_local_btc_futures_dry_run_runtime(
+        LocalBtcFuturesDryRunConfig(
+            event_log_path=tmp_path / "events.jsonl",
+            strategy_config=BtcFuturesDemoStrategyConfig(ema_period=2),
+        ),
+        clock=FixedClock(NOW),
+    )
+
+    result = handle_local_btc_futures_binance_message(
+        runtime,
+        state=LocalBtcFuturesBinanceFeedState(),
+        message=_message(_load_fixture("usdm_kline_1m_closed.json")),
+        max_closed_bars=3,
+    )
+
+    assert result.processed_closed_bar
+    assert result.feed_step_result is not None
+    assert result.state.closed_bar_count == 1
+    assert result.state.ignored_message_count == 0
+    assert len(result.state.closed_bars) == 1
+    assert result.state.closed_bars[0].close.value == Decimal("65010.50")
+    assert result.feed_step_result.step_result.signal_evaluation.close == 65010.5
+    event_rows = read_jsonl_execution_events(tmp_path / "events.jsonl")
+    assert [row["event_type"] for row in event_rows] == ["market_event_received"]
+
+
+def test_binance_open_kline_message_is_ignored(tmp_path: Path) -> None:
+    runtime = create_local_btc_futures_dry_run_runtime(
+        LocalBtcFuturesDryRunConfig(event_log_path=tmp_path / "events.jsonl"),
+        clock=FixedClock(NOW),
+    )
+
+    result = handle_local_btc_futures_binance_message(
+        runtime,
+        state=LocalBtcFuturesBinanceFeedState(),
+        message=_message(_load_fixture("usdm_kline_1m_open.json")),
+    )
+
+    assert not result.processed_closed_bar
+    assert result.ignored_reason == "open_kline"
+    assert result.state.closed_bar_count == 0
+    assert result.state.ignored_message_count == 1
+
+
+def test_binance_non_matching_message_is_ignored(tmp_path: Path) -> None:
+    runtime = create_local_btc_futures_dry_run_runtime(
+        LocalBtcFuturesDryRunConfig(event_log_path=tmp_path / "events.jsonl"),
+        clock=FixedClock(NOW),
+    )
+
+    unsupported = handle_local_btc_futures_binance_message(
+        runtime,
+        state=LocalBtcFuturesBinanceFeedState(),
+        message=_message(_load_fixture("usdm_book_ticker.json"), stream="btcusdt@bookTicker"),
+    )
+    wrong_symbol_payload = _load_fixture("usdm_kline_1m_closed.json")
+    wrong_symbol_payload["stream"] = "ethusdt@kline_1m"
+    data = cast(dict[str, object], wrong_symbol_payload["data"])
+    data["s"] = "ETHUSDT"
+    wrong_symbol = handle_local_btc_futures_binance_message(
+        runtime,
+        state=unsupported.state,
+        message=_message(wrong_symbol_payload),
+    )
+
+    assert unsupported.ignored_reason == "unsupported_stream"
+    assert wrong_symbol.ignored_reason == "symbol_mismatch"
+    assert wrong_symbol.state.closed_bar_count == 0
+    assert wrong_symbol.state.ignored_message_count == 2
