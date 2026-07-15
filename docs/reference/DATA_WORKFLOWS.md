@@ -501,6 +501,43 @@ scripts/demo/run_portfolio_demo.py
 
 Requires `uv pip install plotly` for Plotly-based reports. Strategy dashboards work without Plotly.
 
+### 3.13 Model Research Methodology (Sprint 017 — Phase 5B)
+
+```text
+SignalResearchDefinitionSpec (YAML/JSON under tests/fixtures/signal_research/ or inline)
+  → scripts/signal_research/run_signal_research.py
+  → {storage_root}/{run_id}/manifest.json + scope-specific parquet facts
+  → scripts/signal_research/analyze_signal_research.py --persist-analytics
+  → {storage_root}/{run_id}/analytics/summary.json (optional sidecar)
+  → scripts/signal_research/render_signal_research_report.py
+  → {storage_root}/{run_id}/report/report.html or demo/output/model_research/*.html
+
+Optional bounded family comparison:
+  → scripts/signal_research/run_model_family.py
+  → {storage_root}/signal_research_experiments/{experiment_id}/
+```
+
+**NQ half-year vertical slice (3 scopes):**
+
+```text
+scripts/demo/run_model_research_nq_demo.py
+  → storage: user_data/storage_nq_half_year
+  → dataset: NQ.c.0|ohlcv|1m|derived|volume-rth-close@1
+  → scopes: MARKET_MODEL_ONLY (high_volatility), SIGNAL_MODEL_ONLY (higher_low_long),
+             MARKET_AND_SIGNAL (combined + SIGNAL_ONLY baseline)
+  → horizons: 5m, 15m, 30m, 60m
+  → demo/output/08_model_research_nq_half_year.html (index)
+  → demo/output/model_research/{market_model_only,signal_model_only,market_and_signal}.html
+```
+
+**CLI:** `uv run python scripts/demo/run_model_research_nq_demo.py --open`  
+**Fixture fallback:** `--fixture` (committed ES OHLCV CSV, single 5m horizon, signal + combined scopes only)
+
+**ADR:** ADR-0020
+
+Unit tests: `tests/unit/scripts/test_signal_research_cli.py`,
+`tests/unit/scripts/test_run_model_research_nq_demo.py`
+
 ---
 
 ### 3.5 OHLCV Parquet Schema (canonical)

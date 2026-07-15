@@ -27,13 +27,13 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 
 ```text
 Status Date: 2026-07-15
-Current Phase: Sprint 017 — Model Research Methodology MVP (Phase 5B)
-Current Milestone: Wave 0 planning — research definition, quality flags, report v2, NQ demo
-Implementation Status: Sprints 001–006, 008–016 COMPLETE on main; Sprint 007 SKIPPED
+Current Phase: Post Sprint 017 — Model Research Methodology MVP merged to sprint branch
+Current Milestone: Sprint 017 Wave 6 closure — NQ demo + reference docs
+Implementation Status: Sprints 001–006, 008–016 COMPLETE on main; Sprint 007 SKIPPED; Sprint 017 COMPLETE on sprint branch (pending integration PR to main)
 Overall Status: IN_PROGRESS
-Active Sprint: SPRINT_017 (sprint/model-research-methodology-mvp — Wave 0)
-Last Completed Sprint: SPRINT_016 (merged to main via PR #141, 2026-07-15)
-Capability Tracks: Foundation COMPLETE; Data 2A + 2B/2C.1 + 2B.3 + 2C.4 COMPLETE; Research 3/4A/5/7 COMPLETE; Strategy 6A COMPLETE; Phase 5B IN_PROGRESS
+Active Sprint: none (Sprint 017 closure PR pending)
+Last Completed Sprint: SPRINT_017 (sprint/model-research-methodology-mvp — Wave 6, 2026-07-15)
+Capability Tracks: Foundation COMPLETE; Data 2A + 2B/2C.1 + 2B.3 + 2C.4 COMPLETE; Research 3/4A/5/5B/7 COMPLETE on sprint branch; Strategy 6A COMPLETE; Phase 5B COMPLETE (pending main merge)
 Recent perf: columnar OHLCV + shared eval → **~6 s** half-year NQ strategy research (178k bars, 45M ticks ingested); see README § Scale & performance and DATA_WORKFLOWS §1.1
 ```
 
@@ -130,19 +130,19 @@ Declarative experiment spec → run_robustness_experiment / per-kind runners
 
 ADR: ADR-0019 (ACCEPTED). CLIs: `scripts/robustness_research/`. Demo: `scripts/demo/run_robustness_demo.py`. See `SPRINT_016.md` and `S016_WAVE0_DECISIONS.md`.
 
-**Sprint 017 — Model Research Methodology MVP (Phase 5B)** is **in progress** on `sprint/model-research-methodology-mvp` (Wave 0 planning, 2026-07-15).
+**Sprint 017 — Model Research Methodology MVP (Phase 5B)** is **complete** on `sprint/model-research-methodology-mvp` (Wave 6 closure, 2026-07-15). Integration PR to `main` pending.
 
-Target flow:
+Delivered flow:
 
 ```text
 SignalResearchDefinitionSpec (YAML/JSON)
     → bounded run_signal_research
     → analyze_signal_research_run (read-only + quality flags)
     → build_signal_research_report → Plotly HTML dashboard
-    → NQ half-year demo (3 scopes)
+    → NQ half-year demo (3 scopes) + fixture fallback
 ```
 
-ADR: ADR-0020 (PROPOSED). See `SPRINT_017.md` and `S017_WAVE0_DECISIONS.md`.
+ADR: ADR-0020 (ACCEPTED). CLIs: `scripts/signal_research/`. Demo: `scripts/demo/run_model_research_nq_demo.py`. See `SPRINT_017.md` and `S017_WAVE0_DECISIONS.md`.
 
 ---
 
@@ -326,16 +326,18 @@ Maintenance: `.cursor/rules/documentation.mdc`
 
 **Portfolio demo packaging** — `scripts/demo/run_portfolio_demo.py` generates offline HTML artifacts for showcase (workflows + dashboards).
 
-**Sprint 017 — Model Research Methodology MVP (Phase 5B)** — Wave 0 planning in progress on `sprint/model-research-methodology-mvp`.
+**Sprint 017 — Model Research Methodology MVP (Phase 5B)** — **complete** on `sprint/model-research-methodology-mvp` (Wave 6, 2026-07-15). Final integration PR to `main` pending.
 
-**Plan:** `docs/planning/sprints/SPRINT_017.md` · **Wave 0:** `S017_WAVE0_DECISIONS.md` · **ADR:** ADR-0020 (PROPOSED) · **Branch:** `sprint/model-research-methodology-mvp`
+**Plan:** `docs/planning/sprints/SPRINT_017.md` · **Wave 0:** `S017_WAVE0_DECISIONS.md` · **ADR:** ADR-0020 (ACCEPTED) · **Branch:** `sprint/model-research-methodology-mvp`
 
-### Sprint 017 — Active (Phase 5B)
+### Sprint 017 — Closed (Phase 5B)
 
-**Status:** Wave 0 planning (2026-07-15)  
+**Status:** COMPLETE on sprint branch (2026-07-15, Waves 0–6)  
 **Plan:** `docs/planning/sprints/SPRINT_017.md`  
-**ADR:** ADR-0020 (PROPOSED)  
-**Scope:** research definition spec, quality diagnostics, report v2, CLI, model families, NQ half-year demo
+**ADR:** ADR-0020  
+**Tasks:** 10 / 10  
+**PRs:** #142–#148 (estimated)  
+**Scope:** research definition spec, quality diagnostics, report v2, CLI trio, model families, NQ half-year demo
 
 ### Sprint 016 — Closed (Phase 7)
 
@@ -416,7 +418,7 @@ Maintenance: `.cursor/rules/documentation.mdc`
 
 ## 7. Blocked Work
 
-Nothing is technically blocked. Active work: Sprint 017 Wave 1 (`SignalResearchDefinitionSpec`) after Wave 0 PR merge.
+Nothing is technically blocked. Next step: Sprint 017 integration PR from `sprint/model-research-methodology-mvp` to `main`.
 
 ---
 
@@ -468,7 +470,7 @@ PRB-002 and PRB-005 received partial MVP resolution in Sprint 003.
 | ADR-0017 | ACCEPTED (Sprint 014) |
 | ADR-0018 | ACCEPTED (Sprint 015) |
 | ADR-0019 | ACCEPTED (Sprint 016) |
-| ADR-0020 | PROPOSED (Sprint 017) |
+| ADR-0020 | ACCEPTED (Sprint 017) |
 | ADR-0004, ADR-0009, ADR-0010 | PLANNED |
 
 Binding decisions D-001–D-036 and workspace invariants are documented in the architecture files above; ADR materialization is Sprint 003 Wave 6 (including ADR-MA-007 workspace).
@@ -488,7 +490,7 @@ Binding decisions D-001–D-036 and workspace invariants are documented in the a
 ## 11. Next Planned Capability
 
 ```text
-Sprint 017 — Model Research Methodology MVP (Phase 5B) — ACTIVE
+Sprint 017 — Model Research Methodology MVP (Phase 5B) — COMPLETE on sprint branch (integration PR pending)
     SignalResearchDefinitionSpec + bounded experiments
     Quality flags + baseline marginal contribution
     Signal Research Report v2 (Plotly HTML)
@@ -525,7 +527,7 @@ See `ROADMAP.md` §11–§12.
 | 014 | Strategy Research dashboard Phase A | COMPLETED | 13 / 13 Phase A tasks |
 | 015 | Continuous futures materialization (Phase 2C.4) | COMPLETED | 19 / 19 tasks |
 | 016 | Robustness Research MVP (Phase 7) | COMPLETED | 34 / 34 tasks |
-| 017 | Model Research Methodology MVP (Phase 5B) | IN_PROGRESS | Wave 0 planning |
+| 017 | Model Research Methodology MVP (Phase 5B) | COMPLETED | 10 / 10 tasks; integration PR to main pending |
 
 ---
 

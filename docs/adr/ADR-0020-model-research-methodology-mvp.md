@@ -2,7 +2,7 @@
 
 ## Status
 
-PROPOSED (Sprint 017 Wave 0)
+ACCEPTED (Sprint 017)
 
 ## Context
 
