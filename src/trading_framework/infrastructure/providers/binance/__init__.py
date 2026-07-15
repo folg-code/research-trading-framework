@@ -29,6 +29,13 @@ from trading_framework.infrastructure.providers.binance.futures_streams import (
     kline_1m_stream,
     normalize_stream_symbol,
 )
+from trading_framework.infrastructure.providers.binance.futures_websocket import (
+    BinanceFuturesWebSocketClient,
+    BinanceFuturesWebSocketClientError,
+    BinanceFuturesWebSocketMessage,
+    BinanceWebSocketConnection,
+    BinanceWebSocketConnector,
+)
 
 __all__ = [
     "BINANCE_USDM_MAX_STREAMS_PER_CONNECTION",
@@ -38,7 +45,12 @@ __all__ = [
     "BinanceCombinedStreamPayload",
     "BinanceFuturesStream",
     "BinanceFuturesStreamEndpoint",
+    "BinanceFuturesWebSocketClient",
+    "BinanceFuturesWebSocketClientError",
+    "BinanceFuturesWebSocketMessage",
     "BinanceKlinePayload",
+    "BinanceWebSocketConnection",
+    "BinanceWebSocketConnector",
     "ReconnectBackoffPolicy",
     "book_ticker_stream",
     "btcusdt_mvp_streams",
