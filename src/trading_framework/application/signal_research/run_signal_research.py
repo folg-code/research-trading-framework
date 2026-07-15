@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import assert_never
+from typing import Any, assert_never
 
 import polars as pl
 
@@ -77,6 +77,10 @@ class RunSignalResearchRequest:
     outcome_definition: ForwardOutcomeDefinition | None = None
     experiment_id: str | None = None
     persist: bool = True
+    research_id: str | None = None
+    research_question: str | None = None
+    definition_hash: str | None = None
+    occurrence_policy: dict[str, Any] | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -203,18 +207,16 @@ def _run_signal_model_only(
         framework_version=framework_version,
         outcome_definition_fingerprint=definition_fingerprint,
     )
-    manifest = SignalResearchRunManifest(
+    manifest = _build_run_manifest(
         run_id=run_id,
         schema_version=SIGNAL_RESEARCH_SCHEMA_VERSION,
-        framework_version=framework_version,
-        created_at_utc=datetime.now(tz=UTC),
+        request=request,
         source_dataset_ref=source_dataset_ref,
         evaluation_timeframe=evaluation_timeframe.value,
         signal_model_ids=signal_model_ids,
-        horizon_bars_requested=request.horizons,
-        reference_price_policy=outcome_definition.reference_price_policy,
-        outcome_definition_fingerprint=definition_fingerprint,
-        experiment_id=request.experiment_id,
+        horizons=request.horizons,
+        outcome_definition=outcome_definition,
+        definition_fingerprint=definition_fingerprint,
     )
     return _persist_run(
         request,
@@ -297,18 +299,16 @@ def _run_market_and_signal(
         framework_version=framework_version,
         outcome_definition_fingerprint=definition_fingerprint,
     )
-    manifest = SignalResearchRunManifest(
+    manifest = _build_run_manifest(
         run_id=run_id,
         schema_version=SIGNAL_RESEARCH_SCHEMA_V2,
-        framework_version=framework_version,
-        created_at_utc=datetime.now(tz=UTC),
+        request=request,
         source_dataset_ref=source_dataset_ref,
         evaluation_timeframe=evaluation_timeframe.value,
         signal_model_ids=(signal_model.signal_model_id,),
-        horizon_bars_requested=request.horizons,
-        reference_price_policy=outcome_definition.reference_price_policy,
-        outcome_definition_fingerprint=definition_fingerprint,
-        experiment_id=request.experiment_id,
+        horizons=request.horizons,
+        outcome_definition=outcome_definition,
+        definition_fingerprint=definition_fingerprint,
         research_scope=ResearchScope.MARKET_AND_SIGNAL,
         market_model_ids=(market_model.market_model_id,),
     )
@@ -387,18 +387,16 @@ def _run_market_model_only(
         framework_version=framework_version,
         outcome_definition_fingerprint=definition_fingerprint,
     )
-    manifest = SignalResearchRunManifest(
+    manifest = _build_run_manifest(
         run_id=run_id,
         schema_version=SIGNAL_RESEARCH_SCHEMA_V2,
-        framework_version=framework_version,
-        created_at_utc=datetime.now(tz=UTC),
+        request=request,
         source_dataset_ref=source_dataset_ref,
         evaluation_timeframe=evaluation_timeframe.value,
         signal_model_ids=(),
-        horizon_bars_requested=request.horizons,
-        reference_price_policy=outcome_definition.reference_price_policy,
-        outcome_definition_fingerprint=definition_fingerprint,
-        experiment_id=request.experiment_id,
+        horizons=request.horizons,
+        outcome_definition=outcome_definition,
+        definition_fingerprint=definition_fingerprint,
         research_scope=ResearchScope.MARKET_MODEL_ONLY,
         market_model_ids=(market_model.market_model_id,),
     )
@@ -443,4 +441,39 @@ def _persist_run(
         observations=observations,
         context=context,
         outcomes=outcomes,
+    )
+
+
+def _build_run_manifest(
+    *,
+    run_id: str,
+    schema_version: str,
+    request: RunSignalResearchRequest,
+    source_dataset_ref: str,
+    evaluation_timeframe: str,
+    signal_model_ids: tuple[str, ...],
+    horizons: tuple[int, ...],
+    outcome_definition: ForwardOutcomeDefinition,
+    definition_fingerprint: str,
+    research_scope: ResearchScope | None = None,
+    market_model_ids: tuple[str, ...] = (),
+) -> SignalResearchRunManifest:
+    return SignalResearchRunManifest(
+        run_id=run_id,
+        schema_version=schema_version,
+        framework_version=framework_version,
+        created_at_utc=datetime.now(tz=UTC),
+        source_dataset_ref=source_dataset_ref,
+        evaluation_timeframe=evaluation_timeframe,
+        signal_model_ids=signal_model_ids,
+        horizon_bars_requested=horizons,
+        reference_price_policy=outcome_definition.reference_price_policy,
+        outcome_definition_fingerprint=definition_fingerprint,
+        experiment_id=request.experiment_id,
+        research_scope=research_scope,
+        market_model_ids=market_model_ids,
+        research_id=request.research_id,
+        research_question=request.research_question,
+        definition_hash=request.definition_hash,
+        occurrence_policy=request.occurrence_policy,
     )

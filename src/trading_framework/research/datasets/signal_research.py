@@ -67,6 +67,10 @@ class SignalResearchRunManifest:
     experiment_id: str | None = None
     research_scope: ResearchScope | None = None
     market_model_ids: tuple[str, ...] = ()
+    research_id: str | None = None
+    research_question: str | None = None
+    definition_hash: str | None = None
+    occurrence_policy: dict[str, Any] | None = None
 
     def effective_scope(self) -> ResearchScope:
         """Resolve explicit v2 scope or infer ``SIGNAL_MODEL_ONLY`` for legacy v1 runs."""
@@ -93,6 +97,14 @@ class SignalResearchRunManifest:
             payload["research_scope"] = self.research_scope.value
         if self.market_model_ids:
             payload["market_model_ids"] = list(self.market_model_ids)
+        if self.research_id is not None:
+            payload["research_id"] = self.research_id
+        if self.research_question is not None:
+            payload["research_question"] = self.research_question
+        if self.definition_hash is not None:
+            payload["definition_hash"] = self.definition_hash
+        if self.occurrence_policy is not None:
+            payload["occurrence_policy"] = self.occurrence_policy
         return payload
 
     @classmethod
@@ -118,6 +130,24 @@ class SignalResearchRunManifest:
             ),
             research_scope=research_scope,
             market_model_ids=tuple(str(value) for value in market_model_ids_raw),
+            research_id=(
+                str(payload["research_id"]) if payload.get("research_id") is not None else None
+            ),
+            research_question=(
+                str(payload["research_question"])
+                if payload.get("research_question") is not None
+                else None
+            ),
+            definition_hash=(
+                str(payload["definition_hash"])
+                if payload.get("definition_hash") is not None
+                else None
+            ),
+            occurrence_policy=(
+                dict(payload["occurrence_policy"])
+                if payload.get("occurrence_policy") is not None
+                else None
+            ),
         )
 
 
