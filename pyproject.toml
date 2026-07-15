@@ -49,6 +49,7 @@ addopts = [
 ]
 markers = [
     "tier2_databento: opt-in integration tests requiring a local Databento DBN archive",
+    "binance_network: opt-in integration tests requiring public Binance network access",
 ]
 
 [tool.ruff]
