@@ -10,7 +10,11 @@ from pathlib import Path
 from typing import Any
 
 from trading_framework.core.exceptions import ValidationError
-from trading_framework.infrastructure.storage.paths import robustness_experiment_dir
+from trading_framework.infrastructure.storage.paths import (
+    robustness_experiment_analytics_dir,
+    robustness_experiment_dir,
+)
+from trading_framework.research.robustness.analytics.parameter_sweep import ParameterSweepAnalytics
 from trading_framework.research.robustness.experiment import RobustnessExperimentSpec
 
 ROBUSTNESS_EXPERIMENT_SCHEMA_VERSION = "robustness_experiment.v1"
@@ -225,3 +229,29 @@ class RobustnessExperimentRepository:
 
     def manifest_exists(self, experiment_id: str) -> bool:
         return (self.experiment_dir(experiment_id) / "manifest.json").exists()
+
+    def write_parameter_sweep_analytics(self, analytics: ParameterSweepAnalytics) -> None:
+        analytics_dir = robustness_experiment_analytics_dir(self._root, analytics.experiment_id)
+        analytics_dir.mkdir(parents=True, exist_ok=True)
+        analytics_path = analytics_dir / "parameter_sweep.json"
+        analytics_path.write_text(
+            json.dumps(analytics.to_dict(), indent=2),
+            encoding="utf-8",
+        )
+
+    def read_parameter_sweep_analytics(self, experiment_id: str) -> ParameterSweepAnalytics:
+        analytics_path = (
+            robustness_experiment_analytics_dir(self._root, experiment_id) / "parameter_sweep.json"
+        )
+        if not analytics_path.exists():
+            msg = f"missing parameter sweep analytics: {analytics_path}"
+            raise FileNotFoundError(msg)
+        return ParameterSweepAnalytics.from_dict(
+            json.loads(analytics_path.read_text(encoding="utf-8"))
+        )
+
+    def parameter_sweep_analytics_exists(self, experiment_id: str) -> bool:
+        analytics_path = (
+            robustness_experiment_analytics_dir(self._root, experiment_id) / "parameter_sweep.json"
+        )
+        return analytics_path.exists()
