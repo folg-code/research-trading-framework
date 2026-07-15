@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
+from decimal import Decimal
 
 import pytest
 
@@ -13,6 +14,10 @@ from trading_framework.research.robustness.experiment import (
     RobustnessExperimentSpec,
 )
 from trading_framework.research.robustness.kinds import RobustnessExperimentKind
+from trading_framework.research.robustness.stress import (
+    StressScenarioSpec,
+    StressTestSpec,
+)
 from trading_framework.research.robustness.walk_forward import (
     WalkForwardSpec,
     WalkForwardWindowMode,
@@ -28,6 +33,14 @@ _DEFAULT_WALK_FORWARD = WalkForwardSpec(
     oos_duration_seconds=1800,
     step_duration_seconds=1800,
 )
+_DEFAULT_STRESS_TEST = StressTestSpec(
+    scenarios=(
+        StressScenarioSpec(
+            scenario_id="double_commission",
+            commission_multiplier=Decimal("2"),
+        ),
+    ),
+)
 
 
 def _base_spec(
@@ -36,6 +49,7 @@ def _base_spec(
     kinds: tuple[RobustnessExperimentKind, ...] = (RobustnessExperimentKind.PARAMETER_SWEEP,),
     parameter_sweep: ParameterSweepSpec | None = _DEFAULT_PARAMETER_SWEEP,
     walk_forward: WalkForwardSpec | None = None,
+    stress_test: StressTestSpec | None = None,
 ) -> RobustnessExperimentSpec:
     return RobustnessExperimentSpec(
         experiment_id=experiment_id,
@@ -47,6 +61,7 @@ def _base_spec(
         strategy_template_id=CANONICAL_STRATEGY_MODEL_ID,
         parameter_sweep=parameter_sweep,
         walk_forward=walk_forward,
+        stress_test=stress_test,
     )
 
 
@@ -82,3 +97,22 @@ def test_robustness_experiment_spec_walk_forward_roundtrip_dict() -> None:
 def test_robustness_experiment_spec_requires_parameter_sweep_block() -> None:
     with pytest.raises(ValidationError, match="requires parameter_sweep"):
         _base_spec(parameter_sweep=None)
+
+
+def test_robustness_experiment_spec_requires_stress_test_block() -> None:
+    with pytest.raises(ValidationError, match="requires stress_test"):
+        _base_spec(
+            kinds=(RobustnessExperimentKind.STRESS_TEST,),
+            parameter_sweep=None,
+            stress_test=None,
+        )
+
+
+def test_robustness_experiment_spec_stress_roundtrip_dict() -> None:
+    spec = _base_spec(
+        kinds=(RobustnessExperimentKind.STRESS_TEST,),
+        parameter_sweep=None,
+        stress_test=_DEFAULT_STRESS_TEST,
+    )
+    restored = RobustnessExperimentSpec.from_dict(spec.to_dict())
+    assert restored == spec

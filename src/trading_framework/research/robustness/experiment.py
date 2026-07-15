@@ -8,12 +8,14 @@ from typing import Any
 
 from trading_framework.core.exceptions import ValidationError
 from trading_framework.research.robustness.kinds import RobustnessExperimentKind
+from trading_framework.research.robustness.stress import StressTestSpec
 from trading_framework.research.robustness.walk_forward import WalkForwardSpec
 
-SUPPORTED_WAVE3_KINDS = frozenset(
+SUPPORTED_WAVE4_KINDS = frozenset(
     {
         RobustnessExperimentKind.PARAMETER_SWEEP,
         RobustnessExperimentKind.WALK_FORWARD,
+        RobustnessExperimentKind.STRESS_TEST,
     }
 )
 
@@ -74,6 +76,7 @@ class RobustnessExperimentSpec:
     strategy_template_id: str
     parameter_sweep: ParameterSweepSpec | None = None
     walk_forward: WalkForwardSpec | None = None
+    stress_test: StressTestSpec | None = None
     evaluation_timeframe: str | None = None
 
     def __post_init__(self) -> None:
@@ -111,6 +114,8 @@ class RobustnessExperimentSpec:
             }
         if self.walk_forward is not None:
             payload["walk_forward"] = self.walk_forward.to_dict()
+        if self.stress_test is not None:
+            payload["stress_test"] = self.stress_test.to_dict()
         return payload
 
     @classmethod
@@ -132,6 +137,10 @@ class RobustnessExperimentSpec:
             if walk_forward_payload is not None
             else None
         )
+        stress_payload = payload.get("stress_test")
+        stress_test = (
+            StressTestSpec.from_dict(stress_payload) if stress_payload is not None else None
+        )
         return cls(
             experiment_id=str(payload["experiment_id"]),
             kinds=tuple(RobustnessExperimentKind(kind) for kind in payload["kinds"]),
@@ -142,6 +151,7 @@ class RobustnessExperimentSpec:
             strategy_template_id=str(payload["strategy_template_id"]),
             parameter_sweep=parameter_sweep,
             walk_forward=walk_forward,
+            stress_test=stress_test,
             evaluation_timeframe=(
                 str(payload["evaluation_timeframe"])
                 if payload.get("evaluation_timeframe") is not None
@@ -151,8 +161,8 @@ class RobustnessExperimentSpec:
 
 
 def validate_robustness_experiment_spec(spec: RobustnessExperimentSpec) -> None:
-    """Validate wave-3-supported experiment declarations."""
-    unsupported = [kind for kind in spec.kinds if kind not in SUPPORTED_WAVE3_KINDS]
+    """Validate wave-4-supported experiment declarations."""
+    unsupported = [kind for kind in spec.kinds if kind not in SUPPORTED_WAVE4_KINDS]
     if unsupported:
         names = ", ".join(kind.value for kind in unsupported)
         msg = f"unsupported experiment kinds: {names}"
@@ -167,3 +177,6 @@ def validate_robustness_experiment_spec(spec: RobustnessExperimentSpec) -> None:
         if spec.parameter_sweep is None:
             msg = "WALK_FORWARD requires parameter_sweep for train selection"
             raise ValidationError(msg)
+    if RobustnessExperimentKind.STRESS_TEST in spec.kinds and spec.stress_test is None:
+        msg = "STRESS_TEST requires stress_test"
+        raise ValidationError(msg)
