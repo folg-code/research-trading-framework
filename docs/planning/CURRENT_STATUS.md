@@ -39,6 +39,28 @@ Recent perf: columnar OHLCV + shared eval → **~6 s** half-year NQ strategy res
 
 ---
 
+## 2.1 Current Phase 8A Update
+
+As of 2026-07-15, Phase 8A has moved beyond Sprint 017 closure:
+
+- Sprint 018 delivered provider-independent dry-run execution contracts.
+- Sprint 019 delivered the Binance BTCUSDT USD-M futures live-data adapter.
+- Current active preparation target: Sprint 020, local BTC futures dry-run runtime.
+
+Sprint 019 live-data boundary:
+
+```text
+Binance public WebSocket
+  -> infrastructure/providers/binance parser + mapper
+  -> MarketBar / BestBidAskSnapshot / MarketFeedStatusSnapshot
+  -> future Sprint 020 dry-run runtime
+```
+
+Standard CI remains network-free. Binance live smoke validation is opt-in through
+`TRADING_FRAMEWORK_RUN_BINANCE_NETWORK_SMOKE=1`.
+
+---
+
 ## 3. Current Objective
 
 **Phase 5 — Signal Research MVP** is complete on `main` (PR #93, 2026-07-12).
@@ -528,6 +550,8 @@ See `ROADMAP.md` §11–§12.
 | 015 | Continuous futures materialization (Phase 2C.4) | COMPLETED | 19 / 19 tasks |
 | 016 | Robustness Research MVP (Phase 7) | COMPLETED | 34 / 34 tasks |
 | 017 | Model Research Methodology MVP (Phase 5B) | COMPLETED | 10 / 10 tasks; integration PR to main pending |
+| 018 | Dry-run Execution contracts (Phase 8A) | COMPLETED | 2 / 2 Wave 0 tasks + execution contracts |
+| 019 | Binance BTC Futures Live Data Adapter (Phase 8A) | COMPLETED | 9 / 9 tasks |
 
 ---
 
