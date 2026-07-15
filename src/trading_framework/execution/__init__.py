@@ -1,5 +1,6 @@
 """Execution domain package."""
 
+from trading_framework.execution.broker_sim import PaperBroker, PaperBrokerResult, PaperBrokerState
 from trading_framework.execution.models import (
     BestBidAskSnapshot,
     ExecutionEvent,
@@ -37,6 +38,9 @@ __all__ = [
     "OrderStatus",
     "OrderType",
     "PaperAccountSnapshot",
+    "PaperBroker",
+    "PaperBrokerResult",
+    "PaperBrokerState",
     "PaperPosition",
     "PositionSide",
     "RuntimeHealth",
