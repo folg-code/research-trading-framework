@@ -17,6 +17,8 @@ from trading_framework.execution import (
     ExecutionMode,
     ExecutionSafetyPolicy,
     Heartbeat,
+    MarketFeedConnectionState,
+    MarketFeedStatusSnapshot,
     OrderIntent,
     OrderSide,
     OrderStatus,
@@ -188,4 +190,50 @@ def test_heartbeat_rejects_naive_timestamp() -> None:
             runtime_id="runtime-1",
             recorded_at=datetime(2026, 7, 15, 12, 0),
             status=RuntimeHealth.RUNNING,
+        )
+
+
+def test_market_feed_status_tracks_connection_state_and_last_message() -> None:
+    snapshot = MarketFeedStatusSnapshot(
+        provider=" binance_usdm ",
+        symbol=" BTCUSDT ",
+        state=MarketFeedConnectionState.RECONNECTING,
+        recorded_at=NOW,
+        last_message_at=datetime(2026, 7, 15, 11, 59, tzinfo=UTC),
+        reconnect_count=2,
+        last_error=" websocket closed ",
+    )
+
+    assert snapshot.provider == "binance_usdm"
+    assert snapshot.symbol == "BTCUSDT"
+    assert snapshot.state is MarketFeedConnectionState.RECONNECTING
+    assert snapshot.reconnect_count == 2
+    assert snapshot.last_error == "websocket closed"
+
+
+def test_market_feed_status_rejects_invalid_timestamps_and_reconnect_count() -> None:
+    with pytest.raises(ValidationError, match="timezone-aware"):
+        MarketFeedStatusSnapshot(
+            provider="binance_usdm",
+            symbol="BTCUSDT",
+            state=MarketFeedConnectionState.CONNECTED,
+            recorded_at=datetime(2026, 7, 15, 12, 0),
+        )
+
+    with pytest.raises(ValidationError, match="last_message_at"):
+        MarketFeedStatusSnapshot(
+            provider="binance_usdm",
+            symbol="BTCUSDT",
+            state=MarketFeedConnectionState.CONNECTED,
+            recorded_at=NOW,
+            last_message_at=datetime(2026, 7, 15, 12, 1, tzinfo=UTC),
+        )
+
+    with pytest.raises(ValidationError, match="reconnect_count"):
+        MarketFeedStatusSnapshot(
+            provider="binance_usdm",
+            symbol="BTCUSDT",
+            state=MarketFeedConnectionState.CONNECTED,
+            recorded_at=NOW,
+            reconnect_count=-1,
         )

@@ -12,6 +12,10 @@ from trading_framework.infrastructure.providers.binance.futures_payloads import 
     parse_combined_stream_payload,
     parse_kline_payload,
 )
+from trading_framework.infrastructure.providers.binance.futures_reconnect import (
+    DEFAULT_RECONNECT_BACKOFF_POLICY,
+    ReconnectBackoffPolicy,
+)
 from trading_framework.infrastructure.providers.binance.futures_streams import (
     BINANCE_USDM_MAX_STREAMS_PER_CONNECTION,
     BINANCE_USDM_WS_BASE_URL,
@@ -29,11 +33,13 @@ from trading_framework.infrastructure.providers.binance.futures_streams import (
 __all__ = [
     "BINANCE_USDM_MAX_STREAMS_PER_CONNECTION",
     "BINANCE_USDM_WS_BASE_URL",
+    "DEFAULT_RECONNECT_BACKOFF_POLICY",
     "BinanceBookTickerPayload",
     "BinanceCombinedStreamPayload",
     "BinanceFuturesStream",
     "BinanceFuturesStreamEndpoint",
     "BinanceKlinePayload",
+    "ReconnectBackoffPolicy",
     "book_ticker_stream",
     "btcusdt_mvp_streams",
     "build_combined_stream_url",
