@@ -5,8 +5,8 @@
 
 Technical reference for how data moves through the framework: ingestion, persistence, lifecycle, query and analysis execution.
 
-**As-is scope:** Market Data Phase 2A (Sprint 002), Phase 2B + 2C.1 trades import (Sprint 011), Phase 2B.3 derived OHLCV (Sprint 012), Phase 2C.4 continuous futures (Sprint 015 on `main`). Multitimeframe and declarative models: Sprints 004–006. Signal Research: Sprints 008–010. Strategy Research MVP + dashboard Phase A: Sprints 013–014. Simulation refactor + columnar OHLCV batch path: PRs #124–#132 on `main`.  
-**Planned next:** Phase 7 robustness, Phase 4B orderflow, or Phase 6B multi-data — `ROADMAP.md` §10–§11.  
+**As-is scope:** Market Data Phase 2A (Sprint 002), Phase 2B + 2C.1 trades import (Sprint 011), Phase 2B.3 derived OHLCV (Sprint 012), Phase 2C.4 continuous futures (Sprint 015 on `main`). Multitimeframe and declarative models: Sprints 004–006. Signal Research: Sprints 008–010. Strategy Research MVP + dashboard Phase A: Sprints 013–014. Simulation refactor + columnar OHLCV batch path: PRs #124–#132 on `main`. Robustness Research MVP: Sprint 016 on `sprint/robustness-mvp` (ADR-0019).  
+**Planned next:** Phase 4B orderflow, Phase 6B multi-data deferred.  
 **Portfolio demo:** `scripts/demo/run_portfolio_demo.py` → `demo/output/index.html`.  
 **Deep market data reference:** [modules/DATA_MODULE_UPDATED.md](modules/DATA_MODULE_UPDATED.md)
 
@@ -779,6 +779,8 @@ These appear in architecture diagrams and sprint plans but **have no production 
 | Historical bars | `application.market_data` | `query_historical` → `list[MarketBar]` |
 | Strategy Research run | `application.strategy_research` | `run_strategy_research`, `analyze_strategy_research_run` |
 | Strategy Research dashboard | `application.strategy_research`, `research/analytics` | `build_strategy_dashboard_view_model`, `render_strategy_research_dashboard` |
+| Robustness experiment | `application.robustness_research` | `run_robustness_experiment`, `run_*_experiment`, `analyze_robustness_experiment` |
+| Robustness report | `research/robustness` | `render_robustness_report` → `report/robustness_report.html` |
 | Analysis input | `application.market_analysis` | `load_analysis_data_view` → `AnalysisDataView` |
 | Register components | `market_analysis.registry` | `ComponentRegistry` |
 | Build DAG | `market_analysis.planning` | `DependencyPlanner.build_plan` |

@@ -105,6 +105,36 @@ def strategy_research_run_dir(root: Path, run_id: str) -> Path:
     return root / "strategy_research" / run_id
 
 
+def robustness_experiment_dir(root: Path, experiment_id: str) -> Path:
+    """Return the storage directory for one robustness experiment."""
+    return root / "robustness_experiments" / experiment_id
+
+
+def robustness_experiment_stress_dir(root: Path, experiment_id: str) -> Path:
+    """Return the stress directory for one robustness experiment."""
+    return robustness_experiment_dir(root, experiment_id) / "stress"
+
+
+def robustness_experiment_monte_carlo_dir(root: Path, experiment_id: str) -> Path:
+    """Return the Monte Carlo directory for one robustness experiment."""
+    return robustness_experiment_dir(root, experiment_id) / "monte_carlo"
+
+
+def robustness_experiment_report_dir(root: Path, experiment_id: str) -> Path:
+    """Return the report directory for one robustness experiment."""
+    return robustness_experiment_dir(root, experiment_id) / "report"
+
+
+def robustness_experiment_folds_dir(root: Path, experiment_id: str) -> Path:
+    """Return the folds directory for one robustness experiment."""
+    return robustness_experiment_dir(root, experiment_id) / "folds"
+
+
+def robustness_experiment_analytics_dir(root: Path, experiment_id: str) -> Path:
+    """Return the analytics directory for one robustness experiment."""
+    return robustness_experiment_dir(root, experiment_id) / "analytics"
+
+
 def trade_event_partition_day(event_at: datetime) -> date:
     """Return the UTC calendar day used for trade dataset partitioning."""
     return require_utc_aware(event_at).date()
