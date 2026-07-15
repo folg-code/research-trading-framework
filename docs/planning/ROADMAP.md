@@ -69,8 +69,8 @@ Foundation Track
 
 Data Capability Track
   Phase 2A — OHLCV Market Data MVP                COMPLETE  (Sprint 002; roadmap label: Phase 2)
-  Phase 2B — Historical Archive Import Foundation PLANNED  (initial adapter: Databento DBN)
-  Phase 2C — Trades and Quotes                    PLANNED
+  Phase 2B — Historical Archive Import Foundation COMPLETE  (Sprint 011 trades; OHLCV archive PLANNED)
+  Phase 2C — Trades and Quotes                    COMPLETE  (2C.1 + 2C.4 on main; 2C.2 quotes PLANNED)
   Phase 2D — Options Snapshot Data                PLANNED
   Phase 2E — Live Market Data                     GATED
 
@@ -80,7 +80,7 @@ Research Capability Track
   Phase 4B — Orderflow Market Analysis            PLANNED
   Phase 4C — Options-Derived Market Analysis      PLANNED
   Phase 5  — Signal Research MVP                  COMPLETE  (Sprints 008–010)
-  Phase 6A — OHLCV Strategy Research MVP          PLANNED
+  Phase 6A — OHLCV Strategy Research MVP          COMPLETE  (Sprints 013–014)
   Phase 6B — Multi-Data Strategy Research         PLANNED
   Phase 7  — Robustness Research                  PLANNED
 
@@ -107,7 +107,7 @@ Market Data policy (facts not indicators, vendor independence): **§14 Research 
 
 Test data tiers and live-data gate: **§15**.
 
-**Recommended next sprint:** Phase 2B vertical slice — Databento DBN OHLCV archive import (**§6**, **§15.4**).
+**Recommended next increment:** Phase 7 robustness, Phase 4B orderflow, or research-at-scale — see `CURRENT_STATUS.md` §11.
 
 ---
 
@@ -444,7 +444,7 @@ Raw DBN → contract datasets → roll schedule → continuous trades → derive
 Consumers (`run_strategy_research`, `run_signal_research`) read published continuous `DatasetRef`
 values only — no runtime roll construction.
 
-ADR: ADR-0018 (ACCEPTED). See `SPRINT_015.md`, `S015_WAVE0_DECISIONS.md`. On `sprint/continuous-futures-materialization`; integration PR to `main` pending.
+ADR: ADR-0018 (ACCEPTED). See `SPRINT_015.md`, `S015_WAVE0_DECISIONS.md`. Delivered on `main` (PR #123).
 
 MBO/MBP are **not** in the first trades sprint scope.
 
@@ -818,16 +818,18 @@ Conditional Signal Behaviour
 
 # 10. Strategy Research — Phase 6 Family
 
-Phase 6 has **not** started. Scope is split so OHLCV strategy research can proceed without waiting for trades or options.
+Phase 6 has started. Scope is split so OHLCV strategy research can proceed without waiting for trades or options.
 
 ```text
-Phase 6A — OHLCV Strategy Research MVP     PLANNED
+Phase 6A — OHLCV Strategy Research MVP     COMPLETE  (Sprints 013–014)
 Phase 6B — Multi-Data Strategy Research    PLANNED
 ```
 
 ---
 
-## Phase 6A — OHLCV Strategy Research MVP (PLANNED)
+## Phase 6A — OHLCV Strategy Research MVP (COMPLETE)
+
+**Delivered:** Sprints 013–014 on `main` (2026-07-14). Dashboard Phase B (FastAPI) deferred.
 
 ### Purpose
 

@@ -5,9 +5,66 @@
 
 Technical reference for how data moves through the framework: ingestion, persistence, lifecycle, query and analysis execution.
 
-**As-is scope:** Market Data Phase 2A (Sprint 002 CSV OHLCV), Phase 2B + 2C.1 trades archive import (Sprint 011), Phase 2B.3 derived OHLCV from trades (Sprint 012), Phase 2C.4 continuous futures materialization (Sprint 015 on `sprint/continuous-futures-materialization`). Multitimeframe and declarative models: Sprints 004–006. Signal Research: Sprints 008–010 on `main`. Strategy Research MVP: Sprint 013 on `main`. Strategy Research dashboard (Phase A): Sprint 014 on `main`.  
-**Planned next:** Sprint 015 integration to `main`; then Phase 6B, 2C.2, or 4B — `ROADMAP.md` §6, §10.  
+**As-is scope:** Market Data Phase 2A (Sprint 002), Phase 2B + 2C.1 trades import (Sprint 011), Phase 2B.3 derived OHLCV (Sprint 012), Phase 2C.4 continuous futures (Sprint 015 on `main`). Multitimeframe and declarative models: Sprints 004–006. Signal Research: Sprints 008–010. Strategy Research MVP + dashboard Phase A: Sprints 013–014. Simulation refactor + columnar OHLCV batch path: PRs #124–#132 on `main`.  
+**Planned next:** Phase 7 robustness, Phase 4B orderflow, or Phase 6B multi-data — `ROADMAP.md` §10–§11.  
+**Portfolio demo:** `scripts/demo/run_portfolio_demo.py` → `demo/output/index.html`.  
 **Deep market data reference:** [modules/DATA_MODULE_UPDATED.md](modules/DATA_MODULE_UPDATED.md)
+
+---
+
+## 1.1 Reference scale (NQ half-year demo)
+
+Concrete numbers from `user_data/storage_nq_half_year` (not in git). Use for portfolio narrative and regression checks.
+
+### Dataset inventory
+
+| Artifact | Instrument / provider | Row count | Notes |
+|----------|----------------------|-----------|-------|
+| Contract ticks | `NQ.NQU5`, `NQ.NQZ5`, … (7 contracts) | **45,237,885** | Databento DBN → day-partitioned Parquet |
+| Continuous ticks | `NQ.c.0` / `continuous` | **44,322,865** | Volume-RTH-close roll; materialized once |
+| Continuous 1m OHLCV | `NQ.c.0` / `derived` | **177,507** | Jul 2025 – Jan 2026 UTC; ~250:1 tick→bar |
+| Strategy run (canonical) | `high_vol_higher_low_fixed_exit` | **1,464** trades | `run_id` example: `14e36fe5fbb5d9f2` |
+
+### Research pass (canonical strategy components)
+
+One `run_strategy_research` on the full OHLCV range:
+
+| Metric | Value |
+|--------|-------|
+| OHLCV bars loaded (columnar) | 177,507 |
+| Market OHLCV cells | 887,535 (5 × bars) |
+| Component output series (ATR, TR, volatility state, 5m swing, MTF align, …) | 26 |
+| Total aligned analytical cells | **~2.38M** |
+| Wall clock (`--skip-build --no-persist`) | **~6 s** (2026-07-14, Windows laptop) |
+
+Consumer `AnalysisFrame` exposes only model-facing columns (2 for the canonical strategy); the executor still computes the full component DAG above.
+
+### Throughput improvements (same dataset family)
+
+| Pipeline step | Before | After | Change |
+|---------------|--------|-------|--------|
+| DBN contract import (3 archives) | ~807 s | ~89 s | Vectorized CME session date mapping |
+| Strategy research (half-year) | ~40 s | **~6 s** | `searchsorted` align + columnar OHLCV + shared eval table + Numba kernel |
+
+### Reproduce timings
+
+```bash
+uv run python scripts/market_data/run_half_year_backtest.py \
+  --storage-root user_data/storage_nq_half_year \
+  --skip-build --no-persist --profile
+```
+
+Row counts from published metadata:
+
+```bash
+uv run python -c "
+import json
+from pathlib import Path
+for p in sorted(Path('user_data/storage_nq_half_year/metadata').rglob('v1.json')):
+    d = json.loads(p.read_text())
+    print(d['instrument_id'], d['data_type'], f\"{d['row_count']:,}\")
+"
+```
 
 ---
 
@@ -316,21 +373,25 @@ sequenceDiagram
 Integration tests: `tests/integration/market_data/test_derive_ohlcv_from_trades_flow.py`,
 `test_derive_ohlcv_from_trades_mocked.py`.
 
-### 3.8 Strategy Research Run Envelope (Sprint 013)
+### 3.8 Strategy Research Run Envelope (Sprint 013+)
 
 ```text
 Published OHLCV DatasetRef
   → run_strategy_research
-  → evaluate_models (Market × Signal) + build_gated_entry_signals
-  → query_historical + BarSequentialSimulator
+  → query_historical_columnar → OhlcvColumnBatch → AnalysisDataView (batch hot path)
+  → evaluate_models (shared evaluation table; Market × Signal)
+  → build_gated_entry_signals
+  → simulate_from_columnar (Numba fixed-bars kernel)
   → strategy_research/<run_id>/{manifest.json, trades.parquet, equity.parquet}
   → analyze_strategy_research_run (read-only summary)
 ```
 
-**Entry points:** `trading_framework.application.strategy_research.run_strategy_research`,
-`analyze_strategy_research_run`
+**Columnar path:** `query_ohlcv_table` → `OhlcvColumnBatch` avoids per-bar `MarketBar` materialization in batch research. Boundary `query_historical()` still returns `list[MarketBar]` for small consumer queries.
 
-**CLI:** `scripts/strategy_research/run_strategy_research.py`
+**Entry points:** `trading_framework.application.strategy_research.run_strategy_research`,
+`analyze_strategy_research_run`, `BarSequentialSimulator.simulate_from_columnar`
+
+**CLI:** `scripts/strategy_research/run_strategy_research.py`, `scripts/market_data/run_half_year_backtest.py`
 
 **Simulation assumptions:** `NEXT_BAR_OPEN` entry/exit fills; fingerprint in manifest (ADR-0016, TD-009).
 
@@ -426,6 +487,19 @@ enables reuse without rewrite.
 
 Integration tests: `tests/integration/test_s015_continuous_strategy_research.py`,
 `tests/unit/test_continuous_futures_consumer_boundary.py`
+
+### 3.12 Portfolio Demo (offline HTML bundle)
+
+```text
+scripts/demo/run_portfolio_demo.py
+  → fixture and/or NQ half-year strategy dashboards (Lightweight Charts)
+  → Signal Research analytics + combined/occurrence/model/swing inspection HTML (Plotly)
+  → demo/output/index.html (landing page with workflow descriptions)
+```
+
+**CLI:** `uv run python scripts/demo/run_portfolio_demo.py --full --open`
+
+Requires `uv pip install plotly` for Plotly-based reports. Strategy dashboards work without Plotly.
 
 ---
 

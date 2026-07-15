@@ -12,7 +12,8 @@ Index: [../README.md](../README.md). Vision docs: [../vision/README.md](../visio
 | File | Purpose |
 |------|---------|
 | [MODULE_MAP.md](MODULE_MAP.md) | Packages, status ✅/🟡/⬜, entry points |
-| [DATA_WORKFLOWS.md](DATA_WORKFLOWS.md) | Data movement with diagrams |
+| [DATA_WORKFLOWS.md](DATA_WORKFLOWS.md) | Data movement with diagrams; **§1.1** NQ half-year scale benchmarks |
+| [../README.md](../README.md) | Project overview — stack, architecture, workflows (repository root) |
 
 ---
 
