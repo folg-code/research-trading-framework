@@ -20,11 +20,16 @@ from trading_framework.research.analytics.metadata import (
     AnalyticsResultMetadata,
     build_analytics_result_metadata,
 )
+from trading_framework.research.analytics.quality_flags import (
+    SignalResearchQualityWarning,
+    compute_signal_research_quality_warnings,
+)
 from trading_framework.research.analytics.summarize import summarize_analysis_frame
 from trading_framework.research.datasets.signal_research import (
     RunDatasetRef,
     SignalResearchDatasetRepository,
 )
+from trading_framework.research.signal_research.definition import SignalResearchQualityRules
 
 
 class AnalyzeSignalResearchError(ValidationError):
@@ -46,6 +51,7 @@ class AnalyzeSignalResearchRequest:
     timestamp_basis: AnalyticsTimestampBasis = AnalyticsTimestampBasis.AVAILABLE_AT
     min_sample_size: int = 1
     interpretation_min_sample_size: int = DEFAULT_INTERPRETATION_MIN_SAMPLE_SIZE
+    quality_rules: SignalResearchQualityRules | None = None
 
     def __post_init__(self) -> None:
         if self.min_sample_size < 1:
@@ -67,6 +73,7 @@ class AnalyzeSignalResearchResult:
     distribution_summaries: pl.DataFrame
     join_diagnostics: pl.DataFrame
     metadata: AnalyticsResultMetadata
+    quality_warnings: tuple[SignalResearchQualityWarning, ...] = ()
 
 
 def analyze_signal_research_run(
@@ -111,6 +118,16 @@ def analyze_signal_research_run(
         interpretation_min_sample_size=request.interpretation_min_sample_size,
     )
 
+    quality_warnings = compute_signal_research_quality_warnings(
+        run_summaries=summarized.run_summaries,
+        grouped_summaries=summarized.grouped_summaries,
+        conditional_comparison=summarized.conditional_comparison,
+        frame=frame,
+        research_scope=scope,
+        rules=request.quality_rules,
+        outcome_filter=request.outcome_filter,
+    )
+
     return AnalyzeSignalResearchResult(
         source_run_id=envelope.manifest.run_id,
         run_summaries=summarized.run_summaries,
@@ -119,4 +136,5 @@ def analyze_signal_research_run(
         distribution_summaries=summarized.distribution_summaries,
         join_diagnostics=join_diagnostics,
         metadata=metadata,
+        quality_warnings=quality_warnings,
     )

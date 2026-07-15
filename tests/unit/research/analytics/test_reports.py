@@ -13,6 +13,10 @@ from trading_framework.research.analytics.conditional import ConditionalComparis
 from trading_framework.research.analytics.dimensions import AnalyticsTimestampBasis
 from trading_framework.research.analytics.filters import OutcomeAnalyticsFilter
 from trading_framework.research.analytics.metadata import AnalyticsResultMetadata
+from trading_framework.research.analytics.quality_flags import (
+    SignalResearchQualityFlag,
+    SignalResearchQualityWarning,
+)
 from trading_framework.research.analytics.reports import render_signal_research_report
 from trading_framework.research.analytics.schemas import (
     empty_conditional_comparison,
@@ -33,6 +37,7 @@ class _ReportFixtureResult:
     distribution_summaries: pl.DataFrame
     join_diagnostics: pl.DataFrame
     metadata: AnalyticsResultMetadata
+    quality_warnings: tuple[SignalResearchQualityWarning, ...] = ()
 
 
 def _metadata(*, scope: str = ResearchScope.MARKET_AND_SIGNAL.value) -> AnalyticsResultMetadata:
@@ -172,7 +177,24 @@ def test_render_signal_research_report_writes_html(tmp_path: Path) -> None:
     assert plotly is not None
 
     output = tmp_path / "report.html"
-    path = render_signal_research_report(_sample_result(include_conditional=True), output)
+    result = _sample_result(include_conditional=True)
+    result = _ReportFixtureResult(
+        source_run_id=result.source_run_id,
+        run_summaries=result.run_summaries,
+        grouped_summaries=result.grouped_summaries,
+        conditional_comparison=result.conditional_comparison,
+        distribution_summaries=result.distribution_summaries,
+        join_diagnostics=result.join_diagnostics,
+        metadata=result.metadata,
+        quality_warnings=(
+            SignalResearchQualityWarning(
+                code=SignalResearchQualityFlag.LOW_SAMPLE_SIZE,
+                message="Complete sample size 50 is below the configured minimum of 100.",
+                horizon_bars=5,
+            ),
+        ),
+    )
+    path = render_signal_research_report(result, output)
 
     assert path == output
     assert output.exists()
@@ -181,6 +203,8 @@ def test_render_signal_research_report_writes_html(tmp_path: Path) -> None:
     assert "Join diagnostics" in content
     assert "Signal baseline metrics" in content
     assert "Interpretation eligible" in content
+    assert "Quality diagnostic flags" in content
+    assert "LOW_SAMPLE_SIZE" in content
     assert "bps" in content
     assert "plotly" in content.lower()
 

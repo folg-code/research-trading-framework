@@ -32,7 +32,11 @@ from trading_framework.research.analytics.metadata import (
     describe_horizon_label,
     describe_return_semantics,
 )
-from trading_framework.research.analytics.metrics import aggregate_complete_metrics
+from trading_framework.research.analytics.quality_flags import (
+    SignalResearchQualityFlag,
+    SignalResearchQualityWarning,
+    compute_signal_research_quality_warnings,
+)
 from trading_framework.research.analytics.reports import (
     AnalyticsReportSource,
     render_signal_research_report,
@@ -68,6 +72,8 @@ __all__ = [
     "ConditionalComparisonStatus",
     "GroupDimension",
     "OutcomeAnalyticsFilter",
+    "SignalResearchQualityFlag",
+    "SignalResearchQualityWarning",
     "SummarizeAnalysisFrameResult",
     "aggregate_complete_metrics",
     "build_analysis_frame",
@@ -76,6 +82,7 @@ __all__ = [
     "compute_grouped_summary",
     "compute_join_diagnostics",
     "compute_run_summary",
+    "compute_signal_research_quality_warnings",
     "describe_horizon_label",
     "describe_return_semantics",
     "empty_analysis_frame",

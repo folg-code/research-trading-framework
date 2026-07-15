@@ -122,6 +122,7 @@ def map_definition_to_analyze_request(
         group_by=_map_grouping_dimensions(spec.grouping),
         conditional_context=spec.research_scope is ResearchScope.MARKET_AND_SIGNAL,
         interpretation_min_sample_size=spec.quality_rules.minimum_sample_size,
+        quality_rules=spec.quality_rules,
     )
 
 
