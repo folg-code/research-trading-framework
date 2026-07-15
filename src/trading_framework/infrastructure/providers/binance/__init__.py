@@ -1,5 +1,10 @@
 """Binance provider adapters."""
 
+from trading_framework.infrastructure.providers.binance.aiohttp_websocket import (
+    AiohttpBinanceWebSocketConnection,
+    AiohttpBinanceWebSocketConnector,
+    AiohttpBinanceWebSocketError,
+)
 from trading_framework.infrastructure.providers.binance.futures_mapper import (
     map_book_ticker_payload,
     map_kline_payload,
@@ -41,6 +46,9 @@ __all__ = [
     "BINANCE_USDM_MAX_STREAMS_PER_CONNECTION",
     "BINANCE_USDM_WS_BASE_URL",
     "DEFAULT_RECONNECT_BACKOFF_POLICY",
+    "AiohttpBinanceWebSocketConnection",
+    "AiohttpBinanceWebSocketConnector",
+    "AiohttpBinanceWebSocketError",
     "BinanceBookTickerPayload",
     "BinanceCombinedStreamPayload",
     "BinanceFuturesStream",
