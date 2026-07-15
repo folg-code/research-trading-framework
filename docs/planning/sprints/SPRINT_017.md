@@ -264,7 +264,26 @@ Deferred: multi-screen SPA, live refresh, cross-run comparison UI, interactive f
 | S017-T007 | 4 | `scripts/signal_research/` CLI trio |
 | S017-T008 | 5 | Model family bounded comparison |
 | S017-T009 | 6 | NQ half-year demo script |
-| S017-T010 | 6 | MODULE_MAP, DATA_WORKFLOWS, sprint closure |
+| S017-T010 | 6 | MODULE_MAP, DATA_WORKFLOWS, `RESEARCH_METHODOLOGIES.md`, sprint closure |
+
+---
+
+## 11. Sprint closure (2026-07-15)
+
+| Wave | PR | Branch | Outcome |
+|------|-----|--------|---------|
+| 0 | #142 | `docs/model-research-methodology-planning` | Wave 0 decisions, ADR-0020 |
+| 1 | #143 | `feat/signal-research-definition-spec` | `SignalResearchDefinitionSpec`, loader, mapping |
+| 2 | #144 | `feat/signal-research-quality-flags` | Quality flags + wiring |
+| 3 | #145 | `feat/signal-research-report-v2` | Plotly dashboard v2, reporting split |
+| 4 | #146 | `feat/signal-research-cli` | Production CLI trio + analytics sidecar |
+| 5 | #147 | `feat/signal-research-model-family` | Bounded model-family comparison |
+| 6 | #148 | `feat/model-research-nq-demo` | NQ half-year demo + reference doc updates |
+| closure | (pending) | `docs/sprint-017-research-methodologies` | [RESEARCH_METHODOLOGIES.md](../../reference/RESEARCH_METHODOLOGIES.md) — all research workflows |
+
+**Integration:** one final PR `sprint/model-research-methodology-mvp` → `main` after closure merge.
+
+**Canonical methodology index:** `docs/reference/RESEARCH_METHODOLOGIES.md`
 
 ---
 
@@ -275,4 +294,4 @@ Deferred: multi-screen SPA, live refresh, cross-run comparison UI, interactive f
 - `docs/adr/ADR-0013-signal-research-analytics-boundary.md`
 - `docs/planning/sprints/SPRINT_010.md` (analytics baseline)
 - `src/trading_framework/application/signal_research/`
-- `src/trading_framework/research/analytics/`
+- `docs/reference/RESEARCH_METHODOLOGIES.md` (all research workflows — Sprint 017 closure)

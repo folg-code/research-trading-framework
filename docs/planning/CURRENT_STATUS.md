@@ -28,7 +28,7 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 ```text
 Status Date: 2026-07-15
 Current Phase: Post Sprint 017 — Model Research Methodology MVP merged to sprint branch
-Current Milestone: Sprint 017 Wave 6 closure — NQ demo + reference docs
+Current Milestone: Sprint 017 closure — research methodologies reference + integration PR to main
 Implementation Status: Sprints 001–006, 008–016 COMPLETE on main; Sprint 007 SKIPPED; Sprint 017 COMPLETE on sprint branch (pending integration PR to main)
 Overall Status: IN_PROGRESS
 Active Sprint: none (Sprint 017 closure PR pending)
@@ -142,7 +142,7 @@ SignalResearchDefinitionSpec (YAML/JSON)
     → NQ half-year demo (3 scopes) + fixture fallback
 ```
 
-ADR: ADR-0020 (ACCEPTED). CLIs: `scripts/signal_research/`. Demo: `scripts/demo/run_model_research_nq_demo.py`. See `SPRINT_017.md` and `S017_WAVE0_DECISIONS.md`.
+ADR: ADR-0020 (ACCEPTED). CLIs: `scripts/signal_research/`. Demos: `scripts/demo/run_model_research_nq_demo.py`, `run_portfolio_demo.py`. Methodology index: `docs/reference/RESEARCH_METHODOLOGIES.md`. See `SPRINT_017.md` and `S017_WAVE0_DECISIONS.md`.
 
 ---
 
@@ -337,7 +337,7 @@ Maintenance: `.cursor/rules/documentation.mdc`
 **ADR:** ADR-0020  
 **Tasks:** 10 / 10  
 **PRs:** #142–#148 (estimated)  
-**Scope:** research definition spec, quality diagnostics, report v2, CLI trio, model families, NQ half-year demo
+**Scope:** research definition spec, quality diagnostics, report v2, CLI trio, model families, NQ half-year demo, `RESEARCH_METHODOLOGIES.md`
 
 ### Sprint 016 — Closed (Phase 7)
 
@@ -418,7 +418,7 @@ Maintenance: `.cursor/rules/documentation.mdc`
 
 ## 7. Blocked Work
 
-Nothing is technically blocked. Next step: Sprint 017 integration PR from `sprint/model-research-methodology-mvp` to `main`.
+Nothing is technically blocked. Next step: merge closure docs PR, then Sprint 017 integration PR from `sprint/model-research-methodology-mvp` to `main`.
 
 ---
 
