@@ -7,15 +7,19 @@ from datetime import datetime
 from typing import Any
 
 from trading_framework.core.exceptions import ValidationError
+from trading_framework.research.robustness.diagnostics import StatisticalDiagnosticsSpec
 from trading_framework.research.robustness.kinds import RobustnessExperimentKind
+from trading_framework.research.robustness.monte_carlo import MonteCarloSpec
 from trading_framework.research.robustness.stress import StressTestSpec
 from trading_framework.research.robustness.walk_forward import WalkForwardSpec
 
-SUPPORTED_WAVE4_KINDS = frozenset(
+SUPPORTED_WAVE5_KINDS = frozenset(
     {
         RobustnessExperimentKind.PARAMETER_SWEEP,
         RobustnessExperimentKind.WALK_FORWARD,
         RobustnessExperimentKind.STRESS_TEST,
+        RobustnessExperimentKind.MONTE_CARLO,
+        RobustnessExperimentKind.STATISTICAL_DIAGNOSTICS,
     }
 )
 
@@ -77,6 +81,8 @@ class RobustnessExperimentSpec:
     parameter_sweep: ParameterSweepSpec | None = None
     walk_forward: WalkForwardSpec | None = None
     stress_test: StressTestSpec | None = None
+    monte_carlo: MonteCarloSpec | None = None
+    statistical_diagnostics: StatisticalDiagnosticsSpec | None = None
     evaluation_timeframe: str | None = None
 
     def __post_init__(self) -> None:
@@ -116,6 +122,10 @@ class RobustnessExperimentSpec:
             payload["walk_forward"] = self.walk_forward.to_dict()
         if self.stress_test is not None:
             payload["stress_test"] = self.stress_test.to_dict()
+        if self.monte_carlo is not None:
+            payload["monte_carlo"] = self.monte_carlo.to_dict()
+        if self.statistical_diagnostics is not None:
+            payload["statistical_diagnostics"] = self.statistical_diagnostics.to_dict()
         return payload
 
     @classmethod
@@ -141,6 +151,18 @@ class RobustnessExperimentSpec:
         stress_test = (
             StressTestSpec.from_dict(stress_payload) if stress_payload is not None else None
         )
+        monte_carlo_payload = payload.get("monte_carlo")
+        monte_carlo = (
+            MonteCarloSpec.from_dict(monte_carlo_payload)
+            if monte_carlo_payload is not None
+            else None
+        )
+        diagnostics_payload = payload.get("statistical_diagnostics")
+        statistical_diagnostics = (
+            StatisticalDiagnosticsSpec.from_dict(diagnostics_payload)
+            if diagnostics_payload is not None
+            else None
+        )
         return cls(
             experiment_id=str(payload["experiment_id"]),
             kinds=tuple(RobustnessExperimentKind(kind) for kind in payload["kinds"]),
@@ -152,6 +174,8 @@ class RobustnessExperimentSpec:
             parameter_sweep=parameter_sweep,
             walk_forward=walk_forward,
             stress_test=stress_test,
+            monte_carlo=monte_carlo,
+            statistical_diagnostics=statistical_diagnostics,
             evaluation_timeframe=(
                 str(payload["evaluation_timeframe"])
                 if payload.get("evaluation_timeframe") is not None
@@ -161,8 +185,8 @@ class RobustnessExperimentSpec:
 
 
 def validate_robustness_experiment_spec(spec: RobustnessExperimentSpec) -> None:
-    """Validate wave-4-supported experiment declarations."""
-    unsupported = [kind for kind in spec.kinds if kind not in SUPPORTED_WAVE4_KINDS]
+    """Validate wave-5-supported experiment declarations."""
+    unsupported = [kind for kind in spec.kinds if kind not in SUPPORTED_WAVE5_KINDS]
     if unsupported:
         names = ", ".join(kind.value for kind in unsupported)
         msg = f"unsupported experiment kinds: {names}"
@@ -179,4 +203,13 @@ def validate_robustness_experiment_spec(spec: RobustnessExperimentSpec) -> None:
             raise ValidationError(msg)
     if RobustnessExperimentKind.STRESS_TEST in spec.kinds and spec.stress_test is None:
         msg = "STRESS_TEST requires stress_test"
+        raise ValidationError(msg)
+    if RobustnessExperimentKind.MONTE_CARLO in spec.kinds and spec.monte_carlo is None:
+        msg = "MONTE_CARLO requires monte_carlo"
+        raise ValidationError(msg)
+    if (
+        RobustnessExperimentKind.STATISTICAL_DIAGNOSTICS in spec.kinds
+        and spec.statistical_diagnostics is None
+    ):
+        msg = "STATISTICAL_DIAGNOSTICS requires statistical_diagnostics"
         raise ValidationError(msg)

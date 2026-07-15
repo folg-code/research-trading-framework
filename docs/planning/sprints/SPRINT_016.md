@@ -189,13 +189,13 @@ Verdict ≠ best grid rank
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S016-T021 | Temporal stability metrics | PLANNED |
-| S016-T022 | PnL concentration (top trades / days) | PLANNED |
-| S016-T023 | Trade PnL bootstrap | PLANNED |
-| S016-T024 | Block bootstrap (session-day blocks) | PLANNED |
-| S016-T025 | Trade-sequence shuffle Monte Carlo | PLANNED |
-| S016-T026 | Equity path envelope (p5/p50/p95) + tail probabilities | PLANNED |
-| S016-T027 | IS/OOS degradation linkage (walk-forward) | PLANNED |
+| S016-T021 | Temporal stability metrics | DONE |
+| S016-T022 | PnL concentration (top trades / days) | DONE |
+| S016-T023 | Trade PnL bootstrap | DONE |
+| S016-T024 | Block bootstrap (session-day blocks) | DONE |
+| S016-T025 | Trade-sequence shuffle Monte Carlo | DONE |
+| S016-T026 | Equity path envelope (p5/p50/p95) + tail probabilities | DONE |
+| S016-T027 | IS/OOS degradation linkage (walk-forward) | DONE |
 
 ### Wave 6 — Report, CLI, closure
 
@@ -209,7 +209,7 @@ Verdict ≠ best grid rank
 | S016-T033 | Update MODULE_MAP, DATA_WORKFLOWS, CURRENT_STATUS, ROADMAP | PLANNED |
 | S016-T034 | Sprint closure | PLANNED |
 
-**Progress:** 20 / 34 tasks
+**Progress:** 27 / 34 tasks
 
 ---
 
