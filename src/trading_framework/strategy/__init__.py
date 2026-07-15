@@ -1,5 +1,13 @@
 """Strategy domain package."""
 
+from trading_framework.strategy.btc_futures_demo import (
+    BTC_FUTURES_DEMO_DISCLOSURE,
+    BTC_FUTURES_DEMO_MARKET_MODEL_ID,
+    BTC_FUTURES_DEMO_SIGNAL_MODEL_ID,
+    BTC_FUTURES_DEMO_STRATEGY_MODEL_ID,
+    BtcFuturesDemoStrategyConfig,
+    build_btc_futures_demo_strategy_model,
+)
 from trading_framework.strategy.canonical_examples import (
     CANONICAL_EXIT_AFTER_BARS,
     CANONICAL_POSITION_QUANTITY,
@@ -22,9 +30,14 @@ from trading_framework.strategy.strategy_model import (
 )
 
 __all__ = [
+    "BTC_FUTURES_DEMO_DISCLOSURE",
+    "BTC_FUTURES_DEMO_MARKET_MODEL_ID",
+    "BTC_FUTURES_DEMO_SIGNAL_MODEL_ID",
+    "BTC_FUTURES_DEMO_STRATEGY_MODEL_ID",
     "CANONICAL_EXIT_AFTER_BARS",
     "CANONICAL_POSITION_QUANTITY",
     "CANONICAL_STRATEGY_MODEL_ID",
+    "BtcFuturesDemoStrategyConfig",
     "ExitModel",
     "ExitReason",
     "FixedBarsExitModel",
@@ -34,6 +47,7 @@ __all__ = [
     "RiskModel",
     "StrategyModelDefinition",
     "StrategyModelDefinitionError",
+    "build_btc_futures_demo_strategy_model",
     "build_canonical_strategy_model",
     "derive_occurrence_id",
     "empty_signal_occurrences_dataframe",
