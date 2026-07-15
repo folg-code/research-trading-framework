@@ -100,6 +100,26 @@ def signal_research_run_dir(root: Path, run_id: str) -> Path:
     return root / run_id
 
 
+def signal_research_analytics_dir(root: Path, run_id: str) -> Path:
+    """Return the analytics sidecar directory for one Signal Research run."""
+    return signal_research_run_dir(root, run_id) / "analytics"
+
+
+def signal_research_analytics_summary_path(root: Path, run_id: str) -> Path:
+    """Return the cached analytics summary path for one Signal Research run."""
+    return signal_research_analytics_dir(root, run_id) / "summary.json"
+
+
+def signal_research_report_dir(root: Path, run_id: str) -> Path:
+    """Return the report output directory for one Signal Research run."""
+    return signal_research_run_dir(root, run_id) / "report"
+
+
+def signal_research_report_path(root: Path, run_id: str) -> Path:
+    """Return the default HTML report path for one Signal Research run."""
+    return signal_research_report_dir(root, run_id) / "report.html"
+
+
 def strategy_research_run_dir(root: Path, run_id: str) -> Path:
     """Return the run envelope directory for one Strategy Research run."""
     return root / "strategy_research" / run_id
