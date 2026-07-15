@@ -1,5 +1,20 @@
 """Read-only robustness analytics over persisted experiment artifacts."""
 
+from trading_framework.research.robustness.analytics.diagnostics import (
+    PnlConcentrationMetrics,
+    StatisticalDiagnosticsAnalytics,
+    TemporalStabilityMetrics,
+    build_statistical_diagnostics_analytics,
+    compute_is_oos_degradation,
+    compute_pnl_concentration,
+    compute_temporal_stability,
+)
+from trading_framework.research.robustness.analytics.monte_carlo import (
+    MonteCarloAnalytics,
+    build_monte_carlo_analytics,
+    equity_path_from_pnls,
+    run_monte_carlo_simulation,
+)
 from trading_framework.research.robustness.analytics.parameter_sweep import (
     IsolatedOptimumFlag,
     NeighborStabilityRow,
@@ -34,28 +49,39 @@ from trading_framework.research.robustness.analytics.walk_forward import (
 
 __all__ = [
     "IsolatedOptimumFlag",
+    "MonteCarloAnalytics",
     "NeighborStabilityRow",
     "ParameterHeatmapView",
     "ParameterSweepAnalytics",
+    "PnlConcentrationMetrics",
+    "StatisticalDiagnosticsAnalytics",
     "StitchedOosEquity",
     "StressComparisonRow",
     "StressTestAnalytics",
     "SweepMetric",
     "SweepRankingRow",
     "SweepRunMetrics",
+    "TemporalStabilityMetrics",
     "WalkForwardAnalytics",
     "WalkForwardFoldEvaluation",
     "WalkForwardTrainSelection",
     "analyze_neighbor_stability",
     "apply_remove_top_days_stress",
     "apply_remove_top_trades_stress",
+    "build_monte_carlo_analytics",
     "build_parameter_heatmaps",
     "build_parameter_sweep_analytics",
+    "build_statistical_diagnostics_analytics",
     "build_stress_comparison_table",
     "build_walk_forward_analytics",
+    "compute_is_oos_degradation",
+    "compute_pnl_concentration",
+    "compute_temporal_stability",
     "detect_isolated_optima",
+    "equity_path_from_pnls",
     "rank_parameter_sweep",
     "rebuild_equity_from_trades",
+    "run_monte_carlo_simulation",
     "select_best_train_config",
     "stitch_oos_equity_curves",
 ]

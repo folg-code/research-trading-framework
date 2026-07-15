@@ -1,5 +1,15 @@
 """Application orchestration for Robustness Research experiments."""
 
+from trading_framework.application.robustness_research.analyze_diagnostics_experiment import (
+    AnalyzeDiagnosticsExperimentRequest,
+    AnalyzeDiagnosticsExperimentResult,
+    analyze_diagnostics_experiment,
+)
+from trading_framework.application.robustness_research.analyze_monte_carlo_experiment import (
+    AnalyzeMonteCarloExperimentRequest,
+    AnalyzeMonteCarloExperimentResult,
+    analyze_monte_carlo_experiment,
+)
 from trading_framework.application.robustness_research.analyze_parameter_sweep import (
     AnalyzeParameterSweepRequest,
     AnalyzeParameterSweepResult,
@@ -21,6 +31,11 @@ from trading_framework.application.robustness_research.compare_experiments impor
     RobustnessExperimentComparisonRow,
     compare_robustness_experiments,
 )
+from trading_framework.application.robustness_research.run_monte_carlo_experiment import (
+    RunMonteCarloExperimentRequest,
+    RunMonteCarloExperimentResult,
+    run_monte_carlo_experiment,
+)
 from trading_framework.application.robustness_research.run_robustness_experiment import (
     RobustnessResearchError,
     RunRobustnessExperimentRequest,
@@ -39,6 +54,10 @@ from trading_framework.application.robustness_research.run_walk_forward_experime
 )
 
 __all__ = [
+    "AnalyzeDiagnosticsExperimentRequest",
+    "AnalyzeDiagnosticsExperimentResult",
+    "AnalyzeMonteCarloExperimentRequest",
+    "AnalyzeMonteCarloExperimentResult",
     "AnalyzeParameterSweepRequest",
     "AnalyzeParameterSweepResult",
     "AnalyzeStressExperimentRequest",
@@ -49,16 +68,21 @@ __all__ = [
     "CompareRobustnessExperimentsResult",
     "RobustnessExperimentComparisonRow",
     "RobustnessResearchError",
+    "RunMonteCarloExperimentRequest",
+    "RunMonteCarloExperimentResult",
     "RunRobustnessExperimentRequest",
     "RunRobustnessExperimentResult",
     "RunStressExperimentRequest",
     "RunStressExperimentResult",
     "RunWalkForwardExperimentRequest",
     "RunWalkForwardExperimentResult",
+    "analyze_diagnostics_experiment",
+    "analyze_monte_carlo_experiment",
     "analyze_parameter_sweep",
     "analyze_stress_experiment",
     "analyze_walk_forward",
     "compare_robustness_experiments",
+    "run_monte_carlo_experiment",
     "run_robustness_experiment",
     "run_stress_experiment",
     "run_walk_forward_experiment",

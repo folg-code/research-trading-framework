@@ -10,12 +10,14 @@ from trading_framework.core.identifiers import Identifier
 from trading_framework.infrastructure.storage.metadata.registry import FileDatasetRegistry
 from trading_framework.market.datasets import DatasetId, DatasetLifecycleState, DatasetRef
 from trading_framework.market_analysis import TimeRange
+from trading_framework.research.robustness.diagnostics import StatisticalDiagnosticsSpec
 from trading_framework.research.robustness.experiment import (
     ParameterSweepAxis,
     ParameterSweepSpec,
     RobustnessExperimentSpec,
 )
 from trading_framework.research.robustness.kinds import RobustnessExperimentKind
+from trading_framework.research.robustness.monte_carlo import MonteCarloSpec
 from trading_framework.research.robustness.stress import (
     StressScenarioSpec,
     StressTestSpec,
@@ -121,6 +123,38 @@ def build_stress_test_spec(
                     remove_top_n_trades=1,
                 ),
             ),
+            parameter_overrides={"exit_after_bars": "5"},
+        ),
+    )
+
+
+def build_monte_carlo_diagnostics_spec(
+    *,
+    experiment_id: str,
+    dataset_ref: DatasetRef,
+    requested_range: TimeRange,
+) -> RobustnessExperimentSpec:
+    return RobustnessExperimentSpec(
+        experiment_id=experiment_id,
+        kinds=(
+            RobustnessExperimentKind.MONTE_CARLO,
+            RobustnessExperimentKind.STATISTICAL_DIAGNOSTICS,
+        ),
+        dataset_ref=str(dataset_ref),
+        timeframe="1m",
+        requested_range_start=requested_range.start,
+        requested_range_end=requested_range.end,
+        strategy_template_id=CANONICAL_STRATEGY_MODEL_ID,
+        evaluation_timeframe="1m",
+        monte_carlo=MonteCarloSpec(
+            path_count=50,
+            rng_seed=7,
+            parameter_overrides={"exit_after_bars": "5"},
+            max_drawdown_threshold=Decimal("-500"),
+        ),
+        statistical_diagnostics=StatisticalDiagnosticsSpec(
+            top_k_trades=2,
+            top_k_days=2,
             parameter_overrides={"exit_after_bars": "5"},
         ),
     )

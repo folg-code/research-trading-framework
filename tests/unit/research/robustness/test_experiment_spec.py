@@ -8,12 +8,14 @@ from decimal import Decimal
 import pytest
 
 from trading_framework.core.exceptions import ValidationError
+from trading_framework.research.robustness.diagnostics import StatisticalDiagnosticsSpec
 from trading_framework.research.robustness.experiment import (
     ParameterSweepAxis,
     ParameterSweepSpec,
     RobustnessExperimentSpec,
 )
 from trading_framework.research.robustness.kinds import RobustnessExperimentKind
+from trading_framework.research.robustness.monte_carlo import MonteCarloSpec
 from trading_framework.research.robustness.stress import (
     StressScenarioSpec,
     StressTestSpec,
@@ -41,6 +43,8 @@ _DEFAULT_STRESS_TEST = StressTestSpec(
         ),
     ),
 )
+_DEFAULT_MONTE_CARLO = MonteCarloSpec(path_count=10, rng_seed=1)
+_DEFAULT_DIAGNOSTICS = StatisticalDiagnosticsSpec()
 
 
 def _base_spec(
@@ -50,6 +54,8 @@ def _base_spec(
     parameter_sweep: ParameterSweepSpec | None = _DEFAULT_PARAMETER_SWEEP,
     walk_forward: WalkForwardSpec | None = None,
     stress_test: StressTestSpec | None = None,
+    monte_carlo: MonteCarloSpec | None = None,
+    statistical_diagnostics: StatisticalDiagnosticsSpec | None = None,
 ) -> RobustnessExperimentSpec:
     return RobustnessExperimentSpec(
         experiment_id=experiment_id,
@@ -62,6 +68,8 @@ def _base_spec(
         parameter_sweep=parameter_sweep,
         walk_forward=walk_forward,
         stress_test=stress_test,
+        monte_carlo=monte_carlo,
+        statistical_diagnostics=statistical_diagnostics,
     )
 
 
@@ -71,9 +79,22 @@ def test_robustness_experiment_spec_roundtrip_dict() -> None:
     assert restored == spec
 
 
-def test_robustness_experiment_spec_rejects_unsupported_kind() -> None:
-    with pytest.raises(ValidationError, match="unsupported experiment kinds"):
-        _base_spec(kinds=(RobustnessExperimentKind.MONTE_CARLO,))
+def test_robustness_experiment_spec_requires_monte_carlo_block() -> None:
+    with pytest.raises(ValidationError, match="requires monte_carlo"):
+        _base_spec(
+            kinds=(RobustnessExperimentKind.MONTE_CARLO,),
+            parameter_sweep=None,
+            monte_carlo=None,
+        )
+
+
+def test_robustness_experiment_spec_requires_diagnostics_block() -> None:
+    with pytest.raises(ValidationError, match="requires statistical_diagnostics"):
+        _base_spec(
+            kinds=(RobustnessExperimentKind.STATISTICAL_DIAGNOSTICS,),
+            parameter_sweep=None,
+            statistical_diagnostics=None,
+        )
 
 
 def test_robustness_experiment_spec_requires_walk_forward_block() -> None:
@@ -113,6 +134,26 @@ def test_robustness_experiment_spec_stress_roundtrip_dict() -> None:
         kinds=(RobustnessExperimentKind.STRESS_TEST,),
         parameter_sweep=None,
         stress_test=_DEFAULT_STRESS_TEST,
+    )
+    restored = RobustnessExperimentSpec.from_dict(spec.to_dict())
+    assert restored == spec
+
+
+def test_robustness_experiment_spec_monte_carlo_roundtrip_dict() -> None:
+    spec = _base_spec(
+        kinds=(RobustnessExperimentKind.MONTE_CARLO,),
+        parameter_sweep=None,
+        monte_carlo=_DEFAULT_MONTE_CARLO,
+    )
+    restored = RobustnessExperimentSpec.from_dict(spec.to_dict())
+    assert restored == spec
+
+
+def test_robustness_experiment_spec_diagnostics_roundtrip_dict() -> None:
+    spec = _base_spec(
+        kinds=(RobustnessExperimentKind.STATISTICAL_DIAGNOSTICS,),
+        parameter_sweep=None,
+        statistical_diagnostics=_DEFAULT_DIAGNOSTICS,
     )
     restored = RobustnessExperimentSpec.from_dict(spec.to_dict())
     assert restored == spec

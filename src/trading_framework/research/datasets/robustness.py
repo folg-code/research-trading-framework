@@ -14,12 +14,18 @@ from trading_framework.infrastructure.storage.paths import (
     robustness_experiment_analytics_dir,
     robustness_experiment_dir,
     robustness_experiment_folds_dir,
+    robustness_experiment_monte_carlo_dir,
     robustness_experiment_stress_dir,
 )
+from trading_framework.research.robustness.analytics.diagnostics import (
+    StatisticalDiagnosticsAnalytics,
+)
+from trading_framework.research.robustness.analytics.monte_carlo import MonteCarloAnalytics
 from trading_framework.research.robustness.analytics.parameter_sweep import ParameterSweepAnalytics
 from trading_framework.research.robustness.analytics.stress import StressTestAnalytics
 from trading_framework.research.robustness.analytics.walk_forward import WalkForwardAnalytics
 from trading_framework.research.robustness.experiment import RobustnessExperimentSpec
+from trading_framework.research.robustness.monte_carlo import MonteCarloResults
 from trading_framework.research.robustness.stress import StressTestResults
 from trading_framework.research.robustness.walk_forward import (
     WalkForwardFoldPlan,
@@ -346,3 +352,56 @@ class RobustnessExperimentRepository:
             msg = f"missing stress analytics: {analytics_path}"
             raise FileNotFoundError(msg)
         return StressTestAnalytics.from_dict(json.loads(analytics_path.read_text(encoding="utf-8")))
+
+    def write_monte_carlo_results(self, results: MonteCarloResults) -> None:
+        monte_carlo_dir = robustness_experiment_monte_carlo_dir(self._root, results.experiment_id)
+        monte_carlo_dir.mkdir(parents=True, exist_ok=True)
+        results_path = monte_carlo_dir / "results.json"
+        results_path.write_text(json.dumps(results.to_dict(), indent=2), encoding="utf-8")
+
+    def read_monte_carlo_results(self, experiment_id: str) -> MonteCarloResults:
+        results_path = (
+            robustness_experiment_monte_carlo_dir(self._root, experiment_id) / "results.json"
+        )
+        if not results_path.exists():
+            msg = f"missing monte carlo results: {results_path}"
+            raise FileNotFoundError(msg)
+        return MonteCarloResults.from_dict(json.loads(results_path.read_text(encoding="utf-8")))
+
+    def monte_carlo_results_exist(self, experiment_id: str) -> bool:
+        results_path = (
+            robustness_experiment_monte_carlo_dir(self._root, experiment_id) / "results.json"
+        )
+        return results_path.exists()
+
+    def write_monte_carlo_analytics(self, analytics: MonteCarloAnalytics) -> None:
+        analytics_dir = robustness_experiment_analytics_dir(self._root, analytics.experiment_id)
+        analytics_dir.mkdir(parents=True, exist_ok=True)
+        analytics_path = analytics_dir / "monte_carlo.json"
+        analytics_path.write_text(json.dumps(analytics.to_dict(), indent=2), encoding="utf-8")
+
+    def read_monte_carlo_analytics(self, experiment_id: str) -> MonteCarloAnalytics:
+        analytics_path = (
+            robustness_experiment_analytics_dir(self._root, experiment_id) / "monte_carlo.json"
+        )
+        if not analytics_path.exists():
+            msg = f"missing monte carlo analytics: {analytics_path}"
+            raise FileNotFoundError(msg)
+        return MonteCarloAnalytics.from_dict(json.loads(analytics_path.read_text(encoding="utf-8")))
+
+    def write_diagnostics_analytics(self, analytics: StatisticalDiagnosticsAnalytics) -> None:
+        analytics_dir = robustness_experiment_analytics_dir(self._root, analytics.experiment_id)
+        analytics_dir.mkdir(parents=True, exist_ok=True)
+        analytics_path = analytics_dir / "diagnostics.json"
+        analytics_path.write_text(json.dumps(analytics.to_dict(), indent=2), encoding="utf-8")
+
+    def read_diagnostics_analytics(self, experiment_id: str) -> StatisticalDiagnosticsAnalytics:
+        analytics_path = (
+            robustness_experiment_analytics_dir(self._root, experiment_id) / "diagnostics.json"
+        )
+        if not analytics_path.exists():
+            msg = f"missing diagnostics analytics: {analytics_path}"
+            raise FileNotFoundError(msg)
+        return StatisticalDiagnosticsAnalytics.from_dict(
+            json.loads(analytics_path.read_text(encoding="utf-8"))
+        )
