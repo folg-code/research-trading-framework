@@ -2,14 +2,21 @@
 
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
+from decimal import Decimal
 
 import pytest
 
 from trading_framework.core.exceptions import ValidationError
+from trading_framework.core.types import Price
 from trading_framework.execution import (
+    BestBidAskSnapshot,
     ExecutionEvent,
     ExecutionEventType,
     LocalExecutionRuntimeSession,
+    OrderIntent,
+    OrderSide,
+    OrderType,
+    PaperBroker,
     RuntimeHealth,
 )
 from trading_framework.time.clocks.fixed import FixedClock
@@ -84,6 +91,51 @@ def test_runtime_session_records_heartbeat_and_stop_events() -> None:
         ExecutionEventType.HEARTBEAT_RECORDED,
         ExecutionEventType.RUNTIME_STOPPED,
     ]
+
+
+def test_runtime_session_records_order_fill_and_position_events() -> None:
+    sink = InMemoryEventSink()
+    session = _session(sink)
+    broker = PaperBroker(
+        account_id="paper-btc",
+        symbol="BTCUSDT",
+        currency="USDT",
+        starting_equity=Decimal("10000"),
+    )
+    intent = OrderIntent(
+        intent_id="intent-1",
+        strategy_id="btc_futures_demo_ema_momentum",
+        symbol="BTCUSDT",
+        side=OrderSide.BUY,
+        order_type=OrderType.MARKET,
+        quantity=Decimal("0.001"),
+        requested_at=NOW,
+        reason="simulated dry-run order intent",
+    )
+    quote = BestBidAskSnapshot(
+        symbol="BTCUSDT",
+        bid_price=Price(Decimal("65000")),
+        ask_price=Price(Decimal("65010")),
+        event_at=NOW,
+    )
+
+    order_event = session.record_order_intent(intent)
+    fill_event, position_event = session.record_broker_result(
+        broker.accept_market_order(intent, quote)
+    )
+
+    assert order_event.event_type is ExecutionEventType.ORDER_INTENT_CREATED
+    assert order_event.correlation_id == "intent-1"
+    assert order_event.payload is not None
+    assert order_event.payload["simulated"] == "true"
+    assert fill_event.event_type is ExecutionEventType.SIMULATED_ORDER_FILLED
+    assert fill_event.correlation_id == "intent-1"
+    assert fill_event.payload is not None
+    assert fill_event.payload["price"] == "65010"
+    assert position_event.event_type is ExecutionEventType.POSITION_UPDATED
+    assert position_event.payload is not None
+    assert position_event.payload["side"] == "long"
+    assert position_event.payload["equity"] == "10000.000"
 
 
 def test_runtime_session_fail_requires_message() -> None:

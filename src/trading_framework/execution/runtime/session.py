@@ -7,10 +7,12 @@ from datetime import datetime
 from typing import final
 
 from trading_framework.core.exceptions import ValidationError
+from trading_framework.execution.broker_sim import PaperBrokerResult
 from trading_framework.execution.models import (
     ExecutionEvent,
     ExecutionEventType,
     Heartbeat,
+    OrderIntent,
     RuntimeHealth,
     RuntimeStatusSnapshot,
 )
@@ -98,6 +100,57 @@ class LocalExecutionRuntimeSession:
         self._emit(ExecutionEventType.HEARTBEAT_RECORDED, payload=payload)
         return heartbeat
 
+    def record_order_intent(self, intent: OrderIntent) -> ExecutionEvent:
+        """Emit that a strategy created a dry-run order intent."""
+        payload = {
+            "runtime_id": self.runtime_id,
+            "intent_id": intent.intent_id,
+            "strategy_id": intent.strategy_id,
+            "side": intent.side.value,
+            "order_type": intent.order_type.value,
+            "quantity": format(intent.quantity, "f"),
+            "simulated": "true",
+        }
+        if intent.reason is not None:
+            payload["reason"] = intent.reason
+        return self._emit(
+            ExecutionEventType.ORDER_INTENT_CREATED,
+            payload=payload,
+            correlation_id=intent.intent_id,
+        )
+
+    def record_broker_result(
+        self,
+        result: PaperBrokerResult,
+    ) -> tuple[ExecutionEvent, ExecutionEvent]:
+        """Emit fill and position events produced by the simulated broker."""
+        fill_event = self._emit(
+            ExecutionEventType.SIMULATED_ORDER_FILLED,
+            payload={
+                "runtime_id": self.runtime_id,
+                "order_id": result.order.order_id,
+                "fill_id": result.fill.fill_id,
+                "side": result.fill.side.value,
+                "quantity": format(result.fill.quantity, "f"),
+                "price": format(result.fill.price.value, "f"),
+                "simulated": "true",
+            },
+            correlation_id=result.order.intent_id,
+        )
+        position_event = self._emit(
+            ExecutionEventType.POSITION_UPDATED,
+            payload={
+                "runtime_id": self.runtime_id,
+                "side": result.position.side.value,
+                "quantity": format(result.position.quantity, "f"),
+                "unrealized_pnl": format(result.position.unrealized_pnl, "f"),
+                "equity": format(result.account.equity, "f"),
+                "simulated": "true",
+            },
+            correlation_id=result.order.intent_id,
+        )
+        return fill_event, position_event
+
     def stop(self, *, message: str | None = None) -> RuntimeStatusSnapshot:
         """Mark the runtime as stopped and emit a stop event."""
         status = self._status(RuntimeHealth.STOPPED)
@@ -153,6 +206,7 @@ class LocalExecutionRuntimeSession:
         event_type: ExecutionEventType,
         *,
         payload: dict[str, str] | None = None,
+        correlation_id: str | None = None,
     ) -> ExecutionEvent:
         self._event_sequence += 1
         event = ExecutionEvent(
@@ -162,6 +216,7 @@ class LocalExecutionRuntimeSession:
             mode=ExecutionMode.DRY_RUN.value,
             symbol=self.symbol,
             payload=payload,
+            correlation_id=correlation_id,
         )
         self.event_sink.append(event)
         return event
