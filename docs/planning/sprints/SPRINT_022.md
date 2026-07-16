@@ -5,9 +5,9 @@
 ```text
 Sprint: 022
 Phase: Phase 8A - BTC Futures Live Dry-Run Execution Demo
-Status: PLANNED
-Planned Start: TBD
-Planned End: TBD
+Status: COMPLETE
+Planned Start: 2026-07-16
+Planned End: 2026-07-16
 Sprint Goal Owner: Project Maintainer
 Depends On: SPRINT_021
 Sprint Branch: sprint/btc-futures-dry-run-execution
@@ -67,15 +67,15 @@ read-only sanitized status endpoint for the portfolio dashboard.
 
 ## 2. MVP Scope Checklist
 
-- [ ] Add container entry point for BTCUSDT dry-run worker.
-- [ ] Add DynamoDB adapter for execution repository protocols.
-- [ ] Add AWS configuration model with explicit region/table names.
-- [ ] Add infrastructure notes or minimal IaC for ECS, DynamoDB, CloudWatch, API Gateway and Lambda.
-- [ ] Add read-only Lambda/API handler for latest status.
-- [ ] Add CloudWatch log fields and heartbeat metric.
-- [ ] Add stale heartbeat alarm design.
-- [ ] Add deployment/runbook documentation.
-- [ ] Add cost estimate for always-on or scheduled operation.
+- [x] Add container entry point for BTCUSDT dry-run worker.
+- [x] Add DynamoDB adapter for execution repository protocols.
+- [x] Add AWS configuration model with explicit region/table names.
+- [x] Add infrastructure notes or minimal IaC for ECS, DynamoDB, CloudWatch, API Gateway and Lambda.
+- [x] Add read-only Lambda/API handler for latest status.
+- [x] Add CloudWatch log fields and heartbeat metric.
+- [x] Add stale heartbeat alarm design.
+- [x] Add deployment/runbook documentation.
+- [x] Add cost estimate for always-on or scheduled operation.
 
 ---
 
@@ -95,15 +95,15 @@ Dashboard API is read-only and sanitized.
 
 | Task | Outcome | Status |
 |------|---------|--------|
-| S022-T001 | Add container runtime entry point | TODO |
-| S022-T002 | Add DynamoDB execution repository adapter | TODO |
-| S022-T003 | Add AWS config model and environment validation | TODO |
-| S022-T004 | Add read-only status API handler | TODO |
-| S022-T005 | Add CloudWatch structured logging and metrics | TODO |
-| S022-T006 | Add stale heartbeat alarm/runbook notes | TODO |
-| S022-T007 | Add deployment documentation or minimal IaC | TODO |
-| S022-T008 | Add AWS smoke checklist | TODO |
-| S022-T009 | Add cost estimate and operating modes | TODO |
+| S022-T001 | Add container runtime entry point | DONE |
+| S022-T002 | Add DynamoDB execution repository adapter | DONE |
+| S022-T003 | Add AWS config model and environment validation | DONE |
+| S022-T004 | Add read-only status API handler | DONE |
+| S022-T005 | Add CloudWatch structured logging and metrics | DONE |
+| S022-T006 | Add stale heartbeat alarm/runbook notes | DONE |
+| S022-T007 | Add deployment documentation or minimal IaC | DONE |
+| S022-T008 | Add AWS smoke checklist | DONE |
+| S022-T009 | Add cost estimate and operating modes | DONE |
 
 ---
 
@@ -132,3 +132,19 @@ Dashboard API is read-only and sanitized.
 ## 7. Post-Sprint Direction
 
 Sprint 023 adds the OVH-hosted portfolio dashboard page that consumes the AWS read-only API.
+
+---
+
+## 8. Sprint Result
+
+Sprint 022 delivered the AWS runtime MVP design and implementation slice:
+
+- containerized BTCUSDT dry-run worker entry point and Docker packaging,
+- AWS env/config contract with DynamoDB/local state backend selection,
+- DynamoDB execution state repository for the existing read-model port,
+- read-only status API handler for API Gateway/Lambda,
+- CloudWatch-friendly structured logs and EMF heartbeat metric,
+- stale heartbeat alarm/runbook notes,
+- deployment smoke checklist and cost/operating mode guidance.
+
+The sprint branch is ready for integration to `main` after the closure PR is merged.

@@ -14,7 +14,7 @@ from trading_framework.application.execution.local_btc_futures import (
     run_local_btc_futures_closed_bar_feed_step,
 )
 from trading_framework.core.exceptions import ValidationError
-from trading_framework.execution import PaperBrokerState
+from trading_framework.execution import ExecutionStateRepository, PaperBrokerState
 from trading_framework.execution.models import Heartbeat, RuntimeStatusSnapshot
 from trading_framework.infrastructure.providers.binance.aiohttp_websocket import (
     AiohttpBinanceWebSocketConnector,
@@ -71,6 +71,44 @@ class LocalBtcFuturesBinanceMessageClient(Protocol):
 
     async def close(self) -> None:
         """Close the message client."""
+        ...
+
+
+class LocalBtcFuturesBinanceTelemetrySink(Protocol):
+    """Optional observer for local Binance dry-run lifecycle telemetry."""
+
+    def runtime_started(
+        self,
+        config: LocalBtcFuturesDryRunConfig,
+        status: RuntimeStatusSnapshot,
+    ) -> None:
+        """Record that the runtime started."""
+        ...
+
+    def heartbeat_recorded(
+        self,
+        config: LocalBtcFuturesDryRunConfig,
+        heartbeat: Heartbeat,
+    ) -> None:
+        """Record a runtime heartbeat."""
+        ...
+
+    def market_message_processed(
+        self,
+        config: LocalBtcFuturesDryRunConfig,
+        result: LocalBtcFuturesBinanceMessageResult,
+        *,
+        received_message_count: int,
+    ) -> None:
+        """Record one processed or ignored market-data message."""
+        ...
+
+    def runtime_stopped(
+        self,
+        config: LocalBtcFuturesDryRunConfig,
+        status: RuntimeStatusSnapshot,
+    ) -> None:
+        """Record that the runtime stopped."""
         ...
 
 
@@ -154,6 +192,8 @@ async def run_local_btc_futures_binance_dry_run(
     request: RunLocalBtcFuturesBinanceDryRunRequest,
     *,
     clock: Clock | None = None,
+    state_repository: ExecutionStateRepository | None = None,
+    telemetry: LocalBtcFuturesBinanceTelemetrySink | None = None,
     connector: BinanceWebSocketConnector | None = None,
     clients: tuple[LocalBtcFuturesBinanceMessageClient, ...] | None = None,
 ) -> RunLocalBtcFuturesBinanceDryRunResult:
@@ -161,6 +201,7 @@ async def run_local_btc_futures_binance_dry_run(
     runtime = create_local_btc_futures_dry_run_runtime(
         request.config,
         clock=clock,
+        state_repository=state_repository,
     )
     owned_connector: AiohttpBinanceWebSocketConnector | None = None
     if clients is None:
@@ -179,20 +220,29 @@ async def run_local_btc_futures_binance_dry_run(
     started = runtime.session.start()
     _persist_status(runtime, started)
     _persist_broker_state(runtime, runtime.initial_state)
+    if telemetry is not None:
+        telemetry.runtime_started(runtime.config, started)
     heartbeat = runtime.session.record_heartbeat(message="local Binance dry-run runtime alive")
     _persist_latest_status(runtime)
+    if telemetry is not None:
+        telemetry.heartbeat_recorded(runtime.config, heartbeat)
     try:
         loop_result = await _receive_binance_messages_until_bounded(
             runtime=runtime,
             request=request,
             clients=clients,
+            telemetry=telemetry,
         )
         heartbeat = runtime.session.record_heartbeat(
             message="local Binance dry-run runtime stopping",
         )
         _persist_latest_status(runtime)
+        if telemetry is not None:
+            telemetry.heartbeat_recorded(runtime.config, heartbeat)
         stopped = runtime.session.stop(message="bounded local Binance dry-run complete")
         _persist_status(runtime, stopped)
+        if telemetry is not None:
+            telemetry.runtime_stopped(runtime.config, stopped)
         return RunLocalBtcFuturesBinanceDryRunResult(
             runtime=runtime,
             feed_state=loop_result.state,
@@ -220,6 +270,7 @@ async def _receive_binance_messages_until_bounded(
     runtime: LocalBtcFuturesDryRunRuntime,
     request: RunLocalBtcFuturesBinanceDryRunRequest,
     clients: tuple[LocalBtcFuturesBinanceMessageClient, ...],
+    telemetry: LocalBtcFuturesBinanceTelemetrySink | None = None,
 ) -> _ReceiveLoopResult:
     if not clients:
         msg = "at least one Binance message client is required"
@@ -249,6 +300,8 @@ async def _receive_binance_messages_until_bounded(
                         message="local Binance dry-run runtime alive",
                     )
                     _persist_latest_status(runtime)
+                    if telemetry is not None:
+                        telemetry.heartbeat_recorded(runtime.config, heartbeat)
                     next_heartbeat_at = loop.time() + request.heartbeat_seconds
                 continue
             for task in done:
@@ -262,6 +315,12 @@ async def _receive_binance_messages_until_bounded(
                 )
                 state = result.state
                 received_message_count += 1
+                if telemetry is not None:
+                    telemetry.market_message_processed(
+                        runtime.config,
+                        result,
+                        received_message_count=received_message_count,
+                    )
                 if request.max_messages is None or received_message_count < request.max_messages:
                     pending[asyncio.create_task(client.receive())] = client
         return _ReceiveLoopResult(
