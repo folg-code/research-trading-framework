@@ -163,6 +163,104 @@ RuntimeId / Provider / Symbol dimensions
 This keeps metrics dependency-free in code: CloudWatch extracts the heartbeat metric from structured
 logs, and the worker does not need direct CloudWatch write permissions.
 
+## Stale Heartbeat Alarm
+
+Create one CloudWatch alarm over the EMF `Heartbeat` metric:
+
+```text
+Namespace: TradingFramework/DryRun
+MetricName: Heartbeat
+Dimensions:
+  RuntimeId = btc-futures-dry-run-aws
+  Provider = binance_usdm
+  Symbol = BTCUSDT
+Statistic: Sum
+Period: 60 seconds
+EvaluationPeriods: 3
+DatapointsToAlarm: 3
+Threshold: 1
+ComparisonOperator: LessThanThreshold
+TreatMissingData: breaching
+Alarm meaning: no heartbeat was observed for roughly 3 minutes
+```
+
+Suggested alarm name:
+
+```text
+trading-framework-btc-futures-dry-run-stale-heartbeat
+```
+
+SNS action can be added later. For the portfolio demo MVP, the alarm definition and runbook are enough
+to show the expected operating model.
+
+## Operator Runbook
+
+### Deploy Or Update Image
+
+1. Build the container image from the repository root.
+2. Push it to the selected ECR repository.
+3. Update the ECS task definition image tag.
+4. Run one short scheduled task with:
+
+```text
+TRADING_FRAMEWORK_DURATION_SECONDS=60
+TRADING_FRAMEWORK_MAX_MESSAGES=1
+TRADING_FRAMEWORK_EXECUTION_STATE_BACKEND=dynamodb
+```
+
+5. Confirm CloudWatch Logs include `runtime_started`, `heartbeat_recorded`,
+   `market_message_processed` and `aws_worker_summary`.
+6. Confirm DynamoDB has a `pk=RUNTIME#btc-futures-dry-run-aws`, `sk=STATE` item.
+7. Confirm the read-only status API returns `simulated: true`.
+
+### Stop The Demo
+
+For an always-on ECS service:
+
+```text
+desired_count = 0
+```
+
+For scheduled operation:
+
+```text
+disable the EventBridge schedule
+```
+
+The latest read model remains in DynamoDB after the worker stops.
+
+### Restart The Demo
+
+1. Re-enable the EventBridge schedule or set ECS service `desired_count = 1`.
+2. Confirm a fresh `runtime_started` log appears.
+3. Confirm a fresh `heartbeat_recorded` log appears within 60 seconds.
+4. Confirm `updated_at` changes on the DynamoDB state item.
+
+### Investigate Stale Heartbeat
+
+1. Check CloudWatch alarm state and the last datapoint timestamp.
+2. Open the ECS task logs and search for:
+
+```text
+runtime_failed
+runtime_stopped
+aws_worker_summary
+Binance
+DynamoDB
+```
+
+3. Check ECS task stopped reason, exit code and memory/CPU utilization.
+4. Check outbound network access to Binance public WebSocket endpoints.
+5. Check DynamoDB IAM permissions for `GetItem` and `PutItem`.
+6. Restart the task after correcting configuration or transient network issues.
+
+### Roll Back
+
+1. Set ECS service `desired_count = 0` or disable the schedule.
+2. Re-point the task definition to the previous known-good image tag.
+3. Start one short smoke run before restoring the normal operating mode.
+4. Confirm read-only API still serves the previous DynamoDB state while the worker is stopped.
+
 ## Smoke Checklist
 
 1. Build the image from the repository root.

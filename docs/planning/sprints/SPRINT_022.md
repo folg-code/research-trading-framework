@@ -73,7 +73,7 @@ read-only sanitized status endpoint for the portfolio dashboard.
 - [x] Add infrastructure notes or minimal IaC for ECS, DynamoDB, CloudWatch, API Gateway and Lambda.
 - [x] Add read-only Lambda/API handler for latest status.
 - [x] Add CloudWatch log fields and heartbeat metric.
-- [ ] Add stale heartbeat alarm design.
+- [x] Add stale heartbeat alarm design.
 - [x] Add deployment/runbook documentation.
 - [ ] Add cost estimate for always-on or scheduled operation.
 
@@ -100,7 +100,7 @@ Dashboard API is read-only and sanitized.
 | S022-T003 | Add AWS config model and environment validation | DONE |
 | S022-T004 | Add read-only status API handler | DONE |
 | S022-T005 | Add CloudWatch structured logging and metrics | DONE |
-| S022-T006 | Add stale heartbeat alarm/runbook notes | TODO |
+| S022-T006 | Add stale heartbeat alarm/runbook notes | DONE |
 | S022-T007 | Add deployment documentation or minimal IaC | DONE |
 | S022-T008 | Add AWS smoke checklist | DONE |
 | S022-T009 | Add cost estimate and operating modes | TODO |
