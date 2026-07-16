@@ -70,11 +70,11 @@ read-only sanitized status endpoint for the portfolio dashboard.
 - [x] Add container entry point for BTCUSDT dry-run worker.
 - [ ] Add DynamoDB adapter for execution repository protocols.
 - [x] Add AWS configuration model with explicit region/table names.
-- [ ] Add infrastructure notes or minimal IaC for ECS, DynamoDB, CloudWatch, API Gateway and Lambda.
+- [x] Add infrastructure notes or minimal IaC for ECS, DynamoDB, CloudWatch, API Gateway and Lambda.
 - [ ] Add read-only Lambda/API handler for latest status.
 - [ ] Add CloudWatch log fields and heartbeat metric.
 - [ ] Add stale heartbeat alarm design.
-- [ ] Add deployment/runbook documentation.
+- [x] Add deployment/runbook documentation.
 - [ ] Add cost estimate for always-on or scheduled operation.
 
 ---
@@ -101,8 +101,8 @@ Dashboard API is read-only and sanitized.
 | S022-T004 | Add read-only status API handler | TODO |
 | S022-T005 | Add CloudWatch structured logging and metrics | TODO |
 | S022-T006 | Add stale heartbeat alarm/runbook notes | TODO |
-| S022-T007 | Add deployment documentation or minimal IaC | TODO |
-| S022-T008 | Add AWS smoke checklist | TODO |
+| S022-T007 | Add deployment documentation or minimal IaC | DONE |
+| S022-T008 | Add AWS smoke checklist | DONE |
 | S022-T009 | Add cost estimate and operating modes | TODO |
 
 ---
