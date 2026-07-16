@@ -17,16 +17,24 @@ from trading_framework.execution import (
     ExecutionStateWriter,
     LiveSignalEvaluation,
     LocalExecutionRuntimeSession,
+    OrderSide,
     PaperBroker,
     PaperBrokerResult,
     PaperBrokerState,
+    PositionSide,
+    RecentFillView,
     RuntimeDecisionStep,
     RuntimeDecisionStepResult,
     RuntimeStatusSnapshot,
     StrategyModelOrderAdapter,
     closed_bar_close_reference_quote,
 )
-from trading_framework.execution.models import ExecutionEvent, Heartbeat, PaperAccountSnapshot
+from trading_framework.execution.models import (
+    ExecutionEvent,
+    Heartbeat,
+    PaperAccountSnapshot,
+    PaperPosition,
+)
 from trading_framework.execution.protocols import ExecutionEventSink
 from trading_framework.infrastructure.storage.execution_events import JsonlExecutionEventSink
 from trading_framework.infrastructure.storage.execution_state import JsonExecutionStateRepository
@@ -217,7 +225,6 @@ def run_local_btc_futures_closed_bar_step(
         msg = "closed_bars must contain at least one bar"
         raise ValidationError(msg)
     latest_bar = closed_bars[-1]
-    signal_evaluation = runtime.signal_evaluator.evaluate(closed_bars)
     quote = closed_bar_close_reference_quote(
         symbol=runtime.config.symbol,
         bar=latest_bar,
@@ -225,6 +232,11 @@ def run_local_btc_futures_closed_bar_step(
     broker_state_before_decision = runtime.broker.mark_to_market(
         latest_bar.close,
         latest_bar.available_at,
+    )
+    signal_evaluation = _evaluate_live_signals(
+        runtime,
+        closed_bars,
+        broker_state_before_decision.position,
     )
     decision_result = runtime.decision_step.run(
         entry_signal_active=signal_evaluation.entry_signal_active,
@@ -360,6 +372,61 @@ def _persist_broker_result(
 ) -> None:
     runtime.state_repository.save_order(runtime.config.runtime_id, result.order)
     runtime.state_repository.save_fill(runtime.config.runtime_id, result.fill)
+
+
+def _evaluate_live_signals(
+    runtime: LocalBtcFuturesDryRunRuntime,
+    closed_bars: tuple[MarketBar, ...],
+    position: PaperPosition,
+) -> LiveSignalEvaluation:
+    evaluation = runtime.signal_evaluator.evaluate(closed_bars)
+    exit_signal_active = evaluation.exit_signal_active or _fixed_bar_exit_active(
+        runtime,
+        closed_bars,
+        position,
+    )
+    if exit_signal_active == evaluation.exit_signal_active:
+        return evaluation
+    return LiveSignalEvaluation(
+        entry_signal_active=evaluation.entry_signal_active,
+        exit_signal_active=exit_signal_active,
+        condition_active=evaluation.condition_active,
+        close=evaluation.close,
+        ema_value=evaluation.ema_value,
+    )
+
+
+def _fixed_bar_exit_active(
+    runtime: LocalBtcFuturesDryRunRuntime,
+    closed_bars: tuple[MarketBar, ...],
+    position: PaperPosition,
+) -> bool:
+    if position.side is not PositionSide.LONG:
+        return False
+    entry_fill = _latest_fill(runtime, side=OrderSide.BUY)
+    if entry_fill is None:
+        return False
+    bars_after_entry = sum(1 for bar in closed_bars if bar.available_at > entry_fill.filled_at)
+    exit_after_bars = runtime.signal_evaluator.strategy_model.exit_model.exit_bar_index(
+        entry_fill_bar_index=0
+    )
+    return bars_after_entry >= exit_after_bars
+
+
+def _latest_fill(
+    runtime: LocalBtcFuturesDryRunRuntime,
+    *,
+    side: OrderSide,
+) -> RecentFillView | None:
+    view = runtime.state_repository.latest_status_view(
+        ExecutionReadModelQuery(runtime_id=runtime.config.runtime_id)
+    )
+    if view is None:
+        return None
+    for fill in reversed(view.recent_fills):
+        if fill.side is side:
+            return fill
+    return None
 
 
 def _restore_broker_state(
