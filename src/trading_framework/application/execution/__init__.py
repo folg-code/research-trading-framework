@@ -12,6 +12,10 @@ from trading_framework.application.execution.aws_status_api import (
     handle_aws_execution_status_api_request,
     load_aws_execution_status_api_config,
 )
+from trading_framework.application.execution.aws_telemetry import (
+    ExecutionTelemetrySink,
+    JsonCloudWatchExecutionTelemetry,
+)
 from trading_framework.application.execution.binance_local_btc_futures import (
     LocalBtcFuturesBinanceFeedState,
     LocalBtcFuturesBinanceMessageResult,
@@ -37,6 +41,8 @@ from trading_framework.application.execution.status_json import runtime_status_v
 __all__ = [
     "AwsBtcFuturesRuntimeConfig",
     "AwsExecutionStatusApiConfig",
+    "ExecutionTelemetrySink",
+    "JsonCloudWatchExecutionTelemetry",
     "LocalBtcFuturesBinanceFeedState",
     "LocalBtcFuturesBinanceMessageResult",
     "LocalBtcFuturesClosedBarFeedStepResult",

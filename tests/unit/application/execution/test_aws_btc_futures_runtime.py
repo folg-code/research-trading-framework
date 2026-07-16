@@ -161,9 +161,11 @@ def test_run_aws_btc_futures_dry_run_passes_repository_to_binance_loop() -> None
         request: Any,
         *,
         state_repository: Any,
+        telemetry: Any,
     ) -> RunLocalBtcFuturesBinanceDryRunResult:
         assert request.config.runtime_id == "btc-futures-dry-run-aws"
         assert isinstance(state_repository, DynamoDbExecutionStateRepository)
+        assert telemetry is None
         captured["state_repository"] = state_repository
         return cast(RunLocalBtcFuturesBinanceDryRunResult, object())
 
