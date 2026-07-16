@@ -38,6 +38,11 @@ the BTCUSDT price chart and shows the latest simulated trades/orders. The genera
 `live_dry_run_status_fixture.json`, so the page remains useful offline before the AWS endpoint is
 configured.
 
+For a VPS/subdomain deployment with a running web process instead of a static file, use
+`scripts/portfolio_live/serve_live_dry_run_dashboard.py`. That server proxies the AWS status endpoint
+through `/api/status`, serves a live candlestick dashboard at `/`, and is documented in
+`scripts/portfolio_live/README.md`.
+
 ## What gets generated
 
 | Artifact | Workflow | Notes |

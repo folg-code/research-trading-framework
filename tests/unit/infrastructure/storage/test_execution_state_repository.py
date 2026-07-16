@@ -12,6 +12,7 @@ import pytest
 
 from trading_framework.core.exceptions import ValidationError
 from trading_framework.core.types import Price
+from trading_framework.core.types.volume import Volume
 from trading_framework.execution import (
     ExecutionEvent,
     ExecutionEventType,
@@ -30,6 +31,7 @@ from trading_framework.execution import (
     SimulatedOrder,
 )
 from trading_framework.infrastructure.storage.execution_state import JsonExecutionStateRepository
+from trading_framework.market.models import MarketBar
 
 NOW = datetime(2026, 7, 16, 8, 0, tzinfo=UTC)
 
@@ -58,6 +60,8 @@ def test_json_execution_state_repository_round_trips_latest_status(tmp_path: Pat
     repository.save_order("runtime-1", _order("order-2", NOW + timedelta(seconds=1)))
     repository.save_fill("runtime-1", _fill("fill-1", "order-1", NOW))
     repository.save_fill("runtime-1", _fill("fill-2", "order-2", NOW + timedelta(seconds=1)))
+    repository.save_bar("runtime-1", _bar(NOW - timedelta(minutes=2), "65000"))
+    repository.save_bar("runtime-1", _bar(NOW - timedelta(minutes=1), "65010"))
     repository.append_event("runtime-1", _event("event-1", NOW))
     repository.append_event("runtime-1", _event("event-2", NOW + timedelta(seconds=1)))
     repository.append_event("runtime-1", _event("event-3", NOW + timedelta(seconds=2)))
@@ -87,6 +91,10 @@ def test_json_execution_state_repository_round_trips_latest_status(tmp_path: Pat
     assert view.unrealized_pnl == Decimal("10")
     assert [order.order_id for order in view.recent_orders] == ["order-2"]
     assert [fill.fill_id for fill in view.recent_fills] == ["fill-2"]
+    assert [bar.close for bar in view.recent_bars] == [
+        Price(Decimal("65000")),
+        Price(Decimal("65010")),
+    ]
     assert [event.event_id for event in view.recent_events] == ["event-2", "event-3"]
     assert all(event.simulated for event in view.recent_events)
 
@@ -136,12 +144,14 @@ def test_json_execution_state_repository_writes_explicit_state_document(
     repository = JsonExecutionStateRepository(tmp_path)
     repository.save_runtime_status(_status())
     repository.append_event("runtime-1", _event("event-1", NOW))
+    repository.save_bar("runtime-1", _bar(NOW - timedelta(minutes=1), "65010"))
 
     state_path = tmp_path / "runtime-1" / "state.json"
     payload = json.loads(state_path.read_text(encoding="utf-8"))
 
     assert payload["version"] == 1
     assert payload["status"]["runtime_id"] == "runtime-1"
+    assert payload["bars"][0]["close"] == "65010"
     assert payload["events"][0]["event_type"] == ExecutionEventType.HEARTBEAT_RECORDED.value
     assert payload["events"][0]["simulated"] is True
 
@@ -193,6 +203,19 @@ def _fill(fill_id: str, order_id: str, filled_at: datetime) -> SimulatedFill:
         quantity=Decimal("0.001"),
         price=Price(Decimal("65000")),
         filled_at=filled_at,
+    )
+
+
+def _bar(observed_at: datetime, close: str) -> MarketBar:
+    close_price = Price(Decimal(close))
+    return MarketBar(
+        open=Price(Decimal("65000")),
+        high=Price(Decimal("65020")),
+        low=Price(Decimal("64990")),
+        close=close_price,
+        volume=Volume(100),
+        observed_at=observed_at,
+        available_at=observed_at + timedelta(minutes=1),
     )
 
 

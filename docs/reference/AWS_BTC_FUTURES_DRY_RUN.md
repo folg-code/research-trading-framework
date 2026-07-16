@@ -134,8 +134,9 @@ state_json
 ```
 
 `state_json` contains the same explicit state document used by the local JSON adapter: latest runtime
-status, latest account and position snapshots, and bounded recent events/orders/fills. The AWS worker
-creates the DynamoDB client from `TRADING_FRAMEWORK_AWS_REGION` when the backend is `dynamodb`.
+status, latest account and position snapshots, bounded recent events/orders/fills, and bounded recent
+closed OHLCV bars. The AWS worker creates the DynamoDB client from
+`TRADING_FRAMEWORK_AWS_REGION` when the backend is `dynamodb`.
 
 ## Read-Only Status API
 
@@ -162,6 +163,11 @@ Optional API variables:
 | `TRADING_FRAMEWORK_STATUS_API_RECENT_EVENTS` | `50` | Recent event limit in API payload |
 | `TRADING_FRAMEWORK_STATUS_API_RECENT_ORDERS` | `20` | Recent simulated order limit in API payload |
 | `TRADING_FRAMEWORK_STATUS_API_RECENT_FILLS` | `20` | Recent simulated fill limit in API payload |
+| `TRADING_FRAMEWORK_STATUS_API_RECENT_BARS` | `1440` | Recent closed OHLCV bar limit in API payload |
+
+The status payload includes `recent_bars`, a bounded list of closed OHLCV bars with `open`, `high`,
+`low`, `close`, `volume`, `observed_at`, `available_at` and `simulated`. Portfolio charts must use
+this OHLCV list for candles, not synthesize bars from `last_price`.
 
 For the container-image Lambda deployment, create the function from the
 `trading-framework/status-api-lambda:latest` ECR image. The Lambda execution role needs read-only
@@ -325,7 +331,7 @@ TRADING_FRAMEWORK_EXECUTION_STATE_BACKEND=dynamodb
 5. Confirm CloudWatch Logs include `runtime_started`, `heartbeat_recorded`,
    `market_message_processed` and `aws_worker_summary`.
 6. Confirm DynamoDB has a `pk=RUNTIME#btc-futures-dry-run-aws`, `sk=STATE` item.
-7. Confirm the read-only status API returns `simulated: true`.
+7. Confirm the read-only status API returns `simulated: true` and a bounded `recent_bars` array.
 
 ### Stop The Demo
 

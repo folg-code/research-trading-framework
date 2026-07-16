@@ -510,6 +510,35 @@ uv run python scripts/demo/run_portfolio_demo.py --live-status-url https://.../s
 
 Requires `uv pip install plotly` for Plotly-based reports. Strategy dashboards work without Plotly.
 
+### 3.12.1 VPS Live Dry-Run Dashboard Server
+
+```text
+scripts/portfolio_live/serve_live_dry_run_dashboard.py
+  -> GET / live dashboard shell
+  -> GET /api/status server-side proxy to AWS API Gateway /status
+  -> GET /api/history local SQLite history for bars/equity/fills
+  -> frontend polling every few seconds
+  -> persisted BTCUSDT OHLCV candles, simulated fill markers and paper equity curve
+```
+
+**CLI:**
+
+```text
+TRADING_FRAMEWORK_STATUS_URL=https://.../status \
+uv run python scripts/portfolio_live/serve_live_dry_run_dashboard.py \
+  --host 127.0.0.1 \
+  --port 8080 \
+  --history-hours 24 \
+  --db-path user_data/runtime/portfolio_live/dashboard.sqlite3
+```
+
+Use this mode for a VPS/subdomain deployment behind nginx or Caddy. The static
+`09_live_dry_run_status.html` remains useful as an offline portfolio artifact; the VPS server is the
+live app shell that makes the chart visibly update while the page is open. The price chart consumes
+`recent_bars` closed OHLCV from the AWS read model, not synthetic candles from `last_price`. The local
+SQLite cache keeps the last 12-24h of bars, equity points and simulated fills so chart history survives
+server restarts and browser refreshes.
+
 ### 3.13 Model Research Methodology (Sprint 017 — Phase 5B)
 
 ```text
@@ -690,7 +719,7 @@ Local BTC futures dry-run runtime
   -> LocalExecutionRuntimeSession
   -> JSONL execution event log (append-only operator trace)
   -> ExecutionStateRepository
-  -> latest RuntimeStatusView + bounded recent events/orders/fills
+  -> latest RuntimeStatusView + bounded recent events/orders/fills/bars
   -> read-only CLI / future dashboard API
 ```
 
@@ -710,6 +739,7 @@ user_data/runtime/btc_futures_dry_run/
 - bounded recent execution events,
 - bounded recent simulated orders,
 - bounded recent simulated fills,
+- bounded recent closed OHLCV bars,
 - latest paper position snapshot,
 - latest paper account snapshot.
 
@@ -720,6 +750,7 @@ The default local adapter retention follows read-model query defaults:
 | recent events | 50 |
 | recent orders | 20 |
 | recent fills | 20 |
+| recent bars | 1440 |
 
 Runtime restart behavior reads the latest status view and restores the paper broker account, position
 and order/fill sequence numbers when enough simulated state is present. If no valid state exists, the

@@ -14,9 +14,11 @@ from trading_framework.execution.models import (
 )
 from trading_framework.execution.repositories.read_models import (
     ExecutionReadModelQuery,
+    RecentBarView,
     RecentExecutionEventView,
     RuntimeStatusView,
 )
+from trading_framework.market.models import MarketBar
 
 
 class ExecutionStateWriter(Protocol):
@@ -46,6 +48,10 @@ class ExecutionStateWriter(Protocol):
         """Persist the latest paper account snapshot."""
         ...
 
+    def save_bar(self, runtime_id: str, bar: MarketBar) -> None:
+        """Persist one recent closed market bar for dashboard history."""
+        ...
+
 
 class ExecutionStateReader(Protocol):
     """Read-only port for execution dashboards and public status APIs."""
@@ -56,6 +62,10 @@ class ExecutionStateReader(Protocol):
 
     def recent_events(self, query: ExecutionReadModelQuery) -> tuple[RecentExecutionEventView, ...]:
         """Return recent execution events for one runtime."""
+        ...
+
+    def recent_bars(self, query: ExecutionReadModelQuery) -> tuple[RecentBarView, ...]:
+        """Return recent closed market bars for one runtime."""
         ...
 
 

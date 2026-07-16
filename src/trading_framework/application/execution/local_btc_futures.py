@@ -263,6 +263,7 @@ def run_local_btc_futures_closed_bar_feed_step(
         msg = "max_closed_bars must be positive"
         raise ValidationError(msg)
     updated_bars = (*closed_bars, bar)[-max_closed_bars:]
+    runtime.state_repository.save_bar(runtime.config.runtime_id, bar)
     step_result = run_local_btc_futures_closed_bar_step(runtime, updated_bars)
     return LocalBtcFuturesClosedBarFeedStepResult(
         closed_bars=updated_bars,

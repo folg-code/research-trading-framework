@@ -19,6 +19,7 @@ from trading_framework.core.exceptions import (
     ValidationError,
 )
 from trading_framework.execution import (
+    DEFAULT_RECENT_BAR_LIMIT,
     DEFAULT_RECENT_EVENT_LIMIT,
     DEFAULT_RECENT_FILL_LIMIT,
     DEFAULT_RECENT_ORDER_LIMIT,
@@ -42,6 +43,7 @@ class AwsExecutionStatusApiConfig:
     recent_event_limit: int = DEFAULT_RECENT_EVENT_LIMIT
     recent_order_limit: int = DEFAULT_RECENT_ORDER_LIMIT
     recent_fill_limit: int = DEFAULT_RECENT_FILL_LIMIT
+    recent_bar_limit: int = DEFAULT_RECENT_BAR_LIMIT
 
     def __post_init__(self) -> None:
         if not self.cors_origin.strip():
@@ -49,6 +51,7 @@ class AwsExecutionStatusApiConfig:
         _require_positive_limit(self.recent_event_limit, "STATUS_API_RECENT_EVENTS")
         _require_positive_limit(self.recent_order_limit, "STATUS_API_RECENT_ORDERS")
         _require_positive_limit(self.recent_fill_limit, "STATUS_API_RECENT_FILLS")
+        _require_positive_limit(self.recent_bar_limit, "STATUS_API_RECENT_BARS")
 
     @property
     def runtime_id(self) -> str:
@@ -66,6 +69,7 @@ def load_aws_execution_status_api_config(
         recent_event_limit=_int(env, "STATUS_API_RECENT_EVENTS", DEFAULT_RECENT_EVENT_LIMIT),
         recent_order_limit=_int(env, "STATUS_API_RECENT_ORDERS", DEFAULT_RECENT_ORDER_LIMIT),
         recent_fill_limit=_int(env, "STATUS_API_RECENT_FILLS", DEFAULT_RECENT_FILL_LIMIT),
+        recent_bar_limit=_int(env, "STATUS_API_RECENT_BARS", DEFAULT_RECENT_BAR_LIMIT),
     )
 
 
@@ -95,6 +99,7 @@ def handle_aws_execution_status_api_request(
             recent_event_limit=config.recent_event_limit,
             recent_order_limit=config.recent_order_limit,
             recent_fill_limit=config.recent_fill_limit,
+            recent_bar_limit=config.recent_bar_limit,
         )
         status = state_repository.latest_status_view(query)
     except (ConfigurationError, TradingFrameworkError, ValidationError) as exc:

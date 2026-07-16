@@ -17,6 +17,7 @@ DEFAULT_STATUS_API_CORS_ORIGIN = "*"
 DEFAULT_RECENT_EVENT_LIMIT = 50
 DEFAULT_RECENT_ORDER_LIMIT = 20
 DEFAULT_RECENT_FILL_LIMIT = 20
+DEFAULT_RECENT_BAR_LIMIT = 1440
 STATE_SORT_KEY = "STATE"
 STATE_VERSION = 1
 
@@ -48,6 +49,7 @@ def handle_aws_execution_status_api_request(
         recent_event_limit = _int(env, "STATUS_API_RECENT_EVENTS", DEFAULT_RECENT_EVENT_LIMIT)
         recent_order_limit = _int(env, "STATUS_API_RECENT_ORDERS", DEFAULT_RECENT_ORDER_LIMIT)
         recent_fill_limit = _int(env, "STATUS_API_RECENT_FILLS", DEFAULT_RECENT_FILL_LIMIT)
+        recent_bar_limit = _int(env, "STATUS_API_RECENT_BARS", DEFAULT_RECENT_BAR_LIMIT)
         client = dynamodb_client or _create_dynamodb_client(region)
         state = _load_state(client=client, table_name=table_name, runtime_id=runtime_id)
     except (KeyError, TypeError, ValueError) as exc:
@@ -77,6 +79,7 @@ def handle_aws_execution_status_api_request(
             recent_event_limit=recent_event_limit,
             recent_order_limit=recent_order_limit,
             recent_fill_limit=recent_fill_limit,
+            recent_bar_limit=recent_bar_limit,
         ),
         cors_origin=cors_origin,
     )
@@ -110,6 +113,7 @@ def _load_state(*, client: Any, table_name: str, runtime_id: str) -> dict[str, A
         "events": list(payload.get("events", ())),
         "orders": list(payload.get("orders", ())),
         "fills": list(payload.get("fills", ())),
+        "bars": list(payload.get("bars", ())),
         "position": payload.get("position"),
         "account": payload.get("account"),
     }
@@ -123,6 +127,7 @@ def _status_payload(
     recent_event_limit: int,
     recent_order_limit: int,
     recent_fill_limit: int,
+    recent_bar_limit: int,
 ) -> dict[str, Any]:
     position = state.get("position")
     account = state.get("account")
@@ -144,6 +149,7 @@ def _status_payload(
         "recent_orders": _tail(state.get("orders"), recent_order_limit),
         "recent_fills": _tail(state.get("fills"), recent_fill_limit),
         "recent_events": _tail(state.get("events"), recent_event_limit),
+        "recent_bars": _tail(state.get("bars"), recent_bar_limit),
         "simulated": True,
     }
 
@@ -243,6 +249,7 @@ def _empty_state() -> dict[str, Any]:
         "events": [],
         "orders": [],
         "fills": [],
+        "bars": [],
         "position": None,
         "account": None,
     }
