@@ -68,6 +68,27 @@ class PaperBroker:
             position=self._position_snapshot(timestamp),
         )
 
+    def restore_state(
+        self,
+        *,
+        account: PaperAccountSnapshot,
+        position: PaperPosition,
+        order_sequence: int = 0,
+        fill_sequence: int = 0,
+    ) -> PaperBrokerState:
+        """Restore paper accounting state from persisted snapshots."""
+        self._validate_account_snapshot(account)
+        self._validate_position_snapshot(position)
+        _validate_sequence(order_sequence, "order_sequence")
+        _validate_sequence(fill_sequence, "fill_sequence")
+        self._realized_pnl = account.realized_pnl
+        self._position_quantity = _signed_position_quantity(position)
+        self._average_entry_price = position.average_entry_price
+        self._last_mark_price = position.mark_price
+        self._order_sequence = order_sequence
+        self._fill_sequence = fill_sequence
+        return PaperBrokerState(account=account, position=position)
+
     def accept_market_order(
         self,
         intent: OrderIntent,
@@ -118,6 +139,22 @@ class PaperBroker:
             raise ValidationError(msg)
         if quote.symbol != self.symbol:
             msg = "quote symbol must match broker symbol"
+            raise ValidationError(msg)
+
+    def _validate_account_snapshot(self, account: PaperAccountSnapshot) -> None:
+        if account.account_id != self.account_id:
+            msg = "account snapshot id must match broker account_id"
+            raise ValidationError(msg)
+        if account.currency != self.currency:
+            msg = "account snapshot currency must match broker currency"
+            raise ValidationError(msg)
+        if account.starting_equity != self.starting_equity:
+            msg = "account snapshot starting_equity must match broker starting_equity"
+            raise ValidationError(msg)
+
+    def _validate_position_snapshot(self, position: PaperPosition) -> None:
+        if position.symbol != self.symbol:
+            msg = "position snapshot symbol must match broker symbol"
             raise ValidationError(msg)
 
     def _apply_fill(self, fill: SimulatedFill) -> None:
@@ -215,3 +252,17 @@ def _position_side(quantity: Decimal) -> PositionSide:
     if quantity < 0:
         return PositionSide.SHORT
     return PositionSide.FLAT
+
+
+def _signed_position_quantity(position: PaperPosition) -> Decimal:
+    if position.side is PositionSide.LONG:
+        return position.quantity
+    if position.side is PositionSide.SHORT:
+        return -position.quantity
+    return Decimal("0")
+
+
+def _validate_sequence(value: int, field_name: str) -> None:
+    if value < 0:
+        msg = f"{field_name} must be non-negative"
+        raise ValidationError(msg)

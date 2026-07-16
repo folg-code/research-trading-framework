@@ -16,7 +16,14 @@ from trading_framework.application.execution import (
 )
 from trading_framework.core.exceptions import ValidationError
 from trading_framework.core.types import Price, Volume
-from trading_framework.execution import BestBidAskSnapshot, ExecutionEventType
+from trading_framework.execution import (
+    BestBidAskSnapshot,
+    ExecutionEventType,
+    ExecutionReadModelQuery,
+    OrderIntent,
+    OrderSide,
+    OrderType,
+)
 from trading_framework.infrastructure.storage.execution_events import read_jsonl_execution_events
 from trading_framework.market.models import MarketBar
 from trading_framework.strategy import BtcFuturesDemoStrategyConfig
@@ -136,6 +143,20 @@ def test_local_btc_futures_closed_bar_step_runs_signal_to_paper_fill(
         ExecutionEventType.POSITION_UPDATED.value,
     ]
     assert rows[-1]["payload"]["simulated"] == "true"
+    status_view = runtime.state_repository.latest_status_view(
+        ExecutionReadModelQuery(runtime_id=runtime.config.runtime_id)
+    )
+    assert status_view is not None
+    assert status_view.current_signal == "entry_signal_active"
+    assert status_view.paper_equity is not None
+    assert status_view.recent_orders[0].order_id == "paper-order-1"
+    assert status_view.recent_fills[0].fill_id == "paper-fill-1"
+    assert [event.event_type for event in status_view.recent_events] == [
+        ExecutionEventType.MARKET_EVENT_RECEIVED,
+        ExecutionEventType.ORDER_INTENT_CREATED,
+        ExecutionEventType.SIMULATED_ORDER_FILLED,
+        ExecutionEventType.POSITION_UPDATED,
+    ]
 
 
 def test_local_btc_futures_closed_bar_feed_step_keeps_rolling_history(
@@ -184,6 +205,53 @@ def test_local_btc_futures_closed_bar_feed_step_keeps_rolling_history(
     assert not fourth.step_result.decision_result.order_submitted
 
 
+def test_local_btc_futures_runtime_restores_previous_paper_state(tmp_path: Path) -> None:
+    config = LocalBtcFuturesDryRunConfig(
+        event_log_path=tmp_path / "execution" / "events.jsonl",
+        strategy_config=BtcFuturesDemoStrategyConfig(ema_period=3),
+    )
+    runtime = create_local_btc_futures_dry_run_runtime(config, clock=FixedClock(NOW))
+
+    result = run_local_btc_futures_closed_bar_step(
+        runtime,
+        (_bar("100", 0), _bar("100", 1), _bar("101", 2)),
+    )
+    restored_runtime = create_local_btc_futures_dry_run_runtime(
+        config,
+        clock=FixedClock(NOW + timedelta(minutes=10)),
+    )
+
+    assert result.decision_result.order_submitted
+    assert restored_runtime.initial_state.position.quantity == Decimal("0.001")
+    assert restored_runtime.initial_state.position.average_entry_price == Price(Decimal("101"))
+    assert restored_runtime.initial_state.account.equity == Decimal("10000")
+    marked = restored_runtime.broker.mark_to_market(
+        Price(Decimal("103")),
+        NOW + timedelta(minutes=10),
+    )
+    next_order = restored_runtime.broker.accept_market_order(
+        OrderIntent(
+            intent_id="restart-intent-1",
+            strategy_id="demo-momentum",
+            symbol="BTCUSDT",
+            side=OrderSide.BUY,
+            order_type=OrderType.MARKET,
+            quantity=Decimal("0.001"),
+            requested_at=NOW + timedelta(minutes=10),
+        ),
+        BestBidAskSnapshot(
+            symbol="BTCUSDT",
+            bid_price=Price(Decimal("103")),
+            ask_price=Price(Decimal("104")),
+            event_at=NOW + timedelta(minutes=10),
+        ),
+    )
+    assert marked.position.quantity == Decimal("0.001")
+    assert marked.account.unrealized_pnl == Decimal("0.002")
+    assert next_order.order.order_id == "paper-order-2"
+    assert next_order.fill.fill_id == "paper-fill-2"
+
+
 def test_run_local_btc_futures_dry_run_records_bounded_lifecycle(tmp_path: Path) -> None:
     event_log_path = tmp_path / "events.jsonl"
 
@@ -199,6 +267,17 @@ def test_run_local_btc_futures_dry_run_records_bounded_lifecycle(tmp_path: Path)
     assert result.stopped_status.status.value == "stopped"
     rows = read_jsonl_execution_events(event_log_path)
     assert [row["event_type"] for row in rows] == [
+        "runtime_started",
+        "heartbeat_recorded",
+        "runtime_stopped",
+    ]
+    status_view = result.runtime.state_repository.latest_status_view(
+        ExecutionReadModelQuery(runtime_id=result.runtime.config.runtime_id)
+    )
+    assert status_view is not None
+    assert status_view.status.value == "stopped"
+    assert status_view.paper_equity == Decimal("10000")
+    assert [event.event_type.value for event in status_view.recent_events] == [
         "runtime_started",
         "heartbeat_recorded",
         "runtime_stopped",

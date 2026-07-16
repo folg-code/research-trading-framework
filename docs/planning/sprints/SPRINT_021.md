@@ -5,12 +5,12 @@
 ```text
 Sprint: 021
 Phase: Phase 8A - BTC Futures Live Dry-Run Execution Demo
-Status: PLANNED
-Planned Start: TBD
-Planned End: TBD
+Status: COMPLETE
+Planned Start: 2026-07-16
+Planned End: 2026-07-16
 Sprint Goal Owner: Project Maintainer
 Depends On: SPRINT_020
-Sprint Branch: sprint/btc-futures-dry-run-execution
+Sprint Branch: sprint/execution-persistence-read-model
 Task branch convention: feat/ | fix/ | docs/ | test/
 Architecture Sources:
   - docs/vision/ARCHITECTURE_TECHNICAL_UPDATED.md (Execution persistence, Event System)
@@ -48,14 +48,14 @@ paper equity through a read-only query interface.
 
 ## 2. MVP Scope Checklist
 
-- [ ] Define write-side repository protocol for execution events and snapshots.
-- [ ] Define read-side query protocol for dashboard status.
-- [ ] Persist heartbeats, runtime status, recent events, orders, fills and position snapshots.
-- [ ] Add a local JSON or SQLite adapter for development.
-- [ ] Add retention policy for recent events.
-- [ ] Add runtime restart behavior for last known position/equity.
-- [ ] Add tests for repository round trip and read model freshness.
-- [ ] Add CLI command to print latest read model as JSON.
+- [x] Define write-side repository protocol for execution events and snapshots.
+- [x] Define read-side query protocol for dashboard status.
+- [x] Persist heartbeats, runtime status, recent events, orders, fills and position snapshots.
+- [x] Add a local JSON or SQLite adapter for development.
+- [x] Add retention policy for recent events.
+- [x] Add runtime restart behavior for last known position/equity.
+- [x] Add tests for repository round trip and read model freshness.
+- [x] Add CLI command to print latest read model as JSON.
 
 ---
 
@@ -108,14 +108,14 @@ Local adapter is replaceable by DynamoDB in Sprint 022.
 
 | Task | Outcome | Status |
 |------|---------|--------|
-| S021-T001 | Define execution repository protocols | TODO |
-| S021-T002 | Define runtime status and recent-events read model | TODO |
-| S021-T003 | Implement local persistence adapter | TODO |
-| S021-T004 | Wire runtime event sink to repository | TODO |
-| S021-T005 | Add restart restoration for position/equity | TODO |
-| S021-T006 | Add read-model CLI JSON output | TODO |
-| S021-T007 | Add repository and freshness tests | TODO |
-| S021-T008 | Document persistence layout and retention | TODO |
+| S021-T001 | Define execution repository protocols | DONE |
+| S021-T002 | Define runtime status and recent-events read model | DONE |
+| S021-T003 | Implement local persistence adapter | DONE |
+| S021-T004 | Wire runtime event sink to repository | DONE |
+| S021-T005 | Add restart restoration for position/equity | DONE |
+| S021-T006 | Add read-model CLI JSON output | DONE |
+| S021-T007 | Add repository and freshness tests | DONE |
+| S021-T008 | Document persistence layout and retention | DONE |
 
 ---
 
@@ -143,3 +143,18 @@ Local adapter is replaceable by DynamoDB in Sprint 022.
 ## 8. Post-Sprint Direction
 
 Sprint 022 implements the AWS runtime MVP using ECS/Fargate, DynamoDB, CloudWatch and a read-only API.
+
+---
+
+## 9. Sprint Result
+
+Sprint 021 delivered the local execution read model boundary for dry-run runtime state:
+
+- execution repository protocols and read-model views,
+- local JSON state adapter with bounded recent events, orders and fills,
+- runtime persistence for status, events, paper broker account and position,
+- restart restoration from the latest persisted simulated state,
+- read-only JSON status CLI,
+- reference documentation for the local persistence layout and retention policy.
+
+The sprint branch is ready for integration to `main` after the closure PR is merged.

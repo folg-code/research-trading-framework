@@ -7,8 +7,8 @@ Technical reference for how data moves through the framework: ingestion, persist
 
 **Research methodologies (all workflows):** [RESEARCH_METHODOLOGIES.md](RESEARCH_METHODOLOGIES.md) — Signal, Model Research, Strategy, Robustness; scope comparison and CLI index.
 
-**As-is scope:** Market Data Phase 2A (Sprint 002), Phase 2B + 2C.1 trades import (Sprint 011), Phase 2B.3 derived OHLCV (Sprint 012), Phase 2C.4 continuous futures (Sprint 015 on `main`). Multitimeframe and declarative models: Sprints 004–006. Signal Research: Sprints 008–010. Model Research Methodology: Sprint 017 (Phase 5B, ADR-0020). Strategy Research MVP + dashboard Phase A: Sprints 013–014. Simulation refactor + columnar OHLCV batch path: PRs #124–#132 on `main`. Robustness Research MVP: Sprint 016 on `main` (ADR-0019). Dry-run Execution contracts: Sprint 018 (ADR-0021). Binance BTC futures live-data adapter: Sprint 019. Local BTC futures dry-run runtime: Sprint 020.  
-**Planned next:** local execution read model/persistence (Sprint 021); Phase 4B orderflow and Phase 6B multi-data deferred.  
+**As-is scope:** Market Data Phase 2A (Sprint 002), Phase 2B + 2C.1 trades import (Sprint 011), Phase 2B.3 derived OHLCV (Sprint 012), Phase 2C.4 continuous futures (Sprint 015 on `main`). Multitimeframe and declarative models: Sprints 004–006. Signal Research: Sprints 008–010. Model Research Methodology: Sprint 017 (Phase 5B, ADR-0020). Strategy Research MVP + dashboard Phase A: Sprints 013–014. Simulation refactor + columnar OHLCV batch path: PRs #124–#132 on `main`. Robustness Research MVP: Sprint 016 on `main` (ADR-0019). Dry-run Execution contracts: Sprint 018 (ADR-0021). Binance BTC futures live-data adapter: Sprint 019. Local BTC futures dry-run runtime: Sprint 020. Local execution read model/persistence: Sprint 021.  
+**Planned next:** AWS dry-run runtime MVP (Sprint 022); Phase 4B orderflow and Phase 6B multi-data deferred.  
 **Portfolio demo:** `scripts/demo/run_portfolio_demo.py` → `demo/output/index.html`.  
 **Deep market data reference:** [modules/DATA_MODULE_UPDATED.md](modules/DATA_MODULE_UPDATED.md)
 
@@ -672,6 +672,65 @@ Operator guide: [LOCAL_BTC_FUTURES_DRY_RUN.md](LOCAL_BTC_FUTURES_DRY_RUN.md)
 
 ---
 
+### 3.19 Execution Read Model Persistence (Sprint 021 - Phase 8A)
+
+Sprint 021 adds a local JSON execution state repository behind provider-independent execution
+repository ports. The read model is operational state for dashboards and AWS migration, not Research
+output.
+
+```text
+Local BTC futures dry-run runtime
+  -> LocalExecutionRuntimeSession
+  -> JSONL execution event log (append-only operator trace)
+  -> ExecutionStateRepository
+  -> latest RuntimeStatusView + bounded recent events/orders/fills
+  -> read-only CLI / future dashboard API
+```
+
+Default local runtime layout:
+
+```text
+user_data/runtime/btc_futures_dry_run/
+  events.jsonl
+  state/
+    {runtime_id}/
+      state.json
+```
+
+`state.json` stores:
+
+- latest runtime status snapshot,
+- bounded recent execution events,
+- bounded recent simulated orders,
+- bounded recent simulated fills,
+- latest paper position snapshot,
+- latest paper account snapshot.
+
+The default local adapter retention follows read-model query defaults:
+
+| Item | Default retention |
+|------|-------------------|
+| recent events | 50 |
+| recent orders | 20 |
+| recent fills | 20 |
+
+Runtime restart behavior reads the latest status view and restores the paper broker account, position
+and order/fill sequence numbers when enough simulated state is present. If no valid state exists, the
+runtime starts from the configured initial paper equity.
+
+Read-only CLI:
+
+```bash
+uv run python scripts/execution/show_execution_status.py \
+  --state-repository user_data/runtime/btc_futures_dry_run/state \
+  --runtime-id btc-futures-dry-run-local
+```
+
+Boundary: read-model queries cannot submit orders, change strategy configuration or control the
+runtime. All order/fill/position/account fields in this increment are simulated.
+
+---
+
 ### 3.5 OHLCV Parquet Schema (canonical)
 
 Defined in `infrastructure/storage/parquet/writer.py`:
@@ -955,6 +1014,7 @@ These appear in architecture diagrams and sprint plans but **have no production 
 | Dry-run Execution contracts | `execution` | `ExecutionMode`, `OrderIntent`, `SimulatedOrder`, `SimulatedFill`, `PaperPosition`, `RuntimeStatusSnapshot` |
 | Binance live feed smoke | `infrastructure.providers.binance`, `scripts/live_data` | `run_binance_futures_feed_smoke`, `scripts/live_data/run_binance_futures_smoke.py` |
 | Local BTC dry-run runtime | `application.execution`, `scripts/execution` | `run_local_btc_futures_binance_dry_run`, `scripts/execution/run_btc_futures_dry_run.py` |
+| Local execution read model | `execution.repositories`, `infrastructure.storage`, `scripts/execution` | `ExecutionStateRepository`, `JsonExecutionStateRepository`, `scripts/execution/show_execution_status.py` |
 | Analysis input | `application.market_analysis` | `load_analysis_data_view` → `AnalysisDataView` |
 | Register components | `market_analysis.registry` | `ComponentRegistry` |
 | Build DAG | `market_analysis.planning` | `DependencyPlanner.build_plan` |
