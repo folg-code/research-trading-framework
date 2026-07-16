@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Literal, cast, final
 
 from trading_framework.application.execution.binance_local_btc_futures import (
+    LocalBtcFuturesBinanceTelemetrySink,
     RunLocalBtcFuturesBinanceDryRunRequest,
     RunLocalBtcFuturesBinanceDryRunResult,
     run_local_btc_futures_binance_dry_run,
@@ -131,20 +132,25 @@ def load_aws_btc_futures_runtime_config(
 
 async def run_aws_btc_futures_dry_run(
     config: AwsBtcFuturesRuntimeConfig,
+    *,
+    telemetry: LocalBtcFuturesBinanceTelemetrySink | None = None,
 ) -> RunLocalBtcFuturesBinanceDryRunResult:
     """Run the AWS worker's current Binance dry-run lifecycle."""
     repository = create_aws_execution_state_repository(config)
     return await run_local_btc_futures_binance_dry_run(
         config.to_binance_dry_run_request(),
         state_repository=repository,
+        telemetry=telemetry,
     )
 
 
 def run_aws_btc_futures_dry_run_sync(
     config: AwsBtcFuturesRuntimeConfig,
+    *,
+    telemetry: LocalBtcFuturesBinanceTelemetrySink | None = None,
 ) -> RunLocalBtcFuturesBinanceDryRunResult:
     """Run the AWS worker from a synchronous container entry point."""
-    return asyncio.run(run_aws_btc_futures_dry_run(config))
+    return asyncio.run(run_aws_btc_futures_dry_run(config, telemetry=telemetry))
 
 
 def create_aws_execution_state_repository(

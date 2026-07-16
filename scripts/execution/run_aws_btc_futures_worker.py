@@ -7,6 +7,7 @@ import os
 import sys
 
 from trading_framework.application.execution import (
+    JsonCloudWatchExecutionTelemetry,
     load_aws_btc_futures_runtime_config,
     run_aws_btc_futures_dry_run_sync,
 )
@@ -17,7 +18,8 @@ def main() -> int:
     """Run the AWS dry-run worker from environment configuration."""
     try:
         config = load_aws_btc_futures_runtime_config(os.environ)
-        result = run_aws_btc_futures_dry_run_sync(config)
+        telemetry = JsonCloudWatchExecutionTelemetry()
+        result = run_aws_btc_futures_dry_run_sync(config, telemetry=telemetry)
     except (ConfigurationError, TradingFrameworkError) as exc:
         print(str(exc), file=sys.stderr)
         return 1

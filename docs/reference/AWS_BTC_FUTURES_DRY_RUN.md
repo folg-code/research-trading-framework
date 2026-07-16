@@ -126,6 +126,43 @@ Optional API variables:
 | `TRADING_FRAMEWORK_STATUS_API_RECENT_ORDERS` | `20` | Recent simulated order limit in API payload |
 | `TRADING_FRAMEWORK_STATUS_API_RECENT_FILLS` | `20` | Recent simulated fill limit in API payload |
 
+## CloudWatch Logs And Metrics
+
+The worker emits structured JSON logs to stdout. ECS/Fargate sends stdout to CloudWatch Logs when the
+task definition uses the `awslogs` log driver.
+
+Lifecycle log events:
+
+| Event | Purpose |
+|-------|---------|
+| `runtime_started` | Worker runtime start |
+| `heartbeat_recorded` | Runtime heartbeat and CloudWatch EMF metric |
+| `market_message_processed` | Binance message consumed or ignored |
+| `runtime_stopped` | Bounded worker runtime stop |
+| `aws_worker_summary` | Final bounded run summary |
+
+Common fields:
+
+```text
+runtime_id
+provider
+symbol
+status
+simulated
+occurred_at
+```
+
+Heartbeat logs include CloudWatch Embedded Metric Format fields:
+
+```text
+_aws.CloudWatchMetrics[0].Namespace = TradingFramework/DryRun
+Heartbeat = 1
+RuntimeId / Provider / Symbol dimensions
+```
+
+This keeps metrics dependency-free in code: CloudWatch extracts the heartbeat metric from structured
+logs, and the worker does not need direct CloudWatch write permissions.
+
 ## Smoke Checklist
 
 1. Build the image from the repository root.

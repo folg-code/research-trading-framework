@@ -46,12 +46,13 @@ def test_aws_btc_futures_worker_cli_loads_env_and_runs(
     monkeypatch.setenv("TRADING_FRAMEWORK_SYMBOL", "btcusdt")
     monkeypatch.setenv("TRADING_FRAMEWORK_DURATION_SECONDS", "60")
 
-    def fake_run(config: Any) -> FakeResult:
+    def fake_run(config: Any, *, telemetry: Any) -> FakeResult:
         assert config.aws_region == "eu-central-1"
         assert config.execution_state_table_name == "demo-execution-state"
         assert config.runtime_id == "aws-runtime-1"
         assert config.symbol == "BTCUSDT"
         assert config.duration_seconds == 60
+        assert telemetry is not None
         return FakeResult(
             runtime=FakeRuntime(
                 config=FakeRuntimeConfig(
