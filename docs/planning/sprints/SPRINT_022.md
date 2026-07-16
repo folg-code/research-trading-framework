@@ -71,7 +71,7 @@ read-only sanitized status endpoint for the portfolio dashboard.
 - [x] Add DynamoDB adapter for execution repository protocols.
 - [x] Add AWS configuration model with explicit region/table names.
 - [x] Add infrastructure notes or minimal IaC for ECS, DynamoDB, CloudWatch, API Gateway and Lambda.
-- [ ] Add read-only Lambda/API handler for latest status.
+- [x] Add read-only Lambda/API handler for latest status.
 - [ ] Add CloudWatch log fields and heartbeat metric.
 - [ ] Add stale heartbeat alarm design.
 - [x] Add deployment/runbook documentation.
@@ -98,7 +98,7 @@ Dashboard API is read-only and sanitized.
 | S022-T001 | Add container runtime entry point | DONE |
 | S022-T002 | Add DynamoDB execution repository adapter | DONE |
 | S022-T003 | Add AWS config model and environment validation | DONE |
-| S022-T004 | Add read-only status API handler | TODO |
+| S022-T004 | Add read-only status API handler | DONE |
 | S022-T005 | Add CloudWatch structured logging and metrics | TODO |
 | S022-T006 | Add stale heartbeat alarm/runbook notes | TODO |
 | S022-T007 | Add deployment documentation or minimal IaC | DONE |

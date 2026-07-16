@@ -500,6 +500,9 @@ ADR: [ADR-0021](../adr/ADR-0021-live-dry-run-execution-demo.md)
 |------|--------|----------------|
 | `local_btc_futures.py` | 🟡 | assemble local runtime, persist/read local state, restore paper broker state, run deterministic closed-bar and rolling feed steps |
 | `binance_local_btc_futures.py` | 🟡 | map Binance messages into local dry-run feed state and bounded async loop |
+| `aws_btc_futures_runtime.py` | 🟡 | AWS worker env config, state backend selection, DynamoDB/local repository factory |
+| `aws_status_api.py` | 🟡 | read-only API Gateway/Lambda status handler over `ExecutionStateRepository` |
+| `status_json.py` | ✅ | shared `RuntimeStatusView` JSON serialization for CLI and API responses |
 
 ### Execution persistence (Sprints 021-022)
 
