@@ -48,14 +48,14 @@ paper equity through a read-only query interface.
 
 ## 2. MVP Scope Checklist
 
-- [ ] Define write-side repository protocol for execution events and snapshots.
-- [ ] Define read-side query protocol for dashboard status.
-- [ ] Persist heartbeats, runtime status, recent events, orders, fills and position snapshots.
-- [ ] Add a local JSON or SQLite adapter for development.
-- [ ] Add retention policy for recent events.
-- [ ] Add runtime restart behavior for last known position/equity.
-- [ ] Add tests for repository round trip and read model freshness.
-- [ ] Add CLI command to print latest read model as JSON.
+- [x] Define write-side repository protocol for execution events and snapshots.
+- [x] Define read-side query protocol for dashboard status.
+- [x] Persist heartbeats, runtime status, recent events, orders, fills and position snapshots.
+- [x] Add a local JSON or SQLite adapter for development.
+- [x] Add retention policy for recent events.
+- [x] Add runtime restart behavior for last known position/equity.
+- [x] Add tests for repository round trip and read model freshness.
+- [x] Add CLI command to print latest read model as JSON.
 
 ---
 
@@ -113,9 +113,9 @@ Local adapter is replaceable by DynamoDB in Sprint 022.
 | S021-T003 | Implement local persistence adapter | DONE |
 | S021-T004 | Wire runtime event sink to repository | DONE |
 | S021-T005 | Add restart restoration for position/equity | DONE |
-| S021-T006 | Add read-model CLI JSON output | IN_PROGRESS |
-| S021-T007 | Add repository and freshness tests | IN_PROGRESS |
-| S021-T008 | Document persistence layout and retention | TODO |
+| S021-T006 | Add read-model CLI JSON output | DONE |
+| S021-T007 | Add repository and freshness tests | DONE |
+| S021-T008 | Document persistence layout and retention | IN_PROGRESS |
 
 ---
 
