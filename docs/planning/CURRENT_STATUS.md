@@ -28,7 +28,7 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 ```text
 Status Date: 2026-07-16
 Current Phase: Phase 8A - BTC Futures Live Dry-Run Execution Demo
-Current Milestone: Sprint 022 persistence - DynamoDB execution state adapter
+Current Milestone: Sprint 022 persistence - AWS worker wired to DynamoDB execution state backend
 Implementation Status: Sprints 001-006, 008-020 COMPLETE on main; Sprint 007 SKIPPED; Sprint 021 COMPLETE on sprint branch; Sprint 022 IN_PROGRESS
 Overall Status: IN_PROGRESS
 Active Sprint: SPRINT_022 (sprint/btc-futures-dry-run-execution)

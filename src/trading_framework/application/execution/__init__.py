@@ -2,6 +2,7 @@
 
 from trading_framework.application.execution.aws_btc_futures_runtime import (
     AwsBtcFuturesRuntimeConfig,
+    create_aws_execution_state_repository,
     load_aws_btc_futures_runtime_config,
     run_aws_btc_futures_dry_run,
     run_aws_btc_futures_dry_run_sync,
@@ -39,6 +40,7 @@ __all__ = [
     "RunLocalBtcFuturesBinanceDryRunResult",
     "RunLocalBtcFuturesDryRunRequest",
     "RunLocalBtcFuturesDryRunResult",
+    "create_aws_execution_state_repository",
     "create_local_btc_futures_dry_run_runtime",
     "handle_local_btc_futures_binance_message",
     "load_aws_btc_futures_runtime_config",

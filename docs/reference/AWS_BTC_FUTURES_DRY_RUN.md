@@ -25,6 +25,7 @@ Run locally with bounded execution:
 docker run --rm \
   -e TRADING_FRAMEWORK_AWS_REGION=eu-central-1 \
   -e TRADING_FRAMEWORK_EXECUTION_STATE_TABLE=demo-execution-state \
+  -e TRADING_FRAMEWORK_EXECUTION_STATE_BACKEND=local \
   -e TRADING_FRAMEWORK_DURATION_SECONDS=60 \
   -e TRADING_FRAMEWORK_MAX_MESSAGES=5 \
   trading-framework/btc-futures-worker:local
@@ -49,6 +50,7 @@ Optional variables:
 
 | Variable | Default | Purpose |
 |----------|---------|---------|
+| `TRADING_FRAMEWORK_EXECUTION_STATE_BACKEND` | `dynamodb` | State backend: `dynamodb` for AWS, `local` for container smoke/dev |
 | `TRADING_FRAMEWORK_RUNTIME_ID` | `btc-futures-dry-run-aws` | Runtime identity used in state records |
 | `TRADING_FRAMEWORK_SYMBOL` | `BTCUSDT` | Binance USD-M futures symbol |
 | `TRADING_FRAMEWORK_EVENT_LOG_PATH` | `/tmp/trading_framework/btc_futures_dry_run/events.jsonl` | Local JSONL event fallback |
@@ -75,9 +77,12 @@ ECS task
   -> read-only status API
 ```
 
-Current packaging can run with the local JSON state repository. Sprint 022 also provides
-`DynamoDbExecutionStateRepository`, which implements the same `ExecutionStateRepository` port against
-a DynamoDB state item.
+Current packaging can run with either the local JSON state repository or DynamoDB. Use
+`TRADING_FRAMEWORK_EXECUTION_STATE_BACKEND=local` for local container smoke runs. Use the default
+`dynamodb` backend in ECS/Fargate.
+
+`DynamoDbExecutionStateRepository` implements the same `ExecutionStateRepository` port against a
+DynamoDB state item.
 
 The MVP DynamoDB item shape is:
 
@@ -91,8 +96,8 @@ state_json
 ```
 
 `state_json` contains the same explicit state document used by the local JSON adapter: latest runtime
-status, latest account and position snapshots, and bounded recent events/orders/fills. The next slice
-wires the AWS worker to instantiate the DynamoDB adapter from the configured AWS client.
+status, latest account and position snapshots, and bounded recent events/orders/fills. The AWS worker
+creates the DynamoDB client from `TRADING_FRAMEWORK_AWS_REGION` when the backend is `dynamodb`.
 
 ## Smoke Checklist
 
