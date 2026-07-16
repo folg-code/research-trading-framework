@@ -27,7 +27,7 @@ signal_model/         Signal Model definitions, firing, emissions
 infrastructure/       adapters — CSV, Parquet, file registry, Binance live feed
 core/, time/, config/ shared primitives
 strategy/, research/         Signal Research MVP (Sprint 008–010) ✅; Strategy Research MVP (Sprint 013) ✅; Strategy dashboard (Sprint 014) ✅
-execution/                   🟡 dry-run contracts + live feed facts (Sprints 018-019); no runtime yet
+execution/                   🟡 dry-run contracts + local BTCUSDT runtime (Sprints 018-020)
 events/                      ⬜ future domain events
 ```
 
@@ -454,19 +454,22 @@ Optional phase timing hooks (`optional_phase`) used across application and infra
 
 ---
 
-## Execution (Sprints 018-019 - Phase 8A contracts + live feed) 🟡
+## Execution (Sprints 018-020 - Phase 8A local dry-run) 🟡
 
 Sprint 018 introduced provider-independent **dry-run Execution contracts** for the BTC futures live-data
-demo. Sprint 019 added provider-independent live market facts and a Binance adapter that maps public
-BTCUSDT USD-M futures streams into those facts. The dry-run runtime loop, persistence, AWS deployment
-and dashboard are still planned in later sprints.
+demo. Sprint 019 added provider-independent live market facts and a Binance adapter. Sprint 020 adds a
+local BTCUSDT dry-run runtime loop using live Binance closed `kline_1m` bars and simulated broker
+accounting.
 
 ```text
-Binance live market data
-  -> provider DTO parsing in infrastructure
-  -> MarketBar / BestBidAskSnapshot / MarketFeedStatusSnapshot
-  -> ExecutionMode.DRY_RUN contracts
-  -> future simulated broker/runtime
+Binance BTCUSDT kline_1m WebSocket
+  -> provider DTO parsing and mapping
+  -> MarketBar
+  -> rolling closed-bar history
+  -> shared demo StrategyModelDefinition signal evaluation
+  -> StrategyModelOrderAdapter
+  -> PaperBroker
+  -> JSONL execution events
 ```
 
 ADR: [ADR-0021](../adr/ADR-0021-live-dry-run-execution-demo.md)
@@ -484,6 +487,24 @@ ADR: [ADR-0021](../adr/ADR-0021-live-dry-run-execution-demo.md)
 | `models/market_data.py` | ✅ | `BestBidAskSnapshot`, `MarketFeedStatusSnapshot`, `MarketFeedConnectionState` |
 | `models/status.py` | ✅ | `Heartbeat`, `RuntimeStatusSnapshot`, `RuntimeHealth` |
 | `protocols.py` | ✅ | read/event ports for future persistence and dashboard status |
+| `broker_sim/` | ✅ | `PaperBroker`, simulated market fills, paper account/position accounting |
+| `runtime/` | 🟡 | local session, decision step, signal adapter, closed-bar fill reference |
+
+### `application/execution/` 🟡
+
+| File | Status | Responsibility |
+|------|--------|----------------|
+| `local_btc_futures.py` | 🟡 | assemble local runtime, run deterministic closed-bar and rolling feed steps |
+| `binance_local_btc_futures.py` | 🟡 | map Binance messages into local dry-run feed state and bounded async loop |
+
+**CLI:**
+
+```bash
+uv run python scripts/execution/run_btc_futures_dry_run.py \
+  --symbol BTCUSDT --duration-minutes 30
+```
+
+Operator notes: [LOCAL_BTC_FUTURES_DRY_RUN.md](LOCAL_BTC_FUTURES_DRY_RUN.md)
 
 **Boundary:** all orders, fills, positions and PnL in this increment are simulated. `execution/` must not
 import `research`, concrete `infrastructure` or `user_data`. Provider payload schemas are not execution
@@ -527,12 +548,12 @@ uv run python scripts/live_data/run_binance_futures_smoke.py \
 | Package / track | Planned role |
 |---------|----------------|
 | `events/` | Domain events |
-| **Execution Track 8A.2+** | local dry-run runtime, persistence/read model, AWS runtime, OVH dashboard — see Sprints 020–025 |
+| **Execution Track 8A.2+** | persistence/read model, AWS runtime, OVH dashboard — see Sprints 021–025 |
 | **Data Track 2B.2–2E** | Databento DBN OHLCV → `MarketBar`, quotes, options snapshots, live adapters (gated) — see `ROADMAP.md` §6 |
 | **Research Track 4B, 6B** | Orderflow analysis, multi-data strategy simulation — see `ROADMAP.md` §10 |
 
-`events/` remains a skeleton package. Execution has contracts and a public live-data adapter; the
-strategy runtime and public dashboard begin in later Phase 8A sprints.
+`events/` remains a skeleton package. Execution has local dry-run runtime support; durable read models,
+AWS deployment and the public dashboard begin in later Phase 8A sprints.
 
 ---
 
@@ -557,6 +578,7 @@ strategy runtime and public dashboard begin in later Phase 8A sprints.
 | Execution contracts | `tests/unit/execution/test_dry_run_contracts.py` |
 | Execution architecture boundaries | `tests/unit/execution/test_execution_architecture_boundaries.py` |
 | Binance live feed adapter | `tests/unit/infrastructure/binance/`, `tests/integration/live_data/test_binance_futures_network_smoke.py` (opt-in) |
+| Local BTC futures dry-run | `tests/unit/application/execution/`, `tests/unit/scripts/test_btc_futures_dry_run_cli.py` |
 
 ---
 

@@ -5,12 +5,12 @@
 ```text
 Sprint: 020
 Phase: Phase 8A - BTC Futures Live Dry-Run Execution Demo
-Status: PLANNED
-Planned Start: TBD
+Status: IN_PROGRESS
+Planned Start: 2026-07-15
 Planned End: TBD
 Sprint Goal Owner: Project Maintainer
 Depends On: SPRINT_018, SPRINT_019
-Sprint Branch: sprint/btc-futures-dry-run-execution
+Sprint Branch: sprint/local-btc-futures-dry-run-runtime
 Task branch convention: feat/ | fix/ | docs/ | test/
 Architecture Sources:
   - docs/vision/ARCHITECTURE_FOUNDATIONS_UPDATED.md (Execution owns runtime state)
@@ -50,15 +50,15 @@ simulated orders, fills, positions, PnL snapshots and heartbeat events.
 
 ## 2. MVP Scope Checklist
 
-- [ ] Implement `LiveExecutionRuntime` orchestration loop.
-- [ ] Implement `SimulatedBroker` with marketable simulated fills.
-- [ ] Implement a minimal BTCUSDT demo strategy.
-- [ ] Consume closed 1m kline events for strategy decisions.
-- [ ] Use `bookTicker` or last close as simulated reference fill price.
-- [ ] Emit event log entries for signal, order intent, fill, position and heartbeat.
-- [ ] Add local JSONL event sink for development.
-- [ ] Add bounded runtime CLI with `--duration-minutes`.
-- [ ] Add tests for order lifecycle and position accounting.
+- [x] Implement local bounded dry-run orchestration loop.
+- [x] Implement `PaperBroker` with marketable simulated fills.
+- [x] Implement a transparent BTCUSDT demo Strategy Model.
+- [x] Consume closed 1m kline events for strategy decisions.
+- [x] Use last closed bar close as simulated reference fill price.
+- [x] Emit event log entries for signal, order intent, fill, position and heartbeat.
+- [x] Add local JSONL event sink for development.
+- [x] Add bounded runtime CLI with `--duration-minutes`.
+- [x] Add tests for order lifecycle and position accounting.
 
 ---
 
@@ -104,15 +104,17 @@ No real order API exists.
 
 | Task | Outcome | Status |
 |------|---------|--------|
-| S020-T001 | Add runtime loop contract and implementation | TODO |
-| S020-T002 | Add simulated broker with simple market-fill policy | TODO |
-| S020-T003 | Add paper position and PnL accounting | TODO |
-| S020-T004 | Add transparent BTCUSDT demo strategy | TODO |
-| S020-T005 | Wire Binance feed -> runtime -> simulated broker | TODO |
-| S020-T006 | Add local JSONL event sink | TODO |
-| S020-T007 | Add CLI `run_btc_futures_dry_run.py` | TODO |
-| S020-T008 | Add unit tests for lifecycle and accounting | TODO |
-| S020-T009 | Add local operator documentation | TODO |
+| S020-T001 | Add runtime loop contract and implementation | DONE |
+| S020-T002 | Add simulated broker with simple market-fill policy | DONE |
+| S020-T003 | Add paper position and PnL accounting | DONE |
+| S020-T004 | Add transparent BTCUSDT demo strategy | DONE |
+| S020-T005 | Wire Binance feed -> runtime -> simulated broker | DONE |
+| S020-T006 | Add local JSONL event sink | DONE |
+| S020-T007 | Add CLI `run_btc_futures_dry_run.py` | DONE |
+| S020-T008 | Add unit tests for lifecycle and accounting | DONE |
+| S020-T009 | Add local operator documentation | DONE |
+
+Operator guide: `docs/reference/LOCAL_BTC_FUTURES_DRY_RUN.md`.
 
 ---
 

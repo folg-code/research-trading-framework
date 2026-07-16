@@ -1,5 +1,6 @@
 """Execution domain package."""
 
+from trading_framework.execution.broker_sim import PaperBroker, PaperBrokerResult, PaperBrokerState
 from trading_framework.execution.models import (
     BestBidAskSnapshot,
     ExecutionEvent,
@@ -20,16 +21,30 @@ from trading_framework.execution.models import (
     SimulatedOrder,
 )
 from trading_framework.execution.modes import ExecutionMode
+from trading_framework.execution.runtime import (
+    EmaMomentumLiveSignalEvaluator,
+    LiveSignalEvaluation,
+    LocalExecutionRuntimeSession,
+    RuntimeDecisionStep,
+    RuntimeDecisionStepResult,
+    StrategyModelOrderAdapter,
+    StrategyOrderDecision,
+    StrategyOrderDecisionType,
+    closed_bar_close_reference_quote,
+)
 from trading_framework.execution.safety import DRY_RUN_SAFETY_POLICY, ExecutionSafetyPolicy
 
 __all__ = [
     "DRY_RUN_SAFETY_POLICY",
     "BestBidAskSnapshot",
+    "EmaMomentumLiveSignalEvaluator",
     "ExecutionEvent",
     "ExecutionEventType",
     "ExecutionMode",
     "ExecutionSafetyPolicy",
     "Heartbeat",
+    "LiveSignalEvaluation",
+    "LocalExecutionRuntimeSession",
     "MarketFeedConnectionState",
     "MarketFeedStatusSnapshot",
     "OrderIntent",
@@ -37,10 +52,19 @@ __all__ = [
     "OrderStatus",
     "OrderType",
     "PaperAccountSnapshot",
+    "PaperBroker",
+    "PaperBrokerResult",
+    "PaperBrokerState",
     "PaperPosition",
     "PositionSide",
+    "RuntimeDecisionStep",
+    "RuntimeDecisionStepResult",
     "RuntimeHealth",
     "RuntimeStatusSnapshot",
     "SimulatedFill",
     "SimulatedOrder",
+    "StrategyModelOrderAdapter",
+    "StrategyOrderDecision",
+    "StrategyOrderDecisionType",
+    "closed_bar_close_reference_quote",
 ]
