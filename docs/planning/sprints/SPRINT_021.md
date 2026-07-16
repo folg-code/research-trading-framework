@@ -5,9 +5,9 @@
 ```text
 Sprint: 021
 Phase: Phase 8A - BTC Futures Live Dry-Run Execution Demo
-Status: IN_PROGRESS
+Status: COMPLETE
 Planned Start: 2026-07-16
-Planned End: TBD
+Planned End: 2026-07-16
 Sprint Goal Owner: Project Maintainer
 Depends On: SPRINT_020
 Sprint Branch: sprint/execution-persistence-read-model
@@ -115,7 +115,7 @@ Local adapter is replaceable by DynamoDB in Sprint 022.
 | S021-T005 | Add restart restoration for position/equity | DONE |
 | S021-T006 | Add read-model CLI JSON output | DONE |
 | S021-T007 | Add repository and freshness tests | DONE |
-| S021-T008 | Document persistence layout and retention | IN_PROGRESS |
+| S021-T008 | Document persistence layout and retention | DONE |
 
 ---
 
@@ -143,3 +143,18 @@ Local adapter is replaceable by DynamoDB in Sprint 022.
 ## 8. Post-Sprint Direction
 
 Sprint 022 implements the AWS runtime MVP using ECS/Fargate, DynamoDB, CloudWatch and a read-only API.
+
+---
+
+## 9. Sprint Result
+
+Sprint 021 delivered the local execution read model boundary for dry-run runtime state:
+
+- execution repository protocols and read-model views,
+- local JSON state adapter with bounded recent events, orders and fills,
+- runtime persistence for status, events, paper broker account and position,
+- restart restoration from the latest persisted simulated state,
+- read-only JSON status CLI,
+- reference documentation for the local persistence layout and retention policy.
+
+The sprint branch is ready for integration to `main` after the closure PR is merged.
