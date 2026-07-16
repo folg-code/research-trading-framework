@@ -261,6 +261,75 @@ DynamoDB
 3. Start one short smoke run before restoring the normal operating mode.
 4. Confirm read-only API still serves the previous DynamoDB state while the worker is stopped.
 
+## Cost Estimate And Operating Modes
+
+Use AWS Pricing Calculator before deploying to a real AWS account. Prices vary by region, CPU
+architecture, public IPv4 usage, NAT/data-transfer shape, log volume and retention. The MVP should be
+operated with explicit limits, not as an unbounded production service.
+
+Assumptions for a low-cost demo estimate:
+
+```text
+Region: eu-central-1 target, calculator-confirmed before deploy
+Worker: 1 ECS Fargate task
+Task size: 0.25 vCPU / 0.5 GB memory
+Storage: default Fargate ephemeral storage
+DynamoDB: on-demand, one small STATE item per runtime
+API: HTTP API + Lambda, read-only status endpoint
+Logs: structured JSON, 14-day retention
+Metrics: one EMF heartbeat metric with RuntimeId/Provider/Symbol dimensions
+Data transfer: small public Binance WebSocket ingress + small status API egress
+```
+
+### Recommended Demo Mode
+
+Use scheduled operation first:
+
+```text
+EventBridge schedule
+  -> run one ECS task for 15-60 minutes
+  -> update DynamoDB read model
+  -> leave API serving last state after worker stops
+```
+
+This keeps the demo visible while avoiding a permanently running task. It also proves cloud runtime,
+persistence, logs, metrics and API integration.
+
+### Operating Modes
+
+| Mode | Worker runtime | Use case | Expected cost posture |
+|------|----------------|----------|-----------------------|
+| Smoke | 1-5 minutes on demand | Validate image, env, DynamoDB, API | cents-level per run |
+| Scheduled demo | 15-60 minutes/day | Portfolio demo with fresh status windows | low monthly cost |
+| Business-hours demo | 8 hours/day on weekdays | More realistic live monitoring demo | moderate monthly cost |
+| Always-on | 24/7 ECS service | Strongest live demo signal | highest MVP cost |
+
+### Cost Drivers
+
+| Component | Cost driver | Control |
+|-----------|-------------|---------|
+| ECS Fargate | vCPU-seconds and GB-seconds | Use 0.25 vCPU / 0.5 GB first; prefer scheduled runs |
+| DynamoDB | read/write requests and storage | One compact `STATE` item, bounded recent arrays |
+| Lambda | requests and GB-seconds | Small read-only handler, no heavy dependencies in handler path |
+| API Gateway | request count and response data transfer | Poll dashboard at a modest interval, e.g. 15-60 seconds |
+| CloudWatch Logs | ingestion and retention | JSON logs only, retention 7-14 days for demo |
+| CloudWatch Metrics | custom metric count | One heartbeat metric dimension set for one runtime |
+| Public IPv4 / networking | task public IP or NAT path | Avoid NAT gateway for MVP if public subnet task is acceptable |
+
+### Back-Of-Envelope Guidance
+
+For a personal portfolio demo, start with scheduled mode. A daily 30-minute task is roughly 2% of the
+compute duration of an always-on task, while still keeping the DynamoDB-backed dashboard useful. API,
+DynamoDB and Lambda should remain small unless the public dashboard is polled aggressively.
+
+Before switching to always-on:
+
+1. Confirm the AWS Pricing Calculator estimate for the selected region.
+2. Confirm CloudWatch log retention is bounded.
+3. Confirm dashboard polling interval is not excessive.
+4. Confirm there is no NAT gateway unless intentionally accepted.
+5. Set a monthly AWS Budget alert for the demo account or project tag.
+
 ## Smoke Checklist
 
 1. Build the image from the repository root.
