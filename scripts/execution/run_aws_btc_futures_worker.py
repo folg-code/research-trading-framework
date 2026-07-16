@@ -31,6 +31,7 @@ def main() -> int:
                 "status": result.stopped_status.status.value,
                 "aws_region": config.aws_region,
                 "execution_state_table": config.execution_state_table_name,
+                "execution_state_backend": config.execution_state_backend,
                 "received_messages": result.received_message_count,
                 "closed_bars": result.feed_state.closed_bar_count,
                 "ignored_messages": result.feed_state.ignored_message_count,

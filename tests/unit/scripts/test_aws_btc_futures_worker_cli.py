@@ -84,6 +84,7 @@ def test_aws_btc_futures_worker_cli_loads_env_and_runs(
     assert '"event": "aws_worker_summary"' in captured.out
     assert '"runtime_id": "aws-runtime-1"' in captured.out
     assert '"aws_region": "eu-central-1"' in captured.out
+    assert '"execution_state_backend": "dynamodb"' in captured.out
     assert '"execution_state_table": "demo-execution-state"' in captured.out
     assert '"simulated": true' in captured.out
 

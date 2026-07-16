@@ -14,7 +14,7 @@ from trading_framework.application.execution.local_btc_futures import (
     run_local_btc_futures_closed_bar_feed_step,
 )
 from trading_framework.core.exceptions import ValidationError
-from trading_framework.execution import PaperBrokerState
+from trading_framework.execution import ExecutionStateRepository, PaperBrokerState
 from trading_framework.execution.models import Heartbeat, RuntimeStatusSnapshot
 from trading_framework.infrastructure.providers.binance.aiohttp_websocket import (
     AiohttpBinanceWebSocketConnector,
@@ -154,6 +154,7 @@ async def run_local_btc_futures_binance_dry_run(
     request: RunLocalBtcFuturesBinanceDryRunRequest,
     *,
     clock: Clock | None = None,
+    state_repository: ExecutionStateRepository | None = None,
     connector: BinanceWebSocketConnector | None = None,
     clients: tuple[LocalBtcFuturesBinanceMessageClient, ...] | None = None,
 ) -> RunLocalBtcFuturesBinanceDryRunResult:
@@ -161,6 +162,7 @@ async def run_local_btc_futures_binance_dry_run(
     runtime = create_local_btc_futures_dry_run_runtime(
         request.config,
         clock=clock,
+        state_repository=state_repository,
     )
     owned_connector: AiohttpBinanceWebSocketConnector | None = None
     if clients is None:
