@@ -547,38 +547,6 @@ Add columnar batch return type (`MarketDataBatch` / `pl.LazyFrame` with metadata
 - Sprint 004 T001 spike
 - `docs/planning/retrospectives/ARCHITECTURE_SIMPLIFICATION_REVIEW_S002_S003.md` §5.1
 
-### Post-Sprint 025 Review Notes
-
-Return to this after Sprint 025. Keep `MarketBar` as a boundary/live-event object, but move bulk
-historical/research paths toward Arrow/Polars/`OhlcvColumnBatch`.
-
-Files to review:
-
-- `src/trading_framework/infrastructure/storage/parquet/writer.py` — legacy
-  `market_bars_to_table`, `market_bars_from_table`, `ParquetBarWriter.write/read`.
-- `src/trading_framework/infrastructure/storage/parquet/repository.py` — legacy `write_bars`
-  and `query_bars`; prefer `write_session_table` / `query_ohlcv_table` for bulk paths.
-- `src/trading_framework/application/market_data/import_external_dataset.py` — CSV import
-  materializes `NormalizedBarRow` and `MarketBar` lists before validation/write.
-- `src/trading_framework/application/market_data/derive_ohlcv_from_trades.py` — trade and bar
-  derivation materializes full Python lists.
-- `src/trading_framework/application/market_data/derive_continuous_ohlcv.py` — aggregation/write
-  is table-based, but validation still converts session tables to `MarketBar`.
-- `src/trading_framework/application/strategy_research/dashboard.py` and
-  `src/trading_framework/research/analytics/strategy_dashboard.py` — dashboard source candles
-  flow through `query_historical` and `list[MarketBar]`.
-- `src/trading_framework/market_analysis/data/view.py` and
-  `src/trading_framework/market_analysis/data/resample.py` — `AnalysisDataView.from_bars` and
-  resampling still round-trip through `MarketBar`.
-
-Likely repayment direction:
-
-- make columnar/table APIs the default for historical query, import, derivation and dashboards,
-- keep object APIs as explicit compatibility adapters or small live-runtime boundaries,
-- add validator paths that operate on Arrow/Polars/column batches without constructing one Python
-  object per bar,
-- migrate strategy research/dashboard reads to `query_historical_columnar` or direct table queries.
-
 ---
 
 ## TD-012 — Decimal OHLCV in Market Data with float64 Analysis Conversion

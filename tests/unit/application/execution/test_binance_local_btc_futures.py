@@ -17,7 +17,6 @@ from trading_framework.application.execution import (
     run_local_btc_futures_binance_dry_run,
 )
 from trading_framework.execution import ExecutionReadModelQuery
-from trading_framework.execution.models import Heartbeat, RuntimeStatusSnapshot
 from trading_framework.infrastructure.providers.binance import (
     BinanceFuturesStreamEndpoint,
     BinanceFuturesWebSocketMessage,
@@ -43,44 +42,6 @@ class FakeBinanceMessageClient:
 
     async def close(self) -> None:
         self.closed = True
-
-
-@dataclass(slots=True)
-class FakeTelemetry:
-    started: list[RuntimeStatusSnapshot]
-    heartbeats: list[Heartbeat]
-    messages: list[int]
-    stopped: list[RuntimeStatusSnapshot]
-
-    def runtime_started(
-        self,
-        config: LocalBtcFuturesDryRunConfig,
-        status: RuntimeStatusSnapshot,
-    ) -> None:
-        self.started.append(status)
-
-    def heartbeat_recorded(
-        self,
-        config: LocalBtcFuturesDryRunConfig,
-        heartbeat: Heartbeat,
-    ) -> None:
-        self.heartbeats.append(heartbeat)
-
-    def market_message_processed(
-        self,
-        config: LocalBtcFuturesDryRunConfig,
-        result: object,
-        *,
-        received_message_count: int,
-    ) -> None:
-        self.messages.append(received_message_count)
-
-    def runtime_stopped(
-        self,
-        config: LocalBtcFuturesDryRunConfig,
-        status: RuntimeStatusSnapshot,
-    ) -> None:
-        self.stopped.append(status)
 
 
 def _load_fixture(name: str) -> dict[str, object]:
@@ -174,7 +135,6 @@ def test_binance_non_matching_message_is_ignored(tmp_path: Path) -> None:
 
 
 def test_binance_dry_run_loop_processes_bounded_fake_messages(tmp_path: Path) -> None:
-    telemetry = FakeTelemetry(started=[], heartbeats=[], messages=[], stopped=[])
     client = FakeBinanceMessageClient(
         messages=[
             _message(_load_fixture("usdm_kline_1m_closed.json")),
@@ -195,7 +155,6 @@ def test_binance_dry_run_loop_processes_bounded_fake_messages(tmp_path: Path) ->
             ),
             clock=FixedClock(NOW),
             clients=(client,),
-            telemetry=telemetry,
         )
     )
 
@@ -227,7 +186,3 @@ def test_binance_dry_run_loop_processes_bounded_fake_messages(tmp_path: Path) ->
         "heartbeat_recorded",
         "runtime_stopped",
     ]
-    assert len(telemetry.started) == 1
-    assert len(telemetry.heartbeats) == 2
-    assert telemetry.messages == [1, 2, 3]
-    assert len(telemetry.stopped) == 1

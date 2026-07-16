@@ -454,13 +454,13 @@ Optional phase timing hooks (`optional_phase`) used across application and infra
 
 ---
 
-## Execution (Sprints 018-022 - Phase 8A local/AWS dry-run) 🟡
+## Execution (Sprints 018-021 - Phase 8A local dry-run) 🟡
 
 Sprint 018 introduced provider-independent **dry-run Execution contracts** for the BTC futures live-data
 demo. Sprint 019 added provider-independent live market facts and a Binance adapter. Sprint 020 adds a
 local BTCUSDT dry-run runtime loop using live Binance closed `kline_1m` bars and simulated broker
 accounting. Sprint 021 adds a local execution state repository and latest-status read model for
-operator inspection. Sprint 022 adds AWS worker packaging and a DynamoDB execution state adapter.
+operator inspection and future AWS/DynamoDB replacement.
 
 ```text
 Binance BTCUSDT kline_1m WebSocket
@@ -472,7 +472,6 @@ Binance BTCUSDT kline_1m WebSocket
   -> PaperBroker
   -> JSONL execution events
   -> ExecutionStateRepository read model
-  -> JSON local state or DynamoDB state item
 ```
 
 ADR: [ADR-0021](../adr/ADR-0021-live-dry-run-execution-demo.md)
@@ -500,11 +499,8 @@ ADR: [ADR-0021](../adr/ADR-0021-live-dry-run-execution-demo.md)
 |------|--------|----------------|
 | `local_btc_futures.py` | 🟡 | assemble local runtime, persist/read local state, restore paper broker state, run deterministic closed-bar and rolling feed steps |
 | `binance_local_btc_futures.py` | 🟡 | map Binance messages into local dry-run feed state and bounded async loop |
-| `aws_btc_futures_runtime.py` | 🟡 | AWS worker env config, state backend selection, DynamoDB/local repository factory |
-| `aws_status_api.py` | 🟡 | read-only API Gateway/Lambda status handler over `ExecutionStateRepository` |
-| `status_json.py` | ✅ | shared `RuntimeStatusView` JSON serialization for CLI and API responses |
 
-### Execution persistence (Sprints 021-022)
+### Execution persistence (Sprint 021)
 
 Local operational state is stored by `JsonExecutionStateRepository` under an operator-provided path,
 typically:
@@ -517,15 +513,6 @@ The state document contains the latest runtime status, latest paper account and 
 and bounded recent events/orders/fills. Default retention is 50 events, 20 orders and 20 fills.
 `scripts/execution/show_execution_status.py` prints the latest read model as JSON. This read path is
 inspection-only and does not expose runtime controls.
-
-AWS operational state can use `DynamoDbExecutionStateRepository`, which implements the same
-`ExecutionStateRepository` port against one DynamoDB item per runtime:
-
-```text
-pk = RUNTIME#{runtime_id}
-sk = STATE
-state_json = same explicit state document as the local JSON adapter
-```
 
 **CLI:**
 
@@ -613,7 +600,7 @@ AWS deployment and the public dashboard begin in later Phase 8A sprints.
 | Execution architecture boundaries | `tests/unit/execution/test_execution_architecture_boundaries.py` |
 | Binance live feed adapter | `tests/unit/infrastructure/binance/`, `tests/integration/live_data/test_binance_futures_network_smoke.py` (opt-in) |
 | Local BTC futures dry-run | `tests/unit/application/execution/`, `tests/unit/scripts/test_btc_futures_dry_run_cli.py` |
-| Execution read model persistence | `tests/unit/execution/repositories/`, `tests/unit/infrastructure/storage/test_execution_state_repository.py`, `tests/unit/infrastructure/storage/test_dynamodb_execution_state_repository.py`, `tests/unit/scripts/test_show_execution_status_cli.py` |
+| Execution read model persistence | `tests/unit/execution/repositories/`, `tests/unit/infrastructure/storage/test_execution_state_repository.py`, `tests/unit/scripts/test_show_execution_status_cli.py` |
 
 ---
 
