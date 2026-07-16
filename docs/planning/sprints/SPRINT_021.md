@@ -112,8 +112,8 @@ Local adapter is replaceable by DynamoDB in Sprint 022.
 | S021-T002 | Define runtime status and recent-events read model | DONE |
 | S021-T003 | Implement local persistence adapter | DONE |
 | S021-T004 | Wire runtime event sink to repository | DONE |
-| S021-T005 | Add restart restoration for position/equity | IN_PROGRESS |
-| S021-T006 | Add read-model CLI JSON output | TODO |
+| S021-T005 | Add restart restoration for position/equity | DONE |
+| S021-T006 | Add read-model CLI JSON output | IN_PROGRESS |
 | S021-T007 | Add repository and freshness tests | IN_PROGRESS |
 | S021-T008 | Document persistence layout and retention | TODO |
 
