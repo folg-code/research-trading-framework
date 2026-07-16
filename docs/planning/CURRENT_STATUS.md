@@ -28,7 +28,7 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 ```text
 Status Date: 2026-07-16
 Current Phase: Phase 8A - BTC Futures Live Dry-Run Execution Demo
-Current Milestone: Sprint 022 packaging - AWS worker container image and smoke checklist
+Current Milestone: Sprint 022 persistence - DynamoDB execution state adapter
 Implementation Status: Sprints 001-006, 008-020 COMPLETE on main; Sprint 007 SKIPPED; Sprint 021 COMPLETE on sprint branch; Sprint 022 IN_PROGRESS
 Overall Status: IN_PROGRESS
 Active Sprint: SPRINT_022 (sprint/btc-futures-dry-run-execution)
@@ -556,7 +556,7 @@ See `ROADMAP.md` §11–§12.
 | 019 | Binance BTC Futures Live Data Adapter (Phase 8A) | COMPLETED | 9 / 9 tasks |
 | 020 | Local BTC Futures Dry-Run Runtime (Phase 8A) | COMPLETED | 8 / 8 tasks |
 | 021 | Execution Persistence and Read Model (Phase 8A) | COMPLETED | 8 / 8 tasks; integration PR to main pending |
-| 022 | AWS Runtime MVP for BTC Futures Dry Run (Phase 8A) | IN_PROGRESS | 4 / 9 tasks |
+| 022 | AWS Runtime MVP for BTC Futures Dry Run (Phase 8A) | IN_PROGRESS | 5 / 9 tasks |
 
 ---
 
