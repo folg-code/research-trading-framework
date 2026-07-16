@@ -441,8 +441,68 @@ def _live_dry_run_fixture_payload() -> dict[str, object]:
         "paper_equity": "10000",
         "realized_pnl": "0",
         "unrealized_pnl": "0",
-        "recent_orders": [],
-        "recent_fills": [],
+        "price_history": [
+            {"time": "2026-07-16T11:54:00+00:00", "price": "64100.20"},
+            {"time": "2026-07-16T11:55:00+00:00", "price": "64173.40"},
+            {"time": "2026-07-16T11:56:00+00:00", "price": "64220.10"},
+            {"time": "2026-07-16T11:57:00+00:00", "price": "64188.70"},
+        ],
+        "equity_history": [
+            {"time": "2026-07-16T11:54:00+00:00", "equity": "10000"},
+            {"time": "2026-07-16T11:55:00+00:00", "equity": "10000"},
+            {"time": "2026-07-16T11:56:00+00:00", "equity": "10002.35"},
+            {"time": "2026-07-16T11:57:00+00:00", "equity": "10001.10"},
+        ],
+        "recent_orders": [
+            {
+                "order_id": "paper-order-1",
+                "intent_id": "btc-dry-run-long-1",
+                "strategy_id": "btc_ema_dry_run",
+                "symbol": "BTCUSDT",
+                "side": "buy",
+                "order_type": "market",
+                "quantity": "0.001",
+                "status": "simulated_filled",
+                "created_at": "2026-07-16T11:55:00+00:00",
+                "simulated": True,
+            },
+            {
+                "order_id": "paper-order-2",
+                "intent_id": "btc-dry-run-exit-1",
+                "strategy_id": "btc_ema_dry_run",
+                "symbol": "BTCUSDT",
+                "side": "sell",
+                "order_type": "market",
+                "quantity": "0.001",
+                "status": "simulated_filled",
+                "created_at": "2026-07-16T11:57:00+00:00",
+                "simulated": True,
+            },
+        ],
+        "recent_fills": [
+            {
+                "fill_id": "paper-fill-1",
+                "order_id": "paper-order-1",
+                "symbol": "BTCUSDT",
+                "side": "buy",
+                "quantity": "0.001",
+                "price": "64173.40",
+                "filled_at": "2026-07-16T11:55:00+00:00",
+                "liquidity": "simulated",
+                "simulated": True,
+            },
+            {
+                "fill_id": "paper-fill-2",
+                "order_id": "paper-order-2",
+                "symbol": "BTCUSDT",
+                "side": "sell",
+                "quantity": "0.001",
+                "price": "64188.70",
+                "filled_at": "2026-07-16T11:57:00+00:00",
+                "liquidity": "simulated",
+                "simulated": True,
+            },
+        ],
         "recent_events": [
             {
                 "event_id": "btc-futures-dry-run-aws-000001-runtime_started",
@@ -489,6 +549,7 @@ def _live_dry_run_dashboard_html(
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Live BTC Futures Dry-Run Status</title>
+  <script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
   <style>
     :root {{
       color-scheme: dark;
@@ -502,6 +563,8 @@ def _live_dry_run_dashboard_html(
       --warn: #f0b84a;
       --bad: #ef6b73;
       --blue: #64a7ff;
+      --buy: #3dd68c;
+      --sell: #ff6b6b;
     }}
     * {{ box-sizing: border-box; }}
     body {{
@@ -578,6 +641,25 @@ def _live_dry_run_dashboard_html(
     table {{ width: 100%; border-collapse: collapse; font-size: 0.92rem; }}
     th, td {{ padding: 0.55rem 0.4rem; border-bottom: 1px solid var(--line); text-align: left; }}
     th {{ color: var(--muted); font-weight: 650; }}
+    .chart-grid {{
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.65fr);
+    }}
+    .chart-host {{
+      height: 340px;
+      min-height: 260px;
+      width: 100%;
+    }}
+    .chart-small {{ height: 250px; }}
+    .table-wrap {{ overflow-x: auto; }}
+    .section-kicker {{
+      margin: -0.35rem 0 0.8rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }}
+    .side-buy {{ color: var(--buy); font-weight: 700; }}
+    .side-sell {{ color: var(--sell); font-weight: 700; }}
     .empty {{ color: var(--muted); margin: 0; }}
     .error {{ color: var(--bad); font-weight: 650; }}
     .fresh {{ color: var(--accent); }}
@@ -586,6 +668,7 @@ def _live_dry_run_dashboard_html(
     @media (max-width: 820px) {{
       .top {{ grid-template-columns: 1fr; }}
       .half, .third {{ grid-column: span 12; }}
+      .chart-grid {{ grid-template-columns: 1fr; }}
       dl {{ grid-template-columns: 1fr; }}
     }}
   </style>
@@ -610,10 +693,28 @@ def _live_dry_run_dashboard_html(
       <section class="third"><h2>Runtime</h2><dl id="runtime"></dl></section>
       <section class="third"><h2>Market</h2><dl id="market"></dl></section>
       <section class="third"><h2>Paper Account</h2><dl id="account"></dl></section>
+      <section class="wide">
+        <h2>Live Price, Simulated Trades And Equity</h2>
+        <p class="section-kicker">
+          The page keeps a rolling in-browser history from API polls; the fixture seeds the offline
+          portfolio view.
+        </p>
+        <div class="chart-grid">
+          <div>
+            <div class="chart-title">BTCUSDT price with simulated fill markers</div>
+            <div id="chart-price" class="chart-host"></div>
+          </div>
+          <div>
+            <div class="chart-title">Paper equity</div>
+            <div id="chart-equity" class="chart-host chart-small"></div>
+          </div>
+        </div>
+      </section>
       <section class="half"><h2>Current Paper Position</h2><dl id="position"></dl></section>
       <section class="half">
-        <h2>Recent Simulated Orders / Fills</h2><div id="orders-fills"></div>
+        <h2>Last Simulated Trades</h2><div id="last-trades"></div>
       </section>
+      <section class="wide"><h2>Recent Simulated Orders</h2><div id="orders"></div></section>
       <section class="wide"><h2>Recent Runtime Events</h2><div id="events"></div></section>
     </div>
   </main>
@@ -624,6 +725,12 @@ def _live_dry_run_dashboard_html(
     const statusUrl = params.get('statusUrl') || config.statusUrl || '';
     const pollMs = config.pollSeconds * 1000;
     const staleAfterMs = config.staleAfterSeconds * 1000;
+    const priceHistory = [];
+    const equityHistory = [];
+    let priceChart;
+    let priceSeries;
+    let equityChart;
+    let equitySeries;
 
     function text(value) {{
       return value === null || value === undefined || value === '' ? 'n/a' : String(value);
@@ -658,13 +765,125 @@ def _live_dry_run_dashboard_html(
       if (!items || !items.length) return '<p class="empty">No recent simulated records.</p>';
       const head = columns.map((column) => `<th>${{column.label}}</th>`).join('');
       const rows = items.map((item) => `<tr>${{
-        columns.map((column) => `<td>${{text(item[column.key])}}</td>`).join('')
+        columns.map((column) => `<td>${{formatCell(item, column)}}</td>`).join('')
       }}</tr>`).join('');
-      return `<table><thead><tr>${{head}}</tr></thead><tbody>${{rows}}</tbody></table>`;
+      return `<div class="table-wrap"><table><thead><tr>${{head}}</tr></thead>` +
+        `<tbody>${{rows}}</tbody></table></div>`;
+    }}
+
+    function formatCell(item, column) {{
+      const value = column.render ? column.render(item) : item[column.key];
+      if (column.key === 'side') {{
+        const side = String(value || '').toLowerCase();
+        if (side === 'buy') return '<span class="side-buy">BUY</span>';
+        if (side === 'sell') return '<span class="side-sell">SELL</span>';
+      }}
+      return text(value);
+    }}
+
+    function toUnixSeconds(iso) {{
+      const value = Date.parse(iso || '');
+      return Number.isFinite(value) ? Math.floor(value / 1000) : null;
+    }}
+
+    function toNumber(value) {{
+      const parsed = Number(value);
+      return Number.isFinite(parsed) ? parsed : null;
+    }}
+
+    function upsertPoint(points, point) {{
+      if (!point || point.time === null || point.value === null) return;
+      const index = points.findIndex((item) => item.time === point.time);
+      if (index >= 0) points[index] = point;
+      else points.push(point);
+      points.sort((left, right) => left.time - right.time);
+      while (points.length > 240) points.shift();
+    }}
+
+    function seedHistory(payload) {{
+      for (const row of payload.price_history || []) {{
+        upsertPoint(priceHistory, {{
+          time: toUnixSeconds(row.time),
+          value: toNumber(row.price),
+        }});
+      }}
+      for (const row of payload.equity_history || []) {{
+        upsertPoint(equityHistory, {{
+          time: toUnixSeconds(row.time),
+          value: toNumber(row.equity),
+        }});
+      }}
+    }}
+
+    function appendLivePoints(payload) {{
+      const marketTime = payload.last_market_event_at || payload.generated_at;
+      upsertPoint(priceHistory, {{
+        time: toUnixSeconds(marketTime),
+        value: toNumber(payload.last_price),
+      }});
+      upsertPoint(equityHistory, {{
+        time: toUnixSeconds(payload.generated_at || payload.last_heartbeat_at || marketTime),
+        value: toNumber(payload.paper_equity),
+      }});
+    }}
+
+    function makeChart(containerId) {{
+      const container = document.getElementById(containerId);
+      if (!container || !window.LightweightCharts) return null;
+      return LightweightCharts.createChart(container, {{
+        layout: {{ background: {{ color: '#1f2830' }}, textColor: '#eef3f8' }},
+        grid: {{ vertLines: {{ color: '#2b3540' }}, horzLines: {{ color: '#2b3540' }} }},
+        rightPriceScale: {{ borderColor: '#34404b' }},
+        timeScale: {{ borderColor: '#34404b', timeVisible: true, secondsVisible: false }},
+        crosshair: {{ mode: LightweightCharts.CrosshairMode.Normal }},
+      }});
+    }}
+
+    function ensureCharts() {{
+      if (!window.LightweightCharts) {{
+        document.getElementById('chart-price').innerHTML =
+          '<p class="empty">Price chart unavailable because Lightweight Charts did not load.</p>';
+        document.getElementById('chart-equity').innerHTML =
+          '<p class="empty">Equity chart unavailable because Lightweight Charts did not load.</p>';
+        return false;
+      }}
+      if (!priceChart) {{
+        priceChart = makeChart('chart-price');
+        priceSeries = priceChart.addLineSeries({{ color: '#64a7ff', lineWidth: 2 }});
+      }}
+      if (!equityChart) {{
+        equityChart = makeChart('chart-equity');
+        equitySeries = equityChart.addLineSeries({{ color: '#3dd68c', lineWidth: 2 }});
+      }}
+      return true;
+    }}
+
+    function renderCharts(payload) {{
+      seedHistory(payload);
+      appendLivePoints(payload);
+      if (!ensureCharts()) return;
+      priceSeries.setData(priceHistory);
+      equitySeries.setData(equityHistory);
+      priceSeries.setMarkers((payload.recent_fills || [])
+        .map((fill) => {{
+          const side = String(fill.side || '').toLowerCase();
+          const price = toNumber(fill.price);
+          return {{
+            time: toUnixSeconds(fill.filled_at),
+            position: side === 'buy' ? 'belowBar' : 'aboveBar',
+            color: side === 'buy' ? '#3dd68c' : '#ff6b6b',
+            shape: side === 'buy' ? 'arrowUp' : 'arrowDown',
+            text: `${{side.toUpperCase()}} ${{price === null ? '' : price.toFixed(2)}}`,
+          }};
+        }})
+        .filter((marker) => marker.time !== null));
+      priceChart.timeScale().fitContent();
+      equityChart.timeScale().fitContent();
     }}
 
     function render(payload) {{
       setStatus(payload);
+      renderCharts(payload);
       const heartbeatAge = Math.round(ageMs(payload.last_heartbeat_at) / 1000);
       setPairs('runtime', [
         ['Runtime id', payload.runtime_id],
@@ -696,20 +915,20 @@ def _live_dry_run_dashboard_html(
         ['Unrealized PnL', position.unrealized_pnl],
         ['Updated', position.updated_at],
       ]);
-      document.getElementById('orders-fills').innerHTML =
-        '<h3 class="muted">Orders</h3>' +
-        renderRows(payload.recent_orders || [], [
-          {{key: 'created_at', label: 'Created'}},
-          {{key: 'side', label: 'Side'}},
-          {{key: 'quantity', label: 'Qty'}},
-          {{key: 'status', label: 'Status'}},
-        ]) +
-        '<h3 class="muted">Fills</h3>' +
+      document.getElementById('last-trades').innerHTML =
         renderRows(payload.recent_fills || [], [
           {{key: 'filled_at', label: 'Filled'}},
           {{key: 'side', label: 'Side'}},
           {{key: 'quantity', label: 'Qty'}},
           {{key: 'price', label: 'Price'}},
+          {{key: 'order_id', label: 'Order'}},
+        ]);
+      document.getElementById('orders').innerHTML = renderRows(payload.recent_orders || [], [
+          {{key: 'created_at', label: 'Created'}},
+          {{key: 'side', label: 'Side'}},
+          {{key: 'quantity', label: 'Qty'}},
+          {{key: 'status', label: 'Status'}},
+          {{key: 'order_id', label: 'Order'}},
         ]);
       document.getElementById('events').innerHTML = renderRows(payload.recent_events || [], [
         {{key: 'occurred_at', label: 'Occurred'}},
