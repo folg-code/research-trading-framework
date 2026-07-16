@@ -16,6 +16,7 @@ from trading_framework.application.execution import (
     handle_local_btc_futures_binance_message,
     run_local_btc_futures_binance_dry_run,
 )
+from trading_framework.execution import ExecutionReadModelQuery
 from trading_framework.infrastructure.providers.binance import (
     BinanceFuturesStreamEndpoint,
     BinanceFuturesWebSocketMessage,
@@ -163,6 +164,21 @@ def test_binance_dry_run_loop_processes_bounded_fake_messages(tmp_path: Path) ->
     assert result.feed_state.ignored_message_count == 1
     event_rows = read_jsonl_execution_events(tmp_path / "events.jsonl")
     assert [row["event_type"] for row in event_rows] == [
+        "runtime_started",
+        "heartbeat_recorded",
+        "market_event_received",
+        "market_event_received",
+        "heartbeat_recorded",
+        "runtime_stopped",
+    ]
+    status_view = result.runtime.state_repository.latest_status_view(
+        ExecutionReadModelQuery(runtime_id=result.runtime.config.runtime_id)
+    )
+    assert status_view is not None
+    assert status_view.status.value == "stopped"
+    assert status_view.current_signal == "no_signal"
+    assert status_view.paper_equity == Decimal("10000")
+    assert [event.event_type.value for event in status_view.recent_events] == [
         "runtime_started",
         "heartbeat_recorded",
         "market_event_received",
