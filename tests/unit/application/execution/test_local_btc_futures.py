@@ -205,6 +205,69 @@ def test_local_btc_futures_closed_bar_feed_step_keeps_rolling_history(
     assert not fourth.step_result.decision_result.order_submitted
 
 
+def test_local_btc_futures_closed_bar_feed_step_exits_after_fixed_bars(
+    tmp_path: Path,
+) -> None:
+    runtime = create_local_btc_futures_dry_run_runtime(
+        LocalBtcFuturesDryRunConfig(
+            event_log_path=tmp_path / "events.jsonl",
+            strategy_config=BtcFuturesDemoStrategyConfig(ema_period=3, exit_after_bars=2),
+        ),
+        clock=FixedClock(NOW),
+    )
+    closed_bars: tuple[MarketBar, ...] = ()
+
+    first = run_local_btc_futures_closed_bar_feed_step(
+        runtime,
+        closed_bars=closed_bars,
+        bar=_bar("100", 0),
+        max_closed_bars=10,
+    )
+    second = run_local_btc_futures_closed_bar_feed_step(
+        runtime,
+        closed_bars=first.closed_bars,
+        bar=_bar("100", 1),
+        max_closed_bars=10,
+    )
+    entry = run_local_btc_futures_closed_bar_feed_step(
+        runtime,
+        closed_bars=second.closed_bars,
+        bar=_bar("101", 2),
+        max_closed_bars=10,
+    )
+    hold = run_local_btc_futures_closed_bar_feed_step(
+        runtime,
+        closed_bars=entry.closed_bars,
+        bar=_bar("102", 3),
+        max_closed_bars=10,
+    )
+    exit_step = run_local_btc_futures_closed_bar_feed_step(
+        runtime,
+        closed_bars=hold.closed_bars,
+        bar=_bar("103", 4),
+        max_closed_bars=10,
+    )
+
+    assert entry.step_result.decision_result.order_submitted
+    assert entry.step_result.broker_state.position.quantity == Decimal("0.001")
+    assert not hold.step_result.decision_result.order_submitted
+    assert exit_step.step_result.signal_evaluation.exit_signal_active
+    assert exit_step.step_result.decision_result.order_submitted
+    assert exit_step.step_result.broker_state.position.quantity == Decimal("0")
+
+    status_view = runtime.state_repository.latest_status_view(
+        ExecutionReadModelQuery(runtime_id=runtime.config.runtime_id)
+    )
+    assert status_view is not None
+    assert status_view.current_position is not None
+    assert status_view.current_position.quantity == Decimal("0")
+    assert [fill.side for fill in status_view.recent_fills] == [
+        OrderSide.BUY,
+        OrderSide.SELL,
+    ]
+    assert status_view.current_signal == "exit_signal_active"
+
+
 def test_local_btc_futures_runtime_restores_previous_paper_state(tmp_path: Path) -> None:
     config = LocalBtcFuturesDryRunConfig(
         event_log_path=tmp_path / "execution" / "events.jsonl",
