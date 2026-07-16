@@ -99,6 +99,33 @@ state_json
 status, latest account and position snapshots, and bounded recent events/orders/fills. The AWS worker
 creates the DynamoDB client from `TRADING_FRAMEWORK_AWS_REGION` when the backend is `dynamodb`.
 
+## Read-Only Status API
+
+The Lambda handler entry point is:
+
+```text
+scripts.execution.aws_status_api_handler.lambda_handler
+```
+
+It accepts API Gateway REST or HTTP API events and supports only `GET`. The handler:
+
+- loads the same AWS runtime env contract as the worker,
+- reads the latest `RuntimeStatusView` through `ExecutionStateRepository`,
+- returns the same status JSON shape as `scripts/execution/show_execution_status.py`,
+- returns `404` when the runtime state is missing,
+- returns `405` for mutation methods,
+- includes `Cache-Control: no-store`,
+- does not include DynamoDB table names or raw infrastructure identifiers in the response body.
+
+Optional API variables:
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `TRADING_FRAMEWORK_STATUS_API_CORS_ORIGIN` | `*` | CORS origin for the read-only status response |
+| `TRADING_FRAMEWORK_STATUS_API_RECENT_EVENTS` | `50` | Recent event limit in API payload |
+| `TRADING_FRAMEWORK_STATUS_API_RECENT_ORDERS` | `20` | Recent simulated order limit in API payload |
+| `TRADING_FRAMEWORK_STATUS_API_RECENT_FILLS` | `20` | Recent simulated fill limit in API payload |
+
 ## Smoke Checklist
 
 1. Build the image from the repository root.
