@@ -26,14 +26,14 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 ## 2. Status Metadata
 
 ```text
-Status Date: 2026-07-15
-Current Phase: Post Sprint 017 — Model Research Methodology MVP merged to sprint branch
-Current Milestone: Sprint 017 closure — research methodologies reference + integration PR to main
-Implementation Status: Sprints 001–006, 008–016 COMPLETE on main; Sprint 007 SKIPPED; Sprint 017 COMPLETE on sprint branch (pending integration PR to main)
+Status Date: 2026-07-16
+Current Phase: Phase 8A - BTC Futures Live Dry-Run Execution Demo
+Current Milestone: Sprint 021 closure - execution persistence read model ready for integration
+Implementation Status: Sprints 001-006, 008-020 COMPLETE on main; Sprint 007 SKIPPED; Sprint 021 COMPLETE on sprint branch (pending integration PR to main)
 Overall Status: IN_PROGRESS
-Active Sprint: none (Sprint 017 closure PR pending)
-Last Completed Sprint: SPRINT_017 (sprint/model-research-methodology-mvp — Wave 6, 2026-07-15)
-Capability Tracks: Foundation COMPLETE; Data 2A + 2B/2C.1 + 2B.3 + 2C.4 COMPLETE; Research 3/4A/5/5B/7 COMPLETE on sprint branch; Strategy 6A COMPLETE; Phase 5B COMPLETE (pending main merge)
+Active Sprint: none (Sprint 021 integration PR pending)
+Last Completed Sprint: SPRINT_021 (sprint/execution-persistence-read-model, 2026-07-16)
+Capability Tracks: Foundation COMPLETE; Data 2A + 2B/2C.1 + 2B.3 + 2C.4 COMPLETE; Research 3/4A/5/5B/7 COMPLETE; Strategy 6A COMPLETE; Phase 8A local dry-run and execution persistence COMPLETE on sprint branch
 Recent perf: columnar OHLCV + shared eval → **~6 s** half-year NQ strategy research (178k bars, 45M ticks ingested); see README § Scale & performance and DATA_WORKFLOWS §1.1
 ```
 
@@ -41,11 +41,13 @@ Recent perf: columnar OHLCV + shared eval → **~6 s** half-year NQ strategy res
 
 ## 2.1 Current Phase 8A Update
 
-As of 2026-07-15, Phase 8A has moved beyond Sprint 017 closure:
+As of 2026-07-16, Phase 8A has moved beyond local dry-run runtime setup:
 
 - Sprint 018 delivered provider-independent dry-run execution contracts.
 - Sprint 019 delivered the Binance BTCUSDT USD-M futures live-data adapter.
-- Current active preparation target: Sprint 020, local BTC futures dry-run runtime.
+- Sprint 020 delivered the local BTC futures dry-run runtime.
+- Sprint 021 delivered the local execution persistence read model and restart state.
+- Current active preparation target: Sprint 022, AWS runtime MVP.
 
 Sprint 019 live-data boundary:
 
@@ -53,7 +55,7 @@ Sprint 019 live-data boundary:
 Binance public WebSocket
   -> infrastructure/providers/binance parser + mapper
   -> MarketBar / BestBidAskSnapshot / MarketFeedStatusSnapshot
-  -> future Sprint 020 dry-run runtime
+  -> Sprint 020/021 dry-run runtime + execution read model
 ```
 
 Standard CI remains network-free. Binance live smoke validation is opt-in through
@@ -552,6 +554,8 @@ See `ROADMAP.md` §11–§12.
 | 017 | Model Research Methodology MVP (Phase 5B) | COMPLETED | 10 / 10 tasks; integration PR to main pending |
 | 018 | Dry-run Execution contracts (Phase 8A) | COMPLETED | 2 / 2 Wave 0 tasks + execution contracts |
 | 019 | Binance BTC Futures Live Data Adapter (Phase 8A) | COMPLETED | 9 / 9 tasks |
+| 020 | Local BTC Futures Dry-Run Runtime (Phase 8A) | COMPLETED | 8 / 8 tasks |
+| 021 | Execution Persistence and Read Model (Phase 8A) | COMPLETED | 8 / 8 tasks; integration PR to main pending |
 
 ---
 
