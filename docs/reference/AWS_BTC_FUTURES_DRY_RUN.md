@@ -1,0 +1,98 @@
+# AWS BTC Futures Dry-Run Worker
+
+This reference describes the Sprint 022 AWS worker packaging slice for the BTCUSDT futures dry-run
+demo.
+
+## Container Image
+
+The worker image is defined in:
+
+```text
+deploy/aws/btc-futures-worker/Dockerfile
+```
+
+Build locally from the repository root:
+
+```bash
+docker build \
+  -f deploy/aws/btc-futures-worker/Dockerfile \
+  -t trading-framework/btc-futures-worker:local .
+```
+
+Run locally with bounded execution:
+
+```bash
+docker run --rm \
+  -e TRADING_FRAMEWORK_AWS_REGION=eu-central-1 \
+  -e TRADING_FRAMEWORK_EXECUTION_STATE_TABLE=demo-execution-state \
+  -e TRADING_FRAMEWORK_DURATION_SECONDS=60 \
+  -e TRADING_FRAMEWORK_MAX_MESSAGES=5 \
+  trading-framework/btc-futures-worker:local
+```
+
+The entry point is:
+
+```text
+python -m scripts.execution.run_aws_btc_futures_worker
+```
+
+## Environment Contract
+
+Required variables:
+
+| Variable | Purpose |
+|----------|---------|
+| `TRADING_FRAMEWORK_AWS_REGION` | AWS region for the runtime deployment |
+| `TRADING_FRAMEWORK_EXECUTION_STATE_TABLE` | DynamoDB execution state table name |
+
+Optional variables:
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `TRADING_FRAMEWORK_RUNTIME_ID` | `btc-futures-dry-run-aws` | Runtime identity used in state records |
+| `TRADING_FRAMEWORK_SYMBOL` | `BTCUSDT` | Binance USD-M futures symbol |
+| `TRADING_FRAMEWORK_EVENT_LOG_PATH` | `/tmp/trading_framework/btc_futures_dry_run/events.jsonl` | Local JSONL event fallback |
+| `TRADING_FRAMEWORK_STATE_REPOSITORY_PATH` | `/tmp/trading_framework/btc_futures_dry_run/state` | Local JSON state fallback until DynamoDB is wired |
+| `TRADING_FRAMEWORK_STARTING_EQUITY` | `10000` | Simulated starting equity |
+| `TRADING_FRAMEWORK_QUANTITY` | `0.001` | Simulated order quantity |
+| `TRADING_FRAMEWORK_EMA_PERIOD` | `20` | Demo strategy EMA period |
+| `TRADING_FRAMEWORK_EXIT_AFTER_BARS` | `10` | Demo strategy time-based exit threshold |
+| `TRADING_FRAMEWORK_DURATION_SECONDS` | `3600` | Bounded worker runtime |
+| `TRADING_FRAMEWORK_HEARTBEAT_SECONDS` | `30` | Runtime heartbeat interval |
+| `TRADING_FRAMEWORK_MAX_CLOSED_BARS` | `200` | Rolling closed-bar window |
+| `TRADING_FRAMEWORK_MAX_MESSAGES` | unset | Optional stop-after-message limit for smoke runs |
+
+## ECS/Fargate MVP Notes
+
+The image is intended for a single ECS Fargate service or scheduled task:
+
+```text
+ECS task
+  -> container image
+  -> worker entry point
+  -> Binance public WebSocket
+  -> execution repository
+  -> read-only status API
+```
+
+Current packaging writes the read model to the local JSON state repository. The next Sprint 022 slice
+adds the DynamoDB adapter and switches the AWS worker to the cloud repository implementation.
+
+## Smoke Checklist
+
+1. Build the image from the repository root.
+2. Run with `TRADING_FRAMEWORK_MAX_MESSAGES=1` and a short duration.
+3. Confirm the process exits with status code `0`.
+4. Confirm stdout contains `"event": "aws_worker_summary"`.
+5. Confirm stdout contains `"simulated": true`.
+6. Confirm no Binance API keys or account credentials are required.
+
+## Safety Boundary
+
+This worker is a dry-run demo process:
+
+- no Binance API keys,
+- no authenticated exchange account,
+- no order submission endpoint,
+- no public mutation route,
+- simulated trades only.
