@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import time
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from decimal import Decimal
 from pathlib import Path
@@ -12,6 +12,7 @@ from typing import final
 from trading_framework.core.exceptions import ValidationError
 from trading_framework.execution import (
     EmaMomentumLiveSignalEvaluator,
+    ExecutionReadModelQuery,
     ExecutionStateRepository,
     ExecutionStateWriter,
     LiveSignalEvaluation,
@@ -25,7 +26,7 @@ from trading_framework.execution import (
     StrategyModelOrderAdapter,
     closed_bar_close_reference_quote,
 )
-from trading_framework.execution.models import ExecutionEvent, Heartbeat
+from trading_framework.execution.models import ExecutionEvent, Heartbeat, PaperAccountSnapshot
 from trading_framework.execution.protocols import ExecutionEventSink
 from trading_framework.infrastructure.storage.execution_events import JsonlExecutionEventSink
 from trading_framework.infrastructure.storage.execution_state import JsonExecutionStateRepository
@@ -60,6 +61,7 @@ class LocalBtcFuturesDryRunConfig:
     currency: str = DEFAULT_PAPER_CURRENCY
     starting_equity: Decimal = DEFAULT_STARTING_EQUITY
     strategy_config: BtcFuturesDemoStrategyConfig | None = None
+    restore_previous_state: bool = True
 
     def __post_init__(self) -> None:
         state_repository_path = self.state_repository_path or self.event_log_path.parent / "state"
@@ -188,7 +190,13 @@ def create_local_btc_futures_dry_run_runtime(
         strategy_adapter=strategy_adapter,
         broker=broker,
     )
-    initial_state = broker.initial_state(runtime_clock.now())
+    initial_state = _restore_broker_state(
+        broker=broker,
+        repository=repository,
+        config=config,
+    )
+    if initial_state is None:
+        initial_state = broker.initial_state(runtime_clock.now())
     return LocalBtcFuturesDryRunRuntime(
         config=config,
         session=session,
@@ -351,3 +359,55 @@ def _persist_broker_result(
 ) -> None:
     runtime.state_repository.save_order(runtime.config.runtime_id, result.order)
     runtime.state_repository.save_fill(runtime.config.runtime_id, result.fill)
+
+
+def _restore_broker_state(
+    *,
+    broker: PaperBroker,
+    repository: ExecutionStateRepository,
+    config: LocalBtcFuturesDryRunConfig,
+) -> PaperBrokerState | None:
+    if not config.restore_previous_state:
+        return None
+    view = repository.latest_status_view(ExecutionReadModelQuery(runtime_id=config.runtime_id))
+    if (
+        view is None
+        or view.current_position is None
+        or view.paper_equity is None
+        or view.realized_pnl is None
+        or view.unrealized_pnl is None
+    ):
+        return None
+    account = PaperAccountSnapshot(
+        account_id=config.account_id,
+        currency=config.currency,
+        starting_equity=config.starting_equity,
+        realized_pnl=view.realized_pnl,
+        unrealized_pnl=view.unrealized_pnl,
+        equity=view.paper_equity,
+        updated_at=view.current_position.updated_at,
+    )
+    return broker.restore_state(
+        account=account,
+        position=view.current_position,
+        order_sequence=_last_numeric_suffix(
+            (order.order_id for order in view.recent_orders),
+            prefix="paper-order-",
+        ),
+        fill_sequence=_last_numeric_suffix(
+            (fill.fill_id for fill in view.recent_fills),
+            prefix="paper-fill-",
+        ),
+    )
+
+
+def _last_numeric_suffix(values: Iterable[str], *, prefix: str) -> int:
+    sequence = 0
+    for value in values:
+        text = str(value)
+        if not text.startswith(prefix):
+            continue
+        suffix = text.removeprefix(prefix)
+        if suffix.isdigit():
+            sequence = max(sequence, int(suffix))
+    return sequence

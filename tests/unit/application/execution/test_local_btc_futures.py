@@ -20,6 +20,9 @@ from trading_framework.execution import (
     BestBidAskSnapshot,
     ExecutionEventType,
     ExecutionReadModelQuery,
+    OrderIntent,
+    OrderSide,
+    OrderType,
 )
 from trading_framework.infrastructure.storage.execution_events import read_jsonl_execution_events
 from trading_framework.market.models import MarketBar
@@ -200,6 +203,53 @@ def test_local_btc_futures_closed_bar_feed_step_keeps_rolling_history(
     assert fourth.closed_bars[0].close.value == Decimal("100")
     assert fourth.closed_bars[-1].close.value == Decimal("102")
     assert not fourth.step_result.decision_result.order_submitted
+
+
+def test_local_btc_futures_runtime_restores_previous_paper_state(tmp_path: Path) -> None:
+    config = LocalBtcFuturesDryRunConfig(
+        event_log_path=tmp_path / "execution" / "events.jsonl",
+        strategy_config=BtcFuturesDemoStrategyConfig(ema_period=3),
+    )
+    runtime = create_local_btc_futures_dry_run_runtime(config, clock=FixedClock(NOW))
+
+    result = run_local_btc_futures_closed_bar_step(
+        runtime,
+        (_bar("100", 0), _bar("100", 1), _bar("101", 2)),
+    )
+    restored_runtime = create_local_btc_futures_dry_run_runtime(
+        config,
+        clock=FixedClock(NOW + timedelta(minutes=10)),
+    )
+
+    assert result.decision_result.order_submitted
+    assert restored_runtime.initial_state.position.quantity == Decimal("0.001")
+    assert restored_runtime.initial_state.position.average_entry_price == Price(Decimal("101"))
+    assert restored_runtime.initial_state.account.equity == Decimal("10000")
+    marked = restored_runtime.broker.mark_to_market(
+        Price(Decimal("103")),
+        NOW + timedelta(minutes=10),
+    )
+    next_order = restored_runtime.broker.accept_market_order(
+        OrderIntent(
+            intent_id="restart-intent-1",
+            strategy_id="demo-momentum",
+            symbol="BTCUSDT",
+            side=OrderSide.BUY,
+            order_type=OrderType.MARKET,
+            quantity=Decimal("0.001"),
+            requested_at=NOW + timedelta(minutes=10),
+        ),
+        BestBidAskSnapshot(
+            symbol="BTCUSDT",
+            bid_price=Price(Decimal("103")),
+            ask_price=Price(Decimal("104")),
+            event_at=NOW + timedelta(minutes=10),
+        ),
+    )
+    assert marked.position.quantity == Decimal("0.001")
+    assert marked.account.unrealized_pnl == Decimal("0.002")
+    assert next_order.order.order_id == "paper-order-2"
+    assert next_order.fill.fill_id == "paper-fill-2"
 
 
 def test_run_local_btc_futures_dry_run_records_bounded_lifecycle(tmp_path: Path) -> None:

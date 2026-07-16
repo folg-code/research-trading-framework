@@ -13,7 +13,9 @@ from trading_framework.execution import (
     OrderSide,
     OrderStatus,
     OrderType,
+    PaperAccountSnapshot,
     PaperBroker,
+    PaperPosition,
     PositionSide,
 )
 
@@ -98,6 +100,52 @@ def test_paper_broker_marks_long_unrealized_pnl() -> None:
     assert state.position.unrealized_pnl == Decimal("10.00")
     assert state.account.unrealized_pnl == Decimal("10.00")
     assert state.account.equity == Decimal("10010.00")
+
+
+def test_paper_broker_restores_position_and_marks_to_market() -> None:
+    broker = PaperBroker(
+        account_id="paper-btc",
+        symbol="BTCUSDT",
+        currency="USDT",
+        starting_equity=Decimal("10000"),
+    )
+    account = PaperAccountSnapshot(
+        account_id="paper-btc",
+        currency="USDT",
+        starting_equity=Decimal("10000"),
+        realized_pnl=Decimal("5"),
+        unrealized_pnl=Decimal("10"),
+        equity=Decimal("10015"),
+        updated_at=NOW,
+    )
+    position = PaperPosition(
+        symbol="BTCUSDT",
+        side=PositionSide.LONG,
+        quantity=Decimal("0.10"),
+        average_entry_price=Price(Decimal("65000")),
+        mark_price=Price(Decimal("65100")),
+        unrealized_pnl=Decimal("10"),
+        updated_at=NOW,
+    )
+
+    restored = broker.restore_state(
+        account=account,
+        position=position,
+        order_sequence=3,
+        fill_sequence=4,
+    )
+    marked = broker.mark_to_market(Price(Decimal("65200")), NOW)
+    result = broker.accept_market_order(_intent(OrderSide.BUY, "0.01"), _quote())
+
+    assert restored.position == position
+    assert restored.account == account
+    assert marked.position.quantity == Decimal("0.10")
+    assert marked.position.average_entry_price == Price(Decimal("65000"))
+    assert marked.account.realized_pnl == Decimal("5")
+    assert marked.account.unrealized_pnl == Decimal("20.00")
+    assert marked.account.equity == Decimal("10025.00")
+    assert result.order.order_id == "paper-order-4"
+    assert result.fill.fill_id == "paper-fill-5"
 
 
 def test_paper_broker_closes_long_and_realizes_pnl() -> None:
