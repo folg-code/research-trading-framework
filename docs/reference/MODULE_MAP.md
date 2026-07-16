@@ -564,6 +564,7 @@ consumers.
 | `providers/binance/aiohttp_websocket.py` | ✅ | concrete `aiohttp` WebSocket transport adapter |
 | `providers/binance/futures_smoke.py` | ✅ | bounded smoke runner and smoke JSON normalization |
 | `scripts/live_data/run_binance_futures_smoke.py` | ✅ | local BTCUSDT smoke CLI |
+| `scripts/portfolio_live/serve_live_dry_run_dashboard.py` | ✅ | VPS-hosted live dry-run dashboard server (`/`, `/api/status`, `/health`) |
 
 **Smoke CLI:**
 

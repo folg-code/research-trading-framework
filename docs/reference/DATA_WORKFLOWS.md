@@ -510,6 +510,27 @@ uv run python scripts/demo/run_portfolio_demo.py --live-status-url https://.../s
 
 Requires `uv pip install plotly` for Plotly-based reports. Strategy dashboards work without Plotly.
 
+### 3.12.1 VPS Live Dry-Run Dashboard Server
+
+```text
+scripts/portfolio_live/serve_live_dry_run_dashboard.py
+  -> GET / live dashboard shell
+  -> GET /api/status server-side proxy to AWS API Gateway /status
+  -> frontend polling every few seconds
+  -> browser-built BTCUSDT candles, simulated fill markers and paper equity curve
+```
+
+**CLI:**
+
+```text
+TRADING_FRAMEWORK_STATUS_URL=https://.../status \
+uv run python scripts/portfolio_live/serve_live_dry_run_dashboard.py --host 127.0.0.1 --port 8080
+```
+
+Use this mode for a VPS/subdomain deployment behind nginx or Caddy. The static
+`09_live_dry_run_status.html` remains useful as an offline portfolio artifact; the VPS server is the
+live app shell that makes the chart visibly update while the page is open.
+
 ### 3.13 Model Research Methodology (Sprint 017 — Phase 5B)
 
 ```text
