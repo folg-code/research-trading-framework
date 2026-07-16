@@ -5,9 +5,9 @@
 ```text
 Sprint: 022
 Phase: Phase 8A - BTC Futures Live Dry-Run Execution Demo
-Status: IN_PROGRESS
+Status: COMPLETE
 Planned Start: 2026-07-16
-Planned End: TBD
+Planned End: 2026-07-16
 Sprint Goal Owner: Project Maintainer
 Depends On: SPRINT_021
 Sprint Branch: sprint/btc-futures-dry-run-execution
@@ -75,7 +75,7 @@ read-only sanitized status endpoint for the portfolio dashboard.
 - [x] Add CloudWatch log fields and heartbeat metric.
 - [x] Add stale heartbeat alarm design.
 - [x] Add deployment/runbook documentation.
-- [ ] Add cost estimate for always-on or scheduled operation.
+- [x] Add cost estimate for always-on or scheduled operation.
 
 ---
 
@@ -103,7 +103,7 @@ Dashboard API is read-only and sanitized.
 | S022-T006 | Add stale heartbeat alarm/runbook notes | DONE |
 | S022-T007 | Add deployment documentation or minimal IaC | DONE |
 | S022-T008 | Add AWS smoke checklist | DONE |
-| S022-T009 | Add cost estimate and operating modes | TODO |
+| S022-T009 | Add cost estimate and operating modes | DONE |
 
 ---
 
@@ -132,3 +132,19 @@ Dashboard API is read-only and sanitized.
 ## 7. Post-Sprint Direction
 
 Sprint 023 adds the OVH-hosted portfolio dashboard page that consumes the AWS read-only API.
+
+---
+
+## 8. Sprint Result
+
+Sprint 022 delivered the AWS runtime MVP design and implementation slice:
+
+- containerized BTCUSDT dry-run worker entry point and Docker packaging,
+- AWS env/config contract with DynamoDB/local state backend selection,
+- DynamoDB execution state repository for the existing read-model port,
+- read-only status API handler for API Gateway/Lambda,
+- CloudWatch-friendly structured logs and EMF heartbeat metric,
+- stale heartbeat alarm/runbook notes,
+- deployment smoke checklist and cost/operating mode guidance.
+
+The sprint branch is ready for integration to `main` after the closure PR is merged.
