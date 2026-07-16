@@ -32,6 +32,12 @@ uv run python scripts/demo/run_portfolio_demo.py `
   --live-status-url "https://example.execute-api.eu-north-1.amazonaws.com/status"
 ```
 
+The generated `09_live_dry_run_status.html` is the fastest portfolio-facing dry-run view: it polls
+the read-only status API, keeps an in-browser rolling price/equity history, marks simulated fills on
+the BTCUSDT price chart and shows the latest simulated trades/orders. The generator also writes
+`live_dry_run_status_fixture.json`, so the page remains useful offline before the AWS endpoint is
+configured.
+
 ## What gets generated
 
 | Artifact | Workflow | Notes |
@@ -45,7 +51,7 @@ uv run python scripts/demo/run_portfolio_demo.py `
 | `06_mtf_swing_inspection.html` | MTF swing structure | RTH shading, event panel. |
 | `07_robustness_dashboard.html` | Robustness Research verdict dashboard | Parameter sweep, walk-forward, stress, Monte Carlo. |
 | `08_model_research_nq_half_year.html` | Model Research Methodology (Sprint 017) | Index linking 3 scope reports under `model_research/`. |
-| `09_live_dry_run_status.html` | AWS BTCUSDT dry-run status | Static read-only page polling API Gateway; uses a fixture JSON when no endpoint is configured. |
+| `09_live_dry_run_status.html` | AWS BTCUSDT dry-run dashboard | Static read-only page polling API Gateway; price chart with simulated trade markers, paper equity chart, current position and last trades table. Uses a fixture JSON when no endpoint is configured. |
 
 ## Model Research demo (Sprint 017)
 
