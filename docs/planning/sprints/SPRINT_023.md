@@ -5,9 +5,9 @@
 ```text
 Sprint: 023
 Phase: Phase 8A - BTC Futures Live Dry-Run Execution Demo
-Status: PLANNED
-Planned Start: TBD
-Planned End: TBD
+Status: COMPLETE
+Planned Start: 2026-07-16
+Planned End: 2026-07-16
 Sprint Goal Owner: Project Maintainer
 Depends On: SPRINT_022
 Sprint Branch: sprint/btc-futures-dry-run-execution
@@ -48,16 +48,16 @@ data while all orders, fills, positions and PnL are simulated.
 
 ## 2. MVP Scope Checklist
 
-- [ ] Add `live-dry-run` page to the portfolio/demo hub.
-- [ ] Fetch AWS read-only status endpoint on an interval.
-- [ ] Show runtime status: RUNNING, DEGRADED, STOPPED, STALE.
-- [ ] Show provider, symbol, mode and last heartbeat.
-- [ ] Show last price/current bar and latest strategy signal.
-- [ ] Show current paper position and paper PnL.
-- [ ] Show recent simulated orders/fills/events.
-- [ ] Add prominent dry-run disclaimer.
-- [ ] Add stale-data UI state when heartbeat is old.
-- [ ] Add graceful fallback when AWS endpoint is unavailable.
+- [x] Add `live-dry-run` page to the portfolio/demo hub.
+- [x] Fetch AWS read-only status endpoint on an interval.
+- [x] Show runtime status: RUNNING, DEGRADED, STOPPED, STALE.
+- [x] Show provider, symbol, mode and last heartbeat.
+- [x] Show last price/current bar and latest strategy signal.
+- [x] Show current paper position and paper PnL.
+- [x] Show recent simulated orders/fills/events.
+- [x] Add prominent dry-run disclaimer.
+- [x] Add stale-data UI state when heartbeat is old.
+- [x] Add graceful fallback when AWS endpoint is unavailable.
 
 ---
 
@@ -90,14 +90,14 @@ No backend should run on OVH for MVP unless needed for CORS or caching.
 
 | Task | Outcome | Status |
 |------|---------|--------|
-| S023-T001 | Define public status JSON contract consumed by UI | TODO |
-| S023-T002 | Add live dry-run page shell | TODO |
-| S023-T003 | Add polling client with stale/offline handling | TODO |
-| S023-T004 | Add runtime status and market cards | TODO |
-| S023-T005 | Add simulated execution cards and event log | TODO |
-| S023-T006 | Add dry-run disclaimer and architecture link | TODO |
-| S023-T007 | Add local fixture JSON for UI testing | TODO |
-| S023-T008 | Add deployment notes for OVH/VPS static hosting | TODO |
+| S023-T001 | Define public status JSON contract consumed by UI | DONE |
+| S023-T002 | Add live dry-run page shell | DONE |
+| S023-T003 | Add polling client with stale/offline handling | DONE |
+| S023-T004 | Add runtime status and market cards | DONE |
+| S023-T005 | Add simulated execution cards and event log | DONE |
+| S023-T006 | Add dry-run disclaimer and architecture link | DONE |
+| S023-T007 | Add local fixture JSON for UI testing | DONE |
+| S023-T008 | Add deployment notes for OVH/VPS static hosting | DONE |
 
 ---
 
@@ -127,3 +127,18 @@ No backend should run on OVH for MVP unless needed for CORS or caching.
 
 Sprint 024 hardens reliability, safety and operating documentation so the demo can stay online without
 constant manual babysitting.
+
+---
+
+## 9. Sprint Result
+
+Sprint 023 delivered the static OVH/VPS-ready live dry-run dashboard page:
+
+- `scripts/demo/run_portfolio_demo.py` now generates `09_live_dry_run_status.html`,
+- the page polls a configured public API Gateway `/status` endpoint or local fixture JSON,
+- the UI renders runtime status, BTCUSDT market state, current signal, simulated position/PnL,
+  recent simulated orders/fills and runtime events,
+- stale heartbeat and offline/API failure states are handled client-side,
+- dry-run simulation is explicitly stated in first-view copy,
+- `live_dry_run_status_fixture.json` is generated for local UI testing,
+- `scripts/demo/README.md` documents `--live-status-url`.

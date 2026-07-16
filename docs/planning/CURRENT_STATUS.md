@@ -28,12 +28,12 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 ```text
 Status Date: 2026-07-16
 Current Phase: Phase 8A - BTC Futures Live Dry-Run Execution Demo
-Current Milestone: Sprint 022 closure - AWS runtime MVP ready for integration
-Implementation Status: Sprints 001-006, 008-021 COMPLETE on main; Sprint 007 SKIPPED; Sprint 022 COMPLETE on sprint branch (pending integration PR to main)
+Current Milestone: Sprint 023 closure - OVH portfolio live dry-run dashboard ready for integration
+Implementation Status: Sprints 001-006, 008-021 COMPLETE on main; Sprint 007 SKIPPED; Sprints 022-023 COMPLETE on sprint branch (pending integration PR to main)
 Overall Status: IN_PROGRESS
-Active Sprint: none (Sprint 022 integration PR pending)
-Last Completed Sprint: SPRINT_022 (sprint/btc-futures-dry-run-execution, 2026-07-16)
-Capability Tracks: Foundation COMPLETE; Data 2A + 2B/2C.1 + 2B.3 + 2C.4 COMPLETE; Research 3/4A/5/5B/7 COMPLETE; Strategy 6A COMPLETE; Phase 8A local + AWS dry-run runtime COMPLETE on sprint branch
+Active Sprint: none (Sprint 023 integration PR pending)
+Last Completed Sprint: SPRINT_023 (sprint/btc-futures-dry-run-execution, 2026-07-16)
+Capability Tracks: Foundation COMPLETE; Data 2A + 2B/2C.1 + 2B.3 + 2C.4 COMPLETE; Research 3/4A/5/5B/7 COMPLETE; Strategy 6A COMPLETE; Phase 8A local + AWS dry-run runtime + portfolio live dashboard COMPLETE on sprint branch
 Recent perf: columnar OHLCV + shared eval → **~6 s** half-year NQ strategy research (178k bars, 45M ticks ingested); see README § Scale & performance and DATA_WORKFLOWS §1.1
 ```
 
@@ -47,7 +47,7 @@ As of 2026-07-16, Phase 8A has moved beyond local dry-run runtime setup:
 - Sprint 019 delivered the Binance BTCUSDT USD-M futures live-data adapter.
 - Sprint 020 delivered the local BTC futures dry-run runtime.
 - Sprint 021 delivered the local execution persistence read model and restart state.
-- Current active preparation target: Sprint 023, OVH-hosted portfolio dashboard consuming the AWS read-only status API.
+- Current closure target: integration PR from `sprint/btc-futures-dry-run-execution` to `main`.
 
 Sprint 019 live-data boundary:
 
@@ -129,7 +129,7 @@ ADR: ADR-0018 (ACCEPTED). CLI: `scripts/market_data/build_continuous.py`. See `S
 
 **Research simulation refactor** (PRs #124–#129, #131–#132) on `main`: deep phase profiling, Numba fixed-bars kernel, simulation compile layer, columnar OHLCV for batch strategy research, shared model evaluation table.
 
-**Portfolio demo** (scripts): `scripts/demo/run_portfolio_demo.py` — offline HTML for all major workflows.
+**Portfolio demo** (scripts): `scripts/demo/run_portfolio_demo.py` — offline HTML for all major workflows plus live AWS dry-run status page.
 
 Delivered Signal Research flow (on `main`):
 

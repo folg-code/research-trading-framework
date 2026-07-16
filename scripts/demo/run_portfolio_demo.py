@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import argparse
 import importlib.util
+import json
 import subprocess
 import sys
 import tempfile
@@ -22,14 +23,23 @@ import webbrowser
 from dataclasses import dataclass
 from datetime import UTC
 from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from trading_framework.market.datasets import DatasetRef
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+
 _OHLCV_FIXTURE = _REPO_ROOT / "tests" / "fixtures" / "market_data" / "ohlcv_sample_1m.csv"
 
 _DEFAULT_OUTPUT = _REPO_ROOT / "demo" / "output"
 _DEFAULT_HALF_YEAR_STORAGE = _REPO_ROOT / "user_data" / "storage_nq_half_year"
 _HALF_YEAR_DASHBOARD_NAME = "00_strategy_dashboard_nq_half_year.html"
 _FIXTURE_DASHBOARD_NAME = "01_strategy_dashboard_fixture.html"
+_LIVE_DRY_RUN_DASHBOARD_NAME = "09_live_dry_run_status.html"
+_LIVE_DRY_RUN_FIXTURE_NAME = "live_dry_run_status_fixture.json"
 
 
 @dataclass(frozen=True, slots=True)
@@ -79,6 +89,11 @@ def _build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Skip Plotly-based inspection reports",
     )
+    parser.add_argument(
+        "--live-status-url",
+        default="",
+        help="Public read-only AWS dry-run status endpoint used by the live dashboard page",
+    )
     return parser
 
 
@@ -105,7 +120,7 @@ def _run_subprocess(
     return True, "ok"
 
 
-def _write_published_fixture_dataset(storage_root: Path):
+def _write_published_fixture_dataset(storage_root: Path) -> DatasetRef:
     from trading_framework.application.market_data import (
         ImportExternalDatasetRequest,
         finalize_dataset,
@@ -369,6 +384,362 @@ def _build_plotly_report(
     )
 
 
+def _build_live_dry_run_dashboard(
+    *,
+    output_dir: Path,
+    status_url: str,
+) -> DemoArtifact:
+    fixture_payload = _live_dry_run_fixture_payload()
+    fixture_path = output_dir / _LIVE_DRY_RUN_FIXTURE_NAME
+    fixture_path.write_text(
+        json.dumps(fixture_payload, indent=2, sort_keys=True),
+        encoding="utf-8",
+    )
+    dashboard_path = output_dir / _LIVE_DRY_RUN_DASHBOARD_NAME
+    dashboard_path.write_text(
+        _live_dry_run_dashboard_html(
+            status_url=status_url.strip(),
+            fixture_filename=_LIVE_DRY_RUN_FIXTURE_NAME,
+            fixture_payload=fixture_payload,
+        ),
+        encoding="utf-8",
+    )
+    return DemoArtifact(
+        filename=_LIVE_DRY_RUN_DASHBOARD_NAME,
+        title="Live BTC Futures Dry-Run Status",
+        workflow="AWS ECS dry-run worker -> DynamoDB -> Lambda/API Gateway -> static page",
+        description=(
+            "Read-only portfolio page for live BTCUSDT market status, simulated position/PnL, "
+            "recent events and stale/offline states."
+        ),
+        status="ok",
+    )
+
+
+def _live_dry_run_fixture_payload() -> dict[str, object]:
+    return {
+        "runtime_id": "btc-futures-dry-run-aws",
+        "mode": "dry_run",
+        "provider": "binance_usdm",
+        "symbol": "BTCUSDT",
+        "status": "stopped",
+        "generated_at": "2026-07-16T11:55:13.603882+00:00",
+        "last_heartbeat_at": "2026-07-16T11:55:00.524881+00:00",
+        "last_market_event_at": "2026-07-16T11:55:00+00:00",
+        "last_price": "64173.40",
+        "current_signal": "no_signal",
+        "current_position": {
+            "symbol": "BTCUSDT",
+            "side": "flat",
+            "quantity": "0",
+            "average_entry_price": None,
+            "mark_price": "64173.40",
+            "unrealized_pnl": "0",
+            "updated_at": "2026-07-16T11:55:00+00:00",
+            "simulated": True,
+        },
+        "paper_equity": "10000",
+        "realized_pnl": "0",
+        "unrealized_pnl": "0",
+        "recent_orders": [],
+        "recent_fills": [],
+        "recent_events": [
+            {
+                "event_id": "btc-futures-dry-run-aws-000001-runtime_started",
+                "event_type": "runtime_started",
+                "occurred_at": "2026-07-16T11:54:21.775065+00:00",
+                "symbol": "BTCUSDT",
+                "payload": {"status": "running", "simulated": "true"},
+                "correlation_id": None,
+                "simulated": True,
+            },
+            {
+                "event_id": "btc-futures-dry-run-aws-000004-market_event_received",
+                "event_type": "market_event_received",
+                "occurred_at": "2026-07-16T11:55:00.525495+00:00",
+                "symbol": "BTCUSDT",
+                "payload": {"current_signal": "no_signal", "simulated": "true"},
+                "correlation_id": None,
+                "simulated": True,
+            },
+        ],
+        "simulated": True,
+    }
+
+
+def _live_dry_run_dashboard_html(
+    *,
+    status_url: str,
+    fixture_filename: str,
+    fixture_payload: dict[str, object],
+) -> str:
+    config_json = json.dumps(
+        {
+            "statusUrl": status_url,
+            "fixtureUrl": fixture_filename,
+            "fixturePayload": fixture_payload,
+            "pollSeconds": 30,
+            "staleAfterSeconds": 180,
+        },
+        sort_keys=True,
+    )
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Live BTC Futures Dry-Run Status</title>
+  <style>
+    :root {{
+      color-scheme: dark;
+      --bg: #101418;
+      --band: #171d23;
+      --panel: #1f2830;
+      --line: #34404b;
+      --text: #eef3f8;
+      --muted: #aab6c2;
+      --accent: #4fb06d;
+      --warn: #f0b84a;
+      --bad: #ef6b73;
+      --blue: #64a7ff;
+    }}
+    * {{ box-sizing: border-box; }}
+    body {{
+      margin: 0;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+    }}
+    header {{
+      background: var(--band);
+      border-bottom: 1px solid var(--line);
+      padding: 1.25rem;
+    }}
+    main {{
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 1.25rem;
+    }}
+    .top {{
+      max-width: 1180px;
+      margin: 0 auto;
+      display: grid;
+      gap: 0.8rem;
+      grid-template-columns: 1fr auto;
+      align-items: end;
+    }}
+    h1 {{ margin: 0; font-size: 1.55rem; letter-spacing: 0; }}
+    .subtitle {{ color: var(--muted); margin: 0.25rem 0 0; }}
+    .pill {{
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 0.4rem 0.75rem;
+      color: var(--text);
+      background: #11171d;
+      font-weight: 700;
+      white-space: nowrap;
+    }}
+    .pill.running {{ border-color: var(--accent); color: var(--accent); }}
+    .pill.stale, .pill.stopped {{ border-color: var(--warn); color: var(--warn); }}
+    .pill.offline, .pill.failed {{ border-color: var(--bad); color: var(--bad); }}
+    .notice {{
+      border: 1px solid #6f5f2b;
+      background: #211d12;
+      color: #f8df9a;
+      padding: 0.9rem 1rem;
+      margin-bottom: 1rem;
+      border-radius: 8px;
+      font-weight: 650;
+    }}
+    .grid {{
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: repeat(12, 1fr);
+    }}
+    section {{
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 1rem;
+    }}
+    .wide {{ grid-column: span 12; }}
+    .half {{ grid-column: span 6; }}
+    .third {{ grid-column: span 4; }}
+    h2 {{ margin: 0 0 0.8rem; font-size: 1rem; }}
+    dl {{
+      margin: 0;
+      display: grid;
+      gap: 0.65rem;
+      grid-template-columns: minmax(130px, 0.8fr) minmax(0, 1.2fr);
+    }}
+    dt {{ color: var(--muted); }}
+    dd {{ margin: 0; font-weight: 650; overflow-wrap: anywhere; }}
+    table {{ width: 100%; border-collapse: collapse; font-size: 0.92rem; }}
+    th, td {{ padding: 0.55rem 0.4rem; border-bottom: 1px solid var(--line); text-align: left; }}
+    th {{ color: var(--muted); font-weight: 650; }}
+    .empty {{ color: var(--muted); margin: 0; }}
+    .error {{ color: var(--bad); font-weight: 650; }}
+    .fresh {{ color: var(--accent); }}
+    .muted {{ color: var(--muted); }}
+    code {{ color: var(--blue); }}
+    @media (max-width: 820px) {{
+      .top {{ grid-template-columns: 1fr; }}
+      .half, .third {{ grid-column: span 12; }}
+      dl {{ grid-template-columns: 1fr; }}
+    }}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="top">
+      <div>
+        <h1>Live BTC Futures Dry-Run Status</h1>
+        <p class="subtitle">AWS-hosted read-only runtime status for the portfolio demo.</p>
+      </div>
+      <div id="status-pill" class="pill">LOADING</div>
+    </div>
+  </header>
+  <main>
+    <div class="notice">
+      This demo uses live Binance BTCUSDT futures market data. All orders, fills, positions and PnL
+      are simulated. No exchange account, API keys or real capital are connected.
+    </div>
+    <div id="error" class="error"></div>
+    <div class="grid">
+      <section class="third"><h2>Runtime</h2><dl id="runtime"></dl></section>
+      <section class="third"><h2>Market</h2><dl id="market"></dl></section>
+      <section class="third"><h2>Paper Account</h2><dl id="account"></dl></section>
+      <section class="half"><h2>Current Paper Position</h2><dl id="position"></dl></section>
+      <section class="half">
+        <h2>Recent Simulated Orders / Fills</h2><div id="orders-fills"></div>
+      </section>
+      <section class="wide"><h2>Recent Runtime Events</h2><div id="events"></div></section>
+    </div>
+  </main>
+  <script id="live-config" type="application/json">{config_json}</script>
+  <script>
+    const config = JSON.parse(document.getElementById('live-config').textContent);
+    const params = new URLSearchParams(window.location.search);
+    const statusUrl = params.get('statusUrl') || config.statusUrl || '';
+    const pollMs = config.pollSeconds * 1000;
+    const staleAfterMs = config.staleAfterSeconds * 1000;
+
+    function text(value) {{
+      return value === null || value === undefined || value === '' ? 'n/a' : String(value);
+    }}
+
+    function setPairs(id, pairs) {{
+      document.getElementById(id).innerHTML = pairs
+        .map(([key, value]) => `<dt>${{key}}</dt><dd>${{text(value)}}</dd>`)
+        .join('');
+    }}
+
+    function ageMs(iso) {{
+      const value = Date.parse(iso || '');
+      return Number.isFinite(value) ? Date.now() - value : Number.POSITIVE_INFINITY;
+    }}
+
+    function effectiveStatus(payload) {{
+      if (!payload) return 'offline';
+      if (ageMs(payload.last_heartbeat_at) > staleAfterMs) return 'stale';
+      return String(payload.status || 'unknown').toLowerCase();
+    }}
+
+    function setStatus(payload, offlineMessage) {{
+      const status = offlineMessage ? 'offline' : effectiveStatus(payload);
+      const pill = document.getElementById('status-pill');
+      pill.className = `pill ${{status}}`;
+      pill.textContent = status.toUpperCase();
+      document.getElementById('error').textContent = offlineMessage || '';
+    }}
+
+    function renderRows(items, columns) {{
+      if (!items || !items.length) return '<p class="empty">No recent simulated records.</p>';
+      const head = columns.map((column) => `<th>${{column.label}}</th>`).join('');
+      const rows = items.map((item) => `<tr>${{
+        columns.map((column) => `<td>${{text(item[column.key])}}</td>`).join('')
+      }}</tr>`).join('');
+      return `<table><thead><tr>${{head}}</tr></thead><tbody>${{rows}}</tbody></table>`;
+    }}
+
+    function render(payload) {{
+      setStatus(payload);
+      const heartbeatAge = Math.round(ageMs(payload.last_heartbeat_at) / 1000);
+      setPairs('runtime', [
+        ['Runtime id', payload.runtime_id],
+        ['Mode', payload.mode],
+        ['Provider', payload.provider],
+        ['Status', payload.status],
+        ['Last heartbeat', payload.last_heartbeat_at],
+        ['Heartbeat age', `${{heartbeatAge}}s`],
+      ]);
+      setPairs('market', [
+        ['Symbol', payload.symbol],
+        ['Last price', payload.last_price],
+        ['Last market event', payload.last_market_event_at],
+        ['Current signal', payload.current_signal],
+      ]);
+      setPairs('account', [
+        ['Paper equity', payload.paper_equity],
+        ['Realized PnL', payload.realized_pnl],
+        ['Unrealized PnL', payload.unrealized_pnl],
+        ['Simulated', payload.simulated],
+      ]);
+      const position = payload.current_position || {{}};
+      setPairs('position', [
+        ['Symbol', position.symbol],
+        ['Side', position.side],
+        ['Quantity', position.quantity],
+        ['Average entry', position.average_entry_price],
+        ['Mark price', position.mark_price],
+        ['Unrealized PnL', position.unrealized_pnl],
+        ['Updated', position.updated_at],
+      ]);
+      document.getElementById('orders-fills').innerHTML =
+        '<h3 class="muted">Orders</h3>' +
+        renderRows(payload.recent_orders || [], [
+          {{key: 'created_at', label: 'Created'}},
+          {{key: 'side', label: 'Side'}},
+          {{key: 'quantity', label: 'Qty'}},
+          {{key: 'status', label: 'Status'}},
+        ]) +
+        '<h3 class="muted">Fills</h3>' +
+        renderRows(payload.recent_fills || [], [
+          {{key: 'filled_at', label: 'Filled'}},
+          {{key: 'side', label: 'Side'}},
+          {{key: 'quantity', label: 'Qty'}},
+          {{key: 'price', label: 'Price'}},
+        ]);
+      document.getElementById('events').innerHTML = renderRows(payload.recent_events || [], [
+        {{key: 'occurred_at', label: 'Occurred'}},
+        {{key: 'event_type', label: 'Event'}},
+        {{key: 'symbol', label: 'Symbol'}},
+      ]);
+    }}
+
+    async function refresh() {{
+      if (!statusUrl) {{
+        render(config.fixturePayload);
+        return;
+      }}
+      try {{
+        const response = await fetch(statusUrl, {{cache: 'no-store'}});
+        if (!response.ok) throw new Error(`status endpoint returned ${{response.status}}`);
+        render(await response.json());
+      }} catch (error) {{
+        setStatus(null, `Status endpoint unavailable: ${{error.message}}`);
+      }}
+    }}
+
+    refresh();
+    window.setInterval(refresh, pollMs);
+  </script>
+</body>
+</html>
+"""
+
+
 def _write_index_html(*, output_dir: Path, artifacts: list[DemoArtifact]) -> Path:
     cards: list[str] = []
     for item in artifacts:
@@ -516,6 +887,12 @@ def main(argv: list[str] | None = None) -> int:
     output_dir.mkdir(parents=True, exist_ok=True)
 
     artifacts: list[DemoArtifact] = []
+    artifacts.append(
+        _build_live_dry_run_dashboard(
+            output_dir=output_dir,
+            status_url=args.live_status_url,
+        )
+    )
 
     if args.full:
         half_year_path = output_dir / _HALF_YEAR_DASHBOARD_NAME
