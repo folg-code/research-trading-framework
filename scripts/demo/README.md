@@ -25,6 +25,13 @@ uv run python scripts/demo/run_portfolio_demo.py --full --open
 
 Output: `demo/output/index.html` (landing page with links to all reports).
 
+For the live BTC futures dry-run page, pass the public read-only API Gateway endpoint:
+
+```powershell
+uv run python scripts/demo/run_portfolio_demo.py `
+  --live-status-url "https://example.execute-api.eu-north-1.amazonaws.com/status"
+```
+
 ## What gets generated
 
 | Artifact | Workflow | Notes |
@@ -38,6 +45,7 @@ Output: `demo/output/index.html` (landing page with links to all reports).
 | `06_mtf_swing_inspection.html` | MTF swing structure | RTH shading, event panel. |
 | `07_robustness_dashboard.html` | Robustness Research verdict dashboard | Parameter sweep, walk-forward, stress, Monte Carlo. |
 | `08_model_research_nq_half_year.html` | Model Research Methodology (Sprint 017) | Index linking 3 scope reports under `model_research/`. |
+| `09_live_dry_run_status.html` | AWS BTCUSDT dry-run status | Static read-only page polling API Gateway; uses a fixture JSON when no endpoint is configured. |
 
 ## Model Research demo (Sprint 017)
 
@@ -64,4 +72,5 @@ Output: `08_model_research_nq_half_year.html` plus per-scope Plotly dashboards i
 --refresh-half-year Re-run strategy research before rendering
 --skip-plotly       Strategy dashboards only (no Plotly reports)
 --output-dir PATH   Custom output directory
+--live-status-url   Public read-only AWS dry-run status endpoint
 ```

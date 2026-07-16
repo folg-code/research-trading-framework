@@ -7,9 +7,9 @@ Technical reference for how data moves through the framework: ingestion, persist
 
 **Research methodologies (all workflows):** [RESEARCH_METHODOLOGIES.md](RESEARCH_METHODOLOGIES.md) — Signal, Model Research, Strategy, Robustness; scope comparison and CLI index.
 
-**As-is scope:** Market Data Phase 2A (Sprint 002), Phase 2B + 2C.1 trades import (Sprint 011), Phase 2B.3 derived OHLCV (Sprint 012), Phase 2C.4 continuous futures (Sprint 015 on `main`). Multitimeframe and declarative models: Sprints 004–006. Signal Research: Sprints 008–010. Model Research Methodology: Sprint 017 (Phase 5B, ADR-0020). Strategy Research MVP + dashboard Phase A: Sprints 013–014. Simulation refactor + columnar OHLCV batch path: PRs #124–#132 on `main`. Robustness Research MVP: Sprint 016 on `main` (ADR-0019). Dry-run Execution contracts: Sprint 018 (ADR-0021). Binance BTC futures live-data adapter: Sprint 019. Local BTC futures dry-run runtime: Sprint 020. Local execution read model/persistence: Sprint 021. AWS worker packaging and DynamoDB execution state adapter: Sprint 022.  
-**Planned next:** AWS dry-run runtime MVP (Sprint 022); Phase 4B orderflow and Phase 6B multi-data deferred.  
-**Portfolio demo:** `scripts/demo/run_portfolio_demo.py` → `demo/output/index.html`.  
+**As-is scope:** Market Data Phase 2A (Sprint 002), Phase 2B + 2C.1 trades import (Sprint 011), Phase 2B.3 derived OHLCV (Sprint 012), Phase 2C.4 continuous futures (Sprint 015 on `main`). Multitimeframe and declarative models: Sprints 004–006. Signal Research: Sprints 008–010. Model Research Methodology: Sprint 017 (Phase 5B, ADR-0020). Strategy Research MVP + dashboard Phase A: Sprints 013–014. Simulation refactor + columnar OHLCV batch path: PRs #124–#132 on `main`. Robustness Research MVP: Sprint 016 on `main` (ADR-0019). Dry-run Execution contracts: Sprint 018 (ADR-0021). Binance BTC futures live-data adapter: Sprint 019. Local BTC futures dry-run runtime: Sprint 020. Local execution read model/persistence: Sprint 021. AWS worker packaging and DynamoDB execution state adapter: Sprint 022. OVH/VPS-ready live dry-run status dashboard: Sprint 023.  
+**Planned next:** Sprint 024 reliability and operating hardening; Phase 4B orderflow and Phase 6B multi-data deferred.  
+**Portfolio demo:** `scripts/demo/run_portfolio_demo.py` → `demo/output/index.html` + `09_live_dry_run_status.html`.  
 **Deep market data reference:** [modules/DATA_MODULE_UPDATED.md](modules/DATA_MODULE_UPDATED.md)
 
 ---
@@ -494,12 +494,19 @@ Integration tests: `tests/integration/test_s015_continuous_strategy_research.py`
 
 ```text
 scripts/demo/run_portfolio_demo.py
+  → live BTCUSDT dry-run status page (static HTML + optional AWS API polling)
   → fixture and/or NQ half-year strategy dashboards (Lightweight Charts)
   → Signal Research analytics + combined/occurrence/model/swing inspection HTML (Plotly)
   → demo/output/index.html (landing page with workflow descriptions)
 ```
 
 **CLI:** `uv run python scripts/demo/run_portfolio_demo.py --full --open`
+
+Live dry-run page with AWS API Gateway endpoint:
+
+```text
+uv run python scripts/demo/run_portfolio_demo.py --live-status-url https://.../status
+```
 
 Requires `uv pip install plotly` for Plotly-based reports. Strategy dashboards work without Plotly.
 
