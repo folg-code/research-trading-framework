@@ -5,8 +5,8 @@
 ```text
 Sprint: 022
 Phase: Phase 8A - BTC Futures Live Dry-Run Execution Demo
-Status: PLANNED
-Planned Start: TBD
+Status: IN_PROGRESS
+Planned Start: 2026-07-16
 Planned End: TBD
 Sprint Goal Owner: Project Maintainer
 Depends On: SPRINT_021
@@ -67,9 +67,9 @@ read-only sanitized status endpoint for the portfolio dashboard.
 
 ## 2. MVP Scope Checklist
 
-- [ ] Add container entry point for BTCUSDT dry-run worker.
+- [x] Add container entry point for BTCUSDT dry-run worker.
 - [ ] Add DynamoDB adapter for execution repository protocols.
-- [ ] Add AWS configuration model with explicit region/table names.
+- [x] Add AWS configuration model with explicit region/table names.
 - [ ] Add infrastructure notes or minimal IaC for ECS, DynamoDB, CloudWatch, API Gateway and Lambda.
 - [ ] Add read-only Lambda/API handler for latest status.
 - [ ] Add CloudWatch log fields and heartbeat metric.
@@ -95,9 +95,9 @@ Dashboard API is read-only and sanitized.
 
 | Task | Outcome | Status |
 |------|---------|--------|
-| S022-T001 | Add container runtime entry point | TODO |
+| S022-T001 | Add container runtime entry point | DONE |
 | S022-T002 | Add DynamoDB execution repository adapter | TODO |
-| S022-T003 | Add AWS config model and environment validation | TODO |
+| S022-T003 | Add AWS config model and environment validation | DONE |
 | S022-T004 | Add read-only status API handler | TODO |
 | S022-T005 | Add CloudWatch structured logging and metrics | TODO |
 | S022-T006 | Add stale heartbeat alarm/runbook notes | TODO |
