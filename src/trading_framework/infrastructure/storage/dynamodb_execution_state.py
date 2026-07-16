@@ -18,16 +18,21 @@ from trading_framework.execution.models import (
 )
 from trading_framework.execution.models._validation import normalize_non_empty
 from trading_framework.execution.repositories.read_models import (
+    DEFAULT_RECENT_BAR_LIMIT,
     DEFAULT_RECENT_EVENT_LIMIT,
     DEFAULT_RECENT_FILL_LIMIT,
     DEFAULT_RECENT_ORDER_LIMIT,
     ExecutionReadModelQuery,
+    RecentBarView,
     RecentExecutionEventView,
     RuntimeStatusView,
 )
 from trading_framework.infrastructure.storage.execution_state import (
     _account_from_json,
     _account_to_json,
+    _bar_to_view,
+    _bar_view_from_json,
+    _bar_view_to_json,
     _empty_state,
     _event_view_from_json,
     _event_view_to_json,
@@ -43,6 +48,7 @@ from trading_framework.infrastructure.storage.execution_state import (
     _status_to_json,
     _tail,
 )
+from trading_framework.market.models import MarketBar
 from trading_framework.time.clocks.protocol import Clock
 from trading_framework.time.clocks.system import SystemClock
 
@@ -86,6 +92,7 @@ class DynamoDbExecutionStateRepository:
     recent_event_limit: int = DEFAULT_RECENT_EVENT_LIMIT
     recent_order_limit: int = DEFAULT_RECENT_ORDER_LIMIT
     recent_fill_limit: int = DEFAULT_RECENT_FILL_LIMIT
+    recent_bar_limit: int = DEFAULT_RECENT_BAR_LIMIT
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "table_name", normalize_non_empty(self.table_name, "table_name"))
@@ -102,6 +109,7 @@ class DynamoDbExecutionStateRepository:
         _require_positive_limit(self.recent_event_limit, "recent_event_limit")
         _require_positive_limit(self.recent_order_limit, "recent_order_limit")
         _require_positive_limit(self.recent_fill_limit, "recent_fill_limit")
+        _require_positive_limit(self.recent_bar_limit, "recent_bar_limit")
 
     def append_event(self, runtime_id: str, event: ExecutionEvent) -> None:
         """Persist one immutable execution event in the bounded recent-events list."""
@@ -150,6 +158,20 @@ class DynamoDbExecutionStateRepository:
         state["account"] = _account_to_json(account)
         self._write_state(runtime_id, state)
 
+    def save_bar(self, runtime_id: str, bar: MarketBar) -> None:
+        """Persist or update one recent closed OHLCV bar."""
+        runtime_id = normalize_non_empty(runtime_id, "runtime_id")
+        state = self._load_state(runtime_id)
+        view = _bar_to_view(bar)
+        bars = [
+            item
+            for item in state["bars"]
+            if item.get("observed_at") != view.observed_at.isoformat()
+        ]
+        bars.append(_bar_view_to_json(view))
+        state["bars"] = _tail(bars, self.recent_bar_limit)
+        self._write_state(runtime_id, state)
+
     def latest_status_view(self, query: ExecutionReadModelQuery) -> RuntimeStatusView | None:
         """Return the latest dashboard-ready status view for one runtime."""
         state = self._load_state(query.runtime_id)
@@ -185,6 +207,7 @@ class DynamoDbExecutionStateRepository:
                 for item in _tail(list(state["fills"]), query.recent_fill_limit)
             ),
             recent_events=self.recent_events(query),
+            recent_bars=self.recent_bars(query),
         )
 
     def recent_events(self, query: ExecutionReadModelQuery) -> tuple[RecentExecutionEventView, ...]:
@@ -193,6 +216,13 @@ class DynamoDbExecutionStateRepository:
         return tuple(
             _event_view_from_json(item)
             for item in _tail(list(state["events"]), query.recent_event_limit)
+        )
+
+    def recent_bars(self, query: ExecutionReadModelQuery) -> tuple[RecentBarView, ...]:
+        """Return bounded recent closed market bars for one runtime."""
+        state = self._load_state(query.runtime_id)
+        return tuple(
+            _bar_view_from_json(item) for item in _tail(list(state["bars"]), query.recent_bar_limit)
         )
 
     def _load_state(self, runtime_id: str) -> dict[str, Any]:
@@ -219,6 +249,7 @@ class DynamoDbExecutionStateRepository:
             "events": list(payload.get("events", ())),
             "orders": list(payload.get("orders", ())),
             "fills": list(payload.get("fills", ())),
+            "bars": list(payload.get("bars", ())),
             "position": payload.get("position"),
             "account": payload.get("account"),
         }

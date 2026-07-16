@@ -10,7 +10,7 @@ from types import MappingProxyType
 from typing import final
 
 from trading_framework.core.exceptions import ValidationError
-from trading_framework.core.types import Price
+from trading_framework.core.types import Price, Volume
 from trading_framework.execution.models import (
     ExecutionEvent,
     ExecutionEventType,
@@ -31,6 +31,7 @@ from trading_framework.time.models.utc_instant import require_utc_aware
 DEFAULT_RECENT_EVENT_LIMIT = 50
 DEFAULT_RECENT_ORDER_LIMIT = 20
 DEFAULT_RECENT_FILL_LIMIT = 20
+DEFAULT_RECENT_BAR_LIMIT = 1440
 
 
 @final
@@ -42,12 +43,14 @@ class ExecutionReadModelQuery:
     recent_event_limit: int = DEFAULT_RECENT_EVENT_LIMIT
     recent_order_limit: int = DEFAULT_RECENT_ORDER_LIMIT
     recent_fill_limit: int = DEFAULT_RECENT_FILL_LIMIT
+    recent_bar_limit: int = DEFAULT_RECENT_BAR_LIMIT
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "runtime_id", normalize_non_empty(self.runtime_id, "runtime_id"))
         _require_positive_limit(self.recent_event_limit, "recent_event_limit")
         _require_positive_limit(self.recent_order_limit, "recent_order_limit")
         _require_positive_limit(self.recent_fill_limit, "recent_fill_limit")
+        _require_positive_limit(self.recent_bar_limit, "recent_bar_limit")
 
 
 @final
@@ -159,6 +162,33 @@ class RecentFillView:
 
 @final
 @dataclass(frozen=True, slots=True)
+class RecentBarView:
+    """Recent closed OHLCV bar item for execution dashboards."""
+
+    open: Price
+    high: Price
+    low: Price
+    close: Price
+    volume: Volume
+    observed_at: datetime
+    available_at: datetime
+    simulated: bool = True
+
+    def __post_init__(self) -> None:
+        observed_at = require_utc_aware(self.observed_at)
+        available_at = require_utc_aware(self.available_at)
+        object.__setattr__(self, "observed_at", observed_at)
+        object.__setattr__(self, "available_at", available_at)
+        if self.available_at <= self.observed_at:
+            msg = "available_at must be after observed_at"
+            raise ValidationError(msg)
+        if not self.simulated:
+            msg = "RecentBarView must be marked simulated"
+            raise ValidationError(msg)
+
+
+@final
+@dataclass(frozen=True, slots=True)
 class RuntimeStatusView:
     """Dashboard-ready read model for one dry-run runtime."""
 
@@ -179,6 +209,7 @@ class RuntimeStatusView:
     recent_orders: tuple[RecentOrderView, ...] = ()
     recent_fills: tuple[RecentFillView, ...] = ()
     recent_events: tuple[RecentExecutionEventView, ...] = ()
+    recent_bars: tuple[RecentBarView, ...] = ()
     simulated: bool = True
 
     def __post_init__(self) -> None:

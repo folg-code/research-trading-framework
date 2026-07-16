@@ -7,6 +7,7 @@ It serves:
 ```text
 GET /            live dashboard
 GET /api/status  server-side proxy to AWS API Gateway /status
+GET /api/history 24h local SQLite history for bars/equity/fills
 GET /api/config  public frontend config
 GET /health      VPS/reverse-proxy health check
 ```
@@ -22,7 +23,8 @@ Fixture mode:
 uv run python scripts/portfolio_live/serve_live_dry_run_dashboard.py `
   --fixture `
   --host 127.0.0.1 `
-  --port 8080
+  --port 8080 `
+  --db-path user_data/runtime/portfolio_live/dashboard.sqlite3
 ```
 
 AWS-backed mode:
@@ -32,7 +34,9 @@ $env:TRADING_FRAMEWORK_STATUS_URL="https://example.execute-api.eu-north-1.amazon
 
 uv run python scripts/portfolio_live/serve_live_dry_run_dashboard.py `
   --host 127.0.0.1 `
-  --port 8080
+  --port 8080 `
+  --history-hours 24 `
+  --db-path user_data/runtime/portfolio_live/dashboard.sqlite3
 ```
 
 Open:
@@ -50,7 +54,9 @@ cd /opt/research-trading-framework
 export TRADING_FRAMEWORK_STATUS_URL="https://example.execute-api.eu-north-1.amazonaws.com/status"
 uv run python scripts/portfolio_live/serve_live_dry_run_dashboard.py \
   --host 127.0.0.1 \
-  --port 8080
+  --port 8080 \
+  --history-hours 24 \
+  --db-path user_data/runtime/portfolio_live/dashboard.sqlite3
 ```
 
 Keep `--host 127.0.0.1` when nginx/Caddy is the public entry point.
@@ -84,7 +90,7 @@ After=network-online.target
 [Service]
 WorkingDirectory=/opt/research-trading-framework
 Environment=TRADING_FRAMEWORK_STATUS_URL=https://example.execute-api.eu-north-1.amazonaws.com/status
-ExecStart=/usr/bin/uv run python scripts/portfolio_live/serve_live_dry_run_dashboard.py --host 127.0.0.1 --port 8080
+ExecStart=/usr/bin/uv run python scripts/portfolio_live/serve_live_dry_run_dashboard.py --host 127.0.0.1 --port 8080 --history-hours 24 --db-path user_data/runtime/portfolio_live/dashboard.sqlite3
 Restart=always
 RestartSec=5
 
@@ -94,14 +100,16 @@ WantedBy=multi-user.target
 
 ## Live behavior
 
-The frontend polls `/api/status` every few seconds. Each snapshot updates:
+The server polls the AWS status endpoint every few seconds and stores dashboard history in SQLite.
+The frontend polls `/api/status` for the latest cards and `/api/history` for chart data. Each snapshot
+updates:
 
-- BTCUSDT candles built from incoming price snapshots,
+- BTCUSDT candles from persisted `recent_bars` OHLCV,
 - simulated fill markers on the price chart,
 - paper equity curve,
 - current runtime/market/account/position cards,
 - last simulated trades and recent orders tables.
 
-The current AWS status API returns the latest state plus bounded recent orders/fills. The browser keeps
-the rolling chart history while it remains open. A later backend increment can persist a rolling candle
-and equity cache on the VPS if the page needs to survive refreshes with longer history.
+The AWS status API must return bounded `recent_bars` with closed OHLCV bars. The VPS SQLite cache keeps
+the last `--history-hours` of bars/equity/fills so chart history survives process restarts and page
+refreshes.

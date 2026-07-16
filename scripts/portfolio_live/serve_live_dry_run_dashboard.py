@@ -11,9 +11,11 @@ import asyncio
 import json
 import os
 import signal
+import sqlite3
 import sys
 from contextlib import suppress
 from dataclasses import dataclass
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -29,6 +31,8 @@ DEFAULT_PORT = 8080
 DEFAULT_POLL_SECONDS = 5
 DEFAULT_CANDLE_SECONDS = 60
 DEFAULT_STALE_AFTER_SECONDS = 180
+DEFAULT_HISTORY_HOURS = 24
+DEFAULT_DB_PATH = Path("user_data/runtime/portfolio_live/dashboard.sqlite3")
 STATUS_URL_ENV = "TRADING_FRAMEWORK_STATUS_URL"
 
 
@@ -40,11 +44,28 @@ class LiveDashboardConfig:
     poll_seconds: int = DEFAULT_POLL_SECONDS
     candle_seconds: int = DEFAULT_CANDLE_SECONDS
     stale_after_seconds: int = DEFAULT_STALE_AFTER_SECONDS
+    history_hours: int = DEFAULT_HISTORY_HOURS
+    db_path: Path = DEFAULT_DB_PATH
     use_fixture: bool = False
+
+    def __post_init__(self) -> None:
+        if self.poll_seconds < 1:
+            msg = "poll_seconds must be positive"
+            raise ValueError(msg)
+        if self.candle_seconds < 1:
+            msg = "candle_seconds must be positive"
+            raise ValueError(msg)
+        if self.stale_after_seconds < 1:
+            msg = "stale_after_seconds must be positive"
+            raise ValueError(msg)
+        if self.history_hours < 1:
+            msg = "history_hours must be positive"
+            raise ValueError(msg)
 
 
 _CONFIG_KEY = web.AppKey("config", LiveDashboardConfig)
 _SESSION_KEY = web.AppKey("session", aiohttp.ClientSession)
+_POLL_TASK_KEY = web.AppKey("poll_task", asyncio.Task[None])
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -61,6 +82,8 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--poll-seconds", type=int, default=DEFAULT_POLL_SECONDS)
     parser.add_argument("--candle-seconds", type=int, default=DEFAULT_CANDLE_SECONDS)
     parser.add_argument("--stale-after-seconds", type=int, default=DEFAULT_STALE_AFTER_SECONDS)
+    parser.add_argument("--history-hours", type=int, default=DEFAULT_HISTORY_HOURS)
+    parser.add_argument("--db-path", type=Path, default=DEFAULT_DB_PATH)
     parser.add_argument(
         "--fixture",
         action="store_true",
@@ -76,8 +99,11 @@ def create_app(config: LiveDashboardConfig) -> web.Application:
     app.router.add_get("/", _handle_index)
     app.router.add_get("/api/config", _handle_config)
     app.router.add_get("/api/status", _handle_status)
+    app.router.add_get("/api/history", _handle_history)
     app.router.add_get("/health", _handle_health)
+    app.on_startup.append(_startup)
     app.on_cleanup.append(_cleanup_session)
+    _initialize_database(config.db_path)
     return app
 
 
@@ -101,33 +127,50 @@ async def _handle_health(request: web.Request) -> web.Response:
 
 async def _handle_status(request: web.Request) -> web.Response:
     config = _config(request)
-    if config.use_fixture or not config.status_url:
-        return web.json_response(
-            _fixture_payload(),
-            headers={"Cache-Control": "no-store", "X-Trading-Framework-Source": "fixture"},
-        )
-
-    session = await _client_session(request.app)
     try:
-        async with session.get(
-            config.status_url,
-            headers={"Accept": "application/json"},
-        ) as response:
-            payload = await response.text()
-            content_type = response.headers.get("Content-Type", "application/json")
-            return web.Response(
-                status=response.status,
-                text=payload,
-                content_type=content_type.split(";", maxsplit=1)[0],
-                headers={
-                    "Cache-Control": "no-store",
-                    "X-Trading-Framework-Source": "aws-status-api",
-                },
-            )
+        payload, source = await _fetch_status_payload(request.app, config)
+        _store_status_snapshot(config, payload)
+        return web.json_response(
+            payload,
+            headers={"Cache-Control": "no-store", "X-Trading-Framework-Source": source},
+        )
     except TimeoutError:
         return _gateway_error("status endpoint timed out")
     except aiohttp.ClientError as exc:
         return _gateway_error(f"status endpoint unavailable: {exc}")
+
+
+async def _handle_history(request: web.Request) -> web.Response:
+    config = _config(request)
+    return web.json_response(
+        _load_history(config),
+        headers={"Cache-Control": "no-store"},
+    )
+
+
+async def _fetch_status_payload(
+    app: web.Application,
+    config: LiveDashboardConfig,
+) -> tuple[dict[str, Any], str]:
+    if config.use_fixture or not config.status_url:
+        return _fixture_payload(), "fixture"
+
+    session = await _client_session(app)
+    async with session.get(config.status_url, headers={"Accept": "application/json"}) as response:
+        payload = await response.json()
+        if response.status >= 400:
+            message = payload.get("message") if isinstance(payload, dict) else None
+            raise aiohttp.ClientResponseError(
+                request_info=response.request_info,
+                history=response.history,
+                status=response.status,
+                message=str(message or "status endpoint error"),
+                headers=response.headers,
+            )
+        if not isinstance(payload, dict):
+            msg = "status endpoint returned non-object JSON"
+            raise aiohttp.ClientError(msg)
+        return payload, "aws-status-api"
 
 
 def _gateway_error(message: str) -> web.Response:
@@ -149,6 +192,7 @@ def _public_config(config: LiveDashboardConfig) -> dict[str, Any]:
         "pollSeconds": config.poll_seconds,
         "candleSeconds": config.candle_seconds,
         "staleAfterSeconds": config.stale_after_seconds,
+        "historyHours": config.history_hours,
         "source": "fixture" if config.use_fixture or not config.status_url else "aws-status-api",
     }
 
@@ -167,9 +211,188 @@ async def _client_session(app: web.Application) -> aiohttp.ClientSession:
 
 
 async def _cleanup_session(app: web.Application) -> None:
+    task = app.get(_POLL_TASK_KEY)
+    if task is not None:
+        task.cancel()
+        await asyncio.gather(task, return_exceptions=True)
     session = app.get(_SESSION_KEY)
     if session is not None and not session.closed:
         await session.close()
+
+
+async def _startup(app: web.Application) -> None:
+    config = app[_CONFIG_KEY]
+    app[_POLL_TASK_KEY] = asyncio.create_task(_poll_status_forever(app, config))
+
+
+async def _poll_status_forever(app: web.Application, config: LiveDashboardConfig) -> None:
+    while True:
+        try:
+            payload, _source = await _fetch_status_payload(app, config)
+            _store_status_snapshot(config, payload)
+        except (TimeoutError, aiohttp.ClientError, KeyError, sqlite3.Error, TypeError, ValueError):
+            await asyncio.sleep(config.poll_seconds)
+            continue
+        await asyncio.sleep(config.poll_seconds)
+
+
+def _initialize_database(path: Path) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with sqlite3.connect(path) as connection:
+        connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS bars (
+                observed_at TEXT PRIMARY KEY,
+                available_at TEXT NOT NULL,
+                open REAL NOT NULL,
+                high REAL NOT NULL,
+                low REAL NOT NULL,
+                close REAL NOT NULL,
+                volume REAL NOT NULL
+            )
+            """
+        )
+        connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS equity (
+                observed_at TEXT PRIMARY KEY,
+                equity REAL NOT NULL
+            )
+            """
+        )
+        connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS fills (
+                fill_id TEXT PRIMARY KEY,
+                order_id TEXT,
+                symbol TEXT,
+                side TEXT,
+                quantity TEXT,
+                price REAL,
+                filled_at TEXT NOT NULL
+            )
+            """
+        )
+
+
+def _store_status_snapshot(config: LiveDashboardConfig, payload: dict[str, Any]) -> None:
+    cutoff = datetime.now(UTC) - timedelta(hours=config.history_hours)
+    with sqlite3.connect(config.db_path) as connection:
+        for bar in payload.get("recent_bars") or ():
+            if not isinstance(bar, dict):
+                continue
+            observed_at = str(bar.get("observed_at") or "")
+            if not observed_at:
+                continue
+            open_price = _optional_float(bar.get("open"))
+            high_price = _optional_float(bar.get("high"))
+            low_price = _optional_float(bar.get("low"))
+            close_price = _optional_float(bar.get("close"))
+            if None in (open_price, high_price, low_price, close_price):
+                continue
+            connection.execute(
+                """
+                INSERT OR REPLACE INTO bars
+                    (observed_at, available_at, open, high, low, close, volume)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    observed_at,
+                    str(bar.get("available_at") or observed_at),
+                    open_price,
+                    high_price,
+                    low_price,
+                    close_price,
+                    _optional_float(bar.get("volume")) or 0,
+                ),
+            )
+        equity = payload.get("paper_equity")
+        equity_time = payload.get("generated_at") or payload.get("last_heartbeat_at")
+        equity_value = _optional_float(equity)
+        if equity_value is not None and equity_time:
+            connection.execute(
+                "INSERT OR REPLACE INTO equity (observed_at, equity) VALUES (?, ?)",
+                (str(equity_time), equity_value),
+            )
+        for fill in payload.get("recent_fills") or ():
+            if not isinstance(fill, dict) or not fill.get("fill_id"):
+                continue
+            connection.execute(
+                """
+                INSERT OR REPLACE INTO fills
+                    (fill_id, order_id, symbol, side, quantity, price, filled_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    str(fill.get("fill_id")),
+                    _optional_text(fill.get("order_id")),
+                    _optional_text(fill.get("symbol")),
+                    _optional_text(fill.get("side")),
+                    _optional_text(fill.get("quantity")),
+                    _optional_float(fill.get("price")),
+                    str(fill.get("filled_at")),
+                ),
+            )
+        cutoff_text = cutoff.isoformat()
+        connection.execute("DELETE FROM bars WHERE observed_at < ?", (cutoff_text,))
+        connection.execute("DELETE FROM equity WHERE observed_at < ?", (cutoff_text,))
+        connection.execute("DELETE FROM fills WHERE filled_at < ?", (cutoff_text,))
+
+
+def _load_history(config: LiveDashboardConfig) -> dict[str, Any]:
+    cutoff = (datetime.now(UTC) - timedelta(hours=config.history_hours)).isoformat()
+    with sqlite3.connect(config.db_path) as connection:
+        connection.row_factory = sqlite3.Row
+        bars = [
+            dict(row)
+            for row in connection.execute(
+                """
+                SELECT observed_at, available_at, open, high, low, close, volume
+                FROM bars
+                WHERE observed_at >= ?
+                ORDER BY observed_at
+                """,
+                (cutoff,),
+            )
+        ]
+        equity = [
+            dict(row)
+            for row in connection.execute(
+                """
+                SELECT observed_at, equity
+                FROM equity
+                WHERE observed_at >= ?
+                ORDER BY observed_at
+                """,
+                (cutoff,),
+            )
+        ]
+        fills = [
+            dict(row)
+            for row in connection.execute(
+                """
+                SELECT fill_id, order_id, symbol, side, quantity, price, filled_at
+                FROM fills
+                WHERE filled_at >= ?
+                ORDER BY filled_at
+                """,
+                (cutoff,),
+            )
+        ]
+    return {"bars": bars, "equity": equity, "fills": fills}
+
+
+def _optional_text(value: object) -> str | None:
+    return str(value) if value is not None else None
+
+
+def _optional_float(value: object) -> float | None:
+    if value is None:
+        return None
+    try:
+        return float(str(value))
+    except (TypeError, ValueError):
+        return None
 
 
 def render_dashboard_html(config: LiveDashboardConfig) -> str:
@@ -329,7 +552,7 @@ def render_dashboard_html(config: LiveDashboardConfig) -> str:
         <div class="charts">
           <div>
             <div class="muted">
-              Candles are built from incoming status updates; simulated fills appear as markers.
+              Candles are loaded from persisted OHLCV bars; simulated fills appear as markers.
             </div>
             <div id="chart-price" class="chart-host"></div>
           </div>
@@ -357,8 +580,6 @@ def render_dashboard_html(config: LiveDashboardConfig) -> str:
 def _dashboard_javascript() -> str:
     return r"""
 const config = JSON.parse(document.getElementById('dashboard-config').textContent);
-const candles = new Map();
-const equityPoints = [];
 let priceChart;
 let priceSeries;
 let equityChart;
@@ -377,51 +598,6 @@ function numberOrNull(value) {
 function unixSeconds(iso) {
   const parsed = Date.parse(iso || '');
   return Number.isFinite(parsed) ? Math.floor(parsed / 1000) : null;
-}
-
-function bucketTime(iso) {
-  const value = unixSeconds(iso);
-  if (value === null) return null;
-  return Math.floor(value / config.candleSeconds) * config.candleSeconds;
-}
-
-function upsertCandle(time, price) {
-  if (time === null || price === null) return;
-  const existing = candles.get(time);
-  if (!existing) {
-    candles.set(time, { time, open: price, high: price, low: price, close: price });
-    return;
-  }
-  existing.high = Math.max(existing.high, price);
-  existing.low = Math.min(existing.low, price);
-  existing.close = price;
-}
-
-function upsertEquity(time, equity) {
-  if (time === null || equity === null) return;
-  const index = equityPoints.findIndex((point) => point.time === time);
-  const point = { time, value: equity };
-  if (index >= 0) equityPoints[index] = point;
-  else equityPoints.push(point);
-  equityPoints.sort((left, right) => left.time - right.time);
-  while (equityPoints.length > 500) equityPoints.shift();
-}
-
-function seedHistory(payload) {
-  for (const row of payload.price_history || []) {
-    upsertCandle(bucketTime(row.time), numberOrNull(row.price));
-  }
-  for (const row of payload.equity_history || []) {
-    upsertEquity(unixSeconds(row.time), numberOrNull(row.equity));
-  }
-}
-
-function appendSnapshot(payload) {
-  const price = numberOrNull(payload.last_price);
-  const eventTime = payload.last_market_event_at || payload.generated_at;
-  upsertCandle(bucketTime(eventTime), price);
-  upsertEquity(unixSeconds(payload.generated_at || payload.last_heartbeat_at || eventTime),
-    numberOrNull(payload.paper_equity));
 }
 
 function ensureCharts() {
@@ -470,13 +646,23 @@ function fillMarkers(fills) {
   }).filter((marker) => marker.time !== null);
 }
 
-function renderCharts(payload) {
-  seedHistory(payload);
-  appendSnapshot(payload);
+function renderCharts(history) {
   if (!ensureCharts()) return;
-  priceSeries.setData(Array.from(candles.values()).sort((left, right) => left.time - right.time));
-  equitySeries.setData(equityPoints);
-  priceSeries.setMarkers(fillMarkers(payload.recent_fills));
+  priceSeries.setData((history.bars || []).map((bar) => ({
+    time: unixSeconds(bar.observed_at),
+    open: numberOrNull(bar.open),
+    high: numberOrNull(bar.high),
+    low: numberOrNull(bar.low),
+    close: numberOrNull(bar.close),
+  })).filter((bar) =>
+    bar.time !== null && bar.open !== null && bar.high !== null &&
+    bar.low !== null && bar.close !== null
+  ));
+  equitySeries.setData((history.equity || []).map((point) => ({
+    time: unixSeconds(point.observed_at),
+    value: numberOrNull(point.equity),
+  })).filter((point) => point.time !== null && point.value !== null));
+  priceSeries.setMarkers(fillMarkers(history.fills || []));
   priceChart.timeScale().fitContent();
   equityChart.timeScale().fitContent();
 }
@@ -526,9 +712,9 @@ function rows(items, columns) {
     `<tbody>${body}</tbody></table></div>`;
 }
 
-function render(payload) {
+function render(payload, history) {
   setStatus(payload);
-  renderCharts(payload);
+  renderCharts(history);
   const heartbeatAge = Math.round(ageMs(payload.last_heartbeat_at) / 1000);
   const position = payload.current_position || {};
   setPairs('runtime', [
@@ -587,7 +773,10 @@ async function refresh() {
     const response = await fetch('/api/status', { cache: 'no-store' });
     const payload = await response.json();
     if (!response.ok) throw new Error(payload.error || `status ${response.status}`);
-    render(payload);
+    const historyResponse = await fetch('/api/history', { cache: 'no-store' });
+    const history = await historyResponse.json();
+    if (!historyResponse.ok) throw new Error(history.error || `history ${historyResponse.status}`);
+    render(payload, history);
   } catch (error) {
     setStatus(null, `Status feed unavailable: ${error.message}`);
   }
@@ -604,6 +793,8 @@ async def _run_app(args: argparse.Namespace) -> None:
         poll_seconds=args.poll_seconds,
         candle_seconds=args.candle_seconds,
         stale_after_seconds=args.stale_after_seconds,
+        history_hours=args.history_hours,
+        db_path=args.db_path,
         use_fixture=args.fixture,
     )
     runner = web.AppRunner(create_app(config))

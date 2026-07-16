@@ -514,7 +514,8 @@ user_data/runtime/btc_futures_dry_run/state/{runtime_id}/state.json
 ```
 
 The state document contains the latest runtime status, latest paper account and position snapshots,
-and bounded recent events/orders/fills. Default retention is 50 events, 20 orders and 20 fills.
+bounded recent events/orders/fills, and bounded recent closed OHLCV bars. Default retention is
+50 events, 20 orders, 20 fills and 1440 bars.
 `scripts/execution/show_execution_status.py` prints the latest read model as JSON. This read path is
 inspection-only and does not expose runtime controls.
 
@@ -564,7 +565,7 @@ consumers.
 | `providers/binance/aiohttp_websocket.py` | ✅ | concrete `aiohttp` WebSocket transport adapter |
 | `providers/binance/futures_smoke.py` | ✅ | bounded smoke runner and smoke JSON normalization |
 | `scripts/live_data/run_binance_futures_smoke.py` | ✅ | local BTCUSDT smoke CLI |
-| `scripts/portfolio_live/serve_live_dry_run_dashboard.py` | ✅ | VPS-hosted live dry-run dashboard server (`/`, `/api/status`, `/health`) |
+| `scripts/portfolio_live/serve_live_dry_run_dashboard.py` | ✅ | VPS-hosted live dry-run dashboard server with SQLite chart history (`/`, `/api/status`, `/api/history`, `/health`) |
 
 **Smoke CLI:**
 

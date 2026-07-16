@@ -10,7 +10,7 @@ from types import MappingProxyType
 import pytest
 
 from trading_framework.core.exceptions import ValidationError
-from trading_framework.core.types import Price
+from trading_framework.core.types import Price, Volume
 from trading_framework.execution import (
     ExecutionEvent,
     ExecutionEventType,
@@ -23,6 +23,7 @@ from trading_framework.execution import (
     PaperAccountSnapshot,
     PaperPosition,
     PositionSide,
+    RecentBarView,
     RecentExecutionEventView,
     RecentFillView,
     RecentOrderView,
@@ -32,6 +33,7 @@ from trading_framework.execution import (
     SimulatedFill,
     SimulatedOrder,
 )
+from trading_framework.market.models import MarketBar
 
 NOW = datetime(2026, 7, 16, 8, 0, tzinfo=UTC)
 
@@ -42,6 +44,7 @@ class FakeExecutionStateRepository:
     status_view: RuntimeStatusView | None = None
     orders: list[RecentOrderView] = field(default_factory=list)
     fills: list[RecentFillView] = field(default_factory=list)
+    bars: list[RecentBarView] = field(default_factory=list)
     position: PaperPosition | None = None
     account: PaperAccountSnapshot | None = None
 
@@ -101,6 +104,20 @@ class FakeExecutionStateRepository:
         assert runtime_id == "runtime-1"
         self.account = account
 
+    def save_bar(self, runtime_id: str, bar: MarketBar) -> None:
+        assert runtime_id == "runtime-1"
+        self.bars.append(
+            RecentBarView(
+                open=bar.open,
+                high=bar.high,
+                low=bar.low,
+                close=bar.close,
+                volume=bar.volume,
+                observed_at=bar.observed_at,
+                available_at=bar.available_at,
+            )
+        )
+
     def latest_status_view(self, query: ExecutionReadModelQuery) -> RuntimeStatusView | None:
         assert query.runtime_id == "runtime-1"
         return self.status_view
@@ -108,6 +125,10 @@ class FakeExecutionStateRepository:
     def recent_events(self, query: ExecutionReadModelQuery) -> tuple[RecentExecutionEventView, ...]:
         assert query.runtime_id == "runtime-1"
         return tuple(self.events[-query.recent_event_limit :])
+
+    def recent_bars(self, query: ExecutionReadModelQuery) -> tuple[RecentBarView, ...]:
+        assert query.runtime_id == "runtime-1"
+        return tuple(self.bars[-query.recent_bar_limit :])
 
 
 def test_execution_read_model_query_validates_positive_limits() -> None:
@@ -184,14 +205,17 @@ def test_execution_state_repository_protocol_shape() -> None:
     repository.save_fill("runtime-1", _fill())
     repository.save_position("runtime-1", _position())
     repository.save_account("runtime-1", _account())
+    repository.save_bar("runtime-1", _bar())
 
     query = ExecutionReadModelQuery(runtime_id="runtime-1", recent_event_limit=1)
     status_view = repository.latest_status_view(query)
     recent_events = repository.recent_events(query)
+    recent_bars = repository.recent_bars(query)
 
     assert status_view is not None
     assert status_view.status is RuntimeHealth.RUNNING
     assert [event.event_id for event in recent_events] == ["event-1"]
+    assert [bar.close for bar in recent_bars] == [Price(Decimal("65010"))]
 
 
 def _event() -> ExecutionEvent:
@@ -238,6 +262,18 @@ def _fill() -> SimulatedFill:
         quantity=Decimal("0.001"),
         price=Price(Decimal("65000")),
         filled_at=NOW,
+    )
+
+
+def _bar() -> MarketBar:
+    return MarketBar(
+        open=Price(Decimal("65000")),
+        high=Price(Decimal("65020")),
+        low=Price(Decimal("64990")),
+        close=Price(Decimal("65010")),
+        volume=Volume(100),
+        observed_at=NOW,
+        available_at=NOW + timedelta(minutes=1),
     )
 
 

@@ -8,6 +8,7 @@ from typing import Any
 
 from trading_framework.core.types import Price
 from trading_framework.execution import (
+    RecentBarView,
     RecentExecutionEventView,
     RecentFillView,
     RecentOrderView,
@@ -36,6 +37,7 @@ def runtime_status_view_to_json(view: RuntimeStatusView) -> dict[str, Any]:
         "recent_orders": [_order_to_json(order) for order in view.recent_orders],
         "recent_fills": [_fill_to_json(fill) for fill in view.recent_fills],
         "recent_events": [_event_to_json(event) for event in view.recent_events],
+        "recent_bars": [_bar_to_json(bar) for bar in view.recent_bars],
         "simulated": view.simulated,
     }
 
@@ -79,6 +81,19 @@ def _event_to_json(event: RecentExecutionEventView) -> dict[str, Any]:
         "payload": dict(payload) if payload is not None else None,
         "correlation_id": event.correlation_id,
         "simulated": event.simulated,
+    }
+
+
+def _bar_to_json(bar: RecentBarView) -> dict[str, Any]:
+    return {
+        "open": bar.open.to_json(),
+        "high": bar.high.to_json(),
+        "low": bar.low.to_json(),
+        "close": bar.close.to_json(),
+        "volume": bar.volume.to_json(),
+        "observed_at": _datetime_to_json(bar.observed_at),
+        "available_at": _datetime_to_json(bar.available_at),
+        "simulated": bar.simulated,
     }
 
 

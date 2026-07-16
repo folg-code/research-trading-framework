@@ -6,10 +6,12 @@ from trading_framework.execution.repositories.protocols import (
     ExecutionStateWriter,
 )
 from trading_framework.execution.repositories.read_models import (
+    DEFAULT_RECENT_BAR_LIMIT,
     DEFAULT_RECENT_EVENT_LIMIT,
     DEFAULT_RECENT_FILL_LIMIT,
     DEFAULT_RECENT_ORDER_LIMIT,
     ExecutionReadModelQuery,
+    RecentBarView,
     RecentExecutionEventView,
     RecentFillView,
     RecentOrderView,
@@ -17,6 +19,7 @@ from trading_framework.execution.repositories.read_models import (
 )
 
 __all__ = [
+    "DEFAULT_RECENT_BAR_LIMIT",
     "DEFAULT_RECENT_EVENT_LIMIT",
     "DEFAULT_RECENT_FILL_LIMIT",
     "DEFAULT_RECENT_ORDER_LIMIT",
@@ -24,6 +27,7 @@ __all__ = [
     "ExecutionStateReader",
     "ExecutionStateRepository",
     "ExecutionStateWriter",
+    "RecentBarView",
     "RecentExecutionEventView",
     "RecentFillView",
     "RecentOrderView",

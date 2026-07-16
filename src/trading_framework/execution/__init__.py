@@ -22,6 +22,7 @@ from trading_framework.execution.models import (
 )
 from trading_framework.execution.modes import ExecutionMode
 from trading_framework.execution.repositories import (
+    DEFAULT_RECENT_BAR_LIMIT,
     DEFAULT_RECENT_EVENT_LIMIT,
     DEFAULT_RECENT_FILL_LIMIT,
     DEFAULT_RECENT_ORDER_LIMIT,
@@ -29,6 +30,7 @@ from trading_framework.execution.repositories import (
     ExecutionStateReader,
     ExecutionStateRepository,
     ExecutionStateWriter,
+    RecentBarView,
     RecentExecutionEventView,
     RecentFillView,
     RecentOrderView,
@@ -48,6 +50,7 @@ from trading_framework.execution.runtime import (
 from trading_framework.execution.safety import DRY_RUN_SAFETY_POLICY, ExecutionSafetyPolicy
 
 __all__ = [
+    "DEFAULT_RECENT_BAR_LIMIT",
     "DEFAULT_RECENT_EVENT_LIMIT",
     "DEFAULT_RECENT_FILL_LIMIT",
     "DEFAULT_RECENT_ORDER_LIMIT",
@@ -77,6 +80,7 @@ __all__ = [
     "PaperBrokerState",
     "PaperPosition",
     "PositionSide",
+    "RecentBarView",
     "RecentExecutionEventView",
     "RecentFillView",
     "RecentOrderView",

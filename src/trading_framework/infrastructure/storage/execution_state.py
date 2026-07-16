@@ -12,7 +12,7 @@ from typing import Any, final
 from urllib.parse import quote
 
 from trading_framework.core.exceptions import ValidationError
-from trading_framework.core.types import Price
+from trading_framework.core.types import Price, Volume
 from trading_framework.execution.models import (
     ExecutionEvent,
     ExecutionEventType,
@@ -30,15 +30,18 @@ from trading_framework.execution.models import (
 from trading_framework.execution.models._validation import normalize_non_empty
 from trading_framework.execution.modes import ExecutionMode
 from trading_framework.execution.repositories.read_models import (
+    DEFAULT_RECENT_BAR_LIMIT,
     DEFAULT_RECENT_EVENT_LIMIT,
     DEFAULT_RECENT_FILL_LIMIT,
     DEFAULT_RECENT_ORDER_LIMIT,
     ExecutionReadModelQuery,
+    RecentBarView,
     RecentExecutionEventView,
     RecentFillView,
     RecentOrderView,
     RuntimeStatusView,
 )
+from trading_framework.market.models import MarketBar
 from trading_framework.time.clocks.protocol import Clock
 from trading_framework.time.clocks.system import SystemClock
 
@@ -56,11 +59,13 @@ class JsonExecutionStateRepository:
     recent_event_limit: int = DEFAULT_RECENT_EVENT_LIMIT
     recent_order_limit: int = DEFAULT_RECENT_ORDER_LIMIT
     recent_fill_limit: int = DEFAULT_RECENT_FILL_LIMIT
+    recent_bar_limit: int = DEFAULT_RECENT_BAR_LIMIT
 
     def __post_init__(self) -> None:
         _require_positive_limit(self.recent_event_limit, "recent_event_limit")
         _require_positive_limit(self.recent_order_limit, "recent_order_limit")
         _require_positive_limit(self.recent_fill_limit, "recent_fill_limit")
+        _require_positive_limit(self.recent_bar_limit, "recent_bar_limit")
 
     def append_event(self, runtime_id: str, event: ExecutionEvent) -> None:
         """Persist one immutable execution event in the bounded recent-events list."""
@@ -109,6 +114,20 @@ class JsonExecutionStateRepository:
         state["account"] = _account_to_json(account)
         self._write_state(runtime_id, state)
 
+    def save_bar(self, runtime_id: str, bar: MarketBar) -> None:
+        """Persist or update one recent closed OHLCV bar."""
+        runtime_id = normalize_non_empty(runtime_id, "runtime_id")
+        state = self._load_state(runtime_id)
+        view = _bar_to_view(bar)
+        bars = [
+            item
+            for item in state["bars"]
+            if item.get("observed_at") != _datetime_to_json(view.observed_at)
+        ]
+        bars.append(_bar_view_to_json(view))
+        state["bars"] = _tail(bars, self.recent_bar_limit)
+        self._write_state(runtime_id, state)
+
     def latest_status_view(self, query: ExecutionReadModelQuery) -> RuntimeStatusView | None:
         """Return the latest dashboard-ready status view for one runtime."""
         state = self._load_state(query.runtime_id)
@@ -144,6 +163,7 @@ class JsonExecutionStateRepository:
                 for item in _tail(list(state["fills"]), query.recent_fill_limit)
             ),
             recent_events=self.recent_events(query),
+            recent_bars=self.recent_bars(query),
         )
 
     def recent_events(self, query: ExecutionReadModelQuery) -> tuple[RecentExecutionEventView, ...]:
@@ -152,6 +172,13 @@ class JsonExecutionStateRepository:
         return tuple(
             _event_view_from_json(item)
             for item in _tail(list(state["events"]), query.recent_event_limit)
+        )
+
+    def recent_bars(self, query: ExecutionReadModelQuery) -> tuple[RecentBarView, ...]:
+        """Return bounded recent closed market bars for one runtime."""
+        state = self._load_state(query.runtime_id)
+        return tuple(
+            _bar_view_from_json(item) for item in _tail(list(state["bars"]), query.recent_bar_limit)
         )
 
     def _load_state(self, runtime_id: str) -> dict[str, Any]:
@@ -168,6 +195,7 @@ class JsonExecutionStateRepository:
             "events": list(payload.get("events", ())),
             "orders": list(payload.get("orders", ())),
             "fills": list(payload.get("fills", ())),
+            "bars": list(payload.get("bars", ())),
             "position": payload.get("position"),
             "account": payload.get("account"),
         }
@@ -192,9 +220,48 @@ def _empty_state() -> dict[str, Any]:
         "events": [],
         "orders": [],
         "fills": [],
+        "bars": [],
         "position": None,
         "account": None,
     }
+
+
+def _bar_to_view(bar: MarketBar) -> RecentBarView:
+    return RecentBarView(
+        open=bar.open,
+        high=bar.high,
+        low=bar.low,
+        close=bar.close,
+        volume=bar.volume,
+        observed_at=bar.observed_at,
+        available_at=bar.available_at,
+    )
+
+
+def _bar_view_to_json(view: RecentBarView) -> dict[str, Any]:
+    return {
+        "open": view.open.to_json(),
+        "high": view.high.to_json(),
+        "low": view.low.to_json(),
+        "close": view.close.to_json(),
+        "volume": view.volume.to_json(),
+        "observed_at": _datetime_to_json(view.observed_at),
+        "available_at": _datetime_to_json(view.available_at),
+        "simulated": view.simulated,
+    }
+
+
+def _bar_view_from_json(payload: Mapping[str, Any]) -> RecentBarView:
+    return RecentBarView(
+        open=Price.from_json(str(payload["open"])),
+        high=Price.from_json(str(payload["high"])),
+        low=Price.from_json(str(payload["low"])),
+        close=Price.from_json(str(payload["close"])),
+        volume=Volume.from_json(int(payload["volume"])),
+        observed_at=_datetime_from_json(str(payload["observed_at"])),
+        available_at=_datetime_from_json(str(payload["available_at"])),
+        simulated=bool(payload.get("simulated", True)),
+    )
 
 
 def _order_to_view(order: SimulatedOrder) -> RecentOrderView:
