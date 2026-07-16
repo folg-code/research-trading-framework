@@ -147,9 +147,8 @@ scripts.execution.aws_status_api_handler.lambda_handler
 
 It accepts API Gateway REST or HTTP API events and supports only `GET`. The handler:
 
-- loads the same AWS runtime env contract as the worker,
-- reads the latest `RuntimeStatusView` through `ExecutionStateRepository`,
-- returns the same status JSON shape as `scripts/execution/show_execution_status.py`,
+- reads the latest DynamoDB `state_json` item directly to keep Lambda cold start small,
+- returns a dashboard-ready status JSON shape compatible with `scripts/execution/show_execution_status.py`,
 - returns `404` when the runtime state is missing,
 - returns `405` for mutation methods,
 - includes `Cache-Control: no-store`,
@@ -259,6 +258,54 @@ trading-framework-btc-futures-dry-run-stale-heartbeat
 
 SNS action can be added later. For the portfolio demo MVP, the alarm definition and runbook are enough
 to show the expected operating model.
+
+## EventBridge Scheduled Operation
+
+For the first demo mode, prefer a scheduled ECS task over an always-on ECS service:
+
+```text
+EventBridge Scheduler
+  -> ECS RunTask
+  -> btc-futures-dry-run-worker task definition
+  -> DynamoDB read model remains available after the task stops
+```
+
+Recommended first schedule:
+
+```text
+Schedule: rate(1 day)
+Task runtime: 15-60 minutes
+Network: public subnets with assignPublicIp=ENABLED
+Task definition: smoke settings removed; no TRADING_FRAMEWORK_MAX_MESSAGES
+```
+
+The scheduler role needs:
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "ecs:RunTask"
+      ],
+      "Resource": "arn:aws:ecs:<region>:<account-id>:task-definition/btc-futures-dry-run-worker:*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": "iam:PassRole",
+      "Resource": [
+        "arn:aws:iam::<account-id>:role/trading-framework-ecs-task-execution-role",
+        "arn:aws:iam::<account-id>:role/trading-framework-dry-run-worker-task-role"
+      ]
+    }
+  ]
+}
+```
+
+Only one task should write to a given `TRADING_FRAMEWORK_RUNTIME_ID` at a time. Concurrent manual smoke
+runs are acceptable during setup, but a steady demo should have one worker per runtime id.
 
 ## Operator Runbook
 
