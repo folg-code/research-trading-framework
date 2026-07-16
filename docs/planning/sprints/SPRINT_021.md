@@ -5,12 +5,12 @@
 ```text
 Sprint: 021
 Phase: Phase 8A - BTC Futures Live Dry-Run Execution Demo
-Status: PLANNED
-Planned Start: TBD
+Status: IN_PROGRESS
+Planned Start: 2026-07-16
 Planned End: TBD
 Sprint Goal Owner: Project Maintainer
 Depends On: SPRINT_020
-Sprint Branch: sprint/btc-futures-dry-run-execution
+Sprint Branch: sprint/execution-persistence-read-model
 Task branch convention: feat/ | fix/ | docs/ | test/
 Architecture Sources:
   - docs/vision/ARCHITECTURE_TECHNICAL_UPDATED.md (Execution persistence, Event System)
@@ -108,8 +108,8 @@ Local adapter is replaceable by DynamoDB in Sprint 022.
 
 | Task | Outcome | Status |
 |------|---------|--------|
-| S021-T001 | Define execution repository protocols | TODO |
-| S021-T002 | Define runtime status and recent-events read model | TODO |
+| S021-T001 | Define execution repository protocols | IN_PROGRESS |
+| S021-T002 | Define runtime status and recent-events read model | IN_PROGRESS |
 | S021-T003 | Implement local persistence adapter | TODO |
 | S021-T004 | Wire runtime event sink to repository | TODO |
 | S021-T005 | Add restart restoration for position/equity | TODO |
