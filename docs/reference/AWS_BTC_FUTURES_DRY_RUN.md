@@ -75,8 +75,24 @@ ECS task
   -> read-only status API
 ```
 
-Current packaging writes the read model to the local JSON state repository. The next Sprint 022 slice
-adds the DynamoDB adapter and switches the AWS worker to the cloud repository implementation.
+Current packaging can run with the local JSON state repository. Sprint 022 also provides
+`DynamoDbExecutionStateRepository`, which implements the same `ExecutionStateRepository` port against
+a DynamoDB state item.
+
+The MVP DynamoDB item shape is:
+
+```text
+pk = RUNTIME#{runtime_id}
+sk = STATE
+runtime_id
+version
+updated_at
+state_json
+```
+
+`state_json` contains the same explicit state document used by the local JSON adapter: latest runtime
+status, latest account and position snapshots, and bounded recent events/orders/fills. The next slice
+wires the AWS worker to instantiate the DynamoDB adapter from the configured AWS client.
 
 ## Smoke Checklist
 
