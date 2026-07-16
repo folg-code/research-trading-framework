@@ -14,6 +14,7 @@ from trading_framework.application.execution.local_btc_futures import (
     run_local_btc_futures_closed_bar_feed_step,
 )
 from trading_framework.core.exceptions import ValidationError
+from trading_framework.execution import PaperBrokerState
 from trading_framework.execution.models import Heartbeat, RuntimeStatusSnapshot
 from trading_framework.infrastructure.providers.binance.aiohttp_websocket import (
     AiohttpBinanceWebSocketConnector,
@@ -176,7 +177,10 @@ async def run_local_btc_futures_binance_dry_run(
         )
 
     started = runtime.session.start()
+    _persist_status(runtime, started)
+    _persist_broker_state(runtime, runtime.initial_state)
     heartbeat = runtime.session.record_heartbeat(message="local Binance dry-run runtime alive")
+    _persist_latest_status(runtime)
     try:
         loop_result = await _receive_binance_messages_until_bounded(
             runtime=runtime,
@@ -186,7 +190,9 @@ async def run_local_btc_futures_binance_dry_run(
         heartbeat = runtime.session.record_heartbeat(
             message="local Binance dry-run runtime stopping",
         )
+        _persist_latest_status(runtime)
         stopped = runtime.session.stop(message="bounded local Binance dry-run complete")
+        _persist_status(runtime, stopped)
         return RunLocalBtcFuturesBinanceDryRunResult(
             runtime=runtime,
             feed_state=loop_result.state,
@@ -242,6 +248,7 @@ async def _receive_binance_messages_until_bounded(
                     heartbeat = runtime.session.record_heartbeat(
                         message="local Binance dry-run runtime alive",
                     )
+                    _persist_latest_status(runtime)
                     next_heartbeat_at = loop.time() + request.heartbeat_seconds
                 continue
             for task in done:
@@ -280,3 +287,24 @@ def _ignored(
         ),
         ignored_reason=reason,
     )
+
+
+def _persist_status(
+    runtime: LocalBtcFuturesDryRunRuntime,
+    status: RuntimeStatusSnapshot,
+) -> None:
+    runtime.state_repository.save_runtime_status(status)
+
+
+def _persist_latest_status(runtime: LocalBtcFuturesDryRunRuntime) -> None:
+    status = runtime.session.latest_status(runtime.config.runtime_id)
+    if status is not None:
+        _persist_status(runtime, status)
+
+
+def _persist_broker_state(
+    runtime: LocalBtcFuturesDryRunRuntime,
+    state: PaperBrokerState,
+) -> None:
+    runtime.state_repository.save_account(runtime.config.runtime_id, state.account)
+    runtime.state_repository.save_position(runtime.config.runtime_id, state.position)
