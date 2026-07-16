@@ -454,12 +454,13 @@ Optional phase timing hooks (`optional_phase`) used across application and infra
 
 ---
 
-## Execution (Sprints 018-020 - Phase 8A local dry-run) 🟡
+## Execution (Sprints 018-021 - Phase 8A local dry-run) 🟡
 
 Sprint 018 introduced provider-independent **dry-run Execution contracts** for the BTC futures live-data
 demo. Sprint 019 added provider-independent live market facts and a Binance adapter. Sprint 020 adds a
 local BTCUSDT dry-run runtime loop using live Binance closed `kline_1m` bars and simulated broker
-accounting.
+accounting. Sprint 021 adds a local execution state repository and latest-status read model for
+operator inspection and future AWS/DynamoDB replacement.
 
 ```text
 Binance BTCUSDT kline_1m WebSocket
@@ -470,6 +471,7 @@ Binance BTCUSDT kline_1m WebSocket
   -> StrategyModelOrderAdapter
   -> PaperBroker
   -> JSONL execution events
+  -> ExecutionStateRepository read model
 ```
 
 ADR: [ADR-0021](../adr/ADR-0021-live-dry-run-execution-demo.md)
@@ -488,20 +490,39 @@ ADR: [ADR-0021](../adr/ADR-0021-live-dry-run-execution-demo.md)
 | `models/status.py` | ✅ | `Heartbeat`, `RuntimeStatusSnapshot`, `RuntimeHealth` |
 | `protocols.py` | ✅ | read/event ports for future persistence and dashboard status |
 | `broker_sim/` | ✅ | `PaperBroker`, simulated market fills, paper account/position accounting |
+| `repositories/` | ✅ | `ExecutionStateRepository` ports and dashboard read-model contracts |
 | `runtime/` | 🟡 | local session, decision step, signal adapter, closed-bar fill reference |
 
 ### `application/execution/` 🟡
 
 | File | Status | Responsibility |
 |------|--------|----------------|
-| `local_btc_futures.py` | 🟡 | assemble local runtime, run deterministic closed-bar and rolling feed steps |
+| `local_btc_futures.py` | 🟡 | assemble local runtime, persist/read local state, restore paper broker state, run deterministic closed-bar and rolling feed steps |
 | `binance_local_btc_futures.py` | 🟡 | map Binance messages into local dry-run feed state and bounded async loop |
+
+### Execution persistence (Sprint 021)
+
+Local operational state is stored by `JsonExecutionStateRepository` under an operator-provided path,
+typically:
+
+```text
+user_data/runtime/btc_futures_dry_run/state/{runtime_id}/state.json
+```
+
+The state document contains the latest runtime status, latest paper account and position snapshots,
+and bounded recent events/orders/fills. Default retention is 50 events, 20 orders and 20 fills.
+`scripts/execution/show_execution_status.py` prints the latest read model as JSON. This read path is
+inspection-only and does not expose runtime controls.
 
 **CLI:**
 
 ```bash
 uv run python scripts/execution/run_btc_futures_dry_run.py \
   --symbol BTCUSDT --duration-minutes 30
+
+uv run python scripts/execution/show_execution_status.py \
+  --state-repository user_data/runtime/btc_futures_dry_run/state \
+  --runtime-id btc-futures-dry-run-local
 ```
 
 Operator notes: [LOCAL_BTC_FUTURES_DRY_RUN.md](LOCAL_BTC_FUTURES_DRY_RUN.md)
@@ -579,6 +600,7 @@ AWS deployment and the public dashboard begin in later Phase 8A sprints.
 | Execution architecture boundaries | `tests/unit/execution/test_execution_architecture_boundaries.py` |
 | Binance live feed adapter | `tests/unit/infrastructure/binance/`, `tests/integration/live_data/test_binance_futures_network_smoke.py` (opt-in) |
 | Local BTC futures dry-run | `tests/unit/application/execution/`, `tests/unit/scripts/test_btc_futures_dry_run_cli.py` |
+| Execution read model persistence | `tests/unit/execution/repositories/`, `tests/unit/infrastructure/storage/test_execution_state_repository.py`, `tests/unit/scripts/test_show_execution_status_cli.py` |
 
 ---
 
