@@ -25,6 +25,7 @@ dist/
 *.pem
 *.key
 credentials.json
+local_aws_runbook/
 
 # User-owned research and data
 user_data/**

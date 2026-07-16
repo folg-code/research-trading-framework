@@ -450,7 +450,7 @@ Optional phase timing hooks (`optional_phase`) used across application and infra
 
 | Script | Role |
 |--------|------|
-| `run_portfolio_demo.py` | Generate offline HTML portfolio bundle → `demo/output/` |
+| `run_portfolio_demo.py` | Generate offline HTML portfolio bundle + live AWS dry-run status page → `demo/output/` |
 
 ---
 
