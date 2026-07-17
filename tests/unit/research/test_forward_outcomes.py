@@ -238,3 +238,35 @@ def test_multi_horizon_long_format() -> None:
     )
     assert len(outcomes) == 4
     assert set(outcomes["horizon_bars"].to_list()) == {3, 5}
+
+
+def test_short_mfe_mae_use_inverted_excursions() -> None:
+    start = datetime(2024, 1, 1, tzinfo=UTC)
+    timestamps = tuple(start + timedelta(minutes=index) for index in range(5))
+    close = (100.0, 100.0, 100.0, 100.0, 100.0)
+    highs = (100.0, 105.0, 104.0, 103.0, 102.0)
+    lows = (100.0, 99.0, 98.0, 97.0, 96.0)
+    frame = AnalysisFrame(
+        timestamps=timestamps,
+        columns={"close": close, "high": highs, "low": lows},
+        column_lineage={},
+    )
+    occurrences = pl.DataFrame(
+        [
+            _occurrence_row(
+                detected_at=timestamps[0],
+                direction=SignalDirection.SHORT.value,
+                reference_price=100.0,
+            )
+        ]
+    )
+    outcomes = compute_forward_outcomes(
+        occurrences,
+        frame=frame,
+        ohlcv={"open": close, "high": highs, "low": lows, "close": close, "volume": close},
+        definition=ForwardOutcomeDefinition(horizon_bars=4),
+    )
+    row = outcomes.row(0, named=True)
+    # Short: favorable from lows (down to 96 → +0.04), adverse from highs (up to 105 → -0.05)
+    assert row["mfe"] == pytest.approx(0.04)
+    assert row["mae"] == pytest.approx(-0.05)

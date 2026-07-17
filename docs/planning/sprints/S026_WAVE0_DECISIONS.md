@@ -79,6 +79,27 @@ may proceed in parallel only if it does not starve Wave A (Signal hot path).
 
 ---
 
+## D-S026-07 — Numeric stack for research hot paths
+
+Prefer columnar and array kernels over native Python containers in research compute:
+
+```text
+persist / boundary     → PyArrow / Parquet
+tabular analytics      → Polars
+numeric kernels        → NumPy (+ Numba when a sequential/window loop remains hot)
+domain money / verdict → Decimal
+avoid in hot paths     → list[dict], tuple[float, ...], iter_rows at scale
+```
+
+**Forward outcomes (Signal look-ahead):** NumPy float64 arrays + shared OHLCV preparation across
+horizons. Numba only if a post-NumPy benchmark still fails operator scale.
+
+**Robustness sweep/walk-forward:** shared OHLCV + `evaluate_models` context first; simulation already
+uses Numba. Monte Carlo may move trade PnL paths to NumPy float64 later; Decimal remains for
+verdict/report contracts.
+
+---
+
 ## Key files (pre-sprint)
 
 | Area | Path |
