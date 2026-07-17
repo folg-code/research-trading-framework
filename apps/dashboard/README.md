@@ -39,4 +39,7 @@ apps/dashboard/
   tests/
 ```
 
-Query service, contracts, and real pages land in later Sprint 028 PRs.
+Presentation contracts (`RunSummary`, `ChartWindow`, `TradeView`, …) and the
+filesystem run catalog (`list_runs`) live under `src/dashboard_app/`.
+
+DuckDB query service and real research pages land in later Sprint 028 PRs.
