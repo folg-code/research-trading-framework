@@ -12,7 +12,10 @@ from typing import Any
 import polars as pl
 
 from trading_framework.core.exceptions import ValidationError
-from trading_framework.infrastructure.storage.paths import strategy_research_run_dir
+from trading_framework.infrastructure.storage.paths import (
+    strategy_research_run_dir,
+    strategy_research_summary_metrics_path,
+)
 from trading_framework.research.simulation.facts import (
     empty_equity_points_dataframe,
     empty_simulated_trades_dataframe,
@@ -183,6 +186,20 @@ class StrategyResearchDatasetRepository:
         envelope.trades.write_parquet(run_dir / "trades.parquet")
         envelope.equity.write_parquet(run_dir / "equity.parquet")
         return StrategyResearchRunRef(run_id=envelope.manifest.run_id)
+
+    def write_summary_metrics(self, run_id: str, metrics: pl.DataFrame) -> Path:
+        """Persist dashboard KPI metrics under ``analytics/summary_metrics.parquet``."""
+        run_dir = strategy_research_run_dir(self._root, run_id)
+        if not run_dir.exists():
+            msg = f"run directory not found: {run_dir}"
+            raise FileNotFoundError(msg)
+        if metrics.height < 1:
+            msg = "summary metrics frame must contain at least one row"
+            raise ValidationError(msg)
+        path = strategy_research_summary_metrics_path(self._root, run_id)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        metrics.write_parquet(path)
+        return path
 
     def read(self, ref: StrategyResearchRunRef) -> StrategyResearchRunEnvelope:
         run_dir = strategy_research_run_dir(self._root, ref.run_id)

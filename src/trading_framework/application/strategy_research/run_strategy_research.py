@@ -34,6 +34,12 @@ from trading_framework.model_expression.planning import (
     build_analysis_frame_request,
     collect_model_dependencies,
 )
+from trading_framework.research.analytics.strategy_dashboard_metrics import (
+    compute_strategy_dashboard_analytics,
+)
+from trading_framework.research.analytics.strategy_summary_metrics_export import (
+    overview_kpis_to_summary_metrics_frame,
+)
 from trading_framework.research.datasets.strategy_research import (
     STRATEGY_RESEARCH_SCHEMA_VERSION,
     StrategyResearchDatasetRepository,
@@ -174,6 +180,18 @@ def run_strategy_research(
         with optional_phase("strategy_research.persist_run"):
             repo = repository or StrategyResearchDatasetRepository(request.storage_root)
             run_ref = repo.write(envelope)
+            with optional_phase("strategy_research.persist_summary_metrics"):
+                dashboard_analytics = compute_strategy_dashboard_analytics(
+                    trades=simulation.trades,
+                    equity=simulation.equity,
+                    evaluation_timeframe=evaluation_timeframe.value,
+                    recent_trade_rows=(),
+                )
+                metrics = overview_kpis_to_summary_metrics_frame(
+                    run_id=run_id,
+                    overview=dashboard_analytics.overview,
+                )
+                repo.write_summary_metrics(run_id, metrics)
 
     return RunStrategyResearchResult(
         run_id=run_id,
