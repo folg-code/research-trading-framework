@@ -784,6 +784,91 @@ Collapse to single identity axis if interchange never needed; else keep and docu
 
 ---
 
+## TD-017 — Signal / Market Research Occurrence and Outcome Materialization Is Row-Wise Python
+
+Status: PLANNED_REPAYMENT  
+Priority: CRITICAL  
+Domain: Signal Research / Market Model Research  
+Introduced: Sprint 008–010 (accepted for MVP correctness)  
+Target Review: Sprint 026  
+Owner: Project Maintainer
+
+### Accepted Shortcut
+
+Occurrence and observation materialization call `resolve_reference_price` per row, rebuilding a
+full timestamp→index map each time. Forward outcomes iterate occurrences in Python and build
+per-window high/low lists; multi-horizon evaluation repeats that work per horizon.
+
+### Reason
+
+MVP prioritized correct occurrence / outcome contracts and Polars persistence over vectorized
+post-evaluation paths. Strategy Research later received columnar + Numba investment; Signal
+Research post-process did not.
+
+### Consequences
+
+On NQ half-year scale (~177k bars, thousands of observations), Signal / Market Research wall-clock
+is dominated by O(occurrences × bars) work and is not comparable to the ~6 s Strategy Research
+baseline despite sharing `evaluate_models`.
+
+### Safe Operating Boundary
+
+Fixture-scale and small samples remain usable. Half-year / multi-horizon demos and family runs are
+operator-painful until repaid.
+
+### Repayment Trigger
+
+Sprint 026 Wave A — amortize timestamp index; vectorize reference prices and forward outcomes
+without changing methodology or outcome schema.
+
+### Repayment Direction
+
+See `docs/planning/sprints/SPRINT_026.md` and `S026_WAVE0_DECISIONS.md` (D-S026-02).
+
+---
+
+## TD-018 — Robustness Child Runs Re-Execute Full Strategy Research Without Shared Evaluation
+
+Status: PLANNED_REPAYMENT  
+Priority: HIGH  
+Domain: Robustness Research  
+Introduced: Sprint 016 (accepted for MVP orchestration)  
+Target Review: Sprint 026  
+Owner: Project Maintainer
+
+### Accepted Shortcut
+
+Parameter sweep, walk-forward and non-post-process stress scenarios each call
+`run_strategy_research` independently. Only exact fingerprint resume skips work. OHLCV load,
+Market Analysis and model evaluation are not reused when only exit / risk / assumptions change.
+
+### Reason
+
+MVP delivered correct experiment manifests, resume registry and verdict analytics by composing the
+existing Strategy Research entry point without introducing a shared research session abstraction.
+
+### Consequences
+
+Experiment cost scales roughly as `N_variants × strategy_research_cost`. Small demos are tolerable;
+serious grids and walk-forward folds become slow relative to a single backtest.
+
+### Safe Operating Boundary
+
+Resume of identical completed experiments works. Post-process stress and Monte Carlo on persisted
+trades remain cheap. Fresh multi-cell experiments pay full N× cost.
+
+### Repayment Trigger
+
+Sprint 026 Wave B — optional shared evaluation context for child runs that share market/signal
+models; resimulate only variant-specific simulation inputs.
+
+### Repayment Direction
+
+See `docs/planning/sprints/SPRINT_026.md` and `S026_WAVE0_DECISIONS.md` (D-S026-03). Methodology
+remains repeated Strategy Research runs.
+
+---
+
 # 6. Planned Debt Boundaries
 
 The following shortcuts may be accepted later but are not yet introduced:

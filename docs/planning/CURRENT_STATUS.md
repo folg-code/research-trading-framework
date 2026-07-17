@@ -26,15 +26,15 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 ## 2. Status Metadata
 
 ```text
-Status Date: 2026-07-16
-Current Phase: Phase 8A - BTC Futures Live Dry-Run Execution Demo
-Current Milestone: Sprint 023 closure - OVH portfolio live dry-run dashboard ready for integration
+Status Date: 2026-07-17
+Current Phase: Cross-cutting research performance repayment (recommended) + Phase 8A polish backlog
+Current Milestone: Sprint 026 planned — Signal/Market Research + Robustness hot-path performance
 Implementation Status: Sprints 001-006, 008-021 COMPLETE on main; Sprint 007 SKIPPED; Sprints 022-023 COMPLETE on sprint branch (pending integration PR to main)
 Overall Status: IN_PROGRESS
-Active Sprint: none (Sprint 023 integration PR pending)
+Active Sprint: none (next recommended: SPRINT_026 research hot-path performance)
 Last Completed Sprint: SPRINT_023 (sprint/btc-futures-dry-run-execution, 2026-07-16)
 Capability Tracks: Foundation COMPLETE; Data 2A + 2B/2C.1 + 2B.3 + 2C.4 COMPLETE; Research 3/4A/5/5B/7 COMPLETE; Strategy 6A COMPLETE; Phase 8A local + AWS dry-run runtime + portfolio live dashboard COMPLETE on sprint branch
-Recent perf: columnar OHLCV + shared eval → **~6 s** half-year NQ strategy research (178k bars, 45M ticks ingested); see README § Scale & performance and DATA_WORKFLOWS §1.1
+Recent perf: columnar OHLCV + shared eval → **~6 s** half-year NQ strategy research (178k bars, 45M ticks ingested). Signal/Market Research + Robustness still pay Python/N× debt (TD-017, TD-018) — Sprint 026.
 ```
 
 ---
@@ -514,20 +514,19 @@ Binding decisions D-001–D-036 and workspace invariants are documented in the a
 ## 11. Next Planned Capability
 
 ```text
-Sprint 017 — Model Research Methodology MVP (Phase 5B) — COMPLETE on sprint branch (integration PR pending)
-    SignalResearchDefinitionSpec + bounded experiments
-    Quality flags + baseline marginal contribution
-    Signal Research Report v2 (Plotly HTML)
-    NQ half-year demo across MARKET / SIGNAL / COMBINED scopes
+Sprint 026 — Research Hot-Path Performance (PLANNED, recommended next)
+    Wave A: vectorize Signal/Market occurrence + forward outcomes (TD-017)
+    Wave B: shared OHLCV/eval context for Robustness child runs (TD-018)
+    Wave 0: docs/planning/sprints/S026_WAVE0_DECISIONS.md
 
-Deferred after Sprint 017:
-    Phase 8 — Replay and Paper Execution (see ROADMAP §12)
-    Phase 4B — Orderflow Market Analysis on published trades
+Also queued (do not block Wave A):
+    Sprint 024/025 — Phase 8A dry-run reliability / visualization polish
+    Phase 4B — Orderflow Market Analysis
     Phase 6B — Multi-data Strategy Research
     PBO / CSCV / deflated Sharpe increment (separate ADR)
 ```
 
-See `ROADMAP.md` §11–§12.
+See `docs/planning/sprints/SPRINT_026.md` and `ROADMAP.md` §11–§12.
 
 ---
 
@@ -557,6 +556,10 @@ See `ROADMAP.md` §11–§12.
 | 020 | Local BTC Futures Dry-Run Runtime (Phase 8A) | COMPLETED | 8 / 8 tasks |
 | 021 | Execution Persistence and Read Model (Phase 8A) | COMPLETED | 8 / 8 tasks |
 | 022 | AWS Runtime MVP for BTC Futures Dry Run (Phase 8A) | COMPLETED | 9 / 9 tasks; integration PR to main pending |
+| 023 | OVH portfolio live dry-run dashboard (Phase 8A) | COMPLETED | sprint branch; integration PR pending |
+| 024 | Dry-run reliability / operating polish (Phase 8A) | PLANNED | after 023 integration |
+| 025 | Live dry-run visualization polish (Phase 8A, optional) | PLANNED | after 024 |
+| 026 | Research hot-path performance (Signal + Robustness) | PLANNED | recommended next research sprint |
 
 ---
 
