@@ -70,7 +70,7 @@ without the run being dominated by Python dict rebuilds or redundant full strate
 
 ### Wave A — Signal / Market Research hot path (CRITICAL)
 
-- [ ] Build timestamp → index **once per run** (never inside `resolve_reference_price` per row).
+- [x] Build timestamp → index **once per run** (never inside `resolve_reference_price` per row).
 - [ ] Vectorize or batch-resolve reference prices for occurrences / market-model observations.
 - [ ] Vectorize `compute_forward_outcomes` / multi-horizon path (Polars or NumPy; no per-row Python
       window list comprehensions as the default path).
@@ -113,7 +113,7 @@ without the run being dominated by Python dict rebuilds or redundant full strate
 | Task | Outcome | Wave | Status |
 |------|---------|------|--------|
 | S026-T001 | Wave 0 decisions + baseline microbench harness (fixture + optional NQ) | 0 | TODO |
-| S026-T002 | Fix `resolve_reference_price` / occurrence materialization index reuse | A | TODO |
+| S026-T002 | Fix `resolve_reference_price` / occurrence materialization index reuse | A | DONE |
 | S026-T003 | Vectorize market-model observation materialization | A | TODO |
 | S026-T004 | Vectorize forward outcomes (single + multi-horizon) | A | TODO |
 | S026-T005 | Signal Research equivalence tests + half-year timing note | A | TODO |
