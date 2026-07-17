@@ -11,6 +11,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from enum import StrEnum
 
+import polars as pl
+
 from trading_framework.core.exceptions import ValidationError
 from trading_framework.market_analysis.assembly.frame import AnalysisFrame
 from trading_framework.market_analysis.data.view import AnalysisDataView
@@ -34,6 +36,15 @@ class ReferencePriceLookup:
     index_by_timestamp: dict[datetime, int]
     close_values: tuple[float, ...]
 
+    def to_frame(self) -> pl.DataFrame:
+        """Return a joinable ``detected_at`` / ``reference_price`` table."""
+        return pl.DataFrame(
+            {
+                "detected_at": list(self.index_by_timestamp.keys()),
+                "reference_price": list(self.close_values),
+            }
+        )
+
 
 def build_reference_price_lookup(
     frame: AnalysisFrame,
@@ -44,6 +55,13 @@ def build_reference_price_lookup(
         index_by_timestamp={timestamp: index for index, timestamp in enumerate(frame.timestamps)},
         close_values=_close_column(frame, market_view),
     )
+
+
+def require_close_at_detected_at_policy(policy: ReferencePricePolicy) -> None:
+    """Raise when a reference-price policy is not supported for batch resolution."""
+    if policy.value != ReferencePricePolicy.CLOSE_AT_DETECTED_AT.value:
+        msg = f"unsupported reference price policy: {policy.value}"
+        raise ValidationError(msg)
 
 
 def resolve_reference_price(
@@ -59,9 +77,7 @@ def resolve_reference_price(
     Prefer passing a prebuilt ``lookup`` when resolving many timestamps against the
     same frame. When ``lookup`` is omitted, tables are built for this single call.
     """
-    if policy.value != ReferencePricePolicy.CLOSE_AT_DETECTED_AT.value:
-        msg = f"unsupported reference price policy: {policy.value}"
-        raise ValidationError(msg)
+    require_close_at_detected_at_policy(policy)
 
     resolved = lookup or build_reference_price_lookup(frame, market_view)
     index = resolved.index_by_timestamp.get(detected_at)
