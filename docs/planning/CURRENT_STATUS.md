@@ -27,14 +27,14 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 
 ```text
 Status Date: 2026-07-17
-Current Phase: Sprint 027 closeout (TD-019/TD-020 repaid on sprint branch) + Phase 8A polish backlog
-Current Milestone: Sprint 027 integration PR to main pending
-Implementation Status: Sprints 001-006, 008-021, 026 COMPLETE on main; Sprint 007 SKIPPED; Sprint 027 COMPLETE on sprint branch; Sprints 022-023 COMPLETE on sprint branch (pending integration PR to main)
+Current Phase: Sprint 028 Dashboard Application MVP (Wave 0) + Phase 8A polish backlog
+Current Milestone: Sprint 028 Wave 0 — Streamlit+DuckDB consumer app; Parquet analytics unification
+Implementation Status: Sprints 001-006, 008-021, 026-027 COMPLETE on main; Sprint 007 SKIPPED; Sprints 022-023 COMPLETE on sprint branch (pending integration PR to main)
 Overall Status: IN_PROGRESS
-Active Sprint: sprint/market-data-import-performance (SPRINT_027) — closeout / integration
-Last Completed Sprint: SPRINT_026 (sprint/research-hot-path-performance → main #215, 2026-07-17)
+Active Sprint: sprint/dashboard-application-mvp (SPRINT_028)
+Last Completed Sprint: SPRINT_027 (sprint/market-data-import-performance → main #220, 2026-07-17)
 Capability Tracks: Foundation COMPLETE; Data 2A + 2B/2C.1 + 2B.3 + 2C.4 COMPLETE; Research 3/4A/5/5B/7 COMPLETE; Strategy 6A COMPLETE; Phase 8A local + AWS dry-run runtime + portfolio live dashboard COMPLETE on sprint branch
-Recent perf: Research hot paths repaid in S026. S027: NumPy import column buffers + continuous session_workers/zstd write path; vendor DBN `to_df` remains the import wall ceiling.
+Recent perf: S026 research hot paths; S027 import NumPy buffers + continuous session_workers (~24 s materialize @4 workers). Next: dashboard app (not HTML generators).
 ```
 
 ---
@@ -514,22 +514,23 @@ Binding decisions D-001–D-036 and workspace invariants are documented in the a
 ## 11. Next Planned Capability
 
 ```text
-Sprint 027 — Market Data Import / Continuous Build Performance (CLOSEOUT on sprint branch)
-    Wave A DONE: NumPy ContractChunkColumns; array Parquet build (#217)
-    Wave B DONE: continuous write/mapper wins + session_workers; string price kept (#218)
-    Wave C: TD-019/TD-020 REPAID + decode ceiling + microbench notes (this closeout)
-    Remaining: sprint → main integration PR
+Sprint 028 — Dashboard Application MVP (ACTIVE)
+    Wave 0: S028_WAVE0_DECISIONS (Streamlit+DuckDB; Parquet analytics; orderflow deferred)
+    Wave A: apps/dashboard + contracts + catalog + DuckDB
+    Wave B: canonical Parquet exports + strategy page
+    Wave C: market/signal + robustness pages
+    Wave D: cache, Docker/Caddy, docs, dry-run stubs
 
 Also queued:
     Sprint 024/025 — Phase 8A dry-run reliability / visualization polish
-    Phase 4B — Orderflow Market Analysis
+    Phase 4B — Orderflow Market Analysis (feeds future dashboard orderflow overlays)
     Phase 6B — Multi-data Strategy Research
     PBO / CSCV / deflated Sharpe increment (separate ADR)
     Post-026 residuals: MC NumPy / Signal family-run cache
-    Follow-up: continuous price_nanos ADR; optional parallel archive import
+    Post-027: continuous price_nanos ADR; optional parallel archive import
 ```
 
-See `docs/planning/sprints/SPRINT_027.md` and `ROADMAP.md` §11–§12.
+See `docs/planning/sprints/SPRINT_028.md` and `ROADMAP.md` §11–§12.
 
 ---
 
@@ -563,7 +564,8 @@ See `docs/planning/sprints/SPRINT_027.md` and `ROADMAP.md` §11–§12.
 | 024 | Dry-run reliability / operating polish (Phase 8A) | PLANNED | after 023 integration |
 | 025 | Live dry-run visualization polish (Phase 8A, optional) | PLANNED | after 024 |
 | 026 | Research hot-path performance (Signal + Robustness) | COMPLETED | integrated to main (#215) |
-| 027 | Market Data import / continuous build performance | COMPLETED | on sprint branch; integration PR pending |
+| 027 | Market Data import / continuous build performance | COMPLETED | integrated to main (#220) |
+| 028 | Dashboard Application MVP (Streamlit + DuckDB) | PLANNED | Wave 0; sprint/dashboard-application-mvp |
 
 ---
 
