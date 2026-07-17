@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 from scripts.portfolio_live.serve_live_dry_run_dashboard import (
@@ -73,15 +74,22 @@ def test_store_status_snapshot_persists_recent_bars_equity_and_fills(tmp_path: P
     app = create_app(config)
     assert app is not None
 
+    # Use timestamps inside the retention window (absolute fixture dates age out).
+    now = datetime.now(UTC)
+    observed_at = (now - timedelta(minutes=30)).isoformat()
+    available_at = (now - timedelta(minutes=29)).isoformat()
+    filled_at = (now - timedelta(minutes=20)).isoformat()
+    generated_at = (now - timedelta(minutes=10)).isoformat()
+
     _store_status_snapshot(
         config,
         {
-            "generated_at": "2026-07-16T12:00:30+00:00",
+            "generated_at": generated_at,
             "paper_equity": "10005",
             "recent_bars": [
                 {
-                    "observed_at": "2026-07-16T12:00:00+00:00",
-                    "available_at": "2026-07-16T12:01:00+00:00",
+                    "observed_at": observed_at,
+                    "available_at": available_at,
                     "open": "65000",
                     "high": "65020",
                     "low": "64990",
@@ -97,7 +105,7 @@ def test_store_status_snapshot_persists_recent_bars_equity_and_fills(tmp_path: P
                     "side": "buy",
                     "quantity": "0.001",
                     "price": "65010",
-                    "filled_at": "2026-07-16T12:00:10+00:00",
+                    "filled_at": filled_at,
                 }
             ],
         },
