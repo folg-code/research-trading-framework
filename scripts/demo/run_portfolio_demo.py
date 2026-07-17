@@ -36,7 +36,7 @@ if str(_REPO_ROOT) not in sys.path:
 _OHLCV_FIXTURE = _REPO_ROOT / "tests" / "fixtures" / "market_data" / "ohlcv_sample_1m.csv"
 
 _DEFAULT_OUTPUT = _REPO_ROOT / "demo" / "output"
-_DEFAULT_HALF_YEAR_STORAGE = _REPO_ROOT / "user_data" / "storage_nq_half_year"
+_DEFAULT_HALF_YEAR_STORAGE = _REPO_ROOT / "user_data"
 _HALF_YEAR_DASHBOARD_NAME = "00_strategy_dashboard_nq_half_year.html"
 _FIXTURE_DASHBOARD_NAME = "01_strategy_dashboard_fixture.html"
 _LIVE_DRY_RUN_DASHBOARD_NAME = "09_live_dry_run_status.html"
@@ -348,7 +348,9 @@ def _build_half_year_strategy_dashboard(
                 status="failed",
             )
 
-    runs_dir = storage_root / "strategy_research"
+    from trading_framework.infrastructure.storage.paths import strategy_research_root
+
+    runs_dir = strategy_research_root(storage_root) / "runs"
     run_id: str | None = None
     if runs_dir.exists():
         run_dirs = sorted(

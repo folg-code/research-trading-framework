@@ -10,6 +10,7 @@ import pytest
 
 from trading_framework import __version__ as framework_version
 from trading_framework.core.exceptions import ValidationError
+from trading_framework.infrastructure.storage.paths import signal_research_run_dir
 from trading_framework.research.context.context_fact import empty_context_facts_dataframe
 from trading_framework.research.datasets import (
     SIGNAL_RESEARCH_SCHEMA_V2,
@@ -208,8 +209,9 @@ def test_repository_v2_market_model_only_round_trip(tmp_path: Path) -> None:
     assert loaded.manifest.research_scope is ResearchScope.MARKET_MODEL_ONLY
     assert loaded.observations.columns == observations.columns
     assert len(loaded.occurrences) == 0
-    assert not (storage_root / run_id / "occurrences.parquet").exists()
-    assert (storage_root / run_id / "observations.parquet").exists()
+    run_dir = signal_research_run_dir(storage_root, run_id)
+    assert not (run_dir / "occurrences.parquet").exists()
+    assert (run_dir / "observations.parquet").exists()
 
 
 def _sample_v2_combined_manifest(*, run_id: str) -> SignalResearchRunManifest:
@@ -248,8 +250,9 @@ def test_repository_v2_market_and_signal_round_trip(tmp_path: Path) -> None:
 
     assert loaded.manifest.research_scope is ResearchScope.MARKET_AND_SIGNAL
     assert loaded.context.columns == context.columns
-    assert (storage_root / run_id / "context.parquet").exists()
-    assert (storage_root / run_id / "occurrences.parquet").exists()
+    run_dir = signal_research_run_dir(storage_root, run_id)
+    assert (run_dir / "context.parquet").exists()
+    assert (run_dir / "occurrences.parquet").exists()
 
 
 def test_repository_v2_market_and_signal_requires_context_on_read(tmp_path: Path) -> None:
@@ -263,7 +266,7 @@ def test_repository_v2_market_and_signal_requires_context_on_read(tmp_path: Path
         outcomes=empty_forward_outcomes_dataframe(),
         context=empty_context_facts_dataframe(),
     )
-    run_dir = storage_root / run_id
+    run_dir = signal_research_run_dir(storage_root, run_id)
     run_dir.mkdir(parents=True)
     (run_dir / "manifest.json").write_text(
         json.dumps(envelope.manifest.to_dict(), indent=2),

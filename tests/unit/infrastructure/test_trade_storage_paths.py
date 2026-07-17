@@ -48,6 +48,7 @@ def test_trade_dataset_paths_follow_day_partition_layout(tmp_path: Path) -> None
     version_dir = dataset_trades_version_dir(root, dataset_ref)
     assert version_dir == (
         root
+        / "market_data"
         / "normalized"
         / "NQ.c.0"
         / "trades"

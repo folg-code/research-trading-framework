@@ -23,7 +23,7 @@ if str(_REPO_ROOT) not in sys.path:
 
 _FIXTURE_CSV = _REPO_ROOT / "tests" / "fixtures" / "market_data" / "ohlcv_sample_1m.csv"
 _DEFAULT_OUTPUT = _REPO_ROOT / "demo" / "output" / "07_robustness_dashboard.html"
-_DEFAULT_HALF_YEAR_STORAGE = _REPO_ROOT / "user_data" / "storage_nq_half_year"
+_DEFAULT_HALF_YEAR_STORAGE = _REPO_ROOT / "user_data"
 _HALF_YEAR_BASELINE_RUN_ID = "14e36fe5fbb5d9f2"
 _DAY_SECONDS = 86_400
 
@@ -234,7 +234,9 @@ def _build_demo_spec(
 
 
 def _reset_experiment(storage_root: Path, experiment_id: str) -> None:
-    experiment_dir = storage_root / "robustness_experiments" / experiment_id
+    from trading_framework.infrastructure.storage.paths import robustness_experiment_dir
+
+    experiment_dir = robustness_experiment_dir(storage_root, experiment_id)
     if experiment_dir.exists():
         shutil.rmtree(experiment_dir)
 

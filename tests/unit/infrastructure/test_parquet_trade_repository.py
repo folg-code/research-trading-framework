@@ -1,6 +1,6 @@
 """Parquet trade repository tests."""
 
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from decimal import Decimal
 from pathlib import Path
 
@@ -9,6 +9,7 @@ from trading_framework.core.types import Price, Volume
 from trading_framework.infrastructure.storage.parquet.trade_repository import (
     ParquetTradeDatasetRepository,
 )
+from trading_framework.infrastructure.storage.paths import dataset_trades_partition_path
 from trading_framework.market.datasets import DatasetId, DatasetRef
 from trading_framework.market.models import MarketTrade, TradeSide
 from trading_framework.market.repositories import HistoricalTradeQuery
@@ -45,16 +46,8 @@ def test_parquet_trade_repository_writes_day_partitions(tmp_path: Path) -> None:
 
     repository.write_trades(dataset_ref, [_trade(day=13, second=0), _trade(day=14, second=1)])
 
-    day_13 = (
-        storage_root
-        / "normalized/NQ.c.0/trades/tick/databento/nq_cme_trades_2024/v1/partitions"
-        / "day=2025-07-13/trades.parquet"
-    )
-    day_14 = (
-        storage_root
-        / "normalized/NQ.c.0/trades/tick/databento/nq_cme_trades_2024/v1/partitions"
-        / "day=2025-07-14/trades.parquet"
-    )
+    day_13 = dataset_trades_partition_path(storage_root, dataset_ref, date(2025, 7, 13))
+    day_14 = dataset_trades_partition_path(storage_root, dataset_ref, date(2025, 7, 14))
     assert day_13.exists()
     assert day_14.exists()
 

@@ -1,4 +1,27 @@
-"""Storage path helpers derived from dataset identity."""
+"""Storage path helpers for the user_data workspace layout.
+
+Canonical workspace root (``--storage-root`` / operator workspace)::
+
+    <workspace>/
+      market_data/
+        raw/              # vendor archives (immutable)
+        metadata/         # dataset registry JSON
+        normalized/       # published Parquet market facts
+        continuous/       # roll schedules and related artifacts
+      research/
+        market_research/
+          runs/{run_id}/              # Signal Research envelopes
+          experiments/{experiment_id}/
+        strategy_research/
+          runs/{run_id}/
+        strategy_robustness/
+          experiments/{experiment_id}/
+      runtime/            # execution dry-run state (operator-managed)
+      reports/            # optional loose reports (prefer run-local report/)
+
+``root`` arguments below are the **workspace root**, not the market_data
+subdirectory. Dataset helpers always resolve under ``market_data/``.
+"""
 
 from datetime import date, datetime, timedelta
 from pathlib import Path
@@ -6,12 +29,48 @@ from pathlib import Path
 from trading_framework.market.datasets import DatasetRef
 from trading_framework.time.models.utc_instant import require_utc_aware
 
+_MARKET_DATA = "market_data"
+_RESEARCH = "research"
+_MARKET_RESEARCH = "market_research"
+_STRATEGY_RESEARCH = "strategy_research"
+_STRATEGY_ROBUSTNESS = "strategy_robustness"
+
+
+def market_data_root(workspace: Path) -> Path:
+    """Return the market-data subtree under a workspace root."""
+    return workspace / _MARKET_DATA
+
+
+def market_data_raw_root(workspace: Path) -> Path:
+    """Return the immutable vendor-archive root under market_data."""
+    return market_data_root(workspace) / "raw"
+
+
+def research_root(workspace: Path) -> Path:
+    """Return the research subtree under a workspace root."""
+    return workspace / _RESEARCH
+
+
+def market_research_root(workspace: Path) -> Path:
+    """Return the Signal / market-research subtree."""
+    return research_root(workspace) / _MARKET_RESEARCH
+
+
+def strategy_research_root(workspace: Path) -> Path:
+    """Return the Strategy Research subtree."""
+    return research_root(workspace) / _STRATEGY_RESEARCH
+
+
+def strategy_robustness_root(workspace: Path) -> Path:
+    """Return the Strategy Robustness subtree."""
+    return research_root(workspace) / _STRATEGY_ROBUSTNESS
+
 
 def dataset_metadata_path(root: Path, dataset_ref: DatasetRef) -> Path:
     """Return the metadata file path for a dataset version."""
     dataset_id = dataset_ref.dataset_id
     return (
-        root
+        market_data_root(root)
         / "metadata"
         / dataset_id.instrument_id.value
         / dataset_id.data_type
@@ -26,7 +85,7 @@ def dataset_bars_path(root: Path, dataset_ref: DatasetRef) -> Path:
     """Return the Parquet bars path for a dataset version."""
     dataset_id = dataset_ref.dataset_id
     return (
-        root
+        market_data_root(root)
         / "normalized"
         / dataset_id.instrument_id.value
         / dataset_id.data_type
@@ -42,7 +101,7 @@ def dataset_ohlcv_partitions_dir(root: Path, dataset_ref: DatasetRef) -> Path:
     """Return the session-date partition root for a partitioned OHLCV dataset version."""
     dataset_id = dataset_ref.dataset_id
     return (
-        root
+        market_data_root(root)
         / "normalized"
         / dataset_id.instrument_id.value
         / dataset_id.data_type
@@ -83,7 +142,7 @@ def continuous_ohlcv_manifest_path(root: Path, dataset_ref: DatasetRef) -> Path:
     """Return the continuous OHLCV manifest path for one dataset version."""
     dataset_id = dataset_ref.dataset_id
     return (
-        root
+        market_data_root(root)
         / "normalized"
         / dataset_id.instrument_id.value
         / dataset_id.data_type
@@ -97,7 +156,7 @@ def continuous_ohlcv_manifest_path(root: Path, dataset_ref: DatasetRef) -> Path:
 
 def signal_research_run_dir(root: Path, run_id: str) -> Path:
     """Return the run envelope directory for one Signal Research run."""
-    return root / run_id
+    return market_research_root(root) / "runs" / run_id
 
 
 def signal_research_analytics_dir(root: Path, run_id: str) -> Path:
@@ -122,17 +181,17 @@ def signal_research_report_path(root: Path, run_id: str) -> Path:
 
 def signal_research_family_experiment_dir(root: Path, experiment_id: str) -> Path:
     """Return the storage directory for one bounded model-family experiment."""
-    return root / "signal_research_experiments" / experiment_id
+    return market_research_root(root) / "experiments" / experiment_id
 
 
 def strategy_research_run_dir(root: Path, run_id: str) -> Path:
     """Return the run envelope directory for one Strategy Research run."""
-    return root / "strategy_research" / run_id
+    return strategy_research_root(root) / "runs" / run_id
 
 
 def robustness_experiment_dir(root: Path, experiment_id: str) -> Path:
     """Return the storage directory for one robustness experiment."""
-    return root / "robustness_experiments" / experiment_id
+    return strategy_robustness_root(root) / "experiments" / experiment_id
 
 
 def robustness_experiment_stress_dir(root: Path, experiment_id: str) -> Path:
@@ -183,7 +242,7 @@ def dataset_trades_version_dir(root: Path, dataset_ref: DatasetRef) -> Path:
     """Return the version directory for a trade dataset."""
     dataset_id = dataset_ref.dataset_id
     return (
-        root
+        market_data_root(root)
         / "normalized"
         / dataset_id.instrument_id.value
         / dataset_id.data_type
@@ -241,6 +300,11 @@ def list_contract_session_dates(root: Path, dataset_ref: DatasetRef) -> list[dat
     return sorted(session_dates)
 
 
+def roll_schedules_base_dir(root: Path, *, product: str, policy_slug: str) -> Path:
+    """Return the roll-schedule directory for one product and policy."""
+    return market_data_root(root) / "continuous" / "schedules" / product / policy_slug
+
+
 def roll_schedule_version_dir(
     root: Path,
     *,
@@ -249,7 +313,7 @@ def roll_schedule_version_dir(
     version: int,
 ) -> Path:
     """Return the storage directory for one roll schedule version."""
-    return root / "continuous" / "schedules" / product / policy_slug / f"v{version}"
+    return roll_schedules_base_dir(root, product=product, policy_slug=policy_slug) / f"v{version}"
 
 
 def roll_schedule_parquet_path(

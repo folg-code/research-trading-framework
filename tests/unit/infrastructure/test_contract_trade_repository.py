@@ -11,6 +11,7 @@ from trading_framework.infrastructure.storage.parquet.contract_trade_repository 
 from trading_framework.infrastructure.storage.parquet.contract_trade_writer import (
     ParquetContractTradeWriter,
 )
+from trading_framework.infrastructure.storage.paths import dataset_contract_trades_partition_path
 from trading_framework.market.datasets import DatasetId, DatasetRef
 from trading_framework.market.repositories import HistoricalTradeQuery
 from trading_framework.time.models.timeframe import Timeframe
@@ -40,12 +41,16 @@ def test_contract_trade_repository_writes_session_date_partitions(tmp_path: Path
 
     repository.write_records(dataset_ref, records)
 
-    partition_root = (
-        storage_root
-        / "normalized/NQ.NQU5/trades/tick/databento/nq-cme-trades-20250713/v1/partitions"
-    )
-    assert (partition_root / "session_date=2025-07-13/trades.parquet").exists()
-    assert (partition_root / "session_date=2025-07-14/trades.parquet").exists()
+    assert dataset_contract_trades_partition_path(
+        storage_root,
+        dataset_ref,
+        date(2025, 7, 13),
+    ).exists()
+    assert dataset_contract_trades_partition_path(
+        storage_root,
+        dataset_ref,
+        date(2025, 7, 14),
+    ).exists()
 
 
 def test_contract_trade_repository_merges_partitions_without_domain_round_trip(
@@ -71,10 +76,10 @@ def test_contract_trade_repository_merges_partitions_without_domain_round_trip(
         merge_existing=True,
     )
 
-    partition_path = (
-        storage_root
-        / "normalized/NQ.NQU5/trades/tick/databento/nq-cme-trades-20250713/v1/partitions"
-        / "session_date=2025-07-13/trades.parquet"
+    partition_path = dataset_contract_trades_partition_path(
+        storage_root,
+        dataset_ref,
+        date(2025, 7, 13),
     )
     merged_table = writer.read_table(partition_path)
     assert merged_table.num_rows == 2

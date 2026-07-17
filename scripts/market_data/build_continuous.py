@@ -35,7 +35,7 @@ def _build_parser() -> argparse.ArgumentParser:
         "--storage-root",
         required=True,
         type=Path,
-        help="Framework storage root containing contract trade datasets",
+        help="Workspace root (contains market_data/ and research/)",
     )
     parser.add_argument(
         "--product",
