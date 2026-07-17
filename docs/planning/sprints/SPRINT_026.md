@@ -75,8 +75,8 @@ without the run being dominated by Python dict rebuilds or redundant full strate
 - [x] Vectorize `compute_forward_outcomes` / multi-horizon path (Polars or NumPy; no per-row Python
       window list comprehensions as the default path).
 - [x] Preserve outcome semantics: horizons, incomplete-horizon policy, MFE/MAE, direction normalize.
-- [ ] Unit + regression tests proving identical facts on fixtures vs pre-change baseline.
-- [ ] Benchmark note: NQ half-year signal/market research wall-clock before/after (doc or script).
+- [x] Unit + regression tests proving identical facts on fixtures vs pre-change baseline.
+- [x] Benchmark note: NQ half-year signal/market research wall-clock before/after (doc or script).
 
 ### Wave B — Robustness shared evaluation (HIGH)
 
@@ -86,14 +86,14 @@ without the run being dominated by Python dict rebuilds or redundant full strate
       signal models are unchanged.
 - [x] Keep fingerprint / resume semantics correct (child `run_id` still reflects variant inputs).
 - [x] Monte Carlo remains post-process on persisted trades (no full resim required).
-- [ ] Benchmark note: demo robustness sweep cell-count × wall-clock before/after.
+- [x] Benchmark note: demo robustness sweep cell-count × wall-clock before/after.
 
 ### Wave C — Docs and debt closeout
 
-- [ ] Update `TECHNICAL_DEBT.md` (TD-017 / TD-018 → REPAID or partial).
-- [ ] Update `RESEARCH_METHODOLOGIES.md` / `MODULE_MAP.md` only if operator-visible behaviour or
+- [x] Update `TECHNICAL_DEBT.md` (TD-017 / TD-018 → REPAID or partial).
+- [x] Update `RESEARCH_METHODOLOGIES.md` / `MODULE_MAP.md` only if operator-visible behaviour or
       performance claims change.
-- [ ] Record scale notes next to Strategy Research ~6 s baseline in README / CURRENT_STATUS.
+- [x] Record scale notes next to Strategy Research ~6 s baseline in README / CURRENT_STATUS.
 
 ---
 
@@ -112,15 +112,15 @@ without the run being dominated by Python dict rebuilds or redundant full strate
 
 | Task | Outcome | Wave | Status |
 |------|---------|------|--------|
-| S026-T001 | Wave 0 decisions + baseline microbench harness (fixture + optional NQ) | 0 | TODO |
+| S026-T001 | Wave 0 decisions + baseline microbench harness (fixture + optional NQ) | 0 | DONE |
 | S026-T002 | Fix `resolve_reference_price` / occurrence materialization index reuse | A | DONE |
 | S026-T003 | Vectorize market-model observation materialization | A | DONE |
 | S026-T004 | Vectorize forward outcomes (single + multi-horizon) | A | DONE |
-| S026-T005 | Signal Research equivalence tests + half-year timing note | A | TODO |
+| S026-T005 | Signal Research equivalence tests + half-year timing note | A | DONE |
 | S026-T006 | Shared research evaluation context API for strategy child runs | B | DONE |
 | S026-T007 | Wire robustness sweep / walk-forward / stress to shared context | B | DONE |
 | S026-T008 | Robustness resume + fingerprint regression tests | B | DONE |
-| S026-T009 | Robustness timing note + debt/docs closeout | C | TODO |
+| S026-T009 | Robustness timing note + debt/docs closeout | C | DONE |
 
 ---
 

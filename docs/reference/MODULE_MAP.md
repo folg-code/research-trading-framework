@@ -342,6 +342,7 @@ Published Dataset
 | Responsibility | Package |
 |---|---|
 | Workflow orchestration | `application/strategy_research/` |
+| Shared OHLCV + model-eval cache | `application/strategy_research/shared_evaluation.py` |
 | Strategy contracts | `strategy/` |
 | Simulation engine | `research/simulation/` |
 | Run artifacts | `research/datasets/` |
@@ -353,11 +354,15 @@ Workflow:
 ```text
 Market Model + Signal Model + Strategy Definition
   → strategy research workflow
+  → (optional SharedStrategyEvaluationContext)
   → simulation
   → persisted trades and equity
   → read-only analytics
   → dashboard
 ```
+
+Robustness parameter / walk-forward / stress cells that share market and signal definitions reuse
+`SharedStrategyEvaluationCache` so OHLCV load and `evaluate_models` run once per unique pair.
 
 ---
 
