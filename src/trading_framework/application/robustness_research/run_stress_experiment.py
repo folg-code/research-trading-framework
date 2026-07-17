@@ -9,6 +9,7 @@ from pathlib import Path
 from trading_framework import __version__ as framework_version
 from trading_framework.application.strategy_research import (
     RunStrategyResearchRequest,
+    SharedStrategyEvaluationCache,
     run_strategy_research,
 )
 from trading_framework.application.strategy_research.summarize import summarize_strategy_run
@@ -109,6 +110,7 @@ def run_stress_experiment(
         else request.evaluation_timeframe
     )
 
+    evaluation_cache = SharedStrategyEvaluationCache()
     baseline_run_id, existing_results = _load_or_initialize_stress(
         repo=repo,
         spec=spec,
@@ -117,6 +119,7 @@ def run_stress_experiment(
         evaluation_timeframe=evaluation_timeframe,
         strategy_repo=strategy_repo,
         resume=request.resume,
+        evaluation_cache=evaluation_cache,
     )
     baseline_envelope = strategy_repo.read(StrategyResearchRunRef(run_id=baseline_run_id))
 
@@ -149,6 +152,7 @@ def run_stress_experiment(
                 strategy_repo=strategy_repo,
                 repo=repo,
                 baseline_envelope=baseline_envelope,
+                evaluation_cache=evaluation_cache,
             )
         except Exception as exc:
             failed_count += 1
@@ -191,6 +195,7 @@ def _load_or_initialize_stress(
     evaluation_timeframe: Timeframe | None,
     strategy_repo: StrategyResearchDatasetRepository,
     resume: bool,
+    evaluation_cache: SharedStrategyEvaluationCache,
 ) -> tuple[str, StressTestResults]:
     if repo.stress_results_exist(spec.experiment_id):
         if not resume:
@@ -217,6 +222,7 @@ def _load_or_initialize_stress(
         evaluation_timeframe=evaluation_timeframe,
         strategy_repo=strategy_repo,
         repo=repo,
+        evaluation_cache=evaluation_cache,
     )
     return baseline_ref.run_id, StressTestResults(
         experiment_id=spec.experiment_id,
@@ -232,6 +238,7 @@ def _execute_baseline_run(
     evaluation_timeframe: Timeframe | None,
     strategy_repo: StrategyResearchDatasetRepository,
     repo: RobustnessExperimentRepository,
+    evaluation_cache: SharedStrategyEvaluationCache,
 ) -> StrategyResearchRunRef:
     assert spec.stress_test is not None
     parameter_overrides = spec.stress_test.parameter_overrides or {}
@@ -245,6 +252,7 @@ def _execute_baseline_run(
         config_id="baseline",
         evaluation_timeframe=evaluation_timeframe,
         strategy_repo=strategy_repo,
+        evaluation_cache=evaluation_cache,
     )
     repo.append_child_run(
         ChildRunRecord(
@@ -267,6 +275,7 @@ def _execute_scenario(
     strategy_repo: StrategyResearchDatasetRepository,
     repo: RobustnessExperimentRepository,
     baseline_envelope: object,
+    evaluation_cache: SharedStrategyEvaluationCache,
 ) -> StressScenarioResult:
     from trading_framework.research.datasets.strategy_research import StrategyResearchRunEnvelope
 
@@ -320,6 +329,7 @@ def _execute_scenario(
         config_id=config_id,
         evaluation_timeframe=evaluation_timeframe,
         strategy_repo=strategy_repo,
+        evaluation_cache=evaluation_cache,
     )
     envelope = strategy_repo.read(run_ref)
     summary = summarize_strategy_run(trades=envelope.trades, equity=envelope.equity)
@@ -354,6 +364,7 @@ def _execute_strategy_run(
     config_id: str,
     evaluation_timeframe: Timeframe | None,
     strategy_repo: StrategyResearchDatasetRepository,
+    evaluation_cache: SharedStrategyEvaluationCache,
 ) -> StrategyResearchRunRef:
     resolved_strategy = strategy_model or build_strategy_model_from_cell(
         template_id=spec.strategy_template_id,
@@ -395,6 +406,15 @@ def _execute_strategy_run(
     if run_dir.exists():
         return StrategyResearchRunRef(run_id=run_id)
 
+    shared_evaluation = evaluation_cache.get_or_build(
+        dataset_ref=request.dataset_ref,
+        timeframe=request.timeframe,
+        requested_range=requested_range,
+        storage_root=request.storage_root,
+        strategy_model=resolved_strategy,
+        evaluation_timeframe=evaluation_timeframe,
+        session_resolver=request.session_resolver,
+    )
     result = run_strategy_research(
         RunStrategyResearchRequest(
             dataset_ref=request.dataset_ref,
@@ -407,6 +427,7 @@ def _execute_strategy_run(
             session_resolver=request.session_resolver,
             experiment_id=spec.experiment_id,
             persist=True,
+            shared_evaluation=shared_evaluation,
         ),
         repository=strategy_repo,
     )

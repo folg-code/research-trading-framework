@@ -80,12 +80,12 @@ without the run being dominated by Python dict rebuilds or redundant full strate
 
 ### Wave B — Robustness shared evaluation (HIGH)
 
-- [ ] Introduce an explicit shared context for child strategy runs in one experiment
+- [x] Introduce an explicit shared context for child strategy runs in one experiment
       (preloaded columnar OHLCV + optional shared `evaluate_models` result).
-- [ ] Reuse that context across parameter-sweep / walk-forward / stress cells when market and
+- [x] Reuse that context across parameter-sweep / walk-forward / stress cells when market and
       signal models are unchanged.
-- [ ] Keep fingerprint / resume semantics correct (child `run_id` still reflects variant inputs).
-- [ ] Monte Carlo remains post-process on persisted trades (no full resim required).
+- [x] Keep fingerprint / resume semantics correct (child `run_id` still reflects variant inputs).
+- [x] Monte Carlo remains post-process on persisted trades (no full resim required).
 - [ ] Benchmark note: demo robustness sweep cell-count × wall-clock before/after.
 
 ### Wave C — Docs and debt closeout
@@ -117,9 +117,9 @@ without the run being dominated by Python dict rebuilds or redundant full strate
 | S026-T003 | Vectorize market-model observation materialization | A | TODO |
 | S026-T004 | Vectorize forward outcomes (single + multi-horizon) | A | DONE |
 | S026-T005 | Signal Research equivalence tests + half-year timing note | A | TODO |
-| S026-T006 | Shared research evaluation context API for strategy child runs | B | TODO |
-| S026-T007 | Wire robustness sweep / walk-forward / stress to shared context | B | TODO |
-| S026-T008 | Robustness resume + fingerprint regression tests | B | TODO |
+| S026-T006 | Shared research evaluation context API for strategy child runs | B | DONE |
+| S026-T007 | Wire robustness sweep / walk-forward / stress to shared context | B | DONE |
+| S026-T008 | Robustness resume + fingerprint regression tests | B | DONE |
 | S026-T009 | Robustness timing note + debt/docs closeout | C | TODO |
 
 ---
