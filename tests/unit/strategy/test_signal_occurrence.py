@@ -162,6 +162,68 @@ def test_resolve_reference_price_requires_market_view_without_close_column() -> 
         )
 
 
+def test_materialize_builds_reference_price_lookup_once(
+    build_test_frame: Callable[..., AnalysisFrame],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from trading_framework.strategy import signal_occurrence as occurrence_module
+    from trading_framework.strategy.reference_price import (
+        ReferencePriceLookup,
+    )
+    from trading_framework.strategy.reference_price import (
+        build_reference_price_lookup as real_build,
+    )
+
+    frame = build_test_frame(columns={"close": (100.0, 101.0, 102.0, 103.0)})
+    timestamps = frame.timestamps
+    emissions = pl.DataFrame(
+        {
+            "detected_at": list(timestamps),
+            "available_at": list(timestamps),
+            "direction": ["long"] * len(timestamps),
+        }
+    )
+    call_count = 0
+
+    def counting_build(
+        evaluation_frame: AnalysisFrame,
+        market_view: AnalysisDataView | None = None,
+    ) -> ReferencePriceLookup:
+        nonlocal call_count
+        call_count += 1
+        return real_build(evaluation_frame, market_view)
+
+    monkeypatch.setattr(occurrence_module, "build_reference_price_lookup", counting_build)
+
+    result = materialize_signal_occurrences(
+        emissions,
+        frame=frame,
+        context=_context(),
+    )
+
+    assert call_count == 1
+    assert result["reference_price"].to_list() == [100.0, 101.0, 102.0, 103.0]
+
+
+def test_resolve_reference_price_reuses_prebuilt_lookup(
+    build_test_frame: Callable[..., AnalysisFrame],
+) -> None:
+    from trading_framework.strategy.reference_price import build_reference_price_lookup
+
+    frame = build_test_frame(columns={"close": (100.0, 101.0, 102.0)})
+    lookup = build_reference_price_lookup(frame)
+    prices = [
+        resolve_reference_price(
+            ReferencePricePolicy.CLOSE_AT_DETECTED_AT,
+            detected_at=timestamp,
+            frame=frame,
+            lookup=lookup,
+        )
+        for timestamp in frame.timestamps
+    ]
+    assert prices == [100.0, 101.0, 102.0]
+
+
 def test_occurrence_preserves_detected_and_available_at(
     build_test_frame: Callable[..., AnalysisFrame],
 ) -> None:

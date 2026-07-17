@@ -11,7 +11,11 @@ import polars as pl
 
 from trading_framework.market_analysis.assembly.frame import AnalysisFrame
 from trading_framework.market_analysis.data.view import AnalysisDataView
-from trading_framework.strategy.reference_price import ReferencePricePolicy, resolve_reference_price
+from trading_framework.strategy.reference_price import (
+    ReferencePricePolicy,
+    build_reference_price_lookup,
+    resolve_reference_price,
+)
 from trading_framework.time.models.timeframe import Timeframe
 
 
@@ -71,6 +75,7 @@ def materialize_signal_occurrences(
     if len(emissions) == 0:
         return empty_signal_occurrences_dataframe()
 
+    lookup = build_reference_price_lookup(frame, market_view)
     rows: list[dict[str, Any]] = []
     for row in emissions.iter_rows(named=True):
         detected_at = row["detected_at"]
@@ -80,6 +85,7 @@ def materialize_signal_occurrences(
             detected_at=detected_at,
             frame=frame,
             market_view=market_view,
+            lookup=lookup,
         )
         rows.append(
             {

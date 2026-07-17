@@ -15,7 +15,12 @@ from trading_framework.strategy.canonical_examples import (
     build_canonical_strategy_model,
 )
 from trading_framework.strategy.exit_model import ExitModel, ExitReason, FixedBarsExitModel
-from trading_framework.strategy.reference_price import ReferencePricePolicy, resolve_reference_price
+from trading_framework.strategy.reference_price import (
+    ReferencePriceLookup,
+    ReferencePricePolicy,
+    build_reference_price_lookup,
+    resolve_reference_price,
+)
 from trading_framework.strategy.risk_model import FixedQuantityRiskModel, RiskModel
 from trading_framework.strategy.signal_occurrence import (
     OccurrenceMaterializationContext,
@@ -43,12 +48,14 @@ __all__ = [
     "FixedBarsExitModel",
     "FixedQuantityRiskModel",
     "OccurrenceMaterializationContext",
+    "ReferencePriceLookup",
     "ReferencePricePolicy",
     "RiskModel",
     "StrategyModelDefinition",
     "StrategyModelDefinitionError",
     "build_btc_futures_demo_strategy_model",
     "build_canonical_strategy_model",
+    "build_reference_price_lookup",
     "derive_occurrence_id",
     "empty_signal_occurrences_dataframe",
     "materialize_signal_occurrences",

@@ -13,7 +13,11 @@ import polars as pl
 from trading_framework.core.exceptions import ValidationError
 from trading_framework.market_analysis.assembly.frame import AnalysisFrame
 from trading_framework.market_analysis.data.view import AnalysisDataView
-from trading_framework.strategy.reference_price import ReferencePricePolicy, resolve_reference_price
+from trading_framework.strategy.reference_price import (
+    ReferencePricePolicy,
+    build_reference_price_lookup,
+    resolve_reference_price,
+)
 from trading_framework.time.models.timeframe import Timeframe
 
 
@@ -85,7 +89,10 @@ def materialize_market_model_observations(
     sorted_state = market_state.sort("timestamp")
     previous_result = sorted_state["model_result"].shift(1).fill_null(False)
     edges = sorted_state.filter(pl.col("model_result") & ~previous_result)
+    if len(edges) == 0:
+        return empty_market_model_observations_dataframe()
 
+    lookup = build_reference_price_lookup(frame, market_view)
     rows: list[dict[str, Any]] = []
     for row in edges.iter_rows(named=True):
         detected_at = row["timestamp"]
@@ -94,6 +101,7 @@ def materialize_market_model_observations(
             detected_at=detected_at,
             frame=frame,
             market_view=market_view,
+            lookup=lookup,
         )
         rows.append(
             {

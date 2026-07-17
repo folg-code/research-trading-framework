@@ -7,6 +7,7 @@ It is not a simulated fill, entry or execution price.
 from __future__ import annotations
 
 import math
+from dataclasses import dataclass
 from datetime import datetime
 from enum import StrEnum
 
@@ -23,25 +24,50 @@ class ReferencePricePolicy(StrEnum):
     CLOSE_AT_DETECTED_AT = "close_at_detected_at"
 
 
+@dataclass(frozen=True, slots=True)
+class ReferencePriceLookup:
+    """Precomputed timestamp index and close series for one evaluation frame.
+
+    Build once per research run / materialization pass — never per occurrence.
+    """
+
+    index_by_timestamp: dict[datetime, int]
+    close_values: tuple[float, ...]
+
+
+def build_reference_price_lookup(
+    frame: AnalysisFrame,
+    market_view: AnalysisDataView | None = None,
+) -> ReferencePriceLookup:
+    """Build O(bars) lookup tables shared across many reference-price resolutions."""
+    return ReferencePriceLookup(
+        index_by_timestamp={timestamp: index for index, timestamp in enumerate(frame.timestamps)},
+        close_values=_close_column(frame, market_view),
+    )
+
+
 def resolve_reference_price(
     policy: ReferencePricePolicy,
     *,
     detected_at: datetime,
     frame: AnalysisFrame,
     market_view: AnalysisDataView | None = None,
+    lookup: ReferencePriceLookup | None = None,
 ) -> float:
-    """Resolve descriptive reference price for one signal occurrence."""
+    """Resolve descriptive reference price for one signal occurrence.
+
+    Prefer passing a prebuilt ``lookup`` when resolving many timestamps against the
+    same frame. When ``lookup`` is omitted, tables are built for this single call.
+    """
     if policy.value != ReferencePricePolicy.CLOSE_AT_DETECTED_AT.value:
         msg = f"unsupported reference price policy: {policy.value}"
         raise ValidationError(msg)
 
-    index_by_timestamp = {timestamp: index for index, timestamp in enumerate(frame.timestamps)}
-    index = index_by_timestamp.get(detected_at)
+    resolved = lookup or build_reference_price_lookup(frame, market_view)
+    index = resolved.index_by_timestamp.get(detected_at)
     if index is None:
         return math.nan
-
-    close_values = _close_column(frame, market_view)
-    return close_values[index]
+    return resolved.close_values[index]
 
 
 def _close_column(
