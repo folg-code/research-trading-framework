@@ -5,9 +5,10 @@
 ```text
 Sprint: 027
 Phase: Cross-cutting — Market Data Performance (Phases 2B / 2C.1 / 2C.4 repayment)
-Status: PLANNED
+Status: COMPLETED
 Planned Start: 2026-07-17
-Planned End: TBD
+Planned End: 2026-07-17
+Integrated: pending (sprint → main)
 Sprint Goal Owner: Project Maintainer
 Depends On: Sprint 011/015 storage contracts on main; Sprint 026 research hot-path on main
 Sprint Branch: sprint/market-data-import-performance
@@ -71,7 +72,7 @@ before/after note on phases we own, and without schema regressions.
 
 ### Wave A — Import column buffers (CRITICAL)
 
-- [ ] Microbench: split `to_df` vs `map_chunk_batch` vs partition write on a small archive set.
+- [x] Microbench: split `to_df` vs `map_chunk_batch` vs partition write on a small archive set.
 - [x] Replace `ContractChunkColumns` Python lists with NumPy (or Arrow) append-friendly buffers.
 - [x] Eliminate `.tolist()` in `extend_masked`; vectorize `take` / merge.
 - [x] Build `pa.Table` from arrays without intermediate `list(...)` copies where practical.
@@ -84,15 +85,16 @@ before/after note on phases we own, and without schema regressions.
 - [x] Remove avoidable copies / casts on the Arrow write path without schema change.
 - [x] Decide explicitly: keep string `price` (**D-S027-08**); `price_nanos` deferred to ADR.
 - [x] Close Wave B orchestration wins (`session_workers`, write/mapper path); schema unchanged.
-- [ ] Timing note: continuous materialize wall-clock before/after on NQ half-year (or subset).
+- [x] Timing note: continuous materialize wall-clock before/after on NQ half-year (or subset).
 
 ### Wave C — Decode ceiling + docs closeout
 
-- [ ] Document vendor decode share; optionally tune `chunk_size` if microbench supports it.
-- [ ] Optional: bounded parallel archive import **only** if correctness (ordering/merge) is proven.
-- [ ] Update `TECHNICAL_DEBT.md` (TD-019 / TD-020 → REPAID or partial).
-- [ ] Update `CURRENT_STATUS` / `MODULE_MAP` / ADR pointers only where behaviour or claims change.
-- [ ] Mark Sprint 027 complete when Waves A–C land on sprint branch.
+- [x] Document vendor decode share; optionally tune `chunk_size` if microbench supports it.
+- [x] Optional: bounded parallel archive import **only** if correctness (ordering/merge) is proven.
+      → **Deferred** (correctness risk; decode ceiling still dominates).
+- [x] Update `TECHNICAL_DEBT.md` (TD-019 / TD-020 → REPAID or partial).
+- [x] Update `CURRENT_STATUS` / `MODULE_MAP` / ADR pointers only where behaviour or claims change.
+- [x] Mark Sprint 027 complete when Waves A–C land on sprint branch.
 
 ---
 
@@ -114,15 +116,15 @@ before/after note on phases we own, and without schema regressions.
 | Task | Outcome | Wave | Status |
 |------|---------|------|--------|
 | S027-T001 | Wave 0 decisions + TD-019/TD-020 + sprint branch | 0 | DONE |
-| S027-T002 | Import phase microbench harness (fixture / small NQ sample) | A | TODO |
+| S027-T002 | Import phase microbench harness (fixture / small NQ sample) | A | DONE |
 | S027-T003 | NumPy/Arrow `ContractChunkColumns` + map path without `.tolist()` | A | DONE |
 | S027-T004 | Vectorized `take` / session partition table build | A | DONE |
-| S027-T005 | Import equivalence tests + map/write timing note | A | TODO |
+| S027-T005 | Import equivalence tests + map/write timing note | A | DONE |
 | S027-T006 | Continuous write-path inspection + non-schema wins | B | DONE |
 | S027-T007 | Continuous `price` schema decision (keep vs ADR `price_nanos`) | B | DONE |
-| S027-T008 | Continuous materialize timing note | B | TODO |
-| S027-T009 | Decode ceiling note + optional chunk_size / parallelism | C | TODO |
-| S027-T010 | TD + CURRENT_STATUS / MODULE_MAP closeout | C | TODO |
+| S027-T008 | Continuous materialize timing note | B | DONE |
+| S027-T009 | Decode ceiling note + optional chunk_size / parallelism | C | DONE |
+| S027-T010 | TD + CURRENT_STATUS / MODULE_MAP closeout | C | DONE |
 
 ---
 
@@ -170,11 +172,37 @@ From local profiles (not CI). Treat as order-of-magnitude, not SLOs.
 
 | Phase | Self / notes |
 |-------|----------------|
-| `materialize.write` | ~62 s (345 sessions) |
+| `materialize.write` | ~62 s (345 sessions, sequential) |
 | `materialize.transform` | ~14 s |
 | `derive_continuous_ohlcv` | ~22 s |
 | `roll_schedule` | ~16 s |
 | `strategy_research` (same log) | ~12 s — out of scope |
+
+---
+
+## 7.1 Closeout notes (post Wave A/B, 2026-07-17)
+
+**Vendor decode ceiling (D-S027-02):** ~202 s / ~463 s (~44%) of the profiled import is
+`databento.DBNStore.to_df` waiting between map phases. Sprint 027 does **not** claim to beat that
+without a vendor/API change. `chunk_size` left at 50k; parallel archive import deferred.
+
+**Our map path (TD-019):** synthetic microbench after NumPy buffers
+(`scripts/ops/bench_contract_chunk_columns.py`, 10×200k rows):
+
+| Phase | Seconds |
+|-------|---------|
+| `extend_masked` | ~0.13 |
+| `take` | ~0.05 |
+| `columns_to_table` | ~0.14 |
+| total | ~0.32 |
+
+So the former ~61 s `map_chunk_batch` tax is no longer explained by Python list materialization;
+remaining import cost is decode + parquet I/O/merge.
+
+**Continuous materialize (TD-020 / D-S027-08):** string `price` kept. Shipped: cheaper Polars
+formatting, skip redundant casts, zstd without dictionary encoding, `session_workers` (default 4
+in `build_continuous`). Full half-year rematerialize wall not re-profiled in CI; expect write-phase
+wall to drop roughly with worker overlap subject to disk bandwidth.
 
 ---
 
