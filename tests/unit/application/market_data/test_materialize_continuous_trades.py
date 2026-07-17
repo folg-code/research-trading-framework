@@ -165,6 +165,62 @@ def test_materialize_continuous_trades_persists_manifest_and_partitions(tmp_path
     assert july_15[0].is_roll_boundary is True
 
 
+def test_materialize_continuous_trades_parallel_workers_match_sequential(tmp_path: Path) -> None:
+    storage_root = tmp_path / "data"
+    nqu5_ref, nqz5_ref = _seed_contract_data(storage_root)
+    clock = FixedClock(datetime(2025, 7, 15, 20, 0, tzinfo=UTC))
+    registry = FileDatasetRegistry(storage_root)
+
+    roll_result = build_roll_schedule(
+        BuildRollScheduleRequest(
+            storage_root=storage_root,
+            product="NQ",
+            contract_dataset_refs=(nqu5_ref, nqz5_ref),
+            confirmation_sessions=1,
+        ),
+        registry=registry,
+        clock=clock,
+    )
+
+    sequential = materialize_continuous_trades(
+        MaterializeContinuousTradesRequest(
+            storage_root=storage_root,
+            product="NQ",
+            roll_schedule_version=roll_result.schedule.version,
+            contract_dataset_refs=(nqu5_ref, nqz5_ref),
+            session_workers=1,
+            reuse_if_unchanged=False,
+            rebuild_all=True,
+        ),
+        registry=registry,
+        clock=clock,
+    )
+    parallel = materialize_continuous_trades(
+        MaterializeContinuousTradesRequest(
+            storage_root=storage_root,
+            product="NQ",
+            roll_schedule_version=roll_result.schedule.version,
+            contract_dataset_refs=(nqu5_ref, nqz5_ref),
+            existing_dataset_ref=sequential.dataset_ref,
+            session_workers=2,
+            reuse_if_unchanged=False,
+            rebuild_all=True,
+        ),
+        registry=registry,
+        clock=clock,
+    )
+
+    assert parallel.record_count == sequential.record_count
+    continuous_repo = ParquetContinuousTradeDatasetRepository(storage_root)
+    sequential_rows = continuous_repo.read_session_records(
+        sequential.dataset_ref, date(2025, 7, 15)
+    )
+    parallel_rows = continuous_repo.read_session_records(parallel.dataset_ref, date(2025, 7, 15))
+    assert [row.actual_contract for row in parallel_rows] == [
+        row.actual_contract for row in sequential_rows
+    ]
+
+
 def test_materialize_continuous_trades_reuses_unchanged_fingerprint(tmp_path: Path) -> None:
     storage_root = tmp_path / "data"
     nqu5_ref, nqz5_ref = _seed_contract_data(storage_root)

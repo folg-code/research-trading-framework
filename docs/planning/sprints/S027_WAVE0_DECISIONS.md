@@ -107,6 +107,21 @@ bar aggregation algorithms, distributed workers, research methodology changes.
 
 ---
 
+## D-S027-08 — Continuous `price` schema (Wave B)
+
+Wave B keeps the continuous Parquet **string `price`** schema (ADR-0018 / current
+`MARKET_TRADE_CONTINUOUS_SCHEMA_VERSION`). Non-schema wins ship first:
+
+- cheaper Polars timestamp / price-string formatting,
+- skip redundant Arrow casts when schemas already match,
+- zstd write without dictionary encoding on high-cardinality prices,
+- optional `session_workers` for parallel per-session load/transform/write.
+
+A move to contract-layer `price_nanos` remains deferred to an explicit ADR amendment + version
+bump, not a silent rewrite in this sprint.
+
+---
+
 ## Key files (pre-sprint)
 
 | Area | Path |
