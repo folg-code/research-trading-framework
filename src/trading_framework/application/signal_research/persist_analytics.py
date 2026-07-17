@@ -9,6 +9,10 @@ from trading_framework.application.signal_research.analytics_envelope import (
     signal_research_analytics_from_dict,
     signal_research_analytics_to_dict,
 )
+from trading_framework.application.signal_research.analytics_parquet import (
+    require_known_analytics_table_names,
+    signal_analytics_parquet_tables,
+)
 from trading_framework.application.signal_research.analyze_signal_research import (
     AnalyzeSignalResearchResult,
 )
@@ -25,6 +29,7 @@ class PersistSignalResearchAnalyticsResult:
     """Outcome of analytics sidecar persistence."""
 
     summary_path: Path
+    parquet_paths: tuple[Path, ...] = ()
 
 
 def persist_signal_research_analytics(
@@ -33,11 +38,17 @@ def persist_signal_research_analytics(
     storage_root: Path,
     repository: SignalResearchDatasetRepository | None = None,
 ) -> PersistSignalResearchAnalyticsResult:
-    """Write one analytics result to ``analytics/summary.json`` for the run."""
+    """Write analytics JSON plus tabular Parquet dual-write for the run."""
     repo = repository or SignalResearchDatasetRepository(storage_root)
     payload = signal_research_analytics_to_dict(analytics)
     summary_path = repo.write_analytics_summary(analytics.source_run_id, payload)
-    return PersistSignalResearchAnalyticsResult(summary_path=summary_path)
+    tables = signal_analytics_parquet_tables(analytics)
+    require_known_analytics_table_names(tables)
+    written = repo.write_analytics_parquet_tables(analytics.source_run_id, tables)
+    return PersistSignalResearchAnalyticsResult(
+        summary_path=summary_path,
+        parquet_paths=tuple(written[name] for name in sorted(written)),
+    )
 
 
 def load_signal_research_analytics(

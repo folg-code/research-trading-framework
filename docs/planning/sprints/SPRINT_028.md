@@ -71,9 +71,9 @@ Success: useful analytical tool on real artifacts, not a second demo format.
 
 ### Wave B — Canonical Parquet exports + Strategy page
 
-- [ ] Migrate / dual-write **tabular** Market/Signal analytics off `analytics/summary.json`
+- [x] Migrate / dual-write **tabular** Market/Signal analytics off `analytics/summary.json`
       onto Parquet tables (D-S028-04).
-- [ ] Emit strategy `analytics/summary_metrics.parquet` (or equivalent) for KPI cards without
+- [x] Emit strategy `analytics/summary_metrics.parquet` (or equivalent) for KPI cards without
       recomputation.
 - [ ] Strategy page: metadata, KPI cards, equity + drawdown, windowed OHLCV chart, trade table,
       entry/exit overlays + prev/next trade.
@@ -117,8 +117,8 @@ Success: useful analytical tool on real artifacts, not a second demo format.
 | S028-T003 | Presentation contracts + schema versions | A | DONE |
 | S028-T004 | DuckDB query layer + windowed OHLCV fixtures tests | A | DONE |
 | S028-T005 | Run catalog (4 workflow types) | A | DONE |
-| S028-T006 | Signal/Market analytics → Parquet (dual-write) | B | TODO |
-| S028-T007 | Strategy summary_metrics Parquet export | B | TODO |
+| S028-T006 | Signal/Market analytics → Parquet (dual-write) | B | DONE |
+| S028-T007 | Strategy summary_metrics Parquet export | B | DONE |
 | S028-T008 | Strategy page: KPI + equity + drawdown | B | TODO |
 | S028-T009 | Market chart window + trade overlays + nav | B | TODO |
 | S028-T010 | Overlay renderer registry (no orderflow) | B | TODO |
