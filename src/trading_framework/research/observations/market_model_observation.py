@@ -6,7 +6,6 @@ import hashlib
 from dataclasses import dataclass
 from datetime import datetime
 from enum import StrEnum
-from typing import Any
 
 import polars as pl
 
@@ -16,7 +15,7 @@ from trading_framework.market_analysis.data.view import AnalysisDataView
 from trading_framework.strategy.reference_price import (
     ReferencePricePolicy,
     build_reference_price_lookup,
-    resolve_reference_price,
+    require_close_at_detected_at_policy,
 )
 from trading_framework.time.models.timeframe import Timeframe
 
@@ -92,30 +91,27 @@ def materialize_market_model_observations(
     if len(edges) == 0:
         return empty_market_model_observations_dataframe()
 
+    require_close_at_detected_at_policy(context.reference_price_policy)
     lookup = build_reference_price_lookup(frame, market_view)
-    rows: list[dict[str, Any]] = []
-    for row in edges.iter_rows(named=True):
-        detected_at = row["timestamp"]
-        reference_price = resolve_reference_price(
-            context.reference_price_policy,
+    priced = edges.rename({"timestamp": "detected_at"}).join(
+        lookup.to_frame(),
+        on="detected_at",
+        how="left",
+    )
+    observation_ids = [
+        derive_observation_id(
+            market_model_id=context.market_model_id,
             detected_at=detected_at,
-            frame=frame,
-            market_view=market_view,
-            lookup=lookup,
         )
-        rows.append(
-            {
-                "observation_id": derive_observation_id(
-                    market_model_id=context.market_model_id,
-                    detected_at=detected_at,
-                ),
-                "market_model_id": context.market_model_id,
-                "detected_at": detected_at,
-                "available_at": row["available_at"],
-                "reference_price": reference_price,
-                "instrument": context.instrument,
-                "evaluation_timeframe": context.evaluation_timeframe.value,
-                "source_dataset_ref": context.source_dataset_ref,
-            }
-        )
-    return pl.DataFrame(rows, schema=_observation_schema())
+        for detected_at in priced.get_column("detected_at").to_list()
+    ]
+    return priced.select(
+        pl.Series("observation_id", observation_ids),
+        pl.lit(context.market_model_id).alias("market_model_id"),
+        pl.col("detected_at"),
+        pl.col("available_at"),
+        pl.col("reference_price").fill_null(float("nan")),
+        pl.lit(context.instrument).alias("instrument"),
+        pl.lit(context.evaluation_timeframe.value).alias("evaluation_timeframe"),
+        pl.lit(context.source_dataset_ref).alias("source_dataset_ref"),
+    )

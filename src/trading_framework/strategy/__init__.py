@@ -19,6 +19,7 @@ from trading_framework.strategy.reference_price import (
     ReferencePriceLookup,
     ReferencePricePolicy,
     build_reference_price_lookup,
+    require_close_at_detected_at_policy,
     resolve_reference_price,
 )
 from trading_framework.strategy.risk_model import FixedQuantityRiskModel, RiskModel
@@ -59,6 +60,7 @@ __all__ = [
     "derive_occurrence_id",
     "empty_signal_occurrences_dataframe",
     "materialize_signal_occurrences",
+    "require_close_at_detected_at_policy",
     "resolve_reference_price",
     "validate_strategy_model_definition",
 ]
