@@ -56,8 +56,8 @@ def test_map_trades_chunk_groups_outright_contracts() -> None:
     assert set(buffers) == {"NQU5"}
     columns = buffers["NQU5"]
     assert len(columns) == 1
-    assert columns.ts_event_ns == [event_ns]
-    assert columns.ts_recv_ns == [recv_ns]
-    assert columns.price_nanos == [22_860_750_000_000]
-    assert columns.instrument_id == [101]
-    assert columns.side == ["buy"]
+    assert columns.ts_event_ns.tolist() == [event_ns]
+    assert columns.ts_recv_ns.tolist() == [recv_ns]
+    assert columns.price_nanos.tolist() == [22_860_750_000_000]
+    assert columns.instrument_id.tolist() == [101]
+    assert columns.side.tolist() == ["buy"]

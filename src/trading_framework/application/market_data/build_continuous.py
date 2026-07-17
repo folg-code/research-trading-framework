@@ -93,6 +93,7 @@ class BuildContinuousRequest:
     publish: bool = True
     ohlcv_schema_version: str = _CONTINUOUS_OHLCV_SCHEMA_VERSION
     profile: bool = False
+    session_workers: int = 4
 
 
 @dataclass(frozen=True, slots=True)
@@ -315,6 +316,7 @@ def build_continuous(
                 rebuild_all=request.rebuild_all,
                 rebuild_window_sessions=request.rebuild_window_sessions,
                 existing_dataset_ref=existing_trades_ref,
+                session_workers=request.session_workers,
             ),
             registry=dataset_registry,
             clock=utc_clock,

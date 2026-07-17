@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import numpy as np
 import pandas as pd  # type: ignore[import-untyped]
 
 from trading_framework.infrastructure.importers.databento.contract_chunk_columns import (
@@ -70,4 +71,4 @@ def map_trades_chunk_to_contract_columns(
 def _optional_column(chunk: pd.DataFrame, name: str) -> pd.Series:
     if name in chunk.columns:
         return chunk[name]
-    return pd.Series([None] * len(chunk), index=chunk.index)
+    return pd.Series(np.full(len(chunk), np.nan), index=chunk.index)

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from contextlib import nullcontext
 from dataclasses import dataclass
 from datetime import date, datetime
@@ -80,6 +81,7 @@ class MaterializeContinuousTradesRequest:
     rebuild_window_sessions: int = 10
     existing_dataset_ref: DatasetRef | None = None
     reuse_if_unchanged: bool = True
+    session_workers: int = 1
 
 
 @dataclass(frozen=True, slots=True)
@@ -131,6 +133,82 @@ def _load_contract_session_table(
     if not path.exists():
         return _empty_contract_session_table()
     return writer.read_table(path)
+
+
+@dataclass(frozen=True, slots=True)
+class _SessionMaterializeTiming:
+    session_date: date
+    row_count: int
+    load_seconds: float
+    transform_seconds: float
+    write_seconds: float
+    total_seconds: float
+
+
+def _materialize_one_session(
+    *,
+    storage_root: Path,
+    dataset_ref: DatasetRef,
+    session_date: date,
+    active_contract: str,
+    contract_ref: DatasetRef,
+    schedule: RollSchedule,
+    contract_trade_writer: ParquetContractTradeWriter,
+    continuous_repo: ParquetContinuousTradeDatasetRepository,
+) -> _SessionMaterializeTiming:
+    session_started = time.perf_counter()
+    load_started = time.perf_counter()
+    contract_table = _load_contract_session_table(
+        storage_root,
+        contract_ref,
+        session_date,
+        writer=contract_trade_writer,
+    )
+    load_seconds = time.perf_counter() - load_started
+
+    transform_started = time.perf_counter()
+    continuous_table = contract_table_to_continuous_table(
+        contract_table,
+        schedule=schedule,
+        session_date=session_date,
+        active_contract=active_contract,
+    )
+    transform_seconds = time.perf_counter() - transform_started
+
+    write_started = time.perf_counter()
+    continuous_repo.write_session_table(
+        dataset_ref,
+        session_date,
+        continuous_table,
+    )
+    write_seconds = time.perf_counter() - write_started
+    return _SessionMaterializeTiming(
+        session_date=session_date,
+        row_count=continuous_table.num_rows,
+        load_seconds=load_seconds,
+        transform_seconds=transform_seconds,
+        write_seconds=write_seconds,
+        total_seconds=time.perf_counter() - session_started,
+    )
+
+
+def _resolve_session_jobs(
+    sessions: tuple[date, ...],
+    *,
+    schedule: RollSchedule,
+    contract_refs_by_code: dict[str, DatasetRef],
+) -> list[tuple[date, str, DatasetRef]]:
+    jobs: list[tuple[date, str, DatasetRef]] = []
+    for session_date in sessions:
+        active_contract = schedule.active_contract_for_session(session_date)
+        if active_contract is None:
+            continue
+        contract_ref = contract_refs_by_code.get(active_contract)
+        if contract_ref is None:
+            msg = f"missing contract dataset for active contract {active_contract!r}"
+            raise ValidationError(msg)
+        jobs.append((session_date, active_contract, contract_ref))
+    return jobs
 
 
 def _sessions_to_materialize(
@@ -388,62 +466,110 @@ def materialize_continuous_trades(
 
     timer = active_phase_timer()
     materialize_started = time.perf_counter()
-    for index, session_date in enumerate(sessions, start=1):
-        active_contract = schedule.active_contract_for_session(session_date)
-        if active_contract is None:
-            continue
-        contract_ref = contract_refs_by_code.get(active_contract)
-        if contract_ref is None:
-            msg = f"missing contract dataset for active contract {active_contract!r}"
-            raise ValidationError(msg)
+    if request.session_workers < 1:
+        msg = "session_workers must be at least 1"
+        raise ValidationError(msg)
 
-        session_started = time.perf_counter()
-        load_started = time.perf_counter()
+    session_jobs = _resolve_session_jobs(
+        sessions,
+        schedule=schedule,
+        contract_refs_by_code=contract_refs_by_code,
+    )
+
+    def _run_job(job: tuple[date, str, DatasetRef]) -> _SessionMaterializeTiming:
+        session_date, active_contract, contract_ref = job
         load_context = timer.phase("materialize.load") if timer is not None else nullcontext()
-        with load_context:
-            contract_table = _load_contract_session_table(
-                request.storage_root,
-                contract_ref,
-                session_date,
-                writer=contract_trade_writer,
-            )
-        load_seconds = time.perf_counter() - load_started
-
-        transform_started = time.perf_counter()
         transform_context = (
             timer.phase("materialize.transform") if timer is not None else nullcontext()
         )
-        with transform_context:
-            continuous_table = contract_table_to_continuous_table(
-                contract_table,
-                schedule=schedule,
-                session_date=session_date,
-                active_contract=active_contract,
-            )
-        transform_seconds = time.perf_counter() - transform_started
-
-        write_started = time.perf_counter()
         write_context = timer.phase("materialize.write") if timer is not None else nullcontext()
-        with write_context:
-            continuous_repo.write_session_table(
-                dataset_ref,
-                session_date,
-                continuous_table,
+        # Nested phase timers are not thread-safe for overlapping sessions; time inside the helper
+        # and only wrap sequential execution with phase contexts.
+        if request.session_workers == 1:
+            session_started = time.perf_counter()
+            load_started = time.perf_counter()
+            with load_context:
+                contract_table = _load_contract_session_table(
+                    request.storage_root,
+                    contract_ref,
+                    session_date,
+                    writer=contract_trade_writer,
+                )
+            load_seconds = time.perf_counter() - load_started
+            transform_started = time.perf_counter()
+            with transform_context:
+                continuous_table = contract_table_to_continuous_table(
+                    contract_table,
+                    schedule=schedule,
+                    session_date=session_date,
+                    active_contract=active_contract,
+                )
+            transform_seconds = time.perf_counter() - transform_started
+            write_started = time.perf_counter()
+            with write_context:
+                continuous_repo.write_session_table(
+                    dataset_ref,
+                    session_date,
+                    continuous_table,
+                )
+            write_seconds = time.perf_counter() - write_started
+            return _SessionMaterializeTiming(
+                session_date=session_date,
+                row_count=continuous_table.num_rows,
+                load_seconds=load_seconds,
+                transform_seconds=transform_seconds,
+                write_seconds=write_seconds,
+                total_seconds=time.perf_counter() - session_started,
             )
-        write_seconds = time.perf_counter() - write_started
-        total_seconds = time.perf_counter() - session_started
+        return _materialize_one_session(
+            storage_root=request.storage_root,
+            dataset_ref=dataset_ref,
+            session_date=session_date,
+            active_contract=active_contract,
+            contract_ref=contract_ref,
+            schedule=schedule,
+            contract_trade_writer=contract_trade_writer,
+            continuous_repo=continuous_repo,
+        )
 
-        if timer is not None and (index == 1 or index % 10 == 0 or index == len(sessions)):
-            elapsed = time.perf_counter() - materialize_started
-            rss_mb = process_rss_mb()
-            rss_text = f" rss_mb={rss_mb:.1f}" if rss_mb is not None else ""
-            timer.log(
-                f"[{index}/{len(sessions)}] materialize {session_date} "
-                f"rows={continuous_table.num_rows} "
-                f"load={load_seconds:.1f}s transform={transform_seconds:.1f}s "
-                f"write={write_seconds:.1f}s total={total_seconds:.1f}s "
-                f"elapsed={elapsed:.1f}s{rss_text}"
-            )
+    completed = 0
+    if request.session_workers == 1:
+        for job in session_jobs:
+            timing = _run_job(job)
+            completed += 1
+            if timer is not None and (
+                completed == 1 or completed % 10 == 0 or completed == len(session_jobs)
+            ):
+                elapsed = time.perf_counter() - materialize_started
+                rss_mb = process_rss_mb()
+                rss_text = f" rss_mb={rss_mb:.1f}" if rss_mb is not None else ""
+                timer.log(
+                    f"[{completed}/{len(session_jobs)}] materialize {timing.session_date} "
+                    f"rows={timing.row_count} "
+                    f"load={timing.load_seconds:.1f}s transform={timing.transform_seconds:.1f}s "
+                    f"write={timing.write_seconds:.1f}s total={timing.total_seconds:.1f}s "
+                    f"elapsed={elapsed:.1f}s{rss_text}"
+                )
+    else:
+        with ThreadPoolExecutor(max_workers=request.session_workers) as executor:
+            futures = [executor.submit(_run_job, job) for job in session_jobs]
+            for future in as_completed(futures):
+                timing = future.result()
+                completed += 1
+                if timer is not None and (
+                    completed == 1 or completed % 10 == 0 or completed == len(session_jobs)
+                ):
+                    elapsed = time.perf_counter() - materialize_started
+                    rss_mb = process_rss_mb()
+                    rss_text = f" rss_mb={rss_mb:.1f}" if rss_mb is not None else ""
+                    timer.log(
+                        f"[{completed}/{len(session_jobs)}] materialize {timing.session_date} "
+                        f"rows={timing.row_count} "
+                        f"load={timing.load_seconds:.1f}s "
+                        f"transform={timing.transform_seconds:.1f}s "
+                        f"write={timing.write_seconds:.1f}s total={timing.total_seconds:.1f}s "
+                        f"elapsed={elapsed:.1f}s workers={request.session_workers}{rss_text}"
+                    )
 
     record_count = _count_dataset_records(request.storage_root, dataset_ref)
     start_at, end_at = _dataset_time_bounds(

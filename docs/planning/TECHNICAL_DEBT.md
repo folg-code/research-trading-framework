@@ -888,12 +888,13 @@ Methodology remains repeated Strategy Research runs.
 
 ## TD-019 — Databento Contract Import Chunk Buffers Use Python Lists
 
-Status: PLANNED_REPAYMENT  
+Status: REPAID  
 Priority: CRITICAL  
 Domain: Market Data / Historical Archive Import  
 Introduced: Sprint 011 (accepted for MVP columnar bridge)  
 Target Review: Sprint 027  
 Owner: Project Maintainer
+Repaid: Sprint 027 Wave A (`feat/import-column-buffers-numpy`, #217)
 
 ### Accepted Shortcut
 
@@ -926,16 +927,27 @@ ADR-0014 schemas or merge semantics.
 
 See `docs/planning/sprints/SPRINT_027.md` and `S027_WAVE0_DECISIONS.md` (D-S027-03, D-S027-05).
 
+### Repayment Notes
+
+- Column buffers are NumPy chunk parts with lazy concat; `extend_masked` / `take` avoid `.tolist()`.
+- Contract Parquet tables build from arrays (`contract_trade_columns_to_table`).
+- Synthetic microbench (`scripts/ops/bench_contract_chunk_columns.py`): ~2M rows extend+take+table
+  in ~0.32 s locally (2026-07-17).
+- Residual: vendor `DBNStore.to_df` still dominates full import wall (~200 s self in baseline
+  profile); parallel archive import deferred.
+
 ---
 
 ## TD-020 — Continuous Trades Materialize Pays Per-Session Write + String Price Schema
 
-Status: PLANNED_REPAYMENT  
+Status: REPAID  
 Priority: HIGH  
 Domain: Market Data / Continuous Futures  
 Introduced: Sprint 015 (accepted for Decimal-preserving continuous Parquet)  
 Target Review: Sprint 027  
 Owner: Project Maintainer
+Repaid: Sprint 027 Wave B (`feat/continuous-materialize-write-path`, #218) — orchestration /
+write-path; string `price` schema kept (D-S027-08)
 
 ### Accepted Shortcut
 
@@ -965,10 +977,15 @@ Sprint 027 Wave B — reduce avoidable write-path cost; decide keep string `pric
 
 ### Repayment Direction
 
-See `docs/planning/sprints/SPRINT_027.md` and `S027_WAVE0_DECISIONS.md` (D-S027-04, D-S027-05).
-Do not silently change continuous Parquet schema.
+See `docs/planning/sprints/SPRINT_027.md` and `S027_WAVE0_DECISIONS.md` (D-S027-04, D-S027-05,
+D-S027-08). Do not silently change continuous Parquet schema.
 
----
+### Repayment Notes
+
+- Cheaper Polars timestamp (ns→us integer divide) and price-string formatting; skip redundant casts.
+- Continuous writer: zstd, `use_dictionary=False`, cast only when schema differs.
+- `session_workers` (default 4 via `build_continuous`) parallelizes per-session load/transform/write.
+- Residual: continuous `price` remains string until an explicit ADR/`price_nanos` migration.
 
 # 6. Planned Debt Boundaries
 
