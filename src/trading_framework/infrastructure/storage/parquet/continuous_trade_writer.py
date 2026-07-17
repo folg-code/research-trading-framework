@@ -127,12 +127,23 @@ class ParquetContinuousTradeWriter:
     def write_table(self, path: Path, table: pa.Table) -> None:
         """Persist one continuous trade table to ``path``."""
         path.parent.mkdir(parents=True, exist_ok=True)
-        normalized = table.cast(MARKET_TRADE_CONTINUOUS_PARQUET_SCHEMA, safe=False)
-        pq.write_table(normalized, path)  # type: ignore[no-untyped-call]
+        if table.schema.equals(MARKET_TRADE_CONTINUOUS_PARQUET_SCHEMA):
+            normalized = table
+        else:
+            normalized = table.cast(MARKET_TRADE_CONTINUOUS_PARQUET_SCHEMA, safe=False)
+        # Price strings are high-cardinality; dictionary encoding adds CPU without shrinking much.
+        pq.write_table(  # type: ignore[no-untyped-call]
+            normalized,
+            path,
+            compression="zstd",
+            use_dictionary=False,
+        )
 
     def read_table(self, path: Path) -> pa.Table:
         """Read continuous trade parquet without materializing domain records."""
         table = pq.ParquetFile(path).read()  # type: ignore[no-untyped-call]
+        if table.schema.equals(MARKET_TRADE_CONTINUOUS_PARQUET_SCHEMA):
+            return table
         return table.cast(MARKET_TRADE_CONTINUOUS_PARQUET_SCHEMA, safe=False)
 
     def write(self, path: Path, records: Sequence[ContinuousTradeRecord]) -> None:

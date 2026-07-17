@@ -20,12 +20,17 @@ from trading_framework.market.contracts.storage_codec import MISSING_TS_RECV_NS,
 def _price_nanos_to_string_expr() -> pl.Expr:
     whole = pl.col("price_nanos") // PRICE_NANOS_SCALE
     fraction = pl.col("price_nanos") % PRICE_NANOS_SCALE
-    fraction_text = fraction.cast(pl.Utf8).str.zfill(9).str.replace(r"0+$", "")
+    fraction_text = fraction.cast(pl.Utf8).str.zfill(9).str.strip_chars_end("0")
     return (
         pl.when(fraction_text.str.len_chars() == 0)
         .then(whole.cast(pl.Utf8))
         .otherwise(whole.cast(pl.Utf8) + "." + fraction_text)
     )
+
+
+def _ns_to_naive_utc_us(column: str) -> pl.Expr:
+    """Convert UTC epoch nanoseconds to naive UTC microsecond timestamps."""
+    return (pl.col(column) // 1_000).cast(pl.Datetime(time_unit="us"))
 
 
 def contract_table_to_continuous_table(
@@ -57,20 +62,11 @@ def contract_table_to_continuous_table(
     continuous = filtered.select(
         _price_nanos_to_string_expr().alias("price"),
         pl.col("size"),
-        pl.from_epoch("ts_event_ns", time_unit="ns")
-        .dt.replace_time_zone("UTC")
-        .dt.cast_time_unit("us")
-        .dt.replace_time_zone(None)
-        .alias("event_at"),
+        _ns_to_naive_utc_us("ts_event_ns").alias("event_at"),
         pl.col("side").fill_null("unknown").alias("side"),
         pl.when(pl.col("ts_recv_ns") == MISSING_TS_RECV_NS)
         .then(None)
-        .otherwise(
-            pl.from_epoch("ts_recv_ns", time_unit="ns")
-            .dt.replace_time_zone("UTC")
-            .dt.cast_time_unit("us")
-            .dt.replace_time_zone(None)
-        )
+        .otherwise(_ns_to_naive_utc_us("ts_recv_ns"))
         .alias("received_at"),
         pl.lit(None, dtype=pl.Utf8).alias("trade_id"),
         pl.when(pl.col("sequence") < 0).then(None).otherwise(pl.col("sequence")).alias("sequence"),
@@ -81,4 +77,7 @@ def contract_table_to_continuous_table(
         pl.lit(entry.roll_id).alias("roll_id"),
         pl.lit(roll_boundary).alias("is_roll_boundary"),
     )
-    return continuous.to_arrow().cast(MARKET_TRADE_CONTINUOUS_PARQUET_SCHEMA, safe=False)
+    arrow_table = continuous.to_arrow()
+    if arrow_table.schema.equals(MARKET_TRADE_CONTINUOUS_PARQUET_SCHEMA):
+        return arrow_table
+    return arrow_table.cast(MARKET_TRADE_CONTINUOUS_PARQUET_SCHEMA, safe=False)

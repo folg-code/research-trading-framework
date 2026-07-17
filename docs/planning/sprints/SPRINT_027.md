@@ -72,19 +72,18 @@ before/after note on phases we own, and without schema regressions.
 ### Wave A — Import column buffers (CRITICAL)
 
 - [ ] Microbench: split `to_df` vs `map_chunk_batch` vs partition write on a small archive set.
-- [ ] Replace `ContractChunkColumns` Python lists with NumPy (or Arrow) append-friendly buffers.
-- [ ] Eliminate `.tolist()` in `extend_masked`; vectorize `take` / merge.
-- [ ] Build `pa.Table` from arrays without intermediate `list(...)` copies where practical.
-- [ ] Preserve validation, session-date grouping, merge-existing partition semantics.
-- [ ] Unit + regression tests for chunk map / partition columns equivalence.
+- [x] Replace `ContractChunkColumns` Python lists with NumPy (or Arrow) append-friendly buffers.
+- [x] Eliminate `.tolist()` in `extend_masked`; vectorize `take` / merge.
+- [x] Build `pa.Table` from arrays without intermediate `list(...)` copies where practical.
+- [x] Preserve validation, session-date grouping, merge-existing partition semantics.
+- [x] Unit + regression tests for chunk map / partition columns equivalence.
 
 ### Wave B — Continuous materialize write (HIGH)
 
-- [ ] Confirm write-vs-transform split on current code; document session-loop costs.
-- [ ] Remove avoidable copies / casts on the Arrow write path without schema change.
-- [ ] Decide explicitly: keep string `price` **or** ADR amendment to `price_nanos` (+ version).
-- [ ] If schema changes: migration/rebuild note + tests; else defer schema and close Wave B on
-      orchestration-only wins.
+- [x] Confirm write-vs-transform split on current code; document session-loop costs.
+- [x] Remove avoidable copies / casts on the Arrow write path without schema change.
+- [x] Decide explicitly: keep string `price` (**D-S027-08**); `price_nanos` deferred to ADR.
+- [x] Close Wave B orchestration wins (`session_workers`, write/mapper path); schema unchanged.
 - [ ] Timing note: continuous materialize wall-clock before/after on NQ half-year (or subset).
 
 ### Wave C — Decode ceiling + docs closeout
@@ -116,11 +115,11 @@ before/after note on phases we own, and without schema regressions.
 |------|---------|------|--------|
 | S027-T001 | Wave 0 decisions + TD-019/TD-020 + sprint branch | 0 | DONE |
 | S027-T002 | Import phase microbench harness (fixture / small NQ sample) | A | TODO |
-| S027-T003 | NumPy/Arrow `ContractChunkColumns` + map path without `.tolist()` | A | IN_PROGRESS |
-| S027-T004 | Vectorized `take` / session partition table build | A | IN_PROGRESS |
+| S027-T003 | NumPy/Arrow `ContractChunkColumns` + map path without `.tolist()` | A | DONE |
+| S027-T004 | Vectorized `take` / session partition table build | A | DONE |
 | S027-T005 | Import equivalence tests + map/write timing note | A | TODO |
-| S027-T006 | Continuous write-path inspection + non-schema wins | B | TODO |
-| S027-T007 | Continuous `price` schema decision (keep vs ADR `price_nanos`) | B | TODO |
+| S027-T006 | Continuous write-path inspection + non-schema wins | B | DONE |
+| S027-T007 | Continuous `price` schema decision (keep vs ADR `price_nanos`) | B | DONE |
 | S027-T008 | Continuous materialize timing note | B | TODO |
 | S027-T009 | Decode ceiling note + optional chunk_size / parallelism | C | TODO |
 | S027-T010 | TD + CURRENT_STATUS / MODULE_MAP closeout | C | TODO |
