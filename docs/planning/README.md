@@ -42,6 +42,13 @@ Catalog of `docs/planning/`. For taxonomy and reading paths see **[../README.md]
 | [sprints/SPRINT_009.md](sprints/SPRINT_009.md) | Combined research scopes (completed) |
 | [sprints/S009_WAVE0_DECISIONS.md](sprints/S009_WAVE0_DECISIONS.md) | Sprint 009 binding decisions (D-S009-01 … D-S009-11) |
 | [sprints/SPRINT_010.md](sprints/SPRINT_010.md) | Signal Research analytics MVP (completed) |
+| [sprints/SPRINT_016.md](sprints/SPRINT_016.md) | Robustness Research MVP (completed) |
+| [sprints/SPRINT_017.md](sprints/SPRINT_017.md) | Model Research Methodology MVP (completed) |
+| [sprints/SPRINT_023.md](sprints/SPRINT_023.md) | Portfolio live dry-run dashboard (completed on sprint branch) |
+| [sprints/SPRINT_024.md](sprints/SPRINT_024.md) | Dry-run reliability polish (planned) |
+| [sprints/SPRINT_025.md](sprints/SPRINT_025.md) | Live dry-run visualization polish (planned, optional) |
+| [sprints/SPRINT_026.md](sprints/SPRINT_026.md) | Research hot-path performance (planned, recommended next) |
+| [sprints/S026_WAVE0_DECISIONS.md](sprints/S026_WAVE0_DECISIONS.md) | Sprint 026 binding decisions (D-S026-01 … D-S026-06) |
 | [sprints/S010_WAVE0_DECISIONS.md](sprints/S010_WAVE0_DECISIONS.md) | Sprint 010 binding decisions (D-S010-01 … D-S010-20) |
 | [sprints/SPRINT_011.md](sprints/SPRINT_011.md) | Historical archive import — trades DBN (completed) |
 | [sprints/S011_WAVE0_DECISIONS.md](sprints/S011_WAVE0_DECISIONS.md) | Sprint 011 binding decisions (D-S011-01 … D-S011-16) |
