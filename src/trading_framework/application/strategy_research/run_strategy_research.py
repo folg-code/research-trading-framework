@@ -18,10 +18,17 @@ from trading_framework.application.market_data.query_historical import (
     query_historical_columnar,
 )
 from trading_framework.application.model_evaluation import EvaluateModelsRequest, evaluate_models
+from trading_framework.application.model_evaluation.evaluate_models import EvaluateModelsResult
 from trading_framework.application.strategy_research.entry_signals import build_gated_entry_signals
+from trading_framework.application.strategy_research.shared_evaluation import (
+    SharedStrategyEvaluationContext,
+    SharedStrategyEvaluationError,
+)
 from trading_framework.core.exceptions import ValidationError
 from trading_framework.core.profiling import optional_phase
 from trading_framework.market.datasets import DatasetRef
+from trading_framework.market_analysis.data.columnar import OhlcvColumnBatch
+from trading_framework.market_analysis.data.view import AnalysisDataView
 from trading_framework.market_analysis.models.time_range import TimeRange
 from trading_framework.model_expression.planning import (
     build_analysis_frame_request,
@@ -68,6 +75,7 @@ class RunStrategyResearchRequest:
     session_resolver: TradingSessionResolver | None = None
     experiment_id: str | None = None
     persist: bool = True
+    shared_evaluation: SharedStrategyEvaluationContext | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -93,48 +101,8 @@ def run_strategy_research(
     risk_model = _require_fixed_quantity_risk(strategy_model)
 
     evaluation_timeframe = request.evaluation_timeframe or request.timeframe
-    dependencies = collect_model_dependencies(
-        market_models=(strategy_model.market_model,),
-        signal_models=(strategy_model.signal_model,),
-    )
-    frame_request = build_analysis_frame_request(dependencies)
-    analysis_request = RunAnalysisRequest(
-        dataset_ref=request.dataset_ref,
-        timeframe=request.timeframe,
-        requested_range=request.requested_range,
-        storage_root=request.storage_root,
-        component_requests=dependencies.component_requests,
-        frame_request=frame_request,
-        evaluation_timeframe=evaluation_timeframe,
-        session_resolver=request.session_resolver,
-    )
-    with optional_phase("strategy_research.plan_computation_range"):
-        computation_range = resolve_analysis_computation_range(analysis_request)
-    with optional_phase("strategy_research.load_ohlcv"):
-        preloaded_column_batch = query_historical_columnar(
-            QueryHistoricalRequest(
-                dataset_ref=request.dataset_ref,
-                start_at=computation_range.start,
-                end_at=computation_range.end,
-            ),
-            storage_root=request.storage_root,
-        )
-        preloaded_view = preloaded_column_batch.to_analysis_view()
-    with optional_phase("strategy_research.evaluate_models"):
-        eval_result = evaluate_models(
-            EvaluateModelsRequest(
-                dataset_ref=request.dataset_ref,
-                timeframe=request.timeframe,
-                requested_range=request.requested_range,
-                storage_root=request.storage_root,
-                market_models=(strategy_model.market_model,),
-                signal_models=(strategy_model.signal_model,),
-                evaluation_timeframe=evaluation_timeframe,
-                session_resolver=request.session_resolver,
-                preloaded_column_batch=preloaded_column_batch,
-                preloaded_view=preloaded_view,
-            )
-        )
+    preloaded_column_batch, eval_result = _resolve_evaluation_inputs(request)
+
     frame = eval_result.analysis.frame
     if frame is None:
         msg = "strategy research requires an assembled AnalysisFrame"
@@ -214,6 +182,70 @@ def run_strategy_research(
         trades=simulation.trades,
         equity=simulation.equity,
     )
+
+
+def _resolve_evaluation_inputs(
+    request: RunStrategyResearchRequest,
+) -> tuple[OhlcvColumnBatch, EvaluateModelsResult]:
+    strategy_model = request.strategy_model
+    evaluation_timeframe = request.evaluation_timeframe or request.timeframe
+    shared = request.shared_evaluation
+    if shared is not None:
+        if not shared.matches_request(
+            dataset_ref=request.dataset_ref,
+            timeframe=request.timeframe,
+            requested_range=request.requested_range,
+            storage_root=request.storage_root,
+            evaluation_timeframe=request.evaluation_timeframe,
+            strategy_model=strategy_model,
+        ):
+            msg = "shared_evaluation does not match Strategy Research request inputs"
+            raise SharedStrategyEvaluationError(msg)
+        return shared.preloaded_column_batch, shared.evaluation
+
+    dependencies = collect_model_dependencies(
+        market_models=(strategy_model.market_model,),
+        signal_models=(strategy_model.signal_model,),
+    )
+    frame_request = build_analysis_frame_request(dependencies)
+    analysis_request = RunAnalysisRequest(
+        dataset_ref=request.dataset_ref,
+        timeframe=request.timeframe,
+        requested_range=request.requested_range,
+        storage_root=request.storage_root,
+        component_requests=dependencies.component_requests,
+        frame_request=frame_request,
+        evaluation_timeframe=evaluation_timeframe,
+        session_resolver=request.session_resolver,
+    )
+    with optional_phase("strategy_research.plan_computation_range"):
+        computation_range = resolve_analysis_computation_range(analysis_request)
+    with optional_phase("strategy_research.load_ohlcv"):
+        preloaded_column_batch = query_historical_columnar(
+            QueryHistoricalRequest(
+                dataset_ref=request.dataset_ref,
+                start_at=computation_range.start,
+                end_at=computation_range.end,
+            ),
+            storage_root=request.storage_root,
+        )
+        preloaded_view: AnalysisDataView = preloaded_column_batch.to_analysis_view()
+    with optional_phase("strategy_research.evaluate_models"):
+        eval_result = evaluate_models(
+            EvaluateModelsRequest(
+                dataset_ref=request.dataset_ref,
+                timeframe=request.timeframe,
+                requested_range=request.requested_range,
+                storage_root=request.storage_root,
+                market_models=(strategy_model.market_model,),
+                signal_models=(strategy_model.signal_model,),
+                evaluation_timeframe=evaluation_timeframe,
+                session_resolver=request.session_resolver,
+                preloaded_column_batch=preloaded_column_batch,
+                preloaded_view=preloaded_view,
+            )
+        )
+    return preloaded_column_batch, eval_result
 
 
 def _require_fixed_bars_exit(strategy_model: StrategyModelDefinition) -> FixedBarsExitModel:
