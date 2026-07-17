@@ -133,19 +133,19 @@ def contract_trade_columns_to_table(
             schema=MARKET_TRADE_CONTRACT_PARQUET_SCHEMA,
         )
     timer = active_phase_timer()
-    table_columns: dict[str, list[object]] = {
-        "ts_event_ns": list(columns.ts_event_ns),
-        "ts_recv_ns": list(columns.ts_recv_ns),
-        "price_nanos": list(columns.price_nanos),
-        "size": list(columns.size),
-        "instrument_id": list(columns.instrument_id),
-        "sequence": list(columns.sequence),
-        "publisher_id": list(columns.publisher_id),
-        "side": list(columns.side),
-        "product": [product] * row_count,
-        "contract_code": [contract_code] * row_count,
-        "session_date": [session_date] * row_count,
-        "source_file": [source_file] * row_count,
+    table_columns: dict[str, object] = {
+        "ts_event_ns": columns.ts_event_ns,
+        "ts_recv_ns": columns.ts_recv_ns,
+        "price_nanos": columns.price_nanos,
+        "size": columns.size,
+        "instrument_id": columns.instrument_id,
+        "sequence": columns.sequence,
+        "publisher_id": columns.publisher_id,
+        "side": columns.side,
+        "product": pa.array([product] * row_count, type=pa.string()),
+        "contract_code": pa.array([contract_code] * row_count, type=pa.string()),
+        "session_date": pa.array([session_date] * row_count, type=pa.date32()),
+        "source_file": pa.array([source_file] * row_count, type=pa.string()),
     }
     if timer is not None:
         with timer.phase("parquet.build_table"):

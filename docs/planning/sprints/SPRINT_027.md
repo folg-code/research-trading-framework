@@ -116,8 +116,8 @@ before/after note on phases we own, and without schema regressions.
 |------|---------|------|--------|
 | S027-T001 | Wave 0 decisions + TD-019/TD-020 + sprint branch | 0 | DONE |
 | S027-T002 | Import phase microbench harness (fixture / small NQ sample) | A | TODO |
-| S027-T003 | NumPy/Arrow `ContractChunkColumns` + map path without `.tolist()` | A | TODO |
-| S027-T004 | Vectorized `take` / session partition table build | A | TODO |
+| S027-T003 | NumPy/Arrow `ContractChunkColumns` + map path without `.tolist()` | A | IN_PROGRESS |
+| S027-T004 | Vectorized `take` / session partition table build | A | IN_PROGRESS |
 | S027-T005 | Import equivalence tests + map/write timing note | A | TODO |
 | S027-T006 | Continuous write-path inspection + non-schema wins | B | TODO |
 | S027-T007 | Continuous `price` schema decision (keep vs ADR `price_nanos`) | B | TODO |
