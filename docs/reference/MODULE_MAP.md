@@ -147,8 +147,9 @@ Application entry points and runtime assembly.
 | Dataset lifecycle | `market/datasets/` |
 | Repository protocols | `market/repositories/` |
 | Import and publication workflows | `application/market_data/` |
+| Continuous trades materialize | `application/market_data/materialize_continuous_trades.py` (`session_workers`) |
 | Provider adapters | `infrastructure/providers/` |
-| File and archive importers | `infrastructure/importers/` |
+| File and archive importers | `infrastructure/importers/` (Databento: NumPy `ContractChunkColumns`) |
 | Normalization | `infrastructure/normalization/` |
 | Validation | `infrastructure/validation/` |
 | Dataset persistence | `infrastructure/storage/` |
