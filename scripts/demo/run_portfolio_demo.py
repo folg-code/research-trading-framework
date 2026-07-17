@@ -14,6 +14,7 @@ Plotly reports require: ``uv pip install plotly``
 from __future__ import annotations
 
 import argparse
+import html
 import importlib.util
 import json
 import subprocess
@@ -40,6 +41,7 @@ _HALF_YEAR_DASHBOARD_NAME = "00_strategy_dashboard_nq_half_year.html"
 _FIXTURE_DASHBOARD_NAME = "01_strategy_dashboard_fixture.html"
 _LIVE_DRY_RUN_DASHBOARD_NAME = "09_live_dry_run_status.html"
 _LIVE_DRY_RUN_FIXTURE_NAME = "live_dry_run_status_fixture.json"
+_PUBLIC_LIVE_DEMO_URL = "https://dryrun.filipf.online"
 
 
 @dataclass(frozen=True, slots=True)
@@ -51,6 +53,50 @@ class DemoArtifact:
     workflow: str
     description: str
     status: str  # ok | skipped | failed
+
+
+_KNOWN_PORTFOLIO_ARTIFACTS: tuple[DemoArtifact, ...] = (
+    DemoArtifact(
+        filename=_HALF_YEAR_DASHBOARD_NAME,
+        title="NQ Half-Year Strategy Dashboard",
+        workflow="Published OHLCV -> Strategy Model -> Simulation -> Dashboard",
+        description=(
+            "Full-depth strategy research report with KPIs, equity curve, trade markers "
+            "and embedded 1m source bars."
+        ),
+        status="ok",
+    ),
+    DemoArtifact(
+        filename="market_and_signal.html",
+        title="Market And Signal Drill-Down",
+        workflow="AnalysisFrame -> Market Model x Signal Model -> Outcome Window",
+        description=(
+            "Readable inspection view for one market-and-signal occurrence, including "
+            "context, outcome horizon and chart evidence."
+        ),
+        status="ok",
+    ),
+    DemoArtifact(
+        filename="07_robustness_dashboard.html",
+        title="Robustness Research Dashboard",
+        workflow="Experiment Spec -> Child Strategy Runs -> Robustness Verdict",
+        description=(
+            "Parameter sweeps, walk-forward checks, stress tests and Monte Carlo evidence "
+            "for strategy fragility review."
+        ),
+        status="ok",
+    ),
+    DemoArtifact(
+        filename="08_model_research_nq_half_year.html",
+        title="Model Research Methodology",
+        workflow="Signal Definition Spec -> Bounded Run -> Analytics -> Report Index",
+        description=(
+            "Methodology-first report index for signal/model research scopes, quality flags "
+            "and forward outcome analysis."
+        ),
+        status="ok",
+    ),
+)
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -93,6 +139,11 @@ def _build_parser() -> argparse.ArgumentParser:
         "--live-status-url",
         default="",
         help="Public read-only AWS dry-run status endpoint used by the live dashboard page",
+    )
+    parser.add_argument(
+        "--live-demo-url",
+        default=_PUBLIC_LIVE_DEMO_URL,
+        help="Public VPS live dashboard URL highlighted on the portfolio index",
     )
     return parser
 
@@ -1001,7 +1052,7 @@ def _live_dry_run_dashboard_html(
 """
 
 
-def _write_index_html(*, output_dir: Path, artifacts: list[DemoArtifact]) -> Path:
+def _write_index_html_legacy(*, output_dir: Path, artifacts: list[DemoArtifact]) -> Path:
     cards: list[str] = []
     for item in artifacts:
         status_class = item.status
@@ -1142,6 +1193,318 @@ Strategy Research: gated entries → Numba simulator → trades + equity → das
     return index_path
 
 
+def _portfolio_artifacts(output_dir: Path, artifacts: list[DemoArtifact]) -> list[DemoArtifact]:
+    """Return generated artifacts plus known portfolio reports already present on disk."""
+
+    seen = {item.filename for item in artifacts}
+    display_artifacts = list(artifacts)
+    for item in _KNOWN_PORTFOLIO_ARTIFACTS:
+        if item.filename in seen or not (output_dir / item.filename).exists():
+            continue
+        display_artifacts.append(item)
+        seen.add(item.filename)
+    return display_artifacts
+
+
+def _artifact_link(output_dir: Path, item: DemoArtifact, label: str) -> str:
+    if item.status == "ok" and (output_dir / item.filename).exists():
+        escaped_filename = html.escape(item.filename)
+        escaped_label = html.escape(label)
+        return f'<a class="btn" href="{escaped_filename}">{escaped_label}</a>'
+    return f'<span class="meta">Not generated ({html.escape(item.status)}).</span>'
+
+
+def _write_index_html(
+    *,
+    output_dir: Path,
+    artifacts: list[DemoArtifact],
+    live_demo_url: str = _PUBLIC_LIVE_DEMO_URL,
+) -> Path:
+    display_artifacts = _portfolio_artifacts(output_dir, artifacts)
+    live_artifact = next(
+        (item for item in display_artifacts if item.filename == _LIVE_DRY_RUN_DASHBOARD_NAME),
+        None,
+    )
+    live_url = live_demo_url.strip()
+    if not live_url and live_artifact is not None:
+        live_url = live_artifact.filename
+
+    live_static_link = ""
+    if live_artifact is not None and (output_dir / live_artifact.filename).exists():
+        live_static_link = _artifact_link(output_dir, live_artifact, "Open static fallback")
+
+    cards: list[str] = []
+    for item in display_artifacts:
+        if item.filename == _LIVE_DRY_RUN_DASHBOARD_NAME:
+            continue
+        link = _artifact_link(output_dir, item, "Open report")
+        cards.append(
+            f"""
+            <article class="card {html.escape(item.status)}">
+              <p class="eyebrow">{html.escape(item.workflow)}</p>
+              <h3>{html.escape(item.title)}</h3>
+              <p>{html.escape(item.description)}</p>
+              <p>{link}</p>
+            </article>
+            """
+        )
+
+    page = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Trading Research Framework Portfolio Demo</title>
+  <style>
+    :root {{
+      color-scheme: light dark;
+      --bg: #0d1014;
+      --surface: #151a20;
+      --panel: #1c232b;
+      --line: #303a46;
+      --text: #eef2f6;
+      --muted: #a8b2bf;
+      --accent: #4aa3ff;
+      --accent-strong: #63d297;
+      --warn: #f4bf5f;
+      --fail: #ff736f;
+    }}
+    body {{
+      margin: 0;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }}
+    header, main, footer {{
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 0 1.25rem;
+    }}
+    header {{
+      padding-top: 2rem;
+      padding-bottom: 1.25rem;
+      border-bottom: 1px solid var(--line);
+    }}
+    main {{ padding-top: 1.5rem; padding-bottom: 2rem; }}
+    h1 {{ margin: 0 0 0.5rem; font-size: clamp(2rem, 5vw, 4rem); line-height: 1.02; }}
+    h2 {{ margin: 0 0 1rem; font-size: 1.35rem; }}
+    h3 {{ margin: 0.25rem 0 0.5rem; font-size: 1.08rem; }}
+    p {{ margin: 0.5rem 0; }}
+    .lead {{ color: var(--muted); max-width: 78ch; font-size: 1.02rem; }}
+    .hero-grid {{
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.65fr);
+      margin: 1.25rem 0 1.75rem;
+    }}
+    .live-panel, .method-panel, .flow-card, .card {{
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }}
+    .live-panel {{
+      padding: 1.25rem;
+      border-color: #3e5e7f;
+    }}
+    .live-title {{
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }}
+    .live-title h2 {{ margin: 0; font-size: clamp(1.5rem, 3vw, 2.25rem); }}
+    .status-pill, .tag {{
+      display: inline-flex;
+      align-items: center;
+      min-height: 1.7rem;
+      padding: 0.15rem 0.55rem;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--muted);
+      font-size: 0.8rem;
+      white-space: nowrap;
+    }}
+    .status-pill {{ color: #d9ffe9; border-color: #3a7f57; background: #13261c; }}
+    .tags {{
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-top: 1rem;
+    }}
+    .actions {{
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      margin-top: 1rem;
+      align-items: center;
+    }}
+    .method-panel {{
+      padding: 1rem;
+      background: var(--surface);
+    }}
+    .method-panel ol {{
+      margin: 0.75rem 0 0;
+      padding-left: 1.2rem;
+      color: var(--muted);
+    }}
+    .method-panel li {{ margin: 0.45rem 0; }}
+    .flows {{
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.9rem;
+      margin: 1.5rem 0;
+    }}
+    .flow-card {{
+      padding: 1rem;
+      background: var(--surface);
+    }}
+    .flow-title {{
+      color: var(--text);
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }}
+    .flow {{
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 0.86rem;
+      white-space: pre-wrap;
+      color: var(--muted);
+    }}
+    .grid {{
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }}
+    .card {{
+      padding: 1.25rem;
+    }}
+    .card.ok {{ border-left: 4px solid var(--accent-strong); }}
+    .card.skipped {{ border-left: 4px solid var(--warn); }}
+    .card.failed {{ border-left: 4px solid var(--fail); }}
+    .eyebrow {{
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-family: Consolas, monospace;
+      min-height: 2.4rem;
+    }}
+    .btn {{
+      display: inline-block;
+      margin-top: 0.75rem;
+      padding: 0.55rem 0.9rem;
+      border-radius: 8px;
+      background: var(--accent);
+      color: white;
+      text-decoration: none;
+      font-weight: 600;
+    }}
+    .meta {{ color: var(--muted); font-size: 0.9rem; }}
+    .section-title {{
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      align-items: end;
+      margin: 2rem 0 1rem;
+      border-top: 1px solid var(--line);
+      padding-top: 1rem;
+    }}
+    footer {{
+      color: var(--muted);
+      font-size: 0.85rem;
+      padding-bottom: 2rem;
+    }}
+    @media (max-width: 800px) {{
+      .hero-grid, .flows {{ grid-template-columns: 1fr; }}
+      .section-title {{ display: block; }}
+    }}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Trading Research Framework Portfolio</h1>
+    <p class="lead">
+      A portfolio hub for the framework behind the charts: market data normalization,
+      reusable analysis components, declarative models, signal research, strategy simulation,
+      robustness checks and a live AWS dry-run runtime.
+    </p>
+  </header>
+  <main>
+    <section class="hero-grid" aria-label="Featured live dry run">
+      <article class="live-panel">
+        <div class="live-title">
+          <span class="status-pill">Live dry-run</span>
+          <h2>BTCUSDT execution demo on AWS</h2>
+        </div>
+        <p class="lead">
+          The primary portfolio view is the running dry-run: real Binance USD-M BTCUSDT market data,
+          simulated orders only, persisted runtime state and a live VPS dashboard with candles,
+          fills, current position, equity and heartbeat freshness.
+        </p>
+        <div class="tags">
+          <span class="tag">ECS Fargate worker</span>
+          <span class="tag">DynamoDB state</span>
+          <span class="tag">Lambda status API</span>
+          <span class="tag">SQLite dashboard history</span>
+          <span class="tag">No real capital</span>
+        </div>
+        <div class="actions">
+          <a class="btn" href="{html.escape(live_url)}">Open live dashboard</a>
+          {live_static_link}
+        </div>
+      </article>
+      <aside class="method-panel">
+        <h2>What this proves</h2>
+        <ol>
+          <li>Research artifacts are reproducible, not screenshots.</li>
+          <li>Strategy logic can run against live market data without exchange risk.</li>
+          <li>Execution state survives worker restarts and feeds a public read model.</li>
+          <li>The same framework separates data, models, simulation and execution.</li>
+        </ol>
+      </aside>
+    </section>
+
+    <section class="flows">
+      <div class="flow-card">
+        <div class="flow-title">1. Data foundation</div>
+        <div class="flow">CSV / DBN -> normalize -> Parquet -> publish -> query
+Contracts -> roll schedule -> continuous futures -> OHLCV/trades</div>
+      </div>
+      <div class="flow-card">
+        <div class="flow-title">2. Research engine</div>
+        <div class="flow">Market facts -> component DAG -> AnalysisFrame
+Market Model x Signal Model -> occurrences -> forward outcomes</div>
+      </div>
+      <div class="flow-card">
+        <div class="flow-title">3. Strategy and execution</div>
+        <div class="flow">Signal gates -> risk model -> bar-sequential simulator -> trades/equity
+Live adapter -> simulated orders -> persisted dry-run status</div>
+      </div>
+    </section>
+
+    <section class="section-title">
+      <div>
+        <h2>Reports And Workflow Evidence</h2>
+        <p class="meta">
+          Each tile is a browser-openable artifact. Charts show results; workflow labels show how
+          the framework produced them.
+        </p>
+      </div>
+    </section>
+    <section class="grid">
+      {"".join(cards)}
+    </section>
+  </main>
+  <footer>
+    Regenerate: <code>uv run python scripts/demo/run_portfolio_demo.py --full</code>
+    | Plotly reports: <code>uv pip install plotly</code>
+  </footer>
+</body>
+</html>
+"""
+    index_path = output_dir / "index.html"
+    index_path.write_text(page, encoding="utf-8")
+    return index_path
+
+
 def main(argv: list[str] | None = None) -> int:
     args = _build_parser().parse_args(argv)
     output_dir = args.output_dir.resolve()
@@ -1271,11 +1634,16 @@ def main(argv: list[str] | None = None) -> int:
                 )
             )
 
-    index_path = _write_index_html(output_dir=output_dir, artifacts=artifacts)
+    index_path = _write_index_html(
+        output_dir=output_dir,
+        artifacts=artifacts,
+        live_demo_url=args.live_demo_url,
+    )
     print(f"[demo] portfolio index: {index_path}")
 
     ok_count = sum(1 for item in artifacts if item.status == "ok")
     print(f"[demo] artifacts ok: {ok_count}/{len(artifacts)}")
+    print(f"[demo] index links shown: {len(_portfolio_artifacts(output_dir, artifacts))}")
 
     if args.open:
         webbrowser.open(index_path.as_uri())

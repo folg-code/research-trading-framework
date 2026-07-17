@@ -1,352 +1,625 @@
-# Research Methodologies (As-Implemented)
+# Research Methodologies
 
-> **Reference doc** — [as-implemented layer](README.md).  
-> Data paths and diagrams: [DATA_WORKFLOWS.md](DATA_WORKFLOWS.md). Package index: [MODULE_MAP.md](MODULE_MAP.md).
+This document describes the research methodologies supported by the framework, the questions they answer, and how to choose between them.
 
-This document describes **every research-oriented methodology** in the framework today: what question each
-answers, how workflows relate to each other, and where to start in code and CLI.
+Research workflows are independent capabilities. They share datasets, analytical components and declarative models, but they do not form one mandatory pipeline.
 
-**Important:** workflows are **independent capabilities** that share domains (Market Data, Market Analysis,
-declarative models). They are **not** mandatory stages of one pipeline.
+---
+
+## 1. Methodology Overview
+
+```mermaid
+flowchart LR
+    FOUNDATIONS[Shared Foundations]
+    SIGNAL[Signal and Model Research]
+    STRATEGY[Strategy Research]
+    ROBUSTNESS[Robustness Research]
+    PORTFOLIO[Portfolio Research]
+
+    FOUNDATIONS --> SIGNAL
+    FOUNDATIONS --> STRATEGY
+    STRATEGY --> ROBUSTNESS
+    STRATEGY -. future .-> PORTFOLIO
+```
+
+
+
+
+| Methodology                | Main question                                                          | Primary output                                 |
+| -------------------------- | ---------------------------------------------------------------------- | ---------------------------------------------- |
+| Signal Research            | Does a feature, state or signal describe repeatable forward behaviour? | Occurrences, observations and forward outcomes |
+| Model Research Methodology | Is a model study reproducible, bounded and diagnostically sound?       | Study artifacts, diagnostics and comparisons   |
+| Strategy Research          | Does a complete strategy produce acceptable simulated results?         | Trades, equity and performance metrics         |
+| Robustness Research        | Does the result survive variation and stress?                          | Stability diagnostics and robustness verdict   |
+| Portfolio Research         | How should multiple strategies be combined?                            | Portfolio behaviour and allocation analysis    |
+
+
+---
+
+## 2. Shared Research Foundations
+
+All research methodologies depend on the same foundations:
+
+- published market datasets,
+- reusable analytical components,
+- Market Features and Market States,
+- Signal Features and Signal States,
+- declarative Market Models,
+- declarative Signal Models,
+- persisted research artifacts.
+
+These foundations are shared, but research workflows remain independent.
 
 ```text
-                    Shared foundations
-         Market Data · Market Analysis · Declarative models
-                               │
-       ┌───────────┬───────────┼───────────┬───────────┐
-       │           │           │           │           │
-       ▼           ▼           ▼           ▼           ▼
-  Signal      Model         Strategy    Robustness   (Future:
-  Research    Research      Research    Research     Execution)
-  (Phase 5)   Methodology   (Phase 6A)  (Phase 7)
-              (Phase 5B)
+Published Data
+  → Market Analysis
+  → Declarative Models
+  → Selected Research Workflow
 ```
 
 ---
 
-## 1. Methodology map
+## 3. Shared Research Principles
 
-| Methodology | Research question | Phase / track | Sprint | ADR | Primary orchestration |
-|-------------|-------------------|---------------|--------|-----|------------------------|
-| **Market Analysis** | What do reusable analytical components compute on OHLCV? | Foundation | 003–005 | ADR-MA-* | `run_analysis`, `DependencyPlanner` |
-| **Declarative models** | How do Market × Signal models evaluate on one table? | Foundation | 006 | — | `evaluate_models` |
-| **Signal Research** | Do model states / signals predict forward price behaviour? | Phase 5 | 008–010 | ADR-0011–0013 | `run_signal_research` |
-| **Model Research Methodology** | Is the study reproducible, bounded, and diagnostically sound? | Phase 5B | 017 | ADR-0020 | Definition spec → run → analyze → report |
-| **Strategy Research** | Does a full strategy (entry/exit/risk) produce acceptable PnL? | Phase 6A | 013–014 | ADR-0016–0017 | `run_strategy_research` |
-| **Robustness Research** | Does edge survive parameter, regime and stress variation? | Phase 7 | 016 | ADR-0019 | `run_robustness_experiment` |
+### Reproducibility
 
-**Computation vs analytics (binding rule):** every methodology **persists factual run artifacts first**,
-then exposes **read-only analytics and HTML** that must not re-run model evaluation or simulation unless
-inputs change (ADR-0013, ADR-0017, ADR-0019, ADR-0020).
+Every research run should record enough information to explain and reproduce the result.
 
----
+This includes:
 
-## 2. Shared foundations
+- dataset reference,
+- time range,
+- model definitions,
+- strategy assumptions,
+- parameters,
+- evaluation horizons,
+- execution assumptions where applicable,
+- configuration or code fingerprint,
+- persisted outputs.
 
-### 2.1 Market Data
+### Separation of Computation and Analysis
 
-All research consumes **published** `DatasetRef` values from a runtime `storage_root` (typically
-`user_data/storage` or `user_data/storage_nq_half_year`). Ingest, finalize and publish are documented in
-[DATA_WORKFLOWS.md §3](DATA_WORKFLOWS.md#3-market-data--ingest-workflow).
-
-**Continuous NQ half-year reference:** `NQ.c.0|ohlcv|1m|derived|volume-rth-close@1` — **177,507** bars
-(Jul 2025 – Jan 2026). Scale table: [DATA_WORKFLOWS §1.1](DATA_WORKFLOWS.md#11-reference-scale-nq-half-year-demo).
-
-### 2.2 Market Analysis
-
-Reusable components (ATR, volatility state, swing structure, MTF alignment, …) execute once per plan on an
-`AnalysisDataView` and produce `AnalysisResult` facts.
+The framework follows a compute-first, persist-first model:
 
 ```text
-Published DatasetRef
-  → load_analysis_data_view
-  → DependencyPlanner.build_plan
-  → SequentialBatchExecutor.execute
-  → AnalysisWorkspace / AnalysisResult
+Compute
+  → Persist Facts
+  → Analyze
+  → Visualize
 ```
 
-Entry points: `application.market_analysis`, `market_analysis.planning`, `market_analysis.execution`.  
-Deep flow: [DATA_WORKFLOWS §5–6](DATA_WORKFLOWS.md#5-market-analysis--data-input-bridge).
+Analytics and reports should not rerun model evaluation or simulation unless the underlying inputs change.
 
-Market Analysis is **not** a standalone “research methodology” with its own envelope — it is the **compute
-substrate** for declarative models and downstream research workflows.
+### Independent Workflows
 
-### 2.3 Declarative models (`evaluate_models`)
+- Signal Research is not required before Strategy Research.
+- Strategy Research is not part of Strategy Execution.
+- Robustness Research consumes persisted strategy results but does not modify them.
+- Portfolio Research is a separate methodology built on persisted strategy outputs.
+- Execution is operational and is not a research methodology.
 
-Sprint 006 adds Market Model and Signal Model definitions evaluated on a **shared analysis table** (one
-`run_analysis` pass deduplicated across models).
+### Explicit Assumptions
+
+Research results should expose assumptions such as:
+
+- temporal alignment,
+- occurrence policy,
+- fill timing,
+- slippage,
+- fees,
+- position sizing,
+- incomplete trade handling,
+- missing outcomes,
+- warm-up periods.
+
+### Data and Sample Quality
+
+A research methodology should account for:
+
+- sample size,
+- missing or incomplete outcomes,
+- period concentration,
+- regime concentration,
+- temporal leakage,
+- class imbalance,
+- multiple testing,
+- outliers,
+- unrealistic execution assumptions.
+
+---
+
+## 4. Signal Research
+
+### Research Question
+
+> Does a market feature, state, signal or context describe repeatable forward market behaviour?
+
+### Suitable For
+
+- feature validation,
+- market-state research,
+- signal research,
+- conditional behaviour analysis,
+- forward returns,
+- MFE and MAE,
+- occurrence distributions,
+- context-aware comparisons.
+
+### Not Suitable For
+
+- trade sequencing,
+- exits,
+- position sizing,
+- transaction costs,
+- drawdown,
+- equity curves,
+- simulated PnL.
+
+These belong to Strategy Research.
+
+### Workflow
 
 ```text
-model_authoring (optional DSL)
-  → model_expression IR
-  → evaluate_models
-  → MarketModelEvaluator / SignalModelEvaluator
+Published Dataset
+  → Analytical Components
+  → Market or Signal Model
+  → Occurrences or Observations
+  → Forward Outcomes
+  → Persisted Research Facts
+  → Read-Only Analytics
 ```
 
-Canonical examples: `high_volatility`, `higher_low_long`, combined variants — see
-`application/model_evaluation/canonical_examples.py`.
+### Main Outputs
 
-This layer is shared by **Signal Research**, **Strategy Research** and inspection spikes; it is not a
-persisted research run on its own.
+- signal occurrences,
+- market-model observations,
+- contextual facts,
+- forward outcomes,
+- grouped metrics,
+- sample-size diagnostics,
+- quality warnings.
+
+### Typical Questions
+
+- Does a signal predict positive forward returns?
+- Does a market state change the distribution of outcomes?
+- Does the result hold across sessions, periods or regimes?
+- Is the observed effect supported by a sufficient sample?
+- Is the effect concentrated in a small subset of the data?
 
 ---
 
-## 3. Signal Research (Phase 5)
+## 5. Model Research Methodology
 
-**Question:** Does the studied model describe repeatable forward price behaviour (returns, MFE, MAE, hit
-rate) — **without** order simulation or PnL?
+Model Research Methodology is a methodological layer built on Signal Research.
 
-### 3.1 Research scopes (ADR-0012)
+Its purpose is not to create another independent compute engine. It defines how a model study should be specified, bounded, diagnosed and reported.
 
-| Scope | Models evaluated | Typical facts |
-|-------|------------------|---------------|
-| `MARKET_MODEL_ONLY` | Market model TRUE_EDGE observations | `MarketModelObservation` → forward outcomes |
-| `SIGNAL_MODEL_ONLY` | Signal model ON_EVENT occurrences | `SignalOccurrence` → forward outcomes |
-| `MARKET_AND_SIGNAL` | Both + context alignment at `available_at` | Occurrences + `ContextFact` → outcomes |
+### Research Question
 
-### 3.2 Workflow
+> Is the model study well-defined, reproducible, bounded and diagnostically credible?
+
+### Adds to Signal Research
+
+- declarative study definitions,
+- explicit research scope,
+- baselines,
+- grouping rules,
+- occurrence policies,
+- quality rules,
+- bounded model-family comparison,
+- persisted analytics,
+- standardized reporting.
+
+### Workflow
 
 ```text
-Published DatasetRef + scope + horizons
-  → run_signal_research
-  → immutable run envelope at {storage_root}/{run_id}/
-       manifest.json
-       observations.parquet / occurrences.parquet / context.parquet (scope-dependent)
-       outcomes.parquet (long format, per horizon)
-  → analyze_signal_research_run (read-only Polars aggregates)
-  → optional HTML (presentation-only spikes)
+Study Definition
+  → Validation
+  → Signal Research Run
+  → Quality Diagnostics
+  → Baseline Comparison
+  → Persisted Analytics
+  → Report
 ```
 
-**Entry points:** `application.signal_research.run_signal_research`,
-`application.signal_research.analyze_signal_research_run`.
+### Methodological Focus
 
-**Persistence:** ADR-0011 envelope schema v1/v2; deterministic `run_id` from material inputs.
+- reproducibility,
+- bounded search space,
+- controlled comparison,
+- explicit baselines,
+- quality diagnostics,
+- interpretability,
+- avoidance of uncontrolled model mining.
 
-**Integration tests:** `tests/integration/test_s008_run_signal_research.py`,
-`test_s009_*`, `test_s010_signal_research_analytics.py`.
+### Recommended Boundaries
 
-### 3.3 What Signal Research does not do
+A model study should define in advance:
 
-- Exit / risk / position simulation
-- Equity curve or trade ledger
-- Parameter optimization or robustness verdicts
-
-Those belong to Strategy Research and Robustness Research respectively.
+- the hypothesis,
+- the studied model or model family,
+- the dataset and time range,
+- the evaluation horizons,
+- the occurrence policy,
+- the comparison baseline,
+- the quality thresholds,
+- the allowed variant count.
 
 ---
 
-## 4. Model Research Methodology (Phase 5B)
+## 6. Strategy Research
 
-**Question:** Can a maintainer run a **documented, bounded study protocol** with quality diagnostics and a
-professional offline dashboard — on top of the Signal Research kernel?
+### Research Question
 
-Model Research Methodology is a **methodology layer on Signal Research**, not a separate fourth workflow
-(ADR-0020).
+> Does a complete strategy produce acceptable simulated performance under explicit execution assumptions?
 
-### 4.1 Declarative study contract
-
-`SignalResearchDefinitionSpec` (YAML/JSON) records:
+### Strategy Composition
 
 ```text
-research_id, scope, dataset_ref, time_range
-market_model / signal_model aliases
-horizons (5m, 15m, 30m, 60m on 1m base)
-scope-appropriate baseline (MODEL_ACTIVE / AFTER_SIGNAL / SIGNAL_ONLY)
-occurrence_policy (KEEP_ALL, FIRST_PER_BAR, COOLDOWN — definition level)
-grouping (month, session, time_of_day)
-quality_rules (minimum sample size, period concentration, …)
-optional model_family (bounded manual variants)
+Market Model
+  × Signal Model
+  × Entry
+  × Risk
+  × Exit
 ```
 
-Example fixture: `tests/fixtures/signal_research/nq_half_year_definition.yaml`.
+A strategy is treated as a composition of independent lower-level elements rather than one monolithic implementation.
 
-### 4.2 Workflow
+### Workflow
 
 ```text
-SignalResearchDefinitionSpec
-  → resolve_signal_research_definition + map_definition_to_run_request
-  → run_signal_research
-  → analyze_signal_research_run + SignalResearchQualityFlags
-  → persist_signal_research_analytics → analytics/summary.json (optional sidecar)
-  → build_signal_research_report → offline Plotly HTML (10 sections)
-  → optional run_signal_research_family_experiment (bounded variant comparison)
+Published Dataset
+  → Shared Analysis
+  → Model Evaluation
+  → Entry Decisions
+  → Sequential Simulation
+  → Trades and Equity
+  → Persisted Run
+  → Read-Only Analytics
 ```
 
-**CLIs:** `scripts/signal_research/run_signal_research.py`,
-`analyze_signal_research.py`, `render_signal_research_report.py`, `run_model_family.py`.
+### Main Outputs
 
-**Report sections (MVP v1):** run metadata, KPI cards (sample size beside every metric), metrics by horizon,
-forward-return / MFE / MAE histograms, grouped month/session/time-of-day, baseline marginal contribution,
-diagnostics + quality flags.
+- trade ledger,
+- equity curve,
+- returns,
+- drawdown,
+- hit rate,
+- holding periods,
+- exposure,
+- execution diagnostics,
+- performance summaries.
 
-### 4.3 NQ half-year vertical slice
+### Methodological Requirements
 
-```bash
-uv pip install plotly
-uv run python scripts/demo/run_model_research_nq_demo.py --open
-```
+Strategy Research should make the following assumptions explicit:
 
-| Output | Content |
-|--------|---------|
-| `demo/output/08_model_research_nq_half_year.html` | Index linking three scope reports |
-| `demo/output/model_research/market_model_only.html` | `high_volatility` |
-| `demo/output/model_research/signal_model_only.html` | `higher_low_long` |
-| `demo/output/model_research/market_and_signal.html` | Combined + SIGNAL_ONLY baseline |
+- signal timing,
+- entry timing,
+- fill price,
+- slippage,
+- commissions and fees,
+- exit behaviour,
+- position sizing,
+- incomplete positions,
+- session boundaries,
+- warm-up requirements.
 
-**Reference timing (2026-07-15, laptop):** full demo on 177,507 bars, 3 scopes, 4 horizons — **~16.5 min**
-wall clock. Strategy Research on the same dataset is **~6 s** (simulation-heavy vs occurrence/outcome
-materialization across scopes). Profiling follow-up tracked separately.
+### Typical Questions
 
-**Fixture fallback:** `--fixture` — ES CSV, single 5m horizon, signal + combined scopes only.
-
-Detail: [DATA_WORKFLOWS §3.13](DATA_WORKFLOWS.md#313-model-research-methodology-sprint-017--phase-5b).
+- Does the full strategy generate acceptable risk-adjusted performance?
+- How sensitive is the result to fill assumptions?
+- Are results driven by a small number of trades?
+- Does the strategy remain stable across periods and regimes?
+- Is the strategy behaviour consistent with the original research hypothesis?
 
 ---
 
-## 5. Strategy Research (Phase 6A)
+## 7. Robustness Research
 
-**Question:** Does a **complete strategy** (market × signal gating × exit × risk) produce acceptable
-simulated PnL on historical bars?
+### Research Question
 
-### 5.1 Workflow
+> Does the apparent strategy edge survive variation in parameters, time, regimes and execution assumptions?
+
+### Workflow
 
 ```text
-Published OHLCV DatasetRef
-  → run_strategy_research
-  → query_historical_columnar → shared evaluate_models
-  → build_gated_entry_signals
-  → simulate_from_columnar (Numba fixed-bars kernel)
-  → strategy_research/<run_id>/{manifest.json, trades.parquet, equity.parquet}
-  → analyze_strategy_research_run (read-only summary)
-  → build_strategy_dashboard_view_model
-  → render_strategy_research_dashboard → standalone HTML (Lightweight Charts)
+Strategy Definition
+  → Experiment Variants
+  → Repeated Strategy Runs
+  → Persisted Child Results
+  → Aggregate Analysis
+  → Robustness Verdict
 ```
 
-**Simulation assumptions:** `NEXT_BAR_OPEN` fills; fingerprint in manifest (ADR-0016).
+### Main Methods
 
-**CLIs:** `scripts/strategy_research/run_strategy_research.py`,
-`scripts/strategy_research/render_strategy_dashboard.py`,
-`scripts/market_data/run_half_year_backtest.py` (NQ half-year orchestration + `--profile`).
+- parameter sweeps,
+- walk-forward analysis,
+- stress testing,
+- Monte Carlo analysis,
+- regime analysis,
+- sensitivity analysis,
+- statistical diagnostics,
+- execution-assumption testing.
 
-**Dashboard boundary:** renderer is presentation-only; no re-simulation (ADR-0017).
+### What It Should Detect
 
-Detail: [DATA_WORKFLOWS §3.8–3.9](DATA_WORKFLOWS.md#38-strategy-research-run-envelope-sprint-013).
+- narrow parameter peaks,
+- unstable performance,
+- regime dependency,
+- sensitivity to costs,
+- sensitivity to slippage,
+- dependence on a small number of trades,
+- degradation out of sample,
+- concentration in one time period,
+- unrealistic execution assumptions.
 
-### 5.2 Relation to Signal Research
+### Main Outputs
 
-Strategy Research **reuses** `evaluate_models` but does **not** require a persisted Signal Research run.
-Signal Research studies **forward behaviour of facts**; Strategy Research studies **PnL under execution
-assumptions**.
+- experiment manifest,
+- child-run references,
+- parameter surfaces,
+- walk-forward results,
+- stress scenarios,
+- Monte Carlo distributions,
+- quality diagnostics,
+- PASS / CONDITIONAL / FAIL verdict.
+
+### Interpretation Rule
+
+Robustness Research does not prove that an edge will persist.
+
+Its purpose is to expose fragility, concentration and unsupported assumptions before a strategy is considered for execution.
 
 ---
 
-## 6. Robustness Research (Phase 7)
+## 8. Portfolio Research
 
-**Question:** Does a strategy edge survive parameter variation, walk-forward regimes, stress scenarios and
-Monte Carlo resampling?
+Portfolio Research is a planned methodology.
 
-### 6.1 Workflow
+### Research Question
+
+> How should multiple strategies be combined, allocated and evaluated as a portfolio?
+
+### Planned Scope
+
+- correlation between strategies,
+- capital allocation,
+- portfolio drawdown,
+- risk contribution,
+- diversification,
+- turnover,
+- capacity,
+- portfolio robustness,
+- execution constraints,
+- strategy replacement and deactivation rules.
+
+### Planned Workflow
 
 ```text
-RobustnessExperimentSpec (kinds + thresholds)
-  → run_robustness_experiment / run_*_experiment
-       batch Strategy Research child runs + resume registry
-  → analyze_*_experiment (read-only per kind)
-  → analyze_robustness_experiment → PASS / CONDITIONAL / FAIL verdict
-  → render_robustness_report → standalone HTML dashboard
+Persisted Strategy Results
+  → Temporal Alignment
+  → Portfolio Composition
+  → Allocation Rules
+  → Portfolio Simulation
+  → Portfolio Analytics
 ```
 
-**Experiment kinds (MVP):** parameter sweep, walk-forward, stress test, Monte Carlo, statistical
-diagnostics.
+### Expected Outputs
 
-**CLIs:** `scripts/robustness_research/` (`run_*`, `analyze_*`, `render_robustness_report.py`).
-
-**Demo:** `scripts/demo/run_robustness_demo.py` → `demo/output/07_robustness_dashboard.html`.
-
-Detail: [DATA_WORKFLOWS §3.14](DATA_WORKFLOWS.md#314-robustness-research-sprint-016--phase-7).
-
-**Boundary:** stress and Monte Carlo operate on persisted **trades**; analytics never re-simulates
-(ADR-0019).
+- portfolio equity curve,
+- strategy contribution,
+- risk contribution,
+- allocation history,
+- portfolio drawdown,
+- diversification metrics,
+- portfolio-level robustness diagnostics.
 
 ---
 
-## 7. Showcase bundles (offline HTML)
+## 9. Choosing a Methodology
 
-| Script | Artifact | Workflows demonstrated |
-|--------|----------|------------------------|
-| `scripts/demo/run_portfolio_demo.py` | `demo/output/index.html` | Strategy dashboard, Signal analytics spikes, model/occurrence/MTF inspection |
-| `scripts/demo/run_model_research_nq_demo.py` | `08_model_research_nq_half_year.html` | Model Research Methodology — 3 scopes |
-| `scripts/demo/run_robustness_demo.py` | `07_robustness_dashboard.html` | Robustness Research verdict dashboard |
 
-Portfolio guide: [scripts/demo/README.md](../../scripts/demo/README.md).
+| Research need                            | Recommended methodology                |
+| ---------------------------------------- | -------------------------------------- |
+| Validate a component or market state     | Signal Research                        |
+| Measure forward market behaviour         | Signal Research                        |
+| Run a documented model study             | Model Research Methodology             |
+| Compare a bounded set of model variants  | Model Research Methodology             |
+| Measure trades, equity and PnL behaviour | Strategy Research                      |
+| Validate parameter stability             | Robustness Research                    |
+| Test sensitivity to costs and slippage   | Robustness Research                    |
+| Evaluate regime dependence               | Signal Research or Robustness Research |
+| Combine multiple strategies              | Portfolio Research                     |
+| Apply selected logic to live data        | Execution workflow, not research       |
+
 
 ---
 
-## 8. Choosing a methodology
+## 10. Optional Research Progression
 
-| If you need to… | Use |
-|-----------------|-----|
-| Validate a component or indicator in isolation | Market Analysis + inspection spikes |
-| Test whether a signal predicts forward returns | Signal Research or Model Research Methodology |
-| Document a reproducible study with quality flags and HTML report | Model Research Methodology |
-| Compare a small manual list of model variants (bounded) | `run_signal_research_family` |
-| Measure simulated PnL, drawdown, trade count | Strategy Research |
-| Stress-test survivability across parameters and regimes | Robustness Research |
-| Import or materialize data | Market Data workflows (not research) |
-
-**Typical progression (optional, not enforced):**
+A common research progression is:
 
 ```text
-Market Data ready
-  → Model Research (edge discovery)
-  → Strategy Research (PnL simulation)
-  → Robustness Research (validation)
+Component or Model Research
+  → Strategy Research
+  → Robustness Research
+  → Portfolio Research
 ```
+
+This progression is optional.
+
+Each workflow may be used independently when the research question requires it.
+
+Examples:
+
+- a component may be studied without ever becoming part of a strategy,
+- a strategy may be simulated directly from an existing model definition,
+- a robustness experiment may be rerun against an already persisted strategy family,
+- portfolio research may compare strategies created through different research paths.
 
 ---
 
-## 9. Persistence layout (research runs)
+## 11. Research Artifacts
+
+Research outputs are persisted as structured artifacts.
+
+
+| Artifact            | Purpose                                         |
+| ------------------- | ----------------------------------------------- |
+| Run manifest        | Records inputs, definitions and assumptions     |
+| Research facts      | Stores observations, outcomes or trades         |
+| Analytics           | Stores derived summaries and diagnostics        |
+| Report              | Presents persisted results                      |
+| Experiment manifest | Groups related runs                             |
+| Child-run registry  | Links experiment variants to their outputs      |
+| Quality diagnostics | Records warnings and methodological limitations |
+
+
+Core rule:
+
+> Reports are disposable views. Persisted facts and manifests are the research record.
+
+---
+
+## 12. Quality and Anti-Overfitting Principles
+
+### Predefined Hypotheses
+
+The research question and primary metrics should be defined before inspecting results whenever possible.
+
+### Bounded Search Space
+
+Model variants and parameter ranges should be explicitly limited.
+
+Unbounded search increases the probability of finding accidental patterns.
+
+### Baseline Comparison
+
+Results should be compared against an appropriate baseline, such as:
+
+- unconditional market behaviour,
+- signal-only behaviour,
+- model-inactive periods,
+- a simpler model,
+- a previous stable strategy.
+
+### Temporal Validation
+
+Prefer:
+
+- chronological splits,
+- walk-forward evaluation,
+- rolling windows,
+- out-of-sample periods.
+
+Avoid random shuffling when temporal dependence matters.
+
+### Multiple Testing
+
+When many variants are evaluated, reported conclusions should account for the increased probability of false discoveries.
+
+### Sample Size and Concentration
+
+Metrics should be interpreted together with:
+
+- observation count,
+- trade count,
+- period concentration,
+- regime concentration,
+- distribution of outcomes.
+
+### Sensitivity Analysis
+
+A credible result should not depend on:
+
+- one exact parameter,
+- one narrow time range,
+- one unrealistic execution assumption,
+- one small group of trades.
+
+### Negative Results
+
+Negative and inconclusive studies should remain part of the research record.
+
+This reduces repeated testing of failed ideas and limits hindsight bias.
+
+---
+
+## 13. Relationship to Execution
+
+Research and execution are separate capabilities.
 
 ```text
-{storage_root}/
-  {run_id}/                          # Signal Research run (top-level)
-    manifest.json
-    *.parquet
-    analytics/summary.json           # optional cached analytics (Phase 5B)
-    report/report.html               # optional in-run report path
-  strategy_research/{run_id}/
-    manifest.json, trades.parquet, equity.parquet
-  robustness_experiments/{experiment_id}/
-    manifest.json, child run registry, per-kind artifacts
-  signal_research_experiments/{experiment_id}/   # model family experiments
+Research
+    evaluates hypotheses and persists evidence
+
+Execution
+    applies selected definitions to live data
 ```
 
-`user_data/` is runtime-only and never imported from `src/`.
+They may share:
+
+- Market Models,
+- Signal Models,
+- strategy definitions,
+- domain contracts.
+
+They do not share workflow state.
+
+Core rules:
+
+- Execution does not depend on research run artifacts.
+- Research results are not automatically promoted to execution.
+- Promotion to execution should be an explicit decision.
+- Live execution should use the same domain definitions where appropriate.
+- Execution-specific safety and risk controls remain independent from research.
 
 ---
 
-## 10. Quick entry-point index
+## 14. Methodology Boundaries
 
-| Methodology | Application module | Key functions |
-|-------------|-------------------|---------------|
-| Market Analysis | `application.market_analysis` | `load_analysis_data_view`, `run_analysis` |
-| Model evaluation | `application.model_evaluation` | `evaluate_models` |
-| Signal Research | `application.signal_research` | `run_signal_research`, `analyze_signal_research_run` |
-| Model Research | `application.signal_research` + `research/signal_research` | `resolve_signal_research_definition`, `render_signal_research_report` |
-| Strategy Research | `application.strategy_research` | `run_strategy_research`, `build_strategy_dashboard_view_model` |
-| Robustness Research | `application.robustness_research` | `run_robustness_experiment`, `analyze_robustness_experiment` |
 
-Full package map: [MODULE_MAP.md](MODULE_MAP.md).
+| Capability                 | Research methodology? | Reason                                |
+| -------------------------- | --------------------- | ------------------------------------- |
+| Market Data ingestion      | No                    | Produces research inputs              |
+| Market Analysis            | No                    | Provides reusable compute foundations |
+| Signal Research            | Yes                   | Studies forward behaviour             |
+| Model Research Methodology | Yes                   | Defines a controlled study protocol   |
+| Strategy Research          | Yes                   | Studies complete simulated strategies |
+| Robustness Research        | Yes                   | Evaluates credibility and stability   |
+| Portfolio Research         | Planned               | Studies strategy combinations         |
+| Live Execution             | No                    | Applies selected logic operationally  |
+| Visualization              | No                    | Presents persisted results            |
+
 
 ---
 
-## Maintenance
+## 15. References
 
-Update this document when:
+Use the following documents for deeper context:
 
-- a new research methodology or phase is merged,
-- public workflow contracts (definition spec, envelope schema, CLI trio) change,
-- showcase demos or reference timings change materially.
+- `README.md` — project overview,
+- `ARCHITECTURE_AND_WORKFLOWS.md` — architectural modules and workflows,
+- `MODULE_MAP.md` — mapping from workflows to source-code packages,
+- Architecture Decision Records,
+- module-specific reference documents,
+- execution and deployment runbooks.
 
-After sprint closure waves: sync [CURRENT_STATUS.md](../planning/CURRENT_STATUS.md) and the sprint doc in
-`docs/planning/sprints/`.
+### Reference Research Reports
+
+The following standalone HTML reports are generated from persisted research artifacts.
+
+They are read-only views and do not rerun model evaluation, simulation or robustness experiments.
+
+
+| Methodology             | Report                                                                    | Purpose                                                                              |
+| ----------------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| Combined Model Research | [Market × Signal report](combined_model_research.html )                 | Forward-outcome analysis for a signal conditioned by market context                  |
+| Strategy Research       | [Strategy Research dashboard](strategy_dashboard_nq_half_year.html )    | Trade ledger, equity, drawdown and strategy performance analysis                     |
+| Robustness Research     | [Robustness dashboard](robustness_dashboard.html )                      | Parameter sensitivity, walk-forward, stress, Monte Carlo and statistical diagnostics |
+
+
+These reports illustrate the output of the corresponding methodologies. They should be interpreted together with the recorded dataset, model definitions, assumptions, sample size and quality diagnostics.

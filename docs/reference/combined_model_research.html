@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Signal Research — 1a30510fd27a76a2</title>
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      line-height: 1.45;
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --muted: #475569;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .container {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 1.5rem 1.25rem 2.5rem;
+    }
+
+    header {
+      margin-bottom: 1.25rem;
+    }
+
+    header h1 {
+      margin: 0 0 0.35rem;
+      font-size: 1.55rem;
+    }
+
+    header .meta {
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    section {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem 1.1rem;
+      margin-bottom: 1rem;
+    }
+
+    section h2 {
+      margin: 0 0 0.75rem;
+      font-size: 1.05rem;
+    }
+
+    section p.note {
+      margin: 0 0 0.75rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 0.75rem;
+    }
+
+    .kpi-card {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.8rem 0.9rem;
+      background: #f8fafc;
+    }
+
+    .kpi-card .label {
+      color: var(--muted);
+      font-size: 0.82rem;
+      margin-bottom: 0.2rem;
+    }
+
+    .kpi-card .value {
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+
+    .kpi-card .sample {
+      color: var(--muted);
+      font-size: 0.78rem;
+      margin-top: 0.25rem;
+    }
+
+    table.data {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+    }
+
+    table.data th,
+    table.data td {
+      border: 1px solid var(--border);
+      padding: 0.45rem 0.55rem;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    table.data th {
+      background: #f1f5f9;
+      font-weight: 600;
+    }
+
+    table.data td.num {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    table.data tr.ineligible td {
+      color: #94a3b8;
+    }
+
+    .chart-block {
+      margin-top: 0.75rem;
+    }
+
+    .warning {
+      background: #fff7ed;
+      border: 1px solid #fdba74;
+      border-radius: 8px;
+      padding: 0.75rem 0.9rem;
+      margin-bottom: 0.75rem;
+      color: #9a3412;
+    }
+
+    .warning strong {
+      display: block;
+      margin-bottom: 0.25rem;
+    }
+
+    .caution {
+      background: #eff6ff;
+      border: 1px solid #93c5fd;
+      border-radius: 8px;
+      padding: 0.75rem 0.9rem;
+      margin-bottom: 0.75rem;
+      color: #1e3a8a;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <header>
+      <h1>Signal Research Report</h1>
+      <div class='meta'>Run: <strong>1a30510fd27a76a2</strong> · Scope: <strong>market_and_signal</strong> · Generated:
+        <strong>2026-07-15T12:06:28.880260+00:00</strong><br>Dataset:
+        <strong>NQ.c.0|ohlcv|1m|derived|volume-rth-close@1</strong> · Evaluation timeframe: <strong>1m</strong> ·
+        Outcome filter: <strong>complete</strong><br>Market models: <strong>high_volatility</strong> · Signal models:
+        <strong>higher_low_long</strong><br>Research id: <strong>nq_demo_market_and_signal</strong> · Definition hash:
+        <strong>be7658bc3c14be4630b9f48f624e2be2826e64452012f787eab9825e7202bcce</strong><br>Research question: Does
+        higher-low structure show repeatable forward returns when filtered by high volatility?</div>
+      <p class='note'>Direction-adjusted forward return: favourable outcomes are positive for the signal direction (long
+        and short supported). Reference price policy: close_at_detected_at. Outcome window spans forward evaluation bars
+        from the bar after available_at. MFE and MAE use intrawindow high/low versus the reference price. Hit rate is
+        the share of complete outcomes with positive direction-adjusted forward return.</p>
+    </header>
+    <section id='kpi-cards'>
+      <h2>Key metrics</h2>
+      <div class='kpi-grid'>
+        <div class='kpi-card'>
+          <div class='label'>Sample size</div>
+          <div class='value'>5,493</div>
+          <div class='sample'>n=5,493 complete / 5,493 total</div>
+        </div>
+        <div class='kpi-card'>
+          <div class='label'>Mean return</div>
+          <div class='value'>-0.05 bps (-0.0005%)</div>
+          <div class='sample'>n=5,493 complete / 5,493 total</div>
+        </div>
+        <div class='kpi-card'>
+          <div class='label'>Median return</div>
+          <div class='value'>+0.10 bps (+0.0010%)</div>
+          <div class='sample'>n=5,493 complete / 5,493 total</div>
+        </div>
+        <div class='kpi-card'>
+          <div class='label'>Hit rate</div>
+          <div class='value'>50.1%</div>
+          <div class='sample'>n=5,493 complete / 5,493 total</div>
+        </div>
+        <div class='kpi-card'>
+          <div class='label'>Median MFE</div>
+          <div class='value'>+1.92 bps (+0.0192%)</div>
+          <div class='sample'>n=5,493 complete / 5,493 total</div>
+        </div>
+        <div class='kpi-card'>
+          <div class='label'>Median MAE</div>
+          <div class='value'>-1.89 bps (-0.0189%)</div>
+          <div class='sample'>n=5,493 complete / 5,493 total</div>
+        </div>
+        <div class='kpi-card'>
+          <div class='label'>Sample retention</div>
+          <div class='value'>50.7%</div>
+          <div class='sample'>2,783 conditioned / 5,493 signal</div>
+        </div>
+      </div>
+    </section>
+    <section id='metrics-by-horizon'>
+      <h2>Metrics by horizon</h2>
+      <p class='note'>Every aggregate is shown with its eligible complete sample size.</p>
+      <table class='data'>
+        <thead>
+          <tr>
+            <th>Horizon</th>
+            <th>Sample</th>
+            <th>Mean</th>
+            <th>Median</th>
+            <th>Hit rate</th>
+            <th>MFE</th>
+            <th>MAE</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class='num'>5</td>
+            <td class='num'>5,493</td>
+            <td class='num'>-0.05 bps (-0.0005%)</td>
+            <td class='num'>+0.10 bps (+0.0010%)</td>
+            <td class='num'>50.1%</td>
+            <td class='num'>+2.91 bps (+0.0291%)</td>
+            <td class='num'>-3.02 bps (-0.0302%)</td>
+          </tr>
+          <tr>
+            <td class='num'>15</td>
+            <td class='num'>5,493</td>
+            <td class='num'>-0.06 bps (-0.0006%)</td>
+            <td class='num'>+0.10 bps (+0.0010%)</td>
+            <td class='num'>50.7%</td>
+            <td class='num'>+5.10 bps (+0.0510%)</td>
+            <td class='num'>-5.39 bps (-0.0539%)</td>
+          </tr>
+          <tr>
+            <td class='num'>30</td>
+            <td class='num'>5,493</td>
+            <td class='num'>+0.12 bps (+0.0012%)</td>
+            <td class='num'>+0.32 bps (+0.0032%)</td>
+            <td class='num'>52.0%</td>
+            <td class='num'>+7.35 bps (+0.0735%)</td>
+            <td class='num'>-7.75 bps (-0.0775%)</td>
+          </tr>
+          <tr>
+            <td class='num'>60</td>
+            <td class='num'>5,489</td>
+            <td class='num'>+0.52 bps (+0.0052%)</td>
+            <td class='num'>+1.05 bps (+0.0105%)</td>
+            <td class='num'>54.2%</td>
+            <td class='num'>+10.68 bps (+0.1068%)</td>
+            <td class='num'>-11.18 bps (-0.1118%)</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class='chart-block'>
+        <div style="height:380px; width:100%;">
+          <div id="2c2b302a-1414-4fc1-ab21-f3b51ce0da92" class="plotly-graph-div" style="height:100%; width:100%;">
+          </div>
+          <script>                window.PLOTLYENV = window.PLOTLYENV || {}; if (document.getElementById("2c2b302a-1414-4fc1-ab21-f3b51ce0da92")) { Plotly.newPlot("2c2b302a-1414-4fc1-ab21-f3b51ce0da92", [{ "marker": { "color": "#2563eb" }, "name": "Mean", "text": ["-0.05 bps", "-0.06 bps", "+0.12 bps", "+0.52 bps"], "textposition": "outside", "x": ["H=5\u003cbr\u003e\u003cspan style='font-size:11px;color:#64748b'\u003en=5493\u002f5493\u003c\u002fspan\u003e", "H=15\u003cbr\u003e\u003cspan style='font-size:11px;color:#64748b'\u003en=5493\u002f5493\u003c\u002fspan\u003e", "H=30\u003cbr\u003e\u003cspan style='font-size:11px;color:#64748b'\u003en=5493\u002f5493\u003c\u002fspan\u003e", "H=60\u003cbr\u003e\u003cspan style='font-size:11px;color:#64748b'\u003en=5489\u002f5493\u003c\u002fspan\u003e"], "y": [-5.06773733206055e-06, -6.3113052652656515e-06, 1.1827738512866379e-05, 5.183425172097492e-05], "type": "bar" }, { "marker": { "color": "#7c3aed" }, "name": "Median", "text": ["+0.10 bps", "+0.10 bps", "+0.32 bps", "+1.05 bps"], "textposition": "outside", "x": ["H=5\u003cbr\u003e\u003cspan style='font-size:11px;color:#64748b'\u003en=5493\u002f5493\u003c\u002fspan\u003e", "H=15\u003cbr\u003e\u003cspan style='font-size:11px;color:#64748b'\u003en=5493\u002f5493\u003c\u002fspan\u003e", "H=30\u003cbr\u003e\u003cspan style='font-size:11px;color:#64748b'\u003en=5493\u002f5493\u003c\u002fspan\u003e", "H=60\u003cbr\u003e\u003cspan style='font-size:11px;color:#64748b'\u003en=5489\u002f5493\u003c\u002fspan\u003e"], "y": [9.658476278762151e-06, 1.0287430816990906e-05, 3.244330532403694e-05, 0.00010511931041734535], "type": "bar" }], { "template": { "data": { "histogram2dcontour": [{ "type": "histogram2dcontour", "colorbar": { "outlinewidth": 0, "ticks": "" }, "colorscale": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]] }], "choropleth": [{ "type": "choropleth", "colorbar": { "outlinewidth": 0, "ticks": "" } }], "histogram2d": [{ "type": "histogram2d", "colorbar": { "outlinewidth": 0, "ticks": "" }, "colorscale": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]] }], "heatmap": [{ "type": "heatmap", "colorbar": { "outlinewidth": 0, "ticks": "" }, "colorscale": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]] }], "contourcarpet": [{ "type": "contourcarpet", "colorbar": { "outlinewidth": 0, "ticks": "" } }], "contour": [{ "type": "contour", "colorbar": { "outlinewidth": 0, "ticks": "" }, "colorscale": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]] }], "surface": [{ "type": "surface", "colorbar": { "outlinewidth": 0, "ticks": "" }, "colorscale": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]] }], "mesh3d": [{ "type": "mesh3d", "colorbar": { "outlinewidth": 0, "ticks": "" } }], "scatter": [{ "fillpattern": { "fillmode": "overlay", "size": 10, "solidity": 0.2 }, "type": "scatter" }], "parcoords": [{ "type": "parcoords", "line": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "scatterpolargl": [{ "type": "scatterpolargl", "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "bar": [{ "error_x": { "color": "#2a3f5f" }, "error_y": { "color": "#2a3f5f" }, "marker": { "line": { "color": "#E5ECF6", "width": 0.5 }, "pattern": { "fillmode": "overlay", "size": 10, "solidity": 0.2 } }, "type": "bar" }], "scattergeo": [{ "type": "scattergeo", "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "scatterpolar": [{ "type": "scatterpolar", "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "histogram": [{ "marker": { "pattern": { "fillmode": "overlay", "size": 10, "solidity": 0.2 } }, "type": "histogram" }], "scattergl": [{ "type": "scattergl", "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "scatter3d": [{ "type": "scatter3d", "line": { "colorbar": { "outlinewidth": 0, "ticks": "" } }, "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "scattermap": [{ "type": "scattermap", "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "scattermapbox": [{ "type": "scattermapbox", "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "scatterternary": [{ "type": "scatterternary", "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "scattercarpet": [{ "type": "scattercarpet", "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "carpet": [{ "aaxis": { "endlinecolor": "#2a3f5f", "gridcolor": "white", "linecolor": "white", "minorgridcolor": "white", "startlinecolor": "#2a3f5f" }, "baxis": { "endlinecolor": "#2a3f5f", "gridcolor": "white", "linecolor": "white", "minorgridcolor": "white", "startlinecolor": "#2a3f5f" }, "type": "carpet" }], "table": [{ "cells": { "fill": { "color": "#EBF0F8" }, "line": { "color": "white" } }, "header": { "fill": { "color": "#C8D4E3" }, "line": { "color": "white" } }, "type": "table" }], "barpolar": [{ "marker": { "line": { "color": "#E5ECF6", "width": 0.5 }, "pattern": { "fillmode": "overlay", "size": 10, "solidity": 0.2 } }, "type": "barpolar" }], "pie": [{ "automargin": true, "type": "pie" }] }, "layout": { "autotypenumbers": "strict", "colorway": ["#636efa", "#EF553B", "#00cc96", "#ab63fa", "#FFA15A", "#19d3f3", "#FF6692", "#B6E880", "#FF97FF", "#FECB52"], "font": { "color": "#2a3f5f" }, "hovermode": "closest", "hoverlabel": { "align": "left" }, "paper_bgcolor": "white", "plot_bgcolor": "#E5ECF6", "polar": { "bgcolor": "#E5ECF6", "angularaxis": { "gridcolor": "white", "linecolor": "white", "ticks": "" }, "radialaxis": { "gridcolor": "white", "linecolor": "white", "ticks": "" } }, "ternary": { "bgcolor": "#E5ECF6", "aaxis": { "gridcolor": "white", "linecolor": "white", "ticks": "" }, "baxis": { "gridcolor": "white", "linecolor": "white", "ticks": "" }, "caxis": { "gridcolor": "white", "linecolor": "white", "ticks": "" } }, "coloraxis": { "colorbar": { "outlinewidth": 0, "ticks": "" } }, "colorscale": { "sequential": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]], "sequentialminus": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]], "diverging": [[0, "#8e0152"], [0.1, "#c51b7d"], [0.2, "#de77ae"], [0.3, "#f1b6da"], [0.4, "#fde0ef"], [0.5, "#f7f7f7"], [0.6, "#e6f5d0"], [0.7, "#b8e186"], [0.8, "#7fbc41"], [0.9, "#4d9221"], [1, "#276419"]] }, "xaxis": { "gridcolor": "white", "linecolor": "white", "ticks": "", "title": { "standoff": 15 }, "zerolinecolor": "white", "automargin": true, "zerolinewidth": 2 }, "yaxis": { "gridcolor": "white", "linecolor": "white", "ticks": "", "title": { "standoff": 15 }, "zerolinecolor": "white", "automargin": true, "zerolinewidth": 2 }, "scene": { "xaxis": { "backgroundcolor": "#E5ECF6", "gridcolor": "white", "linecolor": "white", "showbackground": true, "ticks": "", "zerolinecolor": "white", "gridwidth": 2 }, "yaxis": { "backgroundcolor": "#E5ECF6", "gridcolor": "white", "linecolor": "white", "showbackground": true, "ticks": "", "zerolinecolor": "white", "gridwidth": 2 }, "zaxis": { "backgroundcolor": "#E5ECF6", "gridcolor": "white", "linecolor": "white", "showbackground": true, "ticks": "", "zerolinecolor": "white", "gridwidth": 2 } }, "shapedefaults": { "line": { "color": "#2a3f5f" } }, "annotationdefaults": { "arrowcolor": "#2a3f5f", "arrowhead": 0, "arrowwidth": 1 }, "geo": { "bgcolor": "white", "landcolor": "#E5ECF6", "subunitcolor": "white", "showland": true, "showlakes": true, "lakecolor": "white" }, "title": { "x": 0.05 }, "mapbox": { "style": "light" } } }, "margin": { "t": 40, "b": 40 }, "yaxis": { "title": { "text": "Return" }, "tickformat": ".3%" }, "legend": { "title": { "text": "" } }, "barmode": "group", "height": 380 }, { "responsive": true }) };            </script>
+        </div>
+      </div>
+    </section>
+    <section id='histogram-forward_return'>
+      <h2>Forward return histogram</h2>
+      <p class='note'>Primary horizon: 5 evaluation bars (1m each). Dashed line = mean, dotted line = median, zero
+        reference implicit at bin scale.</p>
+      <div class='chart-block'>
+        <div style="height:360px; width:100%;">
+          <div id="13bc76b7-d731-44d4-b11c-2ddbaf86e166" class="plotly-graph-div" style="height:100%; width:100%;">
+          </div>
+          <script>                window.PLOTLYENV = window.PLOTLYENV || {}; if (document.getElementById("13bc76b7-d731-44d4-b11c-2ddbaf86e166")) { Plotly.newPlot("13bc76b7-d731-44d4-b11c-2ddbaf86e166", [{ "hovertemplate": "%{x}\u003cbr\u003ecount=%{y}\u003cextra\u003e\u003c\u002fextra\u003e", "marker": { "color": "#0f766e" }, "x": ["-0.0049..-0.0044", "-0.0038..-0.0033", "-0.0033..-0.0028", "-0.0028..-0.0022", "-0.0022..-0.0017", "-0.0017..-0.0011", "-0.0011..-0.0006", "-0.0006..-0.0001", "-0.0001..0.0005", "0.0005..0.0010", "0.0010..0.0015", "0.0015..0.0021", "0.0021..0.0026", "0.0026..0.0032", "0.0032..0.0037", "0.0048..0.0053", "0.0053..0.0059"], "y": [1, 2, 4, 9, 17, 62, 236, 1804, 2912, 352, 60, 19, 9, 2, 2, 1, 1], "type": "bar" }], { "template": { "data": { "histogram2dcontour": [{ "type": "histogram2dcontour", "colorbar": { "outlinewidth": 0, "ticks": "" }, "colorscale": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]] }], "choropleth": [{ "type": "choropleth", "colorbar": { "outlinewidth": 0, "ticks": "" } }], "histogram2d": [{ "type": "histogram2d", "colorbar": { "outlinewidth": 0, "ticks": "" }, "colorscale": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]] }], "heatmap": [{ "type": "heatmap", "colorbar": { "outlinewidth": 0, "ticks": "" }, "colorscale": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]] }], "contourcarpet": [{ "type": "contourcarpet", "colorbar": { "outlinewidth": 0, "ticks": "" } }], "contour": [{ "type": "contour", "colorbar": { "outlinewidth": 0, "ticks": "" }, "colorscale": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]] }], "surface": [{ "type": "surface", "colorbar": { "outlinewidth": 0, "ticks": "" }, "colorscale": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]] }], "mesh3d": [{ "type": "mesh3d", "colorbar": { "outlinewidth": 0, "ticks": "" } }], "scatter": [{ "fillpattern": { "fillmode": "overlay", "size": 10, "solidity": 0.2 }, "type": "scatter" }], "parcoords": [{ "type": "parcoords", "line": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "scatterpolargl": [{ "type": "scatterpolargl", "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "bar": [{ "error_x": { "color": "#2a3f5f" }, "error_y": { "color": "#2a3f5f" }, "marker": { "line": { "color": "#E5ECF6", "width": 0.5 }, "pattern": { "fillmode": "overlay", "size": 10, "solidity": 0.2 } }, "type": "bar" }], "scattergeo": [{ "type": "scattergeo", "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "scatterpolar": [{ "type": "scatterpolar", "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "histogram": [{ "marker": { "pattern": { "fillmode": "overlay", "size": 10, "solidity": 0.2 } }, "type": "histogram" }], "scattergl": [{ "type": "scattergl", "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "scatter3d": [{ "type": "scatter3d", "line": { "colorbar": { "outlinewidth": 0, "ticks": "" } }, "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "scattermap": [{ "type": "scattermap", "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "scattermapbox": [{ "type": "scattermapbox", "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "scatterternary": [{ "type": "scatterternary", "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "scattercarpet": [{ "type": "scattercarpet", "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "carpet": [{ "aaxis": { "endlinecolor": "#2a3f5f", "gridcolor": "white", "linecolor": "white", "minorgridcolor": "white", "startlinecolor": "#2a3f5f" }, "baxis": { "endlinecolor": "#2a3f5f", "gridcolor": "white", "linecolor": "white", "minorgridcolor": "white", "startlinecolor": "#2a3f5f" }, "type": "carpet" }], "table": [{ "cells": { "fill": { "color": "#EBF0F8" }, "line": { "color": "white" } }, "header": { "fill": { "color": "#C8D4E3" }, "line": { "color": "white" } }, "type": "table" }], "barpolar": [{ "marker": { "line": { "color": "#E5ECF6", "width": 0.5 }, "pattern": { "fillmode": "overlay", "size": 10, "solidity": 0.2 } }, "type": "barpolar" }], "pie": [{ "automargin": true, "type": "pie" }] }, "layout": { "autotypenumbers": "strict", "colorway": ["#636efa", "#EF553B", "#00cc96", "#ab63fa", "#FFA15A", "#19d3f3", "#FF6692", "#B6E880", "#FF97FF", "#FECB52"], "font": { "color": "#2a3f5f" }, "hovermode": "closest", "hoverlabel": { "align": "left" }, "paper_bgcolor": "white", "plot_bgcolor": "#E5ECF6", "polar": { "bgcolor": "#E5ECF6", "angularaxis": { "gridcolor": "white", "linecolor": "white", "ticks": "" }, "radialaxis": { "gridcolor": "white", "linecolor": "white", "ticks": "" } }, "ternary": { "bgcolor": "#E5ECF6", "aaxis": { "gridcolor": "white", "linecolor": "white", "ticks": "" }, "baxis": { "gridcolor": "white", "linecolor": "white", "ticks": "" }, "caxis": { "gridcolor": "white", "linecolor": "white", "ticks": "" } }, "coloraxis": { "colorbar": { "outlinewidth": 0, "ticks": "" } }, "colorscale": { "sequential": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]], "sequentialminus": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]], "diverging": [[0, "#8e0152"], [0.1, "#c51b7d"], [0.2, "#de77ae"], [0.3, "#f1b6da"], [0.4, "#fde0ef"], [0.5, "#f7f7f7"], [0.6, "#e6f5d0"], [0.7, "#b8e186"], [0.8, "#7fbc41"], [0.9, "#4d9221"], [1, "#276419"]] }, "xaxis": { "gridcolor": "white", "linecolor": "white", "ticks": "", "title": { "standoff": 15 }, "zerolinecolor": "white", "automargin": true, "zerolinewidth": 2 }, "yaxis": { "gridcolor": "white", "linecolor": "white", "ticks": "", "title": { "standoff": 15 }, "zerolinecolor": "white", "automargin": true, "zerolinewidth": 2 }, "scene": { "xaxis": { "backgroundcolor": "#E5ECF6", "gridcolor": "white", "linecolor": "white", "showbackground": true, "ticks": "", "zerolinecolor": "white", "gridwidth": 2 }, "yaxis": { "backgroundcolor": "#E5ECF6", "gridcolor": "white", "linecolor": "white", "showbackground": true, "ticks": "", "zerolinecolor": "white", "gridwidth": 2 }, "zaxis": { "backgroundcolor": "#E5ECF6", "gridcolor": "white", "linecolor": "white", "showbackground": true, "ticks": "", "zerolinecolor": "white", "gridwidth": 2 } }, "shapedefaults": { "line": { "color": "#2a3f5f" } }, "annotationdefaults": { "arrowcolor": "#2a3f5f", "arrowhead": 0, "arrowwidth": 1 }, "geo": { "bgcolor": "white", "landcolor": "#E5ECF6", "subunitcolor": "white", "showland": true, "showlakes": true, "lakecolor": "white" }, "title": { "x": 0.05 }, "mapbox": { "style": "light" } } }, "margin": { "t": 30, "b": 80 }, "height": 360, "xaxis": { "title": { "text": "Bin range" } }, "yaxis": { "title": { "text": "Count" } }, "shapes": [{ "line": { "color": "#2563eb", "dash": "dash" }, "type": "line", "x0": -5.06773733206055e-06, "x1": -5.06773733206055e-06, "xref": "x", "y0": 0, "y1": 1, "yref": "paper" }, { "line": { "color": "#7c3aed", "dash": "dot" }, "type": "line", "x0": 9.658476278762151e-06, "x1": 9.658476278762151e-06, "xref": "x", "y0": 0, "y1": 1, "yref": "paper" }], "title": { "text": "Forward Return distribution" }, "annotations": [{ "align": "right", "font": { "color": "#475569", "size": 11 }, "showarrow": false, "text": "Mean: -0.05 bps (-0.0005%)\u003cbr\u003eMedian: +0.10 bps (+0.0010%)", "x": 1.0, "xref": "paper", "y": 1.12, "yref": "paper" }] }, { "responsive": true }) };            </script>
+        </div>
+      </div>
+    </section>
+    <section id='histogram-mfe'>
+      <h2>MFE distribution</h2>
+      <p class='note'>Primary horizon: 5 evaluation bars (1m each). Dashed line = mean, dotted line = median, zero
+        reference implicit at bin scale.</p>
+      <div class='chart-block'>
+        <div style="height:360px; width:100%;">
+          <div id="5d8347fb-b9e2-4853-a571-1c851ae5a844" class="plotly-graph-div" style="height:100%; width:100%;">
+          </div>
+          <script>                window.PLOTLYENV = window.PLOTLYENV || {}; if (document.getElementById("5d8347fb-b9e2-4853-a571-1c851ae5a844")) { Plotly.newPlot("5d8347fb-b9e2-4853-a571-1c851ae5a844", [{ "hovertemplate": "%{x}\u003cbr\u003ecount=%{y}\u003cextra\u003e\u003c\u002fextra\u003e", "marker": { "color": "#0f766e" }, "x": ["0.0000..0.0003", "0.0003..0.0006", "0.0006..0.0009", "0.0009..0.0012", "0.0012..0.0015", "0.0015..0.0018", "0.0018..0.0021", "0.0021..0.0024", "0.0024..0.0026", "0.0026..0.0029", "0.0029..0.0032", "0.0032..0.0035", "0.0038..0.0041", "0.0056..0.0059"], "y": [3645, 1166, 400, 162, 55, 26, 14, 6, 8, 3, 2, 2, 2, 2], "type": "bar" }], { "template": { "data": { "histogram2dcontour": [{ "type": "histogram2dcontour", "colorbar": { "outlinewidth": 0, "ticks": "" }, "colorscale": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]] }], "choropleth": [{ "type": "choropleth", "colorbar": { "outlinewidth": 0, "ticks": "" } }], "histogram2d": [{ "type": "histogram2d", "colorbar": { "outlinewidth": 0, "ticks": "" }, "colorscale": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]] }], "heatmap": [{ "type": "heatmap", "colorbar": { "outlinewidth": 0, "ticks": "" }, "colorscale": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]] }], "contourcarpet": [{ "type": "contourcarpet", "colorbar": { "outlinewidth": 0, "ticks": "" } }], "contour": [{ "type": "contour", "colorbar": { "outlinewidth": 0, "ticks": "" }, "colorscale": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]] }], "surface": [{ "type": "surface", "colorbar": { "outlinewidth": 0, "ticks": "" }, "colorscale": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]] }], "mesh3d": [{ "type": "mesh3d", "colorbar": { "outlinewidth": 0, "ticks": "" } }], "scatter": [{ "fillpattern": { "fillmode": "overlay", "size": 10, "solidity": 0.2 }, "type": "scatter" }], "parcoords": [{ "type": "parcoords", "line": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "scatterpolargl": [{ "type": "scatterpolargl", "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "bar": [{ "error_x": { "color": "#2a3f5f" }, "error_y": { "color": "#2a3f5f" }, "marker": { "line": { "color": "#E5ECF6", "width": 0.5 }, "pattern": { "fillmode": "overlay", "size": 10, "solidity": 0.2 } }, "type": "bar" }], "scattergeo": [{ "type": "scattergeo", "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "scatterpolar": [{ "type": "scatterpolar", "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "histogram": [{ "marker": { "pattern": { "fillmode": "overlay", "size": 10, "solidity": 0.2 } }, "type": "histogram" }], "scattergl": [{ "type": "scattergl", "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "scatter3d": [{ "type": "scatter3d", "line": { "colorbar": { "outlinewidth": 0, "ticks": "" } }, "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "scattermap": [{ "type": "scattermap", "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "scattermapbox": [{ "type": "scattermapbox", "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "scatterternary": [{ "type": "scatterternary", "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "scattercarpet": [{ "type": "scattercarpet", "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "carpet": [{ "aaxis": { "endlinecolor": "#2a3f5f", "gridcolor": "white", "linecolor": "white", "minorgridcolor": "white", "startlinecolor": "#2a3f5f" }, "baxis": { "endlinecolor": "#2a3f5f", "gridcolor": "white", "linecolor": "white", "minorgridcolor": "white", "startlinecolor": "#2a3f5f" }, "type": "carpet" }], "table": [{ "cells": { "fill": { "color": "#EBF0F8" }, "line": { "color": "white" } }, "header": { "fill": { "color": "#C8D4E3" }, "line": { "color": "white" } }, "type": "table" }], "barpolar": [{ "marker": { "line": { "color": "#E5ECF6", "width": 0.5 }, "pattern": { "fillmode": "overlay", "size": 10, "solidity": 0.2 } }, "type": "barpolar" }], "pie": [{ "automargin": true, "type": "pie" }] }, "layout": { "autotypenumbers": "strict", "colorway": ["#636efa", "#EF553B", "#00cc96", "#ab63fa", "#FFA15A", "#19d3f3", "#FF6692", "#B6E880", "#FF97FF", "#FECB52"], "font": { "color": "#2a3f5f" }, "hovermode": "closest", "hoverlabel": { "align": "left" }, "paper_bgcolor": "white", "plot_bgcolor": "#E5ECF6", "polar": { "bgcolor": "#E5ECF6", "angularaxis": { "gridcolor": "white", "linecolor": "white", "ticks": "" }, "radialaxis": { "gridcolor": "white", "linecolor": "white", "ticks": "" } }, "ternary": { "bgcolor": "#E5ECF6", "aaxis": { "gridcolor": "white", "linecolor": "white", "ticks": "" }, "baxis": { "gridcolor": "white", "linecolor": "white", "ticks": "" }, "caxis": { "gridcolor": "white", "linecolor": "white", "ticks": "" } }, "coloraxis": { "colorbar": { "outlinewidth": 0, "ticks": "" } }, "colorscale": { "sequential": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]], "sequentialminus": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]], "diverging": [[0, "#8e0152"], [0.1, "#c51b7d"], [0.2, "#de77ae"], [0.3, "#f1b6da"], [0.4, "#fde0ef"], [0.5, "#f7f7f7"], [0.6, "#e6f5d0"], [0.7, "#b8e186"], [0.8, "#7fbc41"], [0.9, "#4d9221"], [1, "#276419"]] }, "xaxis": { "gridcolor": "white", "linecolor": "white", "ticks": "", "title": { "standoff": 15 }, "zerolinecolor": "white", "automargin": true, "zerolinewidth": 2 }, "yaxis": { "gridcolor": "white", "linecolor": "white", "ticks": "", "title": { "standoff": 15 }, "zerolinecolor": "white", "automargin": true, "zerolinewidth": 2 }, "scene": { "xaxis": { "backgroundcolor": "#E5ECF6", "gridcolor": "white", "linecolor": "white", "showbackground": true, "ticks": "", "zerolinecolor": "white", "gridwidth": 2 }, "yaxis": { "backgroundcolor": "#E5ECF6", "gridcolor": "white", "linecolor": "white", "showbackground": true, "ticks": "", "zerolinecolor": "white", "gridwidth": 2 }, "zaxis": { "backgroundcolor": "#E5ECF6", "gridcolor": "white", "linecolor": "white", "showbackground": true, "ticks": "", "zerolinecolor": "white", "gridwidth": 2 } }, "shapedefaults": { "line": { "color": "#2a3f5f" } }, "annotationdefaults": { "arrowcolor": "#2a3f5f", "arrowhead": 0, "arrowwidth": 1 }, "geo": { "bgcolor": "white", "landcolor": "#E5ECF6", "subunitcolor": "white", "showland": true, "showlakes": true, "lakecolor": "white" }, "title": { "x": 0.05 }, "mapbox": { "style": "light" } } }, "margin": { "t": 30, "b": 80 }, "height": 360, "xaxis": { "title": { "text": "Bin range" } }, "yaxis": { "title": { "text": "Count" } }, "shapes": [{ "line": { "color": "#2563eb", "dash": "dash" }, "type": "line", "x0": 0.00029066738993831394, "x1": 0.00029066738993831394, "xref": "x", "y0": 0, "y1": 1, "yref": "paper" }, { "line": { "color": "#7c3aed", "dash": "dot" }, "type": "line", "x0": 0.00019156701820888244, "x1": 0.00019156701820888244, "xref": "x", "y0": 0, "y1": 1, "yref": "paper" }], "title": { "text": "Mfe distribution" }, "annotations": [{ "align": "right", "font": { "color": "#475569", "size": 11 }, "showarrow": false, "text": "Mean: +2.91 bps (+0.0291%)\u003cbr\u003eMedian: +1.92 bps (+0.0192%)", "x": 1.0, "xref": "paper", "y": 1.12, "yref": "paper" }] }, { "responsive": true }) };            </script>
+        </div>
+      </div>
+    </section>
+    <section id='histogram-mae'>
+      <h2>MAE distribution</h2>
+      <p class='note'>Primary horizon: 5 evaluation bars (1m each). Dashed line = mean, dotted line = median, zero
+        reference implicit at bin scale.</p>
+      <div class='chart-block'>
+        <div style="height:360px; width:100%;">
+          <div id="60898872-7938-4556-aa72-f455d70d3197" class="plotly-graph-div" style="height:100%; width:100%;">
+          </div>
+          <script>                window.PLOTLYENV = window.PLOTLYENV || {}; if (document.getElementById("60898872-7938-4556-aa72-f455d70d3197")) { Plotly.newPlot("60898872-7938-4556-aa72-f455d70d3197", [{ "hovertemplate": "%{x}\u003cbr\u003ecount=%{y}\u003cextra\u003e\u003c\u002fextra\u003e", "marker": { "color": "#0f766e" }, "x": ["-0.0056..-0.0053", "-0.0042..-0.0039", "-0.0039..-0.0036", "-0.0036..-0.0034", "-0.0034..-0.0031", "-0.0031..-0.0028", "-0.0028..-0.0025", "-0.0025..-0.0022", "-0.0022..-0.0020", "-0.0020..-0.0017", "-0.0017..-0.0014", "-0.0014..-0.0011", "-0.0011..-0.0008", "-0.0008..-0.0006", "-0.0006..-0.0003", "-0.0003..0.0000"], "y": [1, 2, 1, 1, 4, 5, 7, 9, 13, 22, 64, 81, 182, 366, 1240, 3495], "type": "bar" }], { "template": { "data": { "histogram2dcontour": [{ "type": "histogram2dcontour", "colorbar": { "outlinewidth": 0, "ticks": "" }, "colorscale": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]] }], "choropleth": [{ "type": "choropleth", "colorbar": { "outlinewidth": 0, "ticks": "" } }], "histogram2d": [{ "type": "histogram2d", "colorbar": { "outlinewidth": 0, "ticks": "" }, "colorscale": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]] }], "heatmap": [{ "type": "heatmap", "colorbar": { "outlinewidth": 0, "ticks": "" }, "colorscale": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]] }], "contourcarpet": [{ "type": "contourcarpet", "colorbar": { "outlinewidth": 0, "ticks": "" } }], "contour": [{ "type": "contour", "colorbar": { "outlinewidth": 0, "ticks": "" }, "colorscale": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]] }], "surface": [{ "type": "surface", "colorbar": { "outlinewidth": 0, "ticks": "" }, "colorscale": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]] }], "mesh3d": [{ "type": "mesh3d", "colorbar": { "outlinewidth": 0, "ticks": "" } }], "scatter": [{ "fillpattern": { "fillmode": "overlay", "size": 10, "solidity": 0.2 }, "type": "scatter" }], "parcoords": [{ "type": "parcoords", "line": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "scatterpolargl": [{ "type": "scatterpolargl", "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "bar": [{ "error_x": { "color": "#2a3f5f" }, "error_y": { "color": "#2a3f5f" }, "marker": { "line": { "color": "#E5ECF6", "width": 0.5 }, "pattern": { "fillmode": "overlay", "size": 10, "solidity": 0.2 } }, "type": "bar" }], "scattergeo": [{ "type": "scattergeo", "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "scatterpolar": [{ "type": "scatterpolar", "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "histogram": [{ "marker": { "pattern": { "fillmode": "overlay", "size": 10, "solidity": 0.2 } }, "type": "histogram" }], "scattergl": [{ "type": "scattergl", "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "scatter3d": [{ "type": "scatter3d", "line": { "colorbar": { "outlinewidth": 0, "ticks": "" } }, "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "scattermap": [{ "type": "scattermap", "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "scattermapbox": [{ "type": "scattermapbox", "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "scatterternary": [{ "type": "scatterternary", "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "scattercarpet": [{ "type": "scattercarpet", "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "carpet": [{ "aaxis": { "endlinecolor": "#2a3f5f", "gridcolor": "white", "linecolor": "white", "minorgridcolor": "white", "startlinecolor": "#2a3f5f" }, "baxis": { "endlinecolor": "#2a3f5f", "gridcolor": "white", "linecolor": "white", "minorgridcolor": "white", "startlinecolor": "#2a3f5f" }, "type": "carpet" }], "table": [{ "cells": { "fill": { "color": "#EBF0F8" }, "line": { "color": "white" } }, "header": { "fill": { "color": "#C8D4E3" }, "line": { "color": "white" } }, "type": "table" }], "barpolar": [{ "marker": { "line": { "color": "#E5ECF6", "width": 0.5 }, "pattern": { "fillmode": "overlay", "size": 10, "solidity": 0.2 } }, "type": "barpolar" }], "pie": [{ "automargin": true, "type": "pie" }] }, "layout": { "autotypenumbers": "strict", "colorway": ["#636efa", "#EF553B", "#00cc96", "#ab63fa", "#FFA15A", "#19d3f3", "#FF6692", "#B6E880", "#FF97FF", "#FECB52"], "font": { "color": "#2a3f5f" }, "hovermode": "closest", "hoverlabel": { "align": "left" }, "paper_bgcolor": "white", "plot_bgcolor": "#E5ECF6", "polar": { "bgcolor": "#E5ECF6", "angularaxis": { "gridcolor": "white", "linecolor": "white", "ticks": "" }, "radialaxis": { "gridcolor": "white", "linecolor": "white", "ticks": "" } }, "ternary": { "bgcolor": "#E5ECF6", "aaxis": { "gridcolor": "white", "linecolor": "white", "ticks": "" }, "baxis": { "gridcolor": "white", "linecolor": "white", "ticks": "" }, "caxis": { "gridcolor": "white", "linecolor": "white", "ticks": "" } }, "coloraxis": { "colorbar": { "outlinewidth": 0, "ticks": "" } }, "colorscale": { "sequential": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]], "sequentialminus": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]], "diverging": [[0, "#8e0152"], [0.1, "#c51b7d"], [0.2, "#de77ae"], [0.3, "#f1b6da"], [0.4, "#fde0ef"], [0.5, "#f7f7f7"], [0.6, "#e6f5d0"], [0.7, "#b8e186"], [0.8, "#7fbc41"], [0.9, "#4d9221"], [1, "#276419"]] }, "xaxis": { "gridcolor": "white", "linecolor": "white", "ticks": "", "title": { "standoff": 15 }, "zerolinecolor": "white", "automargin": true, "zerolinewidth": 2 }, "yaxis": { "gridcolor": "white", "linecolor": "white", "ticks": "", "title": { "standoff": 15 }, "zerolinecolor": "white", "automargin": true, "zerolinewidth": 2 }, "scene": { "xaxis": { "backgroundcolor": "#E5ECF6", "gridcolor": "white", "linecolor": "white", "showbackground": true, "ticks": "", "zerolinecolor": "white", "gridwidth": 2 }, "yaxis": { "backgroundcolor": "#E5ECF6", "gridcolor": "white", "linecolor": "white", "showbackground": true, "ticks": "", "zerolinecolor": "white", "gridwidth": 2 }, "zaxis": { "backgroundcolor": "#E5ECF6", "gridcolor": "white", "linecolor": "white", "showbackground": true, "ticks": "", "zerolinecolor": "white", "gridwidth": 2 } }, "shapedefaults": { "line": { "color": "#2a3f5f" } }, "annotationdefaults": { "arrowcolor": "#2a3f5f", "arrowhead": 0, "arrowwidth": 1 }, "geo": { "bgcolor": "white", "landcolor": "#E5ECF6", "subunitcolor": "white", "showland": true, "showlakes": true, "lakecolor": "white" }, "title": { "x": 0.05 }, "mapbox": { "style": "light" } } }, "margin": { "t": 30, "b": 80 }, "height": 360, "xaxis": { "title": { "text": "Bin range" } }, "yaxis": { "title": { "text": "Count" } }, "shapes": [{ "line": { "color": "#2563eb", "dash": "dash" }, "type": "line", "x0": -0.0003024482965100598, "x1": -0.0003024482965100598, "xref": "x", "y0": 0, "y1": 1, "yref": "paper" }, { "line": { "color": "#7c3aed", "dash": "dot" }, "type": "line", "x0": -0.00018876547380131115, "x1": -0.00018876547380131115, "xref": "x", "y0": 0, "y1": 1, "yref": "paper" }], "title": { "text": "Mae distribution" }, "annotations": [{ "align": "right", "font": { "color": "#475569", "size": 11 }, "showarrow": false, "text": "Mean: -3.02 bps (-0.0302%)\u003cbr\u003eMedian: -1.89 bps (-0.0189%)", "x": 1.0, "xref": "paper", "y": 1.12, "yref": "paper" }] }, { "responsive": true }) };            </script>
+        </div>
+      </div>
+    </section>
+    <section id='grouped-calendar_month'>
+      <h2>Results by month</h2>
+      <table class='data'>
+        <thead>
+          <tr>
+            <th>Group</th>
+            <th>Sample</th>
+            <th>Mean</th>
+            <th>Median</th>
+            <th>Hit rate</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>2025-07</td>
+            <td class='num'>584</td>
+            <td class='num'>-0.10 bps (-0.0010%)</td>
+            <td class='num'>+0.00 bps (+0.0000%)</td>
+            <td class='num'>49.8%</td>
+          </tr>
+          <tr>
+            <td>2025-08</td>
+            <td class='num'>825</td>
+            <td class='num'>-0.04 bps (-0.0004%)</td>
+            <td class='num'>+0.00 bps (+0.0000%)</td>
+            <td class='num'>49.6%</td>
+          </tr>
+          <tr>
+            <td>2025-09</td>
+            <td class='num'>982</td>
+            <td class='num'>-0.05 bps (-0.0005%)</td>
+            <td class='num'>+0.00 bps (+0.0000%)</td>
+            <td class='num'>48.9%</td>
+          </tr>
+          <tr>
+            <td>2025-10</td>
+            <td class='num'>1,084</td>
+            <td class='num'>-0.06 bps (-0.0006%)</td>
+            <td class='num'>+0.20 bps (+0.0020%)</td>
+            <td class='num'>52.2%</td>
+          </tr>
+          <tr>
+            <td>2025-11</td>
+            <td class='num'>781</td>
+            <td class='num'>+0.16 bps (+0.0016%)</td>
+            <td class='num'>+0.20 bps (+0.0020%)</td>
+            <td class='num'>51.6%</td>
+          </tr>
+          <tr>
+            <td>2025-12</td>
+            <td class='num'>905</td>
+            <td class='num'>-0.20 bps (-0.0020%)</td>
+            <td class='num'>+0.00 bps (+0.0000%)</td>
+            <td class='num'>48.1%</td>
+          </tr>
+          <tr>
+            <td>2026-01</td>
+            <td class='num'>332</td>
+            <td class='num'>-0.05 bps (-0.0005%)</td>
+            <td class='num'>+0.19 bps (+0.0019%)</td>
+            <td class='num'>50.9%</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class='chart-block'>
+        <div style="height:360px; width:100%;">
+          <div id="b63b1b7a-e3db-4077-bc30-03c716017758" class="plotly-graph-div" style="height:100%; width:100%;">
+          </div>
+          <script>                window.PLOTLYENV = window.PLOTLYENV || {}; if (document.getElementById("b63b1b7a-e3db-4077-bc30-03c716017758")) { Plotly.newPlot("b63b1b7a-e3db-4077-bc30-03c716017758", [{ "marker": { "color": "#2563eb" }, "name": "Mean return", "x": ["2025-07\u003cbr\u003e\u003cspan style='font-size:11px;color:#64748b'\u003en=584\u003c\u002fspan\u003e", "2025-08\u003cbr\u003e\u003cspan style='font-size:11px;color:#64748b'\u003en=825\u003c\u002fspan\u003e", "2025-09\u003cbr\u003e\u003cspan style='font-size:11px;color:#64748b'\u003en=982\u003c\u002fspan\u003e", "2025-10\u003cbr\u003e\u003cspan style='font-size:11px;color:#64748b'\u003en=1084\u003c\u002fspan\u003e", "2025-11\u003cbr\u003e\u003cspan style='font-size:11px;color:#64748b'\u003en=781\u003c\u002fspan\u003e", "2025-12\u003cbr\u003e\u003cspan style='font-size:11px;color:#64748b'\u003en=905\u003c\u002fspan\u003e", "2026-01\u003cbr\u003e\u003cspan style='font-size:11px;color:#64748b'\u003en=332\u003c\u002fspan\u003e"], "y": [-1.03275828130914e-05, -4.162939428206013e-06, -4.865557734372122e-06, -5.905715788793737e-06, 1.5738822769999972e-05, -1.9700546310386765e-05, -4.983735952281282e-06], "yaxis": "y", "type": "bar" }, { "marker": { "color": "#16a34a" }, "mode": "lines+markers", "name": "Hit rate", "x": ["2025-07\u003cbr\u003e\u003cspan style='font-size:11px;color:#64748b'\u003en=584\u003c\u002fspan\u003e", "2025-08\u003cbr\u003e\u003cspan style='font-size:11px;color:#64748b'\u003en=825\u003c\u002fspan\u003e", "2025-09\u003cbr\u003e\u003cspan style='font-size:11px;color:#64748b'\u003en=982\u003c\u002fspan\u003e", "2025-10\u003cbr\u003e\u003cspan style='font-size:11px;color:#64748b'\u003en=1084\u003c\u002fspan\u003e", "2025-11\u003cbr\u003e\u003cspan style='font-size:11px;color:#64748b'\u003en=781\u003c\u002fspan\u003e", "2025-12\u003cbr\u003e\u003cspan style='font-size:11px;color:#64748b'\u003en=905\u003c\u002fspan\u003e", "2026-01\u003cbr\u003e\u003cspan style='font-size:11px;color:#64748b'\u003en=332\u003c\u002fspan\u003e"], "y": [0.4982876712328767, 0.49575757575757573, 0.48879837067209775, 0.522140221402214, 0.5160051216389244, 0.48066298342541436, 0.5090361445783133], "yaxis": "y2", "type": "scatter" }], { "template": { "data": { "histogram2dcontour": [{ "type": "histogram2dcontour", "colorbar": { "outlinewidth": 0, "ticks": "" }, "colorscale": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]] }], "choropleth": [{ "type": "choropleth", "colorbar": { "outlinewidth": 0, "ticks": "" } }], "histogram2d": [{ "type": "histogram2d", "colorbar": { "outlinewidth": 0, "ticks": "" }, "colorscale": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]] }], "heatmap": [{ "type": "heatmap", "colorbar": { "outlinewidth": 0, "ticks": "" }, "colorscale": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]] }], "contourcarpet": [{ "type": "contourcarpet", "colorbar": { "outlinewidth": 0, "ticks": "" } }], "contour": [{ "type": "contour", "colorbar": { "outlinewidth": 0, "ticks": "" }, "colorscale": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]] }], "surface": [{ "type": "surface", "colorbar": { "outlinewidth": 0, "ticks": "" }, "colorscale": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]] }], "mesh3d": [{ "type": "mesh3d", "colorbar": { "outlinewidth": 0, "ticks": "" } }], "scatter": [{ "fillpattern": { "fillmode": "overlay", "size": 10, "solidity": 0.2 }, "type": "scatter" }], "parcoords": [{ "type": "parcoords", "line": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "scatterpolargl": [{ "type": "scatterpolargl", "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "bar": [{ "error_x": { "color": "#2a3f5f" }, "error_y": { "color": "#2a3f5f" }, "marker": { "line": { "color": "#E5ECF6", "width": 0.5 }, "pattern": { "fillmode": "overlay", "size": 10, "solidity": 0.2 } }, "type": "bar" }], "scattergeo": [{ "type": "scattergeo", "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "scatterpolar": [{ "type": "scatterpolar", "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "histogram": [{ "marker": { "pattern": { "fillmode": "overlay", "size": 10, "solidity": 0.2 } }, "type": "histogram" }], "scattergl": [{ "type": "scattergl", "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "scatter3d": [{ "type": "scatter3d", "line": { "colorbar": { "outlinewidth": 0, "ticks": "" } }, "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "scattermap": [{ "type": "scattermap", "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "scattermapbox": [{ "type": "scattermapbox", "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "scatterternary": [{ "type": "scatterternary", "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "scattercarpet": [{ "type": "scattercarpet", "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "carpet": [{ "aaxis": { "endlinecolor": "#2a3f5f", "gridcolor": "white", "linecolor": "white", "minorgridcolor": "white", "startlinecolor": "#2a3f5f" }, "baxis": { "endlinecolor": "#2a3f5f", "gridcolor": "white", "linecolor": "white", "minorgridcolor": "white", "startlinecolor": "#2a3f5f" }, "type": "carpet" }], "table": [{ "cells": { "fill": { "color": "#EBF0F8" }, "line": { "color": "white" } }, "header": { "fill": { "color": "#C8D4E3" }, "line": { "color": "white" } }, "type": "table" }], "barpolar": [{ "marker": { "line": { "color": "#E5ECF6", "width": 0.5 }, "pattern": { "fillmode": "overlay", "size": 10, "solidity": 0.2 } }, "type": "barpolar" }], "pie": [{ "automargin": true, "type": "pie" }] }, "layout": { "autotypenumbers": "strict", "colorway": ["#636efa", "#EF553B", "#00cc96", "#ab63fa", "#FFA15A", "#19d3f3", "#FF6692", "#B6E880", "#FF97FF", "#FECB52"], "font": { "color": "#2a3f5f" }, "hovermode": "closest", "hoverlabel": { "align": "left" }, "paper_bgcolor": "white", "plot_bgcolor": "#E5ECF6", "polar": { "bgcolor": "#E5ECF6", "angularaxis": { "gridcolor": "white", "linecolor": "white", "ticks": "" }, "radialaxis": { "gridcolor": "white", "linecolor": "white", "ticks": "" } }, "ternary": { "bgcolor": "#E5ECF6", "aaxis": { "gridcolor": "white", "linecolor": "white", "ticks": "" }, "baxis": { "gridcolor": "white", "linecolor": "white", "ticks": "" }, "caxis": { "gridcolor": "white", "linecolor": "white", "ticks": "" } }, "coloraxis": { "colorbar": { "outlinewidth": 0, "ticks": "" } }, "colorscale": { "sequential": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]], "sequentialminus": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]], "diverging": [[0, "#8e0152"], [0.1, "#c51b7d"], [0.2, "#de77ae"], [0.3, "#f1b6da"], [0.4, "#fde0ef"], [0.5, "#f7f7f7"], [0.6, "#e6f5d0"], [0.7, "#b8e186"], [0.8, "#7fbc41"], [0.9, "#4d9221"], [1, "#276419"]] }, "xaxis": { "gridcolor": "white", "linecolor": "white", "ticks": "", "title": { "standoff": 15 }, "zerolinecolor": "white", "automargin": true, "zerolinewidth": 2 }, "yaxis": { "gridcolor": "white", "linecolor": "white", "ticks": "", "title": { "standoff": 15 }, "zerolinecolor": "white", "automargin": true, "zerolinewidth": 2 }, "scene": { "xaxis": { "backgroundcolor": "#E5ECF6", "gridcolor": "white", "linecolor": "white", "showbackground": true, "ticks": "", "zerolinecolor": "white", "gridwidth": 2 }, "yaxis": { "backgroundcolor": "#E5ECF6", "gridcolor": "white", "linecolor": "white", "showbackground": true, "ticks": "", "zerolinecolor": "white", "gridwidth": 2 }, "zaxis": { "backgroundcolor": "#E5ECF6", "gridcolor": "white", "linecolor": "white", "showbackground": true, "ticks": "", "zerolinecolor": "white", "gridwidth": 2 } }, "shapedefaults": { "line": { "color": "#2a3f5f" } }, "annotationdefaults": { "arrowcolor": "#2a3f5f", "arrowhead": 0, "arrowwidth": 1 }, "geo": { "bgcolor": "white", "landcolor": "#E5ECF6", "subunitcolor": "white", "showland": true, "showlakes": true, "lakecolor": "white" }, "title": { "x": 0.05 }, "mapbox": { "style": "light" } } }, "margin": { "t": 50, "b": 60 }, "yaxis": { "title": { "text": "Mean return" }, "tickformat": ".3%" }, "yaxis2": { "title": { "text": "Hit rate" }, "overlaying": "y", "side": "right", "tickformat": ".0%" }, "legend": { "title": { "text": "" } }, "title": { "text": "Results by month" }, "height": 360 }, { "responsive": true }) };            </script>
+        </div>
+      </div>
+    </section>
+    <section id='grouped-rth_membership'>
+      <h2>Results by session</h2>
+      <table class='data'>
+        <thead>
+          <tr>
+            <th>Group</th>
+            <th>Sample</th>
+            <th>Mean</th>
+            <th>Median</th>
+            <th>Hit rate</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>OUTSIDE_RTH</td>
+            <td class='num'>3,994</td>
+            <td class='num'>-0.02 bps (-0.0002%)</td>
+            <td class='num'>+0.10 bps (+0.0010%)</td>
+            <td class='num'>50.1%</td>
+          </tr>
+          <tr>
+            <td>RTH</td>
+            <td class='num'>1,499</td>
+            <td class='num'>-0.13 bps (-0.0013%)</td>
+            <td class='num'>+0.10 bps (+0.0010%)</td>
+            <td class='num'>50.2%</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class='chart-block'>
+        <div style="height:360px; width:100%;">
+          <div id="7e40f09f-615f-4787-8a8b-8b9385da4881" class="plotly-graph-div" style="height:100%; width:100%;">
+          </div>
+          <script>                window.PLOTLYENV = window.PLOTLYENV || {}; if (document.getElementById("7e40f09f-615f-4787-8a8b-8b9385da4881")) { Plotly.newPlot("7e40f09f-615f-4787-8a8b-8b9385da4881", [{ "marker": { "color": "#2563eb" }, "name": "Mean return", "x": ["OUTSIDE_RTH\u003cbr\u003e\u003cspan style='font-size:11px;color:#64748b'\u003en=3994\u003c\u002fspan\u003e", "RTH\u003cbr\u003e\u003cspan style='font-size:11px;color:#64748b'\u003en=1499\u003c\u002fspan\u003e"], "y": [-1.9499234823960777e-06, -1.3374974500546143e-05], "yaxis": "y", "type": "bar" }, { "marker": { "color": "#16a34a" }, "mode": "lines+markers", "name": "Hit rate", "x": ["OUTSIDE_RTH\u003cbr\u003e\u003cspan style='font-size:11px;color:#64748b'\u003en=3994\u003c\u002fspan\u003e", "RTH\u003cbr\u003e\u003cspan style='font-size:11px;color:#64748b'\u003en=1499\u003c\u002fspan\u003e"], "y": [0.5007511266900351, 0.5023348899266178], "yaxis": "y2", "type": "scatter" }], { "template": { "data": { "histogram2dcontour": [{ "type": "histogram2dcontour", "colorbar": { "outlinewidth": 0, "ticks": "" }, "colorscale": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]] }], "choropleth": [{ "type": "choropleth", "colorbar": { "outlinewidth": 0, "ticks": "" } }], "histogram2d": [{ "type": "histogram2d", "colorbar": { "outlinewidth": 0, "ticks": "" }, "colorscale": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]] }], "heatmap": [{ "type": "heatmap", "colorbar": { "outlinewidth": 0, "ticks": "" }, "colorscale": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]] }], "contourcarpet": [{ "type": "contourcarpet", "colorbar": { "outlinewidth": 0, "ticks": "" } }], "contour": [{ "type": "contour", "colorbar": { "outlinewidth": 0, "ticks": "" }, "colorscale": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]] }], "surface": [{ "type": "surface", "colorbar": { "outlinewidth": 0, "ticks": "" }, "colorscale": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]] }], "mesh3d": [{ "type": "mesh3d", "colorbar": { "outlinewidth": 0, "ticks": "" } }], "scatter": [{ "fillpattern": { "fillmode": "overlay", "size": 10, "solidity": 0.2 }, "type": "scatter" }], "parcoords": [{ "type": "parcoords", "line": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "scatterpolargl": [{ "type": "scatterpolargl", "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "bar": [{ "error_x": { "color": "#2a3f5f" }, "error_y": { "color": "#2a3f5f" }, "marker": { "line": { "color": "#E5ECF6", "width": 0.5 }, "pattern": { "fillmode": "overlay", "size": 10, "solidity": 0.2 } }, "type": "bar" }], "scattergeo": [{ "type": "scattergeo", "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "scatterpolar": [{ "type": "scatterpolar", "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "histogram": [{ "marker": { "pattern": { "fillmode": "overlay", "size": 10, "solidity": 0.2 } }, "type": "histogram" }], "scattergl": [{ "type": "scattergl", "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "scatter3d": [{ "type": "scatter3d", "line": { "colorbar": { "outlinewidth": 0, "ticks": "" } }, "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "scattermap": [{ "type": "scattermap", "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "scattermapbox": [{ "type": "scattermapbox", "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "scatterternary": [{ "type": "scatterternary", "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "scattercarpet": [{ "type": "scattercarpet", "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "carpet": [{ "aaxis": { "endlinecolor": "#2a3f5f", "gridcolor": "white", "linecolor": "white", "minorgridcolor": "white", "startlinecolor": "#2a3f5f" }, "baxis": { "endlinecolor": "#2a3f5f", "gridcolor": "white", "linecolor": "white", "minorgridcolor": "white", "startlinecolor": "#2a3f5f" }, "type": "carpet" }], "table": [{ "cells": { "fill": { "color": "#EBF0F8" }, "line": { "color": "white" } }, "header": { "fill": { "color": "#C8D4E3" }, "line": { "color": "white" } }, "type": "table" }], "barpolar": [{ "marker": { "line": { "color": "#E5ECF6", "width": 0.5 }, "pattern": { "fillmode": "overlay", "size": 10, "solidity": 0.2 } }, "type": "barpolar" }], "pie": [{ "automargin": true, "type": "pie" }] }, "layout": { "autotypenumbers": "strict", "colorway": ["#636efa", "#EF553B", "#00cc96", "#ab63fa", "#FFA15A", "#19d3f3", "#FF6692", "#B6E880", "#FF97FF", "#FECB52"], "font": { "color": "#2a3f5f" }, "hovermode": "closest", "hoverlabel": { "align": "left" }, "paper_bgcolor": "white", "plot_bgcolor": "#E5ECF6", "polar": { "bgcolor": "#E5ECF6", "angularaxis": { "gridcolor": "white", "linecolor": "white", "ticks": "" }, "radialaxis": { "gridcolor": "white", "linecolor": "white", "ticks": "" } }, "ternary": { "bgcolor": "#E5ECF6", "aaxis": { "gridcolor": "white", "linecolor": "white", "ticks": "" }, "baxis": { "gridcolor": "white", "linecolor": "white", "ticks": "" }, "caxis": { "gridcolor": "white", "linecolor": "white", "ticks": "" } }, "coloraxis": { "colorbar": { "outlinewidth": 0, "ticks": "" } }, "colorscale": { "sequential": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]], "sequentialminus": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]], "diverging": [[0, "#8e0152"], [0.1, "#c51b7d"], [0.2, "#de77ae"], [0.3, "#f1b6da"], [0.4, "#fde0ef"], [0.5, "#f7f7f7"], [0.6, "#e6f5d0"], [0.7, "#b8e186"], [0.8, "#7fbc41"], [0.9, "#4d9221"], [1, "#276419"]] }, "xaxis": { "gridcolor": "white", "linecolor": "white", "ticks": "", "title": { "standoff": 15 }, "zerolinecolor": "white", "automargin": true, "zerolinewidth": 2 }, "yaxis": { "gridcolor": "white", "linecolor": "white", "ticks": "", "title": { "standoff": 15 }, "zerolinecolor": "white", "automargin": true, "zerolinewidth": 2 }, "scene": { "xaxis": { "backgroundcolor": "#E5ECF6", "gridcolor": "white", "linecolor": "white", "showbackground": true, "ticks": "", "zerolinecolor": "white", "gridwidth": 2 }, "yaxis": { "backgroundcolor": "#E5ECF6", "gridcolor": "white", "linecolor": "white", "showbackground": true, "ticks": "", "zerolinecolor": "white", "gridwidth": 2 }, "zaxis": { "backgroundcolor": "#E5ECF6", "gridcolor": "white", "linecolor": "white", "showbackground": true, "ticks": "", "zerolinecolor": "white", "gridwidth": 2 } }, "shapedefaults": { "line": { "color": "#2a3f5f" } }, "annotationdefaults": { "arrowcolor": "#2a3f5f", "arrowhead": 0, "arrowwidth": 1 }, "geo": { "bgcolor": "white", "landcolor": "#E5ECF6", "subunitcolor": "white", "showland": true, "showlakes": true, "lakecolor": "white" }, "title": { "x": 0.05 }, "mapbox": { "style": "light" } } }, "margin": { "t": 50, "b": 60 }, "yaxis": { "title": { "text": "Mean return" }, "tickformat": ".3%" }, "yaxis2": { "title": { "text": "Hit rate" }, "overlaying": "y", "side": "right", "tickformat": ".0%" }, "legend": { "title": { "text": "" } }, "title": { "text": "Results by session" }, "height": 360 }, { "responsive": true }) };            </script>
+        </div>
+      </div>
+    </section>
+    <section id='baseline-comparison'>
+      <h2>Signal-only vs conditioned signal</h2>
+      <p class='note'>Marginal contribution compares the full signal sample with outcomes where market-model context was
+        explicitly true.</p>
+      <table class='data'>
+        <thead>
+          <tr>
+            <th>Variant</th>
+            <th>Sample</th>
+            <th>Mean</th>
+            <th>Median</th>
+            <th>Hit rate</th>
+            <th>MFE</th>
+            <th>MAE</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Signal only</td>
+            <td class='num'>5,493</td>
+            <td class='num'>-0.05 bps (-0.0005%)</td>
+            <td class='num'>+0.10 bps (+0.0010%)</td>
+            <td class='num'>50.1%</td>
+            <td class='num'>+2.91 bps (+0.0291%)</td>
+            <td class='num'>-3.02 bps (-0.0302%)</td>
+          </tr>
+          <tr>
+            <td>Signal + market model</td>
+            <td class='num'>2,783</td>
+            <td class='num'>-0.13 bps (-0.0013%)</td>
+            <td class='num'>-0.10 bps (-0.0010%)</td>
+            <td class='num'>48.9%</td>
+            <td class='num'>+4.05 bps (+0.0405%)</td>
+            <td class='num'>-4.28 bps (-0.0428%)</td>
+          </tr>
+          <tr>
+            <td>Marginal contribution</td>
+            <td class='num'>—</td>
+            <td class='num'>-0.17 bps (-0.0017%)</td>
+            <td class='num'>-0.20 bps (-0.0020%)</td>
+            <td class='num'>-2.5%</td>
+            <td class='num'>+2.32 bps (+0.0232%)</td>
+            <td class='num'>-2.55 bps (-0.0255%)</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class='chart-block'>
+        <div style="height:360px; width:100%;">
+          <div id="6fe75ab8-5ed8-4b5e-a7e4-87e54811a257" class="plotly-graph-div" style="height:100%; width:100%;">
+          </div>
+          <script>                window.PLOTLYENV = window.PLOTLYENV || {}; if (document.getElementById("6fe75ab8-5ed8-4b5e-a7e4-87e54811a257")) { Plotly.newPlot("6fe75ab8-5ed8-4b5e-a7e4-87e54811a257", [{ "marker": { "color": "#2563eb" }, "text": ["-0.05 bps", "-0.13 bps"], "textposition": "outside", "x": ["Signal only", "Signal + market model"], "y": [-5.06773733206055e-06, -1.3411705578799068e-05], "type": "bar", "xaxis": "x", "yaxis": "y" }, { "marker": { "color": "#16a34a" }, "text": ["50.1%", "48.9%"], "textposition": "outside", "x": ["Signal only", "Signal + market model"], "y": [0.5011833242308392, 0.48868127919511317], "type": "bar", "xaxis": "x2", "yaxis": "y2" }], { "template": { "data": { "histogram2dcontour": [{ "type": "histogram2dcontour", "colorbar": { "outlinewidth": 0, "ticks": "" }, "colorscale": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]] }], "choropleth": [{ "type": "choropleth", "colorbar": { "outlinewidth": 0, "ticks": "" } }], "histogram2d": [{ "type": "histogram2d", "colorbar": { "outlinewidth": 0, "ticks": "" }, "colorscale": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]] }], "heatmap": [{ "type": "heatmap", "colorbar": { "outlinewidth": 0, "ticks": "" }, "colorscale": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]] }], "contourcarpet": [{ "type": "contourcarpet", "colorbar": { "outlinewidth": 0, "ticks": "" } }], "contour": [{ "type": "contour", "colorbar": { "outlinewidth": 0, "ticks": "" }, "colorscale": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]] }], "surface": [{ "type": "surface", "colorbar": { "outlinewidth": 0, "ticks": "" }, "colorscale": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]] }], "mesh3d": [{ "type": "mesh3d", "colorbar": { "outlinewidth": 0, "ticks": "" } }], "scatter": [{ "fillpattern": { "fillmode": "overlay", "size": 10, "solidity": 0.2 }, "type": "scatter" }], "parcoords": [{ "type": "parcoords", "line": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "scatterpolargl": [{ "type": "scatterpolargl", "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "bar": [{ "error_x": { "color": "#2a3f5f" }, "error_y": { "color": "#2a3f5f" }, "marker": { "line": { "color": "#E5ECF6", "width": 0.5 }, "pattern": { "fillmode": "overlay", "size": 10, "solidity": 0.2 } }, "type": "bar" }], "scattergeo": [{ "type": "scattergeo", "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "scatterpolar": [{ "type": "scatterpolar", "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "histogram": [{ "marker": { "pattern": { "fillmode": "overlay", "size": 10, "solidity": 0.2 } }, "type": "histogram" }], "scattergl": [{ "type": "scattergl", "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "scatter3d": [{ "type": "scatter3d", "line": { "colorbar": { "outlinewidth": 0, "ticks": "" } }, "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "scattermap": [{ "type": "scattermap", "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "scattermapbox": [{ "type": "scattermapbox", "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "scatterternary": [{ "type": "scatterternary", "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "scattercarpet": [{ "type": "scattercarpet", "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } } }], "carpet": [{ "aaxis": { "endlinecolor": "#2a3f5f", "gridcolor": "white", "linecolor": "white", "minorgridcolor": "white", "startlinecolor": "#2a3f5f" }, "baxis": { "endlinecolor": "#2a3f5f", "gridcolor": "white", "linecolor": "white", "minorgridcolor": "white", "startlinecolor": "#2a3f5f" }, "type": "carpet" }], "table": [{ "cells": { "fill": { "color": "#EBF0F8" }, "line": { "color": "white" } }, "header": { "fill": { "color": "#C8D4E3" }, "line": { "color": "white" } }, "type": "table" }], "barpolar": [{ "marker": { "line": { "color": "#E5ECF6", "width": 0.5 }, "pattern": { "fillmode": "overlay", "size": 10, "solidity": 0.2 } }, "type": "barpolar" }], "pie": [{ "automargin": true, "type": "pie" }] }, "layout": { "autotypenumbers": "strict", "colorway": ["#636efa", "#EF553B", "#00cc96", "#ab63fa", "#FFA15A", "#19d3f3", "#FF6692", "#B6E880", "#FF97FF", "#FECB52"], "font": { "color": "#2a3f5f" }, "hovermode": "closest", "hoverlabel": { "align": "left" }, "paper_bgcolor": "white", "plot_bgcolor": "#E5ECF6", "polar": { "bgcolor": "#E5ECF6", "angularaxis": { "gridcolor": "white", "linecolor": "white", "ticks": "" }, "radialaxis": { "gridcolor": "white", "linecolor": "white", "ticks": "" } }, "ternary": { "bgcolor": "#E5ECF6", "aaxis": { "gridcolor": "white", "linecolor": "white", "ticks": "" }, "baxis": { "gridcolor": "white", "linecolor": "white", "ticks": "" }, "caxis": { "gridcolor": "white", "linecolor": "white", "ticks": "" } }, "coloraxis": { "colorbar": { "outlinewidth": 0, "ticks": "" } }, "colorscale": { "sequential": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]], "sequentialminus": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]], "diverging": [[0, "#8e0152"], [0.1, "#c51b7d"], [0.2, "#de77ae"], [0.3, "#f1b6da"], [0.4, "#fde0ef"], [0.5, "#f7f7f7"], [0.6, "#e6f5d0"], [0.7, "#b8e186"], [0.8, "#7fbc41"], [0.9, "#4d9221"], [1, "#276419"]] }, "xaxis": { "gridcolor": "white", "linecolor": "white", "ticks": "", "title": { "standoff": 15 }, "zerolinecolor": "white", "automargin": true, "zerolinewidth": 2 }, "yaxis": { "gridcolor": "white", "linecolor": "white", "ticks": "", "title": { "standoff": 15 }, "zerolinecolor": "white", "automargin": true, "zerolinewidth": 2 }, "scene": { "xaxis": { "backgroundcolor": "#E5ECF6", "gridcolor": "white", "linecolor": "white", "showbackground": true, "ticks": "", "zerolinecolor": "white", "gridwidth": 2 }, "yaxis": { "backgroundcolor": "#E5ECF6", "gridcolor": "white", "linecolor": "white", "showbackground": true, "ticks": "", "zerolinecolor": "white", "gridwidth": 2 }, "zaxis": { "backgroundcolor": "#E5ECF6", "gridcolor": "white", "linecolor": "white", "showbackground": true, "ticks": "", "zerolinecolor": "white", "gridwidth": 2 } }, "shapedefaults": { "line": { "color": "#2a3f5f" } }, "annotationdefaults": { "arrowcolor": "#2a3f5f", "arrowhead": 0, "arrowwidth": 1 }, "geo": { "bgcolor": "white", "landcolor": "#E5ECF6", "subunitcolor": "white", "showland": true, "showlakes": true, "lakecolor": "white" }, "title": { "x": 0.05 }, "mapbox": { "style": "light" } } }, "xaxis": { "anchor": "y", "domain": [0.0, 0.45] }, "yaxis": { "anchor": "x", "domain": [0.0, 1.0], "title": { "text": "Return" }, "tickformat": ".3%" }, "xaxis2": { "anchor": "y2", "domain": [0.55, 1.0] }, "yaxis2": { "anchor": "x2", "domain": [0.0, 1.0], "title": { "text": "Hit rate" }, "tickformat": ".0%" }, "annotations": [{ "font": { "size": 16 }, "showarrow": false, "text": "Forward return mean", "x": 0.225, "xanchor": "center", "xref": "paper", "y": 1.0, "yanchor": "bottom", "yref": "paper" }, { "font": { "size": 16 }, "showarrow": false, "text": "Hit rate", "x": 0.775, "xanchor": "center", "xref": "paper", "y": 1.0, "yanchor": "bottom", "yref": "paper" }], "margin": { "t": 50, "b": 40 }, "height": 360, "showlegend": false }, { "responsive": true }) };            </script>
+        </div>
+      </div>
+    </section>
+    <section id='diagnostics'>
+      <h2>Diagnostics</h2>
+      <h3>Quality flags</h3>
+      <div class='warning'><strong>UNSTABLE_DIRECTION</strong>Only 14.3% of eligible months show positive mean return
+        (minimum desired 60.0%).</div>
+      <div class='warning'><strong>UNSTABLE_DIRECTION</strong>Only 42.9% of eligible months show positive mean return
+        (minimum desired 60.0%).</div>
+      <div class='warning'><strong>UNSTABLE_DIRECTION</strong>Only 42.9% of eligible months show positive mean return
+        (minimum desired 60.0%).</div>
+      <div class='warning'><strong>UNSTABLE_DIRECTION</strong>Only 57.1% of eligible months show positive mean return
+        (minimum desired 60.0%).</div>
+      <div class='warning'><strong>WEAK_BASELINE_IMPROVEMENT</strong>Conditioned signal does not improve mean return or
+        hit rate versus the explicit false-context arm.</div>
+      <div class='warning'><strong>WEAK_BASELINE_IMPROVEMENT</strong>Conditioned signal does not improve mean return or
+        hit rate versus the explicit false-context arm.</div>
+      <div class='warning'><strong>WEAK_BASELINE_IMPROVEMENT</strong>Conditioned signal does not improve mean return or
+        hit rate versus the explicit false-context arm.</div>
+      <div class='warning'><strong>WEAK_BASELINE_IMPROVEMENT</strong>Conditioned signal does not improve mean return or
+        hit rate versus the explicit false-context arm.</div>
+      <h3>Sample completeness</h3>
+      <table class='data'>
+        <thead>
+          <tr>
+            <th>Horizon</th>
+            <th>Total</th>
+            <th>Complete</th>
+            <th>Incomplete</th>
+            <th>Completion</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>5 evaluation bars (1m each)</td>
+            <td class='num'>5,493</td>
+            <td class='num'>5,493</td>
+            <td class='num'>0</td>
+            <td class='num'>100.0%</td>
+          </tr>
+          <tr>
+            <td>15 evaluation bars (1m each)</td>
+            <td class='num'>5,493</td>
+            <td class='num'>5,493</td>
+            <td class='num'>0</td>
+            <td class='num'>100.0%</td>
+          </tr>
+          <tr>
+            <td>30 evaluation bars (1m each)</td>
+            <td class='num'>5,493</td>
+            <td class='num'>5,493</td>
+            <td class='num'>0</td>
+            <td class='num'>100.0%</td>
+          </tr>
+          <tr>
+            <td>60 evaluation bars (1m each)</td>
+            <td class='num'>5,493</td>
+            <td class='num'>5,489</td>
+            <td class='num'>4</td>
+            <td class='num'>99.9%</td>
+          </tr>
+        </tbody>
+      </table>
+      <h3>Join diagnostics</h3>
+      <table class='data'>
+        <thead>
+          <tr>
+            <th>Horizon</th>
+            <th>Complete</th>
+            <th>Context true</th>
+            <th>Context false</th>
+            <th>Unresolved</th>
+            <th>Overlapping windows</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>5 evaluation bars (1m each)</td>
+            <td class='num'>5,493</td>
+            <td class='num'>2,783</td>
+            <td class='num'>2,710</td>
+            <td class='num'>0</td>
+            <td class='num'>0</td>
+          </tr>
+          <tr>
+            <td>15 evaluation bars (1m each)</td>
+            <td class='num'>5,493</td>
+            <td class='num'>2,783</td>
+            <td class='num'>2,710</td>
+            <td class='num'>0</td>
+            <td class='num'>3,626</td>
+          </tr>
+          <tr>
+            <td>30 evaluation bars (1m each)</td>
+            <td class='num'>5,493</td>
+            <td class='num'>2,783</td>
+            <td class='num'>2,710</td>
+            <td class='num'>0</td>
+            <td class='num'>4,248</td>
+          </tr>
+          <tr>
+            <td>60 evaluation bars (1m each)</td>
+            <td class='num'>5,489</td>
+            <td class='num'>2,780</td>
+            <td class='num'>2,709</td>
+            <td class='num'>0</td>
+            <td class='num'>4,638</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  </div>
+</body>
+
+</html>
