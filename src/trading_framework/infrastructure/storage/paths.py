@@ -234,6 +234,15 @@ def robustness_experiment_analytics_dir(root: Path, experiment_id: str) -> Path:
     return robustness_experiment_dir(root, experiment_id) / "analytics"
 
 
+def robustness_experiment_analytics_parquet_path(
+    root: Path,
+    experiment_id: str,
+    table_name: str,
+) -> Path:
+    """Return one analytics Parquet table path under a robustness experiment."""
+    return robustness_experiment_analytics_dir(root, experiment_id) / f"{table_name}.parquet"
+
+
 def trade_event_partition_day(event_at: datetime) -> date:
     """Return the UTC calendar day used for trade dataset partitioning."""
     return require_utc_aware(event_at).date()

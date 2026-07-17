@@ -43,5 +43,4 @@ Presentation contracts (`RunSummary`, `ChartWindow`, `TradeView`, …), the
 filesystem run catalog (`list_runs`), and `DashboardQueryService` (DuckDB windowed
 OHLCV + Parquet column projection) live under `src/dashboard_app/`.
 
-Strategy / research page UIs: Strategy Research page is available (KPI, equity,
-windowed OHLCV + trade overlays). Market/Signal and Robustness pages land next.
+Strategy Research, Market/Signal Research, and Robustness pages are available.

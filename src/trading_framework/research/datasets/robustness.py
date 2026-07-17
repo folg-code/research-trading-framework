@@ -9,9 +9,12 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
+import polars as pl
+
 from trading_framework.core.exceptions import ValidationError
 from trading_framework.infrastructure.storage.paths import (
     robustness_experiment_analytics_dir,
+    robustness_experiment_analytics_parquet_path,
     robustness_experiment_dir,
     robustness_experiment_folds_dir,
     robustness_experiment_monte_carlo_dir,
@@ -23,6 +26,12 @@ from trading_framework.research.robustness.analytics.diagnostics import (
 )
 from trading_framework.research.robustness.analytics.monte_carlo import MonteCarloAnalytics
 from trading_framework.research.robustness.analytics.parameter_sweep import ParameterSweepAnalytics
+from trading_framework.research.robustness.analytics.parquet_tables import (
+    monte_carlo_parquet_tables,
+    parameter_sweep_parquet_tables,
+    stress_parquet_tables,
+    walk_forward_parquet_tables,
+)
 from trading_framework.research.robustness.analytics.stress import StressTestAnalytics
 from trading_framework.research.robustness.analytics.walk_forward import WalkForwardAnalytics
 from trading_framework.research.robustness.experiment import RobustnessExperimentSpec
@@ -256,6 +265,10 @@ class RobustnessExperimentRepository:
             json.dumps(analytics.to_dict(), indent=2),
             encoding="utf-8",
         )
+        self._write_analytics_parquet_tables(
+            analytics.experiment_id,
+            parameter_sweep_parquet_tables(analytics),
+        )
 
     def read_parameter_sweep_analytics(self, experiment_id: str) -> ParameterSweepAnalytics:
         analytics_path = (
@@ -312,6 +325,10 @@ class RobustnessExperimentRepository:
         analytics_dir.mkdir(parents=True, exist_ok=True)
         analytics_path = analytics_dir / "walk_forward.json"
         analytics_path.write_text(json.dumps(analytics.to_dict(), indent=2), encoding="utf-8")
+        self._write_analytics_parquet_tables(
+            analytics.experiment_id,
+            walk_forward_parquet_tables(analytics),
+        )
 
     def read_walk_forward_analytics(self, experiment_id: str) -> WalkForwardAnalytics:
         analytics_path = (
@@ -346,6 +363,10 @@ class RobustnessExperimentRepository:
         analytics_dir.mkdir(parents=True, exist_ok=True)
         analytics_path = analytics_dir / "stress.json"
         analytics_path.write_text(json.dumps(analytics.to_dict(), indent=2), encoding="utf-8")
+        self._write_analytics_parquet_tables(
+            analytics.experiment_id,
+            stress_parquet_tables(analytics),
+        )
 
     def read_stress_analytics(self, experiment_id: str) -> StressTestAnalytics:
         analytics_path = (
@@ -382,6 +403,10 @@ class RobustnessExperimentRepository:
         analytics_dir.mkdir(parents=True, exist_ok=True)
         analytics_path = analytics_dir / "monte_carlo.json"
         analytics_path.write_text(json.dumps(analytics.to_dict(), indent=2), encoding="utf-8")
+        self._write_analytics_parquet_tables(
+            analytics.experiment_id,
+            monte_carlo_parquet_tables(analytics),
+        )
 
     def read_monte_carlo_analytics(self, experiment_id: str) -> MonteCarloAnalytics:
         analytics_path = (
@@ -447,3 +472,21 @@ class RobustnessExperimentRepository:
         report_path = report_dir / "robustness_report.html"
         report_path.write_text(html_content, encoding="utf-8")
         return report_path
+
+    def _write_analytics_parquet_tables(
+        self,
+        experiment_id: str,
+        tables: dict[str, pl.DataFrame],
+    ) -> dict[str, Path]:
+        """Dual-write flattened analytics tables as Parquet under ``analytics/``."""
+        written: dict[str, Path] = {}
+        for table_name, frame in tables.items():
+            path = robustness_experiment_analytics_parquet_path(
+                self._root,
+                experiment_id,
+                table_name,
+            )
+            path.parent.mkdir(parents=True, exist_ok=True)
+            frame.write_parquet(path)
+            written[table_name] = path
+        return written

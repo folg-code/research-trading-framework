@@ -82,9 +82,9 @@ Success: useful analytical tool on real artifacts, not a second demo format.
 
 ### Wave C — Research + Robustness pages
 
-- [ ] Market / Signal research page: summary + grouped metrics + distributions + inspection chart.
-- [ ] Robustness page MVP: summary, IS/OOS, walk-forward table, param sweep table/heatmap.
-- [ ] Robustness tabular analytics → Parquet where matrices are queried by DuckDB.
+- [x] Market / Signal research page: summary + grouped metrics + distributions + inspection chart.
+- [x] Robustness page MVP: summary, IS/OOS, walk-forward table, param sweep table/heatmap.
+- [x] Robustness tabular analytics → Parquet where matrices are queried by DuckDB.
 
 ### Wave D — Perf, deploy, docs
 
@@ -122,8 +122,8 @@ Success: useful analytical tool on real artifacts, not a second demo format.
 | S028-T008 | Strategy page: KPI + equity + drawdown | B | DONE |
 | S028-T009 | Market chart window + trade overlays + nav | B | DONE |
 | S028-T010 | Overlay renderer registry (no orderflow) | B | DONE |
-| S028-T011 | Market/Signal research page | C | TODO |
-| S028-T012 | Robustness Parquet exports + page MVP | C | TODO |
+| S028-T011 | Market/Signal research page | C | DONE |
+| S028-T012 | Robustness Parquet exports + page MVP | C | DONE |
 | S028-T013 | Cache / result size limits | D | TODO |
 | S028-T014 | Docker / Compose / Caddy / runbook | D | TODO |
 | S028-T015 | Docs + dry-run datasource stubs | D | TODO |
