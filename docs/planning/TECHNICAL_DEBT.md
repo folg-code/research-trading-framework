@@ -786,12 +786,14 @@ Collapse to single identity axis if interchange never needed; else keep and docu
 
 ## TD-017 — Signal / Market Research Occurrence and Outcome Materialization Is Row-Wise Python
 
-Status: PLANNED_REPAYMENT  
+Status: REPAID  
 Priority: CRITICAL  
 Domain: Signal Research / Market Model Research  
 Introduced: Sprint 008–010 (accepted for MVP correctness)  
 Target Review: Sprint 026  
 Owner: Project Maintainer
+Repaid: Sprint 026 Wave A (`feat/signal-reference-price-index`,
+`feat/signal-forward-outcomes-numpy`, `feat/signal-occurrence-batch-reference-prices`)
 
 ### Accepted Shortcut
 
@@ -823,18 +825,26 @@ without changing methodology or outcome schema.
 
 ### Repayment Direction
 
-See `docs/planning/sprints/SPRINT_026.md` and `S026_WAVE0_DECISIONS.md` (D-S026-02).
+See `docs/planning/sprints/SPRINT_026.md` and `S026_WAVE0_DECISIONS.md` (D-S026-02, D-S026-07).
+
+### Repayment Notes
+
+- Timestamp→index + close series built once per materialization (`ReferencePriceLookup`).
+- Occurrences / observations join reference prices via Polars (`to_frame()`).
+- Forward outcomes use shared NumPy float64 OHLCV arrays across horizons.
+- Residual: occurrence/observation ID hashing remains Python; family-run analysis cache deferred.
 
 ---
 
 ## TD-018 — Robustness Child Runs Re-Execute Full Strategy Research Without Shared Evaluation
 
-Status: PLANNED_REPAYMENT  
+Status: REPAID  
 Priority: HIGH  
 Domain: Robustness Research  
 Introduced: Sprint 016 (accepted for MVP orchestration)  
 Target Review: Sprint 026  
 Owner: Project Maintainer
+Repaid: Sprint 026 Wave B (`feat/robustness-shared-evaluation-context`)
 
 ### Accepted Shortcut
 
@@ -864,8 +874,15 @@ models; resimulate only variant-specific simulation inputs.
 
 ### Repayment Direction
 
-See `docs/planning/sprints/SPRINT_026.md` and `S026_WAVE0_DECISIONS.md` (D-S026-03). Methodology
-remains repeated Strategy Research runs.
+See `docs/planning/sprints/SPRINT_026.md` and `S026_WAVE0_DECISIONS.md` (D-S026-03, D-S026-07).
+Methodology remains repeated Strategy Research runs.
+
+### Repayment Notes
+
+- `SharedStrategyEvaluationCache` reuses columnar OHLCV + `evaluate_models` when market/signal
+  definitions and range match (e.g. `exit_after_bars` sweeps).
+- Wired into parameter sweep, walk-forward and stress runners.
+- Residual: Monte Carlo path summarization still uses Decimal lists; parallel child runs deferred.
 
 ---
 
