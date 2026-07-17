@@ -10,11 +10,15 @@ from dashboard_app.contracts import (
     TradeView,
     WorkflowKind,
 )
+from dashboard_app.query import DashboardQueryService, OhlcvBarRow, OhlcvWindowResult
 
 __all__ = [
     "PRESENTATION_SCHEMA_VERSION",
     "ChartWindow",
+    "DashboardQueryService",
     "DashboardSettings",
+    "OhlcvBarRow",
+    "OhlcvWindowResult",
     "RunCatalog",
     "RunManifest",
     "RunSummary",

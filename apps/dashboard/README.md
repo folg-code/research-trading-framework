@@ -39,7 +39,8 @@ apps/dashboard/
   tests/
 ```
 
-Presentation contracts (`RunSummary`, `ChartWindow`, `TradeView`, …) and the
-filesystem run catalog (`list_runs`) live under `src/dashboard_app/`.
+Presentation contracts (`RunSummary`, `ChartWindow`, `TradeView`, …), the
+filesystem run catalog (`list_runs`), and `DashboardQueryService` (DuckDB windowed
+OHLCV + Parquet column projection) live under `src/dashboard_app/`.
 
-DuckDB query service and real research pages land in later Sprint 028 PRs.
+Strategy / research page UIs land in later Sprint 028 PRs.

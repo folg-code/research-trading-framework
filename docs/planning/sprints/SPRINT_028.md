@@ -66,7 +66,7 @@ Success: useful analytical tool on real artifacts, not a second demo format.
 - [x] Multi-page shell + storage-root config.
 - [x] Shared presentation contracts (`RunSummary`, `RunManifest`, `ChartWindow`, `TradeView`, …)
       with schema versions.
-- [ ] `DashboardQueryService` + Parquet/DuckDB adapter (windowed reads, column projection).
+- [x] `DashboardQueryService` + Parquet/DuckDB adapter (windowed reads, column projection).
 - [x] Run catalog across the four workflow types (tolerate missing/corrupt manifests).
 
 ### Wave B — Canonical Parquet exports + Strategy page
@@ -115,7 +115,7 @@ Success: useful analytical tool on real artifacts, not a second demo format.
 | S028-T001 | Wave 0 decisions + sprint branch | 0 | DONE |
 | S028-T002 | `apps/dashboard` scaffold + Streamlit multipage | A | DONE |
 | S028-T003 | Presentation contracts + schema versions | A | DONE |
-| S028-T004 | DuckDB query layer + windowed OHLCV fixtures tests | A | TODO |
+| S028-T004 | DuckDB query layer + windowed OHLCV fixtures tests | A | DONE |
 | S028-T005 | Run catalog (4 workflow types) | A | DONE |
 | S028-T006 | Signal/Market analytics → Parquet (dual-write) | B | TODO |
 | S028-T007 | Strategy summary_metrics Parquet export | B | TODO |
