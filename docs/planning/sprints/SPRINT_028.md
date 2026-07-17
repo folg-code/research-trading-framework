@@ -62,8 +62,8 @@ Success: useful analytical tool on real artifacts, not a second demo format.
 
 ### Wave A — App foundation
 
-- [ ] Create `apps/dashboard` with its own `pyproject.toml` (Streamlit, DuckDB, Plotly).
-- [ ] Multi-page shell + storage-root config.
+- [x] Create `apps/dashboard` with its own `pyproject.toml` (Streamlit, DuckDB, Plotly).
+- [x] Multi-page shell + storage-root config.
 - [ ] Shared presentation contracts (`RunSummary`, `RunManifest`, `ChartWindow`, `TradeView`, …)
       with schema versions.
 - [ ] `DashboardQueryService` + Parquet/DuckDB adapter (windowed reads, column projection).
@@ -113,7 +113,7 @@ Success: useful analytical tool on real artifacts, not a second demo format.
 | Task | Outcome | Wave | Status |
 |------|---------|------|--------|
 | S028-T001 | Wave 0 decisions + sprint branch | 0 | DONE |
-| S028-T002 | `apps/dashboard` scaffold + Streamlit multipage | A | TODO |
+| S028-T002 | `apps/dashboard` scaffold + Streamlit multipage | A | DONE |
 | S028-T003 | Presentation contracts + schema versions | A | TODO |
 | S028-T004 | DuckDB query layer + windowed OHLCV fixtures tests | A | TODO |
 | S028-T005 | Run catalog (4 workflow types) | A | TODO |
