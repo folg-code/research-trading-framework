@@ -75,9 +75,9 @@ Success: useful analytical tool on real artifacts, not a second demo format.
       onto Parquet tables (D-S028-04).
 - [x] Emit strategy `analytics/summary_metrics.parquet` (or equivalent) for KPI cards without
       recomputation.
-- [ ] Strategy page: metadata, KPI cards, equity + drawdown, windowed OHLCV chart, trade table,
+- [x] Strategy page: metadata, KPI cards, equity + drawdown, windowed OHLCV chart, trade table,
       entry/exit overlays + prev/next trade.
-- [ ] Overlay renderer registry (markers, levels, zones, state background, trade connection) —
+- [x] Overlay renderer registry (markers, levels, zones, state background, trade connection) —
       **no orderflow implementation**.
 
 ### Wave C — Research + Robustness pages
@@ -119,9 +119,9 @@ Success: useful analytical tool on real artifacts, not a second demo format.
 | S028-T005 | Run catalog (4 workflow types) | A | DONE |
 | S028-T006 | Signal/Market analytics → Parquet (dual-write) | B | DONE |
 | S028-T007 | Strategy summary_metrics Parquet export | B | DONE |
-| S028-T008 | Strategy page: KPI + equity + drawdown | B | TODO |
-| S028-T009 | Market chart window + trade overlays + nav | B | TODO |
-| S028-T010 | Overlay renderer registry (no orderflow) | B | TODO |
+| S028-T008 | Strategy page: KPI + equity + drawdown | B | DONE |
+| S028-T009 | Market chart window + trade overlays + nav | B | DONE |
+| S028-T010 | Overlay renderer registry (no orderflow) | B | DONE |
 | S028-T011 | Market/Signal research page | C | TODO |
 | S028-T012 | Robustness Parquet exports + page MVP | C | TODO |
 | S028-T013 | Cache / result size limits | D | TODO |
