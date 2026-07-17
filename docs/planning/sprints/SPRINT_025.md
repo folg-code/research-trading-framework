@@ -115,4 +115,6 @@ Dashboard must not:
 ## 7. Post-Sprint Direction
 
 After this sprint, decide whether to move toward Phase 8B Paper Execution contracts or return to
-research-side roadmap items such as Phase 4B orderflow or Phase 6B multi-data Strategy Research.
+research-side roadmap items. **Sprint 026 (research hot-path performance)** is the recommended
+research-track next step if Signal / Market Research or Robustness remain operator-blocking at
+NQ half-year scale.
