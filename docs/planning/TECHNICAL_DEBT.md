@@ -886,6 +886,90 @@ Methodology remains repeated Strategy Research runs.
 
 ---
 
+## TD-019 — Databento Contract Import Chunk Buffers Use Python Lists
+
+Status: PLANNED_REPAYMENT  
+Priority: CRITICAL  
+Domain: Market Data / Historical Archive Import  
+Introduced: Sprint 011 (accepted for MVP columnar bridge)  
+Target Review: Sprint 027  
+Owner: Project Maintainer
+
+### Accepted Shortcut
+
+`ContractChunkColumns` stores trade fields as Python `list`s. Chunk mapping converts NumPy
+masked selections via `.tolist()` on every column every chunk; session `take` and Parquet table
+build copy those lists again into Arrow.
+
+### Reason
+
+MVP prioritized correct outright-contract decode, session partitions and merge-existing writes
+over zero-copy columnar buffers after Databento `to_df` chunks.
+
+### Consequences
+
+On NQ half-year batch import (~297 archives), `decode.map_chunk_batch` alone is ~61 s and parquet
+build/write adds ~100 s of related copy/I/O work. Operator rebuilds are dominated by ingest even
+when research is fast.
+
+### Safe Operating Boundary
+
+Small archive sets and fixtures remain fine. Half-year / multi-contract re-imports are slow but
+correct.
+
+### Repayment Trigger
+
+Sprint 027 Wave A — NumPy/Arrow buffers through map → partition → `pa.Table` without changing
+ADR-0014 schemas or merge semantics.
+
+### Repayment Direction
+
+See `docs/planning/sprints/SPRINT_027.md` and `S027_WAVE0_DECISIONS.md` (D-S027-03, D-S027-05).
+
+---
+
+## TD-020 — Continuous Trades Materialize Pays Per-Session Write + String Price Schema
+
+Status: PLANNED_REPAYMENT  
+Priority: HIGH  
+Domain: Market Data / Continuous Futures  
+Introduced: Sprint 015 (accepted for Decimal-preserving continuous Parquet)  
+Target Review: Sprint 027  
+Owner: Project Maintainer
+
+### Accepted Shortcut
+
+Continuous materialization writes one Parquet file per `session_date` sequentially. Continuous
+schema stores `price` as string while contract-layer storage already uses `price_nanos` int64.
+Polars transform converts nanos → string every session before write.
+
+### Reason
+
+MVP matched continuous domain `MarketTrade` / Decimal presentation and kept Layer-4 continuous
+artifacts separate from contract storage without a second schema migration.
+
+### Consequences
+
+NQ half-year materialize spends ~62 s in `materialize.write` across ~345 sessions (~0.18 s/write
+avg), more than transform (~14 s). Full rebuilds remain expensive after import.
+
+### Safe Operating Boundary
+
+Fingerprint reuse (`--skip-build` / unchanged source fingerprint) avoids rematerialize. Fresh
+rebuilds and policy changes pay full sequential write cost.
+
+### Repayment Trigger
+
+Sprint 027 Wave B — reduce avoidable write-path cost; decide keep string `price` vs ADR-amended
+`price_nanos` continuous schema.
+
+### Repayment Direction
+
+See `docs/planning/sprints/SPRINT_027.md` and `S027_WAVE0_DECISIONS.md` (D-S027-04, D-S027-05).
+Do not silently change continuous Parquet schema.
+
+---
+
 # 6. Planned Debt Boundaries
 
 The following shortcuts may be accepted later but are not yet introduced:
