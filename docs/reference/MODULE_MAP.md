@@ -488,28 +488,41 @@ Visualization does not execute research or control execution.
 
 The framework core is reusable, while each user maintains an independent workspace.
 
-A conceptual user workspace may contain:
+Canonical layout (``--storage-root`` = workspace root, usually ``user_data/``):
 
 ```text
 user_data/
-├── storage/
-├── components/
-├── models/
-├── strategies/
+├── market_data/
+│   ├── raw/                 # immutable vendor archives
+│   ├── metadata/            # dataset registry JSON
+│   ├── normalized/          # published Parquet market facts
+│   └── continuous/          # roll schedules
 ├── research/
-├── results/
-└── runtime/
+│   ├── market_research/     # Signal Research runs + family experiments
+│   ├── strategy_research/   # Strategy Research runs
+│   └── strategy_robustness/ # robustness experiments
+├── runtime/                 # execution dry-run state
+├── reports/                 # optional loose reports
+├── config/
+├── components/
+└── models/
 ```
 
 | User-owned area | Purpose |
 |---|---|
-| `storage/` | datasets, metadata and local data versions |
+| `market_data/raw/` | vendor archives (DBN, CSV, …); never overwritten |
+| `market_data/metadata/` | dataset registry and lifecycle metadata |
+| `market_data/normalized/` | published Parquet market facts |
+| `market_data/continuous/` | roll schedules and related artifacts |
+| `research/market_research/` | Signal Research runs and model-family experiments |
+| `research/strategy_research/` | Strategy Research runs |
+| `research/strategy_robustness/` | robustness experiments |
 | `components/` | custom analytical components |
 | `models/` | Market Model and Signal Model definitions |
-| `strategies/` | strategy compositions |
-| `research/` | study and experiment definitions |
-| `results/` | persisted research artifacts |
 | `runtime/` | local execution state and operational data |
+
+Path helpers: `src/trading_framework/infrastructure/storage/paths.py`.  
+Migration: `scripts/ops/migrate_user_data_workspace.py`.
 
 Users extend the system through:
 

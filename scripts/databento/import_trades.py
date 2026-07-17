@@ -28,7 +28,7 @@ def _build_parser() -> argparse.ArgumentParser:
         "--storage-root",
         required=True,
         type=Path,
-        help="Framework storage root for metadata and normalized trades",
+        help="Workspace root (contains market_data/metadata and market_data/normalized)",
     )
     parser.add_argument(
         "--instrument-id",

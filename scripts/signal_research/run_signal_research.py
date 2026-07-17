@@ -25,7 +25,7 @@ def _build_parser() -> argparse.ArgumentParser:
         "--storage-root",
         required=True,
         type=Path,
-        help="Signal Research storage root for persisted run envelopes",
+        help="Workspace root (contains market_data/ and research/)",
     )
     parser.add_argument(
         "--definition",

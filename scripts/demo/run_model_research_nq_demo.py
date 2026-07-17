@@ -31,7 +31,7 @@ if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
 _FIXTURE_CSV = _REPO_ROOT / "tests" / "fixtures" / "market_data" / "ohlcv_sample_1m.csv"
-_DEFAULT_HALF_YEAR_STORAGE = _REPO_ROOT / "user_data" / "storage_nq_half_year"
+_DEFAULT_HALF_YEAR_STORAGE = _REPO_ROOT / "user_data"
 _DEFAULT_OUTPUT_INDEX = _REPO_ROOT / "demo" / "output" / "08_model_research_nq_half_year.html"
 _DEFAULT_SCOPE_OUTPUT_DIR = _REPO_ROOT / "demo" / "output" / "model_research"
 _FIXTURE_STORAGE = _REPO_ROOT / "demo" / "model_research_storage"
@@ -223,7 +223,12 @@ def _resolve_half_year_dataset(storage_root: Path) -> DatasetRef:
 
 
 def _find_run_id_by_research_id(storage_root: Path, research_id: str) -> str | None:
-    for child in sorted(storage_root.iterdir()):
+    from trading_framework.infrastructure.storage.paths import market_research_root
+
+    runs_dir = market_research_root(storage_root) / "runs"
+    if not runs_dir.exists():
+        return None
+    for child in sorted(runs_dir.iterdir()):
         manifest_path = child / "manifest.json"
         if not manifest_path.is_file():
             continue
@@ -234,11 +239,13 @@ def _find_run_id_by_research_id(storage_root: Path, research_id: str) -> str | N
 
 
 def _delete_demo_runs(storage_root: Path, research_ids: tuple[str, ...]) -> None:
+    from trading_framework.infrastructure.storage.paths import signal_research_run_dir
+
     for research_id in research_ids:
         run_id = _find_run_id_by_research_id(storage_root, research_id)
         if run_id is None:
             continue
-        run_dir = storage_root / run_id
+        run_dir = signal_research_run_dir(storage_root, run_id)
         if run_dir.is_dir():
             shutil.rmtree(run_dir)
 

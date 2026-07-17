@@ -121,5 +121,15 @@ def test_file_dataset_registry_path_is_derived_from_identity(tmp_path: Path) -> 
     dataset_ref = registry.allocate_ref(_dataset_id())
     registry.register(_working_metadata(dataset_ref))
 
-    expected = tmp_path / "metadata" / "ES.c.0" / "ohlcv" / "1m" / "csv" / "sample-file" / "v1.json"
+    expected = (
+        tmp_path
+        / "market_data"
+        / "metadata"
+        / "ES.c.0"
+        / "ohlcv"
+        / "1m"
+        / "csv"
+        / "sample-file"
+        / "v1.json"
+    )
     assert dataset_metadata_path(tmp_path, dataset_ref) == expected

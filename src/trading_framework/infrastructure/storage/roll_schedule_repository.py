@@ -14,6 +14,7 @@ from trading_framework.infrastructure.storage.paths import (
     roll_schedule_manifest_path,
     roll_schedule_parquet_path,
     roll_schedule_version_dir,
+    roll_schedules_base_dir,
 )
 from trading_framework.infrastructure.storage.roll_schedule_manifest_store import (
     RollScheduleManifest,
@@ -36,7 +37,7 @@ def allocate_roll_schedule_version(root: Path, *, product: str, policy_slug: str
 
 def latest_roll_schedule_version(root: Path, *, product: str, policy_slug: str) -> int | None:
     """Return the latest persisted roll schedule version when present."""
-    base = root / "continuous" / "schedules" / product / policy_slug
+    base = roll_schedules_base_dir(root, product=product, policy_slug=policy_slug)
     if not base.exists():
         return None
     versions = [

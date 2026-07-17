@@ -191,12 +191,14 @@ def main(argv: list[str] | None = None) -> int:
         contract_refs = (
             () if not args.refs else tuple(DatasetRef.parse(value) for value in args.refs)
         )
-        continuous_ohlcv_ref = resolve_continuous_ohlcv_dataset_ref(
-            storage_root=args.storage_root,
-            product=args.product,
-            policy_slug=args.policy_slug,
-            explicit_ref=args.continuous_ohlcv_dataset_ref,
-        )
+        continuous_ohlcv_ref: DatasetRef | None = None
+        if args.skip_build or args.continuous_ohlcv_dataset_ref is not None:
+            continuous_ohlcv_ref = resolve_continuous_ohlcv_dataset_ref(
+                storage_root=args.storage_root,
+                product=args.product,
+                policy_slug=args.policy_slug,
+                explicit_ref=args.continuous_ohlcv_dataset_ref,
+            )
     except ValidationError as exc:
         print(str(exc), file=sys.stderr)
         return 1
@@ -256,7 +258,15 @@ def main(argv: list[str] | None = None) -> int:
                 continuous_ohlcv_ref = build_result.continuous_ohlcv_dataset_ref
 
             _log_step(timer, "build_continuous", started_at=build_started)
-        else:
+
+        if continuous_ohlcv_ref is None:
+            print(
+                "continuous OHLCV dataset ref was not resolved after build",
+                file=sys.stderr,
+            )
+            return 1
+
+        if args.skip_build:
             timer.log(f"skip_build: using continuous OHLCV ref={continuous_ohlcv_ref}")
 
         research_started = time.perf_counter()

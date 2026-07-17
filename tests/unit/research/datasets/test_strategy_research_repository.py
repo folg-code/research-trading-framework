@@ -109,7 +109,7 @@ def test_strategy_research_repository_refuses_overwrite(tmp_path: Path) -> None:
 
 def test_strategy_research_repository_read_validates_manifest(tmp_path: Path) -> None:
     run_id = "broken-manifest"
-    run_dir = tmp_path / "strategy_research" / run_id
+    run_dir = tmp_path / "research" / "strategy_research" / "runs" / run_id
     run_dir.mkdir(parents=True)
     (run_dir / "manifest.json").write_text(
         json.dumps(

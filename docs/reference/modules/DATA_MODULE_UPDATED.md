@@ -989,15 +989,24 @@ Dataset manifests, checksums, validation results and lineage.
 
 ### 18.3 Suggested User Layout
 
+Canonical workspace (``--storage-root`` = ``user_data/``):
+
 ```text
-user_data/data/
-├── source/
-├── working/
-├── normalized/
-├── derived/
-├── cache/
-└── metadata/
+user_data/
+├── market_data/
+│   ├── raw/           # vendor archives (immutable)
+│   ├── metadata/      # dataset registry JSON
+│   ├── normalized/    # published Parquet market facts
+│   └── continuous/    # roll schedules
+├── research/
+│   ├── market_research/
+│   ├── strategy_research/
+│   └── strategy_robustness/
+└── runtime/
 ```
+
+Do not create ad-hoc top-level ``storage_*`` roots for new work. Migrate legacy trees with
+``scripts/ops/migrate_user_data_workspace.py``.
 
 ---
 
