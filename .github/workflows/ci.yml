@@ -5,10 +5,12 @@ on:
     branches:
       - main
       - "sprint/**"
+  # Post-merge verification only on main. Sprint tips are covered by pull_request
+  # into sprint/** — avoiding a second CI run when the same SHA is also pushed
+  # to sprint/<slug> (e.g. Wave 0 docs PR + sprint branch creation).
   push:
     branches:
       - main
-      - "sprint/**"
   workflow_dispatch:
 
 permissions:
