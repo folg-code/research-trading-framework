@@ -9,6 +9,7 @@ from pathlib import Path
 from trading_framework import __version__ as framework_version
 from trading_framework.application.strategy_research import (
     RunStrategyResearchRequest,
+    SharedStrategyEvaluationCache,
     run_strategy_research,
 )
 from trading_framework.application.strategy_research.summarize import summarize_strategy_run
@@ -123,6 +124,7 @@ def run_walk_forward_experiment(
     failed_count = 0
     skipped_count = 0
     updated_results: list[WalkForwardFoldResult] = []
+    evaluation_cache = SharedStrategyEvaluationCache()
 
     for fold in plan.folds:
         existing = results_by_fold_id.get(fold.fold_id)
@@ -146,6 +148,7 @@ def run_walk_forward_experiment(
                 evaluation_timeframe=evaluation_timeframe,
                 strategy_repo=strategy_repo,
                 repo=repo,
+                evaluation_cache=evaluation_cache,
             )
         except Exception as exc:
             failed_count += 1
@@ -225,6 +228,7 @@ def _execute_fold(
     evaluation_timeframe: Timeframe | None,
     strategy_repo: StrategyResearchDatasetRepository,
     repo: RobustnessExperimentRepository,
+    evaluation_cache: SharedStrategyEvaluationCache,
 ) -> WalkForwardFoldResult:
     assert spec.parameter_sweep is not None
     assert spec.walk_forward is not None
@@ -241,6 +245,7 @@ def _execute_fold(
             config_id=config_id,
             evaluation_timeframe=evaluation_timeframe,
             strategy_repo=strategy_repo,
+            evaluation_cache=evaluation_cache,
         )
         envelope = strategy_repo.read(run_ref)
         summary = summarize_strategy_run(trades=envelope.trades, equity=envelope.equity)
@@ -277,6 +282,7 @@ def _execute_fold(
         config_id=oos_config_id,
         evaluation_timeframe=evaluation_timeframe,
         strategy_repo=strategy_repo,
+        evaluation_cache=evaluation_cache,
     )
     oos_envelope = strategy_repo.read(oos_ref)
     oos_summary = summarize_strategy_run(
@@ -314,6 +320,7 @@ def _execute_strategy_run(
     config_id: str,
     evaluation_timeframe: Timeframe | None,
     strategy_repo: StrategyResearchDatasetRepository,
+    evaluation_cache: SharedStrategyEvaluationCache,
 ) -> StrategyResearchRunRef:
     strategy_model = build_strategy_model_from_cell(
         template_id=spec.strategy_template_id,
@@ -349,6 +356,15 @@ def _execute_strategy_run(
     if run_dir.exists():
         return StrategyResearchRunRef(run_id=run_id)
 
+    shared_evaluation = evaluation_cache.get_or_build(
+        dataset_ref=request.dataset_ref,
+        timeframe=request.timeframe,
+        requested_range=requested_range,
+        storage_root=request.storage_root,
+        strategy_model=strategy_model,
+        evaluation_timeframe=evaluation_timeframe,
+        session_resolver=request.session_resolver,
+    )
     result = run_strategy_research(
         RunStrategyResearchRequest(
             dataset_ref=request.dataset_ref,
@@ -361,6 +377,7 @@ def _execute_strategy_run(
             session_resolver=request.session_resolver,
             experiment_id=spec.experiment_id,
             persist=True,
+            shared_evaluation=shared_evaluation,
         ),
         repository=strategy_repo,
     )

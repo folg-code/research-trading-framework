@@ -17,6 +17,12 @@ from trading_framework.application.strategy_research.run_strategy_research impor
     StrategyResearchError,
     run_strategy_research,
 )
+from trading_framework.application.strategy_research.shared_evaluation import (
+    SharedStrategyEvaluationCache,
+    SharedStrategyEvaluationContext,
+    SharedStrategyEvaluationError,
+    build_shared_strategy_evaluation_context,
+)
 from trading_framework.application.strategy_research.summarize import (
     StrategyRunSummary,
 )
@@ -28,10 +34,14 @@ __all__ = [
     "BuildStrategyDashboardRequest",
     "RunStrategyResearchRequest",
     "RunStrategyResearchResult",
+    "SharedStrategyEvaluationCache",
+    "SharedStrategyEvaluationContext",
+    "SharedStrategyEvaluationError",
     "StrategyResearchError",
     "StrategyRunSummary",
     "analyze_strategy_research_run",
     "build_gated_entry_signals",
+    "build_shared_strategy_evaluation_context",
     "build_strategy_dashboard_view_model",
     "run_strategy_research",
 ]

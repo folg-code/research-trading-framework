@@ -140,6 +140,14 @@ A reference NQ research run demonstrates the system on non-trivial data volumes:
 
 Expensive preprocessing is materialized once. Downstream research consumes published datasets through stable references.
 
+**Compute baselines (laptop-class, published continuous NQ 1m OHLCV):**
+
+| Workflow | Hot path | Scale note |
+|---|---|---|
+| Strategy Research | columnar OHLCV + shared Polars eval + Numba fixed-bars kernel | ~6 s for a half-year run |
+| Signal / Market Research | amortized reference-price lookup, Polars joins, NumPy forward outcomes | no longer O(occurrences × bars) on the reference-price path (Sprint 026) |
+| Robustness (exit-only grid) | `SharedStrategyEvaluationCache` reuses OHLCV + `evaluate_models` | child cells resimulate without reloading analysis (Sprint 026) |
+
 ---
 
 ## Research Demonstrations

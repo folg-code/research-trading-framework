@@ -9,6 +9,7 @@ from pathlib import Path
 from trading_framework import __version__ as framework_version
 from trading_framework.application.strategy_research import (
     RunStrategyResearchRequest,
+    SharedStrategyEvaluationCache,
     run_strategy_research,
 )
 from trading_framework.core.exceptions import ValidationError
@@ -106,6 +107,7 @@ def run_robustness_experiment(
     skipped_count = 0
     child_run_refs: list[StrategyResearchRunRef] = []
     updated_entries: list[ExperimentRegistryEntry] = []
+    evaluation_cache = SharedStrategyEvaluationCache()
 
     for entry in registry.entries:
         if entry.status is ExperimentConfigStatus.COMPLETED:
@@ -135,6 +137,7 @@ def run_robustness_experiment(
                 request=request,
                 evaluation_timeframe=evaluation_timeframe,
                 strategy_repo=strategy_repo,
+                evaluation_cache=evaluation_cache,
             )
         except Exception as exc:
             failed_count += 1
@@ -243,6 +246,7 @@ def _execute_config_cell(
     request: RunRobustnessExperimentRequest,
     evaluation_timeframe: Timeframe | None,
     strategy_repo: StrategyResearchDatasetRepository,
+    evaluation_cache: SharedStrategyEvaluationCache,
 ) -> StrategyResearchRunRef:
     strategy_model = build_strategy_model_from_cell(
         template_id=spec.strategy_template_id,
@@ -278,6 +282,15 @@ def _execute_config_cell(
     if run_dir.exists():
         return StrategyResearchRunRef(run_id=run_id)
 
+    shared_evaluation = evaluation_cache.get_or_build(
+        dataset_ref=request.dataset_ref,
+        timeframe=request.timeframe,
+        requested_range=request.requested_range,
+        storage_root=request.storage_root,
+        strategy_model=strategy_model,
+        evaluation_timeframe=evaluation_timeframe,
+        session_resolver=request.session_resolver,
+    )
     result = run_strategy_research(
         RunStrategyResearchRequest(
             dataset_ref=request.dataset_ref,
@@ -290,6 +303,7 @@ def _execute_config_cell(
             session_resolver=request.session_resolver,
             experiment_id=spec.experiment_id,
             persist=True,
+            shared_evaluation=shared_evaluation,
         ),
         repository=strategy_repo,
     )

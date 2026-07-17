@@ -27,14 +27,14 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 
 ```text
 Status Date: 2026-07-17
-Current Phase: Cross-cutting research performance repayment (recommended) + Phase 8A polish backlog
-Current Milestone: Sprint 026 planned — Signal/Market Research + Robustness hot-path performance
+Current Phase: Sprint 026 research hot-path performance (Wave A/B on sprint branch) + Phase 8A polish backlog
+Current Milestone: Sprint 026 closeout — TD-017/TD-018 repaid; integration PR pending after remaining docs PR
 Implementation Status: Sprints 001-006, 008-021 COMPLETE on main; Sprint 007 SKIPPED; Sprints 022-023 COMPLETE on sprint branch (pending integration PR to main)
 Overall Status: IN_PROGRESS
-Active Sprint: none (next recommended: SPRINT_026 research hot-path performance)
+Active Sprint: sprint/research-hot-path-performance (SPRINT_026)
 Last Completed Sprint: SPRINT_023 (sprint/btc-futures-dry-run-execution, 2026-07-16)
 Capability Tracks: Foundation COMPLETE; Data 2A + 2B/2C.1 + 2B.3 + 2C.4 COMPLETE; Research 3/4A/5/5B/7 COMPLETE; Strategy 6A COMPLETE; Phase 8A local + AWS dry-run runtime + portfolio live dashboard COMPLETE on sprint branch
-Recent perf: columnar OHLCV + shared eval → **~6 s** half-year NQ strategy research (178k bars, 45M ticks ingested). Signal/Market Research + Robustness still pay Python/N× debt (TD-017, TD-018) — Sprint 026.
+Recent perf: Strategy Research columnar OHLCV + shared eval + Numba → **~6 s** half-year NQ (178k bars). Sprint 026: Signal/Market Research uses amortized lookup + NumPy forward outcomes + Polars reference-price joins; Robustness reuses shared OHLCV/eval across exit-only cells (TD-017/TD-018 REPAID).
 ```
 
 ---
@@ -514,12 +514,13 @@ Binding decisions D-001–D-036 and workspace invariants are documented in the a
 ## 11. Next Planned Capability
 
 ```text
-Sprint 026 — Research Hot-Path Performance (PLANNED, recommended next)
-    Wave A: vectorize Signal/Market occurrence + forward outcomes (TD-017)
-    Wave B: shared OHLCV/eval context for Robustness child runs (TD-018)
-    Wave 0: docs/planning/sprints/S026_WAVE0_DECISIONS.md
+Sprint 026 — Research Hot-Path Performance (IN PROGRESS on sprint/research-hot-path-performance)
+    Wave A DONE: reference-price amortization, NumPy forward outcomes, Polars batch joins
+    Wave B DONE: SharedStrategyEvaluationCache for robustness child runs
+    Wave C: TD-017/TD-018 REPAID + scale notes (this closeout)
+    Remaining: merge closeout + sprint → main; optional MC NumPy / family-run cache follow-ups
 
-Also queued (do not block Wave A):
+Also queued:
     Sprint 024/025 — Phase 8A dry-run reliability / visualization polish
     Phase 4B — Orderflow Market Analysis
     Phase 6B — Multi-data Strategy Research
@@ -559,7 +560,7 @@ See `docs/planning/sprints/SPRINT_026.md` and `ROADMAP.md` §11–§12.
 | 023 | OVH portfolio live dry-run dashboard (Phase 8A) | COMPLETED | sprint branch; integration PR pending |
 | 024 | Dry-run reliability / operating polish (Phase 8A) | PLANNED | after 023 integration |
 | 025 | Live dry-run visualization polish (Phase 8A, optional) | PLANNED | after 024 |
-| 026 | Research hot-path performance (Signal + Robustness) | PLANNED | recommended next research sprint |
+| 026 | Research hot-path performance (Signal + Robustness) | IN PROGRESS | Waves A/B done on sprint branch; Wave C closeout |
 
 ---
 
