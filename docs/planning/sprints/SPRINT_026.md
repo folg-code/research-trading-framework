@@ -5,9 +5,10 @@
 ```text
 Sprint: 026
 Phase: Cross-cutting — Research Performance (Phases 5 / 6A / 7 repayment)
-Status: PLANNED
-Planned Start: TBD
-Planned End: TBD
+Status: COMPLETED
+Planned Start: 2026-07-17
+Planned End: 2026-07-17
+Integrated: main via PR #215 (2026-07-17)
 Sprint Goal Owner: Project Maintainer
 Depends On: Strategy Research columnar/Numba path on main; Signal Research + Robustness MVP on main
 Sprint Branch: sprint/research-hot-path-performance

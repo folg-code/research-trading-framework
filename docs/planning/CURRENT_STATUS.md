@@ -27,14 +27,14 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 
 ```text
 Status Date: 2026-07-17
-Current Phase: Sprint 026 research hot-path performance (Wave A/B on sprint branch) + Phase 8A polish backlog
-Current Milestone: Sprint 026 closeout — TD-017/TD-018 repaid; integration PR pending after remaining docs PR
-Implementation Status: Sprints 001-006, 008-021 COMPLETE on main; Sprint 007 SKIPPED; Sprints 022-023 COMPLETE on sprint branch (pending integration PR to main)
+Current Phase: Sprint 027 Market Data import / continuous build performance (Wave 0) + Phase 8A polish backlog
+Current Milestone: Sprint 027 Wave 0 — TD-019/TD-020 planned; import map buffers + continuous write path
+Implementation Status: Sprints 001-006, 008-021, 026 COMPLETE on main; Sprint 007 SKIPPED; Sprints 022-023 COMPLETE on sprint branch (pending integration PR to main)
 Overall Status: IN_PROGRESS
-Active Sprint: sprint/research-hot-path-performance (SPRINT_026)
-Last Completed Sprint: SPRINT_023 (sprint/btc-futures-dry-run-execution, 2026-07-16)
+Active Sprint: sprint/market-data-import-performance (SPRINT_027)
+Last Completed Sprint: SPRINT_026 (sprint/research-hot-path-performance → main #215, 2026-07-17)
 Capability Tracks: Foundation COMPLETE; Data 2A + 2B/2C.1 + 2B.3 + 2C.4 COMPLETE; Research 3/4A/5/5B/7 COMPLETE; Strategy 6A COMPLETE; Phase 8A local + AWS dry-run runtime + portfolio live dashboard COMPLETE on sprint branch
-Recent perf: Strategy Research columnar OHLCV + shared eval + Numba → **~6 s** half-year NQ (178k bars). Sprint 026: Signal/Market Research uses amortized lookup + NumPy forward outcomes + Polars reference-price joins; Robustness reuses shared OHLCV/eval across exit-only cells (TD-017/TD-018 REPAID).
+Recent perf: Strategy Research ~12–16 s half-year NQ with --skip-build; Signal/Robustness repaid in S026. Next bottleneck: batch import (~463 s) and continuous materialize.write (~62 s).
 ```
 
 ---
@@ -514,20 +514,21 @@ Binding decisions D-001–D-036 and workspace invariants are documented in the a
 ## 11. Next Planned Capability
 
 ```text
-Sprint 026 — Research Hot-Path Performance (IN PROGRESS on sprint/research-hot-path-performance)
-    Wave A DONE: reference-price amortization, NumPy forward outcomes, Polars batch joins
-    Wave B DONE: SharedStrategyEvaluationCache for robustness child runs
-    Wave C: TD-017/TD-018 REPAID + scale notes (this closeout)
-    Remaining: merge closeout + sprint → main; optional MC NumPy / family-run cache follow-ups
+Sprint 027 — Market Data Import / Continuous Build Performance (ACTIVE)
+    Wave 0: S027_WAVE0_DECISIONS + TD-019/TD-020
+    Wave A: NumPy/Arrow contract import column buffers (no .tolist() hot path)
+    Wave B: continuous materialize write path (+ optional price_nanos ADR)
+    Wave C: vendor decode ceiling note + debt closeout
 
 Also queued:
     Sprint 024/025 — Phase 8A dry-run reliability / visualization polish
     Phase 4B — Orderflow Market Analysis
     Phase 6B — Multi-data Strategy Research
     PBO / CSCV / deflated Sharpe increment (separate ADR)
+    Post-026 residuals: MC NumPy / Signal family-run cache
 ```
 
-See `docs/planning/sprints/SPRINT_026.md` and `ROADMAP.md` §11–§12.
+See `docs/planning/sprints/SPRINT_027.md` and `ROADMAP.md` §11–§12.
 
 ---
 
@@ -560,7 +561,8 @@ See `docs/planning/sprints/SPRINT_026.md` and `ROADMAP.md` §11–§12.
 | 023 | OVH portfolio live dry-run dashboard (Phase 8A) | COMPLETED | sprint branch; integration PR pending |
 | 024 | Dry-run reliability / operating polish (Phase 8A) | PLANNED | after 023 integration |
 | 025 | Live dry-run visualization polish (Phase 8A, optional) | PLANNED | after 024 |
-| 026 | Research hot-path performance (Signal + Robustness) | IN PROGRESS | Waves A/B done on sprint branch; Wave C closeout |
+| 026 | Research hot-path performance (Signal + Robustness) | COMPLETED | integrated to main (#215) |
+| 027 | Market Data import / continuous build performance | PLANNED | Wave 0; sprint/market-data-import-performance |
 
 ---
 

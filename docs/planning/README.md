@@ -47,8 +47,10 @@ Catalog of `docs/planning/`. For taxonomy and reading paths see **[../README.md]
 | [sprints/SPRINT_023.md](sprints/SPRINT_023.md) | Portfolio live dry-run dashboard (completed on sprint branch) |
 | [sprints/SPRINT_024.md](sprints/SPRINT_024.md) | Dry-run reliability polish (planned) |
 | [sprints/SPRINT_025.md](sprints/SPRINT_025.md) | Live dry-run visualization polish (planned, optional) |
-| [sprints/SPRINT_026.md](sprints/SPRINT_026.md) | Research hot-path performance (planned, recommended next) |
+| [sprints/SPRINT_026.md](sprints/SPRINT_026.md) | Research hot-path performance (completed on main) |
 | [sprints/S026_WAVE0_DECISIONS.md](sprints/S026_WAVE0_DECISIONS.md) | Sprint 026 binding decisions (D-S026-01 … D-S026-07) |
+| [sprints/SPRINT_027.md](sprints/SPRINT_027.md) | Market Data import / continuous build performance (planned, recommended next) |
+| [sprints/S027_WAVE0_DECISIONS.md](sprints/S027_WAVE0_DECISIONS.md) | Sprint 027 binding decisions (D-S027-01 … D-S027-07) |
 | [sprints/S010_WAVE0_DECISIONS.md](sprints/S010_WAVE0_DECISIONS.md) | Sprint 010 binding decisions (D-S010-01 … D-S010-20) |
 | [sprints/SPRINT_011.md](sprints/SPRINT_011.md) | Historical archive import — trades DBN (completed) |
 | [sprints/S011_WAVE0_DECISIONS.md](sprints/S011_WAVE0_DECISIONS.md) | Sprint 011 binding decisions (D-S011-01 … D-S011-16) |
