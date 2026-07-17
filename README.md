@@ -1,242 +1,275 @@
 # Trading Research Framework
 
-A **modular Python platform for quantitative trading research**: ingest market data, run reproducible analysis, evaluate signals and strategies, and inspect results in **offline HTML dashboards** — without coupling research to live trading.
+Trading Research Framework is a modular Python platform for systematic trading research and
+paper/live-dry-run execution.
 
-**Status (2026-07-14):** Production-ready vertical slice on `main` — from Databento archives and continuous NQ futures through analysis, model evaluation, signal/strategy research and dashboards (~600 tests, CI on every change).
+The domain is trading, but the main value is the architecture: reproducible data pipelines,
+declarative research definitions, stable domain contracts, immutable artifacts, and a clear boundary
+between framework code and user-owned research work.
+
+```text
+Trading is the domain.
+Architecture is the project value.
+```
 
 ---
 
-## Start here — pick your path
+## Why This Exists
 
-| If you are… | Read this first | What you get |
-|-------------|-----------------|--------------|
-| **Recruiter / hiring manager** | [In 60 seconds](#in-60-seconds) → [Scale & performance](#scale--performance-reference-run) → [Portfolio demo](#portfolio-demo-try-it-in-the-browser) | Plain-language scope, concrete scale, browser deliverables |
-| **Data engineer** | [Data pipeline](#for-data-engineers) → [Storage layout](#storage-layout) → [DATA_WORKFLOWS](docs/reference/DATA_WORKFLOWS.md) | Parquet partitions, dataset lifecycle, continuous futures materialization |
-| **Software engineer** | [Architecture](#for-software-engineers) → [Project structure](#project-structure) → [MODULE_MAP](docs/reference/MODULE_MAP.md) | Layering, boundaries, packages, quality gates |
-| **Developer (new to repo)** | [Quick start](#quick-start) → [DEVELOPER_GUIDE](docs/onboarding/DEVELOPER_GUIDE.md) | Install, tests, where code lives |
+Most trading research systems start as scripts. Data loading, feature engineering, signal logic,
+backtesting, charts and broker calls gradually merge into one fragile workflow. That makes results
+hard to reproduce, hard to review, and dangerous to move toward execution.
 
-**Fastest showcase** (no prior setup beyond `uv sync`):
+This framework was built around a different premise:
+
+1. Market data should be normalized, versioned and published before it is used.
+2. Research should produce immutable artifacts, not overwriteable notebook state.
+3. Strategy execution should not depend on research dashboards or historical datasets.
+4. Users should extend the system through contracts and declarative definitions, not by modifying
+   the framework core.
+5. Visualization should explain what happened, not become the source of truth.
+
+The result is a research and execution platform where the same engineering ideas could apply to
+other Data Engineering and Research Engineering domains: ingestion, normalization, reproducible
+experiments, stateful runtime services, and read-only public dashboards.
+
+---
+
+## Start Here
+
+| If you want to understand... | Start with | Then go deeper |
+|------------------------------|------------|----------------|
+| The project vision | [Why This Exists](#why-this-exists) | [Architecture Philosophy](#architecture-philosophy) |
+| What the framework can show | [Engineering Showcase](#engineering-showcase) | [Portfolio demo docs](scripts/demo/README.md) |
+| Data pipelines and lifecycle | [Data As Product](#data-as-product) | [DATA_WORKFLOWS.md](docs/reference/DATA_WORKFLOWS.md) |
+| Module ownership and APIs | [Core Boundaries](#core-boundaries) | [MODULE_MAP.md](docs/reference/MODULE_MAP.md) |
+| Research methodology | [Independent Research Workflows](#independent-research-workflows) | [RESEARCH_METHODOLOGIES.md](docs/reference/RESEARCH_METHODOLOGIES.md) |
+| Current status and roadmap | [Where The Project Is Now](#where-the-project-is-now) | [CURRENT_STATUS.md](docs/planning/CURRENT_STATUS.md), [ROADMAP.md](docs/planning/ROADMAP.md) |
+
+---
+
+## Architecture Philosophy
+
+### Core Boundaries
+
+The strongest architectural decision is the split between reusable framework code and user-owned
+research workspace.
+
+```text
+src/        framework core
+user_data/  local datasets, configs, strategies, research outputs and runtime state
+```
+
+`src/` owns stable contracts, orchestration, storage interfaces, domain models, provider adapters,
+execution runtime, broker abstractions and public application workflows.
+
+`user_data/` owns private or local material: datasets, configuration, user components, study
+definitions, strategy definitions, generated runs and portfolio artifacts.
+
+The rule is simple:
+
+```text
+Framework Core never imports user_data.
+```
+
+That boundary keeps the framework reusable while still allowing real research work to happen outside
+the package.
+
+Deep reference: [MODULE_MAP.md](docs/reference/MODULE_MAP.md).
+
+### Declarative Extension
+
+The framework is designed to be extended through definitions:
+
+- Market Analysis components,
+- Market Models,
+- Signal Models,
+- Strategy Models,
+- research study specs,
+- execution runtime configuration.
+
+The user should not need to understand the internal DAG planner, storage layout, alignment engine or
+execution adapters just to express a new idea. Definitions are executed through stable public
+contracts; the framework handles orchestration, alignment, persistence and reporting.
+
+Deep reference: [RESEARCH_METHODOLOGIES.md](docs/reference/RESEARCH_METHODOLOGIES.md).
+
+### Research Is Not Execution
+
+Research and execution are intentionally separate capabilities.
+
+```text
+Signal Research      Strategy Research      Strategy Execution
+       |                    |                       |
+       +------ shared domain contracts -------------+
+```
+
+Signal Research can evaluate whether a market condition predicts forward behavior. Strategy Research
+can simulate complete entries, exits and risk rules. Strategy Execution can run selected strategy
+logic against live market data without loading research reports or historical experiment state.
+
+This separation prevents a common failure mode: treating a backtest dashboard as an executable
+trading system.
+
+Deep reference: [DATA_WORKFLOWS.md](docs/reference/DATA_WORKFLOWS.md).
+
+### Immutable Data And Artifacts
+
+Published datasets are treated as immutable inputs. Research runs, equity curves, trades, analysis
+reports and dashboards are immutable outputs. A result should be explainable after the fact: which
+dataset version, which model definition, which runtime assumptions and which code path produced it.
+
+This is why the framework favors manifests, lineage, registries and standalone HTML reports over
+ad-hoc notebook state.
+
+---
+
+## Data As Product
+
+Market data is not just loaded into memory. It moves through an explicit lifecycle:
+
+```text
+external source
+  -> normalize
+  -> validate
+  -> partitioned storage
+  -> finalize
+  -> publish
+  -> query by DatasetRef
+```
+
+For futures research, multiple contract datasets can be materialized into continuous instruments
+using explicit roll schedules. Derived OHLCV bars are built once and reused by downstream research.
+
+The important design choice is that consumers do not depend on vendor files or local paths. They
+consume published, provider-independent market facts.
+
+Deep reference: [DATA_WORKFLOWS.md](docs/reference/DATA_WORKFLOWS.md).
+
+---
+
+## Independent Research Workflows
+
+The framework supports several research workflows. They are related, but not one mandatory pipeline.
+
+### Historical Research
+
+Normalizes external data, builds continuous futures, derives OHLCV and publishes reusable datasets.
+This creates the factual base for analysis and simulation.
+
+### Model Research
+
+Evaluates declarative Market Models and Signal Models over analysis frames, then measures forward
+outcomes such as MFE, MAE and hit rate. Its purpose is to understand behavior before turning ideas
+into complete strategies.
+
+### Strategy Research
+
+Combines market conditions, signal gates, exits and risk rules into bar-sequential simulations. It
+produces trades, equity curves, KPIs and dashboard artifacts.
+
+### Robustness Research
+
+Tests whether a strategy result survives parameter sweeps, walk-forward slices, stress assumptions
+and Monte Carlo variation. Its purpose is not to prove certainty; it is to expose fragility.
+
+### Live Dry-Run Execution
+
+Runs selected execution logic against live BTCUSDT market data with simulated orders only. It proves
+the execution architecture without connecting real capital.
+
+Deep reference: [RESEARCH_METHODOLOGIES.md](docs/reference/RESEARCH_METHODOLOGIES.md).
+
+---
+
+## Live Execution As Architecture Proof
+
+The live dashboard is intentionally not presented as the product. It is a visualization of a running
+pipeline:
+
+```text
+Binance market data
+  -> AWS worker
+  -> execution runtime
+  -> paper broker
+  -> persisted execution state
+  -> REST status API
+  -> VPS live dashboard
+```
+
+The dashboard shows candles, simulated fills, position state, equity and heartbeat freshness. The
+engineering value is behind it: provider abstraction, runtime state persistence, read-only API
+surface, isolated dashboard history and no browser exposure of AWS internals.
+
+Runbook: [AWS_BTC_FUTURES_DRY_RUN.md](docs/reference/AWS_BTC_FUTURES_DRY_RUN.md).
+VPS dashboard: [scripts/portfolio_live/README.md](scripts/portfolio_live/README.md).
+
+---
+
+## Engineering Showcase
+
+The portfolio is not a screenshot gallery. Each demo is evidence of a workflow and a design decision.
+
+| Demo | What it proves | Entry point |
+|------|----------------|-------------|
+| Historical Research | Vendor data becomes provider-independent, reusable datasets | [DATA_WORKFLOWS.md](docs/reference/DATA_WORKFLOWS.md) |
+| Model Research | Declarative models can be studied before execution | [RESEARCH_METHODOLOGIES.md](docs/reference/RESEARCH_METHODOLOGIES.md) |
+| Strategy Research | Complete strategy assumptions produce trades, KPIs and equity | `demo/output/00_strategy_dashboard_nq_half_year.html` |
+| Robustness Research | Strategy claims can be stress-tested across assumptions | `demo/output/07_robustness_dashboard.html` |
+| Live Execution | Runtime state can be exposed safely through a read-only dashboard | `https://dryrun.filipf.online` |
+| Portfolio Hub | The framework story, methodology and reports in one browser entry point | `demo/output/index.html` |
+
+Generate the local portfolio bundle:
 
 ```bash
 uv pip install plotly
 uv run python scripts/demo/run_portfolio_demo.py --full --open
 ```
 
-Opens `demo/output/index.html` with strategy dashboards and inspection reports.
+Portfolio docs: [scripts/demo/README.md](scripts/demo/README.md).
 
 ---
 
-## In 60 seconds
+## Scale Reference
 
-**Problem:** Research code often mixes data loading, indicators, backtests and reporting in one script — hard to reproduce, review or extend.
+The NQ half-year demo exists to show that the architecture is not only conceptual.
 
-**Approach:** Separate **pipelines** with explicit contracts:
+Reference run:
 
-1. **Market Data** — import and publish versioned datasets (CSV, Databento DBN, continuous futures).
-2. **Market Analysis** — reusable components (volatility, swing structure, MTF alignment) on a shared execution engine.
-3. **Declarative models** — Market Model and Signal Model as expressions, not ad-hoc scripts.
-4. **Signal Research** — measure whether signals predict forward price behaviour (MFE, MAE, hit rate).
-5. **Model Research Methodology** — declarative study specs, quality diagnostics, Plotly dashboards (Phase 5B).
-6. **Strategy Research** — simulate entries/exits/risk on historical bars; persist trades, equity and a **12-KPI dashboard**.
-7. **Robustness Research** — parameter sweep, walk-forward, stress and Monte Carlo verdicts on strategy edge.
+- 45M+ Databento tick trades normalized,
+- 44M+ continuous futures trades materialized,
+- 177k+ one-minute OHLCV bars derived,
+- 1,400+ simulated strategy trades,
+- strategy research run in roughly seconds once preprocessing is complete.
 
-**Evidence of depth:** **45M+** tick trades ingested, **178k** 1m OHLCV bars materialized, full strategy backtest in **~6 s** on a laptop — see [Scale & performance](#scale--performance-reference-run).
+The important point is not the exact benchmark. It is the separation of concerns: expensive
+preprocessing is materialized once; research consumes published datasets through stable contracts.
 
-**Not in scope yet:** live broker execution, orderflow features, options data.
-
-Research methodology reference: [docs/reference/RESEARCH_METHODOLOGIES.md](docs/reference/RESEARCH_METHODOLOGIES.md).
+Details: [DATA_WORKFLOWS.md section 1.1](docs/reference/DATA_WORKFLOWS.md#11-reference-scale-nq-half-year-demo).
 
 ---
 
-## Scale & performance (reference run)
+## Where The Project Is Now
 
-Measured on the **NQ half-year demo dataset** (`user_data/storage_nq_half_year`, Jul 2025 – Jan 2026). Reproduce with `--profile` on `run_half_year_backtest.py` (requires built storage).
+The framework currently includes:
 
-### Data volume
+- market data import and publication,
+- continuous futures materialization,
+- reusable market analysis components,
+- declarative Market and Signal Models,
+- Signal Research and Model Research workflows,
+- Strategy Research simulation and dashboards,
+- Robustness Research reports,
+- AWS BTC futures dry-run execution,
+- VPS live dashboard server,
+- portfolio demo hub.
 
-| Stage | Scale |
-|-------|-------|
-| **Databento contract ticks** (7 NQ contracts) | **45.2M** trades normalized to day-partitioned Parquet |
-| **Continuous tick series** (`NQ.c.0`, volume-RTH-close roll) | **44.3M** trades materialized once, reused by all research |
-| **Derived 1m OHLCV** (`NQ.c.0`) | **177,507** bars (~**250:1** tick→bar compression) |
-| **Analysis workspace** (canonical strategy: ATR, volatility state, 5m swing + MTF align) | **26** aligned output series · **~2.4M** numeric cells per pass |
-| **Strategy simulation output** | **1,464** trades · **177,507** equity points |
-
-Preprocessing is **one-time**: published continuous OHLCV is a versioned cache — backtests do not re-decode DBN or re-roll contracts.
-
-### Wall-clock (strategy research only, `--skip-build`)
-
-| Milestone | Half-year NQ backtest | Notes |
-|-----------|----------------------|-------|
-| Before align + columnar optimizations | ~40 s | `EVENT_AT_AVAILABLE` nested loop dominated |
-| After vectorized align + batch Parquet read | ~10 s | PR #131 |
-| **Current** (columnar OHLCV + shared eval table + Numba kernel) | **~6 s** | PR #132; profiled 2026-07-14 |
-
-```bash
-uv run python scripts/market_data/run_half_year_backtest.py \
-  --storage-root user_data/storage_nq_half_year \
-  --skip-build --no-persist --profile
-```
-
-**Hot phases (~6 s total):** columnar OHLCV load (~1.4 s) · 5m resample + components (~1.2 s) · shared model evaluation table (~0.6 s) · Numba simulation kernel (~1.4 s).
-
-### Data-pipeline throughput (import)
-
-Vectorized CME session mapping on contract import: **~807 s → ~89 s** for the same three DBN archives (~**9×** faster; dominated by per-tick session resolve before fix).
-
-Deep dive: [DATA_WORKFLOWS.md §1.1](docs/reference/DATA_WORKFLOWS.md#11-reference-scale-nq-half-year-demo).
+Current status: [CURRENT_STATUS.md](docs/planning/CURRENT_STATUS.md).
+Roadmap: [ROADMAP.md](docs/planning/ROADMAP.md).
 
 ---
 
-## Portfolio demo (try it in the browser)
-
-One command builds offline HTML artifacts — useful for **portfolio reviews** and **technical demos**:
-
-```bash
-uv pip install plotly   # optional — extra inspection charts
-uv run python scripts/demo/run_portfolio_demo.py --full --open
-```
-
-| Output | Audience | Shows |
-|--------|----------|-------|
-| `00_strategy_dashboard_nq_half_year.html` | Everyone | **177,507** bars · **1,464** trades · KPIs, equity, OHLCV + markers |
-| `01_strategy_dashboard_fixture.html` | Engineers | Same pipeline on small committed fixture |
-| `02`–`06` inspection reports | Engineers | Signal analytics, model overlays, MTF swing charts |
-| `07_robustness_dashboard.html` | Engineers | Robustness Research verdict dashboard |
-| `08_model_research_nq_half_year.html` | Everyone | Model Research — 3 scopes on NQ half-year |
-
-Details: [scripts/demo/README.md](scripts/demo/README.md) (includes a **recruiter** section — no Python required if you already have the HTML).
-
-All research workflows: [RESEARCH_METHODOLOGIES.md](docs/reference/RESEARCH_METHODOLOGIES.md).
-
----
-
-## Capabilities
-
-| Area | What works today |
-|------|------------------|
-| **Ingestion** | CSV OHLCV; Databento DBN trades; 1m bars derived from trades; **continuous NQ** (`NQ.c.0`) with volume-based roll schedule |
-| **Analysis** | Component DAG, MTF resample/align, CME ES RTH sessions, swing structure, volatility state |
-| **Models** | Declarative Market Model × Signal Model; single shared evaluation pass per research run |
-| **Signal Research** | Three scopes (market-only, signal-only, combined); forward outcomes; analytics HTML |
-| **Model Research** | YAML/JSON study definitions, quality flags, baseline comparison, Plotly report v2, NQ demo |
-| **Strategy Research** | Full strategy (market × signal × exit × risk); bar simulation; persisted run + dashboard |
-| **Robustness Research** | Parameter sweep, walk-forward, stress, Monte Carlo; PASS/CONDITIONAL/FAIL verdict |
-| **Quality** | Ruff, mypy, pytest, pre-commit, GitHub Actions |
-
-Roadmap: [docs/planning/ROADMAP.md](docs/planning/ROADMAP.md).
-
----
-
-## For data engineers
-
-**Mental model:** external files → **normalize** → **Parquet** → **register** → **publish** → consumers query by `DatasetRef` (not by file path). Published versions are **immutable**.
-
-**Main pipelines:**
-
-```text
-CSV / Databento DBN
-  → validate → partitioned Parquet → metadata JSON
-  → WORKING → FINALIZED → PUBLISHED
-
-Multi-contract trades (NQ.NQM5, NQ.NQU5, …)
-  → roll schedule (volume-RTH-close)
-  → continuous trades + 1m OHLCV (NQ.c.0)
-```
-
-**Storage under `storage_root/`** (typically `user_data/storage/`):
-
-```text
-metadata/…/vN.json
-normalized/…/partitions/session_date=…/*.parquet
-continuous/schedules/…/
-signal_research/<run_id>/
-strategy_research/<run_id>/{manifest.json, trades.parquet, equity.parquet}
-```
-
-**Tech:** PyArrow Parquet, Polars aggregation, day/session partitions, import manifests, lineage on derived datasets.
-
-**Reference scale:** 45M contract ticks → 44M continuous ticks → 178k 1m OHLCV bars on the NQ half-year demo ([§1.1](docs/reference/DATA_WORKFLOWS.md#11-reference-scale-nq-half-year-demo)).
-
-Deep reference: [DATA_WORKFLOWS.md](docs/reference/DATA_WORKFLOWS.md) · [DATA_MODULE](docs/reference/modules/DATA_MODULE_UPDATED.md)
-
----
-
-## For software engineers
-
-**Style:** modular monolith — domain packages stay pure; **infrastructure** holds CSV/Databento/Parquet adapters; **`user_data/` is never imported** from `src/`.
-
-```mermaid
-flowchart LR
-    subgraph app["application"]
-        MD[market_data]
-        MA[market_analysis]
-        SR[signal_research]
-        STR[strategy_research]
-    end
-    subgraph domain["domain"]
-        MKT[market]
-        MAN[market_analysis]
-        RES[research]
-    end
-    subgraph infra["infrastructure"]
-        PQ[parquet]
-        REG[registry]
-    end
-    MD --> PQ
-    MD --> REG
-    MA --> MAN
-    SR --> RES
-    STR --> RES
-    MAN --> MKT
-```
-
-**Dependency rule:** `application` → domain + infrastructure. Domain does not import infrastructure.
-
-**Stack:** Python 3.12 · uv · Polars · NumPy · Numba · PyArrow · Pydantic · pytest · Ruff · mypy
-
-**Quality (run locally):**
-
-```bash
-uv sync --locked --dev
-uv run ruff check . && uv run ruff format --check .
-uv run mypy && uv run pytest
-```
-
-Package map and entry points: [MODULE_MAP.md](docs/reference/MODULE_MAP.md) · Architecture ADRs: [docs/adr/](docs/adr/)
-
-Research workflows (signal vs strategy): [DATA_WORKFLOWS.md](docs/reference/DATA_WORKFLOWS.md) §3.
-
----
-
-## Project structure
-
-```text
-src/trading_framework/
-  application/      orchestration (run_analysis, evaluate_models, run_strategy_research, …)
-  market/           bars, trades, datasets, continuous futures
-  market_analysis/  components, planner, executor, frames
-  model_expression/ market_model/ signal_model/ strategy/
-  research/         simulation, envelopes, analytics, dashboards
-  infrastructure/   Parquet, Databento, CSV, file registry
-
-scripts/            CLIs (import, build_continuous, backtest, demo, dashboard)
-tests/              unit + integration + fixtures
-docs/               vision, reference, planning, ADR
-user_data/          local storage & config (gitignored)
-```
-
----
-
-## Storage layout
-
-See [For data engineers](#for-data-engineers). OHLCV decimals are stored as strings in Parquet; batch research uses a **columnar float path** (`OhlcvColumnBatch`) for performance. Small queries still use `query_historical()` → `MarketBar` objects.
-
----
-
-## Quick start
-
-**Prerequisites:** Python 3.12+, [uv](https://docs.astral.sh/uv/)
+## Quick Start For Developers
 
 ```bash
 git clone <repo-url>
@@ -245,27 +278,32 @@ uv sync --locked --dev
 uv run pytest
 ```
 
-**With local NQ storage** (optional):
+Quality gates:
 
 ```bash
-uv run python scripts/market_data/run_half_year_backtest.py \
-  --storage-root user_data/storage_nq_half_year --skip-build
+uv run ruff check .
+uv run ruff format --check .
+uv run mypy
+uv run pytest
 ```
+
+Developer onboarding: [DEVELOPER_GUIDE.md](docs/onboarding/DEVELOPER_GUIDE.md).
+AI contributors: [AGENTS.md](AGENTS.md).
 
 ---
 
-## Documentation
+## Documentation Map
 
-| Document | Best for |
-|----------|----------|
-| [docs/README.md](docs/README.md) | Documentation index |
-| [DEVELOPER_GUIDE.md](docs/onboarding/DEVELOPER_GUIDE.md) | Day-one setup |
-| [DATA_WORKFLOWS.md](docs/reference/DATA_WORKFLOWS.md) | Data engineers — diagrams & sequences |
-| [MODULE_MAP.md](docs/reference/MODULE_MAP.md) | Software engineers — packages & APIs |
-| [CURRENT_STATUS.md](docs/planning/CURRENT_STATUS.md) | Sprint status |
-| [ROADMAP.md](docs/planning/ROADMAP.md) | What is planned next |
-
-AI contributors: start with [AGENTS.md](AGENTS.md).
+| Document | Responsibility |
+|----------|----------------|
+| [docs/README.md](docs/README.md) | Documentation index and reading paths |
+| [MODULE_MAP.md](docs/reference/MODULE_MAP.md) | Module structure, ownership, dependencies and entry points |
+| [DATA_WORKFLOWS.md](docs/reference/DATA_WORKFLOWS.md) | Data lifecycle, ingest, storage, analysis and execution flows |
+| [RESEARCH_METHODOLOGIES.md](docs/reference/RESEARCH_METHODOLOGIES.md) | Research workflow methodology and usage |
+| [AWS_BTC_FUTURES_DRY_RUN.md](docs/reference/AWS_BTC_FUTURES_DRY_RUN.md) | AWS dry-run execution runbook |
+| [scripts/demo/README.md](scripts/demo/README.md) | Portfolio demo generation and artifact guide |
+| [scripts/portfolio_live/README.md](scripts/portfolio_live/README.md) | VPS live dashboard server |
+| [docs/adr/](docs/adr/) | Architecture decision records |
 
 ---
 
