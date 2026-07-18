@@ -61,11 +61,20 @@ src/trading_framework/   framework code (never imports user_data or apps)
 apps/dashboard/          read-only Streamlit + DuckDB research dashboard
 scripts/                 thin CLIs (see scripts/README.md)
 deploy/                  AWS containers + local AWS runbook home
+artifacts/demo/          generated portfolio HTML (from scripts/demo)
 tests/                   unit, integration, fixtures, spike
-user_data/               your storage, config, models (gitignored)
 docs/                    vision, reference, planning, adr, agents, onboarding
-demo/output/             generated portfolio HTML (from demo script)
+scratch/                 local-only logs / one-off probes (gitignored)
+user_data/               your storage, config, models (gitignored)
 ```
+
+### Navigation tiers
+
+| Tier | Paths | In default Explorer? |
+|------|-------|----------------------|
+| First-class | `src/`, `apps/`, `scripts/`, `docs/`, `tests/` | Yes |
+| Support | `deploy/`, `artifacts/` | Yes |
+| Local-only | `scratch/`, `user_data/`, `.venv/`, tool caches | `scratch`/caches hidden; `user_data` visible in Explorer, excluded from search |
 
 Binding layout: **ADR-0022**. Pass `storage_root: Path` from `user_data/` into
 application functions. Framework code must not import `user_data/` modules.

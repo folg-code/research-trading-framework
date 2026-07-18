@@ -8,7 +8,7 @@ ACCEPTED
 
 Sprint 028 introduced `apps/dashboard` as a separate deployable consumer of
 research artifacts. The repository also grew `deploy/` (AWS containers),
-`demo/output/` (generated HTML), and local-only ops folders. Vision §10.1 and
+`artifacts/demo/output/` (generated HTML), and local-only ops folders. Vision §10.1 and
 related docs still described only `src/`, `user_data/`, `tests/`, `docs/`, and
 `scripts/`, which caused conflicting guidance for contributors and agents
 (PRB-015).
@@ -30,7 +30,8 @@ trading-research-framework/
 ├── deploy/                  # containers / infra-as-code / local AWS runbook
 ├── tests/                   # framework test suite
 ├── docs/                    # vision, reference, planning, adr, agents, onboarding
-├── demo/output/             # generated demo artifacts (not docs/)
+├── artifacts/demo/          # generated demo HTML (not docs/; Sprint 030)
+├── scratch/                 # local-only logs/probes (gitignored; Sprint 030)
 ├── user_data/               # user-owned content (ADR-0002; gitignored)
 ├── pyproject.toml           # root package + uv workspace root
 └── README.md
@@ -46,8 +47,9 @@ trading-research-framework/
 3. **`scripts/`** stay thin: parse args, call application APIs, write outputs.
 4. **`deploy/`** owns shared/runtime packaging (AWS workers, status API, local
    AWS runbook). App-specific Compose/Docker may stay under `apps/<app>/deploy/`.
-5. **Do not commit** build wheels (`dist/`), scratch `.tmp_*`, credentials, or
-   multi-MB generated HTML under `docs/`. Prefer `demo/output/` or ephemeral paths.
+5. **Do not commit** build wheels (`dist/`), credentials, or multi-MB generated
+   HTML under `docs/`. Prefer `artifacts/demo/output/` for demos and `scratch/`
+   for ephemeral logs (root `.tmp_*` is deprecated).
 6. **`packages/`** for shared cross-app DTOs is **deferred** until a second
    consumer needs them.
 7. Deep reshuffles inside domain packages under `src/trading_framework/` are

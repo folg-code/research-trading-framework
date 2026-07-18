@@ -13,6 +13,17 @@ It provides a shared architecture for historical datasets, analytical components
 | Recruiter | [What It Is](#what-it-is) · [Problems It Solves](#problems-it-solves) · [Technology Stack](#technology-stack) · [Reference Scale](#reference-scale) · [Live Dry-Run Demo](#live-dry-run-demo) |
 | Software Engineer | [Problems It Solves](#problems-it-solves) · [Engineering Methods](#engineering-methods) · [Architecture Overview](#architecture-overview) · [Documentation](#documentation) |
 
+### Top-level map
+
+| Tier | Paths | Notes |
+|------|-------|-------|
+| **First-class** | `src/`, `apps/`, `scripts/`, `docs/`, `tests/` | Framework, apps, CLIs, docs, tests |
+| **Support** | `deploy/`, `artifacts/` | Containers / runbooks; generated demo HTML |
+| **Local-only** | `scratch/`, `user_data/`, `.venv/`, caches | Gitignored; caches/`scratch` hidden in Explorer; `user_data` visible, excluded from search |
+
+Binding rules: [ADR-0022](docs/adr/ADR-0022-repository-top-level-layout.md).  
+Demo generators: [`scripts/demo/`](scripts/demo/) → output under `artifacts/demo/output/`.
+
 ---
 
 ## What It Is

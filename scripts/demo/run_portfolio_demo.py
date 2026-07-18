@@ -35,7 +35,7 @@ if str(_REPO_ROOT) not in sys.path:
 
 _OHLCV_FIXTURE = _REPO_ROOT / "tests" / "fixtures" / "market_data" / "ohlcv_sample_1m.csv"
 
-_DEFAULT_OUTPUT = _REPO_ROOT / "demo" / "output"
+_DEFAULT_OUTPUT = _REPO_ROOT / "artifacts" / "demo" / "output"
 _DEFAULT_HALF_YEAR_STORAGE = _REPO_ROOT / "user_data"
 _HALF_YEAR_DASHBOARD_NAME = "00_strategy_dashboard_nq_half_year.html"
 _FIXTURE_DASHBOARD_NAME = "01_strategy_dashboard_fixture.html"

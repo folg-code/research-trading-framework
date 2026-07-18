@@ -1,5 +1,8 @@
-# Proprietary research
+﻿# Proprietary research
 user_data/
+
+# Local scratch
+scratch/
 
 # Credentials
 .env
@@ -21,10 +24,15 @@ build/
 htmlcov/
 .coverage
 coverage.xml
+artifacts/demo/output/
 
-# Caches
+# Caches / envs / IDE noise
 .venv/
+.uv-cache/
 __pycache__/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+.idea/
+.agents/
+.codex/

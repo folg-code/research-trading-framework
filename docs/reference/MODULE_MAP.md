@@ -31,8 +31,11 @@ deploy/
     containers / infra-as-code / local AWS runbook home
     (app-specific Compose may stay under apps/<app>/deploy/)
 
-demo/output/
+artifacts/artifacts/demo/
     generated demo HTML (not docs/reference)
+
+scratch/
+    local-only logs and one-off probes (gitignored except README)
 
 tests/
     framework test suite (apps may keep their own tests)

@@ -32,9 +32,11 @@ if str(_REPO_ROOT) not in sys.path:
 
 _FIXTURE_CSV = _REPO_ROOT / "tests" / "fixtures" / "market_data" / "ohlcv_sample_1m.csv"
 _DEFAULT_HALF_YEAR_STORAGE = _REPO_ROOT / "user_data"
-_DEFAULT_OUTPUT_INDEX = _REPO_ROOT / "demo" / "output" / "08_model_research_nq_half_year.html"
-_DEFAULT_SCOPE_OUTPUT_DIR = _REPO_ROOT / "demo" / "output" / "model_research"
-_FIXTURE_STORAGE = _REPO_ROOT / "demo" / "model_research_storage"
+_DEFAULT_OUTPUT_INDEX = (
+    _REPO_ROOT / "artifacts" / "demo" / "output" / "08_model_research_nq_half_year.html"
+)
+_DEFAULT_SCOPE_OUTPUT_DIR = _REPO_ROOT / "artifacts" / "demo" / "output" / "model_research"
+_FIXTURE_STORAGE = _REPO_ROOT / "artifacts" / "demo" / "model_research_storage"
 _NQ_HORIZONS = ("5m", "15m", "30m", "60m")
 _FIXTURE_HORIZONS = ("5m",)
 
