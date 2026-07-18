@@ -5,7 +5,7 @@ from __future__ import annotations
 import streamlit as st
 
 from dashboard_app.datasources import HttpAwsDryRunDataSource
-from dashboard_app.ui import configure_page, render_sidebar_storage_root
+from dashboard_app.ui import configure_page, render_app_chrome
 from dashboard_app.views.live_paper import (
     attach_fill_markers,
     build_live_paper_candles,
@@ -102,26 +102,27 @@ def _render_snapshot(snapshot: dict[str, object]) -> None:
 
 
 def main() -> None:
-    configure_page(title="Live Paper", icon="📡")
-    settings = render_sidebar_storage_root()
+    configure_page(title="Live Paper Trading", icon="📡")
+    settings = render_app_chrome()
 
-    st.title("Live Paper")
+    st.title("Live Paper Trading")
     st.caption(
         "Read-only view of the AWS paper-trading status API. "
         "The ECS worker owns execution; this page never submits orders."
     )
 
     if settings is None:
-        st.warning("Configure a storage root in the sidebar or set `DASHBOARD_STORAGE_ROOT`.")
+        st.warning(
+            "Storage is not configured. Set `DASHBOARD_STORAGE_ROOT` or use System diagnostics."
+        )
         return
     if not settings.status_url:
         st.info(
-            "Set `DASHBOARD_STATUS_URL` or enter a status URL in the sidebar "
+            "Set `DASHBOARD_STATUS_URL` (or System diagnostics when running locally) "
             "to load live paper state."
         )
         return
 
-    st.caption(f"Status URL: `{settings.status_url}`")
     col_refresh, col_auto = st.columns([1, 3])
     with col_refresh:
         refresh = st.button("Refresh", type="primary")

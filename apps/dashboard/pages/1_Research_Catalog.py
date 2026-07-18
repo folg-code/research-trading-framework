@@ -1,4 +1,4 @@
-"""Overview — research run catalog."""
+"""Research Catalog — research run catalog."""
 
 from __future__ import annotations
 
@@ -6,24 +6,22 @@ import streamlit as st
 
 from dashboard_app.caching.streamlit import cached_list_runs, storage_fingerprint
 from dashboard_app.contracts import WorkflowKind
-from dashboard_app.ui import configure_page, render_sidebar_storage_root
+from dashboard_app.ui import configure_page, render_app_chrome
 
-configure_page(title="Overview")
-settings = render_sidebar_storage_root()
+configure_page(title="Research Catalog")
+settings = render_app_chrome()
 
-st.title("Overview")
+st.title("Research Catalog")
 st.caption(
-    "Read-only research catalog (MARKET / SIGNAL / STRATEGY / ROBUSTNESS). "
-    "Live paper trading is on the **Live Paper** page."
+    "Browse persisted market, signal, strategy and robustness research runs. "
+    "Live paper trading is on the **Live Paper Trading** page."
 )
 
 if settings is None:
-    st.warning("Configure a storage root in the sidebar or set `DASHBOARD_STORAGE_ROOT`.")
+    st.warning("Storage is not configured. Set `DASHBOARD_STORAGE_ROOT` or use System diagnostics.")
 else:
     fingerprint = storage_fingerprint(settings.storage_root)
     catalog = cached_list_runs(str(settings.storage_root), fingerprint.token)
-    st.write(f"Storage root: `{settings.storage_root}`")
-    st.caption(f"Cache fingerprint: `{fingerprint.token}`")
 
     counts = {kind: 0 for kind in WorkflowKind}
     for item in catalog.runs:
