@@ -7,6 +7,7 @@ import streamlit as st
 from dashboard_app.charts import build_equity_drawdown_figure, build_ohlcv_trade_figure
 from dashboard_app.query import DashboardQueryService
 from dashboard_app.ui import configure_page, render_sidebar_storage_root
+from dashboard_app.views.picker import render_run_identity, select_catalog_run
 from dashboard_app.views.strategy import (
     list_strategy_runs,
     load_strategy_run,
@@ -29,19 +30,11 @@ if not runs:
     st.info("No Strategy Research runs found under this storage root.")
     st.stop()
 
-labels = {f"{item.run_id} · {item.title}": item for item in runs}
-selected_label = st.selectbox("Run", options=list(labels))
-summary = labels[selected_label]
+summary = select_catalog_run(runs, label="Run", key="strategy_run_picker")
 artifacts = load_strategy_run(service, summary)
 
-st.subheader("Metadata")
-meta_cols = st.columns(4)
-meta_cols[0].write(f"**run_id:** `{summary.run_id}`")
-meta_cols[1].write(f"**dataset:** `{summary.source_dataset_ref or '—'}`")
-meta_cols[2].write(f"**timeframe:** `{summary.evaluation_timeframe or '—'}`")
-meta_cols[3].write(
-    f"**created:** `{summary.created_at_utc.isoformat() if summary.created_at_utc else '—'}`"
-)
+st.subheader("Run")
+render_run_identity(summary)
 
 st.subheader("KPI")
 if artifacts.metrics is None:

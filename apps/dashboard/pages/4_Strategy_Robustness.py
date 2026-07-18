@@ -8,6 +8,7 @@ import streamlit as st
 from dashboard_app.charts import build_equity_drawdown_figure
 from dashboard_app.query import DashboardQueryService
 from dashboard_app.ui import configure_page, render_sidebar_storage_root
+from dashboard_app.views.picker import render_run_identity, select_catalog_run
 from dashboard_app.views.robustness import list_robustness_experiments, load_robustness_experiment
 
 configure_page(title="Strategy Robustness")
@@ -25,16 +26,11 @@ if not experiments:
     st.info("No robustness experiments found under this storage root.")
     st.stop()
 
-labels = {f"{item.run_id} · {item.title}": item for item in experiments}
-selected_label = st.selectbox("Experiment", options=list(labels))
-summary = labels[selected_label]
+summary = select_catalog_run(experiments, label="Experiment", key="robustness_run_picker")
 artifacts = load_robustness_experiment(service, summary)
 
-st.subheader("Summary")
-cols = st.columns(3)
-cols[0].write(f"**experiment_id:** `{summary.run_id}`")
-cols[1].write(f"**dataset:** `{summary.source_dataset_ref or '—'}`")
-cols[2].write(f"**timeframe:** `{summary.evaluation_timeframe or '—'}`")
+st.subheader("Experiment")
+render_run_identity(summary, heading="Ids and paths")
 if artifacts.verdict is not None:
     st.json(artifacts.verdict)
 elif not artifacts.tables:

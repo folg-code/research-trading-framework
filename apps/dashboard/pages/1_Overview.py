@@ -39,19 +39,25 @@ else:
         st.dataframe(
             [
                 {
-                    "workflow": item.workflow.value,
-                    "run_id": item.run_id,
-                    "title": item.title,
-                    "created_at_utc": (
-                        item.created_at_utc.isoformat() if item.created_at_utc else None
+                    "when": (
+                        item.created_at_utc.strftime("%Y-%m-%d %H:%M")
+                        if item.created_at_utc
+                        else None
                     ),
+                    "workflow": item.workflow.value,
+                    "title": item.title,
                     "dataset": item.source_dataset_ref,
                     "timeframe": item.evaluation_timeframe,
                     "scope": item.research_scope,
+                    "run_id": item.run_id,
                 }
                 for item in catalog.runs
             ],
             use_container_width=True,
+            column_config={
+                "when": "Created (UTC)",
+                "run_id": st.column_config.TextColumn("Run id", width="small"),
+            },
         )
     else:
         st.info(

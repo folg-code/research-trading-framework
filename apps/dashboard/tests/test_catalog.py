@@ -118,6 +118,8 @@ def test_list_runs_four_workflows_and_tolerates_corrupt(tmp_path: Path) -> None:
             "spec": {
                 "dataset_ref": "NQ@continuous",
                 "timeframe": "5m",
+                "strategy_template_id": "ema_cross_v1",
+                "kinds": ["walk_forward", "parameter_sweep"],
             },
         },
     )
@@ -136,7 +138,10 @@ def test_list_runs_four_workflows_and_tolerates_corrupt(tmp_path: Path) -> None:
     assert by_id["both"].workflow is WorkflowKind.SIGNAL
     assert by_id["both"].research_scope == "market_and_signal"
     assert by_id["st1"].workflow is WorkflowKind.STRATEGY
+    assert by_id["st1"].title == "Strategy · demo_strategy · signal s"
     assert by_id["rb1"].workflow is WorkflowKind.ROBUSTNESS
+    assert by_id["rb1"].title == "Robustness · ema_cross_v1 · walk_forward, parameter_sweep"
+    assert "rb1" not in by_id["rb1"].title
     assert catalog.runs[0].run_id == "rb1"
     assert len(catalog.issues) >= 3
 
