@@ -5,7 +5,7 @@
 ```text
 Sprint: 032
 Phase: Phase 8A polish
-Status: IN_PROGRESS
+Status: COMPLETE on main (PR #246, 2026-07-18)
 Planned Start: 2026-07-18
 Sprint Branch: sprint/live-strategy-eval-parity
 Wave 0: docs/planning/sprints/S032_WAVE0_DECISIONS.md

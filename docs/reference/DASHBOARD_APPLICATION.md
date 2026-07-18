@@ -27,14 +27,14 @@ Optional shared presentation DTOs live inside `dashboard_app.contracts`.
 
 Schema version: `dashboard.presentation.v1`.
 
-## Live Paper (Sprint 031)
+## Live Paper (Sprint 031 / 025)
 
-Page: `pages/5_Live_Paper.py`.
+Page: `pages/5_Live_Paper.py` with helpers in `dashboard_app.views.live_paper`.
 
-- Configure `DASHBOARD_STATUS_URL` or the sidebar “Live paper status URL”
-  (falls back to `DEFAULT_LIVE_PAPER_STATUS_URL`).
+- Configure `DASHBOARD_STATUS_URL` or the sidebar (falls back to `DEFAULT_LIVE_PAPER_STATUS_URL`).
+- Shows simulated banner, stale-heartbeat warning, candlestick from `recent_bars`, fill markers.
 - Dashboard only GETs the status API — never starts the worker or submits orders.
-- See `docs/reference/LIVE_PAPER_PIPELINE_INSPECTION.md` for worker vs API ownership.
+- See `docs/reference/LIVE_PAPER_PIPELINE_INSPECTION.md` and `apps/dashboard/docs/RUNBOOK.md`.
 
 ## Adding a page
 
