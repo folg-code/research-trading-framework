@@ -1,7 +1,7 @@
 # Live Paper / AWS Dry-Run Pipeline Inspection
 
-Sprint 031 inspection notes. Confirms execution vs read-only boundaries and
-Strategy Model ownership for paper trading visible in `apps/dashboard`.
+Sprint 031 + Sprint 032 notes. Confirms execution vs read-only boundaries and
+Strategy Model evaluation for paper trading visible in `apps/dashboard`.
 
 ## Architecture verdict
 
@@ -9,51 +9,48 @@ Strategy Model ownership for paper trading visible in `apps/dashboard`.
 |-----------|----------------------|-------|
 | ECS worker (`run_aws_btc_futures_worker`) | **Yes** | Same engine as local: closed bar → signal → `PaperBroker` → persist |
 | Status Lambda (`aws_status_api_handler`) | **No (read-only)** | `GetItem` only; rejects non-GET |
-| `apps/dashboard` (before S031) | N/A | Stub `AwsDryRunDataSource` only |
+| `apps/dashboard` Live Paper | Read-only | GET status API via `HttpAwsDryRunDataSource` |
 | `portfolio_live` aiohttp | Read-only UI | Proxies status API; separate from Streamlit |
 
-**User suspicion “AWS only listens”:** incorrect for the **worker**. Correct for the
-**status API** (by design). Dashboard must stay read-only visualization.
-
 ```text
-Binance WS → Worker (StrategyModel + PaperBroker + DynamoDB PutItem)
-                 ↓
-            DynamoDB state
-                 ↓
-         Status Lambda GetItem → GET /status → dashboard (read-only)
+Binance REST bootstrap (warmup bars)
+  → Binance WS closed 1m bars (append)
+  → StrategyModelLiveSignalEvaluator (AnalysisFrame + SignalModelEvaluator)
+  → PaperBroker → DynamoDB PutItem
+  → Status Lambda GetItem → GET /status → dashboard (read-only)
 ```
 
 ## Code path (worker)
 
 1. [`scripts/execution/run_aws_btc_futures_worker.py`](../../scripts/execution/run_aws_btc_futures_worker.py)
 2. `run_aws_btc_futures_dry_run_sync` → `run_local_btc_futures_binance_dry_run`
-3. Per closed 1m bar: `run_local_btc_futures_closed_bar_step` in
-   [`local_btc_futures.py`](../../src/trading_framework/application/execution/local_btc_futures.py)
-4. Signal: `StrategyModelLiveSignalEvaluator` over `StrategyModelDefinition`
-5. Orders: `StrategyModelOrderAdapter` + `PaperBroker`
-6. Persist: DynamoDB (`PutItem`) or local JSON
+3. Bootstrap: `fetch_closed_klines` sized to `required_closed_bars_for_strategy`
+4. Per closed 1m bar: append to rolling buffer → `run_local_btc_futures_closed_bar_step`
+5. Signal: `StrategyModelLiveSignalEvaluator` (Market Analysis + `SignalModelEvaluator`)
+6. Orders: `StrategyModelOrderAdapter` + `PaperBroker`
+7. Persist: DynamoDB (`PutItem`) or local JSON
 
-## Strategy Model ownership (known bubel → S031 Wave D)
+## Strategy Model evaluation (S032)
 
-**Required:** live/AWS paper trading must use the domain
-`StrategyModelDefinition` (Market × Signal × Exit × Risk) — the same object
-Strategy Research simulates with `BarSequentialSimulator`.
+**Object:** live/AWS paper trading uses domain `StrategyModelDefinition` (same as
+Strategy Research).
 
-**Before S031:** assembly already called `build_btc_futures_demo_strategy_model()`,
-but live signal evaluation lived in a hand-specialized
-`EmaMomentumLiveSignalEvaluator` that only understands one expression shape
-(close > EMA). That is **not** a second AWS-only strategy type, but it is a
-narrow live adapter rather than the full research evaluation stack
-(`SignalModelEvaluator` + `AnalysisFrame`).
+**Warmup:** `required_closed_bars_for_strategy` aggregates component
+`history_requirement` via `max_history_requirement` and adds firing lookback
+(+1 for `ON_TRUE_EDGE`). Under-warm buffers do not emit entries.
 
-**S031 direction:**
+**Bootstrap:** Binance USD-M REST closed klines at start. If REST fails, the
+buffer starts empty and signals stay gated until WebSocket history reaches the
+required size.
 
-- Canonical live type: `StrategyModelLiveSignalEvaluator(strategy_model=...)`.
-- `EmaMomentumLiveSignalEvaluator` kept as a compatibility alias.
-- Exit still driven from `FixedBarsExitModel` on the Strategy Model (via
-  `_fixed_bar_exit_active` in the runtime assembly).
-- Follow-up (not blocking Live Paper UI): incremental live eval via shared
-  `SignalModelEvaluator` / AnalysisFrame for arbitrary signal expressions.
+**Append + recompute:** each closed WS bar is appended; the rolling window is
+`max(required_bars, configured_cap)`. Each step fully recomputes the
+`AnalysisFrame` over that window (no incremental component kernels yet).
+
+**Exit:** still `_fixed_bar_exit_active` for `FixedBarsExitModel`.
+
+**Follow-up debt:** true per-component incremental state if window recompute
+becomes a bottleneck.
 
 ## Local smoke (no AWS credentials)
 
@@ -67,7 +64,7 @@ uv run python scripts/execution/run_btc_futures_dry_run.py `
 Pass criteria:
 
 - process exits 0 with `"simulated": true`
-- `closed_bars` ≥ 0 (may be 0 if no closed 1m bar in the short window)
+- bootstrap may seed closed bars before the first WS close
 - event log / state directory updated under `user_data/runtime/...`
 
 ## Live AWS checklist (operator)

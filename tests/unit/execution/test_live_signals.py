@@ -10,12 +10,15 @@ from trading_framework.core.types import Price, Volume
 from trading_framework.execution import (
     EmaMomentumLiveSignalEvaluator,
     StrategyModelLiveSignalEvaluator,
+    required_closed_bars_for_strategy,
+    resolve_live_closed_bar_window,
 )
 from trading_framework.market.models import MarketBar
 from trading_framework.strategy import (
     BtcFuturesDemoStrategyConfig,
     build_btc_futures_demo_strategy_model,
 )
+from trading_framework.time.models.timeframe import Timeframe
 
 NOW = datetime(2026, 7, 15, 12, 0, tzinfo=UTC)
 
@@ -42,9 +45,22 @@ def _evaluator(period: int = 3) -> StrategyModelLiveSignalEvaluator:
     )
 
 
-def test_strategy_model_live_signal_waits_for_ema_warmup() -> None:
-    evaluation = _evaluator().evaluate((_bar("100", 0), _bar("101", 1)))
+def test_required_closed_bars_uses_max_component_warmup_plus_edge_lookback() -> None:
+    small = build_btc_futures_demo_strategy_model(BtcFuturesDemoStrategyConfig(ema_period=3))
+    large = build_btc_futures_demo_strategy_model(BtcFuturesDemoStrategyConfig(ema_period=20))
+    timeframe = Timeframe("1m")
 
+    assert required_closed_bars_for_strategy(small, timeframe=timeframe) == 4
+    assert required_closed_bars_for_strategy(large, timeframe=timeframe) == 21
+    assert resolve_live_closed_bar_window(required_bars=21, configured_cap=200) == 200
+    assert resolve_live_closed_bar_window(required_bars=50, configured_cap=40) == 50
+
+
+def test_strategy_model_live_signal_waits_for_warmup() -> None:
+    evaluator = _evaluator(period=3)
+    evaluation = evaluator.evaluate((_bar("100", 0), _bar("101", 1)))
+
+    assert evaluator.required_closed_bars == 4
     assert not evaluation.condition_active
     assert not evaluation.entry_signal_active
     assert evaluation.exit_signal_active is False
@@ -52,17 +68,25 @@ def test_strategy_model_live_signal_waits_for_ema_warmup() -> None:
 
 
 def test_strategy_model_live_signal_fires_on_first_true_edge() -> None:
-    evaluation = _evaluator().evaluate((_bar("100", 0), _bar("100", 1), _bar("101", 2)))
+    evaluation = _evaluator(period=3).evaluate(
+        (_bar("100", 0), _bar("100", 1), _bar("100", 2), _bar("101", 3))
+    )
 
     assert evaluation.condition_active
     assert evaluation.entry_signal_active
     assert evaluation.close == 101.0
-    assert evaluation.ema_value == pytest.approx(100.33333333333333)
+    assert evaluation.ema_value is None
 
 
 def test_strategy_model_live_signal_does_not_refire_while_condition_stays_true() -> None:
-    evaluation = _evaluator().evaluate(
-        (_bar("100", 0), _bar("100", 1), _bar("101", 2), _bar("102", 3))
+    evaluation = _evaluator(period=3).evaluate(
+        (
+            _bar("100", 0),
+            _bar("100", 1),
+            _bar("100", 2),
+            _bar("101", 3),
+            _bar("102", 4),
+        )
     )
 
     assert evaluation.condition_active

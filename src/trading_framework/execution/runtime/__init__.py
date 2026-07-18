@@ -9,6 +9,8 @@ from trading_framework.execution.runtime.live_signals import (
     EmaMomentumLiveSignalEvaluator,
     LiveSignalEvaluation,
     StrategyModelLiveSignalEvaluator,
+    required_closed_bars_for_strategy,
+    resolve_live_closed_bar_window,
 )
 from trading_framework.execution.runtime.session import LocalExecutionRuntimeSession
 from trading_framework.execution.runtime.strategy_orders import (
@@ -28,4 +30,6 @@ __all__ = [
     "StrategyOrderDecision",
     "StrategyOrderDecisionType",
     "closed_bar_close_reference_quote",
+    "required_closed_bars_for_strategy",
+    "resolve_live_closed_bar_window",
 ]
