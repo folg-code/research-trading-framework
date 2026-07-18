@@ -107,7 +107,7 @@ Market Data policy (facts not indicators, vendor independence): **§14 Research 
 
 Test data tiers and live-data gate: **§15**.
 
-**Recommended next increment:** Integrate **Sprint 024** (`sprint/dry-run-reliability-polish`) to `main`, then pick from remaining `SPRINT_035.md` options (docs pack residual, Phase 4B orderflow, Phase 6B multi-data, Phase 8 Replay, PBO/CSCV ADR).
+**Recommended next increment:** **Sprint 036 — research infra audit** (`sprint/research-infra-audit`), then **S037** component libraries + DSL simplification, then AI/ML. S024 dry-run reliability is on `main` (#270). Deferred by default: Phase 4B/6B, Phase 8 Replay, PBO/CSCV ADR.
 
 ---
 

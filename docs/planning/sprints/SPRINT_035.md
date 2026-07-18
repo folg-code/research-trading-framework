@@ -5,9 +5,9 @@
 ```text
 Sprint: 035
 Phase: Planning / track choice
-Status: PLANNED
+Status: COMPLETED (track choice recorded)
 Planned Start: 2026-07-18
-Planned End: TBD (Wave 0 decision only, then execute chosen track)
+Planned End: 2026-07-18
 Sprint Goal Owner: Project Maintainer
 Depends On: SPRINT_034 (on main); public demo live at dashboard.filipf.online
 Sprint Branch: (none until track chosen — then sprint/<slug> per workflow)
@@ -89,10 +89,10 @@ Do **not** reopen dashboard shell work unless required by status-state UX.
 
 Before coding:
 
-- [ ] Confirm track: **S024** (default) / docs pack / 4B / other  
-- [ ] Confirm sprint integration branch name  
-- [ ] Confirm AWS worker may stay running (or scheduled) during the sprint  
-- [ ] Confirm out of scope: real orders, multi-symbol portfolio, UI redesign  
+- [x] Confirm track: **S024** executed; next track = **S036 research infra audit** (then S037 DSL/components; AI/ML later)  
+- [x] Confirm sprint integration branch name: `sprint/dry-run-reliability-polish` (S024); next `sprint/research-infra-audit` (S036)  
+- [x] Confirm AWS worker may stay running (or scheduled) during S024 — done  
+- [x] Confirm out of scope for S024: real orders, multi-symbol portfolio, UI redesign  
 
 ---
 
@@ -102,12 +102,14 @@ Before coding:
 2. This file exists and names a default recommendation.  
 3. Maintainer picks one option; implementation continues under that sprint’s file (S024 or a new sprint), not as an unbounded backlog.
 
+**Decision (2026-07-18):** Execute S024 first (done → main #270). Next implementation track is **S036** (infra audit), then **S037** (component libraries + DSL simplification), then AI/ML — not 4B/6B/Replay by default.
+
 ---
 
 ## 6. Status
 
 ```text
-S035-T001  Draft next-increment options     DONE (this file)
-S035-T002  Maintainer track choice          TODO
-S035-T003  Open sprint branch for choice    TODO
+S035-T001  Draft next-increment options     DONE
+S035-T002  Maintainer track choice          DONE (S024 then S036→S037→AI/ML)
+S035-T003  Open sprint branch for choice    DONE (S024); S036 branch at Wave 0 of SPRINT_036
 ```

@@ -27,14 +27,14 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 
 ```text
 Status Date: 2026-07-18
-Current Phase: Sprint 024 dry-run reliability on sprint branch — integrate to main
-Current Milestone: Squash-merge sprint/dry-run-reliability-polish → main
-Implementation Status: Sprints 001-006, 008-023, 025-034 on main; Sprint 007 SKIPPED; 024 COMPLETED on sprint branch; 035 PLANNED (selection done → S024)
+Current Phase: Sprint 036 research infra audit (gate for DSL / components)
+Current Milestone: Wave 0 path inventory + bench harness on sprint/research-infra-audit
+Implementation Status: Sprints 001-006, 008-024, 025-034 on main; Sprint 007 SKIPPED; 035 COMPLETED (selection); 036 PLANNED
 Overall Status: STABLE
-Active Sprint: sprint/dry-run-reliability-polish (S024) — ready for main integration
-Last Completed Sprint: SPRINT_024 (dry-run reliability polish on sprint branch) after S034 public demo
-Capability Tracks: Foundation COMPLETE; Data COMPLETE (core); Research COMPLETE (core); Strategy 6A COMPLETE; Phase 8A AWS dry-run on main (#199) + S024 reliability on sprint; Dashboard Streamlit COMPLETE; Live Paper COMPLETE; VPS CI/CD COMPLETE; Public demo polish COMPLETE on main
-Recent: S024 waves 1–4 on sprint (feed health, Live Paper badges, DynamoDB TTL, architecture one-pager). Public demo: https://dashboard.filipf.online. Next: integrate sprint → main, then pick next track from SPRINT_035.
+Active Sprint: none yet — open sprint/research-infra-audit at S036 Wave 0
+Last Completed Sprint: SPRINT_024 (dry-run reliability) → main (#270)
+Capability Tracks: Foundation COMPLETE; Data COMPLETE (core); Research COMPLETE (core); Strategy 6A COMPLETE; Phase 8A dry-run + S024 reliability on main; Dashboard / Live Paper / public demo COMPLETE
+Recent: S024 integrated to main (#270). Chosen next track: infra audit (S036) → component libraries + DSL simplify (S037) → AI/ML later. Public demo: https://dashboard.filipf.online
 ```
 
 ---
@@ -44,10 +44,9 @@ Recent: S024 waves 1–4 on sprint (feed health, Live Paper badges, DynamoDB TTL
 Phase 8A (BTC futures live dry-run) is **on main** through Sprint 022/023 integration (#199 / #202).
 Streamlit Live Paper is the primary public UI (Sprints 031–034).
 
-Sprint 024 dry-run reliability polish is **COMPLETED on** `sprint/dry-run-reliability-polish`
-(feed≠heartbeat, reconnect/last_error, SIGTERM→STOPPED, Live Paper RuntimeHealth badges,
-DynamoDB TTL, failure-mode tests, architecture one-pager). Integrate that sprint branch to
-`main` next. CloudWatch alarm spec, operator runbook base, and cost modes remain from Sprint 022.
+Sprint 024 dry-run reliability polish is **on main** (#270): feed≠heartbeat, reconnect/last_error,
+SIGTERM→STOPPED, Live Paper RuntimeHealth badges, DynamoDB TTL, failure-mode tests, architecture
+one-pager. CloudWatch alarm spec, operator runbook base, and cost modes remain from Sprint 022.
 
 Sprint 019 live-data boundary:
 
@@ -518,20 +517,23 @@ Binding decisions D-001–D-036 and workspace invariants are documented in the a
 
 ```text
 Public demo loop CLOSED (S028–S034 + follow-ups #261–#264).
-Sprint 024 dry-run reliability COMPLETED on sprint branch (waves 1–4).
+Sprint 024 dry-run reliability → main (#270).
+Sprint 035 track choice CLOSED.
 
-Immediate next step:
-    Integrate sprint/dry-run-reliability-polish → main
+Recommended next implementation:
+    Sprint 036 — Research infra audit (measured bottlenecks; gate for DSL/components)
+      then Sprint 037 — Component libraries + DSL simplification
+      then AI/ML research (IDEA-014) when authoring foundation is stable
 
-Then pick from SPRINT_035 remaining options:
-    Docs / recruiter narrative pack (partially covered by architecture one-pager)
+Deferred relative to that track:
     Phase 4B — Orderflow Market Analysis
     Phase 6B — Multi-data Strategy Research
-    Phase 8 Replay foundation (roadmap §12; larger than current dry-run)
+    Phase 8 Replay foundation
     PBO / CSCV / deflated Sharpe (ADR first)
+    Residual docs / sample-data narrative
 
 Recently completed (dashboard / demo / dry-run):
-    Sprint 024 — Dry-run reliability polish → sprint branch (integrate to main next)
+    Sprint 024 — Dry-run reliability polish → main (#270)
     Sprint 034 — Public Dashboard Demo Polish → main (#260)
     Follow-ups — overview nav, English + diagrams, LWC OHLCV, README link (#261–#264)
     Sprint 033 — Dashboard presentation polish → main (#257)
@@ -541,7 +543,7 @@ Recently completed (dashboard / demo / dry-run):
 
 Deferred (explicit):
     packages/ shared presentation contracts (until second DTO consumer)
-    Deep market_analysis/ reorg (TD-003) until Phase 4B/4C
+    Deep market_analysis/ reorg (TD-003) until Phase 4B/4C or S036 audit requires it
     Full ops/ nesting of deploy/ (rejected for S030)
     Further public-dashboard cosmetics as a default track
 ```
@@ -577,7 +579,7 @@ See `docs/planning/sprints/SPRINT_035.md`, `SPRINT_024.md`, and `ROADMAP.md` §1
 | 021 | Execution Persistence and Read Model (Phase 8A) | COMPLETED | 8 / 8 tasks |
 | 022 | AWS Runtime MVP for BTC Futures Dry Run (Phase 8A) | COMPLETED | integrated to main (#199) |
 | 023 | OVH portfolio live dry-run dashboard (Phase 8A) | COMPLETED | integrated to main (#199 / #202); Streamlit is now primary UI |
-| 024 | Dry-run reliability wiring (Phase 8A) | COMPLETED (sprint) | waves 1–4 on `sprint/dry-run-reliability-polish`; main integration pending |
+| 024 | Dry-run reliability wiring (Phase 8A) | COMPLETED | main #270 (waves 1–4) |
 | 025 | Streamlit dashboard polish + VPS publish | COMPLETED | main #249; deploy fixes #250/#251; edge TLS ops; user_data deferred |
 | 026 | Research hot-path performance (Signal + Robustness) | COMPLETED | integrated to main (#215) |
 | 027 | Market Data import / continuous build performance | COMPLETED | integrated to main (#220) |
@@ -588,7 +590,8 @@ See `docs/planning/sprints/SPRINT_035.md`, `SPRINT_024.md`, and `ROADMAP.md` §1
 | 032 | Live Strategy Evaluation Parity | COMPLETED | integrated to main (#246) |
 | 033 | Dashboard presentation polish | COMPLETED | 6 / 6 tasks; Waves A–C (#253–#256); main #257 |
 | 034 | Public Dashboard Demo Polish | COMPLETED | Waves 1–5 (#258–#259); main #260; VPS deploy; follow-ups #261–#264 |
-| 035 | Next increment selection (post public demo) | PLANNED | ranked options; default → S024 |
+| 035 | Next increment selection (post public demo) | COMPLETED | chose S024 then S036→S037→AI/ML |
+| 036 | Research infra audit (DSL/component gate) | PLANNED | measured audit before component libraries + DSL simplify |
 
 ---
 
