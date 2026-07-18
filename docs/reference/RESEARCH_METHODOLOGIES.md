@@ -611,15 +611,15 @@ Use the following documents for deeper context:
 ### Reference Research Reports
 
 Standalone HTML reports are **generated demos**, not committed documentation
-artifacts (ADR-0022). Produce them under `demo/output/` via
+artifacts (ADR-0022). Produce them under `artifacts/demo/output/` via
 [`scripts/demo/`](../../scripts/demo/README.md) (for example
 `uv run python scripts/demo/run_portfolio_demo.py --full`).
 
 | Methodology             | Typical demo output (after generation)                         | Purpose |
 | ----------------------- | -------------------------------------------------------------- | ------- |
-| Combined Model Research | `demo/output/model_research/` / portfolio index entries          | Forward-outcome analysis for a signal conditioned by market context |
-| Strategy Research       | `demo/output/00_strategy_dashboard_nq_half_year.html` (hero)     | Trade ledger, equity, drawdown and strategy performance analysis |
-| Robustness Research     | `demo/output/07_robustness_dashboard.html`                       | Parameter sensitivity, walk-forward, stress, Monte Carlo and diagnostics |
+| Combined Model Research | `artifacts/demo/output/model_research/` / portfolio index entries          | Forward-outcome analysis for a signal conditioned by market context |
+| Strategy Research       | `artifacts/demo/output/00_strategy_dashboard_nq_half_year.html` (hero)     | Trade ledger, equity, drawdown and strategy performance analysis |
+| Robustness Research     | `artifacts/demo/output/07_robustness_dashboard.html`                       | Parameter sensitivity, walk-forward, stress, Monte Carlo and diagnostics |
 
 For day-to-day inspection of research runs, prefer **`apps/dashboard`**
 (Sprint 028) over regenerating HTML.

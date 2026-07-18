@@ -70,7 +70,7 @@ Dashboard deploy stays co-located at `apps/dashboard/deploy/` (not under root
 ## D-S029-05 — Generated artifacts out of docs/
 
 **Decision:** Standalone HTML research reports must not live under
-`docs/reference/`. Generate them into `demo/output/` (or ephemeral paths) via
+`docs/reference/`. Generate them into `artifacts/demo/output/` (or ephemeral paths) via
 `scripts/demo/`. Documentation links to generation instructions, not committed
 multi-MB HTML.
 

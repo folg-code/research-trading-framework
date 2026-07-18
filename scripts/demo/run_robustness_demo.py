@@ -22,7 +22,7 @@ if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
 _FIXTURE_CSV = _REPO_ROOT / "tests" / "fixtures" / "market_data" / "ohlcv_sample_1m.csv"
-_DEFAULT_OUTPUT = _REPO_ROOT / "demo" / "output" / "07_robustness_dashboard.html"
+_DEFAULT_OUTPUT = _REPO_ROOT / "artifacts" / "demo" / "output" / "07_robustness_dashboard.html"
 _DEFAULT_HALF_YEAR_STORAGE = _REPO_ROOT / "user_data"
 _HALF_YEAR_BASELINE_RUN_ID = "14e36fe5fbb5d9f2"
 _DAY_SECONDS = 86_400
@@ -273,7 +273,7 @@ def main(argv: list[str] | None = None) -> int:
         args.storage_root
         if args.storage_root is not None
         else (
-            _REPO_ROOT / "demo" / "robustness_storage"
+            _REPO_ROOT / "artifacts" / "demo" / "robustness_storage"
             if use_fixture
             else _DEFAULT_HALF_YEAR_STORAGE
         )

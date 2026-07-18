@@ -10,7 +10,7 @@ application APIs from these entry points rather than embedding domain logic.
 | `signal_research/` | Signal / model research runners and reports |
 | `strategy_research/` | Strategy research runners and HTML dashboard export |
 | `robustness_research/` | Robustness experiment runners and reports |
-| `demo/` | Portfolio / marketing demo HTML generation → `demo/output/` |
+| `demo/` | Portfolio / marketing demo HTML generation → `artifacts/demo/output/` |
 | `execution/` | Dry-run / execution operator CLIs |
 | `live_data/` | Live feed smoke helpers |
 | `portfolio_live/` | Portfolio live / dry-run dashboard server |

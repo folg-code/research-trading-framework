@@ -1,31 +1,47 @@
 {
-    "python.defaultInterpreterPath": "${workspaceFolder}\\.venv\\Scripts\\python.exe",
-  
-    "python.testing.pytestEnabled": true,
-    "python.testing.unittestEnabled": false,
-    "python.testing.pytestArgs": [
-      "tests"
-    ],
-  
-    "editor.formatOnSave": true,
-  
-    "[python]": {
-      "editor.defaultFormatter": "charliermarsh.ruff",
-      "editor.codeActionsOnSave": {
-        "source.fixAll.ruff": "explicit",
-        "source.organizeImports.ruff": "explicit"
-      }
-    },
-  
-    "files.exclude": {
-      "**/__pycache__": true,
-      ".pytest_cache": true,
-      ".mypy_cache": true,
-      ".ruff_cache": true
-    },
-  
-    "search.exclude": {
-      ".venv": true,
-      "user_data": true
+  "python.defaultInterpreterPath": "${workspaceFolder}\\.venv\\Scripts\\python.exe",
+
+  "python.testing.pytestEnabled": true,
+  "python.testing.unittestEnabled": false,
+  "python.testing.pytestArgs": [
+    "tests"
+  ],
+
+  "editor.formatOnSave": true,
+
+  "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff",
+    "editor.codeActionsOnSave": {
+      "source.fixAll.ruff": "explicit",
+      "source.organizeImports.ruff": "explicit"
     }
+  },
+
+  "files.exclude": {
+    "**/__pycache__": true,
+    ".pytest_cache": true,
+    ".mypy_cache": true,
+    ".ruff_cache": true,
+    ".uv-cache": true,
+    ".venv": true,
+    ".idea": true,
+    ".agents": true,
+    ".codex": true,
+    "scratch": true,
+    "user_data": true,
+    "dist": true,
+    "**/.tmp_*": true
+  },
+
+  "search.exclude": {
+    ".venv": true,
+    ".uv-cache": true,
+    "user_data": true,
+    "scratch": true,
+    "dist": true,
+    "artifacts/demo/output": true,
+    "**/.mypy_cache": true,
+    "**/.pytest_cache": true,
+    "**/.ruff_cache": true
   }
+}
