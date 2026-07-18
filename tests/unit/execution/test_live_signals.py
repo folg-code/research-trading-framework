@@ -7,7 +7,10 @@ import pytest
 
 from trading_framework.core.exceptions import ValidationError
 from trading_framework.core.types import Price, Volume
-from trading_framework.execution import EmaMomentumLiveSignalEvaluator
+from trading_framework.execution import (
+    EmaMomentumLiveSignalEvaluator,
+    StrategyModelLiveSignalEvaluator,
+)
 from trading_framework.market.models import MarketBar
 from trading_framework.strategy import (
     BtcFuturesDemoStrategyConfig,
@@ -31,13 +34,15 @@ def _bar(close: str, index: int) -> MarketBar:
     )
 
 
-def _evaluator(period: int = 3) -> EmaMomentumLiveSignalEvaluator:
-    return EmaMomentumLiveSignalEvaluator(
-        build_btc_futures_demo_strategy_model(BtcFuturesDemoStrategyConfig(ema_period=period))
+def _evaluator(period: int = 3) -> StrategyModelLiveSignalEvaluator:
+    return StrategyModelLiveSignalEvaluator(
+        strategy_model=build_btc_futures_demo_strategy_model(
+            BtcFuturesDemoStrategyConfig(ema_period=period)
+        )
     )
 
 
-def test_ema_momentum_live_signal_waits_for_ema_warmup() -> None:
+def test_strategy_model_live_signal_waits_for_ema_warmup() -> None:
     evaluation = _evaluator().evaluate((_bar("100", 0), _bar("101", 1)))
 
     assert not evaluation.condition_active
@@ -46,7 +51,7 @@ def test_ema_momentum_live_signal_waits_for_ema_warmup() -> None:
     assert evaluation.ema_value is None
 
 
-def test_ema_momentum_live_signal_fires_on_first_true_edge() -> None:
+def test_strategy_model_live_signal_fires_on_first_true_edge() -> None:
     evaluation = _evaluator().evaluate((_bar("100", 0), _bar("100", 1), _bar("101", 2)))
 
     assert evaluation.condition_active
@@ -55,7 +60,7 @@ def test_ema_momentum_live_signal_fires_on_first_true_edge() -> None:
     assert evaluation.ema_value == pytest.approx(100.33333333333333)
 
 
-def test_ema_momentum_live_signal_does_not_refire_while_condition_stays_true() -> None:
+def test_strategy_model_live_signal_does_not_refire_while_condition_stays_true() -> None:
     evaluation = _evaluator().evaluate(
         (_bar("100", 0), _bar("100", 1), _bar("101", 2), _bar("102", 3))
     )
@@ -64,6 +69,10 @@ def test_ema_momentum_live_signal_does_not_refire_while_condition_stays_true() -
     assert not evaluation.entry_signal_active
 
 
-def test_ema_momentum_live_signal_requires_closed_bars() -> None:
+def test_strategy_model_live_signal_requires_closed_bars() -> None:
     with pytest.raises(ValidationError, match="closed_bars"):
         _evaluator().evaluate(())
+
+
+def test_ema_momentum_alias_is_strategy_model_evaluator() -> None:
+    assert EmaMomentumLiveSignalEvaluator is StrategyModelLiveSignalEvaluator

@@ -21,16 +21,26 @@ Optional shared presentation DTOs live inside `dashboard_app.contracts`.
 | `ChartWindow` | Bounded OHLCV request |
 | `TradeView` | Strategy trade markers/table |
 | `HistoricalRunDataSource` | Historical Parquet source protocol |
-| `AwsDryRunDataSource` | Stub only — no AWS client in S028 |
+| `AwsDryRunDataSource` | Protocol for live paper status |
+| `HttpAwsDryRunDataSource` | GET-only client (`DASHBOARD_STATUS_URL`) |
+| `UnimplementedAwsDryRunDataSource` | Raises until a status URL is configured |
 
 Schema version: `dashboard.presentation.v1`.
+
+## Live Paper (Sprint 031)
+
+Page: `pages/5_Live_Paper.py`.
+
+- Configure `DASHBOARD_STATUS_URL` or the sidebar “Live paper status URL”.
+- Dashboard only GETs the status API — never starts the worker or submits orders.
+- See `docs/reference/LIVE_PAPER_PIPELINE_INSPECTION.md` for worker vs API ownership.
 
 ## Adding a page
 
 1. Add `pages/N_Name.py` using `configure_page` + `render_sidebar_storage_root`.
 2. Prefer `DashboardQueryService` / catalog helpers over ad-hoc filesystem walks.
 3. Use `dashboard_app.caching.streamlit.cached_*` helpers with `storage_fingerprint` for expensive reads.
-4. Keep engines out of the page — only read mounted artifacts.
+4. Keep engines out of the page — only read mounted artifacts (or read-only HTTP status).
 
 ## Adding an overlay renderer
 

@@ -16,6 +16,17 @@ Open `http://localhost:8080`.
 
 Storage is mounted **read-only** at `/data` inside the container (`DASHBOARD_STORAGE_ROOT=/data`).
 
+## Live Paper status URL
+
+Optional read-only AWS status API:
+
+```powershell
+$env:DASHBOARD_STATUS_URL = "https://<api-gateway>/status"
+```
+
+Or paste the URL in the Streamlit sidebar on **Live Paper**. The dashboard never
+writes to DynamoDB or starts the ECS worker.
+
 ## Health
 
 - Streamlit: `GET /_stcore/health` on port 8501
