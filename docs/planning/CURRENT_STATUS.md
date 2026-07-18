@@ -27,14 +27,14 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 
 ```text
 Status Date: 2026-07-18
-Current Phase: Sprint 030 Repository Navigability Hygiene
-Current Milestone: scratch/ + IDE excludes + artifacts/demo for cleaner Explorer
-Implementation Status: Sprints 001-006, 008-021, 026-029 COMPLETE on main; Sprint 007 SKIPPED; Sprints 022-023 COMPLETE on sprint branch (pending integration PR to main)
+Current Phase: Post-S030 — choose next capability (Phase 8A polish vs Phase 4B)
+Current Milestone: Navigability hygiene on main (scratch, artifacts/demo, IDE excludes)
+Implementation Status: Sprints 001-006, 008-021, 026-030 COMPLETE on main; Sprint 007 SKIPPED; Sprints 022-023 COMPLETE on sprint branch (pending integration PR to main)
 Overall Status: IN_PROGRESS
-Active Sprint: sprint/repo-navigability (SPRINT_030)
-Last Completed Sprint: SPRINT_029 (sprint/repo-layout → main #235, 2026-07-18); SPRINT_028 (#232, 2026-07-18)
-Capability Tracks: Foundation COMPLETE; Data 2A + 2B/2C.1 + 2B.3 + 2C.4 COMPLETE; Research 3/4A/5/5B/7 COMPLETE; Strategy 6A COMPLETE; Phase 8A local + AWS dry-run runtime + portfolio live dashboard COMPLETE on sprint branch; Dashboard app COMPLETE; Repo layout (ADR-0022 + uv workspace) COMPLETE
-Recent: S028/S029 on main. Next: Sprint 030 navigability (scratch, artifacts/demo, IDE excludes); then Phase 8A polish or Phase 4B.
+Active Sprint: none (S030 #238 merged to main)
+Last Completed Sprint: SPRINT_030 (sprint/repo-navigability → main #238, 2026-07-18)
+Capability Tracks: Foundation COMPLETE; Data 2A + 2B/2C.1 + 2B.3 + 2C.4 COMPLETE; Research 3/4A/5/5B/7 COMPLETE; Strategy 6A COMPLETE; Phase 8A local + AWS dry-run runtime + portfolio live dashboard COMPLETE on sprint branch; Dashboard app COMPLETE; Repo layout + navigability COMPLETE
+Recent: S030 navigability on main. Next: Phase 8A polish (S024/S025) or Phase 4B orderflow; defer packages/ and deep src/ reorg.
 ```
 
 ---
@@ -516,10 +516,8 @@ Binding decisions D-001–D-036 and workspace invariants are documented in the a
 ## 11. Next Planned Capability
 
 ```text
-Sprint 030 — Repository Navigability Hygiene (ACTIVE)
-    scratch/ + IDE excludes + demo/ → artifacts/demo/
+No active sprint — choose next increment:
 
-Also queued:
     Sprint 024/025 — Phase 8A dry-run reliability / visualization polish
     Phase 4B — Orderflow Market Analysis
     Phase 6B — Multi-data Strategy Research
@@ -528,6 +526,7 @@ Also queued:
 Recently completed:
     Sprint 028 — Dashboard Application MVP → main (#232)
     Sprint 029 — Repository Layout Foundations → main (#235)
+    Sprint 030 — Repository Navigability Hygiene → main (#238)
 
 Deferred (explicit):
     packages/ shared presentation contracts (until second DTO consumer)
@@ -535,7 +534,7 @@ Deferred (explicit):
     Full ops/ nesting of deploy/ (rejected for S030)
 ```
 
-See `docs/planning/sprints/SPRINT_030.md`, `SPRINT_029.md`, and `ROADMAP.md` §11–§12.
+See `docs/planning/sprints/SPRINT_030.md` and `ROADMAP.md` §11–§12.
 
 ---
 
@@ -572,7 +571,7 @@ See `docs/planning/sprints/SPRINT_030.md`, `SPRINT_029.md`, and `ROADMAP.md` §1
 | 027 | Market Data import / continuous build performance | COMPLETED | integrated to main (#220) |
 | 028 | Dashboard Application MVP (Streamlit + DuckDB) | COMPLETED | integrated to main (#232) |
 | 029 | Repository Layout Foundations | COMPLETED | integrated to main (#235) |
-| 030 | Repository Navigability Hygiene | IN_PROGRESS | scratch + artifacts/demo + IDE excludes |
+| 030 | Repository Navigability Hygiene | COMPLETED | integrated to main (#238) |
 
 ---
 
