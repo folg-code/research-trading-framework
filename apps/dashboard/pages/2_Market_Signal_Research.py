@@ -7,6 +7,7 @@ import streamlit as st
 
 from dashboard_app.query import DashboardQueryService
 from dashboard_app.ui import configure_page, render_sidebar_storage_root
+from dashboard_app.views.picker import render_run_identity, select_catalog_run
 from dashboard_app.views.research import list_research_runs, load_research_run
 
 configure_page(title="Market / Signal Research")
@@ -24,17 +25,11 @@ if not runs:
     st.info("No Market / Signal research runs found under this storage root.")
     st.stop()
 
-labels = {f"{item.workflow.value} · {item.run_id} · {item.title}": item for item in runs}
-selected_label = st.selectbox("Run", options=list(labels))
-summary = labels[selected_label]
+summary = select_catalog_run(runs, label="Run", key="market_signal_run_picker")
 artifacts = load_research_run(service, summary)
 
-st.subheader("Metadata")
-cols = st.columns(4)
-cols[0].write(f"**run_id:** `{summary.run_id}`")
-cols[1].write(f"**workflow:** `{summary.workflow.value}`")
-cols[2].write(f"**scope:** `{summary.research_scope or '—'}`")
-cols[3].write(f"**dataset:** `{summary.source_dataset_ref or '—'}`")
+st.subheader("Run")
+render_run_identity(summary)
 
 if "summary_metrics" not in artifacts.tables:
     st.warning(
