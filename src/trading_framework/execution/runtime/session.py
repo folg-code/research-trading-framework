@@ -12,6 +12,7 @@ from trading_framework.execution.models import (
     ExecutionEvent,
     ExecutionEventType,
     Heartbeat,
+    MarketFeedStatusSnapshot,
     OrderIntent,
     RuntimeHealth,
     RuntimeStatusSnapshot,
@@ -38,6 +39,9 @@ class LocalExecutionRuntimeSession:
     _latest_status: RuntimeStatusSnapshot | None = None
     _last_market_event_at: datetime | None = None
     _current_signal: str | None = None
+    _feed_connection_state: str | None = None
+    _feed_reconnect_count: int = 0
+    _feed_last_error: str | None = None
 
     def start(self) -> RuntimeStatusSnapshot:
         """Mark the runtime as running and emit a start event."""
@@ -80,8 +84,13 @@ class LocalExecutionRuntimeSession:
         *,
         status: RuntimeHealth = RuntimeHealth.RUNNING,
         message: str | None = None,
+        feed: MarketFeedStatusSnapshot | None = None,
     ) -> Heartbeat:
         """Emit a heartbeat and update the latest runtime status."""
+        if feed is not None:
+            self._feed_connection_state = feed.state.value
+            self._feed_reconnect_count = feed.reconnect_count
+            self._feed_last_error = feed.last_error
         now = self.clock.now()
         heartbeat = Heartbeat(
             runtime_id=self.runtime_id,
@@ -97,6 +106,12 @@ class LocalExecutionRuntimeSession:
         }
         if message is not None:
             payload["message"] = message
+        if self._feed_connection_state is not None:
+            payload["feed_connection_state"] = self._feed_connection_state
+        if self._feed_reconnect_count:
+            payload["feed_reconnect_count"] = str(self._feed_reconnect_count)
+        if self._feed_last_error is not None:
+            payload["feed_last_error"] = self._feed_last_error
         self._emit(ExecutionEventType.HEARTBEAT_RECORDED, payload=payload)
         return heartbeat
 
@@ -197,6 +212,9 @@ class LocalExecutionRuntimeSession:
             last_heartbeat_at=self.clock.now(),
             last_market_event_at=self._last_market_event_at,
             current_signal=self._current_signal,
+            feed_connection_state=self._feed_connection_state,
+            feed_reconnect_count=self._feed_reconnect_count,
+            feed_last_error=self._feed_last_error,
         )
         self._latest_status = snapshot
         return snapshot

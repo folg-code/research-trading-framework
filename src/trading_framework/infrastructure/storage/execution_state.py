@@ -164,6 +164,9 @@ class JsonExecutionStateRepository:
             ),
             recent_events=self.recent_events(query),
             recent_bars=self.recent_bars(query),
+            feed_connection_state=status.feed_connection_state,
+            feed_reconnect_count=status.feed_reconnect_count,
+            feed_last_error=status.feed_last_error,
         )
 
     def recent_events(self, query: ExecutionReadModelQuery) -> tuple[RecentExecutionEventView, ...]:
@@ -301,6 +304,9 @@ def _status_to_json(status: RuntimeStatusSnapshot) -> dict[str, Any]:
         "last_heartbeat_at": _datetime_to_json(status.last_heartbeat_at),
         "last_market_event_at": _optional_datetime_to_json(status.last_market_event_at),
         "current_signal": status.current_signal,
+        "feed_connection_state": status.feed_connection_state,
+        "feed_reconnect_count": status.feed_reconnect_count,
+        "feed_last_error": status.feed_last_error,
         "simulated": status.simulated,
     }
 
@@ -315,6 +321,9 @@ def _status_from_json(payload: Mapping[str, Any]) -> RuntimeStatusSnapshot:
         last_heartbeat_at=_datetime_from_json(str(payload["last_heartbeat_at"])),
         last_market_event_at=_optional_datetime_from_json(payload.get("last_market_event_at")),
         current_signal=_optional_str(payload.get("current_signal")),
+        feed_connection_state=_optional_str(payload.get("feed_connection_state")),
+        feed_reconnect_count=int(payload.get("feed_reconnect_count", 0) or 0),
+        feed_last_error=_optional_str(payload.get("feed_last_error")),
         simulated=bool(payload.get("simulated", True)),
     )
 
