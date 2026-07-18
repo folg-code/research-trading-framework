@@ -6,7 +6,12 @@ from datetime import timedelta
 
 import streamlit as st
 
-from dashboard_app.charts import build_equity_drawdown_figure, build_ohlcv_trade_figure
+from dashboard_app.charts import build_equity_drawdown_figure
+from dashboard_app.charts.lightweight import (
+    candles_from_ohlcv_bars,
+    markers_for_trade,
+    render_lightweight_candlestick,
+)
 from dashboard_app.formatting import format_kpi, humanize_model_id
 from dashboard_app.query import DashboardQueryService
 from dashboard_app.ui import configure_page, render_app_chrome
@@ -162,7 +167,10 @@ else:
             st.info(
                 "No OHLCV bars in the trade window (check dataset_ref path under market_data/)."
             )
-        st.plotly_chart(
-            build_ohlcv_trade_figure(ohlcv.bars, selected_trade),
-            use_container_width=True,
-        )
+        else:
+            render_lightweight_candlestick(
+                candles_from_ohlcv_bars(ohlcv.bars),
+                markers=markers_for_trade(selected_trade),
+                height=480,
+                title=f"Trade {selected_trade.trade_id} · {selected_trade.side}",
+            )

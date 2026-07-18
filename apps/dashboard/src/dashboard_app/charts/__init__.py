@@ -1,4 +1,4 @@
-"""Plotly chart builders and overlay registry."""
+"""Plotly chart builders, Lightweight Charts helpers, and overlay registry."""
 
 from dashboard_app.charts.builders import (
     build_equity_drawdown_figure,
@@ -10,6 +10,15 @@ from dashboard_app.charts.builders import (
     build_stress_delta_figure,
     build_walk_forward_fold_figure,
 )
+from dashboard_app.charts.lightweight import (
+    CandlePoint,
+    ChartMarker,
+    candles_from_ohlcv_bars,
+    candles_from_status_bars,
+    markers_for_fills,
+    markers_for_trade,
+    render_lightweight_candlestick,
+)
 from dashboard_app.charts.overlays import (
     DEFAULT_OVERLAY_REGISTRY,
     OverlayKind,
@@ -20,6 +29,8 @@ from dashboard_app.charts.overlays import (
 
 __all__ = [
     "DEFAULT_OVERLAY_REGISTRY",
+    "CandlePoint",
+    "ChartMarker",
     "OverlayKind",
     "OverlayRegistration",
     "OverlayRegistry",
@@ -32,4 +43,9 @@ __all__ = [
     "build_parameter_sweep_surface_figure",
     "build_stress_delta_figure",
     "build_walk_forward_fold_figure",
+    "candles_from_ohlcv_bars",
+    "candles_from_status_bars",
+    "markers_for_fills",
+    "markers_for_trade",
+    "render_lightweight_candlestick",
 ]

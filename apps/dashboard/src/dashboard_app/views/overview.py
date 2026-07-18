@@ -19,22 +19,14 @@ flowchart LR
 """
 
 LIVE_WORKFLOW_MERMAID = """
-flowchart TB
-  subgraph research [Research path]
-    strategySpec[Strategy model contract]
-    backtest[Historical research runs]
-    strategySpec --> backtest
-  end
+flowchart LR
+  exchange[Exchange provider live feed]
+  aws[AWS framework runtime]
+  strategy[Live strategy instance]
+  statusApi[Read-only status API]
+  dashboard[Dashboard Live Paper view]
 
-  subgraph aws [AWS live paper instance]
-    runtime[Framework runtime]
-    liveStrategy[Live strategy instance]
-    runtime --> liveStrategy
-  end
-
-  strategySpec -. same contract — not the same instance .-> liveStrategy
-  liveStrategy --> statusApi[Read-only status API]
-  statusApi --> dashboard[Dashboard Live Paper view]
+  exchange --> aws --> strategy --> statusApi --> dashboard
 """
 
 
@@ -57,9 +49,10 @@ def render_origin_of_results() -> None:
 
     st.markdown("##### Live paper workflow")
     st.caption(
-        "A framework instance runs on AWS. Research and live paper share the same "
-        "strategy **model contract**, but not the same strategy instance or "
-        "parameters. The dashboard only consumes a read-only status view."
+        "On AWS the framework runtime listens to **real market data** from the "
+        "exchange provider. A live strategy instance (same model contract as "
+        "research, not the same instance) runs paper simulation only. This "
+        "dashboard consumes a read-only status view — it never submits orders."
     )
     st.mermaid_chart(LIVE_WORKFLOW_MERMAID)
 

@@ -6,12 +6,15 @@ from datetime import UTC, datetime
 
 import streamlit as st
 
+from dashboard_app.charts.lightweight import (
+    candles_from_status_bars,
+    markers_for_fills,
+    render_lightweight_candlestick,
+)
 from dashboard_app.datasources import HttpAwsDryRunDataSource
 from dashboard_app.formatting import format_kpi
 from dashboard_app.ui import configure_page, render_app_chrome
 from dashboard_app.views.live_paper import (
-    attach_fill_markers,
-    build_live_paper_candles,
     event_timeline_rows,
     live_paper_health,
 )
@@ -71,9 +74,11 @@ def _render_snapshot(snapshot: dict[str, object]) -> None:
     chart_col, position_col = st.columns([2, 1])
     with chart_col:
         st.subheader("Recent market")
-        figure = build_live_paper_candles(snapshot.get("recent_bars"))
-        figure = attach_fill_markers(figure, snapshot.get("recent_fills"))
-        st.plotly_chart(figure, use_container_width=True)
+        render_lightweight_candlestick(
+            candles_from_status_bars(snapshot.get("recent_bars")),
+            markers=markers_for_fills(snapshot.get("recent_fills")),
+            height=420,
+        )
     with position_col:
         st.subheader("Position")
         if isinstance(position, dict):
@@ -156,7 +161,7 @@ def main() -> None:
 
     col_refresh, col_auto = st.columns([1, 3])
     with col_refresh:
-        refresh = st.button("Refresh", type="primary")
+        refresh = st.button("Refresh", type="secondary")
     with col_auto:
         st.caption("Refresh after worker heartbeats change — page stays read-only.")
 

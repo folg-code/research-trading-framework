@@ -4,9 +4,8 @@ from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
 
+from dashboard_app.charts.lightweight import candles_from_status_bars, markers_for_fills
 from dashboard_app.views.live_paper import (
-    attach_fill_markers,
-    build_live_paper_candles,
     event_timeline_rows,
     live_paper_health,
     parse_utc_datetime,
@@ -61,13 +60,12 @@ def test_build_live_paper_candles_and_fill_markers() -> None:
             "close": 101,
         },
     ]
-    figure = build_live_paper_candles(bars)
-    assert len(figure.data) == 1
-    figure = attach_fill_markers(
-        figure,
-        [{"filled_at": "2026-07-18T12:01:00+00:00", "price": 101, "side": "buy"}],
+    candles = candles_from_status_bars(bars)
+    assert len(candles) == 2
+    markers = markers_for_fills(
+        [{"filled_at": "2026-07-18T12:01:00+00:00", "price": 101, "side": "buy"}]
     )
-    assert len(figure.data) == 2
+    assert len(markers) == 1
 
 
 def test_event_timeline_rows_normalizes_payload() -> None:
