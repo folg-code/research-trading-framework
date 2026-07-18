@@ -5,7 +5,7 @@ from __future__ import annotations
 import plotly.express as px
 import streamlit as st
 
-from dashboard_app.charts import build_equity_drawdown_figure
+from dashboard_app.charts import build_equity_drawdown_figure, build_walk_forward_fold_figure
 from dashboard_app.query import DashboardQueryService
 from dashboard_app.ui import configure_page, render_sidebar_storage_root
 from dashboard_app.views.picker import render_run_identity, select_catalog_run
@@ -41,8 +41,17 @@ elif not artifacts.tables:
 
 if "walk_forward_folds" in artifacts.tables:
     st.subheader("Walk-forward (IS/OOS)")
-    st.dataframe(artifacts.tables["walk_forward_folds"].to_pandas(), use_container_width=True)
+    folds = artifacts.tables["walk_forward_folds"]
+    if folds.num_rows:
+        st.caption(
+            "Training profit uses only the in-sample window that selected parameters; "
+            "unseen profit is the next out-of-sample fold."
+        )
+        st.plotly_chart(build_walk_forward_fold_figure(folds), use_container_width=True)
+    with st.expander("Fold table", expanded=False):
+        st.dataframe(folds.to_pandas(), use_container_width=True)
 if "walk_forward_equity" in artifacts.tables and artifacts.tables["walk_forward_equity"].num_rows:
+    st.caption("Stitched equity across out-of-sample folds only.")
     st.plotly_chart(
         build_equity_drawdown_figure(artifacts.tables["walk_forward_equity"]),
         use_container_width=True,
