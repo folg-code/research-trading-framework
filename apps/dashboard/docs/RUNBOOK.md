@@ -77,7 +77,8 @@ Compose stack on `:8080`; it does not manage edge TLS.
 After the one-time VPS prep below, merges to `main` that touch
 `apps/dashboard/**` (or `.github/workflows/deploy-dashboard.yml`) run
 **Deploy dashboard** (`.github/workflows/deploy-dashboard.yml`). The job SSHs
-to the VPS, fast-forward pulls `main`, then rebuilds Compose.
+to the VPS, hard-resets the deploy checkout to `origin/main`, then rebuilds
+Compose (`docker-compose.yml` + `docker-compose.vps.yml`).
 
 `user_data` / storage sync is **not** part of this pipeline — mount and sync
 remain operator-managed.

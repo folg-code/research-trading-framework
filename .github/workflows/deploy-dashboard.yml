@@ -68,6 +68,8 @@ jobs:
                cd '${DASHBOARD_VPS_REPO_PATH}'
                git fetch origin main
                git checkout main
-               git pull --ff-only origin main
+               # Deploy checkout must match origin/main; discard accidental local edits
+               # (e.g. ad-hoc Dockerfile tweaks) that would block pull/reset.
+               git reset --hard origin/main
                cd apps/dashboard
-               docker compose -f deploy/docker-compose.yml up --build -d"
+               docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.vps.yml up --build -d"
