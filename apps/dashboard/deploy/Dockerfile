@@ -10,12 +10,13 @@ WORKDIR /opt/dashboard
 
 RUN pip install --no-cache-dir uv==0.9.17
 
-COPY pyproject.toml uv.lock README.md ./
+COPY pyproject.toml README.md ./
 COPY Project_Overview.py ./
 COPY pages ./pages
 COPY src ./src
 
-RUN uv sync --frozen --no-dev
+# Workspace lock lives at the monorepo root; package-context builds resolve deps from pyproject.
+RUN uv sync --no-dev
 
 FROM python:3.12-slim AS runtime
 

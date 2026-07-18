@@ -1,0 +1,7 @@
+# Optional VPS override. Do NOT use with the current edge proxy: edge dials
+# host gateway 172.17.0.1:8080, which requires the Compose Caddy port to be
+# published beyond loopback (see deploy/docker-compose.yml default).
+services:
+  caddy:
+    ports: !override
+      - "127.0.0.1:8080:80"
