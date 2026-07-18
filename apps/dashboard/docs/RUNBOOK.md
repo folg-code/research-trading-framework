@@ -57,11 +57,20 @@ export DASHBOARD_STATUS_URL=https://279rmuo95c.execute-api.eu-north-1.amazonaws.
 docker compose -f deploy/docker-compose.yml up --build -d
 ```
 
-4. Prefer binding Caddy to localhost and terminate TLS on an outer reverse proxy.
+4. Prefer binding Compose Caddy to localhost/`DASHBOARD_HTTP_PORT` (default
+   `8080`) and terminate TLS on a **shared VPS edge** (e.g. `/opt/edge`), not
+   inside another application Compose stack.
 5. Do **not** mount writable research output into the dashboard container.
 6. After new research runs, refresh the browser; Overview cache keys use a storage
    fingerprint and invalidate when top-level `research/` / `market_data/` mtimes change.
 7. Live Paper stale heartbeat: fix the **AWS worker**, not the dashboard.
+
+### Public hostname (ops)
+
+Production URL pattern: `https://dashboard.<domain>` → edge reverse-proxy →
+`127.0.0.1:8080` (this Compose Caddy). Edge lives outside this repository
+(shared with other apps on the same VPS). Dashboard CI/CD only rebuilds the
+Compose stack on `:8080`; it does not manage edge TLS.
 
 ## CI/CD (GitHub → VPS)
 

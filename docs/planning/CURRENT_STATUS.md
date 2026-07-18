@@ -27,14 +27,14 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 
 ```text
 Status Date: 2026-07-18
-Current Phase: Sprint 025 — Streamlit polish + VPS publish
-Current Milestone: CI/CD dashboard → VPS; user_data mount still deferred
-Implementation Status: Sprints 001-006, 008-023, 026-032 COMPLETE on main; Sprint 007 SKIPPED
+Current Phase: Post–Sprint 025 — choose next capability
+Current Milestone: Dashboard on VPS with CI/CD; optional user_data sync later
+Implementation Status: Sprints 001-006, 008-023, 025-032 COMPLETE on main; Sprint 007 SKIPPED
 Overall Status: IN_PROGRESS
-Active Sprint: SPRINT_025 (sprint/dashboard-streamlit-polish)
-Last Completed Sprint: SPRINT_032 (sprint/live-strategy-eval-parity → main #246, 2026-07-18)
-Capability Tracks: Foundation COMPLETE; Data COMPLETE (core); Research COMPLETE (core); Strategy 6A COMPLETE; Phase 8A AWS dry-run on main (#199); Dashboard Streamlit COMPLETE; Live Paper COMPLETE; Live StrategyModel eval parity COMPLETE; Streamlit polish + VPS CI/CD IN_PROGRESS
-Recent: S025 polish on sprint. Next: merge dashboard CI/CD; configure GitHub secrets; optional user_data sync later.
+Active Sprint: none (S025 closed)
+Last Completed Sprint: SPRINT_025 (sprint/dashboard-streamlit-polish → main #249 + deploy fixes #250/#251, 2026-07-18)
+Capability Tracks: Foundation COMPLETE; Data COMPLETE (core); Research COMPLETE (core); Strategy 6A COMPLETE; Phase 8A AWS dry-run on main (#199); Dashboard Streamlit COMPLETE; Live Paper COMPLETE; Live StrategyModel eval parity COMPLETE; Streamlit polish + VPS CI/CD COMPLETE
+Recent: S025 complete — Live Paper UX, GitHub→VPS deploy, public HTTPS via shared `/opt/edge`. Deferred: read-only user_data mount. Next: S024, Phase 8B, or research-track.
 ```
 
 ---
@@ -566,7 +566,7 @@ See `docs/planning/sprints/SPRINT_030.md` and `ROADMAP.md` §11–§12.
 | 022 | AWS Runtime MVP for BTC Futures Dry Run (Phase 8A) | COMPLETED | integrated to main (#199) |
 | 023 | OVH portfolio live dry-run dashboard (Phase 8A) | COMPLETED | integrated to main (#199 / #202); Streamlit is now primary UI |
 | 024 | Dry-run reliability / operating polish (Phase 8A) | PLANNED | after Streamlit+VPS or in parallel with ops |
-| 025 | Streamlit dashboard polish + VPS publish | PLANNED | retargeted 2026-07-18 (was HTML visualization) |
+| 025 | Streamlit dashboard polish + VPS publish | COMPLETED | main #249; deploy fixes #250/#251; edge TLS ops; user_data deferred |
 | 026 | Research hot-path performance (Signal + Robustness) | COMPLETED | integrated to main (#215) |
 | 027 | Market Data import / continuous build performance | COMPLETED | integrated to main (#220) |
 | 028 | Dashboard Application MVP (Streamlit + DuckDB) | COMPLETED | integrated to main (#232) |
