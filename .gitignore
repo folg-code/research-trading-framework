@@ -1,3 +1,5 @@
+# Gitignore and local layout — Sprint 030
+
 # Python bytecode
 __pycache__/
 *.py[cod]
@@ -9,6 +11,7 @@ __pycache__/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+.uv-cache/
 .coverage
 coverage.xml
 htmlcov/
@@ -25,28 +28,43 @@ dist/
 *.pem
 *.key
 credentials.json
+
+# Legacy / superseded local AWS runbook path (use deploy/local_aws_runbook/)
 local_aws_runbook/
+
+# Deploy local runbook payloads (keep README)
 deploy/local_aws_runbook/**
 !deploy/local_aws_runbook/
 !deploy/local_aws_runbook/README.md
 
 # User-owned research and data
 user_data/**
-
-# Keep an optional explanation file
 !user_data/README.md
 
-# Generated demo HTML (regenerate via scripts/demo)
-demo/output/**
-!demo/output/.gitkeep
+# Local scratch (bench logs, one-off probes)
+scratch/**
+!scratch/README.md
+
+# Deprecated root temp names (prefer scratch/)
+.tmp_*
+
+# Generated demo HTML
+artifacts/demo/**
+!artifacts/demo/
+!artifacts/README.md
+!artifacts/demo/README.md
+!artifacts/demo/output/
+!artifacts/demo/output/.gitkeep
 
 # Local analytical files outside fixtures
 *.duckdb
 *.db
 *.db-journal
 
-# IDE
+# IDE / agent local tooling
 .idea/
+.agents/
+.codex/
 
 # Cursor local state, but keep project rules
 .cursor/*
@@ -58,6 +76,3 @@ demo/output/**
 .DS_Store
 Thumbs.db
 desktop.ini
-
-# Local scratch / agent temp artifacts
-.tmp_*

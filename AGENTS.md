@@ -28,6 +28,7 @@ After each merged wave: update `docs/reference/MODULE_MAP.md` and `docs/referenc
 
 - preserve the `src/` and `user_data/` boundary,
 - treat `apps/*` as separate deployable consumers (ADR-0022); they must not import research/execution engines or provider/importer adapters,
+- put ephemeral logs under `scratch/` (not root `.tmp_*`); generated demos under `artifacts/demo/`,
 - keep strategies stateless,
 - keep business logic independent from external APIs,
 - use adapters/interfaces for external systems,

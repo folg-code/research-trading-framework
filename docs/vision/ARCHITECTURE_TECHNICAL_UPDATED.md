@@ -1954,7 +1954,8 @@ trading-research-framework/
 ├── deploy/                  # containers / infra-as-code / local AWS runbook
 ├── tests/                   # framework tests
 ├── docs/                    # vision, reference, planning, adr, agents, onboarding
-├── demo/output/             # generated demo artifacts (not source-of-truth docs)
+├── artifacts/demo/          # generated demo HTML (not source-of-truth docs)
+├── scratch/                 # local-only logs/probes (gitignored)
 ├── user_data/               # user-owned content (ADR-0002; gitignored)
 ├── pyproject.toml           # root package + uv workspace root
 └── README.md
@@ -1962,7 +1963,7 @@ trading-research-framework/
 
 Binding layout rules: **ADR-0022**. Apps must not import research/execution
 engines or provider/importer adapters. Dashboard deploy stays co-located under
-`apps/dashboard/deploy/`.
+`apps/dashboard/deploy/`. Prefer `scratch/` for ephemeral logs (not root `.tmp_*`).
 
 ---
 
