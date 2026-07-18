@@ -218,6 +218,13 @@ The conceptual taxonomy is known, but the practical component volume is not.
 
 Every component must still declare whether its output is a Feature, Structure or State.
 
+### Sprint 029 note
+
+Whole-repo layout work (Sprint 029) **defers** deep `market_analysis/` reshuffles.
+Repay this debt when Phase 4B/4C starts or navigation pain is demonstrated
+(see `S029_WAVE0_DECISIONS.md` D-S029-04).
+
+
 ### Repayment Trigger
 
 The module becomes difficult to navigate or stable clusters emerge.

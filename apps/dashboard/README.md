@@ -9,20 +9,20 @@ import research engines, execution, or market-data providers (Sprint 028 /
 
 ## Run locally
 
-From the repository root:
+Prefer syncing from the **repository root** (uv workspace member):
 
-```bash
+```powershell
+cd <repo-root>
+uv sync --all-packages
 cd apps/dashboard
-uv sync
-set DASHBOARD_STORAGE_ROOT=..\..\user_data
-uv run streamlit run app.py
+$env:DASHBOARD_STORAGE_ROOT = (Resolve-Path ..\..\user_data).Path
+uv run --package trading-dashboard streamlit run app.py
 ```
 
-PowerShell:
+Or from this directory after a root workspace sync:
 
 ```powershell
 cd apps/dashboard
-uv sync
 $env:DASHBOARD_STORAGE_ROOT = (Resolve-Path ..\..\user_data).Path
 uv run streamlit run app.py
 ```

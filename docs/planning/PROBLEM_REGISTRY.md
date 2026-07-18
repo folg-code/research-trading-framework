@@ -700,11 +700,12 @@ Define before Phase 6A implementation.
 ## PRB-015 — Architecture Documents Require a Formal Consistency Check
 
 ```text
-Status: PLANNED
+Status: PARTIALLY_MITIGATED
 Severity: MEDIUM
 Domain: Documentation / Governance
 Owner: Unassigned
 Discovered: 2026-06-19
+Last Updated: 2026-07-18
 ```
 
 ### Description
@@ -716,6 +717,12 @@ Several architecture documents were updated iteratively and may retain:
 - numbering inconsistencies,
 - stale directory examples,
 - inconsistent cross-references.
+
+### Sprint 029 mitigation
+
+Top-level layout drift is addressed by **ADR-0022** and synced trees in vision §10.1,
+`MODULE_MAP` §1–2, and the Developer Guide. Remaining terminology/numbering debt
+in older vision sections may still need a broader consistency pass.
 
 ### Impact
 

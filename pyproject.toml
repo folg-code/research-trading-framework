@@ -40,6 +40,9 @@ dev = [
 [tool.uv.build-backend]
 module-name = "trading_framework"
 
+[tool.uv.workspace]
+members = ["apps/dashboard"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src", "."]

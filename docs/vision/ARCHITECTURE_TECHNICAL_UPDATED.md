@@ -1948,15 +1948,21 @@ A material change creates a new run identity.
 
 ```text
 trading-research-framework/
-├── src/
-├── user_data/
-├── tests/
-├── docs/
-├── scripts/
-├── pyproject.toml
-├── README.md
-└── .env.example
+├── src/trading_framework/   # modular monolith (ADR-0001)
+├── apps/                    # deployable consumers (e.g. apps/dashboard)
+├── scripts/                 # thin CLIs over application use cases
+├── deploy/                  # containers / infra-as-code / local AWS runbook
+├── tests/                   # framework tests
+├── docs/                    # vision, reference, planning, adr, agents, onboarding
+├── demo/output/             # generated demo artifacts (not source-of-truth docs)
+├── user_data/               # user-owned content (ADR-0002; gitignored)
+├── pyproject.toml           # root package + uv workspace root
+└── README.md
 ```
+
+Binding layout rules: **ADR-0022**. Apps must not import research/execution
+engines or provider/importer adapters. Dashboard deploy stays co-located under
+`apps/dashboard/deploy/`.
 
 ---
 
