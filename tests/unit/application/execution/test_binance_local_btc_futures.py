@@ -8,6 +8,8 @@ from decimal import Decimal
 from pathlib import Path
 from typing import cast
 
+import pytest
+
 from trading_framework.application.execution import (
     LocalBtcFuturesBinanceFeedState,
     LocalBtcFuturesDryRunConfig,
@@ -108,13 +110,13 @@ def test_binance_closed_kline_message_runs_local_dry_run_step(tmp_path: Path) ->
             strategy_config=BtcFuturesDemoStrategyConfig(ema_period=2),
         ),
         clock=FixedClock(NOW),
+        max_closed_bars=3,
     )
 
     result = handle_local_btc_futures_binance_message(
         runtime,
         state=LocalBtcFuturesBinanceFeedState(),
         message=_message(_load_fixture("usdm_kline_1m_closed.json")),
-        max_closed_bars=3,
     )
 
     assert result.processed_closed_bar
@@ -173,7 +175,14 @@ def test_binance_non_matching_message_is_ignored(tmp_path: Path) -> None:
     assert wrong_symbol.state.ignored_message_count == 2
 
 
-def test_binance_dry_run_loop_processes_bounded_fake_messages(tmp_path: Path) -> None:
+def test_binance_dry_run_loop_processes_bounded_fake_messages(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        "trading_framework.application.execution.binance_local_btc_futures.fetch_closed_klines",
+        lambda **kwargs: (),
+    )
     telemetry = FakeTelemetry(started=[], heartbeats=[], messages=[], stopped=[])
     client = FakeBinanceMessageClient(
         messages=[
