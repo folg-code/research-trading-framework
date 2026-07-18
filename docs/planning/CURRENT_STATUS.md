@@ -27,14 +27,14 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 
 ```text
 Status Date: 2026-07-18
-Current Phase: Sprint 033 closed — choose next increment
-Current Milestone: Presentation polish COMPLETE on sprint (integration to main)
-Implementation Status: Sprints 001-006, 008-023, 025-033 COMPLETE on sprint/main path; Sprint 007 SKIPPED
+Current Phase: Sprint 034 complete — public demo polish
+Current Milestone: Integrate sprint/dashboard-public-demo-polish → main
+Implementation Status: Sprints 001-006, 008-023, 025-034 on sprint path; 001-033 on main; Sprint 007 SKIPPED
 Overall Status: READY_FOR_INTEGRATION
-Active Sprint: none (SPRINT_033 complete on sprint/dashboard-presentation-polish)
-Last Completed Sprint: SPRINT_033 (dashboard presentation polish, 2026-07-18)
-Capability Tracks: Foundation COMPLETE; Data COMPLETE (core); Research COMPLETE (core); Strategy 6A COMPLETE; Phase 8A AWS dry-run on main (#199); Dashboard Streamlit COMPLETE; Live Paper COMPLETE; VPS CI/CD COMPLETE; Presentation polish COMPLETE on sprint
-Recent: S033 Waves A–C (#253–#256). Next: integrate sprint → main, then sync user_data sample to VPS.
+Active Sprint: none (SPRINT_034 complete on sprint/dashboard-public-demo-polish)
+Last Completed Sprint: SPRINT_034 (public dashboard demo polish, 2026-07-18)
+Capability Tracks: Foundation COMPLETE; Data COMPLETE (core); Research COMPLETE (core); Strategy 6A COMPLETE; Phase 8A AWS dry-run on main (#199); Dashboard Streamlit COMPLETE; Live Paper COMPLETE; VPS CI/CD COMPLETE; Public demo polish COMPLETE on sprint
+Recent: S034 Waves 1–5 (#258–#259). Next: integrate to main and VPS deploy.
 ```
 
 ---
@@ -574,7 +574,8 @@ See `docs/planning/sprints/SPRINT_030.md` and `ROADMAP.md` §11–§12.
 | 030 | Repository Navigability Hygiene | COMPLETED | integrated to main (#238) |
 | 031 | Live Paper in Dashboard | COMPLETED | integrated to main (#241) |
 | 032 | Live Strategy Evaluation Parity | COMPLETED | integrated to main (#246) |
-| 033 | Dashboard presentation polish | COMPLETED | 6 / 6 tasks; Waves A–C (#253–#256) |
+| 033 | Dashboard presentation polish | COMPLETED | 6 / 6 tasks; Waves A–C (#253–#256); main #257 |
+| 034 | Public Dashboard Demo Polish | COMPLETED | Waves 1–5 (#258–#259) |
 
 ---
 

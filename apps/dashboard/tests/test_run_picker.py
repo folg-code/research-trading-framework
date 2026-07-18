@@ -27,7 +27,7 @@ def test_format_run_label_leads_with_date_and_title_not_run_id() -> None:
     label = format_run_label(_summary())
     assert label.startswith("2026-07-18")
     assert "Strategy · demo" in label
-    assert "NQ@continuous · 5m" in label
+    assert "NQ continuous · 5m" in label
     assert "opaque-uuid-1" not in label
 
 

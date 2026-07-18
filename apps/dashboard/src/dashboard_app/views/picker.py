@@ -7,6 +7,7 @@ from collections.abc import Sequence
 import streamlit as st
 
 from dashboard_app.contracts import RunSummary
+from dashboard_app.formatting import humanize_dataset_ref
 
 
 def format_run_label(summary: RunSummary, *, disambiguator: str | None = None) -> str:
@@ -21,8 +22,8 @@ def format_run_label(summary: RunSummary, *, disambiguator: str | None = None) -
         else "undated"
     )
     parts: list[str] = [date, summary.title]
-    dataset = summary.source_dataset_ref
-    if dataset:
+    dataset = humanize_dataset_ref(summary.source_dataset_ref)
+    if dataset != "—":
         if summary.evaluation_timeframe:
             parts.append(f"{dataset} · {summary.evaluation_timeframe}")
         else:
@@ -72,7 +73,7 @@ def render_run_identity(summary: RunSummary, *, heading: str = "Identity") -> No
     cols[0].write(
         f"**created:** `{summary.created_at_utc.isoformat() if summary.created_at_utc else '—'}`"
     )
-    cols[1].write(f"**dataset:** `{summary.source_dataset_ref or '—'}`")
+    cols[1].write(f"**dataset:** `{humanize_dataset_ref(summary.source_dataset_ref)}`")
     cols[2].write(f"**timeframe:** `{summary.evaluation_timeframe or '—'}`")
     cols[3].write(f"**workflow:** `{summary.workflow.value}`")
     with st.expander(heading, expanded=False):
@@ -82,6 +83,7 @@ def render_run_identity(summary: RunSummary, *, heading: str = "Identity") -> No
                 "run_id": summary.run_id,
                 "experiment_id": summary.experiment_id,
                 "research_scope": summary.research_scope,
+                "source_dataset_ref": summary.source_dataset_ref,
                 "storage_path": summary.storage_path,
             }
         )

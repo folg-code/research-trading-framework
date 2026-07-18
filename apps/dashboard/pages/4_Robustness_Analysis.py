@@ -8,12 +8,14 @@ from dashboard_app.charts import (
     build_equity_drawdown_figure,
     build_monte_carlo_percentile_figure,
     build_monte_carlo_tail_figure,
+    build_parameter_sweep_heatmap_figure,
     build_parameter_sweep_surface_figure,
     build_stress_delta_figure,
     build_walk_forward_fold_figure,
 )
+from dashboard_app.formatting import format_kpi, format_probability
 from dashboard_app.query import DashboardQueryService
-from dashboard_app.ui import configure_page, render_sidebar_storage_root
+from dashboard_app.ui import configure_page, render_app_chrome
 from dashboard_app.views.picker import render_run_identity, select_catalog_run
 from dashboard_app.views.robustness import (
     build_verdict_checklist,
@@ -23,13 +25,13 @@ from dashboard_app.views.robustness import (
     load_robustness_experiment,
 )
 
-configure_page(title="Strategy Robustness")
-settings = render_sidebar_storage_root()
+configure_page(title="Robustness Analysis")
+settings = render_app_chrome()
 
-st.title("Strategy Robustness")
+st.title("Robustness Analysis")
 
 if settings is None:
-    st.warning("Configure a storage root in the sidebar or set `DASHBOARD_STORAGE_ROOT`.")
+    st.warning("Storage is not configured. Set `DASHBOARD_STORAGE_ROOT` or use System diagnostics.")
     st.stop()
 
 service = DashboardQueryService(settings.storage_root)
@@ -52,11 +54,21 @@ if artifacts.verdict is not None:
     if checklist.gates:
         for gate in checklist.gates:
             mark = "PASS" if gate.passed else "FAIL"
+            severity = gate.severity
+            observed = gate.observed_value
+            if observed is not None and ("probability" in gate.gate_id or "ratio" in gate.gate_id):
+                observed_display = format_probability(observed)
+            elif observed is not None:
+                observed_display = format_kpi("net_pnl", observed).replace("+", "")
+            else:
+                observed_display = None
             detail = gate.message
-            if gate.observed_value:
-                detail = f"{detail} (observed: {gate.observed_value})"
+            if observed_display:
+                detail = f"{detail} (observed: {observed_display})"
+            if not gate.passed:
+                detail = f"{detail} — failed {severity} gate."
             st.checkbox(
-                f"[{mark}] {gate.label} · {gate.severity}",
+                f"[{mark}] {gate.label} · {severity}",
                 value=gate.passed,
                 disabled=True,
                 help=detail,
@@ -112,7 +124,7 @@ if (
     and artifacts.tables["parameter_sweep_heatmap"].num_rows
 ):
     heat = artifacts.tables["parameter_sweep_heatmap"]
-    st.subheader("Parameter sweep surface")
+    st.subheader("Parameter sweep")
     slices = list_parameter_sweep_slices(heat)
     if slices:
         selected = st.selectbox(
@@ -122,18 +134,47 @@ if (
             key="robustness_sweep_slice",
         )
         slice_table = filter_parameter_sweep_slice(heat, selected)
-        st.caption(
-            "2D axis pairs render as a 3D surface; single-axis sweeps fall back to a line chart."
-        )
-        st.plotly_chart(
-            build_parameter_sweep_surface_figure(
-                slice_table,
-                metric=selected.metric,
-                x_axis=selected.x_axis,
-                y_axis=selected.y_axis,
-            ),
-            use_container_width=True,
-        )
+        if selected.y_axis:
+            view_mode = st.radio(
+                "View",
+                options=["Heatmap 2D", "Surface 3D"],
+                horizontal=True,
+                key="robustness_sweep_view",
+            )
+            st.caption(
+                "Heatmap highlights stable plateaus; 3D surface is optional for exploration."
+            )
+            if view_mode == "Heatmap 2D":
+                st.plotly_chart(
+                    build_parameter_sweep_heatmap_figure(
+                        slice_table,
+                        metric=selected.metric,
+                        x_axis=selected.x_axis,
+                        y_axis=selected.y_axis,
+                    ),
+                    use_container_width=True,
+                )
+            else:
+                st.plotly_chart(
+                    build_parameter_sweep_surface_figure(
+                        slice_table,
+                        metric=selected.metric,
+                        x_axis=selected.x_axis,
+                        y_axis=selected.y_axis,
+                    ),
+                    use_container_width=True,
+                )
+        else:
+            st.caption("Single-axis sweep shown as a line chart.")
+            st.plotly_chart(
+                build_parameter_sweep_surface_figure(
+                    slice_table,
+                    metric=selected.metric,
+                    x_axis=selected.x_axis,
+                    y_axis=None,
+                ),
+                use_container_width=True,
+            )
     with st.expander("Heatmap rows", expanded=False):
         st.dataframe(heat.to_pandas(), use_container_width=True)
 

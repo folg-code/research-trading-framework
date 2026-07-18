@@ -16,28 +16,70 @@ from dashboard_app.query import OhlcvBarRow
 
 def build_equity_drawdown_figure(equity: pa.Table) -> go.Figure:
     """Build equity + drawdown dual-pane figure from equity.parquet."""
+    from dashboard_app.charts.style import COLOR_NEGATIVE, apply_public_layout
+
     figure = make_subplots(
         rows=2,
         cols=1,
         shared_xaxes=True,
-        vertical_spacing=0.05,
+        vertical_spacing=0.06,
         row_heights=[0.65, 0.35],
-        subplot_titles=("Equity", "Drawdown"),
+        subplot_titles=("Cumulative net PnL", "Drawdown"),
     )
     if equity.num_rows == 0 or "observed_at" not in equity.column_names:
-        figure.update_layout(height=420, margin={"l": 40, "r": 20, "t": 40, "b": 30})
+        apply_public_layout(figure, title="Equity / drawdown", height=420)
         return figure
 
     xs = [value.as_py() for value in equity.column("observed_at")]
     equity_ys = [float(value.as_py()) for value in equity.column("equity")]
     drawdown_ys = [float(value.as_py()) for value in equity.column("drawdown")]
-    figure.add_trace(go.Scatter(x=xs, y=equity_ys, name="equity", mode="lines"), row=1, col=1)
     figure.add_trace(
-        go.Scatter(x=xs, y=drawdown_ys, name="drawdown", mode="lines", fill="tozeroy"),
+        go.Scatter(
+            x=xs,
+            y=equity_ys,
+            name="Cumulative net PnL",
+            mode="lines",
+            line={"color": "#1f4e79"},
+            hovertemplate="%{x}<br>PnL=%{y:.2f}<extra></extra>",
+        ),
+        row=1,
+        col=1,
+    )
+    figure.add_trace(
+        go.Scatter(
+            x=xs,
+            y=drawdown_ys,
+            name="Drawdown",
+            mode="lines",
+            fill="tozeroy",
+            line={"color": COLOR_NEGATIVE},
+            fillcolor="rgba(214, 39, 40, 0.25)",
+            hovertemplate="%{x}<br>DD=%{y:.2f}<extra></extra>",
+        ),
         row=2,
         col=1,
     )
-    figure.update_layout(height=480, margin={"l": 40, "r": 20, "t": 40, "b": 30}, showlegend=False)
+    if drawdown_ys:
+        min_dd = min(drawdown_ys)
+        min_index = drawdown_ys.index(min_dd)
+        figure.add_trace(
+            go.Scatter(
+                x=[xs[min_index]],
+                y=[min_dd],
+                mode="markers+text",
+                name="Max drawdown",
+                marker={"color": COLOR_NEGATIVE, "size": 10, "symbol": "x"},
+                text=[f"Max DD {min_dd:.2f}"],
+                textposition="top center",
+                showlegend=False,
+            ),
+            row=2,
+            col=1,
+        )
+    apply_public_layout(figure, height=500)
+    figure.update_layout(showlegend=False)
+    figure.update_yaxes(title_text="PnL (pts)", row=1, col=1)
+    figure.update_yaxes(title_text="Drawdown (pts)", row=2, col=1)
     return figure
 
 
@@ -81,7 +123,7 @@ def build_walk_forward_fold_figure(folds: pa.Table) -> go.Figure:
             x=labels,
             y=train_values,
             name="Training (IS)",
-            marker_color="#4C78A8",
+            marker_color="#9e9e9e",
         )
     )
     figure.add_trace(
@@ -89,7 +131,7 @@ def build_walk_forward_fold_figure(folds: pa.Table) -> go.Figure:
             x=labels,
             y=oos_values,
             name="Unseen (OOS)",
-            marker_color="#F58518",
+            marker_color="#1f4e79",
         )
     )
     figure.update_layout(
@@ -98,9 +140,10 @@ def build_walk_forward_fold_figure(folds: pa.Table) -> go.Figure:
         height=420,
         margin={"l": 40, "r": 20, "t": 50, "b": 40},
         legend={"orientation": "h", "yanchor": "bottom", "y": 1.02, "x": 0},
-        yaxis_title="Net PnL",
+        yaxis_title="Net PnL (pts)",
         xaxis_title="Fold",
     )
+    figure.add_hline(y=0, line_width=1, line_color="#666666")
     return figure
 
 
@@ -128,6 +171,56 @@ def _numeric_metric(value: object) -> float | None:
         except (InvalidOperation, ValueError):
             return None
     return None
+
+
+def build_parameter_sweep_heatmap_figure(
+    heatmap: pa.Table,
+    *,
+    metric: str,
+    x_axis: str,
+    y_axis: str,
+) -> go.Figure:
+    """Build a 2D heatmap for one parameter-sweep slice (public default view)."""
+    from dashboard_app.charts.style import apply_public_layout
+
+    figure = go.Figure()
+    required = {"x_value", "y_value", "value"}
+    if heatmap.num_rows == 0 or not required.issubset(heatmap.column_names):
+        apply_public_layout(figure, title=f"{metric}: {x_axis} x {y_axis}", height=360)
+        return figure
+
+    x_labels = _sorted_axis_labels(
+        [heatmap.column("x_value")[index].as_py() for index in range(heatmap.num_rows)]
+    )
+    y_labels = _sorted_axis_labels(
+        [heatmap.column("y_value")[index].as_py() for index in range(heatmap.num_rows)]
+    )
+    value_lookup: dict[tuple[str, str], float | None] = {}
+    for index in range(heatmap.num_rows):
+        x_label = _axis_label(heatmap.column("x_value")[index].as_py())
+        y_label = _axis_label(heatmap.column("y_value")[index].as_py())
+        if x_label is None or y_label is None:
+            continue
+        value_lookup[(x_label, y_label)] = _numeric_metric(heatmap.column("value")[index].as_py())
+    z_grid = [
+        [value_lookup.get((x_label, y_label)) for x_label in x_labels] for y_label in y_labels
+    ]
+    figure.add_trace(
+        go.Heatmap(
+            x=x_labels,
+            y=y_labels,
+            z=z_grid,
+            colorscale="RdYlGn",
+            colorbar={"title": metric},
+            hovertemplate=(
+                f"{x_axis}=%{{x}}<br>{y_axis}=%{{y}}<br>{metric}=%{{z:.2f}}<extra></extra>"
+            ),
+        )
+    )
+    apply_public_layout(figure, title=f"{metric}: {x_axis} x {y_axis}", height=480)
+    figure.update_xaxes(title=x_axis)
+    figure.update_yaxes(title=y_axis)
+    return figure
 
 
 def build_parameter_sweep_surface_figure(
@@ -281,10 +374,14 @@ def build_stress_delta_figure(stress: pa.Table) -> go.Figure:
     labels: list[str] = []
     deltas: list[float | None] = []
     colors: list[str] = []
+    rows: list[tuple[str, float | None]] = []
     for index in range(stress.num_rows):
         scenario = stress.column("scenario_id")[index].as_py()
         label = _stress_scenario_label(scenario)
         delta = _numeric_metric(stress.column("delta_net_pnl")[index].as_py())
+        rows.append((label, delta))
+    rows.sort(key=lambda item: (item[1] is None, item[1] if item[1] is not None else 0.0))
+    for label, delta in rows:
         labels.append(label)
         deltas.append(delta)
         if delta is None:
@@ -300,6 +397,8 @@ def build_stress_delta_figure(stress: pa.Table) -> go.Figure:
             y=deltas,
             marker_color=colors,
             name="delta net PnL",
+            text=[f"{value:+.2f}" if value is not None else "—" for value in deltas],
+            textposition="outside",
         )
     )
     figure.update_layout(
