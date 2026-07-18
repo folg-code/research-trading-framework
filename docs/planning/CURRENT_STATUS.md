@@ -34,7 +34,7 @@ Overall Status: IN_PROGRESS
 Active Sprint: SPRINT_033 (sprint/dashboard-presentation-polish)
 Last Completed Sprint: SPRINT_025 (dashboard Streamlit polish + VPS CI/CD, 2026-07-18)
 Capability Tracks: Foundation COMPLETE; Data COMPLETE (core); Research COMPLETE (core); Strategy 6A COMPLETE; Phase 8A AWS dry-run on main (#199); Dashboard Streamlit COMPLETE; Live Paper COMPLETE; VPS CI/CD COMPLETE; Presentation polish IN_PROGRESS
-Recent: S033 Wave A (#253) closed. Wave B: walk-forward fold charts in progress; sweep 3D next.
+Recent: S033 Wave A (#253) + walk-forward charts (#254). Wave B: sweep 3D surface in progress; Wave C next.
 ```
 
 ---

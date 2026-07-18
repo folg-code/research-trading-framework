@@ -2,14 +2,22 @@
 
 from __future__ import annotations
 
-import plotly.express as px
 import streamlit as st
 
-from dashboard_app.charts import build_equity_drawdown_figure, build_walk_forward_fold_figure
+from dashboard_app.charts import (
+    build_equity_drawdown_figure,
+    build_parameter_sweep_surface_figure,
+    build_walk_forward_fold_figure,
+)
 from dashboard_app.query import DashboardQueryService
 from dashboard_app.ui import configure_page, render_sidebar_storage_root
 from dashboard_app.views.picker import render_run_identity, select_catalog_run
-from dashboard_app.views.robustness import list_robustness_experiments, load_robustness_experiment
+from dashboard_app.views.robustness import (
+    filter_parameter_sweep_slice,
+    list_parameter_sweep_slices,
+    list_robustness_experiments,
+    load_robustness_experiment,
+)
 
 configure_page(title="Strategy Robustness")
 settings = render_sidebar_storage_root()
@@ -59,23 +67,40 @@ if "walk_forward_equity" in artifacts.tables and artifacts.tables["walk_forward_
 
 if "parameter_sweep_rankings" in artifacts.tables:
     st.subheader("Parameter sweep rankings")
-    st.dataframe(
-        artifacts.tables["parameter_sweep_rankings"].to_pandas(),
-        use_container_width=True,
-    )
+    with st.expander("Rankings table", expanded=False):
+        st.dataframe(
+            artifacts.tables["parameter_sweep_rankings"].to_pandas(),
+            use_container_width=True,
+        )
 if (
     "parameter_sweep_heatmap" in artifacts.tables
     and artifacts.tables["parameter_sweep_heatmap"].num_rows
 ):
-    heat = artifacts.tables["parameter_sweep_heatmap"].to_pandas()
-    st.subheader("Parameter sweep heatmap")
-    if {"x_value", "y_value", "value"}.issubset(heat.columns):
-        pivot = heat.pivot_table(index="y_value", columns="x_value", values="value")
+    heat = artifacts.tables["parameter_sweep_heatmap"]
+    st.subheader("Parameter sweep surface")
+    slices = list_parameter_sweep_slices(heat)
+    if slices:
+        selected = st.selectbox(
+            "Heatmap slice",
+            options=list(slices),
+            format_func=lambda item: item.label,
+            key="robustness_sweep_slice",
+        )
+        slice_table = filter_parameter_sweep_slice(heat, selected)
+        st.caption(
+            "2D axis pairs render as a 3D surface; single-axis sweeps fall back to a line chart."
+        )
         st.plotly_chart(
-            px.imshow(pivot, aspect="auto", title="Sweep heatmap"),
+            build_parameter_sweep_surface_figure(
+                slice_table,
+                metric=selected.metric,
+                x_axis=selected.x_axis,
+                y_axis=selected.y_axis,
+            ),
             use_container_width=True,
         )
-    st.dataframe(heat, use_container_width=True)
+    with st.expander("Heatmap rows", expanded=False):
+        st.dataframe(heat.to_pandas(), use_container_width=True)
 
 if "stress_comparison" in artifacts.tables:
     st.subheader("Stress comparison")

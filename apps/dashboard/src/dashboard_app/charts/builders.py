@@ -130,6 +130,142 @@ def _numeric_metric(value: object) -> float | None:
     return None
 
 
+def build_parameter_sweep_surface_figure(
+    heatmap: pa.Table,
+    *,
+    metric: str,
+    x_axis: str,
+    y_axis: str | None = None,
+) -> go.Figure:
+    """Build a 3D surface (2D axes) or 1D line chart from one heatmap slice."""
+    figure = go.Figure()
+    required = {"x_value", "value"}
+    if heatmap.num_rows == 0 or not required.issubset(heatmap.column_names):
+        figure.update_layout(
+            title=f"{metric}: {x_axis}" + (f" x {y_axis}" if y_axis else ""),
+            height=420,
+            margin={"l": 40, "r": 20, "t": 50, "b": 40},
+        )
+        return figure
+
+    if y_axis is None:
+        return _build_one_axis_sweep_figure(heatmap, metric=metric, x_axis=x_axis)
+
+    x_labels = _sorted_axis_labels(
+        [heatmap.column("x_value")[index].as_py() for index in range(heatmap.num_rows)]
+    )
+    y_labels = _sorted_axis_labels(
+        [
+            heatmap.column("y_value")[index].as_py()
+            for index in range(heatmap.num_rows)
+            if "y_value" in heatmap.column_names
+        ]
+    )
+    if not x_labels or not y_labels:
+        return _build_one_axis_sweep_figure(heatmap, metric=metric, x_axis=x_axis)
+
+    value_lookup: dict[tuple[str, str], float | None] = {}
+    for index in range(heatmap.num_rows):
+        x_label = _axis_label(heatmap.column("x_value")[index].as_py())
+        y_label = _axis_label(
+            heatmap.column("y_value")[index].as_py() if "y_value" in heatmap.column_names else None
+        )
+        if x_label is None or y_label is None:
+            continue
+        value_lookup[(x_label, y_label)] = _numeric_metric(heatmap.column("value")[index].as_py())
+
+    z_grid = [
+        [value_lookup.get((x_label, y_label)) for x_label in x_labels] for y_label in y_labels
+    ]
+    figure.add_trace(
+        go.Surface(
+            x=list(range(len(x_labels))),
+            y=list(range(len(y_labels))),
+            z=z_grid,
+            colorscale="Viridis",
+            colorbar={"title": metric},
+            hovertemplate=(
+                f"{x_axis}=%{{customdata[0]}}<br>"
+                f"{y_axis}=%{{customdata[1]}}<br>"
+                f"{metric}=%{{z}}<extra></extra>"
+            ),
+            customdata=[[[x_label, y_label] for x_label in x_labels] for y_label in y_labels],
+        )
+    )
+    figure.update_layout(
+        title=f"{metric}: {x_axis} x {y_axis}",
+        height=520,
+        margin={"l": 40, "r": 20, "t": 50, "b": 40},
+        scene={
+            "xaxis": {
+                "title": x_axis,
+                "tickmode": "array",
+                "tickvals": list(range(len(x_labels))),
+                "ticktext": x_labels,
+            },
+            "yaxis": {
+                "title": y_axis,
+                "tickmode": "array",
+                "tickvals": list(range(len(y_labels))),
+                "ticktext": y_labels,
+            },
+            "zaxis": {"title": metric},
+        },
+    )
+    return figure
+
+
+def _build_one_axis_sweep_figure(
+    heatmap: pa.Table,
+    *,
+    metric: str,
+    x_axis: str,
+) -> go.Figure:
+    figure = go.Figure()
+    points: dict[str, float | None] = {}
+    for index in range(heatmap.num_rows):
+        x_label = _axis_label(heatmap.column("x_value")[index].as_py())
+        if x_label is None:
+            continue
+        points[x_label] = _numeric_metric(heatmap.column("value")[index].as_py())
+    x_labels = _sorted_axis_labels(list(points))
+    figure.add_trace(
+        go.Scatter(
+            x=x_labels,
+            y=[points[label] for label in x_labels],
+            mode="lines+markers",
+            name=metric,
+        )
+    )
+    figure.update_layout(
+        title=f"{metric}: {x_axis}",
+        height=420,
+        margin={"l": 40, "r": 20, "t": 50, "b": 40},
+        xaxis_title=x_axis,
+        yaxis_title=metric,
+    )
+    return figure
+
+
+def _axis_label(value: object) -> str | None:
+    if value is None:
+        return None
+    text = str(value).strip()
+    return text or None
+
+
+def _sorted_axis_labels(values: list[object]) -> list[str]:
+    labels = [label for label in (_axis_label(value) for value in values) if label is not None]
+    unique = list(dict.fromkeys(labels))
+    numeric_pairs: list[tuple[float, str]] = []
+    for label in unique:
+        parsed = _numeric_metric(label)
+        if parsed is None:
+            return sorted(unique)
+        numeric_pairs.append((parsed, label))
+    return [label for _, label in sorted(numeric_pairs, key=lambda item: item[0])]
+
+
 def build_ohlcv_trade_figure(
     bars: Sequence[OhlcvBarRow],
     trade: TradeView,
