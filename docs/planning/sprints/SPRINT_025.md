@@ -1,61 +1,69 @@
-# Sprint 025 - Live Dry-Run Visualization and Portfolio Polish
+# Sprint 025 - Streamlit Dashboard Polish and VPS Publish
 
 ## Metadata
 
 ```text
 Sprint: 025
-Phase: Phase 8A - BTC Futures Live Dry-Run Execution Demo
-Status: PLANNED (OPTIONAL)
+Phase: Phase 8A + Dashboard Application
+Status: PLANNED
 Planned Start: TBD
 Planned End: TBD
 Sprint Goal Owner: Project Maintainer
-Depends On: SPRINT_024
-Sprint Branch: sprint/btc-futures-dry-run-execution
+Depends On: SPRINT_028, SPRINT_031, SPRINT_032 (on main); AWS dry-run already on main (#199)
+Sprint Branch: sprint/dashboard-streamlit-polish
 Task branch convention: feat/ | fix/ | docs/ | test/
 Architecture Sources:
-  - scripts/demo/README.md
-  - docs/reference/RESEARCH_METHODOLOGIES.md
-  - SPRINT_023.md
-  - SPRINT_024.md
+  - apps/dashboard/docs/RUNBOOK.md
+  - docs/reference/DASHBOARD_APPLICATION.md
+  - SPRINT_028.md
+  - SPRINT_031.md
 ```
 
 ---
 
-## 0. Slice Choice
+## 0. Slice Choice (updated 2026-07-18)
 
-This optional sprint improves the presentation layer after the runtime is stable. It should not add new
-execution semantics. The goal is to make the portfolio demo easier to understand at a glance.
+**Original S025** targeted HTML / `portfolio_live` visualization polish.
 
-**Out of scope:** changing the trading strategy, adding real trading, adding authenticated controls,
-building a full SaaS dashboard.
+**Current direction:** presentation polish is **`apps/dashboard` (Streamlit)**, then
+**publish that app to the VPS**. Legacy HTML demo artifacts and the OVH aiohttp
+`portfolio_live` server are not the polish target.
+
+```text
+AWS dry-run (worker + status API)  — already on main
+  → Streamlit apps/dashboard (research + Live Paper)
+  → visual polish
+  → VPS deploy (Compose + Caddy, read-only storage)
+```
+
+**Out of scope:** HTML report redesign, new strategy features, real trading,
+authenticated start/stop of the AWS worker from the UI.
 
 ---
 
 ## 1. Sprint Goal
 
 ```text
-Live dry-run read model
-  -> BTCUSDT chart
-  -> simulated entry/exit markers
-  -> event timeline
-  -> compact architecture narrative
-  -> portfolio-ready screenshots
+apps/dashboard Streamlit
+  -> clearer Live Paper + research pages
+  -> chart / markers / timeline where data already exists
+  -> VPS runbook + deploy of the Streamlit stack
 ```
 
-Success: the public dashboard shows the live dry-run visually enough that a visitor can understand the
-pipeline without reading the repository first.
+Success: an operator can open the VPS dashboard, see research runs and live paper
+status without reading the repo, and everything stays read-only.
 
 ---
 
 ## 2. MVP Scope Checklist
 
-- [ ] Add recent candle history to the read model or API.
-- [ ] Render BTCUSDT chart on the live dry-run page.
-- [ ] Add simulated fill markers to the chart.
-- [ ] Add event timeline for market event -> signal -> order intent -> fill -> position update.
-- [ ] Add small architecture diagram linking OVH and AWS responsibilities.
-- [ ] Add screenshot guidance for portfolio/recruiter use.
-- [ ] Keep all controls read-only.
+- [ ] Polish Streamlit Live Paper page (layout, empty/stale states, refresh UX).
+- [ ] Polish research pages (Overview / Strategy / Robustness) for readability.
+- [ ] Add or improve Live Paper chart/markers from status `recent_bars` / fills when useful.
+- [ ] Keep all controls read-only (no worker start/stop, no orders).
+- [ ] Refresh `apps/dashboard/docs/RUNBOOK.md` for VPS publish (Compose, env, status URL).
+- [ ] Deploy / verify Streamlit dashboard on the VPS with read-only `user_data` mount.
+- [ ] Document that HTML / `portfolio_live` are legacy relative to Streamlit.
 
 ---
 
@@ -63,15 +71,14 @@ pipeline without reading the repository first.
 
 ```text
 Dashboard may visualize:
-  - recent market bars
-  - simulated fills
-  - current paper position
-  - status and event timeline
+  - research artifacts under mounted storage
+  - live paper status from GET status URL
+  - recent bars / fills / events from that payload
 
 Dashboard must not:
   - submit orders
   - modify strategy config
-  - restart runtime
+  - restart the AWS worker
   - expose credentials
 ```
 
@@ -81,23 +88,21 @@ Dashboard must not:
 
 | Task | Outcome | Status |
 |------|---------|--------|
-| S025-T001 | Add recent candle read model/API support | TODO |
-| S025-T002 | Add chart rendering on live dry-run page | TODO |
-| S025-T003 | Add simulated entry/exit markers | TODO |
-| S025-T004 | Add execution event timeline | TODO |
-| S025-T005 | Add OVH + AWS architecture diagram/section | TODO |
-| S025-T006 | Add portfolio screenshot notes | TODO |
-| S025-T007 | Add UI fixture data and smoke checks | TODO |
+| S025-T001 | Live Paper Streamlit UX polish | TODO |
+| S025-T002 | Research pages readability polish | TODO |
+| S025-T003 | Optional Live Paper chart from `recent_bars` | TODO |
+| S025-T004 | VPS runbook update for Streamlit + status URL | TODO |
+| S025-T005 | VPS deploy / verify Compose stack | TODO |
+| S025-T006 | Mark HTML / portfolio_live as legacy in docs | TODO |
 
 ---
 
 ## 5. Acceptance Criteria
 
-1. Chart and markers render from read-only data only.
-2. Every marker/fill is labeled simulated.
-3. The page remains useful when AWS status is stale or offline.
-4. No new write/control endpoint is introduced.
-5. Quality checks for touched code/assets pass.
+1. Streamlit on VPS shows research catalog and Live Paper status.
+2. Stale/offline AWS status is handled with a clear message (no crash).
+3. No new write/control endpoint is introduced.
+4. Quality checks for touched code pass.
 
 ---
 
@@ -105,16 +110,13 @@ Dashboard must not:
 
 | Risk | Mitigation |
 |------|------------|
-| UI polish distracts from runtime reliability | Keep Sprint 025 optional and after hardening |
-| Chart requires too much historical storage | Limit recent candles and retention |
-| Visitors infer strategy profitability | Label strategy as unvalidated demo; show dry-run context |
-| Dashboard grows into product UI | Keep read-only portfolio scope |
+| Polish expands into a product UI | Keep read-only; no auth control plane |
+| Confusing HTML vs Streamlit | Explicit legacy note; VPS serves Streamlit |
+| AWS status URL changes | Keep `DEFAULT_LIVE_PAPER_STATUS_URL` + env override |
 
 ---
 
 ## 7. Post-Sprint Direction
 
-After this sprint, decide whether to move toward Phase 8B Paper Execution contracts or return to
-research-side roadmap items. **Sprint 026 (research hot-path performance)** is the recommended
-research-track next step if Signal / Market Research or Robustness remain operator-blocking at
-NQ half-year scale.
+After Streamlit is polished and on the VPS, choose Phase 8B paper-execution contracts,
+S024 reliability hardening, or research-track work (e.g. Phase 4B).
