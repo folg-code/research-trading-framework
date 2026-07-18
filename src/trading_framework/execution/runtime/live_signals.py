@@ -1,4 +1,11 @@
-"""Live signal evaluation adapters for dry-run execution."""
+"""Live signal evaluation over a shared Strategy Model definition.
+
+Live paper trading must be driven by :class:`StrategyModelDefinition` — the same
+domain object Strategy Research simulates. This adapter currently supports the
+close > EMA expression subset used by the BTC futures demo Strategy Model;
+arbitrary expressions still require the research ``SignalModelEvaluator`` path
+(follow-up).
+"""
 
 from __future__ import annotations
 
@@ -41,8 +48,13 @@ class LiveSignalEvaluation:
 
 @final
 @dataclass(frozen=True, slots=True)
-class EmaMomentumLiveSignalEvaluator:
-    """Evaluate the supported close-above-EMA Strategy Model on closed bars."""
+class StrategyModelLiveSignalEvaluator:
+    """Evaluate a :class:`StrategyModelDefinition` on closed bars for live paper.
+
+    The strategy object is the domain Strategy Model (Market x Signal x Exit x
+    Risk). Exit signals from ``FixedBarsExitModel`` are applied by the runtime
+    assembly (``_fixed_bar_exit_active``), not by this evaluator.
+    """
 
     strategy_model: StrategyModelDefinition
 
@@ -76,6 +88,10 @@ class EmaMomentumLiveSignalEvaluator:
         )
 
 
+# Compatibility alias — prefer StrategyModelLiveSignalEvaluator.
+EmaMomentumLiveSignalEvaluator = StrategyModelLiveSignalEvaluator
+
+
 def _previous_condition(
     closes: np.ndarray,
     ema_values: np.ndarray,
@@ -92,7 +108,7 @@ def _fires_on_true_edge(
     firing_policy: SignalFiringPolicy,
 ) -> bool:
     if firing_policy is not SignalFiringPolicy.ON_TRUE_EDGE:
-        msg = "live EMA momentum evaluator supports ON_TRUE_EDGE signals only"
+        msg = "StrategyModelLiveSignalEvaluator supports ON_TRUE_EDGE signals only"
         raise ValidationError(msg)
     if not latest_condition:
         return False
@@ -102,22 +118,22 @@ def _fires_on_true_edge(
 def _extract_ema_period(strategy_model: StrategyModelDefinition) -> int:
     expression = strategy_model.signal_model.expression
     if not isinstance(expression, BinaryCompareExpression):
-        msg = "live EMA momentum evaluator requires a binary compare signal expression"
+        msg = "StrategyModelLiveSignalEvaluator requires a binary compare signal expression"
         raise ValidationError(msg)
     if expression.operator is not ComparisonOperator.GT:
-        msg = "live EMA momentum evaluator requires a close > EMA expression"
+        msg = "StrategyModelLiveSignalEvaluator requires a close > EMA expression"
         raise ValidationError(msg)
     if (
         not isinstance(expression.left, MarketFieldReference)
         or expression.left.field is not MarketField.CLOSE
     ):
-        msg = "live EMA momentum evaluator requires close as the left operand"
+        msg = "StrategyModelLiveSignalEvaluator requires close as the left operand"
         raise ValidationError(msg)
     right = expression.right
     if not isinstance(right, ComponentOutputReference):
-        msg = "live EMA momentum evaluator requires EMA as the right operand"
+        msg = "StrategyModelLiveSignalEvaluator requires EMA as the right operand"
         raise ValidationError(msg)
     if str(right.component_id) != EMA_COMPONENT_ID or str(right.output_id) != EMA_OUTPUT_ID:
-        msg = "live EMA momentum evaluator requires trend.ema value as the right operand"
+        msg = "StrategyModelLiveSignalEvaluator requires trend.ema value as the right operand"
         raise ValidationError(msg)
     return int(right.parameters.get("period"))

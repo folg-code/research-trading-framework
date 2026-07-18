@@ -37,3 +37,22 @@ def test_load_settings_from_env(tmp_path: Path, monkeypatch: pytest.MonkeyPatch)
     monkeypatch.setenv("DASHBOARD_STORAGE_ROOT", str(tmp_path))
     settings = load_settings()
     assert settings.storage_root == tmp_path.resolve()
+    assert settings.status_url is None
+
+
+def test_load_settings_reads_status_url(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("DASHBOARD_STORAGE_ROOT", str(tmp_path))
+    monkeypatch.setenv("DASHBOARD_STATUS_URL", "https://example.test/status")
+    settings = load_settings()
+    assert settings.status_url == "https://example.test/status"
+
+
+def test_load_settings_status_url_override(tmp_path: Path) -> None:
+    settings = load_settings(
+        storage_root=tmp_path,
+        status_url=" https://override.test/status ",
+    )
+    assert settings.status_url == "https://override.test/status"

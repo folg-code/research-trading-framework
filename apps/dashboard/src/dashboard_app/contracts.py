@@ -23,6 +23,7 @@ class WorkflowKind(StrEnum):
     SIGNAL = "signal"
     STRATEGY = "strategy"
     ROBUSTNESS = "robustness"
+    LIVE_PAPER = "live_paper"
 
 
 @dataclass(frozen=True, slots=True)

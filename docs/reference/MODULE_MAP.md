@@ -511,7 +511,7 @@ tests/integration/live_data/
 | Robustness reports | `research/robustness/` reporting packages |
 | Live dashboard state | execution read-model adapters |
 | Demo generation | `scripts/demo/` |
-| Live dashboard delivery | `scripts/portfolio_live/` |
+| Live dashboard delivery | `scripts/portfolio_live/` (aiohttp); `apps/dashboard` Live Paper page (status GET) |
 
 ### Boundary
 

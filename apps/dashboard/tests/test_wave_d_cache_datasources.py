@@ -29,11 +29,11 @@ def test_storage_fingerprint_changes_when_child_appears(tmp_path: Path) -> None:
     assert second.token in parts
 
 
-def test_aws_dry_run_datasource_is_stub_only() -> None:
+def test_aws_dry_run_datasource_stub_requires_status_url() -> None:
     source = UnimplementedAwsDryRunDataSource()
-    with pytest.raises(NotImplementedError, match="Sprint 028"):
+    with pytest.raises(NotImplementedError, match="DASHBOARD_STATUS_URL"):
         source.list_live_sessions()
-    with pytest.raises(NotImplementedError, match="Sprint 028"):
+    with pytest.raises(NotImplementedError, match="DASHBOARD_STATUS_URL"):
         source.fetch_session_snapshot("session-1")
 
 
