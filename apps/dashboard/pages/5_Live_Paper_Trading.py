@@ -1,10 +1,13 @@
-"""Live Paper — read-only AWS dry-run status visualization."""
+"""Live Paper Trading — read-only AWS dry-run status visualization."""
 
 from __future__ import annotations
+
+from datetime import UTC, datetime
 
 import streamlit as st
 
 from dashboard_app.datasources import HttpAwsDryRunDataSource
+from dashboard_app.formatting import format_kpi
 from dashboard_app.ui import configure_page, render_app_chrome
 from dashboard_app.views.live_paper import (
     attach_fill_markers,
@@ -14,73 +17,92 @@ from dashboard_app.views.live_paper import (
 )
 
 
-def _fmt_num(value: object) -> str:
-    if value is None:
-        return "—"
-    if isinstance(value, (int, float)):
-        return f"{value:,.4f}"
-    return str(value)
-
-
 def _render_snapshot(snapshot: dict[str, object]) -> None:
     health = live_paper_health(snapshot)
+    status_raw = str(snapshot.get("status") or "unknown").lower()
+    if health.is_stale:
+        badge = "Stale"
+    elif status_raw in {"running", "active", "ok"}:
+        badge = "Running"
+    elif status_raw in {"stopped", "idle"}:
+        badge = "Stopped"
+    elif status_raw in {"error", "failed"}:
+        badge = "Error"
+    else:
+        badge = status_raw.title() or "Unknown"
+
+    st.markdown(f"### Status: **{badge}**")
     if health.simulated:
-        st.success("Simulated paper trading — no real orders.")
+        st.success("Simulated paper trading — broker abstraction only, no real orders.")
     else:
         st.warning("Status payload did not set `simulated: true`. Treat carefully.")
+
+    now = datetime.now(tz=UTC)
+    if health.heartbeat_at is not None:
+        age = now - health.heartbeat_at
+        age_text = f"{int(age.total_seconds())}s ago"
+        st.caption(f"Last heartbeat: {health.heartbeat_at.isoformat()} ({age_text})")
+    else:
+        st.caption("Last heartbeat: —")
     if health.is_stale:
-        age = (
-            f"last heartbeat `{health.heartbeat_at.isoformat()}`"
-            if health.heartbeat_at is not None
-            else "no heartbeat"
-        )
         st.warning(
-            f"Status looks stale ({age}). "
-            f"Worker may be stopped or unreachable (threshold {health.stale_after})."
+            f"Heartbeat older than {health.stale_after}. Worker may be stopped or unreachable."
         )
 
-    metrics = st.columns(6)
-    metrics[0].metric("Status", str(snapshot.get("status") or "—"))
-    metrics[1].metric("Symbol", str(snapshot.get("symbol") or "—"))
-    metrics[2].metric("Signal", str(snapshot.get("current_signal") or "—"))
-    metrics[3].metric("Equity", _fmt_num(snapshot.get("paper_equity")))
-    metrics[4].metric("Realized PnL", _fmt_num(snapshot.get("realized_pnl")))
-    metrics[5].metric("Last price", _fmt_num(snapshot.get("last_price")))
+    metrics = st.columns(4)
+    metrics[0].metric("Symbol", str(snapshot.get("symbol") or "—"))
+    metrics[1].metric("Signal", str(snapshot.get("current_signal") or "—"))
+    metrics[2].metric("Last price", format_kpi("last_price", snapshot.get("last_price")))
+    metrics[3].metric("Last update", str(snapshot.get("last_market_event_at") or "—"))
 
-    with st.expander("Runtime identity", expanded=False):
-        st.write(
-            {
-                "runtime_id": snapshot.get("runtime_id"),
-                "mode": snapshot.get("mode"),
-                "provider": snapshot.get("provider"),
-                "simulated": snapshot.get("simulated"),
-                "last_heartbeat_at": snapshot.get("last_heartbeat_at"),
-                "last_market_event_at": snapshot.get("last_market_event_at"),
-                "unrealized_pnl": snapshot.get("unrealized_pnl"),
-            }
-        )
+    metrics2 = st.columns(4)
+    metrics2[0].metric("Equity", format_kpi("paper_equity", snapshot.get("paper_equity")))
+    metrics2[1].metric("Realized PnL", format_kpi("realized_pnl", snapshot.get("realized_pnl")))
+    metrics2[2].metric(
+        "Unrealized PnL", format_kpi("unrealized_pnl", snapshot.get("unrealized_pnl"))
+    )
+    position = snapshot.get("current_position")
+    if isinstance(position, dict):
+        qty = position.get("quantity", position.get("qty", position.get("size")))
+        metrics2[3].metric("Position", str(qty if qty is not None else "Flat"))
+    else:
+        metrics2[3].metric("Position", "Flat")
 
     chart_col, position_col = st.columns([2, 1])
     with chart_col:
-        st.subheader("Recent bars")
+        st.subheader("Recent market")
         figure = build_live_paper_candles(snapshot.get("recent_bars"))
         figure = attach_fill_markers(figure, snapshot.get("recent_fills"))
         st.plotly_chart(figure, use_container_width=True)
     with position_col:
         st.subheader("Position")
-        position = snapshot.get("current_position")
         if isinstance(position, dict):
-            st.json(position)
+            st.write(
+                {
+                    "Position": position.get("side") or position.get("position") or "Flat",
+                    "Quantity": position.get("quantity", position.get("qty", position.get("size"))),
+                    "Entry": position.get("entry_price") or position.get("avg_entry_price"),
+                    "Mark": position.get("mark_price") or snapshot.get("last_price"),
+                    "Unrealized PnL": format_kpi(
+                        "unrealized_pnl",
+                        position.get("unrealized_pnl", snapshot.get("unrealized_pnl")),
+                    ),
+                }
+            )
         else:
             st.caption("Flat / no open position in this snapshot.")
 
-    tabs = st.tabs(["Events", "Orders", "Fills", "Bars table"])
+    tabs = st.tabs(["Signals", "Orders", "Fills", "Trades", "Bars"])
     with tabs[0]:
         events = event_timeline_rows(snapshot.get("recent_events"))
-        if events:
-            st.dataframe(list(events), use_container_width=True)
+        signal_events = [
+            row for row in events if "signal" in str(row.get("event_type", "")).lower()
+        ]
+        rows = signal_events or list(events)
+        if rows:
+            st.dataframe(rows, use_container_width=True)
         else:
-            st.caption("No recent events.")
+            st.caption("No recent signals.")
     with tabs[1]:
         orders = snapshot.get("recent_orders")
         if isinstance(orders, list) and orders:
@@ -94,11 +116,20 @@ def _render_snapshot(snapshot: dict[str, object]) -> None:
         else:
             st.caption("No recent fills.")
     with tabs[3]:
+        trades = snapshot.get("recent_trades")
+        if isinstance(trades, list) and trades:
+            st.dataframe(trades, use_container_width=True)
+        else:
+            st.caption("No recent trades in this snapshot.")
+    with tabs[4]:
         bars = snapshot.get("recent_bars")
         if isinstance(bars, list) and bars:
-            st.dataframe(bars[-200:], use_container_width=True)
+            st.dataframe(bars[-300:], use_container_width=True)
         else:
             st.caption("No recent bars.")
+
+    with st.expander("Raw snapshot", expanded=False):
+        st.json(snapshot)
 
 
 def main() -> None:
