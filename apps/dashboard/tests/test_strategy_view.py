@@ -9,10 +9,10 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 import pytest
 
+from dashboard_app.charts import DEFAULT_OVERLAY_REGISTRY, OverlayKind
 from dashboard_app.contracts import PRESENTATION_SCHEMA_VERSION, TradeView
-from dashboard_app.overlays import DEFAULT_OVERLAY_REGISTRY, OverlayKind
 from dashboard_app.query import DashboardQueryService
-from dashboard_app.strategy_view import (
+from dashboard_app.views.strategy import (
     chart_window_for_trade,
     list_strategy_runs,
     load_strategy_run,

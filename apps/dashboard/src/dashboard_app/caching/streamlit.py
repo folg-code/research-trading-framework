@@ -6,7 +6,7 @@ from pathlib import Path
 
 import streamlit as st
 
-from dashboard_app.cache import StorageFingerprint, compute_storage_fingerprint
+from dashboard_app.caching.fingerprint import StorageFingerprint, compute_storage_fingerprint
 from dashboard_app.catalog import RunCatalog, list_runs
 from dashboard_app.contracts import PRESENTATION_SCHEMA_VERSION, ChartWindow
 from dashboard_app.query import DashboardQueryService, OhlcvWindowResult

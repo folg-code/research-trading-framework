@@ -12,7 +12,7 @@ import duckdb
 import pyarrow as pa
 
 from dashboard_app.contracts import PRESENTATION_SCHEMA_VERSION, ChartWindow
-from dashboard_app.dataset_locator import DatasetLocator
+from dashboard_app.query.dataset_locator import DatasetLocator
 
 DEFAULT_MAX_BARS = 5_000
 DEFAULT_MAX_PARQUET_ROWS = 50_000

@@ -9,14 +9,13 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 import pytest
 
-from dashboard_app.cache import cache_key_parts, compute_storage_fingerprint
+from dashboard_app.caching import cache_key_parts, compute_storage_fingerprint
 from dashboard_app.contracts import PRESENTATION_SCHEMA_VERSION, ChartWindow
-from dashboard_app.dataset_locator import DatasetLocator
 from dashboard_app.datasources import (
     ParquetHistoricalRunDataSource,
     UnimplementedAwsDryRunDataSource,
 )
-from dashboard_app.query import DashboardQueryService
+from dashboard_app.query import DashboardQueryService, DatasetLocator
 
 
 def test_storage_fingerprint_changes_when_child_appears(tmp_path: Path) -> None:

@@ -8,8 +8,8 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 
 from dashboard_app.query import DashboardQueryService
-from dashboard_app.research_view import list_research_runs, load_research_run
-from dashboard_app.robustness_view import list_robustness_experiments, load_robustness_experiment
+from dashboard_app.views.research import list_research_runs, load_research_run
+from dashboard_app.views.robustness import list_robustness_experiments, load_robustness_experiment
 
 
 def test_load_research_run_tables(tmp_path: Path) -> None:

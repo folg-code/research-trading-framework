@@ -10,8 +10,7 @@ import pyarrow.parquet as pq
 import pytest
 
 from dashboard_app.contracts import PRESENTATION_SCHEMA_VERSION, ChartWindow
-from dashboard_app.dataset_locator import DatasetLocator
-from dashboard_app.query import DashboardQueryService
+from dashboard_app.query import DashboardQueryService, DatasetLocator
 
 
 def _dataset_ref() -> str:

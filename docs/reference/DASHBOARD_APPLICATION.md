@@ -29,12 +29,12 @@ Schema version: `dashboard.presentation.v1`.
 
 1. Add `pages/N_Name.py` using `configure_page` + `render_sidebar_storage_root`.
 2. Prefer `DashboardQueryService` / catalog helpers over ad-hoc filesystem walks.
-3. Use `streamlit_cache.cached_*` helpers with `storage_fingerprint` for expensive reads.
+3. Use `dashboard_app.caching.streamlit.cached_*` helpers with `storage_fingerprint` for expensive reads.
 4. Keep engines out of the page — only read mounted artifacts.
 
 ## Adding an overlay renderer
 
-1. Register a kind on `OverlayKind` in `dashboard_app.overlays`.
+1. Register a kind on `OverlayKind` in `dashboard_app.charts.overlays`.
 2. Provide a renderer or leave `implemented=False` as a placeholder (orderflow).
 3. Call `OverlayRegistry.apply(figure, kind, payload)` from chart builders.
 

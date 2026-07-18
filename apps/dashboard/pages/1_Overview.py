@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import streamlit as st
 
-from dashboard_app.streamlit_cache import cached_list_runs, storage_fingerprint
+from dashboard_app.caching.streamlit import cached_list_runs, storage_fingerprint
 from dashboard_app.ui import configure_page, render_sidebar_storage_root
 
 configure_page(title="Overview")
