@@ -5,7 +5,10 @@ from __future__ import annotations
 import pyarrow as pa
 
 from dashboard_app.charts import (
+    build_monte_carlo_percentile_figure,
+    build_monte_carlo_tail_figure,
     build_parameter_sweep_surface_figure,
+    build_stress_delta_figure,
     build_walk_forward_fold_figure,
 )
 from dashboard_app.views.robustness import (
@@ -132,3 +135,48 @@ def test_build_parameter_sweep_surface_figure_falls_back_to_line_for_1d() -> Non
     assert figure.data[0].type == "scatter"
     assert list(figure.data[0].x) == ["10", "20"]
     assert list(figure.data[0].y) == [1.5, 2.5]
+
+
+def test_build_stress_delta_figure_colors_negative_deltas() -> None:
+    stress = pa.table(
+        {
+            "scenario_id": ["double_commission", "remove_top_trade"],
+            "delta_net_pnl": ["-12.5", "3"],
+        }
+    )
+
+    figure = build_stress_delta_figure(stress)
+
+    assert list(figure.data[0].x) == [
+        "Commission costs doubled",
+        "Best single trade removed",
+    ]
+    assert list(figure.data[0].y) == [-12.5, 3.0]
+    assert list(figure.data[0].marker.color) == ["#d62728", "#2ca02c"]
+
+
+def test_build_monte_carlo_percentile_and_tail_figures() -> None:
+    distributions = pa.table(
+        {
+            "method": ["trade_order_shuffle"],
+            "p5_terminal_equity": [90.0],
+            "p50_terminal_equity": [100.0],
+            "p95_terminal_equity": [110.0],
+        }
+    )
+    tails = pa.table(
+        {
+            "method": ["trade_order_shuffle"],
+            "probability_terminal_pnl_negative": [0.2],
+            "probability_max_drawdown_exceeds_threshold": [0.1],
+        }
+    )
+
+    percentile = build_monte_carlo_percentile_figure(distributions)
+    tail = build_monte_carlo_tail_figure(tails)
+
+    assert len(percentile.data) == 3
+    assert list(percentile.data[0].x) == ["Trade-order shuffle"]
+    assert list(percentile.data[1].y) == [100.0]
+    assert list(tail.data[0].y) == [0.2]
+    assert list(tail.data[1].y) == [0.1]

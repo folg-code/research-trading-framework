@@ -28,13 +28,13 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 ```text
 Status Date: 2026-07-18
 Current Phase: Sprint 033 — Dashboard presentation polish
-Current Milestone: Wave B walk-forward fold charts / sweep surface
+Current Milestone: Wave C stress / MC / verdict UI
 Implementation Status: Sprints 001-006, 008-023, 025-032 COMPLETE on main; Sprint 007 SKIPPED
 Overall Status: IN_PROGRESS
 Active Sprint: SPRINT_033 (sprint/dashboard-presentation-polish)
 Last Completed Sprint: SPRINT_025 (dashboard Streamlit polish + VPS CI/CD, 2026-07-18)
 Capability Tracks: Foundation COMPLETE; Data COMPLETE (core); Research COMPLETE (core); Strategy 6A COMPLETE; Phase 8A AWS dry-run on main (#199); Dashboard Streamlit COMPLETE; Live Paper COMPLETE; VPS CI/CD COMPLETE; Presentation polish IN_PROGRESS
-Recent: S033 Wave A (#253) + walk-forward charts (#254). Wave B: sweep 3D surface in progress; Wave C next.
+Recent: S033 Waves A–B on sprint (#253–#255). Wave C: stress/MC/verdict UI in progress.
 ```
 
 ---

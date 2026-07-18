@@ -130,3 +130,85 @@ def filter_parameter_sweep_slice(
     if not keep:
         return heatmap.slice(0, 0)
     return heatmap.take(keep)
+
+
+_GATE_LABELS: dict[str, str] = {
+    "min_stitched_oos_net_pnl": "Out-of-sample profit (walk-forward)",
+    "min_oos_beats_train_ratio": "Out-of-sample beats in-sample",
+    "max_worst_stress_delta_net_pnl": "Worst stress-test drop",
+    "max_mc_loss_probability": "Chance of ending in loss (Monte Carlo)",
+    "max_top_trades_concentration": "Profit concentrated in few trades",
+    "fail_on_isolated_optima": "No lucky isolated parameter peak",
+}
+
+_VERDICT_HEADLINES: dict[str, str] = {
+    "PASS": "Looks robust under the checks we ran.",
+    "CONDITIONAL": "Promising, but some softer checks raised concerns.",
+    "FAIL": "Did not pass one or more critical validation checks.",
+}
+
+
+@dataclass(frozen=True, slots=True)
+class VerdictGateView:
+    """One gate row for the robustness verdict checklist."""
+
+    gate_id: str
+    label: str
+    passed: bool
+    severity: str
+    message: str
+    observed_value: str | None
+
+
+@dataclass(frozen=True, slots=True)
+class VerdictChecklistView:
+    """Presentation model for robustness verdict.json."""
+
+    verdict: str
+    headline: str
+    summary: str
+    gates: tuple[VerdictGateView, ...]
+    strengths: tuple[str, ...]
+    weaknesses: tuple[str, ...]
+    blocking_issues: tuple[str, ...]
+
+
+def build_verdict_checklist(payload: dict[str, object]) -> VerdictChecklistView:
+    """Normalize verdict.json into a checklist-friendly view model."""
+    verdict_raw = payload.get("verdict")
+    verdict = str(verdict_raw).upper() if verdict_raw is not None else "UNKNOWN"
+    summary_raw = payload.get("summary")
+    summary = str(summary_raw) if summary_raw is not None else ""
+    gates_raw = payload.get("gate_results")
+    gates: list[VerdictGateView] = []
+    if isinstance(gates_raw, list):
+        for item in gates_raw:
+            if not isinstance(item, dict):
+                continue
+            gate_id = str(item.get("gate_id", "gate"))
+            observed = item.get("observed_value")
+            gates.append(
+                VerdictGateView(
+                    gate_id=gate_id,
+                    label=_GATE_LABELS.get(gate_id, gate_id.replace("_", " ")),
+                    passed=bool(item.get("passed")),
+                    severity=str(item.get("severity", "SOFT")),
+                    message=str(item.get("message", "")),
+                    observed_value=str(observed) if observed is not None else None,
+                )
+            )
+    return VerdictChecklistView(
+        verdict=verdict,
+        headline=_VERDICT_HEADLINES.get(verdict, "Robustness verdict"),
+        summary=summary,
+        gates=tuple(gates),
+        strengths=_string_tuple(payload.get("strengths")),
+        weaknesses=_string_tuple(payload.get("weaknesses")),
+        blocking_issues=_string_tuple(payload.get("blocking_issues")),
+    )
+
+
+def _string_tuple(value: object) -> tuple[str, ...]:
+    if not isinstance(value, list):
+        return ()
+    return tuple(str(item) for item in value if item is not None)

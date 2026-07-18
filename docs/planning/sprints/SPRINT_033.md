@@ -60,7 +60,7 @@ apps/dashboard
 
 - [x] Walk-forward IS/OOS fold charts.
 - [x] Parameter sweep 3D surface from `parameter_sweep_heatmap`.
-- [ ] Stress delta chart; MC percentile visualization; verdict checklist UI.
+- [x] Stress delta chart; MC percentile visualization; verdict checklist UI.
 
 ---
 
@@ -72,8 +72,8 @@ apps/dashboard
 | S033-T002 | Richer robustness / strategy catalog titles | DONE |
 | S033-T003 | Overview readability pass | DONE |
 | S033-T004 | Walk-forward fold charts | DONE |
-| S033-T005 | Sweep 3D surface heatmap | DONE (this PR) |
-| S033-T006 | Stress / MC / verdict presentation | TODO |
+| S033-T005 | Sweep 3D surface heatmap | DONE |
+| S033-T006 | Stress / MC / verdict presentation | DONE (this PR) |
 
 ---
 
