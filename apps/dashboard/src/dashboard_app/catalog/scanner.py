@@ -153,12 +153,16 @@ def _parse_market_signal_manifest(payload: dict[str, Any], run_dir: Path) -> Run
 def _parse_strategy_manifest(payload: dict[str, Any], run_dir: Path) -> RunSummary:
     run_id = str(payload["run_id"])
     strategy_model_id = str(payload.get("strategy_model_id") or "strategy")
+    signal_model_id = _optional_str(payload.get("signal_model_id"))
+    title = f"Strategy · {strategy_model_id}"
+    if signal_model_id:
+        title = f"{title} · signal {signal_model_id}"
     return RunSummary(
         schema_version=PRESENTATION_SCHEMA_VERSION,
         workflow=WorkflowKind.STRATEGY,
         run_id=run_id,
         created_at_utc=_parse_optional_datetime(payload.get("created_at_utc")),
-        title=f"Strategy · {strategy_model_id}",
+        title=title,
         storage_path=str(run_dir),
         source_dataset_ref=_optional_str(payload.get("source_dataset_ref")),
         evaluation_timeframe=_optional_str(payload.get("evaluation_timeframe")),
@@ -173,15 +177,28 @@ def _parse_robustness_manifest(payload: dict[str, Any], run_dir: Path) -> RunSum
     spec = payload.get("spec")
     dataset_ref: str | None = None
     timeframe: str | None = None
+    strategy_template: str | None = None
+    kinds_label: str | None = None
     if isinstance(spec, dict):
         dataset_ref = _optional_str(spec.get("dataset_ref"))
         timeframe = _optional_str(spec.get("evaluation_timeframe") or spec.get("timeframe"))
+        strategy_template = _optional_str(spec.get("strategy_template_id"))
+        kinds_raw = spec.get("kinds")
+        if isinstance(kinds_raw, list) and kinds_raw:
+            kinds_label = ", ".join(str(item) for item in kinds_raw)
+    title = _robustness_title(
+        experiment_id=experiment_id,
+        strategy_template=strategy_template,
+        kinds_label=kinds_label,
+        dataset_ref=dataset_ref,
+        timeframe=timeframe,
+    )
     return RunSummary(
         schema_version=PRESENTATION_SCHEMA_VERSION,
         workflow=WorkflowKind.ROBUSTNESS,
         run_id=experiment_id,
         created_at_utc=_parse_optional_datetime(payload.get("created_at_utc")),
-        title=f"Robustness · {experiment_id}",
+        title=title,
         storage_path=str(run_dir),
         source_dataset_ref=dataset_ref,
         evaluation_timeframe=timeframe,
@@ -189,6 +206,29 @@ def _parse_robustness_manifest(payload: dict[str, Any], run_dir: Path) -> RunSum
         artifact_schema_version=_optional_str(payload.get("schema_version")),
         experiment_id=experiment_id,
     )
+
+
+def _robustness_title(
+    *,
+    experiment_id: str,
+    strategy_template: str | None,
+    kinds_label: str | None,
+    dataset_ref: str | None,
+    timeframe: str | None,
+) -> str:
+    """Prefer strategy/kinds over repeating the opaque experiment id."""
+    if strategy_template:
+        parts = [f"Robustness · {strategy_template}"]
+        if kinds_label:
+            parts.append(kinds_label)
+    elif kinds_label:
+        parts = [f"Robustness · {kinds_label}"]
+    else:
+        parts = [f"Robustness · {experiment_id}"]
+    # Dataset/TF already shown in picker suffix via RunSummary fields; omit here
+    # unless the title would otherwise be only the id and we have no other cue.
+    _ = dataset_ref, timeframe
+    return " · ".join(parts)
 
 
 def _workflow_for_research_scope(scope: str | None) -> WorkflowKind:

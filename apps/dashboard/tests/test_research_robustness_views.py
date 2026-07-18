@@ -9,7 +9,11 @@ import pyarrow.parquet as pq
 
 from dashboard_app.query import DashboardQueryService
 from dashboard_app.views.research import list_research_runs, load_research_run
-from dashboard_app.views.robustness import list_robustness_experiments, load_robustness_experiment
+from dashboard_app.views.robustness import (
+    build_verdict_checklist,
+    list_robustness_experiments,
+    load_robustness_experiment,
+)
 
 
 def test_load_research_run_tables(tmp_path: Path) -> None:
@@ -74,3 +78,37 @@ def test_load_robustness_experiment_tables(tmp_path: Path) -> None:
     artifacts = load_robustness_experiment(DashboardQueryService(tmp_path), experiments[0])
     assert "parameter_sweep_rankings" in artifacts.tables
     assert artifacts.verdict is not None
+
+
+def test_build_verdict_checklist_maps_gates_and_headline() -> None:
+    checklist = build_verdict_checklist(
+        {
+            "verdict": "CONDITIONAL",
+            "summary": "Soft gate failed.",
+            "strengths": ["stable walk-forward"],
+            "weaknesses": ["stress drop"],
+            "blocking_issues": [],
+            "gate_results": [
+                {
+                    "gate_id": "max_worst_stress_delta_net_pnl",
+                    "passed": False,
+                    "severity": "SOFT",
+                    "message": "Stress delta too large",
+                    "observed_value": "-25",
+                },
+                {
+                    "gate_id": "min_stitched_oos_net_pnl",
+                    "passed": True,
+                    "severity": "HARD",
+                    "message": "OOS profit ok",
+                },
+            ],
+        }
+    )
+
+    assert checklist.verdict == "CONDITIONAL"
+    assert "softer checks" in checklist.headline
+    assert checklist.gates[0].label == "Worst stress-test drop"
+    assert checklist.gates[0].passed is False
+    assert checklist.gates[1].passed is True
+    assert checklist.strengths == ("stable walk-forward",)
