@@ -24,6 +24,10 @@ from trading_framework.infrastructure.providers.binance.futures_payloads import 
     parse_combined_stream_payload,
     parse_kline_payload,
 )
+from trading_framework.infrastructure.providers.binance.futures_rest import (
+    BinanceFuturesRestError,
+    fetch_closed_klines,
+)
 from trading_framework.infrastructure.providers.binance.futures_streams import (
     BinanceFuturesStreamEndpoint,
     kline_1m_stream,
@@ -156,10 +160,11 @@ def handle_local_btc_futures_binance_message(
     *,
     state: LocalBtcFuturesBinanceFeedState,
     message: BinanceFuturesWebSocketMessage,
-    max_closed_bars: int = 200,
+    max_closed_bars: int | None = None,
 ) -> LocalBtcFuturesBinanceMessageResult:
     """Apply one Binance market-data message to the local dry-run runtime."""
-    if max_closed_bars < 1:
+    window = max_closed_bars if max_closed_bars is not None else runtime.max_closed_bars
+    if window < 1:
         msg = "max_closed_bars must be positive"
         raise ValidationError(msg)
     combined = parse_combined_stream_payload(message.payload)
@@ -175,7 +180,7 @@ def handle_local_btc_futures_binance_message(
         runtime,
         closed_bars=state.closed_bars,
         bar=bar,
-        max_closed_bars=max_closed_bars,
+        max_closed_bars=window,
     )
     next_state = LocalBtcFuturesBinanceFeedState(
         closed_bars=feed_step_result.closed_bars,
@@ -202,6 +207,7 @@ async def run_local_btc_futures_binance_dry_run(
         request.config,
         clock=clock,
         state_repository=state_repository,
+        max_closed_bars=request.max_closed_bars,
     )
     owned_connector: AiohttpBinanceWebSocketConnector | None = None
     if clients is None:
@@ -275,7 +281,7 @@ async def _receive_binance_messages_until_bounded(
     if not clients:
         msg = "at least one Binance message client is required"
         raise ValidationError(msg)
-    state = LocalBtcFuturesBinanceFeedState()
+    state = _bootstrap_feed_state(runtime)
     heartbeat: Heartbeat | None = None
     received_message_count = 0
     loop = asyncio.get_running_loop()
@@ -311,7 +317,7 @@ async def _receive_binance_messages_until_bounded(
                     runtime,
                     state=state,
                     message=message,
-                    max_closed_bars=request.max_closed_bars,
+                    max_closed_bars=runtime.max_closed_bars,
                 )
                 state = result.state
                 received_message_count += 1
@@ -332,6 +338,26 @@ async def _receive_binance_messages_until_bounded(
         for task in pending:
             task.cancel()
         await asyncio.gather(*pending.keys(), return_exceptions=True)
+
+
+def _bootstrap_feed_state(runtime: LocalBtcFuturesDryRunRuntime) -> LocalBtcFuturesBinanceFeedState:
+    """Seed the closed-bar buffer from Binance REST; fall back to empty on failure."""
+    try:
+        bars = fetch_closed_klines(
+            symbol=runtime.config.symbol,
+            limit=runtime.required_closed_bars,
+        )
+    except (BinanceFuturesRestError, ValidationError, TypeError, ValueError):
+        return LocalBtcFuturesBinanceFeedState()
+    if len(bars) < runtime.required_closed_bars:
+        return LocalBtcFuturesBinanceFeedState(
+            closed_bars=bars,
+            closed_bar_count=len(bars),
+        )
+    return LocalBtcFuturesBinanceFeedState(
+        closed_bars=bars,
+        closed_bar_count=len(bars),
+    )
 
 
 def _ignored(

@@ -28,6 +28,7 @@ from trading_framework.execution import (
     StrategyModelLiveSignalEvaluator,
     StrategyModelOrderAdapter,
     closed_bar_close_reference_quote,
+    resolve_live_closed_bar_window,
 )
 from trading_framework.execution.models import (
     ExecutionEvent,
@@ -100,6 +101,8 @@ class LocalBtcFuturesDryRunRuntime:
     signal_evaluator: StrategyModelLiveSignalEvaluator
     state_repository: ExecutionStateRepository
     initial_state: PaperBrokerState
+    required_closed_bars: int
+    max_closed_bars: int
 
 
 @final
@@ -155,12 +158,16 @@ def create_local_btc_futures_dry_run_runtime(
     *,
     clock: Clock | None = None,
     state_repository: ExecutionStateRepository | None = None,
+    max_closed_bars: int = 200,
 ) -> LocalBtcFuturesDryRunRuntime:
     """Assemble local dry-run runtime components without starting live IO."""
     runtime_clock = clock or SystemClock()
     state_repository_path = config.state_repository_path
     if state_repository_path is None:
         msg = "state_repository_path must be configured"
+        raise ValidationError(msg)
+    if max_closed_bars < 1:
+        msg = "max_closed_bars must be positive"
         raise ValidationError(msg)
     repository = state_repository or JsonExecutionStateRepository(
         state_repository_path,
@@ -205,6 +212,11 @@ def create_local_btc_futures_dry_run_runtime(
     )
     if initial_state is None:
         initial_state = broker.initial_state(runtime_clock.now())
+    required_bars = signal_evaluator.required_closed_bars
+    window = resolve_live_closed_bar_window(
+        required_bars=required_bars,
+        configured_cap=max_closed_bars,
+    )
     return LocalBtcFuturesDryRunRuntime(
         config=config,
         session=session,
@@ -213,6 +225,8 @@ def create_local_btc_futures_dry_run_runtime(
         signal_evaluator=signal_evaluator,
         state_repository=repository,
         initial_state=initial_state,
+        required_closed_bars=required_bars,
+        max_closed_bars=window,
     )
 
 
@@ -268,13 +282,14 @@ def run_local_btc_futures_closed_bar_feed_step(
     *,
     closed_bars: tuple[MarketBar, ...],
     bar: MarketBar,
-    max_closed_bars: int = 200,
+    max_closed_bars: int | None = None,
 ) -> LocalBtcFuturesClosedBarFeedStepResult:
     """Append one closed bar and run one deterministic local dry-run step."""
-    if max_closed_bars < 1:
+    window = max_closed_bars if max_closed_bars is not None else runtime.max_closed_bars
+    if window < 1:
         msg = "max_closed_bars must be positive"
         raise ValidationError(msg)
-    updated_bars = (*closed_bars, bar)[-max_closed_bars:]
+    updated_bars = (*closed_bars, bar)[-window:]
     runtime.state_repository.save_bar(runtime.config.runtime_id, bar)
     step_result = run_local_btc_futures_closed_bar_step(runtime, updated_bars)
     return LocalBtcFuturesClosedBarFeedStepResult(

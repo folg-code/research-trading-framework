@@ -122,7 +122,7 @@ def test_local_btc_futures_closed_bar_step_runs_signal_to_paper_fill(
     runtime = create_local_btc_futures_dry_run_runtime(
         LocalBtcFuturesDryRunConfig(
             event_log_path=event_log_path,
-            strategy_config=BtcFuturesDemoStrategyConfig(ema_period=3),
+            strategy_config=BtcFuturesDemoStrategyConfig(ema_period=2),
         ),
         clock=FixedClock(NOW),
     )
@@ -165,9 +165,10 @@ def test_local_btc_futures_closed_bar_feed_step_keeps_rolling_history(
     runtime = create_local_btc_futures_dry_run_runtime(
         LocalBtcFuturesDryRunConfig(
             event_log_path=tmp_path / "events.jsonl",
-            strategy_config=BtcFuturesDemoStrategyConfig(ema_period=3),
+            strategy_config=BtcFuturesDemoStrategyConfig(ema_period=2),
         ),
         clock=FixedClock(NOW),
+        max_closed_bars=3,
     )
     closed_bars: tuple[MarketBar, ...] = ()
 
@@ -175,27 +176,25 @@ def test_local_btc_futures_closed_bar_feed_step_keeps_rolling_history(
         runtime,
         closed_bars=closed_bars,
         bar=_bar("100", 0),
-        max_closed_bars=3,
     )
     second = run_local_btc_futures_closed_bar_feed_step(
         runtime,
         closed_bars=first.closed_bars,
         bar=_bar("100", 1),
-        max_closed_bars=3,
     )
     third = run_local_btc_futures_closed_bar_feed_step(
         runtime,
         closed_bars=second.closed_bars,
         bar=_bar("101", 2),
-        max_closed_bars=3,
     )
     fourth = run_local_btc_futures_closed_bar_feed_step(
         runtime,
         closed_bars=third.closed_bars,
         bar=_bar("102", 3),
-        max_closed_bars=3,
     )
 
+    assert runtime.required_closed_bars == 3
+    assert runtime.max_closed_bars == 3
     assert not first.step_result.decision_result.order_submitted
     assert not second.step_result.decision_result.order_submitted
     assert third.step_result.decision_result.order_submitted
@@ -211,9 +210,10 @@ def test_local_btc_futures_closed_bar_feed_step_exits_after_fixed_bars(
     runtime = create_local_btc_futures_dry_run_runtime(
         LocalBtcFuturesDryRunConfig(
             event_log_path=tmp_path / "events.jsonl",
-            strategy_config=BtcFuturesDemoStrategyConfig(ema_period=3, exit_after_bars=2),
+            strategy_config=BtcFuturesDemoStrategyConfig(ema_period=2, exit_after_bars=2),
         ),
         clock=FixedClock(NOW),
+        max_closed_bars=10,
     )
     closed_bars: tuple[MarketBar, ...] = ()
 
@@ -221,31 +221,26 @@ def test_local_btc_futures_closed_bar_feed_step_exits_after_fixed_bars(
         runtime,
         closed_bars=closed_bars,
         bar=_bar("100", 0),
-        max_closed_bars=10,
     )
     second = run_local_btc_futures_closed_bar_feed_step(
         runtime,
         closed_bars=first.closed_bars,
         bar=_bar("100", 1),
-        max_closed_bars=10,
     )
     entry = run_local_btc_futures_closed_bar_feed_step(
         runtime,
         closed_bars=second.closed_bars,
         bar=_bar("101", 2),
-        max_closed_bars=10,
     )
     hold = run_local_btc_futures_closed_bar_feed_step(
         runtime,
         closed_bars=entry.closed_bars,
         bar=_bar("102", 3),
-        max_closed_bars=10,
     )
     exit_step = run_local_btc_futures_closed_bar_feed_step(
         runtime,
         closed_bars=hold.closed_bars,
         bar=_bar("103", 4),
-        max_closed_bars=10,
     )
 
     assert entry.step_result.decision_result.order_submitted
@@ -271,7 +266,7 @@ def test_local_btc_futures_closed_bar_feed_step_exits_after_fixed_bars(
 def test_local_btc_futures_runtime_restores_previous_paper_state(tmp_path: Path) -> None:
     config = LocalBtcFuturesDryRunConfig(
         event_log_path=tmp_path / "execution" / "events.jsonl",
-        strategy_config=BtcFuturesDemoStrategyConfig(ema_period=3),
+        strategy_config=BtcFuturesDemoStrategyConfig(ema_period=2),
     )
     runtime = create_local_btc_futures_dry_run_runtime(config, clock=FixedClock(NOW))
 
