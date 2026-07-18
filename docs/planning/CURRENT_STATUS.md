@@ -27,14 +27,14 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 
 ```text
 Status Date: 2026-07-18
-Current Phase: Sprint 034 — Public Dashboard Demo Polish
-Current Milestone: Wave 1 public shell
-Implementation Status: Sprints 001-006, 008-023, 025-033 COMPLETE on main; Sprint 007 SKIPPED
-Overall Status: IN_PROGRESS
-Active Sprint: SPRINT_034 (sprint/dashboard-public-demo-polish)
-Last Completed Sprint: SPRINT_033 (dashboard presentation polish, 2026-07-18)
-Capability Tracks: Foundation COMPLETE; Data COMPLETE (core); Research COMPLETE (core); Strategy 6A COMPLETE; Phase 8A AWS dry-run on main (#199); Dashboard Streamlit COMPLETE; Live Paper COMPLETE; VPS CI/CD COMPLETE; Presentation polish COMPLETE; Public demo polish IN_PROGRESS
-Recent: S033 integrated to main (#257). Next: public shell, catalog, strategy/robustness/live presentation.
+Current Phase: Sprint 034 complete — public demo polish
+Current Milestone: Integrate sprint/dashboard-public-demo-polish → main
+Implementation Status: Sprints 001-006, 008-023, 025-034 on sprint path; 001-033 on main; Sprint 007 SKIPPED
+Overall Status: READY_FOR_INTEGRATION
+Active Sprint: none (SPRINT_034 complete on sprint/dashboard-public-demo-polish)
+Last Completed Sprint: SPRINT_034 (public dashboard demo polish, 2026-07-18)
+Capability Tracks: Foundation COMPLETE; Data COMPLETE (core); Research COMPLETE (core); Strategy 6A COMPLETE; Phase 8A AWS dry-run on main (#199); Dashboard Streamlit COMPLETE; Live Paper COMPLETE; VPS CI/CD COMPLETE; Public demo polish COMPLETE on sprint
+Recent: S034 Waves 1–5 (#258–#259). Next: integrate to main and VPS deploy.
 ```
 
 ---
@@ -575,7 +575,7 @@ See `docs/planning/sprints/SPRINT_030.md` and `ROADMAP.md` §11–§12.
 | 031 | Live Paper in Dashboard | COMPLETED | integrated to main (#241) |
 | 032 | Live Strategy Evaluation Parity | COMPLETED | integrated to main (#246) |
 | 033 | Dashboard presentation polish | COMPLETED | 6 / 6 tasks; Waves A–C (#253–#256); main #257 |
-| 034 | Public Dashboard Demo Polish | IN_PROGRESS | Wave 1 shell |
+| 034 | Public Dashboard Demo Polish | COMPLETED | Waves 1–5 (#258–#259) |
 
 ---
 

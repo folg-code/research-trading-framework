@@ -48,7 +48,7 @@ Catalog of `docs/planning/`. For taxonomy and reading paths see **[../README.md]
 | [sprints/SPRINT_024.md](sprints/SPRINT_024.md) | Dry-run reliability polish (planned) |
 | [sprints/SPRINT_025.md](sprints/SPRINT_025.md) | Streamlit dashboard polish + VPS publish (completed on main) |
 | [sprints/SPRINT_033.md](sprints/SPRINT_033.md) | Dashboard presentation polish (complete) |
-| [sprints/SPRINT_034.md](sprints/SPRINT_034.md) | Public dashboard demo polish (in progress) |
+| [sprints/SPRINT_034.md](sprints/SPRINT_034.md) | Public dashboard demo polish (complete) |
 | [sprints/SPRINT_026.md](sprints/SPRINT_026.md) | Research hot-path performance (completed on main) |
 | [sprints/S026_WAVE0_DECISIONS.md](sprints/S026_WAVE0_DECISIONS.md) | Sprint 026 binding decisions (D-S026-01 … D-S026-07) |
 | [sprints/SPRINT_027.md](sprints/SPRINT_027.md) | Market Data import / continuous build performance (completed on main) |

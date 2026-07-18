@@ -5,9 +5,9 @@
 ```text
 Sprint: 034
 Phase: Dashboard Application
-Status: IN_PROGRESS
+Status: COMPLETE
 Planned Start: 2026-07-18
-Planned End: TBD
+Planned End: 2026-07-18
 Sprint Goal Owner: Project Maintainer
 Depends On: SPRINT_033 (on main)
 Sprint Branch: sprint/dashboard-public-demo-polish
@@ -68,7 +68,7 @@ apps/dashboard
 | S034-T004 | Strategy presentation | DONE |
 | S034-T005 | Robustness presentation | DONE |
 | S034-T006 | Live Paper presentation | DONE |
-| S034-T007 | Closure + integrate to main | TODO |
+| S034-T007 | Closure + integrate to main | DONE (this PR) |
 
 ---
 
