@@ -5,7 +5,7 @@
 ```text
 Sprint: 028
 Phase: Cross-cutting — Research Visualization / Operator Tools
-Status: PLANNED
+Status: WAVE D COMPLETE (pending sprint → main integration)
 Planned Start: 2026-07-17
 Planned End: TBD
 Sprint Goal Owner: Project Maintainer
@@ -62,36 +62,36 @@ Success: useful analytical tool on real artifacts, not a second demo format.
 
 ### Wave A — App foundation
 
-- [ ] Create `apps/dashboard` with its own `pyproject.toml` (Streamlit, DuckDB, Plotly).
-- [ ] Multi-page shell + storage-root config.
-- [ ] Shared presentation contracts (`RunSummary`, `RunManifest`, `ChartWindow`, `TradeView`, …)
+- [x] Create `apps/dashboard` with its own `pyproject.toml` (Streamlit, DuckDB, Plotly).
+- [x] Multi-page shell + storage-root config.
+- [x] Shared presentation contracts (`RunSummary`, `RunManifest`, `ChartWindow`, `TradeView`, …)
       with schema versions.
-- [ ] `DashboardQueryService` + Parquet/DuckDB adapter (windowed reads, column projection).
-- [ ] Run catalog across the four workflow types (tolerate missing/corrupt manifests).
+- [x] `DashboardQueryService` + Parquet/DuckDB adapter (windowed reads, column projection).
+- [x] Run catalog across the four workflow types (tolerate missing/corrupt manifests).
 
 ### Wave B — Canonical Parquet exports + Strategy page
 
-- [ ] Migrate / dual-write **tabular** Market/Signal analytics off `analytics/summary.json`
+- [x] Migrate / dual-write **tabular** Market/Signal analytics off `analytics/summary.json`
       onto Parquet tables (D-S028-04).
-- [ ] Emit strategy `analytics/summary_metrics.parquet` (or equivalent) for KPI cards without
+- [x] Emit strategy `analytics/summary_metrics.parquet` (or equivalent) for KPI cards without
       recomputation.
-- [ ] Strategy page: metadata, KPI cards, equity + drawdown, windowed OHLCV chart, trade table,
+- [x] Strategy page: metadata, KPI cards, equity + drawdown, windowed OHLCV chart, trade table,
       entry/exit overlays + prev/next trade.
-- [ ] Overlay renderer registry (markers, levels, zones, state background, trade connection) —
+- [x] Overlay renderer registry (markers, levels, zones, state background, trade connection) —
       **no orderflow implementation**.
 
 ### Wave C — Research + Robustness pages
 
-- [ ] Market / Signal research page: summary + grouped metrics + distributions + inspection chart.
-- [ ] Robustness page MVP: summary, IS/OOS, walk-forward table, param sweep table/heatmap.
-- [ ] Robustness tabular analytics → Parquet where matrices are queried by DuckDB.
+- [x] Market / Signal research page: summary + grouped metrics + distributions + inspection chart.
+- [x] Robustness page MVP: summary, IS/OOS, walk-forward table, param sweep table/heatmap.
+- [x] Robustness tabular analytics → Parquet where matrices are queried by DuckDB.
 
 ### Wave D — Perf, deploy, docs
 
-- [ ] Streamlit cache keys tied to storage fingerprint / window / timeframe.
-- [ ] Dockerfile + Compose + Caddy + read-only mount + healthcheck + runbook.
-- [ ] Architecture docs: contracts, adding a page, adding an overlay renderer, publishing runs to VPS.
-- [ ] Stub contracts for future `AwsDryRunDataSource` (no live client).
+- [x] Streamlit cache keys tied to storage fingerprint / window / timeframe.
+- [x] Dockerfile + Compose + Caddy + read-only mount + healthcheck + runbook.
+- [x] Architecture docs: contracts, adding a page, adding an overlay renderer, publishing runs to VPS.
+- [x] Stub contracts for future `AwsDryRunDataSource` (no live client).
 
 ---
 
@@ -113,21 +113,21 @@ Success: useful analytical tool on real artifacts, not a second demo format.
 | Task | Outcome | Wave | Status |
 |------|---------|------|--------|
 | S028-T001 | Wave 0 decisions + sprint branch | 0 | DONE |
-| S028-T002 | `apps/dashboard` scaffold + Streamlit multipage | A | TODO |
-| S028-T003 | Presentation contracts + schema versions | A | TODO |
-| S028-T004 | DuckDB query layer + windowed OHLCV fixtures tests | A | TODO |
-| S028-T005 | Run catalog (4 workflow types) | A | TODO |
-| S028-T006 | Signal/Market analytics → Parquet (dual-write) | B | TODO |
-| S028-T007 | Strategy summary_metrics Parquet export | B | TODO |
-| S028-T008 | Strategy page: KPI + equity + drawdown | B | TODO |
-| S028-T009 | Market chart window + trade overlays + nav | B | TODO |
-| S028-T010 | Overlay renderer registry (no orderflow) | B | TODO |
-| S028-T011 | Market/Signal research page | C | TODO |
-| S028-T012 | Robustness Parquet exports + page MVP | C | TODO |
-| S028-T013 | Cache / result size limits | D | TODO |
-| S028-T014 | Docker / Compose / Caddy / runbook | D | TODO |
-| S028-T015 | Docs + dry-run datasource stubs | D | TODO |
-| S028-T016 | Test suite (contracts, query, missing artifacts, pagination) | D | TODO |
+| S028-T002 | `apps/dashboard` scaffold + Streamlit multipage | A | DONE |
+| S028-T003 | Presentation contracts + schema versions | A | DONE |
+| S028-T004 | DuckDB query layer + windowed OHLCV fixtures tests | A | DONE |
+| S028-T005 | Run catalog (4 workflow types) | A | DONE |
+| S028-T006 | Signal/Market analytics → Parquet (dual-write) | B | DONE |
+| S028-T007 | Strategy summary_metrics Parquet export | B | DONE |
+| S028-T008 | Strategy page: KPI + equity + drawdown | B | DONE |
+| S028-T009 | Market chart window + trade overlays + nav | B | DONE |
+| S028-T010 | Overlay renderer registry (no orderflow) | B | DONE |
+| S028-T011 | Market/Signal research page | C | DONE |
+| S028-T012 | Robustness Parquet exports + page MVP | C | DONE |
+| S028-T013 | Cache / result size limits | D | DONE |
+| S028-T014 | Docker / Compose / Caddy / runbook | D | DONE |
+| S028-T015 | Docs + dry-run datasource stubs | D | DONE |
+| S028-T016 | Test suite (contracts, query, missing artifacts, pagination) | D | DONE |
 
 ---
 

@@ -13,6 +13,7 @@ import polars as pl
 
 from trading_framework.core.exceptions import ValidationError
 from trading_framework.infrastructure.storage.paths import (
+    signal_research_analytics_parquet_path,
     signal_research_analytics_summary_path,
     signal_research_run_dir,
 )
@@ -413,6 +414,31 @@ class SignalResearchDatasetRepository:
         summary_path.parent.mkdir(parents=True, exist_ok=True)
         summary_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
         return summary_path
+
+    def write_analytics_parquet_tables(
+        self,
+        run_id: str,
+        tables: dict[str, pl.DataFrame],
+    ) -> dict[str, Path]:
+        """Dual-write tabular analytics frames as Parquet under ``analytics/``."""
+        run_dir = signal_research_run_dir(self._root, run_id)
+        if not run_dir.exists():
+            msg = f"run directory not found: {run_dir}"
+            raise FileNotFoundError(msg)
+        if not tables:
+            msg = "analytics parquet tables must be non-empty"
+            raise ValidationError(msg)
+
+        written: dict[str, Path] = {}
+        for table_name, frame in tables.items():
+            if not table_name.strip():
+                msg = "analytics parquet table name must be non-empty"
+                raise ValidationError(msg)
+            path = signal_research_analytics_parquet_path(self._root, run_id, table_name)
+            path.parent.mkdir(parents=True, exist_ok=True)
+            frame.write_parquet(path)
+            written[table_name] = path
+        return written
 
     def read_analytics_summary_payload(self, run_id: str) -> dict[str, Any]:
         """Load the raw cached analytics summary mapping."""

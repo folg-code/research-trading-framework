@@ -169,6 +169,11 @@ def signal_research_analytics_summary_path(root: Path, run_id: str) -> Path:
     return signal_research_analytics_dir(root, run_id) / "summary.json"
 
 
+def signal_research_analytics_parquet_path(root: Path, run_id: str, table_name: str) -> Path:
+    """Return one analytics Parquet table path under a Signal Research run."""
+    return signal_research_analytics_dir(root, run_id) / f"{table_name}.parquet"
+
+
 def signal_research_report_dir(root: Path, run_id: str) -> Path:
     """Return the report output directory for one Signal Research run."""
     return signal_research_run_dir(root, run_id) / "report"
@@ -187,6 +192,16 @@ def signal_research_family_experiment_dir(root: Path, experiment_id: str) -> Pat
 def strategy_research_run_dir(root: Path, run_id: str) -> Path:
     """Return the run envelope directory for one Strategy Research run."""
     return strategy_research_root(root) / "runs" / run_id
+
+
+def strategy_research_analytics_dir(root: Path, run_id: str) -> Path:
+    """Return the analytics sidecar directory for one Strategy Research run."""
+    return strategy_research_run_dir(root, run_id) / "analytics"
+
+
+def strategy_research_summary_metrics_path(root: Path, run_id: str) -> Path:
+    """Return the dashboard KPI Parquet path for one Strategy Research run."""
+    return strategy_research_analytics_dir(root, run_id) / "summary_metrics.parquet"
 
 
 def robustness_experiment_dir(root: Path, experiment_id: str) -> Path:
@@ -217,6 +232,15 @@ def robustness_experiment_folds_dir(root: Path, experiment_id: str) -> Path:
 def robustness_experiment_analytics_dir(root: Path, experiment_id: str) -> Path:
     """Return the analytics directory for one robustness experiment."""
     return robustness_experiment_dir(root, experiment_id) / "analytics"
+
+
+def robustness_experiment_analytics_parquet_path(
+    root: Path,
+    experiment_id: str,
+    table_name: str,
+) -> Path:
+    """Return one analytics Parquet table path under a robustness experiment."""
+    return robustness_experiment_analytics_dir(root, experiment_id) / f"{table_name}.parquet"
 
 
 def trade_event_partition_day(event_at: datetime) -> date:
