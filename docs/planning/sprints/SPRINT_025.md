@@ -5,9 +5,9 @@
 ```text
 Sprint: 025
 Phase: Phase 8A + Dashboard Application
-Status: IN_PROGRESS
+Status: COMPLETE on main (2026-07-18)
 Planned Start: 2026-07-18
-Planned End: TBD
+Planned End: 2026-07-18
 Sprint Goal Owner: Project Maintainer
 Depends On: SPRINT_028, SPRINT_031, SPRINT_032 (on main); AWS dry-run already on main (#199)
 Sprint Branch: sprint/dashboard-streamlit-polish
@@ -63,7 +63,8 @@ status without reading the repo, and everything stays read-only.
 - [x] Keep all controls read-only (no worker start/stop, no orders).
 - [x] Refresh `apps/dashboard/docs/RUNBOOK.md` for VPS publish (Compose, env, status URL).
 - [x] Deploy / verify Streamlit dashboard on the VPS (Compose stack live; CI/CD wired).
-- [ ] Mount / sync read-only `user_data` on VPS (deferred — operator follow-up).
+- [x] Public HTTPS via shared VPS edge (`dashboard.filipf.online` → host `:8080`).
+- [ ] Mount / sync read-only `user_data` on VPS (deferred — follow-up, not blocking S025).
 - [x] Document that HTML / `portfolio_live` are legacy relative to Streamlit.
 - [x] Wire GitHub Actions → VPS deploy for `apps/dashboard/**` on `main`.
 
@@ -94,9 +95,11 @@ Dashboard must not:
 | S025-T002 | Research pages readability polish | DONE |
 | S025-T003 | Optional Live Paper chart from `recent_bars` | DONE |
 | S025-T004 | VPS runbook update for Streamlit + status URL | DONE |
-| S025-T005 | VPS deploy / verify Compose stack | DONE (stack up; `user_data` deferred) |
+| S025-T005 | VPS deploy / verify Compose stack | DONE |
 | S025-T006 | Mark HTML / portfolio_live as legacy in docs | DONE |
-| S025-T007 | GitHub Actions SSH deploy for dashboard on main | DONE (this PR) |
+| S025-T007 | GitHub Actions SSH deploy for dashboard on main | DONE |
+| S025-T008 | Shared VPS edge TLS (`/opt/edge`) for public hostname | DONE (ops; outside this repo) |
+| S025-T009 | Read-only `user_data` mount on VPS | DEFERRED |
 
 ---
 
@@ -121,5 +124,10 @@ Dashboard must not:
 
 ## 7. Post-Sprint Direction
 
-After Streamlit is polished and on the VPS, choose Phase 8B paper-execution contracts,
-S024 reliability hardening, or research-track work (e.g. Phase 4B).
+Sprint 025 is complete on main for Streamlit polish, VPS Compose, CI/CD, and public
+HTTPS via a shared edge proxy.
+
+Deferred follow-up: mount/sync read-only `user_data` for research catalog pages.
+
+Next capability choices: Phase 8B paper-execution contracts, S024 reliability
+hardening, or research-track work (e.g. Phase 4B).
