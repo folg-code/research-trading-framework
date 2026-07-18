@@ -82,7 +82,9 @@ Prefer attaching them to the `dashboard-vps` Environment (the workflow uses it).
 |------|---------|
 | `DASHBOARD_VPS_HOST` | VPS hostname or IP |
 | `DASHBOARD_VPS_USER` | SSH user that can `git pull` and run Docker Compose |
-| `DASHBOARD_VPS_SSH_KEY` | Private key for that user (deploy-only; never commit) |
+| `DASHBOARD_VPS_SSH_KEY` | Private key for that user (deploy-only; never commit). Paste the
+  full OpenSSH private key including `BEGIN`/`END` lines and keep newlines.
+  Do not paste the `.pub` file. Prefer Environment secrets on `dashboard-vps`. |
 | `DASHBOARD_VPS_PORT` | SSH port (use `22` if default) |
 | `DASHBOARD_VPS_REPO_PATH` | Absolute path to the repo clone on the VPS |
 
@@ -112,6 +114,25 @@ GitHub → Actions → **Deploy dashboard** → **Run workflow**.
 
 If `git pull --ff-only` fails, the remote tree is dirty or diverged — fix on
 the VPS before retrying.
+
+### SSH auth troubleshooting
+
+If Actions fails with `unable to authenticate` / `publickey`:
+
+1. Confirm the secret is the **private** key (`dashboard_deploy`), not `.pub`.
+2. Re-paste the key into the Environment secret (full `BEGIN`/`END` block).
+3. On the VPS, confirm the matching public line exists:
+
+```bash
+grep github-actions-dashboard ~/.ssh/authorized_keys
+ssh-keygen -lf ~/.ssh/authorized_keys
+```
+
+4. From your laptop, key-only login must work without a password:
+
+```powershell
+ssh -i $HOME\.ssh\dashboard_deploy -o IdentitiesOnly=yes ubuntu@HOST "echo ok"
+```
 
 ## Backfill Parquet sidecars
 
