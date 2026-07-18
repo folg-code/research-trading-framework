@@ -23,24 +23,32 @@ jobs:
     environment: dashboard-vps
 
     steps:
-      - name: Deploy over SSH
-        uses: appleboy/ssh-action@v1.2.2
+      - name: Install SSH key
+        uses: webfactory/ssh-agent@v0.9.1
         with:
-          host: ${{ secrets.DASHBOARD_VPS_HOST }}
-          username: ${{ secrets.DASHBOARD_VPS_USER }}
-          key: ${{ secrets.DASHBOARD_VPS_SSH_KEY }}
-          port: ${{ secrets.DASHBOARD_VPS_PORT || 22 }}
-          script_stop: true
-          script: |
-            set -euo pipefail
-            REPO_PATH="${{ secrets.DASHBOARD_VPS_REPO_PATH }}"
-            if [ -z "${REPO_PATH}" ]; then
-              echo "DASHBOARD_VPS_REPO_PATH secret is empty" >&2
-              exit 1
-            fi
-            cd "${REPO_PATH}"
-            git fetch origin main
-            git checkout main
-            git pull --ff-only origin main
-            cd apps/dashboard
-            docker compose -f deploy/docker-compose.yml up --build -d
+          ssh-private-key: ${{ secrets.DASHBOARD_VPS_SSH_KEY }}
+
+      - name: Deploy over SSH
+        env:
+          DASHBOARD_VPS_HOST: ${{ secrets.DASHBOARD_VPS_HOST }}
+          DASHBOARD_VPS_USER: ${{ secrets.DASHBOARD_VPS_USER }}
+          DASHBOARD_VPS_PORT: ${{ secrets.DASHBOARD_VPS_PORT }}
+          DASHBOARD_VPS_REPO_PATH: ${{ secrets.DASHBOARD_VPS_REPO_PATH }}
+        run: |
+          set -euo pipefail
+          if [ -z "${DASHBOARD_VPS_HOST}" ] || [ -z "${DASHBOARD_VPS_USER}" ] || [ -z "${DASHBOARD_VPS_REPO_PATH}" ]; then
+            echo "Missing required dashboard-vps secrets (HOST/USER/REPO_PATH)." >&2
+            exit 1
+          fi
+          PORT="${DASHBOARD_VPS_PORT:-22}"
+          ssh -o StrictHostKeyChecking=accept-new \
+              -o IdentitiesOnly=yes \
+              -p "${PORT}" \
+              "${DASHBOARD_VPS_USER}@${DASHBOARD_VPS_HOST}" \
+              "set -euo pipefail
+               cd '${DASHBOARD_VPS_REPO_PATH}'
+               git fetch origin main
+               git checkout main
+               git pull --ff-only origin main
+               cd apps/dashboard
+               docker compose -f deploy/docker-compose.yml up --build -d"
