@@ -11,6 +11,18 @@ import plotly.graph_objects as go
 
 DEFAULT_STALE_AFTER = timedelta(minutes=3)
 
+_STATUS_BADGES = {
+    "running": "Running",
+    "active": "Running",
+    "ok": "Running",
+    "degraded": "Degraded",
+    "stale": "Stale",
+    "stopped": "Stopped",
+    "idle": "Stopped",
+    "failed": "Failed",
+    "error": "Failed",
+}
+
 
 @dataclass(frozen=True, slots=True)
 class LivePaperHealth:
@@ -20,6 +32,11 @@ class LivePaperHealth:
     heartbeat_at: datetime | None
     is_stale: bool
     stale_after: timedelta
+    badge: str
+    status: str
+    feed_connection_state: str | None = None
+    feed_reconnect_count: int = 0
+    feed_last_error: str | None = None
 
 
 def parse_utc_datetime(value: object) -> datetime | None:
@@ -42,16 +59,36 @@ def live_paper_health(
     now: datetime | None = None,
     stale_after: timedelta = DEFAULT_STALE_AFTER,
 ) -> LivePaperHealth:
-    """Derive simulated/stale flags from a status API snapshot."""
+    """Derive badge/health flags from a status API snapshot."""
     heartbeat = parse_utc_datetime(snapshot.get("last_heartbeat_at"))
     clock = now or datetime.now(UTC)
     clock = clock.replace(tzinfo=UTC) if clock.tzinfo is None else clock.astimezone(UTC)
-    is_stale = heartbeat is None or (clock - heartbeat) > stale_after
+    heartbeat_stale = heartbeat is None or (clock - heartbeat) > stale_after
+    status_raw = str(snapshot.get("status") or "unknown").strip().lower()
+    if heartbeat_stale and status_raw in {"running", "degraded", "active", "ok"}:
+        badge = "Stale"
+        effective_status = "stale"
+    else:
+        badge = _STATUS_BADGES.get(status_raw, status_raw.title() or "Unknown")
+        effective_status = status_raw
+
+    reconnect_raw = snapshot.get("feed_reconnect_count", 0)
+    try:
+        reconnect_count = int(reconnect_raw) if reconnect_raw is not None else 0
+    except (TypeError, ValueError):
+        reconnect_count = 0
+    feed_state = snapshot.get("feed_connection_state")
+    feed_error = snapshot.get("feed_last_error")
     return LivePaperHealth(
         simulated=bool(snapshot.get("simulated")),
         heartbeat_at=heartbeat,
-        is_stale=is_stale,
+        is_stale=badge == "Stale" or effective_status == "stale",
         stale_after=stale_after,
+        badge=badge,
+        status=effective_status,
+        feed_connection_state=str(feed_state) if isinstance(feed_state, str) else None,
+        feed_reconnect_count=max(reconnect_count, 0),
+        feed_last_error=str(feed_error) if isinstance(feed_error, str) and feed_error else None,
     )
 
 

@@ -22,6 +22,7 @@ def test_live_paper_health_marks_stale_heartbeat() -> None:
     health = live_paper_health(
         {
             "simulated": True,
+            "status": "running",
             "last_heartbeat_at": (now - timedelta(minutes=10)).isoformat(),
         },
         now=now,
@@ -29,6 +30,7 @@ def test_live_paper_health_marks_stale_heartbeat() -> None:
     )
     assert health.simulated is True
     assert health.is_stale is True
+    assert health.badge == "Stale"
 
 
 def test_live_paper_health_fresh_heartbeat() -> None:
@@ -36,11 +38,32 @@ def test_live_paper_health_fresh_heartbeat() -> None:
     health = live_paper_health(
         {
             "simulated": True,
+            "status": "running",
             "last_heartbeat_at": (now - timedelta(seconds=30)).isoformat(),
         },
         now=now,
     )
     assert health.is_stale is False
+    assert health.badge == "Running"
+
+
+def test_live_paper_health_uses_worker_degraded_and_feed_fields() -> None:
+    now = datetime(2026, 7, 18, 12, 0, tzinfo=UTC)
+    health = live_paper_health(
+        {
+            "simulated": True,
+            "status": "degraded",
+            "last_heartbeat_at": (now - timedelta(seconds=10)).isoformat(),
+            "feed_connection_state": "reconnecting",
+            "feed_reconnect_count": 2,
+            "feed_last_error": "connection reset",
+        },
+        now=now,
+    )
+    assert health.badge == "Degraded"
+    assert health.feed_connection_state == "reconnecting"
+    assert health.feed_reconnect_count == 2
+    assert health.feed_last_error == "connection reset"
 
 
 def test_build_live_paper_candles_and_fill_markers() -> None:
