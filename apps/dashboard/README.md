@@ -41,8 +41,10 @@ apps/dashboard/
     docker-compose.yml
     Caddyfile
   docs/RUNBOOK.md
+  docs/ARCHITECTURE.md
   tests/
 ```
 
-See `docs/RUNBOOK.md` for Compose + read-only storage mount, and
+See `docs/RUNBOOK.md` for Compose + read-only storage mount,
+`docs/ARCHITECTURE.md` for the public architecture one-pager, and
 `docs/reference/DASHBOARD_APPLICATION.md` for architecture notes.
