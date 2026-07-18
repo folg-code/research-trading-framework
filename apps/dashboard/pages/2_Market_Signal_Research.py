@@ -6,8 +6,8 @@ import plotly.express as px
 import streamlit as st
 
 from dashboard_app.query import DashboardQueryService
-from dashboard_app.research_view import list_research_runs, load_research_run
 from dashboard_app.ui import configure_page, render_sidebar_storage_root
+from dashboard_app.views.research import list_research_runs, load_research_run
 
 configure_page(title="Market / Signal Research")
 settings = render_sidebar_storage_root()

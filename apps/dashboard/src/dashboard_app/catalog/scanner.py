@@ -9,17 +9,17 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from dashboard_app.catalog.paths import (
+    market_research_runs_dir,
+    robustness_experiments_dir,
+    run_manifest_path,
+    strategy_research_runs_dir,
+)
 from dashboard_app.contracts import (
     PRESENTATION_SCHEMA_VERSION,
     RunManifest,
     RunSummary,
     WorkflowKind,
-)
-from dashboard_app.paths import (
-    market_research_runs_dir,
-    robustness_experiments_dir,
-    run_manifest_path,
-    strategy_research_runs_dir,
 )
 
 

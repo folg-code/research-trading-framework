@@ -36,9 +36,10 @@ apps/dashboard/
   app.py
   pages/
   src/dashboard_app/
-  Dockerfile
-  docker-compose.yml
-  Caddyfile
+  deploy/
+    Dockerfile
+    docker-compose.yml
+    Caddyfile
   docs/RUNBOOK.md
   tests/
 ```

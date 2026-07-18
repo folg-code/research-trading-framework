@@ -9,7 +9,7 @@ From `apps/dashboard`:
 ```powershell
 $env:DASHBOARD_STORAGE_HOST_PATH = (Resolve-Path ..\..\user_data).Path
 $env:DASHBOARD_HTTP_PORT = "8080"
-docker compose up --build
+docker compose -f deploy/docker-compose.yml up --build
 ```
 
 Open `http://localhost:8080`.

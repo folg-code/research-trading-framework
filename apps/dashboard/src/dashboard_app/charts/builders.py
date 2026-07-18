@@ -8,8 +8,8 @@ import plotly.graph_objects as go
 import pyarrow as pa
 from plotly.subplots import make_subplots
 
+from dashboard_app.charts.overlays import DEFAULT_OVERLAY_REGISTRY, OverlayKind, OverlayRegistry
 from dashboard_app.contracts import TradeView
-from dashboard_app.overlays import DEFAULT_OVERLAY_REGISTRY, OverlayKind, OverlayRegistry
 from dashboard_app.query import OhlcvBarRow
 
 

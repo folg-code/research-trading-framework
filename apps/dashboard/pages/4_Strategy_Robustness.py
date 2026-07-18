@@ -7,8 +7,8 @@ import streamlit as st
 
 from dashboard_app.charts import build_equity_drawdown_figure
 from dashboard_app.query import DashboardQueryService
-from dashboard_app.robustness_view import list_robustness_experiments, load_robustness_experiment
 from dashboard_app.ui import configure_page, render_sidebar_storage_root
+from dashboard_app.views.robustness import list_robustness_experiments, load_robustness_experiment
 
 configure_page(title="Strategy Robustness")
 settings = render_sidebar_storage_root()
