@@ -4,7 +4,15 @@ from __future__ import annotations
 
 import pyarrow as pa
 
-from dashboard_app.charts import build_walk_forward_fold_figure
+from dashboard_app.charts import (
+    build_parameter_sweep_surface_figure,
+    build_walk_forward_fold_figure,
+)
+from dashboard_app.views.robustness import (
+    ParameterSweepSliceKey,
+    filter_parameter_sweep_slice,
+    list_parameter_sweep_slices,
+)
 
 
 def test_build_walk_forward_fold_figure_groups_is_oos_by_fold_index() -> None:
@@ -57,3 +65,70 @@ def test_build_walk_forward_fold_figure_falls_back_to_fold_number() -> None:
     assert list(figure.data[0].x) == ["Fold 1"]
     assert list(figure.data[0].y) == [3.5]
     assert list(figure.data[1].y) == [1.0]
+
+
+def test_list_and_filter_parameter_sweep_slices_separates_metric_axis_pairs() -> None:
+    heatmap = pa.table(
+        {
+            "metric": ["net_pnl", "net_pnl", "net_pnl", "max_drawdown"],
+            "x_axis": ["fast", "fast", "slow", "fast"],
+            "y_axis": ["slow", "slow", None, None],
+            "x_value": ["10", "20", "5", "10"],
+            "y_value": ["5", "5", None, None],
+            "value": [1.0, 2.0, 3.0, 4.0],
+        }
+    )
+
+    slices = list_parameter_sweep_slices(heatmap)
+
+    assert slices == (
+        ParameterSweepSliceKey(metric="net_pnl", x_axis="fast", y_axis="slow"),
+        ParameterSweepSliceKey(metric="max_drawdown", x_axis="fast", y_axis=None),
+        ParameterSweepSliceKey(metric="net_pnl", x_axis="slow", y_axis=None),
+    )
+    filtered = filter_parameter_sweep_slice(heatmap, slices[0])
+    assert filtered.num_rows == 2
+    assert set(filtered.column("x_value").to_pylist()) == {"10", "20"}
+
+
+def test_build_parameter_sweep_surface_figure_builds_surface_for_2d_slice() -> None:
+    heatmap = pa.table(
+        {
+            "x_value": ["10", "20", "10", "20"],
+            "y_value": ["1", "1", "2", "2"],
+            "value": [1.0, 2.0, 3.0, 4.0],
+        }
+    )
+
+    figure = build_parameter_sweep_surface_figure(
+        heatmap,
+        metric="net_pnl",
+        x_axis="fast",
+        y_axis="slow",
+    )
+
+    assert len(figure.data) == 1
+    assert figure.data[0].type == "surface"
+    assert [list(row) for row in figure.data[0].z] == [[1.0, 2.0], [3.0, 4.0]]
+    assert "fast x slow" in str(figure.layout.title.text)
+
+
+def test_build_parameter_sweep_surface_figure_falls_back_to_line_for_1d() -> None:
+    heatmap = pa.table(
+        {
+            "x_value": ["20", "10"],
+            "value": [2.5, 1.5],
+        }
+    )
+
+    figure = build_parameter_sweep_surface_figure(
+        heatmap,
+        metric="net_pnl",
+        x_axis="fast",
+        y_axis=None,
+    )
+
+    assert len(figure.data) == 1
+    assert figure.data[0].type == "scatter"
+    assert list(figure.data[0].x) == ["10", "20"]
+    assert list(figure.data[0].y) == [1.5, 2.5]
