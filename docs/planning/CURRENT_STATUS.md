@@ -27,14 +27,14 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 
 ```text
 Status Date: 2026-07-18
-Current Phase: Post-S031 — choose next capability (Phase 8A polish vs Phase 4B)
-Current Milestone: Live Paper visible in apps/dashboard (read-only status GET)
-Implementation Status: Sprints 001-006, 008-021, 026-031 COMPLETE on main; Sprint 007 SKIPPED; Sprints 022-023 COMPLETE on sprint branch (pending integration PR to main)
+Current Phase: Close S032 → Streamlit polish + VPS (S025 retargeted)
+Current Milestone: Live StrategyModel parity on main, then dashboard polish / VPS publish
+Implementation Status: Sprints 001-006, 008-023, 026-031 COMPLETE on main; Sprint 007 SKIPPED; S032 on sprint branch (#244 merged; integration to main next)
 Overall Status: IN_PROGRESS
-Active Sprint: none (S031 #241 merged to main)
+Active Sprint: SPRINT_032 closing; next S025 Streamlit + VPS
 Last Completed Sprint: SPRINT_031 (sprint/live-paper-dashboard → main #241, 2026-07-18)
-Capability Tracks: Foundation COMPLETE; Data 2A + 2B/2C.1 + 2B.3 + 2C.4 COMPLETE; Research 3/4A/5/5B/7 COMPLETE; Strategy 6A COMPLETE; Phase 8A local + AWS dry-run runtime + portfolio live dashboard COMPLETE on sprint branch; Dashboard app COMPLETE; Repo layout + navigability COMPLETE; Live Paper Streamlit COMPLETE
-Recent: S031 Live Paper on main (#240 → sprint, #241 → main). Next: Phase 8A polish (S024/S025), full SignalModelEvaluator live parity, or Phase 4B orderflow.
+Capability Tracks: Foundation COMPLETE; Data COMPLETE (core); Research COMPLETE (core); Strategy 6A COMPLETE; Phase 8A AWS dry-run on main (#199); Dashboard Streamlit COMPLETE; Live Paper COMPLETE; Live StrategyModel eval parity pending main integration
+Recent: Agreed next track — (1) land S032 on main, (2) dock/operate AWS status against Streamlit, (3) polish apps/dashboard (not HTML), (4) publish Streamlit to VPS. S025 retargeted away from HTML/portfolio_live polish.
 ```
 
 ---
@@ -563,15 +563,17 @@ See `docs/planning/sprints/SPRINT_030.md` and `ROADMAP.md` §11–§12.
 | 019 | Binance BTC Futures Live Data Adapter (Phase 8A) | COMPLETED | 9 / 9 tasks |
 | 020 | Local BTC Futures Dry-Run Runtime (Phase 8A) | COMPLETED | 8 / 8 tasks |
 | 021 | Execution Persistence and Read Model (Phase 8A) | COMPLETED | 8 / 8 tasks |
-| 022 | AWS Runtime MVP for BTC Futures Dry Run (Phase 8A) | COMPLETED | 9 / 9 tasks; integration PR to main pending |
-| 023 | OVH portfolio live dry-run dashboard (Phase 8A) | COMPLETED | sprint branch; integration PR pending |
-| 024 | Dry-run reliability / operating polish (Phase 8A) | PLANNED | after 023 integration |
-| 025 | Live dry-run visualization polish (Phase 8A, optional) | PLANNED | after 024 |
+| 022 | AWS Runtime MVP for BTC Futures Dry Run (Phase 8A) | COMPLETED | integrated to main (#199) |
+| 023 | OVH portfolio live dry-run dashboard (Phase 8A) | COMPLETED | integrated to main (#199 / #202); Streamlit is now primary UI |
+| 024 | Dry-run reliability / operating polish (Phase 8A) | PLANNED | after Streamlit+VPS or in parallel with ops |
+| 025 | Streamlit dashboard polish + VPS publish | PLANNED | retargeted 2026-07-18 (was HTML visualization) |
 | 026 | Research hot-path performance (Signal + Robustness) | COMPLETED | integrated to main (#215) |
 | 027 | Market Data import / continuous build performance | COMPLETED | integrated to main (#220) |
 | 028 | Dashboard Application MVP (Streamlit + DuckDB) | COMPLETED | integrated to main (#232) |
 | 029 | Repository Layout Foundations | COMPLETED | integrated to main (#235) |
 | 030 | Repository Navigability Hygiene | COMPLETED | integrated to main (#238) |
+| 031 | Live Paper in Dashboard | COMPLETED | integrated to main (#241) |
+| 032 | Live Strategy Evaluation Parity | IN_PROGRESS | #244 on sprint; integration PR to main next |
 
 ---
 
