@@ -23,10 +23,26 @@ jobs:
     environment: dashboard-vps
 
     steps:
-      - name: Install SSH key
-        uses: webfactory/ssh-agent@v0.9.1
-        with:
-          ssh-private-key: ${{ secrets.DASHBOARD_VPS_SSH_KEY }}
+      - name: Prepare deploy SSH key
+        env:
+          DASHBOARD_VPS_SSH_KEY: ${{ secrets.DASHBOARD_VPS_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "${DASHBOARD_VPS_SSH_KEY}" ]; then
+            echo "DASHBOARD_VPS_SSH_KEY is empty (check Environment dashboard-vps secrets)." >&2
+            exit 1
+          fi
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          # Strip Windows CR so OpenSSH accepts keys pasted from PowerShell.
+          printf '%s\n' "${DASHBOARD_VPS_SSH_KEY}" | tr -d '\r' > ~/.ssh/dashboard_deploy
+          chmod 600 ~/.ssh/dashboard_deploy
+          if ! ssh-keygen -y -f ~/.ssh/dashboard_deploy >/dev/null; then
+            echo "DASHBOARD_VPS_SSH_KEY is not a usable private key." >&2
+            exit 1
+          fi
+          echo "Loaded deploy key fingerprint:"
+          ssh-keygen -lf ~/.ssh/dashboard_deploy
 
       - name: Deploy over SSH
         env:
@@ -41,8 +57,11 @@ jobs:
             exit 1
           fi
           PORT="${DASHBOARD_VPS_PORT:-22}"
-          ssh -o StrictHostKeyChecking=accept-new \
+          ssh -i ~/.ssh/dashboard_deploy \
+              -o BatchMode=yes \
               -o IdentitiesOnly=yes \
+              -o PreferredAuthentications=publickey \
+              -o StrictHostKeyChecking=accept-new \
               -p "${PORT}" \
               "${DASHBOARD_VPS_USER}@${DASHBOARD_VPS_HOST}" \
               "set -euo pipefail
