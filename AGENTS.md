@@ -27,6 +27,7 @@ After each merged wave: update `docs/reference/MODULE_MAP.md` and `docs/referenc
 ## Architecture Rules
 
 - preserve the `src/` and `user_data/` boundary,
+- treat `apps/*` as separate deployable consumers (ADR-0022); they must not import research/execution engines or provider/importer adapters,
 - keep strategies stateless,
 - keep business logic independent from external APIs,
 - use adapters/interfaces for external systems,

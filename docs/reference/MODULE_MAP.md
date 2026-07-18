@@ -18,10 +18,27 @@ It is a navigation layer between architecture and source code.
 
 ```text
 src/trading_framework/
-    reusable framework implementation
+    reusable modular-monolith implementation (ADR-0001)
 
-apps/dashboard/
-    read-only Streamlit + DuckDB research dashboard (Sprint 028)
+apps/
+    deployable consumers outside the monolith (ADR-0022)
+    apps/dashboard/ — read-only Streamlit + DuckDB research dashboard (Sprint 028)
+
+scripts/
+    thin CLIs over application use cases
+
+deploy/
+    containers / infra-as-code / local AWS runbook home
+    (app-specific Compose may stay under apps/<app>/deploy/)
+
+demo/output/
+    generated demo HTML (not docs/reference)
+
+tests/
+    framework test suite (apps may keep their own tests)
+
+docs/
+    vision, reference, planning, adr, agents, onboarding
 
 user_data/
     user-owned datasets
@@ -35,15 +52,20 @@ user_data/
 
 Core dependency rules:
 
-- `src/trading_framework/` never imports `user_data/`,
+- `src/trading_framework/` never imports `user_data/` or `apps/`,
+- `apps/*` must not import research/execution engines or provider/importer adapters,
 - user-owned paths and configuration are passed at runtime,
 - users extend the framework through public contracts and the DSL,
 - infrastructure adapters implement framework ports,
 - domain packages do not depend on concrete infrastructure.
 
+See **ADR-0022** for the binding top-level layout.
+
 ---
 
 ## 2. Top-Level Package Map
+
+Framework packages under `src/trading_framework/`:
 
 ```text
 application/          workflow orchestration
@@ -60,6 +82,13 @@ infrastructure/       provider, storage and delivery adapters
 core/                 shared identifiers, types and errors
 time/                 timeframes, sessions and clock contracts
 config/               runtime configuration loading
+```
+
+Separate app package (not under `trading_framework`):
+
+```text
+apps/dashboard/src/dashboard_app/
+    catalog/ query/ views/ charts/ caching/ datasources/
 ```
 
 ---
