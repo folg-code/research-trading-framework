@@ -46,7 +46,7 @@ Catalog of `docs/planning/`. For taxonomy and reading paths see **[../README.md]
 | [sprints/SPRINT_017.md](sprints/SPRINT_017.md) | Model Research Methodology MVP (completed) |
 | [sprints/SPRINT_023.md](sprints/SPRINT_023.md) | Portfolio live dry-run dashboard (completed on sprint branch) |
 | [sprints/SPRINT_024.md](sprints/SPRINT_024.md) | Dry-run reliability polish (planned) |
-| [sprints/SPRINT_025.md](sprints/SPRINT_025.md) | Streamlit dashboard polish + VPS publish (planned; retargeted from HTML) |
+| [sprints/SPRINT_025.md](sprints/SPRINT_025.md) | Streamlit dashboard polish + VPS publish (in progress) |
 | [sprints/SPRINT_026.md](sprints/SPRINT_026.md) | Research hot-path performance (completed on main) |
 | [sprints/S026_WAVE0_DECISIONS.md](sprints/S026_WAVE0_DECISIONS.md) | Sprint 026 binding decisions (D-S026-01 … D-S026-07) |
 | [sprints/SPRINT_027.md](sprints/SPRINT_027.md) | Market Data import / continuous build performance (completed on main) |
@@ -55,7 +55,7 @@ Catalog of `docs/planning/`. For taxonomy and reading paths see **[../README.md]
 | [sprints/S028_WAVE0_DECISIONS.md](sprints/S028_WAVE0_DECISIONS.md) | Sprint 028 binding decisions (D-S028-01 … D-S028-08) |
 | [sprints/SPRINT_031.md](sprints/SPRINT_031.md) | Live Paper in Dashboard (completed on main) |
 | [sprints/S031_WAVE0_DECISIONS.md](sprints/S031_WAVE0_DECISIONS.md) | Sprint 031 binding decisions (D-S031-01 … D-S031-04) |
-| [sprints/SPRINT_032.md](sprints/SPRINT_032.md) | Live Strategy Evaluation Parity (in progress) |
+| [sprints/SPRINT_032.md](sprints/SPRINT_032.md) | Live Strategy Evaluation Parity (completed on main) |
 | [sprints/S032_WAVE0_DECISIONS.md](sprints/S032_WAVE0_DECISIONS.md) | Sprint 032 binding decisions (D-S032-01 … D-S032-05) |
 | [sprints/S010_WAVE0_DECISIONS.md](sprints/S010_WAVE0_DECISIONS.md) | Sprint 010 binding decisions (D-S010-01 … D-S010-20) |
 | [sprints/SPRINT_011.md](sprints/SPRINT_011.md) | Historical archive import — trades DBN (completed) |

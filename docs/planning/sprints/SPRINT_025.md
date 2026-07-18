@@ -5,8 +5,8 @@
 ```text
 Sprint: 025
 Phase: Phase 8A + Dashboard Application
-Status: PLANNED
-Planned Start: TBD
+Status: IN_PROGRESS
+Planned Start: 2026-07-18
 Planned End: TBD
 Sprint Goal Owner: Project Maintainer
 Depends On: SPRINT_028, SPRINT_031, SPRINT_032 (on main); AWS dry-run already on main (#199)
@@ -57,13 +57,15 @@ status without reading the repo, and everything stays read-only.
 
 ## 2. MVP Scope Checklist
 
-- [ ] Polish Streamlit Live Paper page (layout, empty/stale states, refresh UX).
-- [ ] Polish research pages (Overview / Strategy / Robustness) for readability.
-- [ ] Add or improve Live Paper chart/markers from status `recent_bars` / fills when useful.
-- [ ] Keep all controls read-only (no worker start/stop, no orders).
-- [ ] Refresh `apps/dashboard/docs/RUNBOOK.md` for VPS publish (Compose, env, status URL).
-- [ ] Deploy / verify Streamlit dashboard on the VPS with read-only `user_data` mount.
-- [ ] Document that HTML / `portfolio_live` are legacy relative to Streamlit.
+- [x] Polish Streamlit Live Paper page (layout, empty/stale states, refresh UX).
+- [x] Polish research pages (Overview / Strategy / Robustness) for readability.
+- [x] Add or improve Live Paper chart/markers from status `recent_bars` / fills when useful.
+- [x] Keep all controls read-only (no worker start/stop, no orders).
+- [x] Refresh `apps/dashboard/docs/RUNBOOK.md` for VPS publish (Compose, env, status URL).
+- [x] Deploy / verify Streamlit dashboard on the VPS (Compose stack live; CI/CD wired).
+- [ ] Mount / sync read-only `user_data` on VPS (deferred — operator follow-up).
+- [x] Document that HTML / `portfolio_live` are legacy relative to Streamlit.
+- [x] Wire GitHub Actions → VPS deploy for `apps/dashboard/**` on `main`.
 
 ---
 
@@ -88,12 +90,13 @@ Dashboard must not:
 
 | Task | Outcome | Status |
 |------|---------|--------|
-| S025-T001 | Live Paper Streamlit UX polish | TODO |
-| S025-T002 | Research pages readability polish | TODO |
-| S025-T003 | Optional Live Paper chart from `recent_bars` | TODO |
-| S025-T004 | VPS runbook update for Streamlit + status URL | TODO |
-| S025-T005 | VPS deploy / verify Compose stack | TODO |
-| S025-T006 | Mark HTML / portfolio_live as legacy in docs | TODO |
+| S025-T001 | Live Paper Streamlit UX polish | DONE |
+| S025-T002 | Research pages readability polish | DONE |
+| S025-T003 | Optional Live Paper chart from `recent_bars` | DONE |
+| S025-T004 | VPS runbook update for Streamlit + status URL | DONE |
+| S025-T005 | VPS deploy / verify Compose stack | DONE (stack up; `user_data` deferred) |
+| S025-T006 | Mark HTML / portfolio_live as legacy in docs | DONE |
+| S025-T007 | GitHub Actions SSH deploy for dashboard on main | DONE (this PR) |
 
 ---
 

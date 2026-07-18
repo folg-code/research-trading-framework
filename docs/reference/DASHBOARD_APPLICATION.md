@@ -27,14 +27,14 @@ Optional shared presentation DTOs live inside `dashboard_app.contracts`.
 
 Schema version: `dashboard.presentation.v1`.
 
-## Live Paper (Sprint 031)
+## Live Paper (Sprint 031 / 025)
 
-Page: `pages/5_Live_Paper.py`.
+Page: `pages/5_Live_Paper.py` with helpers in `dashboard_app.views.live_paper`.
 
-- Configure `DASHBOARD_STATUS_URL` or the sidebar “Live paper status URL”
-  (falls back to `DEFAULT_LIVE_PAPER_STATUS_URL`).
+- Configure `DASHBOARD_STATUS_URL` or the sidebar (falls back to `DEFAULT_LIVE_PAPER_STATUS_URL`).
+- Shows simulated banner, stale-heartbeat warning, candlestick from `recent_bars`, fill markers.
 - Dashboard only GETs the status API — never starts the worker or submits orders.
-- See `docs/reference/LIVE_PAPER_PIPELINE_INSPECTION.md` for worker vs API ownership.
+- See `docs/reference/LIVE_PAPER_PIPELINE_INSPECTION.md` and `apps/dashboard/docs/RUNBOOK.md`.
 
 ## Adding a page
 
@@ -53,8 +53,13 @@ Page: `pages/5_Live_Paper.py`.
 
 1. Produce research artifacts locally (or on a worker) under a workspace root.
 2. Optionally run `scripts/ops/backfill_dashboard_analytics_parquet.py` for older runs.
-3. Rsync the workspace to the VPS host path used by Compose.
+3. Rsync the workspace to the VPS host path used by Compose (`user_data` sync is
+   operator-managed — not part of CI/CD).
 4. Follow `apps/dashboard/docs/RUNBOOK.md` (read-only mount + Caddy).
+5. App code deploy: merges to `main` under `apps/dashboard/**` trigger
+   `.github/workflows/deploy-dashboard.yml` (SSH → `git pull --ff-only` →
+   `docker compose up --build -d`). Secrets and VPS prep are documented in the
+   RUNBOOK **CI/CD** section.
 
 ## Cache / size limits
 
