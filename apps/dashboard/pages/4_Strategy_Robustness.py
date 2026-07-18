@@ -6,13 +6,17 @@ import streamlit as st
 
 from dashboard_app.charts import (
     build_equity_drawdown_figure,
+    build_monte_carlo_percentile_figure,
+    build_monte_carlo_tail_figure,
     build_parameter_sweep_surface_figure,
+    build_stress_delta_figure,
     build_walk_forward_fold_figure,
 )
 from dashboard_app.query import DashboardQueryService
 from dashboard_app.ui import configure_page, render_sidebar_storage_root
 from dashboard_app.views.picker import render_run_identity, select_catalog_run
 from dashboard_app.views.robustness import (
+    build_verdict_checklist,
     filter_parameter_sweep_slice,
     list_parameter_sweep_slices,
     list_robustness_experiments,
@@ -40,7 +44,38 @@ artifacts = load_robustness_experiment(service, summary)
 st.subheader("Experiment")
 render_run_identity(summary, heading="Ids and paths")
 if artifacts.verdict is not None:
-    st.json(artifacts.verdict)
+    checklist = build_verdict_checklist(artifacts.verdict)
+    st.subheader(f"Verdict: {checklist.verdict}")
+    st.write(checklist.headline)
+    if checklist.summary:
+        st.caption(checklist.summary)
+    if checklist.gates:
+        for gate in checklist.gates:
+            mark = "PASS" if gate.passed else "FAIL"
+            detail = gate.message
+            if gate.observed_value:
+                detail = f"{detail} (observed: {gate.observed_value})"
+            st.checkbox(
+                f"[{mark}] {gate.label} · {gate.severity}",
+                value=gate.passed,
+                disabled=True,
+                help=detail,
+                key=f"verdict_gate_{gate.gate_id}",
+            )
+    if checklist.blocking_issues:
+        st.error("Blocking issues")
+        for item in checklist.blocking_issues:
+            st.write(f"- {item}")
+    if checklist.weaknesses:
+        st.warning("Weaknesses")
+        for item in checklist.weaknesses:
+            st.write(f"- {item}")
+    if checklist.strengths:
+        st.success("Strengths")
+        for item in checklist.strengths:
+            st.write(f"- {item}")
+    with st.expander("Raw verdict JSON", expanded=False):
+        st.json(artifacts.verdict)
 elif not artifacts.tables:
     st.warning(
         "No Parquet analytics found. Re-run robustness analysis after Sprint 028 dual-write "
@@ -103,15 +138,29 @@ if (
         st.dataframe(heat.to_pandas(), use_container_width=True)
 
 if "stress_comparison" in artifacts.tables:
-    st.subheader("Stress comparison")
-    st.dataframe(artifacts.tables["stress_comparison"].to_pandas(), use_container_width=True)
+    st.subheader("Stress tests")
+    stress = artifacts.tables["stress_comparison"]
+    if stress.num_rows:
+        st.caption("Change in net PnL versus the unstressed baseline for each scenario.")
+        st.plotly_chart(build_stress_delta_figure(stress), use_container_width=True)
+    with st.expander("Stress table", expanded=False):
+        st.dataframe(stress.to_pandas(), use_container_width=True)
 
 if "monte_carlo_distributions" in artifacts.tables:
-    st.subheader("Monte Carlo distributions")
-    st.dataframe(
-        artifacts.tables["monte_carlo_distributions"].to_pandas(),
-        use_container_width=True,
-    )
+    st.subheader("Monte Carlo")
+    distributions = artifacts.tables["monte_carlo_distributions"]
+    if distributions.num_rows:
+        st.caption("Terminal equity percentiles across reshuffled trade-order paths.")
+        st.plotly_chart(
+            build_monte_carlo_percentile_figure(distributions),
+            use_container_width=True,
+        )
+    with st.expander("Distribution table", expanded=False):
+        st.dataframe(distributions.to_pandas(), use_container_width=True)
 if "monte_carlo_tails" in artifacts.tables:
-    st.subheader("Monte Carlo tails")
-    st.dataframe(artifacts.tables["monte_carlo_tails"].to_pandas(), use_container_width=True)
+    tails = artifacts.tables["monte_carlo_tails"]
+    if tails.num_rows:
+        st.caption("Tail-risk probabilities from the same Monte Carlo paths.")
+        st.plotly_chart(build_monte_carlo_tail_figure(tails), use_container_width=True)
+    with st.expander("Tail table", expanded=False):
+        st.dataframe(tails.to_pandas(), use_container_width=True)
