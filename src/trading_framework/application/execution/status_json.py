@@ -38,6 +38,9 @@ def runtime_status_view_to_json(view: RuntimeStatusView) -> dict[str, Any]:
         "recent_fills": [_fill_to_json(fill) for fill in view.recent_fills],
         "recent_events": [_event_to_json(event) for event in view.recent_events],
         "recent_bars": [_bar_to_json(bar) for bar in view.recent_bars],
+        "feed_connection_state": view.feed_connection_state,
+        "feed_reconnect_count": view.feed_reconnect_count,
+        "feed_last_error": view.feed_last_error,
         "simulated": view.simulated,
     }
 

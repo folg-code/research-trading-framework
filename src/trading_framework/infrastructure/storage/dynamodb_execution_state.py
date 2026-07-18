@@ -208,6 +208,9 @@ class DynamoDbExecutionStateRepository:
             ),
             recent_events=self.recent_events(query),
             recent_bars=self.recent_bars(query),
+            feed_connection_state=status.feed_connection_state,
+            feed_reconnect_count=status.feed_reconnect_count,
+            feed_last_error=status.feed_last_error,
         )
 
     def recent_events(self, query: ExecutionReadModelQuery) -> tuple[RecentExecutionEventView, ...]:

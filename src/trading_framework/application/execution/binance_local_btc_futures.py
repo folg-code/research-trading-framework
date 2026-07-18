@@ -17,7 +17,10 @@ from trading_framework.application.execution.local_btc_futures import (
 from trading_framework.core.exceptions import ValidationError
 from trading_framework.execution import ExecutionStateRepository, PaperBrokerState
 from trading_framework.execution.models import Heartbeat, RuntimeStatusSnapshot
-from trading_framework.execution.models.market_data import MarketFeedConnectionState
+from trading_framework.execution.models.market_data import (
+    MarketFeedConnectionState,
+    MarketFeedStatusSnapshot,
+)
 from trading_framework.execution.runtime.health_policy import resolve_runtime_health
 from trading_framework.infrastructure.providers.binance.aiohttp_websocket import (
     AiohttpBinanceWebSocketConnector,
@@ -418,24 +421,29 @@ def _record_feed_aware_heartbeat(
     """Emit a heartbeat whose RuntimeHealth reflects market-feed freshness."""
     latest = runtime.session.latest_status(runtime.config.runtime_id)
     last_market_event_at = None if latest is None else latest.last_market_event_at
+    feed = _primary_feed_snapshot(clients)
     degraded_after = timedelta(seconds=max(heartbeat_seconds * 3.0, 1.0))
     stale_after = timedelta(seconds=max(heartbeat_seconds * 6.0, 2.0))
     health = resolve_runtime_health(
         now=runtime.session.clock.now(),
         last_market_event_at=last_market_event_at,
-        feed_connection=_worst_feed_connection(clients),
+        feed_connection=None if feed is None else feed.state,
         degraded_after=degraded_after,
         stale_after=stale_after,
     )
-    heartbeat = runtime.session.record_heartbeat(status=health, message=message)
+    heartbeat = runtime.session.record_heartbeat(
+        status=health,
+        message=message,
+        feed=feed,
+    )
     _persist_latest_status(runtime)
     return heartbeat
 
 
-def _worst_feed_connection(
+def _primary_feed_snapshot(
     clients: tuple[LocalBtcFuturesBinanceMessageClient, ...],
-) -> MarketFeedConnectionState | None:
-    """Return the worst connection state among clients that expose status_snapshot."""
+) -> MarketFeedStatusSnapshot | None:
+    """Return the worst feed status among clients that expose status_snapshot."""
     priority = {
         MarketFeedConnectionState.FAILED: 4,
         MarketFeedConnectionState.RECONNECTING: 3,
@@ -443,21 +451,28 @@ def _worst_feed_connection(
         MarketFeedConnectionState.CONNECTED: 1,
         MarketFeedConnectionState.STOPPED: 0,
     }
-    worst: MarketFeedConnectionState | None = None
+    worst: MarketFeedStatusSnapshot | None = None
     worst_score = -1
     for client in clients:
         status_snapshot = getattr(client, "status_snapshot", None)
         if not callable(status_snapshot):
             continue
         snapshot = status_snapshot()
-        state = getattr(snapshot, "state", None)
-        if not isinstance(state, MarketFeedConnectionState):
+        if not isinstance(snapshot, MarketFeedStatusSnapshot):
             continue
-        score = priority.get(state, 0)
+        score = priority.get(snapshot.state, 0)
         if score > worst_score:
-            worst = state
+            worst = snapshot
             worst_score = score
     return worst
+
+
+def _worst_feed_connection(
+    clients: tuple[LocalBtcFuturesBinanceMessageClient, ...],
+) -> MarketFeedConnectionState | None:
+    """Return the worst connection state among clients that expose status_snapshot."""
+    snapshot = _primary_feed_snapshot(clients)
+    return None if snapshot is None else snapshot.state
 
 
 def _persist_status(
