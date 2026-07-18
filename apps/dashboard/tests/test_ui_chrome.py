@@ -23,8 +23,9 @@ def test_env_storage_configured(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_home_module_has_no_mvp_or_duckdb_copy() -> None:
-    home = Path(__file__).resolve().parents[1] / "app.py"
+    home = Path(__file__).resolve().parents[1] / "Project_Overview.py"
     text = home.read_text(encoding="utf-8")
+    assert home.name == "Project_Overview.py"
     assert "MVP pages" not in text
     assert "DuckDB" not in text
     assert "Parquet" not in text

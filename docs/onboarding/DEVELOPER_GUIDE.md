@@ -86,7 +86,7 @@ Dashboard locally:
 cd apps/dashboard
 uv sync
 $env:DASHBOARD_STORAGE_ROOT = (Resolve-Path ..\..\user_data).Path
-uv run streamlit run app.py
+uv run streamlit run Project_Overview.py
 ```
 
 ---

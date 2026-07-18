@@ -16,7 +16,7 @@ cd <repo-root>
 uv sync --all-packages
 cd apps/dashboard
 $env:DASHBOARD_STORAGE_ROOT = (Resolve-Path ..\..\user_data).Path
-uv run --package trading-dashboard streamlit run app.py
+uv run --package trading-dashboard streamlit run Project_Overview.py
 ```
 
 Or from this directory after a root workspace sync:
@@ -24,16 +24,16 @@ Or from this directory after a root workspace sync:
 ```powershell
 cd apps/dashboard
 $env:DASHBOARD_STORAGE_ROOT = (Resolve-Path ..\..\user_data).Path
-uv run streamlit run app.py
+uv run streamlit run Project_Overview.py
 ```
 
-Or paste the storage root path in the sidebar.
+Or paste the storage root path in System diagnostics (local only).
 
 ## Layout
 
 ```text
 apps/dashboard/
-  app.py
+  Project_Overview.py
   pages/
   src/dashboard_app/
   deploy/
