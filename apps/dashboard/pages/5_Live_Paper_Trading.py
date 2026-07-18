@@ -22,19 +22,7 @@ from dashboard_app.views.live_paper import (
 
 def _render_snapshot(snapshot: dict[str, object]) -> None:
     health = live_paper_health(snapshot)
-    status_raw = str(snapshot.get("status") or "unknown").lower()
-    if health.is_stale:
-        badge = "Stale"
-    elif status_raw in {"running", "active", "ok"}:
-        badge = "Running"
-    elif status_raw in {"stopped", "idle"}:
-        badge = "Stopped"
-    elif status_raw in {"error", "failed"}:
-        badge = "Error"
-    else:
-        badge = status_raw.title() or "Unknown"
-
-    st.markdown(f"### Status: **{badge}**")
+    st.markdown(f"### Status: **{health.badge}**")
     if health.simulated:
         st.success("Simulated paper trading — broker abstraction only, no real orders.")
     else:
@@ -47,10 +35,25 @@ def _render_snapshot(snapshot: dict[str, object]) -> None:
         st.caption(f"Last heartbeat: {health.heartbeat_at.isoformat()} ({age_text})")
     else:
         st.caption("Last heartbeat: —")
-    if health.is_stale:
+
+    feed_bits: list[str] = []
+    if health.feed_connection_state:
+        feed_bits.append(f"feed={health.feed_connection_state}")
+    if health.feed_reconnect_count:
+        feed_bits.append(f"reconnects={health.feed_reconnect_count}")
+    if health.feed_last_error:
+        feed_bits.append(f"last_error={health.feed_last_error}")
+    if feed_bits:
+        st.caption(" · ".join(feed_bits))
+
+    if health.badge == "Degraded":
+        st.warning("Market feed is delayed or reconnecting; process heartbeat may still be fresh.")
+    elif health.is_stale:
         st.warning(
-            f"Heartbeat older than {health.stale_after}. Worker may be stopped or unreachable."
+            f"Status is stale (heartbeat older than {health.stale_after} or worker reported stale)."
         )
+    elif health.badge == "Failed":
+        st.error("Worker reported FAILED. Check AWS logs / runbook.")
 
     metrics = st.columns(4)
     metrics[0].metric("Symbol", str(snapshot.get("symbol") or "—"))

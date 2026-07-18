@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 from collections.abc import Mapping
 from dataclasses import dataclass, field
+from datetime import timedelta
 from typing import Any, Protocol, final
 
 from trading_framework.core.exceptions import ValidationError
@@ -54,6 +55,8 @@ from trading_framework.time.clocks.system import SystemClock
 
 _STATE_VERSION = 1
 _STATE_SORT_KEY = "STATE"
+DEFAULT_STATE_RETENTION = timedelta(days=14)
+_TTL_ATTRIBUTE_NAME = "expires_at"
 
 
 class DynamoDbExecutionStateClient(Protocol):
@@ -93,6 +96,7 @@ class DynamoDbExecutionStateRepository:
     recent_order_limit: int = DEFAULT_RECENT_ORDER_LIMIT
     recent_fill_limit: int = DEFAULT_RECENT_FILL_LIMIT
     recent_bar_limit: int = DEFAULT_RECENT_BAR_LIMIT
+    state_retention: timedelta = DEFAULT_STATE_RETENTION
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "table_name", normalize_non_empty(self.table_name, "table_name"))
@@ -110,6 +114,9 @@ class DynamoDbExecutionStateRepository:
         _require_positive_limit(self.recent_order_limit, "recent_order_limit")
         _require_positive_limit(self.recent_fill_limit, "recent_fill_limit")
         _require_positive_limit(self.recent_bar_limit, "recent_bar_limit")
+        if self.state_retention <= timedelta(0):
+            msg = "state_retention must be positive"
+            raise ValidationError(msg)
 
     def append_event(self, runtime_id: str, event: ExecutionEvent) -> None:
         """Persist one immutable execution event in the bounded recent-events list."""
@@ -208,6 +215,9 @@ class DynamoDbExecutionStateRepository:
             ),
             recent_events=self.recent_events(query),
             recent_bars=self.recent_bars(query),
+            feed_connection_state=status.feed_connection_state,
+            feed_reconnect_count=status.feed_reconnect_count,
+            feed_last_error=status.feed_last_error,
         )
 
     def recent_events(self, query: ExecutionReadModelQuery) -> tuple[RecentExecutionEventView, ...]:
@@ -256,13 +266,16 @@ class DynamoDbExecutionStateRepository:
 
     def _write_state(self, runtime_id: str, state: Mapping[str, Any]) -> None:
         state_payload = dict(state)
+        now = self.clock.now()
+        expires_at = int((now + self.state_retention).timestamp())
         self.client.put_item(
             TableName=self.table_name,
             Item={
                 **self._key(runtime_id),
                 "runtime_id": {"S": runtime_id},
                 "version": {"N": str(_STATE_VERSION)},
-                "updated_at": {"S": self.clock.now().isoformat()},
+                "updated_at": {"S": now.isoformat()},
+                _TTL_ATTRIBUTE_NAME: {"N": str(expires_at)},
                 "state_json": {"S": json.dumps(state_payload, sort_keys=True)},
             },
         )

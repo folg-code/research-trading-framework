@@ -49,6 +49,7 @@ from trading_framework.execution.runtime import (
     closed_bar_close_reference_quote,
     required_closed_bars_for_strategy,
     resolve_live_closed_bar_window,
+    resolve_runtime_health,
 )
 from trading_framework.execution.safety import DRY_RUN_SAFETY_POLICY, ExecutionSafetyPolicy
 
@@ -101,4 +102,5 @@ __all__ = [
     "closed_bar_close_reference_quote",
     "required_closed_bars_for_strategy",
     "resolve_live_closed_bar_window",
+    "resolve_runtime_health",
 ]

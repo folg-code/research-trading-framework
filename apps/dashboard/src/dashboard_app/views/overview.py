@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import streamlit as st
 
+ARCHITECTURE_ONE_PAGER_URL = "https://github.com/folg-code/research-trading-framework/blob/main/apps/dashboard/docs/ARCHITECTURE.md"
+
 RESEARCH_WORKFLOW_MERMAID = """
 flowchart LR
   provider[Data provider]
@@ -33,6 +35,18 @@ flowchart LR
   strategy --> statusApi --> dashboard
 """
 
+CAPABILITIES_MERMAID = """
+flowchart TB
+  shared[Shared definitions: market, models, time, data]
+  signal[Signal Research]
+  strategy[Strategy Research]
+  execution[Strategy Execution]
+
+  shared --> signal
+  shared --> strategy
+  shared --> execution
+"""
+
 
 def render_origin_of_results() -> None:
     """Render short explanation and research / live workflow diagrams."""
@@ -44,7 +58,9 @@ def render_origin_of_results() -> None:
     )
     st.caption(
         "The diagrams below are a **simplified** view of the end-to-end workflow. "
-        "For architecture, module boundaries, and methodology detail, see the "
+        f"For a short public architecture map, see the "
+        f"[architecture one-pager]({ARCHITECTURE_ONE_PAGER_URL}). "
+        "Module contracts and methodology detail live in the "
         "[project README on GitHub](https://github.com/folg-code/research-trading-framework)."
     )
 
@@ -65,6 +81,24 @@ def render_origin_of_results() -> None:
         "view — it never submits orders."
     )
     st.mermaid_chart(LIVE_WORKFLOW_MERMAID)
+
+
+def render_architecture_one_pager() -> None:
+    """Render a short in-app architecture summary with link to the full one-pager."""
+    st.subheader("Architecture at a glance")
+    st.markdown(
+        """
+Signal, strategy, and execution are **independent capabilities** that share contracts —
+not stages of one mandatory pipeline. Framework code stays in `src/`; datasets and runs
+stay in user space. This dashboard only reads persisted research and a read-only live
+status API.
+"""
+    )
+    st.mermaid_chart(CAPABILITIES_MERMAID)
+    st.markdown(
+        f"Full one-pager (boundaries, live-paper path, links): "
+        f"[apps/dashboard/docs/ARCHITECTURE.md]({ARCHITECTURE_ONE_PAGER_URL})"
+    )
 
 
 def render_module_cards() -> None:

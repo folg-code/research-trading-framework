@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
+import signal
 from collections.abc import Mapping
 from dataclasses import dataclass
 from decimal import Decimal, InvalidOperation
@@ -137,11 +139,37 @@ async def run_aws_btc_futures_dry_run(
 ) -> RunLocalBtcFuturesBinanceDryRunResult:
     """Run the AWS worker's current Binance dry-run lifecycle."""
     repository = create_aws_execution_state_repository(config)
-    return await run_local_btc_futures_binance_dry_run(
-        config.to_binance_dry_run_request(),
-        state_repository=repository,
-        telemetry=telemetry,
-    )
+    loop = asyncio.get_running_loop()
+    task = asyncio.current_task()
+    if task is None:
+        msg = "run_aws_btc_futures_dry_run must run inside a task"
+        raise RuntimeError(msg)
+
+    def _request_stop() -> None:
+        task.cancel()
+
+    registered: list[int] = []
+    for sig in (signal.SIGTERM, signal.SIGINT):
+        try:
+            loop.add_signal_handler(sig, _request_stop)
+            registered.append(int(sig))
+        except (NotImplementedError, RuntimeError, ValueError):
+            # Windows / restricted loops: fall back to signal.signal when possible.
+            try:
+                signal.signal(sig, lambda *_args: _request_stop())
+                registered.append(int(sig))
+            except (ValueError, OSError):
+                continue
+    try:
+        return await run_local_btc_futures_binance_dry_run(
+            config.to_binance_dry_run_request(),
+            state_repository=repository,
+            telemetry=telemetry,
+        )
+    finally:
+        for sig_num in registered:
+            with contextlib.suppress(NotImplementedError, RuntimeError, ValueError):
+                loop.remove_signal_handler(sig_num)
 
 
 def run_aws_btc_futures_dry_run_sync(

@@ -210,6 +210,9 @@ class RuntimeStatusView:
     recent_fills: tuple[RecentFillView, ...] = ()
     recent_events: tuple[RecentExecutionEventView, ...] = ()
     recent_bars: tuple[RecentBarView, ...] = ()
+    feed_connection_state: str | None = None
+    feed_reconnect_count: int = 0
+    feed_last_error: str | None = None
     simulated: bool = True
 
     def __post_init__(self) -> None:
@@ -231,6 +234,21 @@ class RuntimeStatusView:
                 self,
                 "current_signal",
                 normalize_non_empty(self.current_signal, "current_signal"),
+            )
+        if self.feed_connection_state is not None:
+            object.__setattr__(
+                self,
+                "feed_connection_state",
+                normalize_non_empty(self.feed_connection_state, "feed_connection_state"),
+            )
+        if self.feed_reconnect_count < 0:
+            msg = "feed_reconnect_count must be non-negative"
+            raise ValidationError(msg)
+        if self.feed_last_error is not None:
+            object.__setattr__(
+                self,
+                "feed_last_error",
+                normalize_non_empty(self.feed_last_error, "feed_last_error"),
             )
         if self.paper_equity is not None:
             object.__setattr__(

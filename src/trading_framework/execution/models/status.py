@@ -52,6 +52,9 @@ class RuntimeStatusSnapshot:
     last_heartbeat_at: datetime
     last_market_event_at: datetime | None = None
     current_signal: str | None = None
+    feed_connection_state: str | None = None
+    feed_reconnect_count: int = 0
+    feed_last_error: str | None = None
     simulated: bool = True
 
     def __post_init__(self) -> None:
@@ -70,6 +73,23 @@ class RuntimeStatusSnapshot:
                 self,
                 "current_signal",
                 normalize_non_empty(self.current_signal, "current_signal"),
+            )
+        if self.feed_connection_state is not None:
+            object.__setattr__(
+                self,
+                "feed_connection_state",
+                normalize_non_empty(self.feed_connection_state, "feed_connection_state"),
+            )
+        if self.feed_reconnect_count < 0:
+            from trading_framework.core.exceptions import ValidationError
+
+            msg = "feed_reconnect_count must be non-negative"
+            raise ValidationError(msg)
+        if self.feed_last_error is not None:
+            object.__setattr__(
+                self,
+                "feed_last_error",
+                normalize_non_empty(self.feed_last_error, "feed_last_error"),
             )
         if not self.simulated:
             from trading_framework.core.exceptions import ValidationError

@@ -5,7 +5,11 @@ from __future__ import annotations
 import streamlit as st
 
 from dashboard_app.ui import configure_page, render_app_chrome
-from dashboard_app.views.overview import render_module_cards, render_origin_of_results
+from dashboard_app.views.overview import (
+    render_architecture_one_pager,
+    render_module_cards,
+    render_origin_of_results,
+)
 
 configure_page(title="Project Overview")
 settings = render_app_chrome()
@@ -17,9 +21,10 @@ Modular Python framework for market-data processing, declarative market and sign
 models, strategy backtesting, robustness analysis, and live paper execution on AWS.
 
 This public dashboard is a **read-only** view of persisted research artifacts and
-live paper status. The workflow diagrams below are simplified; the full project
-description, architecture, and methodology live in the
-[GitHub README](https://github.com/folg-code/research-trading-framework).
+live paper status. The workflow diagrams below are simplified; see the
+[architecture one-pager](https://github.com/folg-code/research-trading-framework/blob/main/apps/dashboard/docs/ARCHITECTURE.md)
+and the [GitHub README](https://github.com/folg-code/research-trading-framework) for
+full project description and methodology.
 """
 )
 
@@ -30,5 +35,7 @@ if settings is None:
     )
 
 render_origin_of_results()
+st.divider()
+render_architecture_one_pager()
 st.divider()
 render_module_cards()
