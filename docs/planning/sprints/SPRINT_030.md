@@ -5,9 +5,9 @@
 ```text
 Sprint: 030
 Phase: Foundation / Governance
-Status: IN_PROGRESS
+Status: COMPLETE on main (PR #238, 2026-07-18)
 Planned Start: 2026-07-18
-Planned End: TBD
+Planned End: 2026-07-18
 Sprint Goal Owner: Project Maintainer
 Depends On: Sprint 029 (ADR-0022) on main (#235)
 Sprint Branch: sprint/repo-navigability
