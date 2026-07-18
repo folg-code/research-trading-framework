@@ -27,14 +27,14 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 
 ```text
 Status Date: 2026-07-18
-Current Phase: Close S032 → Streamlit polish + VPS (S025 retargeted)
-Current Milestone: Live StrategyModel parity on main, then dashboard polish / VPS publish
-Implementation Status: Sprints 001-006, 008-023, 026-031 COMPLETE on main; Sprint 007 SKIPPED; S032 on sprint branch (#244 merged; integration to main next)
+Current Phase: Sprint 025 — Streamlit polish + VPS publish
+Current Milestone: Live Paper chart/stale UX + VPS runbook; operator deploy on VPS
+Implementation Status: Sprints 001-006, 008-023, 026-032 COMPLETE on main; Sprint 007 SKIPPED
 Overall Status: IN_PROGRESS
-Active Sprint: SPRINT_032 closing; next S025 Streamlit + VPS
-Last Completed Sprint: SPRINT_031 (sprint/live-paper-dashboard → main #241, 2026-07-18)
-Capability Tracks: Foundation COMPLETE; Data COMPLETE (core); Research COMPLETE (core); Strategy 6A COMPLETE; Phase 8A AWS dry-run on main (#199); Dashboard Streamlit COMPLETE; Live Paper COMPLETE; Live StrategyModel eval parity pending main integration
-Recent: Agreed next track — (1) land S032 on main, (2) dock/operate AWS status against Streamlit, (3) polish apps/dashboard (not HTML), (4) publish Streamlit to VPS. S025 retargeted away from HTML/portfolio_live polish.
+Active Sprint: SPRINT_025 (sprint/dashboard-streamlit-polish)
+Last Completed Sprint: SPRINT_032 (sprint/live-strategy-eval-parity → main #246, 2026-07-18)
+Capability Tracks: Foundation COMPLETE; Data COMPLETE (core); Research COMPLETE (core); Strategy 6A COMPLETE; Phase 8A AWS dry-run on main (#199); Dashboard Streamlit COMPLETE; Live Paper COMPLETE; Live StrategyModel eval parity COMPLETE; Streamlit polish + VPS IN_PROGRESS
+Recent: S032 on main (#246). Next: polish Live Paper/Overview, VPS Compose publish; HTML/portfolio_live legacy.
 ```
 
 ---
@@ -573,7 +573,7 @@ See `docs/planning/sprints/SPRINT_030.md` and `ROADMAP.md` §11–§12.
 | 029 | Repository Layout Foundations | COMPLETED | integrated to main (#235) |
 | 030 | Repository Navigability Hygiene | COMPLETED | integrated to main (#238) |
 | 031 | Live Paper in Dashboard | COMPLETED | integrated to main (#241) |
-| 032 | Live Strategy Evaluation Parity | IN_PROGRESS | #244 on sprint; integration PR to main next |
+| 032 | Live Strategy Evaluation Parity | COMPLETED | integrated to main (#246) |
 
 ---
 

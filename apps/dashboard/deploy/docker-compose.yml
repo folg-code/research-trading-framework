@@ -6,6 +6,7 @@ services:
     image: trading-dashboard:local
     environment:
       DASHBOARD_STORAGE_ROOT: /data
+      DASHBOARD_STATUS_URL: ${DASHBOARD_STATUS_URL:-}
     volumes:
       - type: bind
         source: ${DASHBOARD_STORAGE_HOST_PATH:-../../user_data}
