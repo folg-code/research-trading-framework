@@ -21,12 +21,16 @@ flowchart LR
 LIVE_WORKFLOW_MERMAID = """
 flowchart LR
   exchange[Exchange provider live feed]
-  aws[AWS framework runtime]
-  strategy[Live strategy instance]
+  subgraph aws [AWS]
+    runtime[Framework runtime]
+    strategy[Live strategy instance]
+    runtime --> strategy
+  end
   statusApi[Read-only status API]
   dashboard[Dashboard Live Paper view]
 
-  exchange --> aws --> strategy --> statusApi --> dashboard
+  exchange --> runtime
+  strategy --> statusApi --> dashboard
 """
 
 
@@ -37,6 +41,11 @@ def render_origin_of_results() -> None:
         "This dashboard is a **read-only analytics layer**. It does not run research "
         "engines or submit orders. It loads artifacts that the framework already "
         "produced and stored, plus a live paper status snapshot from AWS."
+    )
+    st.caption(
+        "The diagrams below are a **simplified** view of the end-to-end workflow. "
+        "For architecture, module boundaries, and methodology detail, see the "
+        "[project README on GitHub](https://github.com/folg-code/research-trading-framework)."
     )
 
     st.markdown("##### Research workflow")
@@ -49,10 +58,11 @@ def render_origin_of_results() -> None:
 
     st.markdown("##### Live paper workflow")
     st.caption(
-        "On AWS the framework runtime listens to **real market data** from the "
-        "exchange provider. A live strategy instance (same model contract as "
-        "research, not the same instance) runs paper simulation only. This "
-        "dashboard consumes a read-only status view — it never submits orders."
+        "On AWS the framework runtime and live strategy instance run together. "
+        "The runtime listens to **real market data** from the exchange provider; "
+        "the strategy (same model contract as research, not the same instance) "
+        "runs paper simulation only. This dashboard consumes a read-only status "
+        "view — it never submits orders."
     )
     st.mermaid_chart(LIVE_WORKFLOW_MERMAID)
 

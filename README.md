@@ -10,7 +10,7 @@ It provides a shared architecture for historical datasets, analytical components
 
 | Reader | Recommended sections |
 |---|---|
-| Recruiter | [What It Is](#what-it-is) · [Problems It Solves](#problems-it-solves) · [Technology Stack](#technology-stack) · [Reference Scale](#reference-scale) · [Live Dry-Run Demo](#live-dry-run-demo) |
+| Recruiter | [What It Is](#what-it-is) · [Public Dashboard](#public-dashboard) · [Problems It Solves](#problems-it-solves) · [Technology Stack](#technology-stack) · [Reference Scale](#reference-scale) |
 | Software Engineer | [Problems It Solves](#problems-it-solves) · [Engineering Methods](#engineering-methods) · [Architecture Overview](#architecture-overview) · [Documentation](#documentation) |
 
 ### Top-level map
@@ -43,6 +43,23 @@ The framework separates data preparation, research, execution and visualization 
 
 ---
 
+## Public Dashboard
+
+Live read-only demo (research catalog, strategy / robustness views, live paper status):
+
+**https://dashboard.filipf.online**
+
+| Page | What you see |
+|---|---|
+| Project Overview | Simplified research and live-paper workflows |
+| Research Catalog | Persisted market, signal, strategy and robustness runs |
+| Strategy / Robustness | KPIs, equity, walk-forward, sweep, stress, Monte Carlo |
+| Live Paper Trading | AWS paper instance status (simulated fills; no order submission) |
+
+Source app: [`apps/dashboard/`](apps/dashboard/). Deploy notes: [`apps/dashboard/docs/RUNBOOK.md`](apps/dashboard/docs/RUNBOOK.md).
+
+---
+
 ## Problems It Solves
 
 | Problem | Framework approach |
@@ -67,13 +84,13 @@ The framework separates data preparation, research, execution and visualization 
 | Language and environment | Python, uv |
 | Data processing | Polars, NumPy, Numba |
 | Data storage | Parquet, partitioned datasets, manifests |
-| Visualization | Plotly, standalone HTML dashboards |
+| Visualization | Plotly, TradingView Lightweight Charts, Streamlit dashboard |
 | Testing and quality | pytest, Ruff, mypy |
 | Packaging and delivery | Docker, GitHub Actions |
 | Historical market data | Databento |
 | Live market data | Binance |
 | Runtime infrastructure | AWS, VPS deployment |
-| API and dashboard delivery | Read-only HTTP API, browser-based live dashboard |
+| API and dashboard delivery | Read-only HTTP status API, public Streamlit dashboard |
 
 ---
 

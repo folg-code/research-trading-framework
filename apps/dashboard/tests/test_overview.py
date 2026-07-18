@@ -26,10 +26,25 @@ def test_research_diagram_covers_provider_to_analytics() -> None:
 def test_live_diagram_covers_aws_and_readonly_dashboard() -> None:
     text = LIVE_WORKFLOW_MERMAID
     assert "Exchange provider live feed" in text
-    assert "AWS framework runtime" in text
+    assert "subgraph aws" in text
+    assert "Framework runtime" in text
+    assert "Live strategy instance" in text
     assert "Research path" not in text
     assert "Read-only status API" in text
     assert "Dashboard Live Paper view" in text
+
+
+def test_overview_mentions_simplified_workflow_and_github_readme() -> None:
+    overview = (
+        Path(__file__).resolve().parents[1] / "src" / "dashboard_app" / "views" / "overview.py"
+    )
+    home = Path(__file__).resolve().parents[1] / "Project_Overview.py"
+    overview_text = overview.read_text(encoding="utf-8")
+    home_text = home.read_text(encoding="utf-8")
+    assert "simplified" in overview_text.lower()
+    assert "github.com/folg-code/research-trading-framework" in overview_text
+    assert "simplified" in home_text.lower()
+    assert "github.com/folg-code/research-trading-framework" in home_text
 
 
 def test_overview_modules_are_english_only() -> None:
