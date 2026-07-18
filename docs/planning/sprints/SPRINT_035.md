@@ -45,37 +45,41 @@ Choose one next capability track
 
 | Rank | Option | Why now | Effort shape | Defer if… |
 |------|--------|---------|--------------|-----------|
-| **1 (recommended)** | **Sprint 024 — Dry-run reliability / operating polish** | Live paper is the public demo crown jewel; recruiters see AWS status. Failures should be visible (stale feed vs heartbeat, STOPPED, alarms, runbook). | Ops + runtime + dashboard status states; ~1–2 weeks of focused PRs | Demo worker is unused / cost-sensitive and always-off |
-| 2 | **Docs / recruiter narrative pack** | README + overview already improved; remaining gaps are methodology deep-links, architecture one-pager, sample-data story. | Small docs PRs only | You want product capability, not narrative |
-| 3 | **Phase 4B — Orderflow Market Analysis** | Unlocks trades-based research depth already imported (Sprint 011). | Large research track; new contracts + components | Demo reliability is still fragile |
-| 4 | **Phase 6B — Multi-data Strategy Research** | Extends strategy beyond OHLCV. | Large; depends on clearer multi-dataset research contracts | 6A + robustness already sellable |
+| **1 (recommended)** | **Sprint 024 — Dry-run reliability wiring (re-scoped)** | Live paper is the demo crown jewel. Much of original S024 ops docs already shipped in S022; remaining work is **wiring** feed freshness / reconnect / SIGTERM / Live Paper badges onto the Streamlit+AWS stack. | ~3–4 focused PRs | Demo worker unused / always-off |
+| 2 | **Docs / recruiter narrative pack** | README + overview already improved; remaining: architecture one-pager, sample-data story. | Small docs PRs | You want product capability, not narrative |
+| 3 | **Phase 4B — Orderflow Market Analysis** | Unlocks trades-based research depth already imported (Sprint 011). | Large research track | Demo reliability still ambiguous on Live Paper |
+| 4 | **Phase 6B — Multi-data Strategy Research** | Extends strategy beyond OHLCV. | Large | 6A + robustness already sellable |
 | 5 | **Phase 8 Replay foundation** | Roadmap §12 long-term; distinct from current AWS live dry-run. | Large greenfield | Paper dry-run path already covers “execution-shaped” demo |
-| 6 | **PBO / CSCV / deflated Sharpe** | Robustness science credibility. | Needs separate ADR first | Methodology sprint without ADR |
+| 6 | **PBO / CSCV / deflated Sharpe** | Robustness science credibility. | Needs separate ADR first | Methodology without ADR |
 
 **Explicitly not next by default:** more dashboard cosmetics (S033–S034 + follow-ups #261–#264 closed the public-demo loop).
 
+**Do not resume original S024 checklist as-written** — it targeted the OVH portfolio UI and re-listed S022 deliverables as TODO. See re-scoped `SPRINT_024.md` (2026-07-18 audit).
+
 ---
 
-## 3. Recommended default — Sprint 024
+## 3. Recommended default — Sprint 024 (re-scoped)
 
-Resume **`SPRINT_024.md`** as written:
+Resume **`SPRINT_024.md` as re-scoped on 2026-07-18** (not the original pre-dashboard draft):
 
 ```text
-AWS dry-run worker
+AWS worker + status API + Streamlit Live Paper
   -> feed freshness ≠ process heartbeat
-  -> graceful STOPPED
-  -> reconnect / last-error visibility
-  -> CloudWatch alarm plan
-  -> operator runbook
-  -> dashboard status states aligned
+  -> reconnect / last_error on status snapshot
+  -> SIGTERM/SIGINT → STOPPED/FAILED
+  -> Live Paper RuntimeHealth badges
+  -> DynamoDB retention + failure-mode tests
 ```
 
-Suggested PR waves (into `sprint/dry-run-reliability-polish` or revive historical sprint branch naming per current workflow):
+Already done elsewhere (do not rebuild): CloudWatch heartbeat alarm spec, operator runbook,
+cost/schedule modes (`AWS_BTC_FUTURES_DRY_RUN.md`, Sprint 022).
 
-1. Feed freshness + graceful shutdown contracts/tests  
-2. Metrics / last-error surface on status API  
-3. Dashboard Live Paper status vocabulary (RUNNING / DEGRADED / STALE / STOPPED / FAILED)  
-4. Runbook + CloudWatch alarm docs + retention note  
+Suggested PR waves into `sprint/dry-run-reliability-polish`:
+
+1. Worker feed freshness + SIGTERM/SIGINT + tests  
+2. Status snapshot: reconnect / last_error / health  
+3. Live Paper badges driven by those fields  
+4. Retention policy + runbook addendum (+ optional architecture page)
 
 Do **not** reopen dashboard shell work unless required by status-state UX.
 

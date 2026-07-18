@@ -45,7 +45,7 @@ Catalog of `docs/planning/`. For taxonomy and reading paths see **[../README.md]
 | [sprints/SPRINT_016.md](sprints/SPRINT_016.md) | Robustness Research MVP (completed) |
 | [sprints/SPRINT_017.md](sprints/SPRINT_017.md) | Model Research Methodology MVP (completed) |
 | [sprints/SPRINT_023.md](sprints/SPRINT_023.md) | Portfolio live dry-run dashboard (completed on sprint branch) |
-| [sprints/SPRINT_024.md](sprints/SPRINT_024.md) | Dry-run reliability polish (planned — recommended next) |
+| [sprints/SPRINT_024.md](sprints/SPRINT_024.md) | Dry-run reliability wiring (planned, re-scoped post-dashboard) |
 | [sprints/SPRINT_025.md](sprints/SPRINT_025.md) | Streamlit dashboard polish + VPS publish (completed on main) |
 | [sprints/SPRINT_033.md](sprints/SPRINT_033.md) | Dashboard presentation polish (complete) |
 | [sprints/SPRINT_034.md](sprints/SPRINT_034.md) | Public dashboard demo polish (complete) |

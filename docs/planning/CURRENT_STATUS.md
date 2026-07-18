@@ -44,8 +44,10 @@ Recent: Public demo live at https://dashboard.filipf.online (overview diagrams, 
 Phase 8A (BTC futures live dry-run) is **on main** through Sprint 022/023 integration (#199 / #202).
 Streamlit Live Paper is the primary public UI (Sprints 031–034).
 
-Remaining Phase 8A polish is captured as **Sprint 024** (reliability, stale feed vs heartbeat,
-graceful STOPPED, alarms, runbook) — recommended next implementation track in `SPRINT_035.md`.
+Remaining Phase 8A polish is **Sprint 024 re-scoped** (2026-07-18): wire feed freshness /
+reconnect / SIGTERM final status into the status API and Streamlit Live Paper. CloudWatch alarm
+spec, operator runbook, and cost modes already shipped in Sprint 022 — do not rebuild them.
+See `SPRINT_024.md` §0 audit and `SPRINT_035.md`.
 
 Sprint 019 live-data boundary:
 
@@ -519,8 +521,10 @@ Public demo loop CLOSED (S028–S034 + follow-ups #261–#264).
 See SPRINT_035.md for ranked options.
 
 Recommended next implementation:
-    Sprint 024 — Phase 8A dry-run reliability / operating polish
-      (stale feed ≠ heartbeat, STOPPED, alarms, runbook, Live Paper status states)
+    Sprint 024 — Phase 8A dry-run reliability wiring (RE-SCOPED 2026-07-18)
+      feed≠heartbeat, reconnect/last_error on status API, SIGTERM→STOPPED,
+      Live Paper RuntimeHealth badges, DynamoDB retention, failure-mode tests
+      (CloudWatch/runbook/cost docs already DONE in S022)
 
 Alternate tracks (explicitly ranked in S035):
     Docs / recruiter narrative pack (small)
@@ -575,7 +579,7 @@ See `docs/planning/sprints/SPRINT_035.md`, `SPRINT_024.md`, and `ROADMAP.md` §1
 | 021 | Execution Persistence and Read Model (Phase 8A) | COMPLETED | 8 / 8 tasks |
 | 022 | AWS Runtime MVP for BTC Futures Dry Run (Phase 8A) | COMPLETED | integrated to main (#199) |
 | 023 | OVH portfolio live dry-run dashboard (Phase 8A) | COMPLETED | integrated to main (#199 / #202); Streamlit is now primary UI |
-| 024 | Dry-run reliability / operating polish (Phase 8A) | PLANNED | recommended next — see SPRINT_035.md |
+| 024 | Dry-run reliability wiring (Phase 8A) | PLANNED (re-scoped) | S022 delivered ops docs; remaining = wiring + Live Paper — SPRINT_024 §0 |
 | 025 | Streamlit dashboard polish + VPS publish | COMPLETED | main #249; deploy fixes #250/#251; edge TLS ops; user_data deferred |
 | 026 | Research hot-path performance (Signal + Robustness) | COMPLETED | integrated to main (#215) |
 | 027 | Market Data import / continuous build performance | COMPLETED | integrated to main (#220) |
