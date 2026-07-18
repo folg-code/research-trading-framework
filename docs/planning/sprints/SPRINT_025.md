@@ -62,8 +62,10 @@ status without reading the repo, and everything stays read-only.
 - [x] Add or improve Live Paper chart/markers from status `recent_bars` / fills when useful.
 - [x] Keep all controls read-only (no worker start/stop, no orders).
 - [x] Refresh `apps/dashboard/docs/RUNBOOK.md` for VPS publish (Compose, env, status URL).
-- [ ] Deploy / verify Streamlit dashboard on the VPS with read-only `user_data` mount.
+- [x] Deploy / verify Streamlit dashboard on the VPS (Compose stack live; CI/CD wired).
+- [ ] Mount / sync read-only `user_data` on VPS (deferred — operator follow-up).
 - [x] Document that HTML / `portfolio_live` are legacy relative to Streamlit.
+- [x] Wire GitHub Actions → VPS deploy for `apps/dashboard/**` on `main`.
 
 ---
 
@@ -88,12 +90,13 @@ Dashboard must not:
 
 | Task | Outcome | Status |
 |------|---------|--------|
-| S025-T001 | Live Paper Streamlit UX polish | DONE (this PR) |
-| S025-T002 | Research pages readability polish | DONE (Overview metrics; this PR) |
-| S025-T003 | Optional Live Paper chart from `recent_bars` | DONE (this PR) |
-| S025-T004 | VPS runbook update for Streamlit + status URL | DONE (this PR) |
-| S025-T005 | VPS deploy / verify Compose stack | TODO (operator) |
-| S025-T006 | Mark HTML / portfolio_live as legacy in docs | DONE (RUNBOOK; this PR) |
+| S025-T001 | Live Paper Streamlit UX polish | DONE |
+| S025-T002 | Research pages readability polish | DONE |
+| S025-T003 | Optional Live Paper chart from `recent_bars` | DONE |
+| S025-T004 | VPS runbook update for Streamlit + status URL | DONE |
+| S025-T005 | VPS deploy / verify Compose stack | DONE (stack up; `user_data` deferred) |
+| S025-T006 | Mark HTML / portfolio_live as legacy in docs | DONE |
+| S025-T007 | GitHub Actions SSH deploy for dashboard on main | DONE (this PR) |
 
 ---
 

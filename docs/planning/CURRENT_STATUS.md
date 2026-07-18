@@ -28,13 +28,13 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 ```text
 Status Date: 2026-07-18
 Current Phase: Sprint 025 — Streamlit polish + VPS publish
-Current Milestone: Live Paper chart/stale UX + VPS runbook; operator deploy on VPS
+Current Milestone: CI/CD dashboard → VPS; user_data mount still deferred
 Implementation Status: Sprints 001-006, 008-023, 026-032 COMPLETE on main; Sprint 007 SKIPPED
 Overall Status: IN_PROGRESS
 Active Sprint: SPRINT_025 (sprint/dashboard-streamlit-polish)
 Last Completed Sprint: SPRINT_032 (sprint/live-strategy-eval-parity → main #246, 2026-07-18)
-Capability Tracks: Foundation COMPLETE; Data COMPLETE (core); Research COMPLETE (core); Strategy 6A COMPLETE; Phase 8A AWS dry-run on main (#199); Dashboard Streamlit COMPLETE; Live Paper COMPLETE; Live StrategyModel eval parity COMPLETE; Streamlit polish + VPS IN_PROGRESS
-Recent: S032 on main (#246). Next: polish Live Paper/Overview, VPS Compose publish; HTML/portfolio_live legacy.
+Capability Tracks: Foundation COMPLETE; Data COMPLETE (core); Research COMPLETE (core); Strategy 6A COMPLETE; Phase 8A AWS dry-run on main (#199); Dashboard Streamlit COMPLETE; Live Paper COMPLETE; Live StrategyModel eval parity COMPLETE; Streamlit polish + VPS CI/CD IN_PROGRESS
+Recent: S025 polish on sprint. Next: merge dashboard CI/CD; configure GitHub secrets; optional user_data sync later.
 ```
 
 ---

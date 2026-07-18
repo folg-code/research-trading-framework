@@ -53,8 +53,13 @@ Page: `pages/5_Live_Paper.py` with helpers in `dashboard_app.views.live_paper`.
 
 1. Produce research artifacts locally (or on a worker) under a workspace root.
 2. Optionally run `scripts/ops/backfill_dashboard_analytics_parquet.py` for older runs.
-3. Rsync the workspace to the VPS host path used by Compose.
+3. Rsync the workspace to the VPS host path used by Compose (`user_data` sync is
+   operator-managed — not part of CI/CD).
 4. Follow `apps/dashboard/docs/RUNBOOK.md` (read-only mount + Caddy).
+5. App code deploy: merges to `main` under `apps/dashboard/**` trigger
+   `.github/workflows/deploy-dashboard.yml` (SSH → `git pull --ff-only` →
+   `docker compose up --build -d`). Secrets and VPS prep are documented in the
+   RUNBOOK **CI/CD** section.
 
 ## Cache / size limits
 
