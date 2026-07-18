@@ -116,7 +116,24 @@ def test_build_parameter_sweep_surface_figure_builds_surface_for_2d_slice() -> N
     assert "fast x slow" in str(figure.layout.title.text)
 
 
-def test_build_parameter_sweep_surface_figure_falls_back_to_line_for_1d() -> None:
+def test_build_parameter_sweep_heatmap_figure_builds_2d_grid() -> None:
+    from dashboard_app.charts import build_parameter_sweep_heatmap_figure
+
+    heatmap = pa.table(
+        {
+            "x_value": ["10", "20", "10", "20"],
+            "y_value": ["1", "1", "2", "2"],
+            "value": [1.0, 2.0, 3.0, 4.0],
+        }
+    )
+    figure = build_parameter_sweep_heatmap_figure(
+        heatmap,
+        metric="net_pnl",
+        x_axis="fast",
+        y_axis="slow",
+    )
+    assert len(figure.data) == 1
+    assert figure.data[0].type == "heatmap"
     heatmap = pa.table(
         {
             "x_value": ["20", "10"],
