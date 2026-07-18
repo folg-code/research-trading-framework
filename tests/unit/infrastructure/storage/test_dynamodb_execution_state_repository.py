@@ -146,11 +146,56 @@ def test_dynamodb_execution_state_repository_writes_expected_state_item() -> Non
     assert item["runtime_id"]["S"] == "runtime-1"
     assert item["version"]["N"] == "1"
     assert item["updated_at"]["S"] == NOW.isoformat()
+    assert item["expires_at"]["N"] == str(int((NOW + timedelta(days=14)).timestamp()))
     assert state_payload["version"] == 1
     assert state_payload["status"]["runtime_id"] == "runtime-1"
     assert state_payload["bars"][0]["close"] == "65010"
     assert state_payload["events"][0]["event_type"] == ExecutionEventType.HEARTBEAT_RECORDED.value
     assert state_payload["events"][0]["simulated"] is True
+
+
+def test_dynamodb_execution_state_repository_uses_configured_retention() -> None:
+    client = FakeDynamoDbClient(items={})
+    repository = DynamoDbExecutionStateRepository(
+        client=client,
+        table_name="execution-state",
+        clock=FixedClock(NOW),
+        state_retention=timedelta(days=7),
+    )
+
+    repository.save_runtime_status(_status())
+
+    item = client.items[("execution-state", "RUNTIME#runtime-1", "STATE")]
+    assert item["expires_at"]["N"] == str(int((NOW + timedelta(days=7)).timestamp()))
+
+
+def test_dynamodb_execution_state_repository_propagates_put_item_failure() -> None:
+    class BoomClient:
+        def get_item(
+            self,
+            *,
+            TableName: str,
+            Key: Mapping[str, Mapping[str, str]],
+            ConsistentRead: bool = False,
+        ) -> Mapping[str, Any]:
+            return {}
+
+        def put_item(
+            self,
+            *,
+            TableName: str,
+            Item: Mapping[str, Mapping[str, str]],
+        ) -> Mapping[str, Any]:
+            raise RuntimeError("simulated PutItem failure")
+
+    repository = DynamoDbExecutionStateRepository(
+        client=BoomClient(),
+        table_name="execution-state",
+        clock=FixedClock(NOW),
+    )
+
+    with pytest.raises(RuntimeError, match="simulated PutItem failure"):
+        repository.save_runtime_status(_status())
 
 
 def test_dynamodb_execution_state_repository_returns_empty_for_unknown_runtime() -> None:
@@ -176,6 +221,12 @@ def test_dynamodb_execution_state_repository_rejects_invalid_configuration() -> 
             client=FakeDynamoDbClient(items={}),
             table_name="execution-state",
             recent_event_limit=0,
+        )
+    with pytest.raises(ValidationError, match="state_retention"):
+        DynamoDbExecutionStateRepository(
+            client=FakeDynamoDbClient(items={}),
+            table_name="execution-state",
+            state_retention=timedelta(0),
         )
 
 

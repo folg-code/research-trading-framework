@@ -77,13 +77,13 @@ re-writing CloudWatch/runbook/cost docs already in `AWS_BTC_FUTURES_DRY_RUN.md` 
 
 ## 2. MVP checklist (re-scoped)
 
-- [ ] Persist feed freshness (and/or derive `DEGRADED`/`STALE`) separately from process heartbeat.
+- [x] Persist feed freshness (and/or derive `DEGRADED`/`STALE`) separately from process heartbeat.
 - [ ] Surface Binance `reconnect_count` / `last_error` on the status snapshot consumed by the dashboard.
-- [ ] AWS worker handles SIGTERM/SIGINT with final status write (`STOPPED` / `FAILED`).
+- [x] AWS worker handles SIGTERM/SIGINT with final status write (`STOPPED` / `FAILED`).
 - [ ] Streamlit Live Paper distinguishes RUNNING / DEGRADED / STALE / STOPPED / FAILED using status fields (not heartbeat-only heuristic).
-- [ ] Document DynamoDB retention (and implement TTL if it fits the single-item model).
-- [ ] Add failure-mode tests: stale feed transition; status repository write failure.
-- [ ] Extend existing AWS runbook with DEGRADED/reconnect investigation notes (do not rewrite from scratch).
+- [x] Document DynamoDB retention (and implement TTL if it fits the single-item model).
+- [x] Add failure-mode tests: stale feed transition; status repository write failure.
+- [x] Extend existing AWS runbook with DEGRADED/reconnect investigation notes (do not rewrite from scratch).
 - [ ] Optional: short architecture one-pager linked from Project Overview.
 
 ---
@@ -108,10 +108,10 @@ FAILED        unrecoverable error recorded
 | S024-T002 | AWS worker SIGTERM/SIGINT + final status write | DONE (Wave 1: cancel→STOPPED, exception→FAILED, signal handlers) |
 | S024-T003 | Persist/expose reconnect_count + last_error on status API | TODO (wiring) |
 | S024-T004 | CloudWatch alarm docs | DONE (S022) — verify only; optional feed-specific alarm note |
-| S024-T005 | DynamoDB retention / TTL policy | TODO |
-| S024-T006 | Operator runbook | DONE (S022) — extend for DEGRADED/reconnect |
+| S024-T005 | DynamoDB retention / TTL policy | DONE (Wave 3: `expires_at` + ops docs) |
+| S024-T006 | Operator runbook | DONE (S022 + Wave 3 DEGRADED/reconnect addendum) |
 | S024-T007 | Architecture one-pager / Overview link | OPTIONAL |
-| S024-T008 | Failure-mode tests (stale feed, status write failure) | PARTIAL (cancel→STOPPED + health policy tests; write-failure still open) |
+| S024-T008 | Failure-mode tests (stale feed, status write failure) | DONE (Wave 1 health + Wave 3 write-failure) |
 | S024-T009 | Streamlit Live Paper status vocabulary (replace OVH portfolio target) | TODO |
 
 Suggested PR waves into `sprint/dry-run-reliability-polish`:
@@ -119,7 +119,7 @@ Suggested PR waves into `sprint/dry-run-reliability-polish`:
 1. Worker: feed freshness + SIGTERM/SIGINT final status + tests  
 2. Status API / snapshot fields: reconnect + last_error + health  
 3. Live Paper badges + captions driven by those fields  
-4. Docs: retention + runbook addendum (+ optional architecture page)
+4. Docs: retention + runbook addendum + status write-failure tests
 
 ---
 

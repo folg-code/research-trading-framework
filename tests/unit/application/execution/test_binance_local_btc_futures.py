@@ -19,7 +19,7 @@ from trading_framework.application.execution import (
     handle_local_btc_futures_binance_message,
     run_local_btc_futures_binance_dry_run,
 )
-from trading_framework.execution import ExecutionReadModelQuery
+from trading_framework.execution import ExecutionReadModelQuery, ExecutionStateRepository
 from trading_framework.execution.models import Heartbeat, RuntimeStatusSnapshot
 from trading_framework.infrastructure.providers.binance import (
     BinanceFuturesStreamEndpoint,
@@ -291,3 +291,119 @@ def test_binance_dry_run_cancel_persists_stopped_status(
     )
     assert status_view is not None
     assert status_view.status.value == "stopped"
+
+
+@dataclass(slots=True)
+class _StatusWriteGateRepository:
+    """Delegate repository that fails a chosen status write call."""
+
+    inner: ExecutionStateRepository
+    fail_on_call: int
+    calls: int = 0
+
+    def save_runtime_status(self, status: RuntimeStatusSnapshot) -> None:
+        self.calls += 1
+        if self.calls == self.fail_on_call:
+            raise RuntimeError("simulated status write failure")
+        self.inner.save_runtime_status(status)
+
+    def __getattr__(self, name: str) -> object:
+        return getattr(self.inner, name)
+
+
+def test_binance_dry_run_status_write_failure_persists_failed_status(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        "trading_framework.application.execution.binance_local_btc_futures.fetch_closed_klines",
+        lambda **kwargs: (),
+    )
+    runtime = create_local_btc_futures_dry_run_runtime(
+        LocalBtcFuturesDryRunConfig(
+            event_log_path=tmp_path / "events.jsonl",
+            strategy_config=BtcFuturesDemoStrategyConfig(ema_period=2),
+        ),
+        clock=FixedClock(NOW),
+    )
+    gated = _StatusWriteGateRepository(inner=runtime.state_repository, fail_on_call=3)
+
+    with pytest.raises(RuntimeError, match="simulated status write failure"):
+        asyncio.run(
+            run_local_btc_futures_binance_dry_run(
+                RunLocalBtcFuturesBinanceDryRunRequest(
+                    config=LocalBtcFuturesDryRunConfig(
+                        event_log_path=tmp_path / "events.jsonl",
+                        strategy_config=BtcFuturesDemoStrategyConfig(ema_period=2),
+                        state_repository_path=tmp_path / "state",
+                        runtime_id=runtime.config.runtime_id,
+                    ),
+                    duration_seconds=1,
+                    heartbeat_seconds=30,
+                ),
+                clock=FixedClock(NOW),
+                clients=(FakeBinanceMessageClient(messages=[]),),
+                state_repository=cast(ExecutionStateRepository, gated),
+            )
+        )
+
+    status_view = gated.inner.latest_status_view(
+        ExecutionReadModelQuery(runtime_id=runtime.config.runtime_id)
+    )
+    assert status_view is not None
+    assert status_view.status.value == "failed"
+
+
+def test_binance_dry_run_cancel_surfaces_status_write_failure(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        "trading_framework.application.execution.binance_local_btc_futures.fetch_closed_klines",
+        lambda **kwargs: (),
+    )
+
+    class FailStoppedRepository:
+        def __init__(self, inner: ExecutionStateRepository) -> None:
+            self._inner = inner
+
+        def save_runtime_status(self, status: RuntimeStatusSnapshot) -> None:
+            if status.status.value == "stopped":
+                raise RuntimeError("simulated stop status write failure")
+            self._inner.save_runtime_status(status)
+
+        def __getattr__(self, name: str) -> object:
+            return getattr(self._inner, name)
+
+    base = create_local_btc_futures_dry_run_runtime(
+        LocalBtcFuturesDryRunConfig(
+            event_log_path=tmp_path / "events.jsonl",
+            strategy_config=BtcFuturesDemoStrategyConfig(ema_period=2),
+        ),
+        clock=FixedClock(NOW),
+    )
+    repository = FailStoppedRepository(base.state_repository)
+
+    async def _run_and_cancel() -> None:
+        task = asyncio.create_task(
+            run_local_btc_futures_binance_dry_run(
+                RunLocalBtcFuturesBinanceDryRunRequest(
+                    config=LocalBtcFuturesDryRunConfig(
+                        event_log_path=tmp_path / "events.jsonl",
+                        strategy_config=BtcFuturesDemoStrategyConfig(ema_period=2),
+                        state_repository_path=tmp_path / "state",
+                    ),
+                    duration_seconds=60,
+                    heartbeat_seconds=30,
+                ),
+                clock=FixedClock(NOW),
+                clients=(FakeBinanceMessageClient(messages=[]),),
+                state_repository=cast(ExecutionStateRepository, repository),
+            )
+        )
+        await asyncio.sleep(0)
+        task.cancel()
+        await task
+
+    with pytest.raises(RuntimeError, match="simulated stop status write failure"):
+        asyncio.run(_run_and_cancel())
