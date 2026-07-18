@@ -12,8 +12,15 @@ settings = render_app_chrome()
 
 st.title("Trading Research Framework")
 st.markdown(
-    "Modular framework for market and signal research, strategy backtesting, "
-    "robustness evaluation, and live paper execution."
+    """
+Modular Python framework for market-data processing, declarative market and signal
+models, strategy backtesting, robustness analysis, and live paper execution on AWS.
+
+This public dashboard is a **read-only** view of persisted research artifacts and
+live paper status. The workflow diagrams below are simplified; the full project
+description, architecture, and methodology live in the
+[GitHub README](https://github.com/folg-code/research-trading-framework).
+"""
 )
 
 if settings is None:
