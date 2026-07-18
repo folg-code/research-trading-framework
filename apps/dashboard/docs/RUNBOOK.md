@@ -18,14 +18,19 @@ Storage is mounted **read-only** at `/data` inside the container (`DASHBOARD_STO
 
 ## Live Paper status URL
 
-Optional read-only AWS status API:
+Default (built into `dashboard_app.config.DEFAULT_LIVE_PAPER_STATUS_URL`):
+
+```text
+https://279rmuo95c.execute-api.eu-north-1.amazonaws.com/status
+```
+
+Override with env or the Streamlit sidebar:
 
 ```powershell
 $env:DASHBOARD_STATUS_URL = "https://<api-gateway>/status"
 ```
 
-Or paste the URL in the Streamlit sidebar on **Live Paper**. The dashboard never
-writes to DynamoDB or starts the ECS worker.
+The dashboard never writes to DynamoDB or starts the ECS worker.
 
 ## Health
 

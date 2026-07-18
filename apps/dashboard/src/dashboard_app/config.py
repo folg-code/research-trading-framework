@@ -9,6 +9,10 @@ from pathlib import Path
 _ENV_STORAGE_ROOT = "DASHBOARD_STORAGE_ROOT"
 _ENV_STATUS_URL = "DASHBOARD_STATUS_URL"
 
+# Deployed AWS dry-run status API (API Gateway → status Lambda). Override via
+# DASHBOARD_STATUS_URL or the Live Paper sidebar when the gateway changes.
+DEFAULT_LIVE_PAPER_STATUS_URL = "https://279rmuo95c.execute-api.eu-north-1.amazonaws.com/status"
+
 
 @dataclass(frozen=True, slots=True)
 class DashboardSettings:
@@ -32,7 +36,7 @@ def load_settings(
         environment variable ``DASHBOARD_STORAGE_ROOT`` is required.
     status_url:
         Optional read-only AWS status API URL. When omitted, uses
-        ``DASHBOARD_STATUS_URL`` if set.
+        ``DASHBOARD_STATUS_URL`` if set, otherwise ``DEFAULT_LIVE_PAPER_STATUS_URL``.
     """
     if storage_root is not None:
         root = storage_root.expanduser().resolve()
@@ -50,7 +54,7 @@ def load_settings(
 
 
 def resolve_status_url(*, status_url: str | None = None) -> str | None:
-    """Resolve status URL from an explicit override or ``DASHBOARD_STATUS_URL``."""
+    """Resolve status URL from override, env, or the built-in AWS default."""
     return _resolve_status_url(status_url)
 
 
@@ -68,6 +72,6 @@ def _resolve_status_url(status_url: str | None) -> str | None:
     if status_url is not None and status_url.strip():
         return status_url.strip()
     raw = os.environ.get(_ENV_STATUS_URL)
-    if raw is None or not raw.strip():
-        return None
-    return raw.strip()
+    if raw is not None and raw.strip():
+        return raw.strip()
+    return DEFAULT_LIVE_PAPER_STATUS_URL

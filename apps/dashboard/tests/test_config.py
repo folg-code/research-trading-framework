@@ -6,7 +6,11 @@ from pathlib import Path
 
 import pytest
 
-from dashboard_app.config import load_settings, storage_root_status
+from dashboard_app.config import (
+    DEFAULT_LIVE_PAPER_STATUS_URL,
+    load_settings,
+    storage_root_status,
+)
 
 
 def test_load_settings_from_explicit_path(tmp_path: Path) -> None:
@@ -18,6 +22,7 @@ def test_load_settings_from_explicit_path(tmp_path: Path) -> None:
     settings = load_settings(storage_root=tmp_path)
 
     assert settings.storage_root == tmp_path.resolve()
+    assert settings.status_url == DEFAULT_LIVE_PAPER_STATUS_URL
     assert storage_root_status(settings) == {
         "storage_root_exists": True,
         "market_data_exists": True,
@@ -35,9 +40,10 @@ def test_load_settings_requires_env_when_unspecified(
 
 def test_load_settings_from_env(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("DASHBOARD_STORAGE_ROOT", str(tmp_path))
+    monkeypatch.delenv("DASHBOARD_STATUS_URL", raising=False)
     settings = load_settings()
     assert settings.storage_root == tmp_path.resolve()
-    assert settings.status_url is None
+    assert settings.status_url == DEFAULT_LIVE_PAPER_STATUS_URL
 
 
 def test_load_settings_reads_status_url(

@@ -31,7 +31,8 @@ Schema version: `dashboard.presentation.v1`.
 
 Page: `pages/5_Live_Paper.py`.
 
-- Configure `DASHBOARD_STATUS_URL` or the sidebar “Live paper status URL”.
+- Configure `DASHBOARD_STATUS_URL` or the sidebar “Live paper status URL”
+  (falls back to `DEFAULT_LIVE_PAPER_STATUS_URL`).
 - Dashboard only GETs the status API — never starts the worker or submits orders.
 - See `docs/reference/LIVE_PAPER_PIPELINE_INSPECTION.md` for worker vs API ownership.
 
