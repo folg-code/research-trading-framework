@@ -11,7 +11,6 @@ from typing import final
 
 from trading_framework.core.exceptions import ValidationError
 from trading_framework.execution import (
-    EmaMomentumLiveSignalEvaluator,
     ExecutionReadModelQuery,
     ExecutionStateRepository,
     ExecutionStateWriter,
@@ -26,6 +25,7 @@ from trading_framework.execution import (
     RuntimeDecisionStep,
     RuntimeDecisionStepResult,
     RuntimeStatusSnapshot,
+    StrategyModelLiveSignalEvaluator,
     StrategyModelOrderAdapter,
     closed_bar_close_reference_quote,
 )
@@ -97,7 +97,7 @@ class LocalBtcFuturesDryRunRuntime:
     session: LocalExecutionRuntimeSession
     broker: PaperBroker
     decision_step: RuntimeDecisionStep
-    signal_evaluator: EmaMomentumLiveSignalEvaluator
+    signal_evaluator: StrategyModelLiveSignalEvaluator
     state_repository: ExecutionStateRepository
     initial_state: PaperBrokerState
 
@@ -187,7 +187,7 @@ def create_local_btc_futures_dry_run_runtime(
     )
     strategy_config = config.strategy_config or BtcFuturesDemoStrategyConfig()
     strategy_model = build_btc_futures_demo_strategy_model(strategy_config)
-    signal_evaluator = EmaMomentumLiveSignalEvaluator(strategy_model)
+    signal_evaluator = StrategyModelLiveSignalEvaluator(strategy_model=strategy_model)
     strategy_adapter = StrategyModelOrderAdapter(
         strategy_model=strategy_model,
         symbol=config.symbol,
