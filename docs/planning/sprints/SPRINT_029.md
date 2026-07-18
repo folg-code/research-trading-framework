@@ -5,11 +5,11 @@
 ```text
 Sprint: 029
 Phase: Foundation / Governance
-Status: IN_PROGRESS
+Status: COMPLETE on main (PR #235, 2026-07-18)
 Planned Start: 2026-07-18
-Planned End: TBD
+Planned End: 2026-07-18
 Sprint Goal Owner: Project Maintainer
-Depends On: Sprint 028 dashboard MVP on sprint tip (integration PR #232 → main)
+Depends On: Sprint 028 dashboard MVP on main (#232)
 Sprint Branch: sprint/repo-layout
 Task branch convention: feat/ | fix/ | docs/ | test/ | refactor/
 Wave 0 decisions: docs/planning/sprints/S029_WAVE0_DECISIONS.md

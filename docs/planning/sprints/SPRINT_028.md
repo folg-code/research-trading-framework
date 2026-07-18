@@ -5,9 +5,9 @@
 ```text
 Sprint: 028
 Phase: Cross-cutting — Research Visualization / Operator Tools
-Status: WAVE D COMPLETE (pending sprint → main integration)
+Status: COMPLETE on main (PR #232, 2026-07-18)
 Planned Start: 2026-07-17
-Planned End: TBD
+Planned End: 2026-07-18
 Sprint Goal Owner: Project Maintainer
 Depends On: Strategy / Signal / Robustness artifacts on main (S014–S017, S026); storage under user_data/research/
 Sprint Branch: sprint/dashboard-application-mvp
