@@ -5,9 +5,9 @@
 ```text
 Sprint: 033
 Phase: Dashboard Application
-Status: IN_PROGRESS
+Status: COMPLETE
 Planned Start: 2026-07-18
-Planned End: TBD
+Planned End: 2026-07-18
 Sprint Goal Owner: Project Maintainer
 Depends On: SPRINT_025, SPRINT_028 (on main)
 Sprint Branch: sprint/dashboard-presentation-polish
@@ -73,7 +73,7 @@ apps/dashboard
 | S033-T003 | Overview readability pass | DONE |
 | S033-T004 | Walk-forward fold charts | DONE |
 | S033-T005 | Sweep 3D surface heatmap | DONE |
-| S033-T006 | Stress / MC / verdict presentation | DONE (this PR) |
+| S033-T006 | Stress / MC / verdict presentation | DONE |
 
 ---
 

@@ -27,14 +27,14 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 
 ```text
 Status Date: 2026-07-18
-Current Phase: Sprint 033 — Dashboard presentation polish
-Current Milestone: Wave C stress / MC / verdict UI
-Implementation Status: Sprints 001-006, 008-023, 025-032 COMPLETE on main; Sprint 007 SKIPPED
-Overall Status: IN_PROGRESS
-Active Sprint: SPRINT_033 (sprint/dashboard-presentation-polish)
-Last Completed Sprint: SPRINT_025 (dashboard Streamlit polish + VPS CI/CD, 2026-07-18)
-Capability Tracks: Foundation COMPLETE; Data COMPLETE (core); Research COMPLETE (core); Strategy 6A COMPLETE; Phase 8A AWS dry-run on main (#199); Dashboard Streamlit COMPLETE; Live Paper COMPLETE; VPS CI/CD COMPLETE; Presentation polish IN_PROGRESS
-Recent: S033 Waves A–B on sprint (#253–#255). Wave C: stress/MC/verdict UI in progress.
+Current Phase: Sprint 033 closed — choose next increment
+Current Milestone: Presentation polish COMPLETE on sprint (integration to main)
+Implementation Status: Sprints 001-006, 008-023, 025-033 COMPLETE on sprint/main path; Sprint 007 SKIPPED
+Overall Status: READY_FOR_INTEGRATION
+Active Sprint: none (SPRINT_033 complete on sprint/dashboard-presentation-polish)
+Last Completed Sprint: SPRINT_033 (dashboard presentation polish, 2026-07-18)
+Capability Tracks: Foundation COMPLETE; Data COMPLETE (core); Research COMPLETE (core); Strategy 6A COMPLETE; Phase 8A AWS dry-run on main (#199); Dashboard Streamlit COMPLETE; Live Paper COMPLETE; VPS CI/CD COMPLETE; Presentation polish COMPLETE on sprint
+Recent: S033 Waves A–C (#253–#256). Next: integrate sprint → main, then sync user_data sample to VPS.
 ```
 
 ---
@@ -574,7 +574,7 @@ See `docs/planning/sprints/SPRINT_030.md` and `ROADMAP.md` §11–§12.
 | 030 | Repository Navigability Hygiene | COMPLETED | integrated to main (#238) |
 | 031 | Live Paper in Dashboard | COMPLETED | integrated to main (#241) |
 | 032 | Live Strategy Evaluation Parity | COMPLETED | integrated to main (#246) |
-| 033 | Dashboard presentation polish | IN_PROGRESS | Wave A pickers/titles |
+| 033 | Dashboard presentation polish | COMPLETED | 6 / 6 tasks; Waves A–C (#253–#256) |
 
 ---
 
