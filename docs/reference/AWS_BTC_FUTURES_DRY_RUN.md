@@ -130,6 +130,7 @@ sk = STATE
 runtime_id
 version
 updated_at
+expires_at   # epoch seconds; DynamoDB TTL attribute
 state_json
 ```
 
@@ -137,6 +138,24 @@ state_json
 status, latest account and position snapshots, bounded recent events/orders/fills, and bounded recent
 closed OHLCV bars. The AWS worker creates the DynamoDB client from
 `TRADING_FRAMEWORK_AWS_REGION` when the backend is `dynamodb`.
+
+### DynamoDB Retention And TTL
+
+The demo keeps **one compact `STATE` item per runtime**. Each write refreshes `expires_at` to
+`now + 14 days` (default `state_retention` on `DynamoDbExecutionStateRepository`). While the worker
+is running, TTL rolls forward with heartbeats and market updates. After the worker stops, the last
+snapshot remains readable for the retention window, then DynamoDB deletes the item.
+
+Enable TTL on the table attribute `expires_at` (AWS Console → DynamoDB → table → Additional settings →
+Time to live, or equivalent IaC). Until TTL is enabled at the table level, the attribute is stored but
+not expired automatically.
+
+Operator notes:
+
+- Live Paper / status API return `404` once the item is gone — expected after retention elapses.
+- Do not rely on DynamoDB as long-term history; bounded recent arrays are demo read models only.
+- To keep a stopped demo visible longer, re-run a short smoke worker (refreshes `expires_at`) or raise
+  retention in code before deploy.
 
 ## Read-Only Status API
 
@@ -374,6 +393,23 @@ DynamoDB
 5. Check DynamoDB IAM permissions for `GetItem` and `PutItem`.
 6. Restart the task after correcting configuration or transient network issues.
 
+### Investigate DEGRADED Or Reconnecting Feed
+
+`DEGRADED` means the **process is still heartbeating** but the market feed is delayed or reconnecting.
+That is distinct from a stale-heartbeat CloudWatch alarm (no process heartbeats).
+
+1. Open Live Paper (or the status API) and confirm:
+   - `status` / RuntimeHealth badge is `degraded` (not only `stale`),
+   - `feed_connection_state` (for example `reconnecting` / `connected`),
+   - `feed_reconnect_count` is rising or non-zero,
+   - `feed_last_error` if present.
+2. In ECS logs, search for Binance WebSocket reconnect / close / error lines around the same timestamps.
+3. Confirm the task still has outbound access to Binance public streams (not an auth/key issue — dry-run
+   uses public market data only).
+4. If `reconnect_count` climbs without recovering to `RUNNING`, restart the task once; treat repeated
+   DEGRADED after restart as a network or Binance-side outage.
+5. If heartbeats stop entirely, switch to **Investigate Stale Heartbeat** above.
+
 ### Roll Back
 
 1. Set ECS service `desired_count = 0` or disable the schedule.
@@ -394,7 +430,7 @@ Region: eu-central-1 target, calculator-confirmed before deploy
 Worker: 1 ECS Fargate task
 Task size: 0.25 vCPU / 0.5 GB memory
 Storage: default Fargate ephemeral storage
-DynamoDB: on-demand, one small STATE item per runtime
+DynamoDB: on-demand, one small STATE item per runtime, TTL on expires_at (14-day rolling retention)
 API: HTTP API + Lambda, read-only status endpoint
 Logs: structured JSON, 14-day retention
 Metrics: one EMF heartbeat metric with RuntimeId/Provider/Symbol dimensions
