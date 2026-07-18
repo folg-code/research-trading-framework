@@ -33,14 +33,15 @@ Or paste the storage root path in the sidebar.
 
 ```text
 apps/dashboard/
-  app.py                 # home
-  pages/                 # Streamlit multipage placeholders
-  src/dashboard_app/     # config + shared UI helpers
+  app.py
+  pages/
+  src/dashboard_app/
+  Dockerfile
+  docker-compose.yml
+  Caddyfile
+  docs/RUNBOOK.md
   tests/
 ```
 
-Presentation contracts (`RunSummary`, `ChartWindow`, `TradeView`, …), the
-filesystem run catalog (`list_runs`), and `DashboardQueryService` (DuckDB windowed
-OHLCV + Parquet column projection) live under `src/dashboard_app/`.
-
-Strategy Research, Market/Signal Research, and Robustness pages are available.
+See `docs/RUNBOOK.md` for Compose + read-only storage mount, and
+`docs/reference/DASHBOARD_APPLICATION.md` for architecture notes.

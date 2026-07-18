@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import streamlit as st
 
-from dashboard_app.catalog import list_runs
+from dashboard_app.streamlit_cache import cached_list_runs, storage_fingerprint
 from dashboard_app.ui import configure_page, render_sidebar_storage_root
 
 configure_page(title="Overview")
@@ -16,8 +16,10 @@ st.caption("Run catalog across MARKET / SIGNAL / STRATEGY / ROBUSTNESS workflows
 if settings is None:
     st.warning("Configure a storage root in the sidebar or set `DASHBOARD_STORAGE_ROOT`.")
 else:
-    catalog = list_runs(settings.storage_root)
+    fingerprint = storage_fingerprint(settings.storage_root)
+    catalog = cached_list_runs(str(settings.storage_root), fingerprint.token)
     st.write(f"Storage root: `{settings.storage_root}`")
+    st.caption(f"Cache fingerprint: `{fingerprint.token}`")
     st.write(f"Runs: **{len(catalog.runs)}** · Issues: **{len(catalog.issues)}**")
     if catalog.runs:
         st.dataframe(

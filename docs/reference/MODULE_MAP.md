@@ -20,6 +20,9 @@ It is a navigation layer between architecture and source code.
 src/trading_framework/
     reusable framework implementation
 
+apps/dashboard/
+    read-only Streamlit + DuckDB research dashboard (Sprint 028)
+
 user_data/
     user-owned datasets
     component libraries
@@ -72,7 +75,7 @@ config/               runtime configuration loading
 | Strategy Research | `application/strategy_research/` | `strategy/`, `research/simulation/`, `research/datasets/` | Result storage and reporting adapters | Trades, equity, manifests |
 | Robustness Research | `application/robustness_research/` | `research/robustness/` | Experiment storage and reporting adapters | Experiment artifacts |
 | Live Execution | `application/execution/` | `execution/` | `infrastructure/providers/`, `infrastructure/storage/` | Runtime state |
-| Visualization | Application view-model builders | `research/analytics/`, reporting packages | HTML, API and dashboard adapters | Dashboards and reports |
+| Visualization | Application view-model builders | `research/analytics/`, reporting packages | HTML, API and dashboard adapters; `apps/dashboard` | Dashboards and reports |
 
 ---
 
