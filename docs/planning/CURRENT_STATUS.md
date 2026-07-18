@@ -26,15 +26,15 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 ## 2. Status Metadata
 
 ```text
-Status Date: 2026-07-17
-Current Phase: Sprint 028 Dashboard Application MVP (Wave 0) + Phase 8A polish backlog
-Current Milestone: Sprint 028 Wave 0 — Streamlit+DuckDB consumer app; Parquet analytics unification
-Implementation Status: Sprints 001-006, 008-021, 026-027 COMPLETE on main; Sprint 007 SKIPPED; Sprints 022-023 COMPLETE on sprint branch (pending integration PR to main)
+Status Date: 2026-07-18
+Current Phase: Sprint 029 Repository Layout Foundations (+ Sprint 028 integration PR #232)
+Current Milestone: Formalize top-level layout (ADR-0022), uv workspace, ops consolidation
+Implementation Status: Sprints 001-006, 008-021, 026-027 COMPLETE on main; Sprint 007 SKIPPED; Sprints 022-023 COMPLETE on sprint branch (pending integration); Sprint 028 COMPLETE on sprint/dashboard-application-mvp (PR #232 → main)
 Overall Status: IN_PROGRESS
-Active Sprint: sprint/dashboard-application-mvp (SPRINT_028)
-Last Completed Sprint: SPRINT_027 (sprint/market-data-import-performance → main #220, 2026-07-17)
-Capability Tracks: Foundation COMPLETE; Data 2A + 2B/2C.1 + 2B.3 + 2C.4 COMPLETE; Research 3/4A/5/5B/7 COMPLETE; Strategy 6A COMPLETE; Phase 8A local + AWS dry-run runtime + portfolio live dashboard COMPLETE on sprint branch
-Recent perf: S026 research hot paths; S027 import NumPy buffers + continuous session_workers (~24 s materialize @4 workers). Next: dashboard app (not HTML generators).
+Active Sprint: sprint/repo-layout (SPRINT_029)
+Last Completed Sprint: SPRINT_027 on main; SPRINT_028 pending main merge via #232
+Capability Tracks: Foundation COMPLETE; Data 2A + 2B/2C.1 + 2B.3 + 2C.4 COMPLETE; Research 3/4A/5/5B/7 COMPLETE; Strategy 6A COMPLETE; Phase 8A local + AWS dry-run runtime + portfolio live dashboard COMPLETE on sprint branch; Dashboard app COMPLETE on S028 sprint tip
+Recent: S028 dashboard Waves A–D + package layout (#231). Next: Sprint 029 repo layout (docs/ADR/workspace/ops); defer packages/ and deep src/ reorg to Phase 4B / second DTO consumer.
 ```
 
 ---
@@ -495,6 +495,8 @@ PRB-002 and PRB-005 received partial MVP resolution in Sprint 003.
 | ADR-0018 | ACCEPTED (Sprint 015) |
 | ADR-0019 | ACCEPTED (Sprint 016) |
 | ADR-0020 | ACCEPTED (Sprint 017) |
+| ADR-0021 | ACCEPTED (Sprint 018) |
+| ADR-0022 Repository Top-Level Layout | ACCEPTED (Sprint 029) |
 | ADR-0004, ADR-0009, ADR-0010 | PLANNED |
 
 Binding decisions D-001–D-036 and workspace invariants are documented in the architecture files above; ADR materialization is Sprint 003 Wave 6 (including ADR-MA-007 workspace).
@@ -514,12 +516,16 @@ Binding decisions D-001–D-036 and workspace invariants are documented in the a
 ## 11. Next Planned Capability
 
 ```text
-Sprint 028 — Dashboard Application MVP (ACTIVE)
-    Wave 0: S028_WAVE0_DECISIONS (Streamlit+DuckDB; Parquet analytics; orderflow deferred)
-    Wave A: apps/dashboard + contracts + catalog + DuckDB
-    Wave B: canonical Parquet exports + strategy page
-    Wave C: market/signal + robustness pages
-    Wave D: cache, Docker/Caddy, docs, dry-run stubs
+Sprint 029 — Repository Layout Foundations (ACTIVE)
+    Wave 1: ADR-0022 + vision/MODULE_MAP sync + HTML hygiene
+    Wave 2: uv workspace root↔apps/dashboard + apps import boundary + CI
+    Wave 3: deploy/local_aws_runbook + scripts/README
+
+Sprint 028 — Dashboard Application MVP (integration PR #232 → main)
+
+Deferred (explicit):
+    packages/ shared presentation contracts (until second DTO consumer)
+    Deep market_analysis/ reorg (TD-003) until Phase 4B/4C
 
 Also queued:
     Sprint 024/025 — Phase 8A dry-run reliability / visualization polish
@@ -530,7 +536,7 @@ Also queued:
     Post-027: continuous price_nanos ADR; optional parallel archive import
 ```
 
-See `docs/planning/sprints/SPRINT_028.md` and `ROADMAP.md` §11–§12.
+See `docs/planning/sprints/SPRINT_029.md`, `SPRINT_028.md`, and `ROADMAP.md` §11–§12.
 
 ---
 
@@ -565,7 +571,8 @@ See `docs/planning/sprints/SPRINT_028.md` and `ROADMAP.md` §11–§12.
 | 025 | Live dry-run visualization polish (Phase 8A, optional) | PLANNED | after 024 |
 | 026 | Research hot-path performance (Signal + Robustness) | COMPLETED | integrated to main (#215) |
 | 027 | Market Data import / continuous build performance | COMPLETED | integrated to main (#220) |
-| 028 | Dashboard Application MVP (Streamlit + DuckDB) | PLANNED | Wave 0; sprint/dashboard-application-mvp |
+| 028 | Dashboard Application MVP (Streamlit + DuckDB) | COMPLETED on sprint tip | Waves A–D + layout (#231); integration PR #232 → main |
+| 029 | Repository Layout Foundations | IN_PROGRESS | ADR-0022, uv workspace, ops consolidation |
 
 ---
 

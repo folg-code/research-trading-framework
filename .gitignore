@@ -26,12 +26,19 @@ dist/
 *.key
 credentials.json
 local_aws_runbook/
+deploy/local_aws_runbook/**
+!deploy/local_aws_runbook/
+!deploy/local_aws_runbook/README.md
 
 # User-owned research and data
 user_data/**
 
 # Keep an optional explanation file
 !user_data/README.md
+
+# Generated demo HTML (regenerate via scripts/demo)
+demo/output/**
+!demo/output/.gitkeep
 
 # Local analytical files outside fixtures
 *.duckdb

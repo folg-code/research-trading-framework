@@ -610,16 +610,20 @@ Use the following documents for deeper context:
 
 ### Reference Research Reports
 
-The following standalone HTML reports are generated from persisted research artifacts.
+Standalone HTML reports are **generated demos**, not committed documentation
+artifacts (ADR-0022). Produce them under `demo/output/` via
+[`scripts/demo/`](../../scripts/demo/README.md) (for example
+`uv run python scripts/demo/run_portfolio_demo.py --full`).
 
-They are read-only views and do not rerun model evaluation, simulation or robustness experiments.
+| Methodology             | Typical demo output (after generation)                         | Purpose |
+| ----------------------- | -------------------------------------------------------------- | ------- |
+| Combined Model Research | `demo/output/model_research/` / portfolio index entries          | Forward-outcome analysis for a signal conditioned by market context |
+| Strategy Research       | `demo/output/00_strategy_dashboard_nq_half_year.html` (hero)     | Trade ledger, equity, drawdown and strategy performance analysis |
+| Robustness Research     | `demo/output/07_robustness_dashboard.html`                       | Parameter sensitivity, walk-forward, stress, Monte Carlo and diagnostics |
 
+For day-to-day inspection of research runs, prefer **`apps/dashboard`**
+(Sprint 028) over regenerating HTML.
 
-| Methodology             | Report                                                                    | Purpose                                                                              |
-| ----------------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| Combined Model Research | [Market × Signal report](combined_model_research.html )                 | Forward-outcome analysis for a signal conditioned by market context                  |
-| Strategy Research       | [Strategy Research dashboard](strategy_dashboard_nq_half_year.html )    | Trade ledger, equity, drawdown and strategy performance analysis                     |
-| Robustness Research     | [Robustness dashboard](robustness_dashboard.html )                      | Parameter sensitivity, walk-forward, stress, Monte Carlo and statistical diagnostics |
-
-
-These reports illustrate the output of the corresponding methodologies. They should be interpreted together with the recorded dataset, model definitions, assumptions, sample size and quality diagnostics.
+These reports illustrate methodology outputs. Interpret them together with the
+recorded dataset, model definitions, assumptions, sample size and quality
+diagnostics.

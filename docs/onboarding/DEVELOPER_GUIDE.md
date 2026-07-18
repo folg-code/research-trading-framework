@@ -48,7 +48,7 @@ uv pip install plotly
 ## Repository layout
 
 ```text
-src/trading_framework/   framework code (never imports user_data)
+src/trading_framework/   framework code (never imports user_data or apps)
 ├── application/         use cases — orchestration entry points
 ├── market/              bars, trades, datasets, contracts, continuous
 ├── market_analysis/     components, planning, execution, frames
@@ -58,14 +58,27 @@ src/trading_framework/   framework code (never imports user_data)
 ├── infrastructure/      Parquet, Databento, CSV, registry
 └── core/ · time/ · config/
 
-scripts/                 thin CLIs (databento, market_data, signal_research, strategy_research, robustness_research, demo)
-tests/                   unit, integration, fixtures, spike (manual HTML)
+apps/dashboard/          read-only Streamlit + DuckDB research dashboard
+scripts/                 thin CLIs (see scripts/README.md)
+deploy/                  AWS containers + local AWS runbook home
+tests/                   unit, integration, fixtures, spike
 user_data/               your storage, config, models (gitignored)
-docs/                    vision, reference, planning, adr
+docs/                    vision, reference, planning, adr, agents, onboarding
 demo/output/             generated portfolio HTML (from demo script)
 ```
 
-**Boundary:** pass `storage_root: Path` from `user_data/` into application functions. Framework code must not import `user_data/` modules.
+Binding layout: **ADR-0022**. Pass `storage_root: Path` from `user_data/` into
+application functions. Framework code must not import `user_data/` modules.
+`apps/*` must not import research/execution engines or provider/importer adapters.
+
+Dashboard locally:
+
+```powershell
+cd apps/dashboard
+uv sync
+$env:DASHBOARD_STORAGE_ROOT = (Resolve-Path ..\..\user_data).Path
+uv run streamlit run app.py
+```
 
 ---
 
