@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
+from decimal import Decimal, InvalidOperation
 
 import plotly.graph_objects as go
 import pyarrow as pa
@@ -38,6 +39,95 @@ def build_equity_drawdown_figure(equity: pa.Table) -> go.Figure:
     )
     figure.update_layout(height=480, margin={"l": 40, "r": 20, "t": 40, "b": 30}, showlegend=False)
     return figure
+
+
+def build_walk_forward_fold_figure(folds: pa.Table) -> go.Figure:
+    """Build grouped IS vs OOS net-PnL bars from walk_forward_folds.parquet."""
+    figure = go.Figure()
+    required = {"fold_index", "train_net_pnl", "oos_net_pnl"}
+    if folds.num_rows == 0 or not required.issubset(folds.column_names):
+        figure.update_layout(
+            title="Walk-forward IS vs OOS net PnL",
+            height=360,
+            margin={"l": 40, "r": 20, "t": 50, "b": 40},
+        )
+        return figure
+
+    rows = sorted(
+        (
+            (
+                int(folds.column("fold_index")[index].as_py()),
+                _label_for_fold(
+                    fold_index=int(folds.column("fold_index")[index].as_py()),
+                    fold_id=(
+                        folds.column("fold_id")[index].as_py()
+                        if "fold_id" in folds.column_names
+                        else None
+                    ),
+                ),
+                _numeric_metric(folds.column("train_net_pnl")[index].as_py()),
+                _numeric_metric(folds.column("oos_net_pnl")[index].as_py()),
+            )
+            for index in range(folds.num_rows)
+        ),
+        key=lambda item: item[0],
+    )
+    labels = [label for _, label, _, _ in rows]
+    train_values = [train for _, _, train, _ in rows]
+    oos_values = [oos for _, _, _, oos in rows]
+
+    figure.add_trace(
+        go.Bar(
+            x=labels,
+            y=train_values,
+            name="Training (IS)",
+            marker_color="#4C78A8",
+        )
+    )
+    figure.add_trace(
+        go.Bar(
+            x=labels,
+            y=oos_values,
+            name="Unseen (OOS)",
+            marker_color="#F58518",
+        )
+    )
+    figure.update_layout(
+        title="Walk-forward IS vs OOS net PnL by fold",
+        barmode="group",
+        height=420,
+        margin={"l": 40, "r": 20, "t": 50, "b": 40},
+        legend={"orientation": "h", "yanchor": "bottom", "y": 1.02, "x": 0},
+        yaxis_title="Net PnL",
+        xaxis_title="Fold",
+    )
+    return figure
+
+
+def _label_for_fold(*, fold_index: int, fold_id: object) -> str:
+    if isinstance(fold_id, str) and fold_id.strip():
+        return fold_id.strip()
+    return f"Fold {fold_index + 1}"
+
+
+def _numeric_metric(value: object) -> float | None:
+    if value is None:
+        return None
+    if isinstance(value, bool):
+        return float(value)
+    if isinstance(value, int | float):
+        return float(value)
+    if isinstance(value, Decimal):
+        return float(value)
+    if isinstance(value, str):
+        text = value.strip()
+        if not text:
+            return None
+        try:
+            return float(Decimal(text))
+        except (InvalidOperation, ValueError):
+            return None
+    return None
 
 
 def build_ohlcv_trade_figure(

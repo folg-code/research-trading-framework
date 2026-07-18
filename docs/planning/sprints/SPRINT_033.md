@@ -58,7 +58,7 @@ apps/dashboard
 
 ### Wave B / C (later PRs)
 
-- [ ] Walk-forward IS/OOS fold charts.
+- [x] Walk-forward IS/OOS fold charts.
 - [ ] Parameter sweep 3D surface from `parameter_sweep_heatmap`.
 - [ ] Stress delta chart; MC percentile visualization; verdict checklist UI.
 
@@ -68,10 +68,10 @@ apps/dashboard
 
 | Task | Outcome | Status |
 |------|---------|--------|
-| S033-T001 | Shared run picker + human labels | DONE (this PR) |
-| S033-T002 | Richer robustness / strategy catalog titles | DONE (this PR) |
-| S033-T003 | Overview readability pass | DONE (columns; this PR) |
-| S033-T004 | Walk-forward fold charts | TODO |
+| S033-T001 | Shared run picker + human labels | DONE |
+| S033-T002 | Richer robustness / strategy catalog titles | DONE |
+| S033-T003 | Overview readability pass | DONE |
+| S033-T004 | Walk-forward fold charts | DONE (this PR) |
 | S033-T005 | Sweep 3D surface heatmap | TODO |
 | S033-T006 | Stress / MC / verdict presentation | TODO |
 
