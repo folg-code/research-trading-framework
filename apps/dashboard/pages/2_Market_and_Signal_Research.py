@@ -6,17 +6,17 @@ import plotly.express as px
 import streamlit as st
 
 from dashboard_app.query import DashboardQueryService
-from dashboard_app.ui import configure_page, render_sidebar_storage_root
+from dashboard_app.ui import configure_page, render_app_chrome
 from dashboard_app.views.picker import render_run_identity, select_catalog_run
 from dashboard_app.views.research import list_research_runs, load_research_run
 
-configure_page(title="Market / Signal Research")
-settings = render_sidebar_storage_root()
+configure_page(title="Market & Signal Research")
+settings = render_app_chrome()
 
-st.title("Market / Signal Research")
+st.title("Market & Signal Research")
 
 if settings is None:
-    st.warning("Configure a storage root in the sidebar or set `DASHBOARD_STORAGE_ROOT`.")
+    st.warning("Storage is not configured. Set `DASHBOARD_STORAGE_ROOT` or use System diagnostics.")
     st.stop()
 
 service = DashboardQueryService(settings.storage_root)

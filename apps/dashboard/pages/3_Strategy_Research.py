@@ -6,7 +6,7 @@ import streamlit as st
 
 from dashboard_app.charts import build_equity_drawdown_figure, build_ohlcv_trade_figure
 from dashboard_app.query import DashboardQueryService
-from dashboard_app.ui import configure_page, render_sidebar_storage_root
+from dashboard_app.ui import configure_page, render_app_chrome
 from dashboard_app.views.picker import render_run_identity, select_catalog_run
 from dashboard_app.views.strategy import (
     list_strategy_runs,
@@ -16,12 +16,12 @@ from dashboard_app.views.strategy import (
 )
 
 configure_page(title="Strategy Research")
-settings = render_sidebar_storage_root()
+settings = render_app_chrome()
 
 st.title("Strategy Research")
 
 if settings is None:
-    st.warning("Configure a storage root in the sidebar or set `DASHBOARD_STORAGE_ROOT`.")
+    st.warning("Storage is not configured. Set `DASHBOARD_STORAGE_ROOT` or use System diagnostics.")
     st.stop()
 
 service = DashboardQueryService(settings.storage_root)

@@ -63,7 +63,7 @@ apps/dashboard
 | Task | Outcome | Status |
 |------|---------|--------|
 | S034-T001 | Sprint branch + this plan | DONE |
-| S034-T002 | Public shell (home, nav, diagnostics) | TODO |
+| S034-T002 | Public shell (home, nav, diagnostics) | DONE (this PR) |
 | S034-T003 | Research Catalog filters + columns | TODO |
 | S034-T004 | Strategy presentation | TODO |
 | S034-T005 | Robustness presentation | TODO |
