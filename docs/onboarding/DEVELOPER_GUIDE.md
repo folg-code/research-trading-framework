@@ -74,7 +74,7 @@ user_data/               your storage, config, models (gitignored)
 |------|-------|----------------------|
 | First-class | `src/`, `apps/`, `scripts/`, `docs/`, `tests/` | Yes |
 | Support | `deploy/`, `artifacts/` | Yes |
-| Local-only | `scratch/`, `user_data/`, `.venv/`, tool caches | Hidden via `.vscode` / `.cursorignore` |
+| Local-only | `scratch/`, `user_data/`, `.venv/`, tool caches | `scratch`/caches hidden; `user_data` visible in Explorer, excluded from search |
 
 Binding layout: **ADR-0022**. Pass `storage_root: Path` from `user_data/` into
 application functions. Framework code must not import `user_data/` modules.

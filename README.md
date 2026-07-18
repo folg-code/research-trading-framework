@@ -19,7 +19,7 @@ It provides a shared architecture for historical datasets, analytical components
 |------|-------|-------|
 | **First-class** | `src/`, `apps/`, `scripts/`, `docs/`, `tests/` | Framework, apps, CLIs, docs, tests |
 | **Support** | `deploy/`, `artifacts/` | Containers / runbooks; generated demo HTML |
-| **Local-only** | `scratch/`, `user_data/`, `.venv/`, caches | Gitignored; hidden in default IDE excludes |
+| **Local-only** | `scratch/`, `user_data/`, `.venv/`, caches | Gitignored; caches/`scratch` hidden in Explorer; `user_data` visible, excluded from search |
 
 Binding rules: [ADR-0022](docs/adr/ADR-0022-repository-top-level-layout.md).  
 Demo generators: [`scripts/demo/`](scripts/demo/) → output under `artifacts/demo/output/`.
