@@ -5,7 +5,7 @@
 ```text
 Sprint: 024
 Phase: Phase 8A - BTC Futures Live Dry-Run Execution Demo
-Status: COMPLETED (on sprint branch; awaiting integration PR to main)
+Status: COMPLETED (main #270)
 Planned Start: 2026-07-18
 Planned End: 2026-07-18
 Sprint Goal Owner: Project Maintainer
