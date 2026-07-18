@@ -14,6 +14,7 @@ from trading_framework.application.execution import (
     LocalBtcFuturesBinanceFeedState,
     LocalBtcFuturesDryRunConfig,
     RunLocalBtcFuturesBinanceDryRunRequest,
+    RunLocalBtcFuturesBinanceDryRunResult,
     create_local_btc_futures_dry_run_runtime,
     handle_local_btc_futures_binance_message,
     run_local_btc_futures_binance_dry_run,
@@ -240,3 +241,53 @@ def test_binance_dry_run_loop_processes_bounded_fake_messages(
     assert len(telemetry.heartbeats) == 2
     assert telemetry.messages == [1, 2, 3]
     assert len(telemetry.stopped) == 1
+
+
+def test_binance_dry_run_cancel_persists_stopped_status(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        "trading_framework.application.execution.binance_local_btc_futures.fetch_closed_klines",
+        lambda **kwargs: (),
+    )
+    telemetry = FakeTelemetry(started=[], heartbeats=[], messages=[], stopped=[])
+
+    class BlockingClient:
+        closed = False
+
+        async def receive(self) -> BinanceFuturesWebSocketMessage:
+            await asyncio.sleep(3600)
+            raise AssertionError("blocking client should be cancelled")
+
+        async def close(self) -> None:
+            self.closed = True
+
+    async def _run_and_cancel() -> RunLocalBtcFuturesBinanceDryRunResult:
+        task = asyncio.create_task(
+            run_local_btc_futures_binance_dry_run(
+                RunLocalBtcFuturesBinanceDryRunRequest(
+                    config=LocalBtcFuturesDryRunConfig(
+                        event_log_path=tmp_path / "events.jsonl",
+                        strategy_config=BtcFuturesDemoStrategyConfig(ema_period=2),
+                    ),
+                    duration_seconds=60,
+                    heartbeat_seconds=30,
+                ),
+                clock=FixedClock(NOW),
+                clients=(cast(FakeBinanceMessageClient, BlockingClient()),),
+                telemetry=telemetry,
+            )
+        )
+        await asyncio.sleep(0)
+        task.cancel()
+        return await task
+
+    result = asyncio.run(_run_and_cancel())
+    assert result.stopped_status.status.value == "stopped"
+    assert len(telemetry.stopped) == 1
+    status_view = result.runtime.state_repository.latest_status_view(
+        ExecutionReadModelQuery(runtime_id=result.runtime.config.runtime_id)
+    )
+    assert status_view is not None
+    assert status_view.status.value == "stopped"
