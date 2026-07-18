@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass
+from datetime import timedelta
 from typing import Protocol, final
 
 from trading_framework.application.execution.local_btc_futures import (
@@ -16,6 +17,8 @@ from trading_framework.application.execution.local_btc_futures import (
 from trading_framework.core.exceptions import ValidationError
 from trading_framework.execution import ExecutionStateRepository, PaperBrokerState
 from trading_framework.execution.models import Heartbeat, RuntimeStatusSnapshot
+from trading_framework.execution.models.market_data import MarketFeedConnectionState
+from trading_framework.execution.runtime.health_policy import resolve_runtime_health
 from trading_framework.infrastructure.providers.binance.aiohttp_websocket import (
     AiohttpBinanceWebSocketConnector,
 )
@@ -228,10 +231,16 @@ async def run_local_btc_futures_binance_dry_run(
     _persist_broker_state(runtime, runtime.initial_state)
     if telemetry is not None:
         telemetry.runtime_started(runtime.config, started)
-    heartbeat = runtime.session.record_heartbeat(message="local Binance dry-run runtime alive")
-    _persist_latest_status(runtime)
+    heartbeat = _record_feed_aware_heartbeat(
+        runtime,
+        clients=clients,
+        heartbeat_seconds=request.heartbeat_seconds,
+        message="local Binance dry-run runtime alive",
+    )
     if telemetry is not None:
         telemetry.heartbeat_recorded(runtime.config, heartbeat)
+    feed_state = LocalBtcFuturesBinanceFeedState()
+    received_message_count = 0
     try:
         loop_result = await _receive_binance_messages_until_bounded(
             runtime=runtime,
@@ -239,10 +248,14 @@ async def run_local_btc_futures_binance_dry_run(
             clients=clients,
             telemetry=telemetry,
         )
-        heartbeat = runtime.session.record_heartbeat(
+        feed_state = loop_result.state
+        received_message_count = loop_result.received_message_count
+        heartbeat = _record_feed_aware_heartbeat(
+            runtime,
+            clients=clients,
+            heartbeat_seconds=request.heartbeat_seconds,
             message="local Binance dry-run runtime stopping",
         )
-        _persist_latest_status(runtime)
         if telemetry is not None:
             telemetry.heartbeat_recorded(runtime.config, heartbeat)
         stopped = runtime.session.stop(message="bounded local Binance dry-run complete")
@@ -251,12 +264,31 @@ async def run_local_btc_futures_binance_dry_run(
             telemetry.runtime_stopped(runtime.config, stopped)
         return RunLocalBtcFuturesBinanceDryRunResult(
             runtime=runtime,
-            feed_state=loop_result.state,
+            feed_state=feed_state,
             started_status=started,
             heartbeat=heartbeat,
             stopped_status=stopped,
-            received_message_count=loop_result.received_message_count,
+            received_message_count=received_message_count,
         )
+    except asyncio.CancelledError:
+        stopped = runtime.session.stop(message="runtime interrupted by signal")
+        _persist_status(runtime, stopped)
+        if telemetry is not None:
+            telemetry.runtime_stopped(runtime.config, stopped)
+        return RunLocalBtcFuturesBinanceDryRunResult(
+            runtime=runtime,
+            feed_state=feed_state,
+            started_status=started,
+            heartbeat=heartbeat,
+            stopped_status=stopped,
+            received_message_count=received_message_count,
+        )
+    except Exception as exc:
+        failed = runtime.session.fail(message=str(exc)[:500] or "runtime failed")
+        _persist_status(runtime, failed)
+        if telemetry is not None:
+            telemetry.runtime_stopped(runtime.config, failed)
+        raise
     finally:
         await asyncio.gather(*(client.close() for client in clients), return_exceptions=True)
         if owned_connector is not None:
@@ -302,10 +334,12 @@ async def _receive_binance_messages_until_bounded(
             )
             if not done:
                 if loop.time() >= next_heartbeat_at:
-                    heartbeat = runtime.session.record_heartbeat(
+                    heartbeat = _record_feed_aware_heartbeat(
+                        runtime,
+                        clients=clients,
+                        heartbeat_seconds=request.heartbeat_seconds,
                         message="local Binance dry-run runtime alive",
                     )
-                    _persist_latest_status(runtime)
                     if telemetry is not None:
                         telemetry.heartbeat_recorded(runtime.config, heartbeat)
                     next_heartbeat_at = loop.time() + request.heartbeat_seconds
@@ -372,6 +406,58 @@ def _ignored(
         ),
         ignored_reason=reason,
     )
+
+
+def _record_feed_aware_heartbeat(
+    runtime: LocalBtcFuturesDryRunRuntime,
+    *,
+    clients: tuple[LocalBtcFuturesBinanceMessageClient, ...],
+    heartbeat_seconds: float,
+    message: str,
+) -> Heartbeat:
+    """Emit a heartbeat whose RuntimeHealth reflects market-feed freshness."""
+    latest = runtime.session.latest_status(runtime.config.runtime_id)
+    last_market_event_at = None if latest is None else latest.last_market_event_at
+    degraded_after = timedelta(seconds=max(heartbeat_seconds * 3.0, 1.0))
+    stale_after = timedelta(seconds=max(heartbeat_seconds * 6.0, 2.0))
+    health = resolve_runtime_health(
+        now=runtime.session.clock.now(),
+        last_market_event_at=last_market_event_at,
+        feed_connection=_worst_feed_connection(clients),
+        degraded_after=degraded_after,
+        stale_after=stale_after,
+    )
+    heartbeat = runtime.session.record_heartbeat(status=health, message=message)
+    _persist_latest_status(runtime)
+    return heartbeat
+
+
+def _worst_feed_connection(
+    clients: tuple[LocalBtcFuturesBinanceMessageClient, ...],
+) -> MarketFeedConnectionState | None:
+    """Return the worst connection state among clients that expose status_snapshot."""
+    priority = {
+        MarketFeedConnectionState.FAILED: 4,
+        MarketFeedConnectionState.RECONNECTING: 3,
+        MarketFeedConnectionState.CONNECTING: 2,
+        MarketFeedConnectionState.CONNECTED: 1,
+        MarketFeedConnectionState.STOPPED: 0,
+    }
+    worst: MarketFeedConnectionState | None = None
+    worst_score = -1
+    for client in clients:
+        status_snapshot = getattr(client, "status_snapshot", None)
+        if not callable(status_snapshot):
+            continue
+        snapshot = status_snapshot()
+        state = getattr(snapshot, "state", None)
+        if not isinstance(state, MarketFeedConnectionState):
+            continue
+        score = priority.get(state, 0)
+        if score > worst_score:
+            worst = state
+            worst_score = score
+    return worst
 
 
 def _persist_status(

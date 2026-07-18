@@ -104,14 +104,14 @@ FAILED        unrecoverable error recorded
 
 | Task | Outcome | Status |
 |------|---------|--------|
-| S024-T001 | Feed freshness policy → RuntimeHealth transitions | TODO (wiring) |
-| S024-T002 | AWS worker SIGTERM/SIGINT + final status write | TODO |
+| S024-T001 | Feed freshness policy → RuntimeHealth transitions | DONE (Wave 1: `resolve_runtime_health` + heartbeat wiring) |
+| S024-T002 | AWS worker SIGTERM/SIGINT + final status write | DONE (Wave 1: cancel→STOPPED, exception→FAILED, signal handlers) |
 | S024-T003 | Persist/expose reconnect_count + last_error on status API | TODO (wiring) |
 | S024-T004 | CloudWatch alarm docs | DONE (S022) — verify only; optional feed-specific alarm note |
 | S024-T005 | DynamoDB retention / TTL policy | TODO |
 | S024-T006 | Operator runbook | DONE (S022) — extend for DEGRADED/reconnect |
 | S024-T007 | Architecture one-pager / Overview link | OPTIONAL |
-| S024-T008 | Failure-mode tests (stale feed, status write failure) | TODO |
+| S024-T008 | Failure-mode tests (stale feed, status write failure) | PARTIAL (cancel→STOPPED + health policy tests; write-failure still open) |
 | S024-T009 | Streamlit Live Paper status vocabulary (replace OVH portfolio target) | TODO |
 
 Suggested PR waves into `sprint/dry-run-reliability-polish`:
