@@ -18,8 +18,7 @@ docs/
 │   └── modules/
 ├── planning/                 roadmap, status, sprints
 ├── adr/                      decision records (why)
-├── agents/                   AI agent module notes
-└── architecture/README.md    redirect (legacy path)
+└── agents/                   AI agent module notes
 ```
 
 ---
