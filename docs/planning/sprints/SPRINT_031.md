@@ -5,7 +5,7 @@
 ```text
 Sprint: 031
 Phase: Phase 8A + Dashboard Application
-Status: IN_PROGRESS
+Status: COMPLETE on main (PR #241, 2026-07-18)
 Planned Start: 2026-07-18
 Sprint Branch: sprint/live-paper-dashboard
 Wave 0: docs/planning/sprints/S031_WAVE0_DECISIONS.md

@@ -53,7 +53,7 @@ Catalog of `docs/planning/`. For taxonomy and reading paths see **[../README.md]
 | [sprints/S027_WAVE0_DECISIONS.md](sprints/S027_WAVE0_DECISIONS.md) | Sprint 027 binding decisions (D-S027-01 … D-S027-08) |
 | [sprints/SPRINT_028.md](sprints/SPRINT_028.md) | Dashboard Application MVP (completed on main) |
 | [sprints/S028_WAVE0_DECISIONS.md](sprints/S028_WAVE0_DECISIONS.md) | Sprint 028 binding decisions (D-S028-01 … D-S028-08) |
-| [sprints/SPRINT_031.md](sprints/SPRINT_031.md) | Live Paper in Dashboard (in progress) |
+| [sprints/SPRINT_031.md](sprints/SPRINT_031.md) | Live Paper in Dashboard (completed on main) |
 | [sprints/S031_WAVE0_DECISIONS.md](sprints/S031_WAVE0_DECISIONS.md) | Sprint 031 binding decisions (D-S031-01 … D-S031-04) |
 | [sprints/S010_WAVE0_DECISIONS.md](sprints/S010_WAVE0_DECISIONS.md) | Sprint 010 binding decisions (D-S010-01 … D-S010-20) |
 | [sprints/SPRINT_011.md](sprints/SPRINT_011.md) | Historical archive import — trades DBN (completed) |
