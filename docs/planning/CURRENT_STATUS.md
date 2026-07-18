@@ -27,27 +27,25 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 
 ```text
 Status Date: 2026-07-18
-Current Phase: Public demo live — post-S034 polish
-Current Milestone: none (choose next sprint: S024 Phase 8A polish or research track)
-Implementation Status: Sprints 001-006, 008-023, 025-034 on main; Sprint 007 SKIPPED
+Current Phase: Public demo complete — choosing next increment (S035)
+Current Milestone: Wave 0 track choice — default recommendation Sprint 024 (dry-run reliability)
+Implementation Status: Sprints 001-006, 008-023, 025-034 on main; Sprint 007 SKIPPED; 024 PLANNED; 035 PLANNED (selection)
 Overall Status: STABLE
-Active Sprint: none
-Last Completed Sprint: SPRINT_034 (public dashboard demo polish, main #260, 2026-07-18)
+Active Sprint: none (SPRINT_035 planning doc open)
+Last Completed Sprint: SPRINT_034 (public dashboard demo polish, main #260) + follow-ups #261–#264
 Capability Tracks: Foundation COMPLETE; Data COMPLETE (core); Research COMPLETE (core); Strategy 6A COMPLETE; Phase 8A AWS dry-run on main (#199); Dashboard Streamlit COMPLETE; Live Paper COMPLETE; VPS CI/CD COMPLETE; Public demo polish COMPLETE on main
-Recent: S034 integrated (#260) and deployed to VPS. Follow-up: Project Overview nav label.
+Recent: Public demo live at https://dashboard.filipf.online (overview diagrams, LWC OHLCV, README link). Next: choose S024 vs research/docs track — see SPRINT_035.md.
 ```
 
 ---
 
 ## 2.1 Current Phase 8A Update
 
-As of 2026-07-16, Phase 8A has moved beyond local dry-run runtime setup:
+Phase 8A (BTC futures live dry-run) is **on main** through Sprint 022/023 integration (#199 / #202).
+Streamlit Live Paper is the primary public UI (Sprints 031–034).
 
-- Sprint 018 delivered provider-independent dry-run execution contracts.
-- Sprint 019 delivered the Binance BTCUSDT USD-M futures live-data adapter.
-- Sprint 020 delivered the local BTC futures dry-run runtime.
-- Sprint 021 delivered the local execution persistence read model and restart state.
-- Current closure target: integration PR from `sprint/btc-futures-dry-run-execution` to `main`.
+Remaining Phase 8A polish is captured as **Sprint 024** (reliability, stale feed vs heartbeat,
+graceful STOPPED, alarms, runbook) — recommended next implementation track in `SPRINT_035.md`.
 
 Sprint 019 live-data boundary:
 
@@ -56,6 +54,7 @@ Binance public WebSocket
   -> infrastructure/providers/binance parser + mapper
   -> MarketBar / BestBidAskSnapshot / MarketFeedStatusSnapshot
   -> Sprint 020/021 dry-run runtime + execution read model
+  -> AWS worker + read-only status API + dashboard Live Paper
 ```
 
 Standard CI remains network-free. Binance live smoke validation is opt-in through
@@ -516,25 +515,36 @@ Binding decisions D-001–D-036 and workspace invariants are documented in the a
 ## 11. Next Planned Capability
 
 ```text
-No active sprint — choose next increment:
+Public demo loop CLOSED (S028–S034 + follow-ups #261–#264).
+See SPRINT_035.md for ranked options.
 
-    Sprint 024/025 — Phase 8A dry-run reliability / visualization polish
+Recommended next implementation:
+    Sprint 024 — Phase 8A dry-run reliability / operating polish
+      (stale feed ≠ heartbeat, STOPPED, alarms, runbook, Live Paper status states)
+
+Alternate tracks (explicitly ranked in S035):
+    Docs / recruiter narrative pack (small)
     Phase 4B — Orderflow Market Analysis
     Phase 6B — Multi-data Strategy Research
-    PBO / CSCV / deflated Sharpe increment (separate ADR)
+    Phase 8 Replay foundation (roadmap §12; larger than current dry-run)
+    PBO / CSCV / deflated Sharpe (ADR first)
 
-Recently completed:
+Recently completed (dashboard / demo):
+    Sprint 034 — Public Dashboard Demo Polish → main (#260)
+    Follow-ups — overview nav, English + diagrams, LWC OHLCV, README link (#261–#264)
+    Sprint 033 — Dashboard presentation polish → main (#257)
+    Sprint 032 — Live Strategy Evaluation Parity → main (#246)
+    Sprint 031 — Live Paper in Dashboard → main (#241)
     Sprint 028 — Dashboard Application MVP → main (#232)
-    Sprint 029 — Repository Layout Foundations → main (#235)
-    Sprint 030 — Repository Navigability Hygiene → main (#238)
 
 Deferred (explicit):
     packages/ shared presentation contracts (until second DTO consumer)
     Deep market_analysis/ reorg (TD-003) until Phase 4B/4C
     Full ops/ nesting of deploy/ (rejected for S030)
+    Further public-dashboard cosmetics as a default track
 ```
 
-See `docs/planning/sprints/SPRINT_030.md` and `ROADMAP.md` §11–§12.
+See `docs/planning/sprints/SPRINT_035.md`, `SPRINT_024.md`, and `ROADMAP.md` §11–§12.
 
 ---
 
@@ -565,7 +575,7 @@ See `docs/planning/sprints/SPRINT_030.md` and `ROADMAP.md` §11–§12.
 | 021 | Execution Persistence and Read Model (Phase 8A) | COMPLETED | 8 / 8 tasks |
 | 022 | AWS Runtime MVP for BTC Futures Dry Run (Phase 8A) | COMPLETED | integrated to main (#199) |
 | 023 | OVH portfolio live dry-run dashboard (Phase 8A) | COMPLETED | integrated to main (#199 / #202); Streamlit is now primary UI |
-| 024 | Dry-run reliability / operating polish (Phase 8A) | PLANNED | after Streamlit+VPS or in parallel with ops |
+| 024 | Dry-run reliability / operating polish (Phase 8A) | PLANNED | recommended next — see SPRINT_035.md |
 | 025 | Streamlit dashboard polish + VPS publish | COMPLETED | main #249; deploy fixes #250/#251; edge TLS ops; user_data deferred |
 | 026 | Research hot-path performance (Signal + Robustness) | COMPLETED | integrated to main (#215) |
 | 027 | Market Data import / continuous build performance | COMPLETED | integrated to main (#220) |
@@ -575,7 +585,8 @@ See `docs/planning/sprints/SPRINT_030.md` and `ROADMAP.md` §11–§12.
 | 031 | Live Paper in Dashboard | COMPLETED | integrated to main (#241) |
 | 032 | Live Strategy Evaluation Parity | COMPLETED | integrated to main (#246) |
 | 033 | Dashboard presentation polish | COMPLETED | 6 / 6 tasks; Waves A–C (#253–#256); main #257 |
-| 034 | Public Dashboard Demo Polish | COMPLETED | Waves 1–5 (#258–#259); main #260; VPS deploy |
+| 034 | Public Dashboard Demo Polish | COMPLETED | Waves 1–5 (#258–#259); main #260; VPS deploy; follow-ups #261–#264 |
+| 035 | Next increment selection (post public demo) | PLANNED | ranked options; default → S024 |
 
 ---
 

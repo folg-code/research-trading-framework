@@ -107,7 +107,7 @@ Market Data policy (facts not indicators, vendor independence): **§14 Research 
 
 Test data tiers and live-data gate: **§15**.
 
-**Recommended next increment:** **Phase 8 Replay and Paper Execution** (candidate) — see `ROADMAP.md` §12. Deferred: Phase 4B orderflow, Phase 6B multi-data, PBO/CSCV (separate ADR).
+**Recommended next increment:** **Sprint 024 — dry-run reliability / operating polish** (Phase 8A), after public dashboard demo closure (S034). Selection rationale: `docs/planning/sprints/SPRINT_035.md`. Deferred: Phase 4B orderflow, Phase 6B multi-data, Phase 8 Replay foundation, PBO/CSCV (separate ADR).
 
 ---
 
