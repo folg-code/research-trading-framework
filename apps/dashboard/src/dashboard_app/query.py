@@ -15,6 +15,7 @@ from dashboard_app.contracts import PRESENTATION_SCHEMA_VERSION, ChartWindow
 from dashboard_app.dataset_locator import DatasetLocator
 
 DEFAULT_MAX_BARS = 5_000
+DEFAULT_MAX_PARQUET_ROWS = 50_000
 _OHLCV_COLUMNS = ("observed_at", "open", "high", "low", "close", "volume")
 
 
@@ -44,12 +45,22 @@ class OhlcvWindowResult:
 class DashboardQueryService:
     """Read-only query facade over storage_root (DuckDB + Parquet)."""
 
-    def __init__(self, storage_root: Path, *, max_bars: int = DEFAULT_MAX_BARS) -> None:
+    def __init__(
+        self,
+        storage_root: Path,
+        *,
+        max_bars: int = DEFAULT_MAX_BARS,
+        max_parquet_rows: int = DEFAULT_MAX_PARQUET_ROWS,
+    ) -> None:
         if max_bars < 1:
             msg = "max_bars must be >= 1"
             raise ValueError(msg)
+        if max_parquet_rows < 1:
+            msg = "max_parquet_rows must be >= 1"
+            raise ValueError(msg)
         self._storage_root = storage_root.expanduser().resolve()
         self._max_bars = max_bars
+        self._max_parquet_rows = max_parquet_rows
 
     @property
     def storage_root(self) -> Path:
@@ -134,12 +145,14 @@ class DashboardQueryService:
         selected = ", ".join(_quote_ident(col) for col in columns) if columns else "*"
         sql = f"SELECT {selected} FROM read_parquet(?)"
         params: list[Any] = [path.as_posix()]
-        if limit is not None:
-            if limit < 1:
-                msg = "limit must be >= 1"
-                raise ValueError(msg)
-            sql += " LIMIT ?"
-            params.append(limit)
+        effective_limit = (
+            self._max_parquet_rows if limit is None else min(limit, self._max_parquet_rows)
+        )
+        if effective_limit < 1:
+            msg = "limit must be >= 1"
+            raise ValueError(msg)
+        sql += " LIMIT ?"
+        params.append(effective_limit)
         with duckdb.connect(database=":memory:") as conn:
             return conn.execute(sql, params).to_arrow_table()
 
