@@ -1,5 +1,10 @@
 """Tests for model authoring DSL."""
 
+from trading_framework.market_analysis import ComponentId, OutputId
+from trading_framework.market_analysis.components.volatility import (
+    AtrComponent,
+    TrueRangeComponent,
+)
 from trading_framework.market_analysis.registry.builtins import default_mvp_registry
 from trading_framework.model_authoring import (
     LONG,
@@ -16,6 +21,12 @@ from trading_framework.model_expression.expressions import (
     AndExpression,
     BinaryCompareExpression,
     CompareExpression,
+    ComparisonOperator,
+)
+from trading_framework.model_expression.references import (
+    ComponentOutputReference,
+    MarketField,
+    MarketFieldReference,
 )
 from trading_framework.signal_model.definitions import SignalFiringPolicy
 
@@ -41,6 +52,57 @@ def test_market_model_compiles_binary_compare() -> None:
     assert isinstance(authored.expression, BinaryCompareExpression)
     assert len(authored.dependencies().component_requests) == 1
     assert authored.dependencies().market_fields[0].value == "close"
+
+
+def test_market_model_compiles_atr() -> None:
+    authored = market_model(
+        "close_above_atr",
+        when=(price.close > volatility.atr(period=14)),
+        registry=default_mvp_registry(),
+    )
+
+    assert isinstance(authored.expression, BinaryCompareExpression)
+    assert authored.expression.operator is ComparisonOperator.GT
+    assert authored.expression.left == MarketFieldReference(field=MarketField.CLOSE)
+    assert isinstance(authored.expression.right, ComponentOutputReference)
+    assert authored.expression.right.component_id == ComponentId("volatility.atr")
+    assert authored.expression.right.output_id == OutputId("value")
+    assert authored.expression.right.parameters == AtrComponent().parameter_schema.canonicalize(
+        {"period": 14}
+    )
+    requests = authored.dependencies().component_requests
+    assert len(requests) == 1
+    assert requests[0].component_id == ComponentId("volatility.atr")
+    assert authored.dependencies().market_fields[0].value == "close"
+
+
+def test_market_model_compiles_true_range() -> None:
+    authored = market_model(
+        "close_above_true_range",
+        when=(price.close > volatility.true_range()),
+        registry=default_mvp_registry(),
+    )
+
+    assert isinstance(authored.expression, BinaryCompareExpression)
+    assert authored.expression.operator is ComparisonOperator.GT
+    assert authored.expression.left == MarketFieldReference(field=MarketField.CLOSE)
+    assert isinstance(authored.expression.right, ComponentOutputReference)
+    assert authored.expression.right.component_id == ComponentId("volatility.true_range")
+    assert authored.expression.right.output_id == OutputId("value")
+    assert (
+        authored.expression.right.parameters
+        == TrueRangeComponent().parameter_schema.canonicalize({})
+    )
+    requests = authored.dependencies().component_requests
+    assert len(requests) == 1
+    assert requests[0].component_id == ComponentId("volatility.true_range")
+
+
+def test_atr_default_period_canonicalizes() -> None:
+    authored = market_model("default_atr", when=(price.close > volatility.atr()))
+    assert isinstance(authored.expression, BinaryCompareExpression)
+    assert isinstance(authored.expression.right, ComponentOutputReference)
+    assert authored.expression.right.parameters.get("period") == 14
 
 
 def test_market_model_compiles_logical_and() -> None:
