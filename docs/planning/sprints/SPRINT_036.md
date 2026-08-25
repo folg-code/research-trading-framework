@@ -208,7 +208,7 @@ before expanding the component catalog or simplifying `model_authoring/`.
 
 | S036-T008 | Stage 2 — `scan_parquet` at repository boundary, then lazy analysis frame builder (D-REP-02) | DONE — step 1 #283; step 2 lazy `build_analysis_frame` (wall time flat; see audit §6.3.2) |
 
-| S036-T009 | ADRs for D-REP-01, D-REP-05, D-REP-10 | TODO — blocks Stage 3 / Stage 4 |
+| S036-T009 | ADRs for D-REP-01, D-REP-05, D-REP-10 | DONE — ADR-MA-014; MA-004/010/012 and MA-005/009 amendments |
 
 | S036-T010 | Gate doc for S037 (DSL simplicity criteria + component library rules) | TODO |
 
