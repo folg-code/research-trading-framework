@@ -23,11 +23,16 @@ Canonical workspace root (``--storage-root`` / operator workspace)::
 subdirectory. Dataset helpers always resolve under ``market_data/``.
 """
 
+from collections.abc import Sequence
 from datetime import date, datetime, timedelta
 from pathlib import Path
 
 from trading_framework.market.datasets import DatasetRef
 from trading_framework.time.models.utc_instant import require_utc_aware
+
+# Exchange session_date can differ from the UTC calendar day of observed_at by one
+# day (CME Globex overnight). Prune with this buffer; observed_at still filters rows.
+_OHLCV_SESSION_DATE_UTC_BUFFER_DAYS = 1
 
 _MARKET_DATA = "market_data"
 _RESEARCH = "research"
@@ -136,6 +141,24 @@ def list_ohlcv_session_dates(root: Path, dataset_ref: DatasetRef) -> list[date]:
             continue
         session_dates.append(date.fromisoformat(partition_dir.name.split("=", 1)[1]))
     return sorted(session_dates)
+
+
+def ohlcv_session_dates_overlapping_range(
+    session_dates: Sequence[date],
+    start_at: datetime,
+    end_at: datetime,
+) -> list[date]:
+    """Return session-date partitions that may contain bars in the closed UTC range.
+
+    Partition keys are exchange ``session_date`` values, not UTC calendar days.
+    A one-day buffer on each side keeps CME overnight bars visible; callers still
+    filter rows by ``observed_at``.
+    """
+    start_day = require_utc_aware(start_at).date() - timedelta(
+        days=_OHLCV_SESSION_DATE_UTC_BUFFER_DAYS
+    )
+    end_day = require_utc_aware(end_at).date() + timedelta(days=_OHLCV_SESSION_DATE_UTC_BUFFER_DAYS)
+    return [session_date for session_date in session_dates if start_day <= session_date <= end_day]
 
 
 def continuous_ohlcv_manifest_path(root: Path, dataset_ref: DatasetRef) -> Path:

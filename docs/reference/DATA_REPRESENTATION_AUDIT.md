@@ -18,7 +18,8 @@ Where they partially address a finding, §6.2 says so explicitly. Line reference
 
 **Progress note (2026-08-25).** Stage 0.5 shipped in #279 (`session_id` stays Utf8; timezone remains
 its own eager pass). T006 harness coverage shipped in #278 (`--mtf`, `--parquet`). Measured H2/H6/H4
-notes are in §6.3; Stage 1 scope is in §8.
+notes are in §6.3; Stage 1 H2 shipped in #281 and derive-path table validation in #282. Stage 2
+step 1 (`scan_parquet` + session-date prune on `query_ohlcv_table`) is in §6.3.1 / §8.
 
 **Decision summary (2026-08-25).** Accepted: D-REP-01 (with superseding ADR; `AnalysisDataView`
 retained as a live-runtime adapter), D-REP-02 (two-step), D-REP-03, D-REP-04a, D-REP-05, D-REP-07,
@@ -564,11 +565,34 @@ Nested (same run):
 - `ohlcv.read_legacy_file`: **1.6 ms**; `ohlcv.build_column_batch`: **13.6 ms** — Parquet file I/O is
   cheap; table→column conversion dominates.
 
-**Still unmeasured:** H1 at dataset scale, H4 (`query_historical` → `list[MarketBar]`), H3 with
-`structure.swing`, H7–H10, P4–P6, P7 ingest.
+**Still unmeasured:** H1 at research-envelope / CLI dataset scale (full-file `pl.read_parquet` in
+`research/datasets/*` has no predicate — converting it is not this step), H4
+(`query_historical` → `list[MarketBar]`), H3 with `structure.swing`, H7–H10, P4–P6, P7 ingest.
 
 Nested `run_analysis.*` under `--mtf` includes P2 (MTF) + P3 (1m). Use `execute.resample.*` /
 `align.*` for Stage 1 comparisons, not summed `run_analysis.execute`.
+
+### 6.3.1 Stage 2 step 1 — partitioned OHLCV `scan_parquet` (S036-T008)
+
+Hot read path is `ParquetDatasetRepository.query_ohlcv_table`, not research-envelope
+`pl.read_parquet`. Before this step the partitioned path opened **every** `session_date` file,
+concatenated, then filtered `observed_at` in memory.
+
+Shipped: prune partitions whose `session_date` cannot overlap the query (UTC dates ±1 day for
+CME Globex vs UTC calendar), then `pl.scan_parquet` with an `observed_at` predicate. Public
+`query_ohlcv_table` / `query_historical_columnar` contracts unchanged. Research-envelope
+full-file reads and the lazy `build_analysis_frame` join stay for a later PR (D-REP-02 step 2).
+
+Local microbench (90 session partitions × 390 1m bars; query two sessions → 780 rows; N=8):
+
+| Path | median `query_ohlcv_table` |
+|------|----------------------------|
+| Eager read-all + Arrow filter (sprint HEAD `518185e`) | **85.59 ms** |
+| Session prune + `scan_parquet` | **2.09 ms** (~41×) |
+
+Single-file 500-bar full-range read (the `--parquet` harness shape) is not the win:
+eager **1.03 ms** vs scan **1.34 ms**. `--parquet --bars 500` nested `ohlcv.scan_parquet`
+~2.3 ms; `ohlcv.build_column_batch` still dominates (~13.9 ms).
 
 ### 6.4 Structural hypotheses (static pass)
 
@@ -578,7 +602,7 @@ Ordered by expected impact, to be confirmed or refuted by measurement before any
 
 | # | Path | Structural cost | Files | Expected impact | Confirmed by |
 |---|---|---|---|---|---|
-| H1 | Eager Parquet reads across all research CLIs and dashboard queries | full-file materialization, no pushdown | 65 Polars files, `read_parquet` only | HIGH | bench + dataset-scale read timing |
+| H1 | Eager Parquet reads across all research CLIs and dashboard queries | full-file materialization, no pushdown | 65 Polars files, `read_parquet` only | HIGH — **partitioned OHLCV query repaid** (§6.3.1); research-envelope full-file reads remain | bench + partitioned repository timing |
 | H2 | `resample_analysis_view` round-trip | per-row `iter_rows` + `Decimal(str())` + `MarketBar.__post_init__` OHLC validation | `market_analysis/data/resample.py:70-102` | HIGH — **confirmed** at 500 1m bars (`execute.resample` ~24 ms vs default p2 ~10 ms; #278) | authoring→analysis bench `--mtf` |
 | H3 | `tuple[float, ...]` ↔ `np.ndarray` per component per output | boxed floats, full materialization both ways | `adapters/numpy/result_builder.py`, 4 component modules | HIGH (worst at `swing`: 20 outputs) | bench with swing in the plan |
 | H4 | `list[MarketBar]` on bulk paths | one Python object per bar | `query_historical`, `import_external_dataset`, `derive_continuous_ohlcv:366`, dashboards | HIGH — **still unmeasured** (`--parquet` uses `query_historical_columnar`) | TD-011 already accepted as HIGH |
@@ -590,9 +614,9 @@ Ordered by expected impact, to be confirmed or refuted by measurement before any
 | H10 | `ParquetTradeDatasetRepository.write_trades` read-merge-write | full partition rewrite per call | `parquet/trade_repository.py` | LOW (import already repaid in S027) | import bench, only if touched |
 
 Reconciliation with §6.2: H5 is confirmed as M2 and H3 is partially confirmed as M3. After #278, H2
-is confirmed material and H6 is not at N=500. H4 remains unmeasured (columnar load). H1 is only
-probed at synthetic file scale (I/O cheap vs `build_column_batch`). H7–H10 and H3-with-swing stay
-untouched. The measured M1 had no counterpart in this list — the static pass treated
+is confirmed material and H6 is not at N=500. H4 remains unmeasured (columnar load). H1 partitioned
+OHLCV reads are now measured (§6.3.1); research-envelope `read_parquet` is still full-file. H7–H10
+and H3-with-swing stay untouched. The measured M1 had no counterpart in this list — the static pass treated
 `CmeEsRthSessionResolver` as "already vectorized"; #279 repaid the fused `with_columns` part.
 
 ### 6.5 Paths explicitly not re-profiled
@@ -905,14 +929,16 @@ Acceptance: fixture research facts byte-identical; before/after timing in each r
 
 ### Stage 2 — Lazy at I/O (no contract change)
 
-Depends on: D-REP-02 (first step only).
+Depends on: D-REP-02 (first step only). Step 2 must not start before step 1 has a committed
+measurement — that gate is this section / §6.3.1.
 
 | PR | Outcome | Files | Risk |
 |---|---|---|---|
-| `feat/scan-parquet-at-repository-boundary` | `scan_parquet` + pushdown for research dataset reads | `research/datasets/*`, `infrastructure/storage/parquet/*` | LOW–MEDIUM |
+| `feat/scan-parquet-at-repository-boundary` | **DONE** — `scan_parquet` + session-date prune on OHLCV repository reads. Research-envelope `pl.read_parquet` is full-file (no predicate) and was left unchanged. | `infrastructure/storage/parquet/*`, `infrastructure/storage/paths.py` | LOW–MEDIUM |
 | `feat/lazy-analysis-frame-builder` | lazy four-table join, validation behind `collect()` | `research/analytics/frame_builder.py`, `schemas.py` | MEDIUM |
 
-Acceptance: identical frames; read-time measurement on a fixture-scale and a local larger dataset.
+Acceptance: identical bars vs eager filter on fixtures; skipped partitions are not opened;
+read-time measurement on a partitioned local dataset (§6.3.1).
 
 ### Stage 3 — Correctness of metadata
 
@@ -1001,7 +1027,7 @@ Stage 4 remains conditional on its ADR; Stage 5 remains a separate sprint.
 
 | Item | Why it is still open |
 |---|---|
-| Harness coverage for Stage 1 paths | **resolved #278** — `--mtf` measures H2/H6; `--parquet` measures columnar read. H4 (`list[MarketBar]`) and dataset-scale H1 remain open |
+| Harness coverage for Stage 1 paths | **resolved #278** — `--mtf` measures H2/H6; `--parquet` measures columnar read. H4 (`list[MarketBar]`) remains open. Partitioned H1 is in §6.3.1 |
 | D-REP-06 — tz-aware Parquet timestamps | schema migration cost couples it to the deferred D-REP-04b; the cheap half (validating helper instead of `.replace(tzinfo=UTC)`) can be taken independently |
 | D-REP-08 — single configuration mechanism | hygiene; no sprint slot allocated |
 | D-REP-09 — deduplicate `DatasetMetadataReader` | opportunistic; fold into whichever PR touches those modules |
