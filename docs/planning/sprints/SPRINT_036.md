@@ -196,15 +196,23 @@ before expanding the component catalog or simplifying `model_authoring/`.
 
 | S036-T002 | Bench/spike harness for authoring → analysis → research (fixture) | DONE |
 
-| S036-T003 | Audit write-up: ranked bottlenecks + non-goals | TODO |
+| S036-T003 | Audit write-up: ranked bottlenecks + non-goals | PARTIAL — `docs/reference/DATA_REPRESENTATION_AUDIT.md` (structural); measured ranking pending T004 |
 
-| S036-T004 | First justified optimization PR (from audit top item) | TODO |
+| S036-T004 | Baseline measurement committed as reference for all later PRs (closes T003 per D-S036-07) | TODO |
 
-| S036-T005 | Optional second optimization PR if still HIGH | TODO |
+| S036-T005 | Stage 1 — table-level validators + remove `MarketBar` round-trips (D-REP-03 / D-REP-07) | TODO |
 
-| S036-T006 | Gate doc for S037 (DSL simplicity criteria + component library rules) | TODO |
+| S036-T006 | Stage 2 — `scan_parquet` at repository boundary, then lazy analysis frame builder (D-REP-02) | TODO |
 
-| S036-T007 | CURRENT_STATUS / ROADMAP closeout | TODO |
+| S036-T007 | ADRs for D-REP-01, D-REP-05, D-REP-10 | TODO |
+
+| S036-T008 | Gate doc for S037 (DSL simplicity criteria + component library rules) | TODO |
+
+| S036-T009 | CURRENT_STATUS / ROADMAP closeout | TODO |
+
+The data representation policy and the D-REP decision register live in
+[`../../reference/DATA_REPRESENTATION_AUDIT.md`](../../reference/DATA_REPRESENTATION_AUDIT.md)
+(accepted 2026-08-25). It governs the Stage 1–Stage 4 scope referenced above.
 
 Wave 1 harness command: `uv run python scripts/ops/bench_authoring_analysis_evaluate.py` (`--json`, `--bars N`).
 
@@ -217,13 +225,20 @@ Suggested PR waves into `sprint/research-infra-audit`:
 
 2. Bench harness + initial measurements  
 
-3. Audit report (ranked findings)  
+3. Audit report (ranked findings) + data representation policy  
 
-4. One optimization PR (top finding)  
+4. Baseline measurement committed  
 
-5. Optional second optimization  
+5. Stage 1 optimization PRs (D-REP-03 / D-REP-07)  
 
-6. S037 gate doc + sprint closeout  
+6. Stage 2 optimization PRs (D-REP-02)  
+
+7. ADRs for accepted contract changes (D-REP-01 / D-REP-05 / D-REP-10)  
+
+8. S037 gate doc + sprint closeout  
+
+The two-PR optimization cap was lifted on 2026-08-25 (see amendment in `S036_WAVE0_DECISIONS.md`).
+The binding constraint is the measurement gate, not PR count.
 
 
 

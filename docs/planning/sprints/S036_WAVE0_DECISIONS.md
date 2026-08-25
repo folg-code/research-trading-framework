@@ -97,9 +97,19 @@ The audit write-up (S036-T003) must answer:
 
 | Sprint | Owns |
 |--------|------|
-| **036** | Inventory, benches, audit doc, ≤2 justified optimizations, S037 gate doc |
+| **036** | Inventory, benches, audit doc, justified optimizations, S037 gate doc |
 | **037** | Component libraries + maximal DSL simplification |
 | Later | AI/ML research (IDEA-014) |
+
+### Amendment 2026-08-25 — optimization PR cap lifted
+
+The original "≤2 justified optimizations" cap is **withdrawn** by maintainer decision. Sprint 036
+may carry as many optimization PRs as the accepted representation policy justifies (Stage 1 and
+Stage 2 of `docs/reference/DATA_REPRESENTATION_AUDIT.md` §8).
+
+The correctness and measurement gates in D-S036-04 and D-S036-07 are **unchanged** and remain the
+binding constraint: every optimization PR must cite a before/after measurement and preserve fixture
+research facts. Removing the count cap does not weaken either gate.
 
 ---
 
