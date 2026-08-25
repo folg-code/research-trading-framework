@@ -28,13 +28,13 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 ```text
 Status Date: 2026-08-25
 Current Phase: Sprint 037 component libraries + DSL simplification
-Current Milestone: Wave 1 — existing-catalog DSL fill-in
-Implementation Status: Sprints 001-006, 008-024, 025-036 on main; 037 IN_PROGRESS
+Current Milestone: S037 implementation complete on sprint branch; awaiting main integration
+Implementation Status: Sprints 001-006, 008-024, 025-036 on main; 037 complete on sprint/component-libraries-dsl
 Overall Status: STABLE
-Active Sprint: sprint/component-libraries-dsl (S037)
+Active Sprint: sprint/component-libraries-dsl (S037) — ready to integrate
 Last Completed Sprint: SPRINT_036 (research infra audit) → main (#288)
 Capability Tracks: Foundation COMPLETE; Data COMPLETE (core); Research COMPLETE (core); Strategy 6A COMPLETE; Phase 8A dry-run + S024 on main; Dashboard / Live Paper / public demo COMPLETE
-Recent: S036 on main (#288). S037 Wave 0: existing-catalog DSL, then trend.slope. Session Range and ML training later.
+Recent: S037 Waves 0–1 on sprint (#289–#294): existing-catalog DSL, copy-paste authoring example, trend.slope. Next after main: Session Range catalog, then IDEA-014.
 ```
 
 ---
@@ -184,9 +184,22 @@ Wave 0 path inventory
 Audit: `docs/reference/DATA_REPRESENTATION_AUDIT.md`. Gate: `docs/planning/sprints/S037_GATE.md`.
 Bench: `scripts/ops/bench_authoring_analysis_evaluate.py`. See `SPRINT_036.md` and `S036_WAVE0_DECISIONS.md`.
 
-**Sprint 037 — Component libraries + DSL simplification** is **in progress** on
-`sprint/component-libraries-dsl`. Wave 0: `SPRINT_037.md` and `S037_WAVE0_DECISIONS.md`.
-First code: existing-catalog DSL (ATR / true-range / swing), then one new Feature (`trend.slope`).
+**Sprint 037 — Component libraries + DSL simplification** is **complete** on
+`sprint/component-libraries-dsl` (working PRs #289–#294). Awaiting maintainer
+integration to `main`.
+
+Delivered:
+
+```text
+Wave 0 lock (D-S037-01 … D-S037-09)
+    → volatility.atr / volatility.true_range DSL
+    → structure.swing HH/HL/LH/LL events + latest_*_level
+    → copy-pasteable model_authoring example
+    → trend.slope (causal OLS of close) + DSL
+```
+
+`compile.py` was not changed; T006 bench re-run is N/A. Next catalog PRs: Session Range.
+IDEA-014 training remains deferred. See `SPRINT_037.md` and `S037_WAVE0_DECISIONS.md`.
 
 ---
 
@@ -542,12 +555,12 @@ Public demo loop CLOSED (S028–S034 + follow-ups #261–#264).
 Sprint 024 dry-run reliability → main (#270).
 Sprint 035 track choice CLOSED.
 Sprint 036 research infra audit COMPLETED on main (#288).
+Sprint 037 component libraries + DSL complete on sprint branch (#289–#294).
 
 Recommended next implementation:
-    Sprint 037 — Component libraries + DSL simplification
-      (sprint/component-libraries-dsl; gate: S037_GATE.md)
-      Wave 1: existing-catalog DSL; then trend.slope (one new component)
-      then AI/ML research (IDEA-014) when authoring foundation is stable
+    Integrate Sprint 037 → main (sprint/component-libraries-dsl)
+    then Session Range catalog (S007 follow-on)
+    then AI/ML research (IDEA-014) when authoring foundation is on main
 
 Deferred relative to that track:
     Phase 4B — Orderflow Market Analysis
@@ -617,7 +630,7 @@ See `docs/planning/sprints/SPRINT_037.md`, `S037_GATE.md`, and `ROADMAP.md` §11
 | 034 | Public Dashboard Demo Polish | COMPLETED | Waves 1–5 (#258–#259); main #260; VPS deploy; follow-ups #261–#264 |
 | 035 | Next increment selection (post public demo) | COMPLETED | chose S024 then S036→S037→AI/ML |
 | 036 | Research infra audit (DSL/component gate) | COMPLETED | 11 / 11 tasks; main #288 |
-| 037 | Component libraries + DSL simplification | IN_PROGRESS | Wave 0: DSL fill-in then trend.slope |
+| 037 | Component libraries + DSL simplification | COMPLETED | 7 / 7 tasks on sprint (#289–#294); main integration pending |
 
 ---
 
