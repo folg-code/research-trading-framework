@@ -1,6 +1,6 @@
 """Tests for trading session metadata enrichment on analysis paths."""
 
-from datetime import UTC, date, datetime
+from datetime import UTC, date, datetime, timedelta, timezone
 from decimal import Decimal
 
 import polars as pl
@@ -40,10 +40,12 @@ class _MismatchedLengthResolver:
 class _RecordingResolver:
     def __init__(self) -> None:
         self.call_count = 0
+        self.received_dtype: pl.DataType | None = None
         self._inner = CmeEsRthSessionResolver()
 
     def resolve(self, timestamps: pl.Series) -> pl.DataFrame:
         self.call_count += 1
+        self.received_dtype = timestamps.dtype
         return self._inner.resolve(timestamps)
 
 
@@ -108,6 +110,26 @@ def test_trading_session_metadata_rejects_empty_timestamps() -> None:
         TradingSessionMetadata.resolve((), CmeEsRthSessionResolver())
 
 
+def test_trading_session_metadata_rejects_naive_timestamps() -> None:
+    with pytest.raises(ValidationError, match="timestamp must be timezone-aware"):
+        TradingSessionMetadata.resolve(
+            (datetime(2024, 6, 3, 13, 30),),
+            CmeEsRthSessionResolver(),
+        )
+
+
+def test_trading_session_metadata_offset_aware_matches_utc_rth_facts() -> None:
+    offset = timezone(timedelta(hours=2))
+    timestamps = (
+        datetime(2024, 6, 3, 15, 29, tzinfo=offset),
+        datetime(2024, 6, 3, 15, 30, tzinfo=offset),
+    )
+    metadata = TradingSessionMetadata.resolve(timestamps, CmeEsRthSessionResolver())
+    assert metadata.is_rth == (False, True)
+    assert metadata.session_ids == (OUTSIDE_RTH_SESSION_ID, ES_RTH_SESSION_ID)
+    assert metadata.trading_days == (date(2024, 6, 3), date(2024, 6, 3))
+
+
 def test_trading_session_metadata_maps_rth_fixture_window() -> None:
     """Bars from 13:30 UTC on 2024-06-03 align to NY RTH open and same trading day."""
     timestamps = tuple(
@@ -155,6 +177,7 @@ def test_resolve_invokes_resolver_without_materializing_tuples(
     monkeypatch.setattr(pl.Series, "to_list", tracked_to_list)
     metadata = TradingSessionMetadata.resolve(timestamps, resolver)
     assert resolver.call_count == 1
+    assert resolver.received_dtype == pl.Datetime("us", "UTC")
     assert len(metadata) == len(timestamps)
     assert materialized_columns == []
     assert metadata.is_rth == (False, True)

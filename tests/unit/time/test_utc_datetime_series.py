@@ -1,12 +1,23 @@
 """Unit tests for UTC datetime tuple ingest into Polars Series."""
 
-from datetime import UTC, datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta, timezone, tzinfo
 
 import polars as pl
 import pytest
 
 from trading_framework.core.exceptions import ValidationError
 from trading_framework.time.utc_datetime_series import utc_datetime_series
+
+
+class _UnspecifiedOffsetTz(tzinfo):
+    def utcoffset(self, dt: datetime | None) -> timedelta | None:
+        return None
+
+    def dst(self, dt: datetime | None) -> timedelta | None:
+        return None
+
+    def tzname(self, dt: datetime | None) -> str | None:
+        return "UNSPECIFIED"
 
 
 def test_utc_1m_fixture_series_matches_input_instants() -> None:
@@ -22,6 +33,12 @@ def test_utc_1m_fixture_series_matches_input_instants() -> None:
 def test_naive_timestamps_are_rejected() -> None:
     with pytest.raises(ValidationError, match="timestamp must be timezone-aware"):
         utc_datetime_series((datetime(2024, 6, 3, 14, 30),))
+
+
+def test_tzinfo_without_utcoffset_is_rejected() -> None:
+    observed = datetime(2024, 6, 3, 14, 30, tzinfo=_UnspecifiedOffsetTz())
+    with pytest.raises(ValidationError, match="timestamp must be timezone-aware"):
+        utc_datetime_series((observed,))
 
 
 def test_offset_aware_timestamps_convert_to_utc() -> None:
