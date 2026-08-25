@@ -1,6 +1,9 @@
 """OHLCV validation contracts."""
 
-from trading_framework.market.validation.ohlc_invariants import assert_ohlc_invariants
+from trading_framework.market.validation.ohlc_invariants import (
+    assert_ohlc_invariants,
+    ohlc_invariant_issues,
+)
 from trading_framework.market.validation.protocols import (
     OhlcvValidator,
     ValidationIssue,
@@ -16,4 +19,5 @@ __all__ = [
     "ValidationResult",
     "ValidationSeverity",
     "assert_ohlc_invariants",
+    "ohlc_invariant_issues",
 ]
