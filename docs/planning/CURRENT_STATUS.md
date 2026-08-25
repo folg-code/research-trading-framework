@@ -26,15 +26,15 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 ## 2. Status Metadata
 
 ```text
-Status Date: 2026-07-18
-Current Phase: Sprint 036 research infra audit (gate for DSL / components)
-Current Milestone: Wave 0 path inventory + bench harness on sprint/research-infra-audit
-Implementation Status: Sprints 001-006, 008-024, 025-034 on main; Sprint 007 SKIPPED; 035 COMPLETED (selection); 036 PLANNED
+Status Date: 2026-08-25
+Current Phase: Sprint 036 complete on main; next is Sprint 037
+Current Milestone: S037 Wave 0 (SPRINT_037.md + S037_WAVE0_DECISIONS.md) — not started
+Implementation Status: Sprints 001-006, 008-024, 025-036 on main
 Overall Status: STABLE
-Active Sprint: none yet — open sprint/research-infra-audit at S036 Wave 0
-Last Completed Sprint: SPRINT_024 (dry-run reliability) → main (#270)
-Capability Tracks: Foundation COMPLETE; Data COMPLETE (core); Research COMPLETE (core); Strategy 6A COMPLETE; Phase 8A dry-run + S024 reliability on main; Dashboard / Live Paper / public demo COMPLETE
-Recent: S024 integrated to main (#270). Chosen next track: infra audit (S036) → component libraries + DSL simplify (S037) → AI/ML later. Public demo: https://dashboard.filipf.online
+Active Sprint: none (S036 on main; S037 not opened)
+Last Completed Sprint: SPRINT_036 (research infra audit) → main (#288)
+Capability Tracks: Foundation COMPLETE; Data COMPLETE (core); Research COMPLETE (core); Strategy 6A COMPLETE; Phase 8A dry-run + S024 on main; Dashboard / Live Paper / public demo COMPLETE
+Recent: S036 T001–T011 → main (#288; working PRs #272–#287). Next: S037 component libraries + DSL simplification (S037_GATE.md). AI/ML later.
 ```
 
 ---
@@ -167,6 +167,22 @@ SignalResearchDefinitionSpec (YAML/JSON)
 ```
 
 ADR: ADR-0020 (ACCEPTED). CLIs: `scripts/signal_research/`. Demos: `scripts/demo/run_model_research_nq_demo.py`, `run_portfolio_demo.py`. Methodology index: `docs/reference/RESEARCH_METHODOLOGIES.md`. See `SPRINT_017.md` and `S017_WAVE0_DECISIONS.md`.
+
+**Sprint 036 — Research Infra Audit** is **complete** on `main` (#288, 2026-08-25).
+
+Delivered:
+
+```text
+Wave 0 path inventory
+    → authoring bench + ranked DATA_REPRESENTATION_AUDIT
+    → Stage 0.5–2 (session resolver, resample without MarketBar,
+       derive table validation, scan_parquet, lazy analysis frame)
+    → ADRs for Stage 3/4 (code not started)
+    → S037_GATE.md
+```
+
+Audit: `docs/reference/DATA_REPRESENTATION_AUDIT.md`. Gate: `docs/planning/sprints/S037_GATE.md`.
+Bench: `scripts/ops/bench_authoring_analysis_evaluate.py`. See `SPRINT_036.md` and `S036_WAVE0_DECISIONS.md`.
 
 ---
 
@@ -484,6 +500,7 @@ PRB-002 and PRB-005 received partial MVP resolution in Sprint 003.
 | ADR-MA-001–011 Market Analysis Engine | ACCEPTED (Sprint 003) |
 | ADR-MA-012 Batch MTF with Polars | ACCEPTED (Sprint 004) |
 | ADR-MA-013 CME ES RTH + Swing Structure MTF | ACCEPTED (Sprint 005) |
+| ADR-MA-014 MarketFrame / Polars committed bulk engine | ACCEPTED (Sprint 036; D-REP-01) |
 | ADR-0006 | ACCEPTED (Sprint 006) |
 | ADR-0011 | ACCEPTED (Sprint 008) |
 | ADR-0012 | ACCEPTED (Sprint 009) |
@@ -507,7 +524,8 @@ Binding decisions D-001–D-036 and workspace invariants are documented in the a
 
 - **Inherited S002/S003 complexity** — MarketBar list, AnalysisDataView, Store+Workspace+Cache; see Architecture Simplification Review and TD-011–TD-016. Sprint 004 must not stack new wrappers without checklist §5.
 - **Phase 4 scope creep** — multitimeframe and component catalog can expand quickly; keep outcome-scoped PRs.
-- **Polars boundary creep** — Polars for resample/align only until MarketFrame migration is explicitly planned.
+- **Polars boundary creep** — accepted in ADR-MA-014: Polars is the committed bulk engine;
+  `AnalysisDataView` remains the live-runtime adapter. Stage 4 implements `MarketFrame`.
 - **Implementation fingerprint gap** — PRB-002 parameter identity is resolved; full implementation hashing remains for research parity.
 - **TA-Lib optional path** — deferred T027/S004-T016; NumPy adapter is the CI reference backend.
 
@@ -519,10 +537,11 @@ Binding decisions D-001–D-036 and workspace invariants are documented in the a
 Public demo loop CLOSED (S028–S034 + follow-ups #261–#264).
 Sprint 024 dry-run reliability → main (#270).
 Sprint 035 track choice CLOSED.
+Sprint 036 research infra audit COMPLETED on main (#288).
 
 Recommended next implementation:
-    Sprint 036 — Research infra audit (measured bottlenecks; gate for DSL/components)
-      then Sprint 037 — Component libraries + DSL simplification
+    Sprint 037 — Component libraries + DSL simplification
+      (entry: S037_GATE.md; Wave 0 writes SPRINT_037.md)
       then AI/ML research (IDEA-014) when authoring foundation is stable
 
 Deferred relative to that track:
@@ -532,7 +551,8 @@ Deferred relative to that track:
     PBO / CSCV / deflated Sharpe (ADR first)
     Residual docs / sample-data narrative
 
-Recently completed (dashboard / demo / dry-run):
+Recently completed (dashboard / demo / dry-run / authoring infra):
+    Sprint 036 — Research infra audit → main (#288; working PRs #272–#287)
     Sprint 024 — Dry-run reliability polish → main (#270)
     Sprint 034 — Public Dashboard Demo Polish → main (#260)
     Follow-ups — overview nav, English + diagrams, LWC OHLCV, README link (#261–#264)
@@ -543,12 +563,12 @@ Recently completed (dashboard / demo / dry-run):
 
 Deferred (explicit):
     packages/ shared presentation contracts (until second DTO consumer)
-    Deep market_analysis/ reorg (TD-003) until Phase 4B/4C or S036 audit requires it
+    Deep market_analysis/ reorg (TD-003) until Phase 4B/4C (S036 audit did not require it)
     Full ops/ nesting of deploy/ (rejected for S030)
     Further public-dashboard cosmetics as a default track
 ```
 
-See `docs/planning/sprints/SPRINT_035.md`, `SPRINT_024.md`, and `ROADMAP.md` §11–§12.
+See `docs/planning/sprints/S037_GATE.md`, `SPRINT_036.md`, and `ROADMAP.md` §11–§12.
 
 ---
 
@@ -591,7 +611,7 @@ See `docs/planning/sprints/SPRINT_035.md`, `SPRINT_024.md`, and `ROADMAP.md` §1
 | 033 | Dashboard presentation polish | COMPLETED | 6 / 6 tasks; Waves A–C (#253–#256); main #257 |
 | 034 | Public Dashboard Demo Polish | COMPLETED | Waves 1–5 (#258–#259); main #260; VPS deploy; follow-ups #261–#264 |
 | 035 | Next increment selection (post public demo) | COMPLETED | chose S024 then S036→S037→AI/ML |
-| 036 | Research infra audit (DSL/component gate) | PLANNED | measured audit before component libraries + DSL simplify |
+| 036 | Research infra audit (DSL/component gate) | COMPLETED | 11 / 11 tasks; main #288 |
 
 ---
 

@@ -11,6 +11,19 @@ uv run python tests/spike/run_market_analysis_backend_benchmark.py --json
 
 Optional: install TA-Lib locally to include talib timings (skipped otherwise).
 
+Authoring → analysis → evaluate microbench (Sprint 036 Wave 1; fixture-first):
+
+```bash
+uv run python scripts/ops/bench_authoring_analysis_evaluate.py
+uv run python scripts/ops/bench_authoring_analysis_evaluate.py --json
+uv run python scripts/ops/bench_authoring_analysis_evaluate.py --bars 500
+```
+
+Times P1 DSL compile, P2 `run_analysis`, and P3 `evaluate_models` on synthetic bars.
+Does not persist to `user_data/`. Uses canonical volatility market + signal models.
+The MA backend spike above remains the NumPy/pandas/TA-Lib comparison; this harness
+covers the production authoring pipeline instead.
+
 Interactive MTF swing inspection (S005-T014):
 
 ```bash

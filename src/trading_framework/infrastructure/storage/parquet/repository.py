@@ -11,13 +11,14 @@ from trading_framework.core.exceptions import ValidationError
 from trading_framework.core.profiling import optional_phase
 from trading_framework.infrastructure.storage.parquet.writer import (
     ParquetBarWriter,
-    filter_table_by_observed_range,
     market_bars_from_table,
+    scan_ohlcv_parquet_tables,
 )
 from trading_framework.infrastructure.storage.paths import (
     dataset_bars_path,
     dataset_ohlcv_partition_path,
     list_ohlcv_session_dates,
+    ohlcv_session_dates_overlapping_range,
 )
 from trading_framework.market.datasets import (
     DatasetMetadata,
@@ -73,33 +74,40 @@ class ParquetDatasetRepository:
         with optional_phase("ohlcv.list_session_dates"):
             session_dates = list_ohlcv_session_dates(self._root, query.dataset_ref)
         if session_dates:
-            tables: list[pa.Table] = []
-            with optional_phase("ohlcv.read_partition_files"):
-                for session_date in session_dates:
-                    path = dataset_ohlcv_partition_path(self._root, query.dataset_ref, session_date)
-                    if not path.exists():
-                        continue
-                    tables.append(self._writer.read_table(path))
-            if tables:
-                with optional_phase("ohlcv.read_partitioned"):
-                    combined = tables[0] if len(tables) == 1 else pa.concat_tables(tables)
-                    return filter_table_by_observed_range(
-                        combined,
-                        start_at=query.start_at,
-                        end_at=query.end_at,
+            with optional_phase("ohlcv.prune_session_dates"):
+                selected_dates = ohlcv_session_dates_overlapping_range(
+                    session_dates,
+                    query.start_at,
+                    query.end_at,
+                )
+            paths: list[Path] = []
+            with optional_phase("ohlcv.list_partition_files"):
+                for session_date in selected_dates:
+                    path = dataset_ohlcv_partition_path(
+                        self._root,
+                        query.dataset_ref,
+                        session_date,
                     )
-            return None
+                    if path.exists():
+                        paths.append(path)
+            if not paths:
+                return None
+            with optional_phase("ohlcv.scan_parquet"):
+                return scan_ohlcv_parquet_tables(
+                    paths,
+                    start_at=query.start_at,
+                    end_at=query.end_at,
+                )
 
         path = dataset_bars_path(self._root, query.dataset_ref)
         if not path.exists():
             return None
-        with optional_phase("ohlcv.read_legacy_file"):
-            table = self._writer.read_table(path)
-        return filter_table_by_observed_range(
-            table,
-            start_at=query.start_at,
-            end_at=query.end_at,
-        )
+        with optional_phase("ohlcv.scan_parquet"):
+            return scan_ohlcv_parquet_tables(
+                [path],
+                start_at=query.start_at,
+                end_at=query.end_at,
+            )
 
     def query_bars(self, query: HistoricalBarQuery) -> Sequence[MarketBar]:
         """Return bars in time order for the requested dataset range."""

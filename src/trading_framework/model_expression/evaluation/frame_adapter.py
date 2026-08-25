@@ -1,12 +1,11 @@
 """Convert aligned AnalysisFrame operands to Polars evaluation tables."""
 
-from datetime import datetime
-
+import numpy as np
 import polars as pl
 
-from trading_framework.market.temporal import derive_bar_interval
 from trading_framework.market_analysis.assembly.frame import AnalysisFrame
 from trading_framework.time.models.timeframe import Timeframe
+from trading_framework.time.utc_datetime_series import utc_datetime_series
 
 
 def build_evaluation_dataframe(
@@ -16,14 +15,16 @@ def build_evaluation_dataframe(
     column_keys: tuple[str, ...],
 ) -> pl.DataFrame:
     """Build a Polars table with timestamps, available_at and operand columns."""
-    timestamps = list(frame.timestamps)
-    available_at = [
-        derive_bar_interval(timestamp, evaluation_timeframe)[1] for timestamp in timestamps
-    ]
-    data: dict[str, list[datetime] | list[float]] = {
-        "timestamp": timestamps,
-        "available_at": available_at,
-    }
-    for key in column_keys:
-        data[key] = list(frame.columns[key])
-    return pl.DataFrame(data)
+    timestamps = utc_datetime_series(frame.timestamps)
+    operand_series = (
+        pl.Series(key, np.asarray(frame.columns[key], dtype=np.float64)) for key in column_keys
+    )
+    return (
+        pl.DataFrame({"timestamp": timestamps})
+        .with_columns(
+            (pl.col("timestamp") + pl.duration(seconds=evaluation_timeframe.total_seconds)).alias(
+                "available_at"
+            )
+        )
+        .with_columns(*operand_series)
+    )

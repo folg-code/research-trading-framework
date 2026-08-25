@@ -11,8 +11,9 @@ from trading_framework.core.exceptions import ValidationError
 from trading_framework.time.sessions.constants import (
     ES_RTH_SESSION_ID,
     OUTSIDE_RTH_SESSION_ID,
-    RESOLVER_OUTPUT_COLUMNS,
 )
+
+_NY_TIMEZONE = "America/New_York"
 
 
 def _validate_timestamps(timestamps: pl.Series) -> None:
@@ -40,52 +41,34 @@ class CmeEsRthSessionResolver:
 
     def resolve(self, timestamps: pl.Series) -> pl.DataFrame:
         _validate_timestamps(timestamps)
-        frame = pl.DataFrame({"timestamp": timestamps}).with_columns(
-            pl.col("timestamp").dt.convert_time_zone("America/New_York").alias("ny_ts"),
+        is_rth = (
+            (pl.col("weekday") <= 5)
+            & ((pl.col("hour") > 9) | ((pl.col("hour") == 9) & (pl.col("minute") >= 30)))
+            & (pl.col("hour") < 16)
         )
-        result = (
-            frame.with_columns(
+        if self.holiday_dates:
+            is_rth = is_rth & ~pl.col("trading_day").is_in(list(self.holiday_dates))
+        output = (
+            pl.DataFrame({"timestamp": timestamps})
+            .with_columns(
+                pl.col("timestamp").dt.convert_time_zone(_NY_TIMEZONE).alias("ny_ts"),
+            )
+            .with_columns(
                 pl.col("ny_ts").dt.date().alias("trading_day"),
                 pl.col("ny_ts").dt.weekday().alias("weekday"),
                 pl.col("ny_ts").dt.hour().alias("hour"),
                 pl.col("ny_ts").dt.minute().alias("minute"),
             )
-            .with_columns(
-                (
-                    (pl.col("weekday") <= 5)
-                    & ((pl.col("hour") > 9) | ((pl.col("hour") == 9) & (pl.col("minute") >= 30)))
-                    & (pl.col("hour") < 16)
-                ).alias("is_rth")
-            )
-            .with_columns(
-                pl.when(pl.col("is_rth"))
+            .select(
+                "timestamp",
+                "trading_day",
+                pl.when(is_rth)
                 .then(pl.lit(ES_RTH_SESSION_ID))
                 .otherwise(pl.lit(OUTSIDE_RTH_SESSION_ID))
-                .alias("session_id")
+                .alias("session_id"),
+                is_rth.alias("is_rth"),
             )
         )
-        if self.holiday_dates:
-            holiday_series = pl.Series("holiday", list(self.holiday_dates))
-            result = (
-                result.join(
-                    holiday_series.to_frame().with_columns(pl.lit(True).alias("is_holiday")),
-                    left_on="trading_day",
-                    right_on="holiday",
-                    how="left",
-                )
-                .with_columns(
-                    pl.when(pl.col("is_holiday").fill_null(False))
-                    .then(pl.lit(False))
-                    .otherwise(pl.col("is_rth"))
-                    .alias("is_rth"),
-                    pl.when(pl.col("is_holiday").fill_null(False))
-                    .then(pl.lit(OUTSIDE_RTH_SESSION_ID))
-                    .otherwise(pl.col("session_id"))
-                    .alias("session_id"),
-                )
-                .drop("is_holiday")
-            )
-        output = result.select(*RESOLVER_OUTPUT_COLUMNS)
         if output.height != timestamps.len():
             msg = "resolver output length must match input timestamps"
             raise ValidationError(msg)

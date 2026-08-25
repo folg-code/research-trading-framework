@@ -2,6 +2,7 @@
 
 from datetime import UTC, date, datetime
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 
@@ -227,6 +228,25 @@ def test_derive_continuous_ohlcv_registers_working_dataset_with_roll_lineage(
     assert lineage["derivation_version"] == TRADES_TO_BARS_VERSION
     assert "continuous_ohlcv_manifest_fingerprint" in lineage
     assert list_ohlcv_session_dates(storage_root, result.dataset_ref)
+
+
+def test_derive_continuous_ohlcv_does_not_decode_market_bars_on_default_path(
+    tmp_path: Path,
+) -> None:
+    storage_root, registry, source_ref = _publish_continuous_pipeline(tmp_path)
+    with patch(
+        "trading_framework.application.market_data.derive_continuous_ohlcv.market_bars_from_table",
+        side_effect=AssertionError("default path must not decode MarketBar objects"),
+    ):
+        result = derive_continuous_ohlcv(
+            _derive_config(source_ref),
+            storage_root=storage_root,
+            registry=registry,
+            bar_repository=ParquetDatasetRepository(storage_root),
+            clock=FixedClock(_DERIVED_AT),
+        )
+    assert result.validation_result.is_valid is True
+    assert result.bar_count >= 1
     assert continuous_ohlcv_manifest_path(storage_root, result.dataset_ref).exists()
     manifest = read_continuous_ohlcv_manifest(
         continuous_ohlcv_manifest_path(storage_root, result.dataset_ref)

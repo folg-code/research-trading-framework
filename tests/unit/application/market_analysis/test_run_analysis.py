@@ -167,7 +167,8 @@ def test_run_analysis_attaches_session_metadata_when_resolver_provided(
         )
     )
     assert result.frame is not None
-    assert result.frame.session_metadata is not None
+    assert result.workspace.session_metadata is not None
+    assert result.frame.session_metadata is result.workspace.session_metadata
     assert len(result.frame.session_metadata) == len(result.frame.timestamps)
     assert all(
         session_id in {"ES_RTH", "OUTSIDE_RTH"}
