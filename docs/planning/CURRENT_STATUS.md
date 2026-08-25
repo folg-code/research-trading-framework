@@ -27,14 +27,14 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 
 ```text
 Status Date: 2026-07-18
-Current Phase: Sprint 036 research infra audit (gate for DSL / components)
-Current Milestone: Wave 0 path inventory + bench harness on sprint/research-infra-audit
-Implementation Status: Sprints 001-006, 008-024, 025-034 on main; Sprint 007 SKIPPED; 035 COMPLETED (selection); 036 PLANNED
+Current Phase: Sprint 036 research infra audit — Wave 0 done, Wave 1 benches next
+Current Milestone: Fixture authoring→analysis→evaluate microbench on sprint/research-infra-audit
+Implementation Status: Sprints 001-006, 008-024, 025-035 on main; 036 IN_PROGRESS
 Overall Status: STABLE
-Active Sprint: none yet — open sprint/research-infra-audit at S036 Wave 0
-Last Completed Sprint: SPRINT_024 (dry-run reliability) → main (#270)
-Capability Tracks: Foundation COMPLETE; Data COMPLETE (core); Research COMPLETE (core); Strategy 6A COMPLETE; Phase 8A dry-run + S024 reliability on main; Dashboard / Live Paper / public demo COMPLETE
-Recent: S024 integrated to main (#270). Chosen next track: infra audit (S036) → component libraries + DSL simplify (S037) → AI/ML later. Public demo: https://dashboard.filipf.online
+Active Sprint: sprint/research-infra-audit (S036)
+Last Completed Sprint: SPRINT_024 (dry-run reliability) → main (#270); S035 selection COMPLETED
+Capability Tracks: Foundation COMPLETE; Data COMPLETE (core); Research COMPLETE (core); Strategy 6A COMPLETE; Phase 8A dry-run + S024 on main; Dashboard / Live Paper / public demo COMPLETE
+Recent: S036 Wave 0 decisions + path inventory. Next: bench harness (T002) then audit write-up. Track: audit → S037 DSL/components → AI/ML later.
 ```
 
 ---
@@ -591,7 +591,7 @@ See `docs/planning/sprints/SPRINT_035.md`, `SPRINT_024.md`, and `ROADMAP.md` §1
 | 033 | Dashboard presentation polish | COMPLETED | 6 / 6 tasks; Waves A–C (#253–#256); main #257 |
 | 034 | Public Dashboard Demo Polish | COMPLETED | Waves 1–5 (#258–#259); main #260; VPS deploy; follow-ups #261–#264 |
 | 035 | Next increment selection (post public demo) | COMPLETED | chose S024 then S036→S037→AI/ML |
-| 036 | Research infra audit (DSL/component gate) | PLANNED | measured audit before component libraries + DSL simplify |
+| 036 | Research infra audit (DSL/component gate) | IN_PROGRESS | Wave 0 done; `sprint/research-infra-audit` |
 
 ---
 
