@@ -358,5 +358,5 @@ feature lineage, leakage control, and artifact identity.
 
 | DSL creep during audit | Keep language changes in S037 |
 
-| Mega-sprint | Cap at two optimization PRs; rest → backlog / S037 |
+| Mega-sprint | Measurement gate on every PR (D-S036-04); Stage 1 re-scoped if T006 shows H2/H4 immaterial |
 

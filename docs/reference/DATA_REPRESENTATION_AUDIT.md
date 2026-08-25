@@ -653,10 +653,10 @@ resampling. Removing the object removes that check, so an equivalent table-level
 added, otherwise a silent correctness regression is possible. Fixture research facts must be proven
 byte-identical before and after.
 
-**Recommendation.** Accept. Ship first, as the S036-T004 optimization PR, with a table-level OHLC
+**Recommendation.** Accept. Ship as Stage 1 (S036-T007) after T006 measures H2/H4, with a table-level OHLC
 validator replacing the object-level one and a fixture equality test.
 
-**Outcome.** Accepted together with D-REP-07 as the full Stage 1, supplying S036-T004 and S036-T005.
+**Outcome.** Accepted together with D-REP-07 as the full Stage 1, supplying S036-T007 (after T006 measures H2/H4).
 
 ---
 
@@ -821,7 +821,7 @@ measurement. Sizes follow the 100–400 LOC target from the sprint git workflow.
 | Maintainer approves or rejects each D-REP entry | this document moves DRAFT → ACCEPTED | DONE 2026-08-25 |
 | Superseding ADR for D-REP-01 (Polars as committed engine; MA-004 / MA-010) | new ADR | TODO — blocks Stage 4 |
 | ADR note for D-REP-05 / D-REP-10 (availability + lineage addressability) | ADR-MA-009 / ADR-MA-005 amendment | TODO — blocks Stage 3 |
-| Baseline measurement captured | `bench_authoring_analysis_evaluate.py --json` committed as the reference | TODO — blocks Stage 1 |
+| Baseline measurement captured | `bench_authoring_analysis_evaluate.py --json` recorded in §6.1 | DONE 2026-08-25 — S036-T004 |
 
 **Nothing below starts before its blocking Stage 0 item completes.** Stage 1 needs only the baseline
 measurement; it does not wait for the ADRs.
