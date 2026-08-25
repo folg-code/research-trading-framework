@@ -11,6 +11,7 @@ from pathlib import Path
 import pyarrow.parquet as pq
 
 from trading_framework.core.exceptions import ValidationError
+from trading_framework.core.profiling import optional_phase
 from trading_framework.infrastructure.observability.memory_stats import process_rss_mb
 from trading_framework.infrastructure.observability.profile_context import active_phase_timer
 from trading_framework.infrastructure.storage.continuous_manifest_store import (
@@ -43,7 +44,7 @@ from trading_framework.infrastructure.storage.paths import (
     list_continuous_session_dates,
     list_ohlcv_session_dates,
 )
-from trading_framework.infrastructure.validation.ohlcv_validator import OhlcvBarValidator
+from trading_framework.infrastructure.validation.ohlcv_table_validator import OhlcvTableValidator
 from trading_framework.market.datasets import (
     DatasetLifecycleState,
     DatasetMetadata,
@@ -245,7 +246,7 @@ def derive_continuous_ohlcv(
         storage_root,
         metadata_reader=dataset_registry,
     )
-    bar_validator = validator or OhlcvBarValidator()
+    table_validator = OhlcvTableValidator()
     utc_clock = clock or SystemClock()
 
     source_metadata = dataset_registry.get(config.source_continuous_trades_ref)
@@ -363,8 +364,11 @@ def derive_continuous_ohlcv(
                 timer.log(f"[{index}/{len(sessions)}] {session_date} trades={trade_rows} bars=0")
             continue
 
-        session_bars = market_bars_from_table(bars_table)
-        validation_results.append(bar_validator.validate(session_bars))
+        with optional_phase("derive.validate"):
+            if validator is None:
+                validation_results.append(table_validator.validate_table(bars_table))
+            else:
+                validation_results.append(validator.validate(market_bars_from_table(bars_table)))
 
         write_context = timer.phase("derive.write") if timer is not None else nullcontext()
         write_started = time.perf_counter()
