@@ -27,14 +27,14 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 
 ```text
 Status Date: 2026-08-25
-Current Phase: Sprint 038 Session Range (Wave 0 locked A/A/A/A)
-Current Milestone: Sprint 038 Session Range
-Implementation Status: Sprints 001-006, 008-024, 025-037 on main; 038 in progress
+Current Phase: Sprint 038 Session Range complete on sprint; next wick / distance after main
+Current Milestone: Sprint 038 Session Range (sprint; main integration pending)
+Implementation Status: Sprints 001-006, 008-024, 025-037 on main; 038 complete on sprint
 Overall Status: STABLE
-Active Sprint: SPRINT_038 (Wave 0 locked)
-Last Completed Sprint: SPRINT_037 (component libraries + DSL) → main (#296)
+Active Sprint: none (S038 awaiting main integration)
+Last Completed Sprint: SPRINT_038 (Session Range) on sprint/session-range (#297, #298)
 Capability Tracks: Foundation COMPLETE; Data COMPLETE (core); Research COMPLETE (core); Strategy 6A COMPLETE; Phase 8A dry-run + S024 on main; Dashboard / Live Paper / public demo COMPLETE
-Recent: S038 Wave 0 locked (D-S038-04…07 = A). Next: session metadata on compute view, then structure.session_range.
+Recent: S038 Session Range on sprint (#298). structure.session_range + compute-view session metadata. Next: integrate S038 to main, then wick / distance.
 ```
 
 ---
@@ -199,10 +199,20 @@ Wave 0 lock (D-S037-01 … D-S037-09)
 
 `compile.py` was not changed; T006 bench re-run is N/A.
 
-**Sprint 038 — Session Range Structure** is **in progress**. Integration branch:
-`sprint/session-range`. Wave 0 locked D-S038-04…07 as A (compute-view metadata,
-running outputs, RTH-only NaN, HTF re-resolve). See `SPRINT_038.md` and
-`S038_WAVE0_DECISIONS.md`. IDEA-014 training remains deferred.
+**Sprint 038 — Session Range Structure** is **complete** on `sprint/session-range`
+(#297 Wave 0, #298 component + DSL). Main integration is a maintainer decision.
+
+Delivered:
+
+```text
+Wave 0 lock A/A/A/A (D-S038-04 … D-S038-07)
+    → session_metadata on AnalysisWorkspaceView (HTF re-resolve + cache)
+    → structure.session_range running RTH OHLC/range + session_completed
+    → model_authoring structure.session_* namespace
+```
+
+IDEA-014 training remains deferred. Next catalog after main: wick, then distance-to-level.
+See `SPRINT_038.md` and `S038_WAVE0_DECISIONS.md`.
 
 ---
 
@@ -559,10 +569,10 @@ Sprint 024 dry-run reliability → main (#270).
 Sprint 035 track choice CLOSED.
 Sprint 036 research infra audit COMPLETED on main (#288).
 Sprint 037 component libraries + DSL COMPLETED on main (#296).
-Sprint 038 Session Range Wave 0 LOCKED on sprint/session-range (D-S038-04 … D-S038-07 = A).
+Sprint 038 Session Range COMPLETED on sprint/session-range (#297, #298).
 
 Recommended next implementation:
-    structure.session_range (T002–T005)
+    Integrate Sprint 038 to main
     then wick / distance catalog PRs
     then AI/ML research (IDEA-014)
 
@@ -636,7 +646,7 @@ See `docs/planning/sprints/SPRINT_038.md`, `S038_WAVE0_DECISIONS.md`, `S037_GATE
 | 035 | Next increment selection (post public demo) | COMPLETED | chose S024 then S036→S037→AI/ML |
 | 036 | Research infra audit (DSL/component gate) | COMPLETED | 11 / 11 tasks; main #288 |
 | 037 | Component libraries + DSL simplification | COMPLETED | 7 / 7 tasks; main #296 |
-| 038 | Session Range Structure | IN PROGRESS | Wave 0 locked; T002–T006 open |
+| 038 | Session Range Structure | COMPLETED on sprint | T001–T006; #297 #298; main pending |
 
 ---
 

@@ -5,7 +5,7 @@
 ```text
 Sprint: 038
 Phase: Research authoring catalog (pre–AI/ML)
-Status: WAVE 0 LOCKED (A/A/A/A); implementation in progress
+Status: COMPLETED on sprint/session-range (#297, #298); integration to main pending
 Planned Start: 2026-08-25
 Planned End: TBD
 Sprint Goal Owner: Project Maintainer
@@ -89,7 +89,7 @@ on the fixture path with `CmeEsRthSessionResolver`. Gate `S037_GATE.md` §3.1 st
 | S038-T003 | Structure `structure.session_range` + NumPy kernel | DONE |
 | S038-T004 | `model_authoring` structure namespace functions | DONE |
 | S038-T005 | Catalog docs + authored model on the fixture path | DONE |
-| S038-T006 | CURRENT_STATUS / ROADMAP closeout | TODO |
+| S038-T006 | CURRENT_STATUS / ROADMAP closeout | DONE |
 
 Suggested PR waves (into `sprint/session-range`, never `main` until integration):
 
