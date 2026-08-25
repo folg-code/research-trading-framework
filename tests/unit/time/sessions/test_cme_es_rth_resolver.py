@@ -10,6 +10,7 @@ from trading_framework.core.exceptions import ValidationError
 from trading_framework.time.sessions import (
     ES_RTH_SESSION_ID,
     OUTSIDE_RTH_SESSION_ID,
+    RESOLVER_OUTPUT_COLUMNS,
     CmeEsRthSessionResolver,
 )
 
@@ -53,6 +54,17 @@ def test_holiday_mask_excludes_rth_on_weekday() -> None:
     assert row["session_id"] == OUTSIDE_RTH_SESSION_ID
 
 
+def test_holiday_mask_does_not_exclude_adjacent_weekday() -> None:
+    holiday = date(2024, 6, 3)
+    resolver = CmeEsRthSessionResolver(holiday_dates=frozenset({holiday}))
+    frame = resolver.resolve(
+        pl.Series("timestamp", [_utc(2024, 6, 3, 13, 30), _utc(2024, 6, 4, 13, 30)])
+    )
+    assert frame["trading_day"].to_list() == [holiday, date(2024, 6, 4)]
+    assert frame["is_rth"].to_list() == [False, True]
+    assert frame["session_id"].to_list() == [OUTSIDE_RTH_SESSION_ID, ES_RTH_SESSION_ID]
+
+
 def test_batch_output_columns_and_length() -> None:
     timestamps = pl.Series(
         "timestamp",
@@ -82,3 +94,20 @@ def test_resolver_rejects_non_utc_timezone() -> None:
     )
     with pytest.raises(ValidationError, match="UTC"):
         CmeEsRthSessionResolver().resolve(timestamps)
+
+
+def test_output_values_match_previous_string_session_semantics() -> None:
+    timestamps = pl.Series(
+        "timestamp",
+        [_utc(2024, 6, 3, 13, 29), _utc(2024, 6, 3, 13, 30)],
+    )
+    frame = CmeEsRthSessionResolver().resolve(timestamps)
+    assert frame.columns == list(RESOLVER_OUTPUT_COLUMNS)
+    assert frame.height == timestamps.len()
+    assert frame["timestamp"].dtype == timestamps.dtype
+    assert frame["trading_day"].dtype == pl.Date
+    assert frame["session_id"].dtype == pl.Utf8
+    assert frame["is_rth"].dtype == pl.Boolean
+    assert frame["is_rth"].to_list() == [False, True]
+    assert frame["trading_day"].to_list() == [date(2024, 6, 3), date(2024, 6, 3)]
+    assert frame["session_id"].to_list() == [OUTSIDE_RTH_SESSION_ID, ES_RTH_SESSION_ID]
