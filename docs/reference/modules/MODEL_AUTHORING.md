@@ -54,7 +54,7 @@ orchestration, not part of the authored model.
 | Namespace | Typical use |
 |-----------|-------------|
 | `price` | Canonical OHLCV fields on the evaluation grid (`price.close`) |
-| `trend` | Features such as `trend.ema(period=20)` |
+| `trend` | Features such as `trend.ema(period=20)` and `trend.slope(period=20)` |
 | `volatility` | `volatility.atr(period=14)`, `volatility.true_range()`, `volatility.state(...)` |
 | `structure` | HH/HL/LH/LL events and `latest_*_level` (not `*_observed_index`) |
 

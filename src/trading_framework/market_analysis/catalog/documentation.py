@@ -48,6 +48,13 @@ _DOCUMENTATION: dict[str, ComponentCatalogEntry] = {
             "trend.price_above_ema(period=20)",
         ),
     ),
+    "trend.slope": ComponentCatalogEntry(
+        component_id=ComponentId("trend.slope"),
+        summary="Causal OLS slope of close over period",
+        tags=("trend", "feature"),
+        examples=("trend.slope(period=20) > 0",),
+        notes="Slope of close only; not a generic slope-of-any-series combinator.",
+    ),
     "structure.swing": ComponentCatalogEntry(
         component_id=ComponentId("structure.swing"),
         summary="Pivot swing structure with HH/HL/LH/LL events",

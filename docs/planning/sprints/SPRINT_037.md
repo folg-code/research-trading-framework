@@ -97,7 +97,7 @@ write a market + signal model using only `model_authoring` exports.
 | S037-T002 | DSL fill-in: `volatility.atr` and `volatility.true_range` | DONE |
 | S037-T003 | DSL fill-in: author-facing `structure.swing` events and latest levels (not index internals) | DONE |
 | S037-T004 | Authoring docs: one copy-pasteable model using only `model_authoring` exports | DONE |
-| S037-T005 | Feature `trend.slope` — OLS slope of close over `period` + DSL | TODO |
+| S037-T005 | Feature `trend.slope` — OLS slope of close over `period` + DSL | DONE |
 | S037-T006 | Compile bench check if `compile.py` changed; `p1_compile` still negligible | TODO |
 | S037-T007 | CURRENT_STATUS / ROADMAP closeout | TODO |
 
