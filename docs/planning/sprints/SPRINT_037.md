@@ -36,7 +36,7 @@ research-enabling set (slope, wick ratio, distance-to-level, Session Range) was 
 
 ```text
 existing catalog reachable from model_authoring
-  -> first S007-class Features / Structure
+  -> one new Feature (trend.slope)
   -> authors write models without importing model_expression
 ```
 
@@ -47,8 +47,8 @@ existing catalog reachable from model_authoring
 ```text
 Make the catalog grow as components + namespace functions
   -> fill DSL holes for components that already exist
-  -> land the first research-enabling S007 pieces
-  -> keep IR stable (ADR-0006)
+  -> land one new Feature (trend.slope)
+  -> keep IR stable (ADR-0006); same strategy surface for later ML States
 ```
 
 Success (from `S037_GATE.md`): a maintainer can add a catalog component and a matching
@@ -66,8 +66,8 @@ write a market + signal model using only `model_authoring` exports.
   `trading_framework.model_authoring`.
 - New Market Analysis components that follow `S037_GATE.md` §3.1 (identity, schema, NumPy
   adapter, registry, DSL reference, tests).
-- First new slice: **slope** Feature, then **Session Range** Structure, then **wick ratio**
-  and **distance to latest swing level** if they stay one-PR each.
+- One new component: **`trend.slope`** (OLS of close over `period`) + DSL, as the pattern
+  for “component + namespace function in one PR”.
 - Re-run `scripts/ops/bench_authoring_analysis_evaluate.py` if `model_authoring/compile.py`
   changes; `p1_compile` must stay negligible vs `p2`.
 
@@ -80,7 +80,8 @@ write a market + signal model using only `model_authoring` exports.
 - Stage 3 `available_at` column / lineage sidecar; Stage 4 `MarketFrame` (independently
   sequenced).
 - D-REP-04b `price_nanos`; D-REP-06 tz-aware Parquet.
-- IDEA-014 / AI-ML; Phase 4B / 6B / Replay.
+- Session Range, wick ratio, distance-to-level (follow-on catalog PRs).
+- IDEA-014 training / `fit` in DSL; Phase 4B / 6B / Replay.
 - Trend State and Liquidity Sweep (need a research question and extra contracts).
 - Dashboard visualization increment (S007-T007); S006 inspection overlay is enough.
 - New bulk consumers of `list[MarketBar]`; pandas; `pl.Decimal`.
@@ -97,14 +98,8 @@ write a market + signal model using only `model_authoring` exports.
 | S037-T003 | DSL fill-in: author-facing `structure.swing` events and latest levels (not index internals) | TODO |
 | S037-T004 | Authoring docs: one copy-pasteable model using only `model_authoring` exports | TODO |
 | S037-T005 | Feature `trend.slope` — OLS slope of close over `period` + DSL | TODO |
-| S037-T006 | Structure `structure.session_range` — RTH session OHLC / range / completed + DSL | TODO |
-| S037-T007 | Feature `price.wick_ratio` (or `volatility.wick_ratio`) + DSL | TODO |
-| S037-T008 | Feature `structure.distance_to_latest_swing_*` composing existing swing levels + DSL | TODO |
-| S037-T009 | Compile bench check if `compile.py` changed; `p1_compile` still negligible | TODO |
-| S037-T010 | CURRENT_STATUS / ROADMAP closeout | TODO |
-
-T007 and T008 may slip to a follow-on PR after Session Range if a single component PR exceeds
-~400 meaningful lines. They must not invent a combinator language.
+| S037-T006 | Compile bench check if `compile.py` changed; `p1_compile` still negligible | TODO |
+| S037-T007 | CURRENT_STATUS / ROADMAP closeout | TODO |
 
 ---
 
@@ -116,9 +111,7 @@ Working PRs into `sprint/component-libraries-dsl` (never `main` until sprint int
 2. Volatility DSL fill-in (T002)
 3. Swing DSL fill-in (T003) + authoring copy-paste example (T004) if they stay reviewable together; otherwise split
 4. Slope Feature (T005)
-5. Session Range Structure (T006)
-6. Wick ratio and/or distance-to-level (T007–T008)
-7. Bench confirmation + closeout (T009–T010)
+5. Bench confirmation + closeout (T006–T007)
 
 One coherent catalog outcome per PR (gate §3.4). Target 100–400 meaningful lines.
 
@@ -127,12 +120,13 @@ One coherent catalog outcome per PR (gate §3.4). Target 100–400 meaningful li
 ## 6. Wave 0 decision checklist
 
 - [x] Confirm sprint branch: `sprint/component-libraries-dsl`
-- [x] First catalog slice: existing-catalog DSL, then slope, then Session Range
-- [x] DSL fill-in is Wave 1, not bundled with the first new component
+- [x] Slice: existing-catalog DSL, then one new component `trend.slope`
+- [x] DSL fill-in is Wave 1, not bundled with slope
+- [x] Discretionary and ML share Strategy Model + DSL (D-S037-09)
 - [x] Confirm IR stays stable (ADR-0006)
-- [x] Confirm Stage 3/4, IDEA-014, Trend State, Liquidity Sweep are out of this sprint
+- [x] Session Range / IDEA-014 training out of this sprint
 
-See `S037_WAVE0_DECISIONS.md` for D-S037-01 … D-S037-08.
+See `S037_WAVE0_DECISIONS.md` for D-S037-01 … D-S037-09.
 
 ---
 
@@ -140,7 +134,7 @@ See `S037_WAVE0_DECISIONS.md` for D-S037-01 … D-S037-08.
 
 1. Gate rules in `S037_GATE.md` still hold (IR stable; no new operators; no `list[MarketBar]` bulk paths).
 2. Existing catalog components that authors need are reachable from `model_authoring` namespaces.
-3. At least **slope** and **Session Range** land as components + DSL + tests on the fixture harness path.
+3. **`trend.slope`** lands as a component + DSL + tests on the fixture harness path.
 4. An authored market + signal model in docs/tests imports only `model_authoring` (no `model_expression`).
 5. If compile changed, `p1_compile` remains negligible vs `p2` on `bench_authoring_analysis_evaluate.py`.
 6. Quality gates pass.
@@ -149,9 +143,10 @@ See `S037_WAVE0_DECISIONS.md` for D-S037-01 … D-S037-08.
 
 ## 8. Follow-on (not this sprint)
 
+- Session Range, then wick / distance-to-level.
 - Trend State and Liquidity Sweep when a concrete research question needs them.
 - Stage 3 availability/lineage code; Stage 4 `MarketFrame`.
-- AI/ML (IDEA-014) after authoring UX is stable.
+- Fitted catalog States (IDEA-014) after authoring UX is stable; strategy file still uses DSL.
 
 ---
 
@@ -161,5 +156,4 @@ See `S037_WAVE0_DECISIONS.md` for D-S037-01 … D-S037-08.
 |------|------------|
 | New syntax disguised as helpers | Reject PRs that add IR nodes or dunder operators; namespace functions only |
 | Waiting for MarketFrame | Gate forbids it; new batch components use the current view + NumPy adapter |
-| Session Range rewrites the resolver | Consume S005 session metadata; do not change CME ES RTH mapping |
 | Mega-component PRs | One component or tight family per PR; split if > ~400 lines |

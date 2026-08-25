@@ -21,8 +21,8 @@ Extend the component catalog **only** with pieces needed for the first real rese
 
 **Scope gate (2026-07-12):** SKIPPED — minimum set satisfied; Sprint 008 started.
 
-Sprint 037 (`sprint/component-libraries-dsl`) picks up **slope** and **Session Range** (plus
-existing-catalog DSL fill-in). Trend State and Liquidity Sweep remain deferred.
+Sprint 037 (`sprint/component-libraries-dsl`) picks up **existing-catalog DSL** and **slope**.
+Session Range, Trend State and Liquidity Sweep remain deferred.
 
 ---
 
