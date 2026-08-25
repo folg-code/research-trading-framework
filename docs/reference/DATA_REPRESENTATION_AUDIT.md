@@ -826,11 +826,24 @@ measurement. Sizes follow the 100–400 LOC target from the sprint git workflow.
 **Nothing below starts before its blocking Stage 0 item completes.** Stage 1 needs only the baseline
 measurement; it does not wait for the ADRs.
 
-> **Open sequencing question (2026-08-25).** The baseline in §6.1 shows the largest measured costs are
-> M1 `resolve_sessions` and M2 `build_evaluation_table`, neither of which Stage 1 targets — Stage 1
-> addresses paths the current harness does not exercise (§6.3). Either extend the harness to cover
-> multitimeframe and Parquet reads before committing to Stage 1, or insert a measured-first stage
-> ahead of it. Not decided; see §10.2.
+**Sequencing resolved 2026-08-25.** The baseline showed the largest measured costs (M1, M2) sit
+outside Stage 1, so a measured-first stage is inserted ahead of it. Measured work leads; structurally
+justified work follows once its paths are covered by a measurement.
+
+### Stage 0.5 — Measured hot spot first
+
+Depends on: the §6.1 baseline. No decision from §7 is required — this changes no contract.
+
+| PR | Outcome | Files | Risk |
+|---|---|---|---|
+| `feat/session-resolver-single-pass` | fuse the four chained `with_columns` into one pass; emit `session_id` as a categorical/enum instead of a full string column; **resolver signature unchanged** | `time/sessions/cme_es_rth.py` | LOW |
+
+Scope is deliberately minimal: no `LazyFrame` rewrite, no caching, no contract change. Those remain
+available as follow-ups once this PR shows how much of M1 is the `with_columns` chain versus the
+`dt.convert_time_zone` call.
+
+Acceptance: identical resolver output on fixtures (columns, dtypes and values); before/after from
+`bench_authoring_analysis_evaluate.py --bars 10000`.
 
 ### Stage 1 — Redundant conversions (no contract change)
 
@@ -838,9 +851,13 @@ Depends on: D-REP-03, D-REP-07.
 
 | PR | Outcome | Files | Risk |
 |---|---|---|---|
+| `bench/mtf-and-parquet-coverage` | extend the harness to cover a multitimeframe request (exercises resample + alignment) and a Parquet-backed read; **prerequisite** — without it H1/H2/H4/H6 stay unmeasured | `scripts/ops/bench_authoring_analysis_evaluate.py` | LOW |
 | `feat/table-level-ohlcv-validator` | OHLC invariants validated on `pa.Table` / Polars | `infrastructure/validation/`, `market/validation/` | LOW |
 | `feat/resample-without-marketbar-roundtrip` | `resample_analysis_view` stays columnar end to end | `market_analysis/data/resample.py` | LOW |
 | `feat/derive-continuous-table-validation` | drop Arrow → `MarketBar` decode before validation | `application/market_data/derive_continuous_ohlcv.py` | LOW |
+
+The harness PR ships first. If it shows H2 or H4 are immaterial at realistic scale, the remaining
+Stage 1 PRs are re-scoped or dropped rather than shipped on structural grounds alone.
 
 Acceptance: fixture research facts byte-identical; before/after timing in each PR.
 
@@ -896,8 +913,8 @@ Depends on: D-REP-08, D-REP-09. Opportunistic; no dedicated sprint slot.
 ### Sequencing constraints
 
 ```text
-Stage 0  ──► Stage 1 ──► Stage 2 ──► Stage 3 ──► Stage 4 (conditional)
-                                              └─► Stage 5 (separate sprint)
+Stage 0 ──► Stage 0.5 ──► Stage 1 ──► Stage 2 ──► Stage 3 ──► Stage 4 (conditional)
+                                                           └─► Stage 5 (separate sprint)
 Stage 6 may interleave anywhere.
 ```
 
@@ -942,7 +959,7 @@ Stage 4 remains conditional on its ADR; Stage 5 remains a separate sprint.
 
 | Item | Why it is still open |
 |---|---|
-| **Stage ordering after the baseline** | the measured hot spots (M1, M2) are not what Stage 1 targets; the harness does not cover Stage 1's paths. Decide between extending the harness first or inserting a measured-first stage |
+| Harness coverage for Stage 1 paths | the harness is single-timeframe and skips Parquet, so H1/H2/H4/H6 stay unmeasured; extending it is a prerequisite for justifying Stage 1 PRs on measurement rather than structure |
 | D-REP-06 — tz-aware Parquet timestamps | schema migration cost couples it to the deferred D-REP-04b; the cheap half (validating helper instead of `.replace(tzinfo=UTC)`) can be taken independently |
 | D-REP-08 — single configuration mechanism | hygiene; no sprint slot allocated |
 | D-REP-09 — deduplicate `DatasetMetadataReader` | opportunistic; fold into whichever PR touches those modules |

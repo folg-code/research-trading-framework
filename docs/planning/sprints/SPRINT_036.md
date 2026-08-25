@@ -196,19 +196,23 @@ before expanding the component catalog or simplifying `model_authoring/`.
 
 | S036-T002 | Bench/spike harness for authoring → analysis → research (fixture) | DONE |
 
-| S036-T003 | Audit write-up: ranked bottlenecks + non-goals | PARTIAL — `docs/reference/DATA_REPRESENTATION_AUDIT.md` (structural); measured ranking pending T004 |
+| S036-T003 | Audit write-up: ranked bottlenecks + non-goals + canonical type policy | DONE — `docs/reference/DATA_REPRESENTATION_AUDIT.md` |
 
-| S036-T004 | Baseline measurement committed as reference for all later PRs (closes T003 per D-S036-07) | TODO |
+| S036-T004 | Baseline measurement (250 / 2 000 / 10 000 bars) recorded as the reference for all later PRs | DONE — audit §6.1 |
 
-| S036-T005 | Stage 1 — table-level validators + remove `MarketBar` round-trips (D-REP-03 / D-REP-07) | TODO |
+| S036-T005 | Stage 0.5 — session resolver single pass + categorical `session_id` (measured M1, 59 % of `run_analysis`) | TODO |
 
-| S036-T006 | Stage 2 — `scan_parquet` at repository boundary, then lazy analysis frame builder (D-REP-02) | TODO |
+| S036-T006 | Extend bench harness to cover multitimeframe and Parquet reads (prerequisite for Stage 1) | TODO |
 
-| S036-T007 | ADRs for D-REP-01, D-REP-05, D-REP-10 | TODO |
+| S036-T007 | Stage 1 — table-level validators + remove `MarketBar` round-trips (D-REP-03 / D-REP-07) | TODO — scope confirmed by T006 |
 
-| S036-T008 | Gate doc for S037 (DSL simplicity criteria + component library rules) | TODO |
+| S036-T008 | Stage 2 — `scan_parquet` at repository boundary, then lazy analysis frame builder (D-REP-02) | TODO |
 
-| S036-T009 | CURRENT_STATUS / ROADMAP closeout | TODO |
+| S036-T009 | ADRs for D-REP-01, D-REP-05, D-REP-10 | TODO — blocks Stage 3 / Stage 4 |
+
+| S036-T010 | Gate doc for S037 (DSL simplicity criteria + component library rules) | TODO |
+
+| S036-T011 | CURRENT_STATUS / ROADMAP closeout | TODO |
 
 The data representation policy and the D-REP decision register live in
 [`../../reference/DATA_REPRESENTATION_AUDIT.md`](../../reference/DATA_REPRESENTATION_AUDIT.md)
@@ -229,13 +233,17 @@ Suggested PR waves into `sprint/research-infra-audit`:
 
 4. Baseline measurement committed  
 
-5. Stage 1 optimization PRs (D-REP-03 / D-REP-07)  
+5. Stage 0.5 — session resolver single pass (measured top item)  
 
-6. Stage 2 optimization PRs (D-REP-02)  
+6. Harness extension: multitimeframe + Parquet coverage  
 
-7. ADRs for accepted contract changes (D-REP-01 / D-REP-05 / D-REP-10)  
+7. Stage 1 optimization PRs (D-REP-03 / D-REP-07), scoped by the extended harness  
 
-8. S037 gate doc + sprint closeout  
+8. Stage 2 optimization PRs (D-REP-02)  
+
+9. ADRs for accepted contract changes (D-REP-01 / D-REP-05 / D-REP-10)  
+
+10. S037 gate doc + sprint closeout  
 
 The two-PR optimization cap was lifted on 2026-08-25 (see amendment in `S036_WAVE0_DECISIONS.md`).
 The binding constraint is the measurement gate, not PR count.
