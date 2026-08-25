@@ -16,6 +16,10 @@ Method:        static read-only inspection; no measurements re-run in this pass
 Where they partially address a finding, §6.2 says so explicitly. Line references are valid as of
 `f0a82c5` and should be re-checked after any Stage 1 PR.
 
+**Progress note (2026-08-25).** Stage 0.5 shipped in #279 (`session_id` stays Utf8; timezone remains
+its own eager pass). T006 harness coverage shipped in #278 (`--mtf`, `--parquet`). Measured H2/H6/H4
+notes are in §6.3; Stage 1 scope is in §8.
+
 **Decision summary (2026-08-25).** Accepted: D-REP-01 (with superseding ADR; `AnalysisDataView`
 retained as a live-runtime adapter), D-REP-02 (two-step), D-REP-03, D-REP-04a, D-REP-05, D-REP-07,
 D-REP-10 (sidecar variant). Deferred to a dedicated sprint: D-REP-04b. Still open: D-REP-06,
@@ -80,10 +84,10 @@ Binance). The "naive means UTC" convention is re-implemented by hand in every re
 
 **Measured** on the authoring → analysis → evaluate path (§6.1, 10 000 bars):
 
-1. **`resolve_sessions` — 59 % of `run_analysis`.** `CmeEsRthSessionResolver` is vectorized but runs
-   four chained *eager* `with_columns` over materialized intermediates plus a timezone conversion and
-   a full string `session_id` column. The largest single measured cost, and the clearest evidence for
-   adopting lazy Polars.
+1. **`resolve_sessions` — 59 % of `run_analysis` at the §6.1 baseline.** `CmeEsRthSessionResolver`
+   was vectorized but ran four chained *eager* `with_columns` plus a timezone conversion and a Utf8
+   `session_id` column. #279 fused the RTH/`session_id` work into one pass (**36.25 ms → ~29–31 ms**
+   at 10k bars); timezone conversion remains its own pass. Still the clearest evidence for D-REP-02.
 2. **`build_evaluation_table` — 89 % of `evaluate_models`.** Still dominant after the #275
    vectorization; the residue is frame construction plus per-AST-node scratch frames.
 3. **Component `execute` — 39 % of `run_analysis`**, including the `tuple[float, ...]` ↔ `np.ndarray`
@@ -92,14 +96,16 @@ Binance). The "naive means UTC" convention is re-implemented by hand in every re
 Planning, frame assembly, view loading and DSL compile together stay under 2 % and are flat in bar
 count — DSL compile is 0.2 ms at every size, so Sprint 037 has headroom.
 
-**Structural, not yet measured** (the harness covers neither Parquet I/O nor multitimeframe, §6.3):
+**Structural, now partly measured** (§6.3 after #278):
 
 4. **No `LazyFrame` anywhere.** 66 Polars files run fully eager: no predicate or projection pushdown,
-   no streaming, every Parquet read materializes the whole file.
-5. **The resample round-trip.** `tuple[float] → Polars → iter_rows → Decimal(str(float)) → Price →
-   MarketBar → float → tuple[float]`, with full OHLC re-validation per row, per timeframe.
-6. **Object materialization on bulk paths** (TD-011): `list[MarketBar]` in historical query, CSV
-   import, derivation validation and dashboards.
+   no streaming, every Parquet read materializes the whole file. Synthetic `--parquet` at 500 1m bars
+   showed file I/O cheap versus `ohlcv.build_column_batch`; dataset-scale H1 is still open.
+5. **The resample round-trip (H2) is material.** `--mtf` at 500 1m bars: `execute.resample` **~24 ms**
+   versus default `p2` **~10 ms**. Alignment (H6) is **~0.6 ms** at this scale — not a Stage 1 target.
+6. **Object materialization on bulk paths** (TD-011 / H4): `list[MarketBar]` in `query_historical`,
+   CSV import, derivation validation and dashboards. `--parquet` times `query_historical_columnar`,
+   so H4 itself remains unmeasured.
 
 ### 1.4 The five target decisions
 
@@ -520,7 +526,7 @@ Peak allocation: `p2` 87 KB → 354 KB → 1.59 MB; `p3` 91 KB → 344 KB → 1.
 
 | # | Path | Share at 10k bars | Finding |
 |---|---|---|---|
-| M1 | `run_analysis.resolve_sessions` | **59 % of `p2`** | `CmeEsRthSessionResolver.resolve` is already vectorized, but runs **four chained eager `with_columns`** over materialized intermediates, a `dt.convert_time_zone("America/New_York")`, and builds `session_id` as a full string column. Scales slightly superlinearly. |
+| M1 | `run_analysis.resolve_sessions` | **59 % of `p2`** | Baseline: four chained eager `with_columns`, `dt.convert_time_zone("America/New_York")`, Utf8 `session_id`. **#279** fused RTH/`session_id` into one pass (**36.25 ms → ~29–31 ms** at 10k); timezone stays a separate pass; `session_id` stays Utf8. Residual M1 is still the D-REP-02 evidence. |
 | M2 | `evaluate_models.build_evaluation_table` | **89 % of `p3`** | Still dominant after the #275 vectorization; the remaining cost is frame construction plus the per-node scratch frames in `evaluator` (H5). |
 | M3 | `run_analysis.execute` | 39 % of `p2` | Component kernels including the `tuple[float, ...]` ↔ `np.ndarray` crossings (H3). Sublinear — fixed overhead still visible at 10k. |
 | M4 | `plan`, `assemble_frame`, `load_market_view`, `p1_compile` | < 2 % combined, flat | Not worth optimizing. `p1_compile` being flat at 0.2 ms confirms the D-S036-02 hypothesis and gives Sprint 037 DSL headroom. |
@@ -529,16 +535,40 @@ Peak allocation: `p2` 87 KB → 354 KB → 1.59 MB; `p3` 91 KB → 344 KB → 1.
 clearest available evidence for D-REP-02: four eager `with_columns` on one frame is exactly the
 shape a lazy pipeline fuses into a single pass.
 
-### 6.3 What the harness does not cover
+### 6.3 Harness coverage after T006 (#278)
 
-The harness times P1–P3 only. Its own notes state that P4–P6 research loops and P7 Parquet ingest are
-untimed. Concretely, **H1, H2, H4, H6 and H7–H10 are not exercised at all** by this baseline: the
-fixture is single-timeframe (so no resample, no as-of alignment), uses `preloaded_column_batch` (so no
-Parquet read and no `list[MarketBar]` materialization), and includes neither `structure.swing` (the
-20-output worst case for H3) nor any robustness loop.
+Default command still times P1–P3 on a single-timeframe `preloaded_column_batch`. P4–P6 research
+loops and P7 Parquet ingest stay untimed.
 
-Those hypotheses therefore remain **unmeasured, not refuted**. Acting on them requires either
-extending the harness or a separate measurement.
+Opt-in flags (CI smoke `--bars 80`; local sizing `--bars 500`):
+
+| Flag | What it times | Hypothesis |
+|---|---|---|
+| `--mtf` | P2 adds `trend.ema` period 3 on 5m. Nested `execute.resample.*` and `align.*`. P3 stays on 1m canonical models. | H2, H6 |
+| `--parquet` | tempfile dataset (never `user_data/`) loaded via `query_historical_columnar`. Nested `ohlcv.*` and `load_market_view.query_columnar`. | production columnar read; **not** H4 `list[MarketBar]` |
+
+Local N=500 (engineer, recorded in #278):
+
+| Mode | p1 | p2 | p3 |
+|------|----|----|-----|
+| default | 0.18 ms | 9.9 ms | 5.1 ms |
+| `--mtf` | 0.17 ms | 51.6 ms | 4.8 ms |
+| `--parquet` | 0.23 ms | 55.9 ms | 4.7 ms |
+| `--mtf --parquet` | 0.17 ms | 92.5 ms | 4.9 ms |
+
+Nested (same run):
+
+- `execute.resample` (1m→5m): **24.1 ms** (`--mtf`) — **H2 material** versus default p2 of 9.9 ms.
+- `align.last_closed_bar`: **0.57 ms** — **H6 not material** at this scale.
+- `load_market_view.query_columnar`: **16.5 ms** (`--parquet`, P3 nested).
+- `ohlcv.read_legacy_file`: **1.6 ms**; `ohlcv.build_column_batch`: **13.6 ms** — Parquet file I/O is
+  cheap; table→column conversion dominates.
+
+**Still unmeasured:** H1 at dataset scale, H4 (`query_historical` → `list[MarketBar]`), H3 with
+`structure.swing`, H7–H10, P4–P6, P7 ingest.
+
+Nested `run_analysis.*` under `--mtf` includes P2 (MTF) + P3 (1m). Use `execute.resample.*` /
+`align.*` for Stage 1 comparisons, not summed `run_analysis.execute`.
 
 ### 6.4 Structural hypotheses (static pass)
 
@@ -549,20 +579,21 @@ Ordered by expected impact, to be confirmed or refuted by measurement before any
 | # | Path | Structural cost | Files | Expected impact | Confirmed by |
 |---|---|---|---|---|---|
 | H1 | Eager Parquet reads across all research CLIs and dashboard queries | full-file materialization, no pushdown | 65 Polars files, `read_parquet` only | HIGH | bench + dataset-scale read timing |
-| H2 | `resample_analysis_view` round-trip | per-row `iter_rows` + `Decimal(str())` + `MarketBar.__post_init__` OHLC validation | `market_analysis/data/resample.py:70-102` | HIGH | authoring→analysis bench, MTF request |
+| H2 | `resample_analysis_view` round-trip | per-row `iter_rows` + `Decimal(str())` + `MarketBar.__post_init__` OHLC validation | `market_analysis/data/resample.py:70-102` | HIGH — **confirmed** at 500 1m bars (`execute.resample` ~24 ms vs default p2 ~10 ms; #278) | authoring→analysis bench `--mtf` |
 | H3 | `tuple[float, ...]` ↔ `np.ndarray` per component per output | boxed floats, full materialization both ways | `adapters/numpy/result_builder.py`, 4 component modules | HIGH (worst at `swing`: 20 outputs) | bench with swing in the plan |
-| H4 | `list[MarketBar]` on bulk paths | one Python object per bar | `query_historical`, `import_external_dataset`, `derive_continuous_ohlcv:366`, dashboards | HIGH | TD-011 already accepted as HIGH |
+| H4 | `list[MarketBar]` on bulk paths | one Python object per bar | `query_historical`, `import_external_dataset`, `derive_continuous_ohlcv:366`, dashboards | HIGH — **still unmeasured** (`--parquet` uses `query_historical_columnar`) | TD-011 already accepted as HIGH |
 | H5 | per-node scratch frames in `evaluator` | one `pl.DataFrame` allocation per AST node | `model_expression/evaluation/evaluator.py:131,164,179,192,205` | MEDIUM | bench. **Partially addressed**: `build_evaluation_dataframe` itself was vectorized in #275; the per-node `when/then` scratch frames remain |
-| H6 | `align.py` two frames per aligned column | frame construction per column on cache miss | `market_analysis/data/align.py:104-123` | MEDIUM | MTF bench |
+| H6 | `align.py` two frames per aligned column | frame construction per column on cache miss | `market_analysis/data/align.py:104-123` | MEDIUM — **not material** at 500 1m bars (`align.last_closed_bar` ~0.57 ms; #278) | MTF bench `--mtf` |
 | H7 | Monte Carlo over `list[Decimal]` | pure-Python arithmetic, thousands of paths | `robustness/analytics/monte_carlo.py:163` | MEDIUM — deliberate (precision) | robustness bench |
 | H8 | Dual JSON + Parquet writes for all analytics | every analytics object serialized twice | `datasets/robustness.py`, `application/signal_research/analytics_parquet.py` | LOW–MEDIUM | I/O timing |
 | H9 | `iter_rows` in per-scenario / per-trade loops | row-wise Python | `stress.py:148`, `compile.py:180`, `strategy_dashboard.py:201,223` | LOW–MEDIUM | robustness + dashboard bench |
 | H10 | `ParquetTradeDatasetRepository.write_trades` read-merge-write | full partition rewrite per call | `parquet/trade_repository.py` | LOW (import already repaid in S027) | import bench, only if touched |
 
-Reconciliation with §6.2: H5 is confirmed as M2 and H3 is partially confirmed as M3. H1, H2, H4 and
-H6–H10 are untouched by the current harness (§6.3). The measured M1 has no counterpart in this list —
-the static pass treated `CmeEsRthSessionResolver` as "already vectorized" and did not flag its eager
-multi-pass shape.
+Reconciliation with §6.2: H5 is confirmed as M2 and H3 is partially confirmed as M3. After #278, H2
+is confirmed material and H6 is not at N=500. H4 remains unmeasured (columnar load). H1 is only
+probed at synthetic file scale (I/O cheap vs `build_column_batch`). H7–H10 and H3-with-swing stay
+untouched. The measured M1 had no counterpart in this list — the static pass treated
+`CmeEsRthSessionResolver` as "already vectorized"; #279 repaid the fused `with_columns` part.
 
 ### 6.5 Paths explicitly not re-profiled
 
@@ -653,10 +684,12 @@ resampling. Removing the object removes that check, so an equivalent table-level
 added, otherwise a silent correctness regression is possible. Fixture research facts must be proven
 byte-identical before and after.
 
-**Recommendation.** Accept. Ship as Stage 1 (S036-T007) after T006 measures H2/H4, with a table-level OHLC
-validator replacing the object-level one and a fixture equality test.
+**Recommendation.** Accept. Ship as Stage 1 (S036-T007). T006 (#278) confirmed H2 material at 500 1m
+bars; H4 stays unmeasured on the columnar path. Include a table-level OHLC validator replacing the
+object-level one and a fixture equality test.
 
-**Outcome.** Accepted together with D-REP-07 as the full Stage 1, supplying S036-T007 (after T006 measures H2/H4).
+**Outcome.** Accepted together with D-REP-07 as the full Stage 1, supplying S036-T007. T006 measurements
+justify the resample round-trip PR; do not spend Stage 1 on `align.py` (H6).
 
 ---
 
@@ -828,38 +861,47 @@ measurement; it does not wait for the ADRs.
 
 **Sequencing resolved 2026-08-25.** The baseline showed the largest measured costs (M1, M2) sit
 outside Stage 1, so a measured-first stage is inserted ahead of it. Measured work leads; structurally
-justified work follows once its paths are covered by a measurement.
+justified work follows once its paths are covered by a measurement. T006 (#278) now covers those
+paths: H2 is material, H6 is not, H4 remains unmeasured on the columnar load.
 
 ### Stage 0.5 — Measured hot spot first
 
 Depends on: the §6.1 baseline. No decision from §7 is required — this changes no contract.
 
+**Shipped #279** (`feat/session-resolver-single-pass`, squash `ffe3530`).
+
 | PR | Outcome | Files | Risk |
 |---|---|---|---|
-| `feat/session-resolver-single-pass` | fuse the four chained `with_columns` into one pass; emit `session_id` as a categorical/enum instead of a full string column; **resolver signature unchanged** | `time/sessions/cme_es_rth.py` | LOW |
+| `feat/session-resolver-single-pass` | fuse RTH/`session_id` into the output `select`; holiday masking via `is_in` instead of a join; **resolver signature unchanged** | `time/sessions/cme_es_rth.py` | LOW |
 
-Scope is deliberately minimal: no `LazyFrame` rewrite, no caching, no contract change. Those remain
-available as follow-ups once this PR shows how much of M1 is the `with_columns` chain versus the
-`dt.convert_time_zone` call.
+What shipped vs the original row: timezone conversion stayed its own eager pass (a fully nested
+one-`select` was slower locally). `session_id` stays **Utf8** — Enum/categorical changed the public
+dtype and was slower.
 
-Acceptance: identical resolver output on fixtures (columns, dtypes and values); before/after from
-`bench_authoring_analysis_evaluate.py --bars 10000`.
+Before/after at 10k bars (`bench_authoring_analysis_evaluate.py --json --bars 10000`):
+`run_analysis.resolve_sessions` **36.25 ms → 29.25 / 30.90 ms**; `p2_run_analysis` **61.71 ms →
+56.90 / 58.85 ms**. Residual M1 is still D-REP-02 (lazy) work, not a second Stage 0.5 PR.
+
+Acceptance met: identical resolver output on fixtures (columns, dtypes and values); `session_id`
+dtype remains Utf8.
 
 ### Stage 1 — Redundant conversions (no contract change)
 
-Depends on: D-REP-03, D-REP-07.
+Depends on: D-REP-03, D-REP-07. Harness coverage **#278** (`bench/mtf-and-parquet-coverage`).
 
 | PR | Outcome | Files | Risk |
 |---|---|---|---|
-| `bench/mtf-and-parquet-coverage` | extend the harness to cover a multitimeframe request (exercises resample + alignment) and a Parquet-backed read; **prerequisite** — without it H1/H2/H4/H6 stay unmeasured | `scripts/ops/bench_authoring_analysis_evaluate.py` | LOW |
+| `bench/mtf-and-parquet-coverage` | **DONE #278** — `--mtf` / `--parquet` cover resample, alignment, and columnar Parquet read | `scripts/ops/bench_authoring_analysis_evaluate.py` | LOW |
 | `feat/table-level-ohlcv-validator` | OHLC invariants validated on `pa.Table` / Polars | `infrastructure/validation/`, `market/validation/` | LOW |
-| `feat/resample-without-marketbar-roundtrip` | `resample_analysis_view` stays columnar end to end | `market_analysis/data/resample.py` | LOW |
+| `feat/resample-without-marketbar-roundtrip` | `resample_analysis_view` stays columnar end to end — **justified by H2** | `market_analysis/data/resample.py` | LOW |
 | `feat/derive-continuous-table-validation` | drop Arrow → `MarketBar` decode before validation | `application/market_data/derive_continuous_ohlcv.py` | LOW |
 
-The harness PR ships first. If it shows H2 or H4 are immaterial at realistic scale, the remaining
-Stage 1 PRs are re-scoped or dropped rather than shipped on structural grounds alone.
+T006 result: **H2 is material** (resample ~24 ms at 500 1m bars). **H6 is not** (align ~0.6 ms) —
+do not spend a Stage 1 PR on `align.py`. **H4 is still unmeasured** because `--parquet` uses
+`query_historical_columnar`, not `query_historical` → `list[MarketBar]`. Keep the derive-continuous
+validator as a D-REP-03 site, not as an H4 measurement.
 
-Acceptance: fixture research facts byte-identical; before/after timing in each PR.
+Acceptance: fixture research facts byte-identical; before/after timing in each remaining Stage 1 PR.
 
 ### Stage 2 — Lazy at I/O (no contract change)
 
@@ -959,7 +1001,7 @@ Stage 4 remains conditional on its ADR; Stage 5 remains a separate sprint.
 
 | Item | Why it is still open |
 |---|---|
-| Harness coverage for Stage 1 paths | the harness is single-timeframe and skips Parquet, so H1/H2/H4/H6 stay unmeasured; extending it is a prerequisite for justifying Stage 1 PRs on measurement rather than structure |
+| Harness coverage for Stage 1 paths | **resolved #278** — `--mtf` measures H2/H6; `--parquet` measures columnar read. H4 (`list[MarketBar]`) and dataset-scale H1 remain open |
 | D-REP-06 — tz-aware Parquet timestamps | schema migration cost couples it to the deferred D-REP-04b; the cheap half (validating helper instead of `.replace(tzinfo=UTC)`) can be taken independently |
 | D-REP-08 — single configuration mechanism | hygiene; no sprint slot allocated |
 | D-REP-09 — deduplicate `DatasetMetadataReader` | opportunistic; fold into whichever PR touches those modules |
