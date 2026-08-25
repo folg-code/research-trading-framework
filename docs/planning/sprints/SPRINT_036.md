@@ -210,7 +210,7 @@ before expanding the component catalog or simplifying `model_authoring/`.
 
 | S036-T009 | ADRs for D-REP-01, D-REP-05, D-REP-10 | DONE — ADR-MA-014; MA-004/010/012 and MA-005/009 amendments |
 
-| S036-T010 | Gate doc for S037 (DSL simplicity criteria + component library rules) | TODO |
+| S036-T010 | Gate doc for S037 (DSL simplicity criteria + component library rules) | DONE — `S037_GATE.md` |
 
 | S036-T011 | CURRENT_STATUS / ROADMAP closeout | TODO |
 
@@ -326,7 +326,8 @@ Expand reusable Market Analysis / signal components
 
 
 
-Gate: S036 audit complete; no HIGH unpaid authoring-path bottlenecks without a documented deferral.
+Gate: [S037_GATE.md](S037_GATE.md) — audit complete; HIGH authoring items repaid or deferred;
+DSL stays IR-stable; catalog grows as components + namespace functions, not new language.
 
 
 

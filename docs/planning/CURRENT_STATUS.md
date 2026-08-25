@@ -27,14 +27,14 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 
 ```text
 Status Date: 2026-08-25
-Current Phase: Sprint 036 research infra audit — Stage 2 complete; representation ADRs landed
-Current Milestone: T010 S037 gate doc (DSL simplicity + component library rules)
+Current Phase: Sprint 036 research infra audit — S037 gate written; closeout next
+Current Milestone: T011 CURRENT_STATUS / ROADMAP closeout
 Implementation Status: Sprints 001-006, 008-024, 025-035 on main; 036 IN_PROGRESS
 Overall Status: STABLE
 Active Sprint: sprint/research-infra-audit (S036)
 Last Completed Sprint: SPRINT_024 (dry-run reliability) → main (#270); S035 selection COMPLETED
 Capability Tracks: Foundation COMPLETE; Data COMPLETE (core); Research COMPLETE (core); Strategy 6A COMPLETE; Phase 8A dry-run + S024 on main; Dashboard / Live Paper / public demo COMPLETE
-Recent: S036 T001–T009 on sprint (#272–#284 + representation ADRs). Next: T010 S037 gate. Track: audit → S037 DSL/components → AI/ML later.
+Recent: S036 T001–T010 on sprint (#272–#285 + S037_GATE). Next: T011 closeout. Track: audit → S037 DSL/components → AI/ML later.
 ```
 
 ---
@@ -593,7 +593,7 @@ See `docs/planning/sprints/SPRINT_035.md`, `SPRINT_024.md`, and `ROADMAP.md` §1
 | 033 | Dashboard presentation polish | COMPLETED | 6 / 6 tasks; Waves A–C (#253–#256); main #257 |
 | 034 | Public Dashboard Demo Polish | COMPLETED | Waves 1–5 (#258–#259); main #260; VPS deploy; follow-ups #261–#264 |
 | 035 | Next increment selection (post public demo) | COMPLETED | chose S024 then S036→S037→AI/ML |
-| 036 | Research infra audit (DSL/component gate) | IN_PROGRESS | T001–T009 on sprint; T010 S037 gate next |
+| 036 | Research infra audit (DSL/component gate) | IN_PROGRESS | T001–T010 on sprint; T011 closeout next |
 
 ---
 
