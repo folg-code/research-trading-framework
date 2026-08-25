@@ -10,6 +10,7 @@ from trading_framework.core.exceptions import ValidationError
 from trading_framework.time.sessions import (
     ES_RTH_SESSION_ID,
     OUTSIDE_RTH_SESSION_ID,
+    RESOLVER_OUTPUT_COLUMNS,
     CmeEsRthSessionResolver,
 )
 
@@ -82,3 +83,19 @@ def test_resolver_rejects_non_utc_timezone() -> None:
     )
     with pytest.raises(ValidationError, match="UTC"):
         CmeEsRthSessionResolver().resolve(timestamps)
+
+
+def test_output_values_match_previous_string_session_semantics() -> None:
+    timestamps = pl.Series(
+        "timestamp",
+        [_utc(2024, 6, 3, 13, 29), _utc(2024, 6, 3, 13, 30)],
+    )
+    frame = CmeEsRthSessionResolver().resolve(timestamps)
+    assert frame.columns == list(RESOLVER_OUTPUT_COLUMNS)
+    assert frame.height == timestamps.len()
+    assert frame["is_rth"].to_list() == [False, True]
+    assert frame["trading_day"].to_list() == [date(2024, 6, 3), date(2024, 6, 3)]
+    session_ids = [str(value) for value in frame["session_id"].to_list()]
+    assert session_ids == [OUTSIDE_RTH_SESSION_ID, ES_RTH_SESSION_ID]
+    assert session_ids[0] == "OUTSIDE_RTH"
+    assert session_ids[1] == "ES_RTH"
