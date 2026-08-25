@@ -78,18 +78,28 @@ Binance). The "naive means UTC" convention is re-implemented by hand in every re
 
 ### 1.3 What generates the largest cost
 
-Ranked by structural impact, not by measured wall-clock (see §6 for the measurement gate):
+**Measured** on the authoring → analysis → evaluate path (§6.1, 10 000 bars):
 
-1. **No `LazyFrame` anywhere.** 65 Polars files run fully eager. No predicate pushdown, no projection
-   pushdown, no query optimization, no streaming. Every Parquet read materializes the whole file.
-2. **`tuple[float, ...]` as the Market Analysis carrier.** Boxed Python floats, non-contiguous, forcing
-   `np.asarray(...)` into every kernel and `tuple(float(v) for v in arr)` out of every result.
-3. **The resample round-trip.** `resample_analysis_view` converts
-   `tuple[float] → pl.DataFrame → iter_rows → Decimal(str(float)) → Price → MarketBar → float → tuple[float]`,
-   including full OHLC invariant re-validation, per row, per timeframe.
-4. **Object materialization on bulk paths** (TD-011): `list[MarketBar]` still appears in historical
-   query, CSV import, derivation validation and dashboards.
-5. **Row-wise `iter_rows` / `to_dicts` in loops** at 23 sites, several inside per-scenario or per-bar loops.
+1. **`resolve_sessions` — 59 % of `run_analysis`.** `CmeEsRthSessionResolver` is vectorized but runs
+   four chained *eager* `with_columns` over materialized intermediates plus a timezone conversion and
+   a full string `session_id` column. The largest single measured cost, and the clearest evidence for
+   adopting lazy Polars.
+2. **`build_evaluation_table` — 89 % of `evaluate_models`.** Still dominant after the #275
+   vectorization; the residue is frame construction plus per-AST-node scratch frames.
+3. **Component `execute` — 39 % of `run_analysis`**, including the `tuple[float, ...]` ↔ `np.ndarray`
+   crossings.
+
+Planning, frame assembly, view loading and DSL compile together stay under 2 % and are flat in bar
+count — DSL compile is 0.2 ms at every size, so Sprint 037 has headroom.
+
+**Structural, not yet measured** (the harness covers neither Parquet I/O nor multitimeframe, §6.3):
+
+4. **No `LazyFrame` anywhere.** 66 Polars files run fully eager: no predicate or projection pushdown,
+   no streaming, every Parquet read materializes the whole file.
+5. **The resample round-trip.** `tuple[float] → Polars → iter_rows → Decimal(str(float)) → Price →
+   MarketBar → float → tuple[float]`, with full OHLC re-validation per row, per timeframe.
+6. **Object materialization on bulk paths** (TD-011): `list[MarketBar]` in historical query, CSV
+   import, derivation validation and dashboards.
 
 ### 1.4 The five target decisions
 
@@ -474,20 +484,65 @@ produces or consumes `OutputSeries`.
 
 ### 6.1 Measurement status
 
-This audit is **static**. It therefore satisfies D-S036-07 items 2–4 (non-goals, candidates, gate
-input) but **not item 1**, which requires a ranked list with measured wall time. S036-T003 stays
-`PARTIAL` until the baseline lands; the ranking below is the hypothesis that the baseline must
-confirm or refute.
+Two rankings coexist below and must not be confused. §6.2 is the **measured** baseline for the
+authoring → analysis → evaluate path. §6.4 is the **structural hypothesis** list from the static
+pass, most of which the current harness does not exercise.
 
-Sprint 036 acceptance criterion 3 requires a before/after measurement for every code change. The
-harness exists:
+Nothing in §8 may ship without a before/after measurement attached to its PR.
+
+### 6.1 Baseline
 
 ```bash
 uv run python scripts/ops/bench_authoring_analysis_evaluate.py --json --bars N
 ```
 
-Nothing in §8 may ship without a measurement from this harness (or a new one) attached to its PR.
-The rankings below are **structural hypotheses to be confirmed**, ordered by expected impact.
+Captured 2026-08-25 at commit `f0a82c5`, one market model (`high_volatility`) and one signal model
+(`high_volatility_long_edge`), synthetic 1m bars, no `user_data` I/O. Single run per size on one
+machine — variance is not characterized, so treat sub-millisecond differences as noise.
+
+Wall time in milliseconds:
+
+| Phase | 250 bars | 2 000 bars | 10 000 bars | 2k → 10k (5× bars) |
+|---|---|---|---|---|
+| `p1_compile` | 0.18 | 0.19 | 0.20 | 1.06× — flat |
+| `p2_run_analysis` | 7.62 | 16.84 | 61.71 | 3.67× |
+| `p3_evaluate` (excl. nested `run_analysis`) | 4.06 | 9.43 | 31.72 | 3.36× |
+| ├ `run_analysis.resolve_sessions` | 1.80 | 6.86 | **36.25** | 5.28× |
+| ├ `run_analysis.execute` | 1.48 | 6.37 | **23.97** | 3.76× |
+| ├ `run_analysis.plan` | 0.74 | 0.66 | 0.71 | flat |
+| ├ `run_analysis.assemble_frame` | 0.065 | 0.080 | 0.079 | flat |
+| ├ `run_analysis.load_market_view` | 0.059 | 0.085 | 0.057 | flat |
+| └ `evaluate_models.build_evaluation_table` | 1.32 | 6.29 | **28.36** | 4.51× |
+
+Peak allocation: `p2` 87 KB → 354 KB → 1.59 MB; `p3` 91 KB → 344 KB → 1.56 MB.
+
+### 6.2 Measured ranking
+
+| # | Path | Share at 10k bars | Finding |
+|---|---|---|---|
+| M1 | `run_analysis.resolve_sessions` | **59 % of `p2`** | `CmeEsRthSessionResolver.resolve` is already vectorized, but runs **four chained eager `with_columns`** over materialized intermediates, a `dt.convert_time_zone("America/New_York")`, and builds `session_id` as a full string column. Scales slightly superlinearly. |
+| M2 | `evaluate_models.build_evaluation_table` | **89 % of `p3`** | Still dominant after the #275 vectorization; the remaining cost is frame construction plus the per-node scratch frames in `evaluator` (H5). |
+| M3 | `run_analysis.execute` | 39 % of `p2` | Component kernels including the `tuple[float, ...]` ↔ `np.ndarray` crossings (H3). Sublinear — fixed overhead still visible at 10k. |
+| M4 | `plan`, `assemble_frame`, `load_market_view`, `p1_compile` | < 2 % combined, flat | Not worth optimizing. `p1_compile` being flat at 0.2 ms confirms the D-S036-02 hypothesis and gives Sprint 037 DSL headroom. |
+
+**M1 is the single largest measured cost and was not ranked in the static pass.** It is also the
+clearest available evidence for D-REP-02: four eager `with_columns` on one frame is exactly the
+shape a lazy pipeline fuses into a single pass.
+
+### 6.3 What the harness does not cover
+
+The harness times P1–P3 only. Its own notes state that P4–P6 research loops and P7 Parquet ingest are
+untimed. Concretely, **H1, H2, H4, H6 and H7–H10 are not exercised at all** by this baseline: the
+fixture is single-timeframe (so no resample, no as-of alignment), uses `preloaded_column_batch` (so no
+Parquet read and no `list[MarketBar]` materialization), and includes neither `structure.swing` (the
+20-output worst case for H3) nor any robustness loop.
+
+Those hypotheses therefore remain **unmeasured, not refuted**. Acting on them requires either
+extending the harness or a separate measurement.
+
+### 6.4 Structural hypotheses (static pass)
+
+Ordered by expected impact, to be confirmed or refuted by measurement before any of them justifies a PR.
 
 ### 6.2 Ranked candidates
 
@@ -504,7 +559,12 @@ The rankings below are **structural hypotheses to be confirmed**, ordered by exp
 | H9 | `iter_rows` in per-scenario / per-trade loops | row-wise Python | `stress.py:148`, `compile.py:180`, `strategy_dashboard.py:201,223` | LOW–MEDIUM | robustness + dashboard bench |
 | H10 | `ParquetTradeDatasetRepository.write_trades` read-merge-write | full partition rewrite per call | `parquet/trade_repository.py` | LOW (import already repaid in S027) | import bench, only if touched |
 
-### 6.3 Paths explicitly not re-profiled
+Reconciliation with §6.2: H5 is confirmed as M2 and H3 is partially confirmed as M3. H1, H2, H4 and
+H6–H10 are untouched by the current harness (§6.3). The measured M1 has no counterpart in this list —
+the static pass treated `CmeEsRthSessionResolver` as "already vectorized" and did not flag its eager
+multi-pass shape.
+
+### 6.5 Paths explicitly not re-profiled
 
 Per Sprint 036 §4, the following were repaid in Sprints 026/027 and must not be blindly rewritten:
 Signal Research occurrence/outcome materialization (TD-017), robustness shared evaluation (TD-018),
@@ -766,6 +826,12 @@ measurement. Sizes follow the 100–400 LOC target from the sprint git workflow.
 **Nothing below starts before its blocking Stage 0 item completes.** Stage 1 needs only the baseline
 measurement; it does not wait for the ADRs.
 
+> **Open sequencing question (2026-08-25).** The baseline in §6.1 shows the largest measured costs are
+> M1 `resolve_sessions` and M2 `build_evaluation_table`, neither of which Stage 1 targets — Stage 1
+> addresses paths the current harness does not exercise (§6.3). Either extend the harness to cover
+> multitimeframe and Parquet reads before committing to Stage 1, or insert a measured-first stage
+> ahead of it. Not decided; see §10.2.
+
 ### Stage 1 — Redundant conversions (no contract change)
 
 Depends on: D-REP-03, D-REP-07.
@@ -876,6 +942,7 @@ Stage 4 remains conditional on its ADR; Stage 5 remains a separate sprint.
 
 | Item | Why it is still open |
 |---|---|
+| **Stage ordering after the baseline** | the measured hot spots (M1, M2) are not what Stage 1 targets; the harness does not cover Stage 1's paths. Decide between extending the harness first or inserting a measured-first stage |
 | D-REP-06 — tz-aware Parquet timestamps | schema migration cost couples it to the deferred D-REP-04b; the cheap half (validating helper instead of `.replace(tzinfo=UTC)`) can be taken independently |
 | D-REP-08 — single configuration mechanism | hygiene; no sprint slot allocated |
 | D-REP-09 — deduplicate `DatasetMetadataReader` | opportunistic; fold into whichever PR touches those modules |
