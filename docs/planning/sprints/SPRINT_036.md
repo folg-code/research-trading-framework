@@ -194,7 +194,7 @@ before expanding the component catalog or simplifying `model_authoring/`.
 
 | S036-T001 | Wave 0: path inventory + success metrics + branch naming | DONE (S036_WAVE0_DECISIONS.md) |
 
-| S036-T002 | Bench/spike harness for authoring → analysis → research (fixture) | TODO |
+| S036-T002 | Bench/spike harness for authoring → analysis → research (fixture) | DONE |
 
 | S036-T003 | Audit write-up: ranked bottlenecks + non-goals | TODO |
 
@@ -206,6 +206,7 @@ before expanding the component catalog or simplifying `model_authoring/`.
 
 | S036-T007 | CURRENT_STATUS / ROADMAP closeout | TODO |
 
+Wave 1 harness command: `uv run python scripts/ops/bench_authoring_analysis_evaluate.py` (`--json`, `--bars N`).
 
 
 Suggested PR waves into `sprint/research-infra-audit`:
