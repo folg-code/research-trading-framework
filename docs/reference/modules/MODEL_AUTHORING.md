@@ -56,7 +56,7 @@ orchestration, not part of the authored model.
 | `price` | Canonical OHLCV fields on the evaluation grid (`price.close`) |
 | `trend` | Features such as `trend.ema(period=20)` and `trend.slope(period=20)` |
 | `volatility` | `volatility.atr(period=14)`, `volatility.true_range()`, `volatility.state(...)` |
-| `structure` | HH/HL/LH/LL events and `latest_*_level` (not `*_observed_index`) |
+| `structure` | HH/HL/LH/LL events, `latest_*_level`, and Session Range (`session_high`, `session_completed`, …) |
 
 Helpers such as `trend.price_above_ema` and `volatility.high` stay semantically neutral.
 Strategic names (`buy_setup`, `allow_entry`) stay out of this package.

@@ -85,10 +85,10 @@ on the fixture path with `CmeEsRthSessionResolver`. Gate `S037_GATE.md` §3.1 st
 | ID | Task | Status |
 |----|------|--------|
 | S038-T001 | Wave 0: sprint branch, this file, maintainer lock | DONE |
-| S038-T002 | Session metadata on the component compute view | TODO |
-| S038-T003 | Structure `structure.session_range` + NumPy kernel | TODO |
-| S038-T004 | `model_authoring` structure namespace functions | TODO |
-| S038-T005 | Catalog docs + authored model on the fixture path | TODO |
+| S038-T002 | Session metadata on the component compute view | DONE |
+| S038-T003 | Structure `structure.session_range` + NumPy kernel | DONE |
+| S038-T004 | `model_authoring` structure namespace functions | DONE |
+| S038-T005 | Catalog docs + authored model on the fixture path | DONE |
 | S038-T006 | CURRENT_STATUS / ROADMAP closeout | TODO |
 
 Suggested PR waves (into `sprint/session-range`, never `main` until integration):

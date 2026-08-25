@@ -194,6 +194,22 @@ def test_slope_default_period_canonicalizes() -> None:
     assert authored.expression.operand.parameters.get("period") == 20
 
 
+def test_market_model_compiles_session_high() -> None:
+    authored = market_model(
+        "close_above_session_high",
+        when=(price.close > structure.session_high()),
+        registry=default_mvp_registry(),
+    )
+    assert isinstance(authored.expression, BinaryCompareExpression)
+    assert isinstance(authored.expression.right, ComponentOutputReference)
+    assert authored.expression.right.component_id == ComponentId("structure.session_range")
+    assert authored.expression.right.output_id == OutputId("session_high")
+    assert authored.expression.right.computation_timeframe is None
+    requests = authored.dependencies().component_requests
+    assert len(requests) == 1
+    assert requests[0].component_id == ComponentId("structure.session_range")
+
+
 def test_volatility_high_helper() -> None:
     authored = market_model(
         "high_volatility_helper", when=volatility.high(period=14, threshold=2.0)

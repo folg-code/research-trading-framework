@@ -8,8 +8,8 @@ from trading_framework.market_analysis.catalog import (
 
 def test_list_documented_components_matches_registry() -> None:
     entries = list_documented_components()
-    assert len(entries) == 6
-    assert entries[0].component_id.value == "structure.swing"
+    assert len(entries) == 7
+    assert entries[0].component_id.value == "structure.session_range"
 
 
 def test_format_component_entry_includes_schema_outputs() -> None:
@@ -50,3 +50,15 @@ def test_format_slope_includes_dsl_example() -> None:
     rendered = format_component_entry(entry)
     assert "trend.slope(period=20) > 0" in rendered
     assert "period: int = 20" in rendered
+
+
+def test_format_session_range_includes_dsl_examples() -> None:
+    entry = next(
+        item
+        for item in list_documented_components()
+        if item.component_id.value == "structure.session_range"
+    )
+    rendered = format_component_entry(entry)
+    assert "structure.session_high()" in rendered
+    assert "session_completed" in rendered
+    assert "RTH-only" in rendered

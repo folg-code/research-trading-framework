@@ -16,6 +16,7 @@ from trading_framework.market_analysis.models.context import AnalysisContext
 from trading_framework.market_analysis.models.result import AnalysisResult
 from trading_framework.market_analysis.planning.plan import ExecutionPlan, PlannedNode, ResampleNode
 from trading_framework.market_analysis.storage.workspace import AnalysisWorkspace
+from trading_framework.time.sessions.protocol import TradingSessionResolver
 
 
 class ExecutionCache:
@@ -82,8 +83,13 @@ class SequentialBatchExecutor:
         cache: ExecutionCache | None = None,
         resample_cache: ResampleCache | None = None,
         session_metadata: TradingSessionMetadata | None = None,
+        session_resolver: TradingSessionResolver | None = None,
     ) -> AnalysisWorkspace:
-        workspace = AnalysisWorkspace(market_view, session_metadata=session_metadata)
+        workspace = AnalysisWorkspace(
+            market_view,
+            session_metadata=session_metadata,
+            session_resolver=session_resolver,
+        )
         execution_cache = cache if cache is not None else ExecutionCache()
         resample_stage_cache = resample_cache if resample_cache is not None else ResampleCache()
 
