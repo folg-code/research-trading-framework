@@ -5,6 +5,7 @@ from datetime import UTC, datetime
 from decimal import Decimal
 from pathlib import Path
 
+import polars as pl
 import pyarrow as pa
 import pyarrow.compute as pc
 import pyarrow.parquet as pq
@@ -84,6 +85,10 @@ def market_bars_from_table(table: pa.Table) -> list[MarketBar]:
     ]
 
 
+def _naive_utc(value: datetime) -> datetime:
+    return value.astimezone(UTC).replace(tzinfo=None)
+
+
 def filter_table_by_observed_range(
     table: pa.Table,
     *,
@@ -94,14 +99,40 @@ def filter_table_by_observed_range(
     normalized = table.cast(MARKET_BAR_PARQUET_SCHEMA)
     if normalized.num_rows == 0:
         return normalized
-    start_scalar = pa.scalar(start_at.astimezone(UTC).replace(tzinfo=None), type=pa.timestamp("us"))
-    end_scalar = pa.scalar(end_at.astimezone(UTC).replace(tzinfo=None), type=pa.timestamp("us"))
+    start_scalar = pa.scalar(_naive_utc(start_at), type=pa.timestamp("us"))
+    end_scalar = pa.scalar(_naive_utc(end_at), type=pa.timestamp("us"))
     observed = normalized.column("observed_at")
     mask = pc.and_(  # type: ignore[attr-defined]
         pc.greater_equal(observed, start_scalar),  # type: ignore[attr-defined]
         pc.less_equal(observed, end_scalar),  # type: ignore[attr-defined]
     )
     return normalized.filter(mask)
+
+
+def scan_ohlcv_parquet_tables(
+    paths: Sequence[Path],
+    *,
+    start_at: datetime,
+    end_at: datetime,
+) -> pa.Table:
+    """Scan OHLCV Parquet files with an ``observed_at`` predicate.
+
+    Uses Polars ``scan_parquet`` so row-group statistics can push the time filter
+    into the reader. The returned table uses the canonical Arrow schema.
+    """
+    if not paths:
+        return market_bars_to_table(())
+    column_names = [field.name for field in MARKET_BAR_PARQUET_SCHEMA]
+    start_naive = _naive_utc(start_at)
+    end_naive = _naive_utc(end_at)
+    frame = (
+        pl.scan_parquet([str(path) for path in paths])
+        .select(column_names)
+        .filter((pl.col("observed_at") >= start_naive) & (pl.col("observed_at") <= end_naive))
+        .collect()
+    )
+    table = frame.to_arrow()
+    return table.select(column_names).cast(MARKET_BAR_PARQUET_SCHEMA, safe=False)
 
 
 class ParquetBarWriter:

@@ -1,5 +1,6 @@
 """Workspace layout path helper tests."""
 
+from datetime import UTC, date, datetime
 from pathlib import Path
 
 from trading_framework.core.identifiers import Identifier
@@ -8,6 +9,7 @@ from trading_framework.infrastructure.storage.paths import (
     dataset_metadata_path,
     market_data_raw_root,
     market_data_root,
+    ohlcv_session_dates_overlapping_range,
     robustness_experiment_dir,
     roll_schedules_base_dir,
     signal_research_family_experiment_dir,
@@ -78,3 +80,13 @@ def test_dataset_paths_live_under_market_data(tmp_path: Path) -> None:
         / "v1"
         / "bars.parquet"
     )
+
+
+def test_ohlcv_session_dates_overlapping_range_keeps_adjacent_utc_days() -> None:
+    session_dates = [date(2024, 1, day) for day in range(1, 11)]
+    selected = ohlcv_session_dates_overlapping_range(
+        session_dates,
+        datetime(2024, 1, 5, 10, 0, tzinfo=UTC),
+        datetime(2024, 1, 5, 16, 0, tzinfo=UTC),
+    )
+    assert selected == [date(2024, 1, 4), date(2024, 1, 5), date(2024, 1, 6)]

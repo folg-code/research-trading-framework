@@ -204,9 +204,9 @@ before expanding the component catalog or simplifying `model_authoring/`.
 
 | S036-T006 | Extend bench harness to cover multitimeframe and Parquet reads (prerequisite for Stage 1) | DONE — #278; audit §6.3 |
 
-| S036-T007 | Stage 1 — table-level validators + remove `MarketBar` round-trips (D-REP-03 / D-REP-07) | TODO — H2 justified; H6 defer; H4 unmeasured |
+| S036-T007 | Stage 1 — table-level validators + remove `MarketBar` round-trips (D-REP-03 / D-REP-07) | DONE — H2 #281; derive table validation #282; H6 deferred; H4 unmeasured |
 
-| S036-T008 | Stage 2 — `scan_parquet` at repository boundary, then lazy analysis frame builder (D-REP-02) | TODO |
+| S036-T008 | Stage 2 — `scan_parquet` at repository boundary, then lazy analysis frame builder (D-REP-02) | IN_PROGRESS — step 1 OHLCV repository scan/prune; step 2 lazy frame builder not started |
 
 | S036-T009 | ADRs for D-REP-01, D-REP-05, D-REP-10 | TODO — blocks Stage 3 / Stage 4 |
 
