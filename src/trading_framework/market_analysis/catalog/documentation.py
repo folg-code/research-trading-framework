@@ -52,8 +52,16 @@ _DOCUMENTATION: dict[str, ComponentCatalogEntry] = {
         component_id=ComponentId("structure.swing"),
         summary="Pivot swing structure with HH/HL/LH/LL events",
         tags=("structure", "state", "event"),
-        examples=("structure.higher_low_event(pivot_range=15, timeframe='5m')",),
-        notes="Use computation timeframe for MTF swing outputs.",
+        examples=(
+            "structure.higher_low_event(pivot_range=15, timeframe='5m')",
+            "structure.higher_high_event(pivot_range=15, timeframe='5m')",
+            "price.close > structure.latest_higher_low_level(pivot_range=15, timeframe='5m')",
+        ),
+        notes=(
+            "Use computation timeframe for MTF swing outputs. "
+            "Author-facing DSL covers HH/HL/LH/LL events and latest_*_level; "
+            "observed-index internals stay off the namespace."
+        ),
     ),
 }
 
