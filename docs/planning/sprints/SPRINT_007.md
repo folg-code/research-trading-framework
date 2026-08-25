@@ -21,8 +21,9 @@ Extend the component catalog **only** with pieces needed for the first real rese
 
 **Scope gate (2026-07-12):** SKIPPED — minimum set satisfied; Sprint 008 started.
 
-Sprint 037 (`sprint/component-libraries-dsl`) picks up **existing-catalog DSL** and **slope**.
-Session Range, Trend State and Liquidity Sweep remain deferred.
+Sprint 037 on `main` (#296) delivered existing-catalog DSL and **slope** (S007-T002).
+Session Range is Sprint 038 (`sprint/session-range`). Trend State and Liquidity Sweep
+remain deferred.
 
 ---
 
@@ -78,10 +79,10 @@ Separate HH/HL component — only if Pivot outputs insufficient
 | ID | Task | Status |
 |----|------|--------|
 | S007-T001 | Scope gate: confirm components required before Sprint 008 | DONE (skip) |
-| S007-T002 | slope feature | TODO |
+| S007-T002 | slope feature | DONE (Sprint 037 / `trend.slope`) |
 | S007-T003 | wick ratio feature | TODO |
 | S007-T004 | distance to level feature | TODO |
-| S007-T005 | Session Range structure | TODO |
+| S007-T005 | Session Range structure | TODO (Sprint 038) |
 | S007-T006 | Trend State component | TODO |
 | S007-T007 | Visualization increment (session lines, structure labels) | TODO |
 | S007-T008 | Tests and integration | TODO |

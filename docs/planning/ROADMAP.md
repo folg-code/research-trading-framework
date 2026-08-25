@@ -107,7 +107,7 @@ Market Data policy (facts not indicators, vendor independence): **§14 Research 
 
 Test data tiers and live-data gate: **§15**.
 
-**Recommended next increment:** Session Range catalog PRs (S007 follow-on), then AI/ML (IDEA-014). Sprint 037 is **complete** on `main` (#296). Deferred by default: Phase 4B/6B, Phase 8 Replay, PBO/CSCV ADR. Stage 3 (`available_at` column / lineage sidecar) and Stage 4 (`MarketFrame`) remain independently sequenced.
+**Recommended next increment:** Sprint 038 Session Range (`sprint/session-range`). Wave 0 is open; D-S038-04 … D-S038-07 need a maintainer lock before code. Then wick / distance, then AI/ML (IDEA-014). Sprint 037 is **complete** on `main` (#296). Deferred by default: Phase 4B/6B, Phase 8 Replay, PBO/CSCV ADR. Stage 3 (`available_at` column / lineage sidecar) and Stage 4 (`MarketFrame`) remain independently sequenced.
 
 ---
 

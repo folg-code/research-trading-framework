@@ -27,14 +27,14 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 
 ```text
 Status Date: 2026-08-25
-Current Phase: Authoring foundation complete (S037 on main); next catalog Session Range
-Current Milestone: Sprint 037 on main
-Implementation Status: Sprints 001-006, 008-024, 025-037 on main
+Current Phase: Sprint 038 Wave 0 (Session Range); maintainer lock pending
+Current Milestone: Sprint 038 Session Range
+Implementation Status: Sprints 001-006, 008-024, 025-037 on main; 038 opening
 Overall Status: STABLE
-Active Sprint: none (S037 integrated)
+Active Sprint: SPRINT_038 Wave 0 (D-S038-04 … D-S038-07 unlocked)
 Last Completed Sprint: SPRINT_037 (component libraries + DSL) → main (#296)
 Capability Tracks: Foundation COMPLETE; Data COMPLETE (core); Research COMPLETE (core); Strategy 6A COMPLETE; Phase 8A dry-run + S024 on main; Dashboard / Live Paper / public demo COMPLETE
-Recent: S037 on main (#296). Existing-catalog DSL, copy-paste authoring example, trend.slope. Next: Session Range catalog, then IDEA-014.
+Recent: S038 Wave 0 opened on sprint/session-range. S037 on main (#296). Next code waits on session-metadata plumbing, running vs final, OUTSIDE_RTH, and MTF grid.
 ```
 
 ---
@@ -197,8 +197,12 @@ Wave 0 lock (D-S037-01 … D-S037-09)
     → trend.slope (causal OLS of close) + DSL
 ```
 
-`compile.py` was not changed; T006 bench re-run is N/A. Next catalog PRs: Session Range.
-IDEA-014 training remains deferred. See `SPRINT_037.md` and `S037_WAVE0_DECISIONS.md`.
+`compile.py` was not changed; T006 bench re-run is N/A.
+
+**Sprint 038 — Session Range Structure** is **opening**. Integration branch:
+`sprint/session-range`. Wave 0 records D-S038-01 … D-S038-03 as proposed and **holds
+T002–T005** until D-S038-04 … D-S038-07 are locked. See `SPRINT_038.md` and
+`S038_WAVE0_DECISIONS.md`. IDEA-014 training remains deferred.
 
 ---
 
@@ -555,10 +559,12 @@ Sprint 024 dry-run reliability → main (#270).
 Sprint 035 track choice CLOSED.
 Sprint 036 research infra audit COMPLETED on main (#288).
 Sprint 037 component libraries + DSL COMPLETED on main (#296).
+Sprint 038 Session Range Wave 0 OPEN on sprint/session-range (lock D-S038-04 … D-S038-07).
 
 Recommended next implementation:
-    Session Range catalog (S007 follow-on)
-    then AI/ML research (IDEA-014) when authoring foundation is on main
+    Lock Sprint 038 Wave 0, then structure.session_range
+    then wick / distance catalog PRs
+    then AI/ML research (IDEA-014)
 
 Deferred relative to that track:
     Phase 4B — Orderflow Market Analysis
@@ -585,7 +591,7 @@ Deferred (explicit):
     Further public-dashboard cosmetics as a default track
 ```
 
-See `docs/planning/sprints/SPRINT_037.md`, `S037_GATE.md`, and `ROADMAP.md` §11–§12.
+See `docs/planning/sprints/SPRINT_038.md`, `S038_WAVE0_DECISIONS.md`, `S037_GATE.md`, and `ROADMAP.md` §11–§12.
 
 ---
 
@@ -630,6 +636,7 @@ See `docs/planning/sprints/SPRINT_037.md`, `S037_GATE.md`, and `ROADMAP.md` §11
 | 035 | Next increment selection (post public demo) | COMPLETED | chose S024 then S036→S037→AI/ML |
 | 036 | Research infra audit (DSL/component gate) | COMPLETED | 11 / 11 tasks; main #288 |
 | 037 | Component libraries + DSL simplification | COMPLETED | 7 / 7 tasks; main #296 |
+| 038 | Session Range Structure | WAVE 0 OPEN | T001 in progress; T002–T006 blocked on lock |
 
 ---
 
