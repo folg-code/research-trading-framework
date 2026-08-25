@@ -12,7 +12,7 @@ Sprint: 036
 
 Phase: Research authoring foundation (pre–AI/ML)
 
-Status: COMPLETED (sprint branch — pending merge to main)
+Status: COMPLETED (main #288)
 
 Planned Start: 2026-07-18
 
@@ -23,6 +23,8 @@ Sprint Goal Owner: Project Maintainer
 Depends On: S024 on main (#270); S026/S027 performance baselines exist
 
 Sprint Branch: sprint/research-infra-audit
+
+Integrated: main via PR #288 (2026-08-25)
 
 Task branch convention: feat/ | fix/ | docs/ | test/ | bench/
 

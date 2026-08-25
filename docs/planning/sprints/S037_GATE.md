@@ -22,9 +22,9 @@ All of the following must hold:
 1. Sprint 036 audit exists: `docs/reference/DATA_REPRESENTATION_AUDIT.md`.
 2. Authoring bench exists: `scripts/ops/bench_authoring_analysis_evaluate.py`.
 3. Every HIGH authoring-path item is either repaid or **explicitly deferred** below.
-4. This gate document is on the sprint branch (or `main` after S036 integration).
+4. This gate document is on `main` after S036 integration (#288).
 
-S036-T011 records CURRENT_STATUS / ROADMAP closeout on the sprint branch. It does **not**
+S036-T011 records CURRENT_STATUS / ROADMAP closeout. It does **not**
 block opening S037 planning.
 
 ### 1.1 Authoring-path HIGH items

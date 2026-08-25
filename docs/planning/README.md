@@ -50,7 +50,7 @@ Catalog of `docs/planning/`. For taxonomy and reading paths see **[../README.md]
 | [sprints/SPRINT_033.md](sprints/SPRINT_033.md) | Dashboard presentation polish (complete) |
 | [sprints/SPRINT_034.md](sprints/SPRINT_034.md) | Public dashboard demo polish (complete) |
 | [sprints/SPRINT_035.md](sprints/SPRINT_035.md) | Next increment selection (completed — S024 then S036 track) |
-| [sprints/SPRINT_036.md](sprints/SPRINT_036.md) | Research infra audit — gate for DSL / components (completed on sprint branch; pending main) |
+| [sprints/SPRINT_036.md](sprints/SPRINT_036.md) | Research infra audit — gate for DSL / components (completed on main #288) |
 | [sprints/S036_WAVE0_DECISIONS.md](sprints/S036_WAVE0_DECISIONS.md) | Sprint 036 Wave 0 binding decisions (D-S036-01 … D-S036-08) |
 | [sprints/S037_GATE.md](sprints/S037_GATE.md) | Sprint 037 entry gate — DSL simplicity + library rules |
 | [sprints/SPRINT_026.md](sprints/SPRINT_026.md) | Research hot-path performance (completed on main) |
