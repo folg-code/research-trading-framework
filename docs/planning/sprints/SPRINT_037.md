@@ -5,12 +5,13 @@
 ```text
 Sprint: 037
 Phase: Research authoring foundation (pre–AI/ML)
-Status: COMPLETED (sprint branch; main integration pending)
+Status: COMPLETED (main #296)
 Planned Start: 2026-08-25
 Planned End: 2026-08-25
 Sprint Goal Owner: Project Maintainer
 Depends On: S036 on main (#288); S037_GATE.md
 Sprint Branch: sprint/component-libraries-dsl
+Integrated: main via PR #296 (2026-08-25)
 Task branch convention: feat/ | fix/ | docs/ | test/
 Wave 0 decisions: docs/planning/sprints/S037_WAVE0_DECISIONS.md
 Architecture Sources:
