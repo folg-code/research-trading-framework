@@ -1,7 +1,9 @@
 """Built-in Market Analysis component registration."""
 
 from trading_framework.market_analysis.components.structure import (
+    NumpySessionRangeImplementation,
     NumpySwingStructureImplementation,
+    SessionRangeComponent,
     SwingStructureComponent,
 )
 from trading_framework.market_analysis.components.trend import (
@@ -49,12 +51,22 @@ def register_swing_structure_component(registry: ComponentRegistry) -> None:
     )
 
 
+def register_session_range_component(registry: ComponentRegistry) -> None:
+    """Register the Session Range structure component."""
+    registry.register(
+        SessionRangeComponent(),
+        NumpySessionRangeImplementation(),
+        default=True,
+    )
+
+
 def register_mvp_components(registry: ComponentRegistry) -> None:
     """Register Sprint 003 MVP feature and state components."""
     register_volatility_components(registry)
     register_ema_component(registry)
     register_slope_component(registry)
     register_swing_structure_component(registry)
+    register_session_range_component(registry)
 
 
 def default_mvp_registry() -> ComponentRegistry:
@@ -68,6 +80,7 @@ __all__ = [
     "default_mvp_registry",
     "register_ema_component",
     "register_mvp_components",
+    "register_session_range_component",
     "register_slope_component",
     "register_swing_structure_component",
     "register_volatility_components",

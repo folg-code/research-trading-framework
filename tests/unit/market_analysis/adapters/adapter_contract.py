@@ -182,3 +182,23 @@ def dependency_workspace(
         return workspace.view_for((dependency_key,))
 
     return _prepare
+
+
+def session_metadata_workspace() -> Callable[[AnalysisWorkspace], AnalysisWorkspaceView]:
+    """Attach Sprint 005 session metadata so Session Range can compute."""
+
+    def _prepare(workspace: AnalysisWorkspace) -> AnalysisWorkspaceView:
+        from trading_framework.market_analysis.assembly.session_metadata import (
+            TradingSessionMetadata,
+        )
+        from trading_framework.time.sessions import CmeEsRthSessionResolver
+
+        resolver = CmeEsRthSessionResolver()
+        metadata = TradingSessionMetadata.resolve(workspace.market_view.timestamps, resolver)
+        return AnalysisWorkspace(
+            workspace.market_view,
+            session_metadata=metadata,
+            session_resolver=resolver,
+        ).view_for(())
+
+    return _prepare

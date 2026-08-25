@@ -2,6 +2,10 @@
 
 import pytest
 
+from trading_framework.market_analysis.components.structure import (
+    NumpySessionRangeImplementation,
+    SessionRangeComponent,
+)
 from trading_framework.market_analysis.components.trend import (
     EmaComponent,
     NumpyEmaImplementation,
@@ -19,6 +23,7 @@ from .adapter_contract import (
     AdapterContractCase,
     assert_adapter_contract,
     dependency_workspace,
+    session_metadata_workspace,
 )
 
 
@@ -53,8 +58,15 @@ from .adapter_contract import (
             parameters=SlopeComponent().parameter_schema.canonicalize({"period": 3}),
             dependency_keys=(),
         ),
+        AdapterContractCase(
+            component=SessionRangeComponent(),
+            implementation=NumpySessionRangeImplementation(),
+            parameters=SessionRangeComponent().parameter_schema.canonicalize({}),
+            dependency_keys=(),
+            prepare_workspace=session_metadata_workspace(),
+        ),
     ],
-    ids=["true_range", "atr", "ema", "slope"],
+    ids=["true_range", "atr", "ema", "slope", "session_range"],
 )
 def test_numpy_adapter_satisfies_shared_contract(case: AdapterContractCase) -> None:
     assert_adapter_contract(case)

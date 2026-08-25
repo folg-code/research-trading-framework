@@ -70,6 +70,21 @@ _DOCUMENTATION: dict[str, ComponentCatalogEntry] = {
             "observed-index internals stay off the namespace."
         ),
     ),
+    "structure.session_range": ComponentCatalogEntry(
+        component_id=ComponentId("structure.session_range"),
+        summary="Causal running ES RTH session open/high/low/close/range",
+        tags=("structure", "session"),
+        examples=(
+            "price.close > structure.session_high()",
+            "structure.session_completed()",
+        ),
+        notes=(
+            "RTH-only; OUTSIDE_RTH is NaN. session_completed is 1.0 on the last "
+            "RTH bar of a group after a later bar proves the session ended. "
+            "Pass session_resolver to run_analysis / evaluate_models. "
+            "Optional timeframe= re-resolves session labels on that grid."
+        ),
+    ),
 }
 
 

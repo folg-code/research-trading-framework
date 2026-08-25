@@ -1,7 +1,10 @@
 """Structure component references."""
 
 from trading_framework.market_analysis import OutputId
-from trading_framework.market_analysis.components.structure import SwingStructureComponent
+from trading_framework.market_analysis.components.structure import (
+    SessionRangeComponent,
+    SwingStructureComponent,
+)
 from trading_framework.model_authoring.references.operand import Operand
 from trading_framework.model_authoring.references.timeframe import parse_timeframe
 from trading_framework.model_expression.references import ComponentOutputReference
@@ -153,4 +156,83 @@ def latest_lower_low_level(
         pivot_range=pivot_range,
         timeframe=timeframe,
         alias=alias,
+    )
+
+
+def _session_range_operand(
+    output_id: str,
+    *,
+    timeframe: str | Timeframe | None,
+    alias: str | None,
+    is_event: bool = False,
+) -> Operand:
+    component = SessionRangeComponent()
+    return Operand(
+        ComponentOutputReference(
+            component_id=component.component_id,
+            parameters=component.parameter_schema.canonicalize({}),
+            output_id=OutputId(output_id),
+            computation_timeframe=None if timeframe is None else parse_timeframe(timeframe),
+            alias=alias,
+        ),
+        is_event=is_event,
+    )
+
+
+def session_open(
+    *,
+    timeframe: str | Timeframe | None = None,
+    alias: str | None = None,
+) -> Operand:
+    """``structure.session_open()`` running RTH session open."""
+    return _session_range_operand("session_open", timeframe=timeframe, alias=alias)
+
+
+def session_high(
+    *,
+    timeframe: str | Timeframe | None = None,
+    alias: str | None = None,
+) -> Operand:
+    """``structure.session_high()`` running RTH session high."""
+    return _session_range_operand("session_high", timeframe=timeframe, alias=alias)
+
+
+def session_low(
+    *,
+    timeframe: str | Timeframe | None = None,
+    alias: str | None = None,
+) -> Operand:
+    """``structure.session_low()`` running RTH session low."""
+    return _session_range_operand("session_low", timeframe=timeframe, alias=alias)
+
+
+def session_close(
+    *,
+    timeframe: str | Timeframe | None = None,
+    alias: str | None = None,
+) -> Operand:
+    """``structure.session_close()`` running RTH session close."""
+    return _session_range_operand("session_close", timeframe=timeframe, alias=alias)
+
+
+def session_range(
+    *,
+    timeframe: str | Timeframe | None = None,
+    alias: str | None = None,
+) -> Operand:
+    """``structure.session_range()`` running RTH high minus low."""
+    return _session_range_operand("session_range", timeframe=timeframe, alias=alias)
+
+
+def session_completed(
+    *,
+    timeframe: str | Timeframe | None = None,
+    alias: str | None = None,
+) -> Operand:
+    """``structure.session_completed()`` 1.0 on a confirmed RTH session end."""
+    return _session_range_operand(
+        "session_completed",
+        timeframe=timeframe,
+        alias=alias,
+        is_event=True,
     )
