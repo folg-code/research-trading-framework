@@ -200,11 +200,11 @@ before expanding the component catalog or simplifying `model_authoring/`.
 
 | S036-T004 | Baseline measurement (250 / 2 000 / 10 000 bars) recorded as the reference for all later PRs | DONE — audit §6.1 |
 
-| S036-T005 | Stage 0.5 — session resolver single pass + categorical `session_id` (measured M1, 59 % of `run_analysis`) | TODO |
+| S036-T005 | Stage 0.5 — session resolver single pass (measured M1). `session_id` stays Utf8; timezone remains its own pass | DONE — #279; audit Stage 0.5 |
 
-| S036-T006 | Extend bench harness to cover multitimeframe and Parquet reads (prerequisite for Stage 1) | TODO |
+| S036-T006 | Extend bench harness to cover multitimeframe and Parquet reads (prerequisite for Stage 1) | DONE — #278; audit §6.3 |
 
-| S036-T007 | Stage 1 — table-level validators + remove `MarketBar` round-trips (D-REP-03 / D-REP-07) | TODO — scope confirmed by T006 |
+| S036-T007 | Stage 1 — table-level validators + remove `MarketBar` round-trips (D-REP-03 / D-REP-07) | TODO — H2 justified; H6 defer; H4 unmeasured |
 
 | S036-T008 | Stage 2 — `scan_parquet` at repository boundary, then lazy analysis frame builder (D-REP-02) | TODO |
 
@@ -218,7 +218,7 @@ The data representation policy and the D-REP decision register live in
 [`../../reference/DATA_REPRESENTATION_AUDIT.md`](../../reference/DATA_REPRESENTATION_AUDIT.md)
 (accepted 2026-08-25). It governs the Stage 1–Stage 4 scope referenced above.
 
-Wave 1 harness command: `uv run python scripts/ops/bench_authoring_analysis_evaluate.py` (`--json`, `--bars N`).
+Wave 1 harness command: `uv run python scripts/ops/bench_authoring_analysis_evaluate.py` (`--json`, `--bars N`, opt-in `--mtf`, `--parquet`).
 
 
 Suggested PR waves into `sprint/research-infra-audit`:
@@ -358,5 +358,5 @@ feature lineage, leakage control, and artifact identity.
 
 | DSL creep during audit | Keep language changes in S037 |
 
-| Mega-sprint | Measurement gate on every PR (D-S036-04); Stage 1 re-scoped if T006 shows H2/H4 immaterial |
+| Mega-sprint | Measurement gate on every PR (D-S036-04); T006: H2 justified, H6 defer, H4 unmeasured |
 
