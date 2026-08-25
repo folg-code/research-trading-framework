@@ -31,9 +31,23 @@ def empty_analysis_frame() -> pl.DataFrame:
     return pl.DataFrame(schema=_analysis_frame_schema())
 
 
+def validate_analysis_frame_schema(schema: pl.Schema) -> None:
+    """Validate analysis-frame column names and dtypes without materializing rows."""
+    expected = empty_analysis_frame()
+    columns = list(schema.names())
+    if columns != expected.columns:
+        msg = f"analysis frame columns mismatch: {columns} != {expected.columns}"
+        raise ValidationError(msg)
+    for column, expected_dtype in expected.schema.items():
+        actual_dtype = schema.get(column)
+        if actual_dtype != expected_dtype:
+            msg = f"analysis frame dtype mismatch for {column}: {actual_dtype} != {expected_dtype}"
+            raise ValidationError(msg)
+
+
 def validate_analysis_frame(frame: pl.DataFrame) -> None:
     """Validate normalized analysis frame columns and dtypes."""
-    _validate_frame_schema(frame, expected=empty_analysis_frame(), label="analysis frame")
+    validate_analysis_frame_schema(frame.schema)
 
 
 def _run_summary_schema() -> dict[str, pl.DataType]:

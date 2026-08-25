@@ -27,14 +27,14 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 
 ```text
 Status Date: 2026-08-25
-Current Phase: Sprint 036 research infra audit — Stage 2 step 1 (scan_parquet at OHLCV repository)
-Current Milestone: D-REP-02 step 1 measured; lazy analysis frame builder is next
+Current Phase: Sprint 036 research infra audit — Stage 2 complete (D-REP-02); ADRs next
+Current Milestone: T009 ADRs for D-REP-01 / D-REP-05 / D-REP-10 (blocks Stage 3 / Stage 4)
 Implementation Status: Sprints 001-006, 008-024, 025-035 on main; 036 IN_PROGRESS
 Overall Status: STABLE
 Active Sprint: sprint/research-infra-audit (S036)
 Last Completed Sprint: SPRINT_024 (dry-run reliability) → main (#270); S035 selection COMPLETED
 Capability Tracks: Foundation COMPLETE; Data COMPLETE (core); Research COMPLETE (core); Strategy 6A COMPLETE; Phase 8A dry-run + S024 on main; Dashboard / Live Paper / public demo COMPLETE
-Recent: S036 T001–T007 on sprint (#272–#282). T008 step 1: prune + scan_parquet on query_ohlcv_table. Next: T008 step 2 lazy analysis frame builder. Track: audit → S037 DSL/components → AI/ML later.
+Recent: S036 T001–T008 on sprint (#272–#283 + lazy frame builder). Next: T009 ADRs. Track: audit → S037 DSL/components → AI/ML later.
 ```
 
 ---
@@ -591,7 +591,7 @@ See `docs/planning/sprints/SPRINT_035.md`, `SPRINT_024.md`, and `ROADMAP.md` §1
 | 033 | Dashboard presentation polish | COMPLETED | 6 / 6 tasks; Waves A–C (#253–#256); main #257 |
 | 034 | Public Dashboard Demo Polish | COMPLETED | Waves 1–5 (#258–#259); main #260; VPS deploy; follow-ups #261–#264 |
 | 035 | Next increment selection (post public demo) | COMPLETED | chose S024 then S036→S037→AI/ML |
-| 036 | Research infra audit (DSL/component gate) | IN_PROGRESS | T001–T007 on sprint; T008 step 1 scan_parquet; step 2 next |
+| 036 | Research infra audit (DSL/component gate) | IN_PROGRESS | T001–T008 on sprint; T009 ADRs next |
 
 ---
 

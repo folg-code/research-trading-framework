@@ -13,6 +13,7 @@ from trading_framework.research.analytics import (
     build_analysis_frame,
     validate_analysis_frame,
 )
+from trading_framework.research.analytics.schemas import empty_analysis_frame
 from trading_framework.research.context.context_fact import empty_context_facts_dataframe
 from trading_framework.research.datasets import (
     SIGNAL_RESEARCH_SCHEMA_V2,
@@ -173,6 +174,26 @@ def test_build_analysis_frame_market_and_signal_includes_context() -> None:
     frame = build_analysis_frame(envelope)
 
     assert frame.row(0, named=True)["context_met_at_available_at"] is True
+    expected = pl.DataFrame(
+        {
+            "run_id": ["market_and_signal-run"],
+            "research_scope": [ResearchScope.MARKET_AND_SIGNAL.value],
+            "entity_id": ["occ-1"],
+            "entity_kind": [ENTITY_KIND_SIGNAL],
+            "horizon_bars": [5],
+            "outcome_status": [OutcomeStatus.COMPLETE.value],
+            "forward_return": [0.01],
+            "mfe": [0.02],
+            "mae": [-0.005],
+            "detected_at": [detected_at],
+            "available_at": [available_at],
+            "reference_price": [100.0],
+            "instrument": ["TEST"],
+            "context_met_at_available_at": [True],
+        },
+        schema=empty_analysis_frame().schema,
+    )
+    assert frame.equals(expected)
 
 
 def test_build_analysis_frame_empty_outcomes_returns_valid_schema() -> None:
