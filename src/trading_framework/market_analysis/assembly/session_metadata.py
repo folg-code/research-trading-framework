@@ -9,6 +9,7 @@ import polars as pl
 from trading_framework.core.exceptions import ValidationError
 from trading_framework.time.sessions.constants import RESOLVER_OUTPUT_COLUMNS
 from trading_framework.time.sessions.protocol import TradingSessionResolver
+from trading_framework.time.utc_datetime_series import utc_datetime_series
 
 _STORED_COLUMNS = ("trading_day", "session_id", "is_rth")
 
@@ -72,7 +73,7 @@ class TradingSessionMetadata:
         if not timestamps:
             msg = "timestamps must be non-empty"
             raise ValidationError(msg)
-        frame = resolver.resolve(pl.Series("timestamp", timestamps))
+        frame = resolver.resolve(utc_datetime_series(timestamps))
         if frame.height != len(timestamps):
             msg = "resolver output length must match evaluation timestamps"
             raise ValidationError(msg)
