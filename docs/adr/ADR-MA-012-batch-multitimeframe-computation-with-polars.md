@@ -4,6 +4,10 @@
 
 ACCEPTED
 
+Amended 2026-08-25 by [ADR-MA-014](ADR-MA-014-marketframe-polars-committed-bulk-engine.md):
+Polars bulk `MarketFrame` is authorized. Sprint 004 resample/align semantics in this ADR are
+unchanged.
+
 ## Context
 
 Sprint 003 delivered a single-timeframe batch analysis engine with `ComputationIdentity`,
@@ -132,8 +136,15 @@ Conversion to existing domain types remains at the boundary:
 AnalysisDataView → Polars → resample/align → MarketBar → AnalysisDataView
 ```
 
-NumPy component kernels are unchanged. Full columnar `MarketFrame` migration (TD-015) and query-path
-columnar batches (TD-011) remain deferred.
+NumPy component kernels are unchanged. Full columnar `MarketFrame` migration is authorized by
+ADR-MA-014 (D-REP-01) and remains unimplemented until Stage 4. Query-path `list[MarketBar]` (H4 /
+TD-011) stays a separate measurement.
+
+## Amendment 2026-08-25 — Polars bulk scope (D-REP-01)
+
+The Sprint 004 restriction “Polars for resample/align only” no longer forbids a bulk `MarketFrame`
+contract. It still describes **what Sprint 004 shipped**. Stage 4 may keep a lazy plan across
+resample, align, and component kernels; that work is out of this ADR’s original MVP.
 
 ### Trading Calendar deferral
 
@@ -157,7 +168,8 @@ introduced in this sprint.
 
 ### Negative
 
-- Resample/align conversion cost at Polars ↔ `MarketBar` boundary (see spike note TD-011/TD-015).
+- Resample/align conversion cost at the Polars ↔ view boundary (Sprint 036 Stage 1 removed the
+  resample `MarketBar` round-trip; Stage 4 targets `MarketFrame`).
 - Fixed UTC buckets may misalign with exchange session boundaries until PRB-007 is resolved.
 - Published HTF dataset reuse vs on-the-fly resample is not auto-resolved (noted in
   `ResolvedInputPlan` docstring for future work).
@@ -177,3 +189,4 @@ introduced in this sprint.
 - `src/trading_framework/market_analysis/assembly/assembler.py`
 - `tests/unit/market_analysis/test_mtf_behavior.py`
 - `tests/integration/test_market_analysis_mtf_vertical_slice.py`
+- `docs/adr/ADR-MA-014-marketframe-polars-committed-bulk-engine.md`

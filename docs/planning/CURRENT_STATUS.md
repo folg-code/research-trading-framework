@@ -27,14 +27,14 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 
 ```text
 Status Date: 2026-08-25
-Current Phase: Sprint 036 research infra audit — Stage 2 complete (D-REP-02); ADRs next
-Current Milestone: T009 ADRs for D-REP-01 / D-REP-05 / D-REP-10 (blocks Stage 3 / Stage 4)
+Current Phase: Sprint 036 research infra audit — Stage 2 complete; representation ADRs landed
+Current Milestone: T010 S037 gate doc (DSL simplicity + component library rules)
 Implementation Status: Sprints 001-006, 008-024, 025-035 on main; 036 IN_PROGRESS
 Overall Status: STABLE
 Active Sprint: sprint/research-infra-audit (S036)
 Last Completed Sprint: SPRINT_024 (dry-run reliability) → main (#270); S035 selection COMPLETED
 Capability Tracks: Foundation COMPLETE; Data COMPLETE (core); Research COMPLETE (core); Strategy 6A COMPLETE; Phase 8A dry-run + S024 on main; Dashboard / Live Paper / public demo COMPLETE
-Recent: S036 T001–T008 on sprint (#272–#283 + lazy frame builder). Next: T009 ADRs. Track: audit → S037 DSL/components → AI/ML later.
+Recent: S036 T001–T009 on sprint (#272–#284 + representation ADRs). Next: T010 S037 gate. Track: audit → S037 DSL/components → AI/ML later.
 ```
 
 ---
@@ -484,6 +484,7 @@ PRB-002 and PRB-005 received partial MVP resolution in Sprint 003.
 | ADR-MA-001–011 Market Analysis Engine | ACCEPTED (Sprint 003) |
 | ADR-MA-012 Batch MTF with Polars | ACCEPTED (Sprint 004) |
 | ADR-MA-013 CME ES RTH + Swing Structure MTF | ACCEPTED (Sprint 005) |
+| ADR-MA-014 MarketFrame / Polars committed bulk engine | ACCEPTED (Sprint 036; D-REP-01) |
 | ADR-0006 | ACCEPTED (Sprint 006) |
 | ADR-0011 | ACCEPTED (Sprint 008) |
 | ADR-0012 | ACCEPTED (Sprint 009) |
@@ -507,7 +508,8 @@ Binding decisions D-001–D-036 and workspace invariants are documented in the a
 
 - **Inherited S002/S003 complexity** — MarketBar list, AnalysisDataView, Store+Workspace+Cache; see Architecture Simplification Review and TD-011–TD-016. Sprint 004 must not stack new wrappers without checklist §5.
 - **Phase 4 scope creep** — multitimeframe and component catalog can expand quickly; keep outcome-scoped PRs.
-- **Polars boundary creep** — Polars for resample/align only until MarketFrame migration is explicitly planned.
+- **Polars boundary creep** — accepted in ADR-MA-014: Polars is the committed bulk engine;
+  `AnalysisDataView` remains the live-runtime adapter. Stage 4 implements `MarketFrame`.
 - **Implementation fingerprint gap** — PRB-002 parameter identity is resolved; full implementation hashing remains for research parity.
 - **TA-Lib optional path** — deferred T027/S004-T016; NumPy adapter is the CI reference backend.
 
@@ -591,7 +593,7 @@ See `docs/planning/sprints/SPRINT_035.md`, `SPRINT_024.md`, and `ROADMAP.md` §1
 | 033 | Dashboard presentation polish | COMPLETED | 6 / 6 tasks; Waves A–C (#253–#256); main #257 |
 | 034 | Public Dashboard Demo Polish | COMPLETED | Waves 1–5 (#258–#259); main #260; VPS deploy; follow-ups #261–#264 |
 | 035 | Next increment selection (post public demo) | COMPLETED | chose S024 then S036→S037→AI/ML |
-| 036 | Research infra audit (DSL/component gate) | IN_PROGRESS | T001–T008 on sprint; T009 ADRs next |
+| 036 | Research infra audit (DSL/component gate) | IN_PROGRESS | T001–T009 on sprint; T010 S037 gate next |
 
 ---
 

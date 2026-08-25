@@ -656,7 +656,7 @@ where the decision itself is accepted.
 
 ### D-REP-01 — `MarketFrame(pl.LazyFrame, metadata)` as the canonical bulk representation
 
-**Status:** ACCEPTED 2026-08-25 — blocked on superseding ADR · **Type:** representation contract · **ADR impact:** ADR-MA-004, ADR-MA-010
+**Status:** ACCEPTED 2026-08-25 — ADR-MA-014 · **Type:** representation contract · **ADR impact:** ADR-MA-004, ADR-MA-010
 
 **Reason.** `AnalysisDataView` carries `tuple[float, ...]` columns and a custom `column()` API. Every
 tabular operation the engine needs (resample, as-of align, join, aggregate) must therefore leave the
@@ -680,9 +680,11 @@ behind the adapter; do not big-bang.
 **Alternative if rejected.** Keep the view, adopt D-REP-03 and D-REP-04 only. This removes the worst
 redundant conversions but leaves H3 permanently in place.
 
-**Outcome.** Accepted with the recommended shape: a superseding ADR must state that Polars is a
-committed engine, and `AnalysisDataView` is retained as a thin adapter for the live runtime (N=1,
-object semantics). Incremental component migration behind the adapter; no big-bang rewrite.
+**Outcome.** Accepted with the recommended shape. Recorded as
+[ADR-MA-014](../adr/ADR-MA-014-marketframe-polars-committed-bulk-engine.md): Polars is a committed
+engine; `AnalysisDataView` is retained as a thin adapter for the live runtime. Incremental
+component migration behind the adapter; no big-bang rewrite. Stage 4 code still requires its own
+PRs.
 
 ---
 
@@ -895,8 +897,8 @@ measurement. Sizes follow the 100–400 LOC target from the sprint git workflow.
 | Item | Output | Status |
 |---|---|---|
 | Maintainer approves or rejects each D-REP entry | this document moves DRAFT → ACCEPTED | DONE 2026-08-25 |
-| Superseding ADR for D-REP-01 (Polars as committed engine; MA-004 / MA-010) | new ADR | TODO — blocks Stage 4 |
-| ADR note for D-REP-05 / D-REP-10 (availability + lineage addressability) | ADR-MA-009 / ADR-MA-005 amendment | TODO — blocks Stage 3 |
+| Superseding ADR for D-REP-01 (Polars as committed engine; MA-004 / MA-010) | [ADR-MA-014](../adr/ADR-MA-014-marketframe-polars-committed-bulk-engine.md) | DONE 2026-08-25 — blocks Stage 4 until implementation PRs |
+| ADR note for D-REP-05 / D-REP-10 (availability + lineage addressability) | ADR-MA-009 / ADR-MA-005 amendments | DONE 2026-08-25 — blocks Stage 3 until implementation PRs |
 | Baseline measurement captured | `bench_authoring_analysis_evaluate.py --json` recorded in §6.1 | DONE 2026-08-25 — S036-T004 |
 
 **Nothing below starts before its blocking Stage 0 item completes.** Stage 1 needs only the baseline
@@ -974,7 +976,7 @@ Acceptance: parity test proving reconstructed and carried `available_at` agree o
 
 | PR | Outcome | Files | Risk |
 |---|---|---|---|
-| `docs/adr-marketframe-representation` | superseding ADR for MA-004 / MA-010 | `docs/adr/` | — |
+| `docs/adr-marketframe-representation` | **DONE** — [ADR-MA-014](../adr/ADR-MA-014-marketframe-polars-committed-bulk-engine.md) | `docs/adr/` | — |
 | `feat/marketframe-contract` | `MarketFrame(pl.LazyFrame, metadata)` + adapter from `AnalysisDataView` | `market_analysis/data/` | HIGH |
 | `feat/marketframe-component-migration-1` | migrate `ema`, `true_range` behind the adapter | `market_analysis/components/` | HIGH |
 | `feat/marketframe-component-migration-2` | migrate `atr`, `state`, `swing` | `market_analysis/components/` | HIGH |

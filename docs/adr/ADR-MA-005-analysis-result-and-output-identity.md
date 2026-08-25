@@ -4,6 +4,8 @@
 
 ACCEPTED
 
+Amended 2026-08-25 for D-REP-10 (lineage sidecar after evaluation-frame assembly).
+
 ## Context
 
 PRB-005 asked how Features, Structures and States should be stored. Sprint 003 needed a shape that
@@ -28,6 +30,16 @@ Output groups distinguish core vs diagnostic outputs (`OutputGroup.CORE`, `Outpu
 
 Persistent derived-dataset storage is **out of Sprint 003 scope**.
 
+## Amendment 2026-08-25 — lineage sidecar (D-REP-10)
+
+`AnalysisResult.Lineage` remains the per-computation record. `AnalysisFrame.column_lineage` must
+stay addressable after `build_evaluation_dataframe`. Stage 3 binds evaluation columns to their
+producing `OutputRef` through a **sidecar keyed by assembled column name**, not extra lineage
+columns on the evaluation frame.
+
+Name uniqueness is already enforced by `AliasCollisionError` in `AnalysisFrameAssembler`. Reject
+lineage-as-columns unless a later research-reproducibility requirement demands it.
+
 ## Consequences
 
 ### Positive
@@ -45,3 +57,4 @@ Persistent derived-dataset storage is **out of Sprint 003 scope**.
 - `docs/vision/MARKET_ANALYSIS_WITH_DECISIONS.md` — D-014, D-015, D-025
 - `docs/planning/PROBLEM_REGISTRY.md` — PRB-005 (MVP resolution note)
 - `src/trading_framework/market_analysis/models/result.py`
+- `docs/reference/DATA_REPRESENTATION_AUDIT.md` — D-REP-10
