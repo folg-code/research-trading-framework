@@ -82,7 +82,7 @@ Separate HH/HL component — only if Pivot outputs insufficient
 | S007-T002 | slope feature | DONE (Sprint 037 / `trend.slope`) |
 | S007-T003 | wick ratio feature | TODO |
 | S007-T004 | distance to level feature | TODO |
-| S007-T005 | Session Range structure | TODO (Sprint 038) |
+| S007-T005 | Session Range structure | DONE (Sprint 038 / `structure.session_range`) |
 | S007-T006 | Trend State component | TODO |
 | S007-T007 | Visualization increment (session lines, structure labels) | TODO |
 | S007-T008 | Tests and integration | TODO |
