@@ -27,14 +27,14 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 
 ```text
 Status Date: 2026-08-25
-Current Phase: Sprint 036 complete on main; next is Sprint 037
-Current Milestone: S037 Wave 0 (SPRINT_037.md + S037_WAVE0_DECISIONS.md) — not started
-Implementation Status: Sprints 001-006, 008-024, 025-036 on main
+Current Phase: Sprint 037 component libraries + DSL simplification
+Current Milestone: Wave 1 — existing-catalog DSL fill-in
+Implementation Status: Sprints 001-006, 008-024, 025-036 on main; 037 IN_PROGRESS
 Overall Status: STABLE
-Active Sprint: none (S036 on main; S037 not opened)
+Active Sprint: sprint/component-libraries-dsl (S037)
 Last Completed Sprint: SPRINT_036 (research infra audit) → main (#288)
 Capability Tracks: Foundation COMPLETE; Data COMPLETE (core); Research COMPLETE (core); Strategy 6A COMPLETE; Phase 8A dry-run + S024 on main; Dashboard / Live Paper / public demo COMPLETE
-Recent: S036 T001–T011 → main (#288; working PRs #272–#287). Next: S037 component libraries + DSL simplification (S037_GATE.md). AI/ML later.
+Recent: S036 on main (#288). S037 Wave 0 on sprint/component-libraries-dsl. Next: ATR/true-range + swing DSL, then slope and Session Range. AI/ML later.
 ```
 
 ---
@@ -183,6 +183,10 @@ Wave 0 path inventory
 
 Audit: `docs/reference/DATA_REPRESENTATION_AUDIT.md`. Gate: `docs/planning/sprints/S037_GATE.md`.
 Bench: `scripts/ops/bench_authoring_analysis_evaluate.py`. See `SPRINT_036.md` and `S036_WAVE0_DECISIONS.md`.
+
+**Sprint 037 — Component libraries + DSL simplification** is **in progress** on
+`sprint/component-libraries-dsl`. Wave 0: `SPRINT_037.md` and `S037_WAVE0_DECISIONS.md`.
+First code: existing-catalog DSL (ATR / true-range / swing), then slope, then Session Range.
 
 ---
 
@@ -541,7 +545,8 @@ Sprint 036 research infra audit COMPLETED on main (#288).
 
 Recommended next implementation:
     Sprint 037 — Component libraries + DSL simplification
-      (entry: S037_GATE.md; Wave 0 writes SPRINT_037.md)
+      (sprint/component-libraries-dsl; gate: S037_GATE.md)
+      Wave 1: existing-catalog DSL; then slope; then Session Range
       then AI/ML research (IDEA-014) when authoring foundation is stable
 
 Deferred relative to that track:
@@ -568,7 +573,7 @@ Deferred (explicit):
     Further public-dashboard cosmetics as a default track
 ```
 
-See `docs/planning/sprints/S037_GATE.md`, `SPRINT_036.md`, and `ROADMAP.md` §11–§12.
+See `docs/planning/sprints/SPRINT_037.md`, `S037_GATE.md`, and `ROADMAP.md` §11–§12.
 
 ---
 
@@ -612,6 +617,7 @@ See `docs/planning/sprints/S037_GATE.md`, `SPRINT_036.md`, and `ROADMAP.md` §11
 | 034 | Public Dashboard Demo Polish | COMPLETED | Waves 1–5 (#258–#259); main #260; VPS deploy; follow-ups #261–#264 |
 | 035 | Next increment selection (post public demo) | COMPLETED | chose S024 then S036→S037→AI/ML |
 | 036 | Research infra audit (DSL/component gate) | COMPLETED | 11 / 11 tasks; main #288 |
+| 037 | Component libraries + DSL simplification | IN_PROGRESS | Wave 0 on sprint/component-libraries-dsl |
 
 ---
 
