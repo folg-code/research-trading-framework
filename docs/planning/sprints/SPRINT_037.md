@@ -5,9 +5,9 @@
 ```text
 Sprint: 037
 Phase: Research authoring foundation (pre–AI/ML)
-Status: IN_PROGRESS
+Status: COMPLETED (sprint branch; main integration pending)
 Planned Start: 2026-08-25
-Planned End: TBD
+Planned End: 2026-08-25
 Sprint Goal Owner: Project Maintainer
 Depends On: S036 on main (#288); S037_GATE.md
 Sprint Branch: sprint/component-libraries-dsl
@@ -98,8 +98,8 @@ write a market + signal model using only `model_authoring` exports.
 | S037-T003 | DSL fill-in: author-facing `structure.swing` events and latest levels (not index internals) | DONE |
 | S037-T004 | Authoring docs: one copy-pasteable model using only `model_authoring` exports | DONE |
 | S037-T005 | Feature `trend.slope` — OLS slope of close over `period` + DSL | DONE |
-| S037-T006 | Compile bench check if `compile.py` changed; `p1_compile` still negligible | TODO |
-| S037-T007 | CURRENT_STATUS / ROADMAP closeout | TODO |
+| S037-T006 | Compile bench check if `compile.py` changed; `p1_compile` still negligible | N/A (`compile.py` unchanged) |
+| S037-T007 | CURRENT_STATUS / ROADMAP closeout | DONE |
 
 ---
 
@@ -137,6 +137,7 @@ See `S037_WAVE0_DECISIONS.md` for D-S037-01 … D-S037-09.
 3. **`trend.slope`** lands as a component + DSL + tests on the fixture harness path.
 4. An authored market + signal model in docs/tests imports only `model_authoring` (no `model_expression`).
 5. If compile changed, `p1_compile` remains negligible vs `p2` on `bench_authoring_analysis_evaluate.py`.
+   **T006 N/A:** no S037 PR modified `model_authoring/compile.py`.
 6. Quality gates pass.
 
 ---
