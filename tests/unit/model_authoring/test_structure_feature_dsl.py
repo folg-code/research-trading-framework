@@ -68,10 +68,7 @@ def test_authored_swing_event_and_level_evaluate_on_fixture(
     metadata = FileDatasetRegistry(storage_root).get(dataset_ref)
     above_higher_low = market_model(
         "above_higher_low",
-        when=(
-            price.close
-            > structure.latest_higher_low_level(pivot_range=15, timeframe="5m")
-        ),
+        when=(price.close > structure.latest_higher_low_level(pivot_range=15, timeframe="5m")),
     )
     higher_high_long = signal_model(
         "higher_high_long",
