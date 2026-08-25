@@ -34,7 +34,7 @@ Overall Status: STABLE
 Active Sprint: none (S038 integrated)
 Last Completed Sprint: SPRINT_038 (Session Range) → main (#300)
 Capability Tracks: Foundation COMPLETE; Data COMPLETE (core); Research COMPLETE (core); Strategy 6A COMPLETE; Phase 8A dry-run + S024 on main; Dashboard / Live Paper / public demo COMPLETE
-Recent: S038 on main (#300). structure.session_range + compute-view session metadata. Next: wick / distance, then IDEA-014.
+Recent: S038 on main (#300). structure.session_range + compute-view session metadata. Next: wick / distance, then Phase 10 Predictive Research (S039-S044, planned).
 ```
 
 ---
@@ -573,7 +573,13 @@ Sprint 038 Session Range COMPLETED on main (#300).
 
 Recommended next implementation:
     wick / distance catalog PRs
-    then AI/ML research (IDEA-014)
+    then Phase 10 — Predictive (ML) Research, Sprints 039-044 (ROADMAP §13A):
+      S039 dataset foundation (feature matrix, labels, purged walk-forward)
+      S040 baseline regression + classification (estimator seam, sklearn adapter)
+      S041 Predictive Research report v1 (offline Plotly HTML)
+      S042 tree-based models (XGBoost / LightGBM / CatBoost, bounded search)
+      S043 neural models (feedforward + LSTM, sequence windows)
+      S044 dashboard page + IDEA-014 promotion gate (ADR-0024)
 
 Deferred relative to that track:
     Phase 4B — Orderflow Market Analysis
@@ -647,6 +653,12 @@ See `docs/planning/sprints/SPRINT_038.md`, `S038_WAVE0_DECISIONS.md`, `S037_GATE
 | 036 | Research infra audit (DSL/component gate) | COMPLETED | 11 / 11 tasks; main #288 |
 | 037 | Component libraries + DSL simplification | COMPLETED | 7 / 7 tasks; main #296 |
 | 038 | Session Range Structure | COMPLETED | 6 / 6 tasks; main #300 |
+| 039 | Predictive Research dataset foundation (Phase 10A) | PLANNED | 0 / 20 tasks; `SPRINT_039.md` |
+| 040 | Baseline regression + classification (Phase 10A) | PLANNED | 0 / 23 tasks; `SPRINT_040.md` |
+| 041 | Predictive Research report v1 (Phase 10A) | PLANNED | 0 / 16 tasks; `SPRINT_041.md` |
+| 042 | Tree-based predictive models (Phase 10B) | PLANNED | 0 / 22 tasks; `SPRINT_042.md` |
+| 043 | Neural predictive models (Phase 10C) | PLANNED | 0 / 21 tasks; `SPRINT_043.md` |
+| 044 | Predictive dashboard + IDEA-014 gate (Phase 10C) | PLANNED | 0 / 18 tasks; `SPRINT_044.md` |
 
 ---
 

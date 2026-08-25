@@ -182,6 +182,12 @@ Could support large-scale reuse across Research and Strategy Execution.
 - live runtime requirements,
 - measured storage/query bottlenecks.
 
+### Status Note (2026-08-25)
+
+Phase 10 Predictive Research (ROADMAP §13A) persists a feature matrix per study rather than
+introducing a shared store. If repeated studies show heavy duplicated feature computation, that
+measurement becomes the first concrete evidence for this idea.
+
 ### Promotion Criteria
 
 Local cache and Parquet architecture demonstrably fail required scale or parity.
@@ -475,9 +481,10 @@ Support Features and States derived from:
 ## IDEA-014 — Machine-Learned State Classifiers
 
 ```text
-Status: DEFERRED
+Status: SCHEDULED (gate decision in Sprint 044)
 Category: Market Analysis / ML
 Added: 2026-06-19
+Updated: 2026-08-25
 ```
 
 ### Summary
@@ -495,6 +502,19 @@ Allow trained statistical or ML models to produce Market Analysis States.
 ### Promotion Criteria
 
 Rule-based Market Analysis and Research infrastructure are mature.
+
+### Status Note (2026-08-25)
+
+Phase 10 — Predictive Research (ROADMAP §13A, Sprints 039–044) builds the ML research capability
+**without** promoting models into Market Analysis. It resolves feature lineage (declared `OutputRef`
+features, Sprint 039) and training-time leakage (purged and embargoed walk-forward, Sprint 039), and
+records artifact identity in run fingerprints (Sprint 040).
+
+Unresolved and owned by the Sprint 044 gate: durable artifact serialization, inference-time feature
+availability, offline/runtime parity, and whether promotion requires registry infrastructure.
+
+**This idea is not approved for implementation.** Sprint 044 delivers ADR-0024 with testable
+promotion conditions; implementation would need its own sprint afterwards.
 
 ---
 
@@ -552,6 +572,12 @@ Compare candidates across:
 ### Promotion Criteria
 
 Strategy Research metrics and persistent datasets are stable.
+
+### Status Note (2026-08-25)
+
+Sprint 042 introduces a single-study leaderboard for predictive estimator families. That is a
+narrower artifact than a Pareto explorer, but it establishes the comparison view model this idea
+would generalize.
 
 ---
 

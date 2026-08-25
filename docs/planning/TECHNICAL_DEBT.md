@@ -1014,10 +1014,39 @@ The following shortcuts may be accepted later but are not yet introduced:
 - no UI,
 - no distributed task scheduler,
 - no live multi-account support,
-- no automatic ML model registry.
+- no automatic ML model registry,
+- no portability guarantee for fitted model artifacts (Phase 10).
 ```
 
 They should become technical-debt entries only when implementation consciously relies on them and repayment conditions are known.
+
+## Phase 10 — Predictive Research (planned, Sprints 039–044)
+
+Two shortcuts are accepted by design when Phase 10 starts. They are listed here so that a later
+sprint does not mistake them for oversights.
+
+### No model registry
+
+Predictive runs are addressed by content fingerprint under
+`research/predictive_research/runs/{run_id}/`. There is no registry, no promotion workflow and no
+model lifecycle state.
+
+**Repayment trigger:** promoting a trained model to a Market Analysis component (IDEA-014), which
+requires an addressable, durable artifact store. Sprint 044 ADR-0024 decides whether a
+content-addressed store suffices or a registry is genuinely required.
+
+### Fitted artifacts are not portable
+
+The durable facts of a run are `predictions.parquet` and `metrics.json`. The fitted model is stored
+as an opaque blob tagged with library name and version, and the framework promises nothing about
+loading it after a library upgrade. Reproduction re-fits from the manifest instead.
+
+**Consequence accepted:** a run whose library version is no longer installable can be read and
+analyzed but not re-fitted identically. Fingerprints make this visible rather than silent.
+
+**Repayment trigger:** the same as above — model promotion, or a demonstrated need to inspect old
+artifacts. Repayment means choosing a serialization format with a stability guarantee, not adding a
+registry.
 
 ---
 
