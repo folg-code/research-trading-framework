@@ -27,6 +27,7 @@ Index: [../README.md](../README.md). Vision docs: [../vision/README.md](../visio
 |------|---------|
 | [modules/DATA_MODULE_UPDATED.md](modules/DATA_MODULE_UPDATED.md) | Market Data module — Sprint 002 implementation detail |
 | [modules/MARKET_ANALYSIS_MODULE.md](modules/MARKET_ANALYSIS_MODULE.md) | Market Analysis — thin guide (expand after Sprint 003) |
+| [modules/MODEL_AUTHORING.md](modules/MODEL_AUTHORING.md) | Authoring DSL — one copy-pasteable market + signal model |
 
 ---
 

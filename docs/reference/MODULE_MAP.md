@@ -338,7 +338,7 @@ tests/unit/application/model_evaluation/
 ### Deep references
 
 - `ARCHITECTURE_AND_WORKFLOWS.md`
-- model DSL reference
+- [Model authoring DSL](modules/MODEL_AUTHORING.md)
 - model evaluation ADRs
 
 ---
