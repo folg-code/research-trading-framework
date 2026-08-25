@@ -11,6 +11,7 @@ from trading_framework.core.exceptions import ValidationError
 from trading_framework.research.analytics.schemas import (
     empty_analysis_frame,
     validate_analysis_frame,
+    validate_analysis_frame_schema,
 )
 
 
@@ -21,10 +22,14 @@ def test_empty_analysis_frame_has_expected_columns() -> None:
     assert "context_met_at_available_at" in frame.columns
 
 
-def test_validate_analysis_frame_rejects_extra_column() -> None:
-    frame = empty_analysis_frame().with_columns(pl.lit("x").alias("extra"))
+def test_validate_analysis_frame_schema_rejects_extra_column() -> None:
+    extra = empty_analysis_frame().with_columns(pl.lit("x").alias("extra")).schema
     with pytest.raises(ValidationError, match="columns mismatch"):
-        validate_analysis_frame(frame)
+        validate_analysis_frame_schema(extra)
+
+
+def test_validate_analysis_frame_schema_accepts_empty_frame_schema() -> None:
+    validate_analysis_frame_schema(empty_analysis_frame().schema)
 
 
 def test_validate_analysis_frame_rejects_wrong_dtype() -> None:

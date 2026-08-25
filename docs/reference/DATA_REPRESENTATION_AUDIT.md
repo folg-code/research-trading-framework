@@ -19,7 +19,8 @@ Where they partially address a finding, §6.2 says so explicitly. Line reference
 **Progress note (2026-08-25).** Stage 0.5 shipped in #279 (`session_id` stays Utf8; timezone remains
 its own eager pass). T006 harness coverage shipped in #278 (`--mtf`, `--parquet`). Measured H2/H6/H4
 notes are in §6.3; Stage 1 H2 shipped in #281 and derive-path table validation in #282. Stage 2
-step 1 (`scan_parquet` + session-date prune on `query_ohlcv_table`) is in §6.3.1 / §8.
+step 1 (`scan_parquet` + session-date prune on `query_ohlcv_table`) is in §6.3.1; step 2
+(lazy `build_analysis_frame`) is in §6.3.2 / §8.
 
 **Decision summary (2026-08-25).** Accepted: D-REP-01 (with superseding ADR; `AnalysisDataView`
 retained as a live-runtime adapter), D-REP-02 (two-step), D-REP-03, D-REP-04a, D-REP-05, D-REP-07,
@@ -581,7 +582,7 @@ concatenated, then filtered `observed_at` in memory.
 Shipped: prune partitions whose `session_date` cannot overlap the query (UTC dates ±1 day for
 CME Globex vs UTC calendar), then `pl.scan_parquet` with an `observed_at` predicate. Public
 `query_ohlcv_table` / `query_historical_columnar` contracts unchanged. Research-envelope
-full-file reads and the lazy `build_analysis_frame` join stay for a later PR (D-REP-02 step 2).
+full-file reads stay eager (no predicate). The lazy `build_analysis_frame` join is §6.3.2.
 
 Local microbench (90 session partitions × 390 1m bars; query two sessions → 780 rows; N=8):
 
@@ -593,6 +594,24 @@ Local microbench (90 session partitions × 390 1m bars; query two sessions → 7
 Single-file 500-bar full-range read (the `--parquet` harness shape) is not the win:
 eager **1.03 ms** vs scan **1.34 ms**. `--parquet --bars 500` nested `ohlcv.scan_parquet`
 ~2.3 ms; `ohlcv.build_column_batch` still dominates (~13.9 ms).
+
+### 6.3.2 Stage 2 step 2 — lazy `build_analysis_frame` (S036-T008)
+
+`build_analysis_frame` joins in-memory envelope tables (`outcomes` × entities × optional
+`context`). The public return type stays `pl.DataFrame`. The plan is now a `LazyFrame`:
+`collect_schema()` validates dtypes before materialization, then `collect()` + the existing
+eager `validate_analysis_frame`.
+
+MARKET_AND_SIGNAL envelope, N=8:
+
+| Rows | eager (sprint HEAD `0af1e26`) | lazy join + collect_schema + collect |
+|------|-------------------------------|--------------------------------------|
+| 1 000 | 0.75 ms | 0.95 ms |
+| 20 000 | 1.89 ms | 1.95 ms |
+| 100 000 | 6.38 ms | 6.20 ms |
+
+Wall time is **flat**. The I/O win was step 1; this step is the D-REP-02 pipeline default
+(validation adapted for lazy), not a second read-path speedup. Fixture frames stay identical.
 
 ### 6.4 Structural hypotheses (static pass)
 
@@ -934,11 +953,11 @@ measurement — that gate is this section / §6.3.1.
 
 | PR | Outcome | Files | Risk |
 |---|---|---|---|
-| `feat/scan-parquet-at-repository-boundary` | **DONE** — `scan_parquet` + session-date prune on OHLCV repository reads. Research-envelope `pl.read_parquet` is full-file (no predicate) and was left unchanged. | `infrastructure/storage/parquet/*`, `infrastructure/storage/paths.py` | LOW–MEDIUM |
-| `feat/lazy-analysis-frame-builder` | lazy four-table join, validation behind `collect()` | `research/analytics/frame_builder.py`, `schemas.py` | MEDIUM |
+| `feat/scan-parquet-at-repository-boundary` | **DONE #283** — `scan_parquet` + session-date prune on OHLCV repository reads. Research-envelope `pl.read_parquet` is full-file (no predicate) and was left unchanged. | `infrastructure/storage/parquet/*`, `infrastructure/storage/paths.py` | LOW–MEDIUM |
+| `feat/lazy-analysis-frame-builder` | **DONE** — lazy join; `collect_schema` then `collect()`; `build_analysis_frame` still returns `pl.DataFrame` | `research/analytics/frame_builder.py`, `schemas.py` | MEDIUM |
 
-Acceptance: identical bars vs eager filter on fixtures; skipped partitions are not opened;
-read-time measurement on a partitioned local dataset (§6.3.1).
+Acceptance: identical frames on fixtures; step 1 read-time measurement (§6.3.1); step 2 join
+timing recorded even when flat (§6.3.2).
 
 ### Stage 3 — Correctness of metadata
 
