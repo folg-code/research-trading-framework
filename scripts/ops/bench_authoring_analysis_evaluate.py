@@ -4,12 +4,32 @@ Times P1 (DSL compile → IR), P2 (``run_analysis``), and P3 (``evaluate_models`
 evaluation work excluding the nested analysis call) on synthetic bars.
 
 Does not persist research runs. Does not redo S026/S027 harnesses.
+Does not write ``user_data/``.
+
+Default path is a single-timeframe preloaded column batch (P1/P2/P3).
+
+Opt-in coverage flags:
+
+* ``--mtf`` — P2 adds ``trend.ema`` (period 3) on ``5m`` so ``run_analysis``
+  executes resample and last-closed-bar alignment. Nested phases then include
+  ``execute.resample.*`` and ``align.*``. P3 ``evaluate_models`` stays on the
+  1m canonical models.
+* ``--parquet`` — write synthetic OHLCV to a temporary Parquet dataset
+  (``tempfile``, never ``user_data/``) and load via ``query_historical_columnar``
+  instead of ``preloaded_column_batch``. Nested phases then include ``ohlcv.*``
+  and ``load_market_view.query_columnar``.
+
+Flags compose. ``--mtf`` does not change public ``run_analysis`` /
+``evaluate_models`` contracts.
 
 Example::
 
     uv run python scripts/ops/bench_authoring_analysis_evaluate.py
     uv run python scripts/ops/bench_authoring_analysis_evaluate.py --json
     uv run python scripts/ops/bench_authoring_analysis_evaluate.py --bars 500
+    uv run python scripts/ops/bench_authoring_analysis_evaluate.py --json --mtf --bars 500
+    uv run python scripts/ops/bench_authoring_analysis_evaluate.py --json --parquet --bars 500
+    uv run python scripts/ops/bench_authoring_analysis_evaluate.py --json --mtf --parquet --bars 500
 """
 
 from __future__ import annotations
@@ -20,11 +40,13 @@ import tempfile
 import time
 import tracemalloc
 from collections.abc import Callable
-from dataclasses import asdict, dataclass
+from contextlib import nullcontext
+from dataclasses import asdict, dataclass, replace
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import numpy as np
+import pyarrow as pa
 
 from trading_framework.application.market_analysis.run_analysis import (
     RunAnalysisRequest,
@@ -41,8 +63,25 @@ from trading_framework.application.model_evaluation.evaluate_models import (
 from trading_framework.core.identifiers import Identifier
 from trading_framework.infrastructure.observability.phase_timer import PhaseTimer
 from trading_framework.infrastructure.observability.profile_context import phase_timer_context
-from trading_framework.market.datasets import DatasetId, DatasetRef
+from trading_framework.infrastructure.storage.metadata.registry import FileDatasetRegistry
+from trading_framework.infrastructure.storage.parquet.writer import (
+    MARKET_BAR_PARQUET_SCHEMA,
+    ParquetBarWriter,
+)
+from trading_framework.infrastructure.storage.paths import dataset_bars_path
+from trading_framework.market.datasets import (
+    DatasetId,
+    DatasetLifecycleState,
+    DatasetMetadata,
+    DatasetRef,
+    ValidationStatus,
+)
+from trading_framework.market_analysis.assembly.frame import AnalysisFrameColumnSpec
+from trading_framework.market_analysis.components.trend import EmaComponent
 from trading_framework.market_analysis.data.columnar import OhlcvColumnBatch
+from trading_framework.market_analysis.identity.component import ComponentId
+from trading_framework.market_analysis.models.outputs import OutputId
+from trading_framework.market_analysis.models.request import ComponentRequest
 from trading_framework.market_analysis.models.time_range import TimeRange
 from trading_framework.market_model.definitions import MarketModelDefinition
 from trading_framework.model_expression.planning import (
@@ -57,12 +96,23 @@ DEFAULT_BAR_COUNT = 250
 _MIN_BARS = 32
 _BAR_STEP = timedelta(minutes=1)
 _SYNTHETIC_START = datetime(2024, 1, 16, 14, 30, tzinfo=UTC)
+_MTF_TIMEFRAME = Timeframe("5m")
+_MTF_EMA_PERIOD = 3
+_MTF_COLUMN_ALIAS = "ema_5m"
 _P3_EVALUATION_PHASES = (
     "evaluate_models.validate",
     "evaluate_models.collect_dependencies",
     "evaluate_models.build_evaluation_table",
     "evaluate_models.market_models",
     "evaluate_models.signal_models",
+)
+_NESTED_PHASE_PREFIXES = (
+    "evaluate_models.",
+    "run_analysis.",
+    "execute.resample.",
+    "align.",
+    "load_market_view.",
+    "ohlcv.",
 )
 
 
@@ -88,6 +138,8 @@ class BenchmarkReport:
     phases: list[TimingResult]
     nested_phases: list[NestedPhase]
     notes: list[str]
+    mtf: bool
+    parquet: bool
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -104,6 +156,22 @@ def _build_parser() -> argparse.ArgumentParser:
         help=f"Synthetic 1m bar count (default {DEFAULT_BAR_COUNT}; CI smoke uses a smaller value)",
     )
     parser.add_argument("--json", action="store_true", help="Print JSON report to stdout")
+    parser.add_argument(
+        "--mtf",
+        action="store_true",
+        help=(
+            "Include 5m trend.ema in P2 so run_analysis times resample and alignment. "
+            "P3 evaluate_models stays on 1m canonical models."
+        ),
+    )
+    parser.add_argument(
+        "--parquet",
+        action="store_true",
+        help=(
+            "Write a temporary Parquet dataset (never user_data) and load via "
+            "the columnar Parquet read path instead of preloaded_column_batch."
+        ),
+    )
     return parser
 
 
@@ -164,6 +232,85 @@ def _compile_canonical_models() -> tuple[
     )
 
 
+def _naive_utc(value: datetime) -> datetime:
+    return value.astimezone(UTC).replace(tzinfo=None)
+
+
+def _column_batch_to_parquet_table(column_batch: OhlcvColumnBatch) -> pa.Table:
+    return pa.table(
+        {
+            "open": [format(value, ".15g") for value in column_batch.open],
+            "high": [format(value, ".15g") for value in column_batch.high],
+            "low": [format(value, ".15g") for value in column_batch.low],
+            "close": [format(value, ".15g") for value in column_batch.close],
+            "volume": [int(value) for value in column_batch.volume],
+            "observed_at": [_naive_utc(timestamp) for timestamp in column_batch.timestamps],
+            "available_at": [_naive_utc(timestamp) for timestamp in column_batch.available_at],
+        },
+        schema=MARKET_BAR_PARQUET_SCHEMA,
+    )
+
+
+def _write_temp_parquet_dataset(
+    storage_root: Path,
+    dataset_ref: DatasetRef,
+    column_batch: OhlcvColumnBatch,
+) -> None:
+    """Publish a synthetic OHLCV Parquet dataset under a tempfile workspace."""
+    start_at = column_batch.timestamps[0]
+    end_at = column_batch.timestamps[-1]
+    working = DatasetMetadata(
+        dataset_ref=dataset_ref,
+        instrument_id=dataset_ref.dataset_id.instrument_id,
+        timeframe=dataset_ref.dataset_id.timeframe,
+        provider=dataset_ref.dataset_id.provider,
+        source_id=dataset_ref.dataset_id.source_id,
+        data_type=dataset_ref.dataset_id.data_type,
+        start_at=start_at,
+        end_at=end_at,
+        schema_version="ohlcv.v1",
+        normalization_version="utc-interval-start.v1",
+        validation_status=ValidationStatus.PASSED,
+        lifecycle_status=DatasetLifecycleState.WORKING,
+        row_count=len(column_batch.timestamps),
+        checksum="bench-synthetic",
+        created_at=start_at,
+        published_at=None,
+        lineage={"origin": "bench_authoring_analysis_evaluate"},
+    )
+    registry = FileDatasetRegistry(storage_root)
+    registry.register(working)
+    ParquetBarWriter().write_table(
+        dataset_bars_path(storage_root, dataset_ref),
+        _column_batch_to_parquet_table(column_batch),
+    )
+    registry.update(replace(working, lifecycle_status=DatasetLifecycleState.FINALIZED))
+    registry.update(
+        replace(
+            working,
+            lifecycle_status=DatasetLifecycleState.PUBLISHED,
+            published_at=start_at,
+        )
+    )
+
+
+def _mtf_ema_request() -> tuple[ComponentRequest, AnalysisFrameColumnSpec]:
+    ema = EmaComponent()
+    parameters = ema.parameter_schema.canonicalize({"period": _MTF_EMA_PERIOD})
+    request = ComponentRequest(
+        component_id=ComponentId("trend.ema"),
+        parameters=parameters,
+        computation_timeframe=_MTF_TIMEFRAME,
+    )
+    column = AnalysisFrameColumnSpec(
+        component_id=ComponentId("trend.ema"),
+        parameters=parameters,
+        output_id=OutputId("value"),
+        alias=_MTF_COLUMN_ALIAS,
+    )
+    return request, column
+
+
 def _phase_inclusive_seconds(timer: PhaseTimer, name: str) -> float:
     stats = timer._stats.get(name)
     if stats is None:
@@ -171,13 +318,46 @@ def _phase_inclusive_seconds(timer: PhaseTimer, name: str) -> float:
     return stats.inclusive_seconds
 
 
-def run_benchmark(bar_count: int) -> BenchmarkReport:
+def _is_reported_nested_phase(name: str) -> bool:
+    return name.startswith(_NESTED_PHASE_PREFIXES)
+
+
+def _collect_nested_phases(timer: PhaseTimer) -> list[NestedPhase]:
+    return [
+        NestedPhase(
+            name=stats.name,
+            inclusive_seconds=stats.inclusive_seconds,
+            call_count=stats.call_count,
+        )
+        for stats in sorted(timer._stats.values(), key=lambda item: item.name)
+        if _is_reported_nested_phase(stats.name)
+    ]
+
+
+def run_benchmark(
+    bar_count: int,
+    *,
+    mtf: bool = False,
+    parquet: bool = False,
+) -> BenchmarkReport:
     """Compile canonical models, run analysis, and evaluate on synthetic bars."""
     notes = [
-        "synthetic OHLCV via preloaded_column_batch; no user_data persistence",
+        "synthetic OHLCV via preloaded_column_batch; no user_data persistence"
+        if not parquet
+        else "synthetic OHLCV via tempfile Parquet read; no user_data persistence",
         "P3 wall excludes nested evaluate_models.run_analysis (D-S036-02 split)",
         "P4-P6 research loops and P7 Parquet ingest are not timed",
     ]
+    if mtf:
+        notes.append(
+            "mtf: P2 adds trend.ema period=3 on 5m (resample + last_closed_bar align); "
+            "P3 evaluate_models stays on 1m canonical models"
+        )
+    if parquet:
+        notes.append(
+            "parquet: temporary dataset written with ParquetBarWriter; "
+            "load uses query_historical_columnar"
+        )
     column_batch = _synthetic_column_batch(bar_count)
     dataset_ref = _dataset_ref()
     timeframe = Timeframe("1m")
@@ -191,28 +371,50 @@ def run_benchmark(bar_count: int) -> BenchmarkReport:
         signal_models=signal_models,
     )
     frame_request = build_analysis_frame_request(dependencies)
+    component_requests = dependencies.component_requests
+    if mtf:
+        mtf_request, mtf_column = _mtf_ema_request()
+        component_requests = (*component_requests, mtf_request)
+        frame_request = replace(
+            frame_request,
+            analysis_columns=(*frame_request.analysis_columns, mtf_column),
+        )
 
     with tempfile.TemporaryDirectory(prefix="bench-aae-") as tmp:
         storage_root = Path(tmp)
-
-        def _run_p2() -> None:
-            run_analysis(
-                RunAnalysisRequest(
-                    dataset_ref=dataset_ref,
-                    timeframe=timeframe,
-                    requested_range=requested_range,
-                    storage_root=storage_root,
-                    component_requests=dependencies.component_requests,
-                    frame_request=frame_request,
-                    evaluation_timeframe=timeframe,
-                    session_resolver=session_resolver,
-                    preloaded_column_batch=column_batch,
-                )
-            )
-
-        _, p2 = _timed("p2_run_analysis", _run_p2)
+        if parquet:
+            _write_temp_parquet_dataset(storage_root, dataset_ref, column_batch)
+            preloaded_column_batch = None
+        else:
+            preloaded_column_batch = column_batch
 
         timer = PhaseTimer(enabled=True)
+
+        def _run_p2() -> None:
+            p2_timer = phase_timer_context(timer) if mtf else nullcontext()
+            with p2_timer:
+                result = run_analysis(
+                    RunAnalysisRequest(
+                        dataset_ref=dataset_ref,
+                        timeframe=timeframe,
+                        requested_range=requested_range,
+                        storage_root=storage_root,
+                        component_requests=component_requests,
+                        frame_request=frame_request,
+                        evaluation_timeframe=timeframe,
+                        session_resolver=session_resolver,
+                        preloaded_column_batch=preloaded_column_batch,
+                    )
+                )
+            if mtf:
+                if not result.plan.resample_keys():
+                    msg = "mtf mode did not plan a resample"
+                    raise RuntimeError(msg)
+                if result.frame is None or _MTF_COLUMN_ALIAS not in result.frame.columns:
+                    msg = "mtf mode did not assemble an aligned 5m ema column"
+                    raise RuntimeError(msg)
+
+        _, p2 = _timed("p2_run_analysis", _run_p2)
 
         def _run_p3() -> None:
             with phase_timer_context(timer):
@@ -226,7 +428,7 @@ def run_benchmark(bar_count: int) -> BenchmarkReport:
                         signal_models=signal_models,
                         evaluation_timeframe=timeframe,
                         session_resolver=session_resolver,
-                        preloaded_column_batch=column_batch,
+                        preloaded_column_batch=preloaded_column_batch,
                     )
                 )
             if result.analysis.frame is None:
@@ -240,15 +442,7 @@ def run_benchmark(bar_count: int) -> BenchmarkReport:
 
     p3_wall = sum(_phase_inclusive_seconds(timer, name) for name in _P3_EVALUATION_PHASES)
     p3 = TimingResult(name="p3_evaluate", wall_seconds=p3_wall, peak_bytes=p3_call.peak_bytes)
-    nested = [
-        NestedPhase(
-            name=stats.name,
-            inclusive_seconds=stats.inclusive_seconds,
-            call_count=stats.call_count,
-        )
-        for stats in sorted(timer._stats.values(), key=lambda item: item.name)
-        if stats.name.startswith("evaluate_models.") or stats.name.startswith("run_analysis.")
-    ]
+    nested = _collect_nested_phases(timer)
     notes.append(
         "P3 peak_bytes is tracemalloc peak of the evaluate_models call "
         "(includes nested run_analysis; production API has no skip hook)"
@@ -260,6 +454,8 @@ def run_benchmark(bar_count: int) -> BenchmarkReport:
         phases=[p1, p2, p3],
         nested_phases=nested,
         notes=notes,
+        mtf=mtf,
+        parquet=parquet,
     )
 
 
@@ -267,6 +463,8 @@ def _print_human(report: BenchmarkReport) -> None:
     print(
         "bench_authoring_analysis_evaluate: "
         f"bars={report.bar_count} "
+        f"mtf={str(report.mtf).lower()} "
+        f"parquet={str(report.parquet).lower()} "
         f"market_models={report.market_model_ids} "
         f"signal_models={report.signal_model_ids}"
     )
@@ -288,7 +486,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"bars must be >= {_MIN_BARS}")
         return 1
 
-    report = run_benchmark(args.bars)
+    report = run_benchmark(args.bars, mtf=args.mtf, parquet=args.parquet)
     if args.json:
         print(json.dumps(asdict(report), indent=2))
         return 0
