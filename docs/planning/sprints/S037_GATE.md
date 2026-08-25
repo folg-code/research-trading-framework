@@ -10,8 +10,8 @@ S037 is not allowed to guess:
 1. When is the **DSL simple enough**?
 2. When is the **component library ready** to grow?
 
-It is **not** the Sprint 037 task board. Wave 0 of S037 still writes `SPRINT_037.md` and
-binding `S037_WAVE0_DECISIONS.md`.
+It is **not** the Sprint 037 task board. Wave 0 lives in `SPRINT_037.md` and
+`S037_WAVE0_DECISIONS.md`.
 
 ---
 
@@ -158,14 +158,15 @@ MarketFrame migration, and without a new DSL operator.
 
 ---
 
-## 5. First S037 Wave 0 questions (not decided here)
+## 5. First S037 Wave 0 questions
 
-S037 Wave 0 still chooses:
+Answered in `S037_WAVE0_DECISIONS.md` (2026-08-25):
 
-1. Sprint slug and integration branch.
-2. First catalog slice (S007 leftovers vs whatever the next research experiment needs).
-3. Whether DSL namespace fill-in (ATR / true-range references) is Wave 1 or bundled with
-   the first new component.
+1. Sprint slug / branch: `sprint/component-libraries-dsl` (D-S037-02).
+2. First catalog slice: existing-catalog DSL, then **one** new component `trend.slope` (D-S037-03).
+3. DSL namespace fill-in is Wave 1, not bundled with the first new component (D-S037-04).
+4. Discretionary and ML strategies share one Strategy Model + DSL; fitted models enter as
+   catalog States/Features (D-S037-09).
 
 This gate only forbids answering those by inventing IR, waiting for MarketFrame, or treating
 compile performance as unknown.
@@ -174,6 +175,8 @@ compile performance as unknown.
 
 ## 6. References
 
+- `docs/planning/sprints/SPRINT_037.md`
+- `docs/planning/sprints/S037_WAVE0_DECISIONS.md` — D-S037-01 … D-S037-09
 - `docs/planning/sprints/SPRINT_036.md` §8
 - `docs/planning/sprints/S036_WAVE0_DECISIONS.md` — D-S036-06, D-S036-08
 - `docs/reference/DATA_REPRESENTATION_AUDIT.md` §4.3, §6.1, §8

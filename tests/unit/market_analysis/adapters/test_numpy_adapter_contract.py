@@ -2,7 +2,12 @@
 
 import pytest
 
-from trading_framework.market_analysis.components.trend import EmaComponent, NumpyEmaImplementation
+from trading_framework.market_analysis.components.trend import (
+    EmaComponent,
+    NumpyEmaImplementation,
+    NumpySlopeImplementation,
+    SlopeComponent,
+)
 from trading_framework.market_analysis.components.volatility import (
     AtrComponent,
     NumpyAtrImplementation,
@@ -42,8 +47,14 @@ from .adapter_contract import (
             parameters=EmaComponent().parameter_schema.canonicalize({"period": 3}),
             dependency_keys=(),
         ),
+        AdapterContractCase(
+            component=SlopeComponent(),
+            implementation=NumpySlopeImplementation(),
+            parameters=SlopeComponent().parameter_schema.canonicalize({"period": 3}),
+            dependency_keys=(),
+        ),
     ],
-    ids=["true_range", "atr", "ema"],
+    ids=["true_range", "atr", "ema", "slope"],
 )
 def test_numpy_adapter_satisfies_shared_contract(case: AdapterContractCase) -> None:
     assert_adapter_contract(case)

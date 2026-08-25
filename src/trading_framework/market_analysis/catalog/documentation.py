@@ -24,13 +24,14 @@ _DOCUMENTATION: dict[str, ComponentCatalogEntry] = {
         component_id=ComponentId("volatility.true_range"),
         summary="Bar true range from OHLC",
         tags=("volatility", "feature"),
-        examples=("Used internally by volatility.atr",),
+        examples=("price.close > volatility.true_range()",),
+        notes="Also used internally by volatility.atr.",
     ),
     "volatility.atr": ComponentCatalogEntry(
         component_id=ComponentId("volatility.atr"),
         summary="Average true range feature",
         tags=("volatility", "feature"),
-        examples=("volatility.state(period=14, threshold=2.0)",),
+        examples=("price.close > volatility.atr(period=14)",),
     ),
     "volatility.state": ComponentCatalogEntry(
         component_id=ComponentId("volatility.state"),
@@ -47,12 +48,27 @@ _DOCUMENTATION: dict[str, ComponentCatalogEntry] = {
             "trend.price_above_ema(period=20)",
         ),
     ),
+    "trend.slope": ComponentCatalogEntry(
+        component_id=ComponentId("trend.slope"),
+        summary="Causal OLS slope of close over period",
+        tags=("trend", "feature"),
+        examples=("trend.slope(period=20) > 0",),
+        notes="Slope of close only; not a generic slope-of-any-series combinator.",
+    ),
     "structure.swing": ComponentCatalogEntry(
         component_id=ComponentId("structure.swing"),
         summary="Pivot swing structure with HH/HL/LH/LL events",
         tags=("structure", "state", "event"),
-        examples=("structure.higher_low_event(pivot_range=15, timeframe='5m')",),
-        notes="Use computation timeframe for MTF swing outputs.",
+        examples=(
+            "structure.higher_low_event(pivot_range=15, timeframe='5m')",
+            "structure.higher_high_event(pivot_range=15, timeframe='5m')",
+            "price.close > structure.latest_higher_low_level(pivot_range=15, timeframe='5m')",
+        ),
+        notes=(
+            "Use computation timeframe for MTF swing outputs. "
+            "Author-facing DSL covers HH/HL/LH/LL events and latest_*_level; "
+            "observed-index internals stay off the namespace."
+        ),
     ),
 }
 

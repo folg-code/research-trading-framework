@@ -27,14 +27,14 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 
 ```text
 Status Date: 2026-08-25
-Current Phase: Sprint 036 complete on main; next is Sprint 037
-Current Milestone: S037 Wave 0 (SPRINT_037.md + S037_WAVE0_DECISIONS.md) — not started
-Implementation Status: Sprints 001-006, 008-024, 025-036 on main
+Current Phase: Authoring foundation complete (S037 on main); next catalog Session Range
+Current Milestone: Sprint 037 on main
+Implementation Status: Sprints 001-006, 008-024, 025-037 on main
 Overall Status: STABLE
-Active Sprint: none (S036 on main; S037 not opened)
-Last Completed Sprint: SPRINT_036 (research infra audit) → main (#288)
+Active Sprint: none (S037 integrated)
+Last Completed Sprint: SPRINT_037 (component libraries + DSL) → main (#296)
 Capability Tracks: Foundation COMPLETE; Data COMPLETE (core); Research COMPLETE (core); Strategy 6A COMPLETE; Phase 8A dry-run + S024 on main; Dashboard / Live Paper / public demo COMPLETE
-Recent: S036 T001–T011 → main (#288; working PRs #272–#287). Next: S037 component libraries + DSL simplification (S037_GATE.md). AI/ML later.
+Recent: S037 on main (#296). Existing-catalog DSL, copy-paste authoring example, trend.slope. Next: Session Range catalog, then IDEA-014.
 ```
 
 ---
@@ -183,6 +183,22 @@ Wave 0 path inventory
 
 Audit: `docs/reference/DATA_REPRESENTATION_AUDIT.md`. Gate: `docs/planning/sprints/S037_GATE.md`.
 Bench: `scripts/ops/bench_authoring_analysis_evaluate.py`. See `SPRINT_036.md` and `S036_WAVE0_DECISIONS.md`.
+
+**Sprint 037 — Component libraries + DSL simplification** is **complete** on
+`main` (#296, 2026-08-25). Working PRs: #289–#295.
+
+Delivered:
+
+```text
+Wave 0 lock (D-S037-01 … D-S037-09)
+    → volatility.atr / volatility.true_range DSL
+    → structure.swing HH/HL/LH/LL events + latest_*_level
+    → copy-pasteable model_authoring example
+    → trend.slope (causal OLS of close) + DSL
+```
+
+`compile.py` was not changed; T006 bench re-run is N/A. Next catalog PRs: Session Range.
+IDEA-014 training remains deferred. See `SPRINT_037.md` and `S037_WAVE0_DECISIONS.md`.
 
 ---
 
@@ -538,11 +554,11 @@ Public demo loop CLOSED (S028–S034 + follow-ups #261–#264).
 Sprint 024 dry-run reliability → main (#270).
 Sprint 035 track choice CLOSED.
 Sprint 036 research infra audit COMPLETED on main (#288).
+Sprint 037 component libraries + DSL COMPLETED on main (#296).
 
 Recommended next implementation:
-    Sprint 037 — Component libraries + DSL simplification
-      (entry: S037_GATE.md; Wave 0 writes SPRINT_037.md)
-      then AI/ML research (IDEA-014) when authoring foundation is stable
+    Session Range catalog (S007 follow-on)
+    then AI/ML research (IDEA-014) when authoring foundation is on main
 
 Deferred relative to that track:
     Phase 4B — Orderflow Market Analysis
@@ -552,6 +568,7 @@ Deferred relative to that track:
     Residual docs / sample-data narrative
 
 Recently completed (dashboard / demo / dry-run / authoring infra):
+    Sprint 037 — Component libraries + DSL → main (#296; working PRs #289–#295)
     Sprint 036 — Research infra audit → main (#288; working PRs #272–#287)
     Sprint 024 — Dry-run reliability polish → main (#270)
     Sprint 034 — Public Dashboard Demo Polish → main (#260)
@@ -568,7 +585,7 @@ Deferred (explicit):
     Further public-dashboard cosmetics as a default track
 ```
 
-See `docs/planning/sprints/S037_GATE.md`, `SPRINT_036.md`, and `ROADMAP.md` §11–§12.
+See `docs/planning/sprints/SPRINT_037.md`, `S037_GATE.md`, and `ROADMAP.md` §11–§12.
 
 ---
 
@@ -612,6 +629,7 @@ See `docs/planning/sprints/S037_GATE.md`, `SPRINT_036.md`, and `ROADMAP.md` §11
 | 034 | Public Dashboard Demo Polish | COMPLETED | Waves 1–5 (#258–#259); main #260; VPS deploy; follow-ups #261–#264 |
 | 035 | Next increment selection (post public demo) | COMPLETED | chose S024 then S036→S037→AI/ML |
 | 036 | Research infra audit (DSL/component gate) | COMPLETED | 11 / 11 tasks; main #288 |
+| 037 | Component libraries + DSL simplification | COMPLETED | 7 / 7 tasks; main #296 |
 
 ---
 

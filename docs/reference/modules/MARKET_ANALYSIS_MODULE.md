@@ -60,6 +60,7 @@ Built-in components (`register_mvp_components`):
 ```text
 volatility.true_range → volatility.atr → volatility.state
 trend.ema
+trend.slope
 structure.swing
 ```
 
@@ -83,11 +84,12 @@ See ADR-MA-013 and `S005_SWING_STRUCTURE_CONTRACT.md`.
 
 | ComponentId | Implementation | Notes |
 |-------------|----------------|-------|
-| `volatility.true_range` | `numpy.true_range` | OHLC data deps |
-| `volatility.atr` | `numpy.atr` | depends on TR output |
+| `volatility.true_range` | `numpy.true_range` | OHLC data deps; DSL: `volatility.true_range()` |
+| `volatility.atr` | `numpy.atr` | depends on TR output; DSL: `volatility.atr(period=14)` |
 | `volatility.state` | `numpy.volatility_state` | ATR + threshold; diagnostic `distance_to_threshold` |
-| `trend.ema` | `numpy.ema` | close column |
-| `structure.swing` | `numpy.swing` | right-window confirmation; event + state outputs; `pivot_range` param |
+| `trend.ema` | `numpy.ema` | close column; DSL: `trend.ema(period=20)` |
+| `trend.slope` | `numpy.ols_slope` | causal OLS of close over `period`; DSL: `trend.slope(period=20)` |
+| `structure.swing` | `numpy.swing` | right-window confirmation; DSL: HH/HL/LH/LL events and `latest_*_level` |
 
 All components accept optional `computation_timeframe` on `ComponentRequest`.
 

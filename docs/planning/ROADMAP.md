@@ -107,7 +107,7 @@ Market Data policy (facts not indicators, vendor independence): **§14 Research 
 
 Test data tiers and live-data gate: **§15**.
 
-**Recommended next increment:** **Sprint 037 — Component libraries + DSL simplification** (`docs/planning/sprints/S037_GATE.md`). Sprint 036 research infra audit is **complete** on `main` (#288). Then AI/ML. S024 dry-run reliability is on `main` (#270). Deferred by default: Phase 4B/6B, Phase 8 Replay, PBO/CSCV ADR. Stage 3 (`available_at` column / lineage sidecar) and Stage 4 (`MarketFrame`) remain independently sequenced and do **not** block S037.
+**Recommended next increment:** Session Range catalog PRs (S007 follow-on), then AI/ML (IDEA-014). Sprint 037 is **complete** on `main` (#296). Deferred by default: Phase 4B/6B, Phase 8 Replay, PBO/CSCV ADR. Stage 3 (`available_at` column / lineage sidecar) and Stage 4 (`MarketFrame`) remain independently sequenced.
 
 ---
 
