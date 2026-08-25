@@ -163,8 +163,10 @@ MarketFrame migration, and without a new DSL operator.
 Answered in `S037_WAVE0_DECISIONS.md` (2026-08-25):
 
 1. Sprint slug / branch: `sprint/component-libraries-dsl` (D-S037-02).
-2. First catalog slice: existing-catalog DSL, then slope, then Session Range (D-S037-03).
+2. First catalog slice: existing-catalog DSL, then **one** new component `trend.slope` (D-S037-03).
 3. DSL namespace fill-in is Wave 1, not bundled with the first new component (D-S037-04).
+4. Discretionary and ML strategies share one Strategy Model + DSL; fitted models enter as
+   catalog States/Features (D-S037-09).
 
 This gate only forbids answering those by inventing IR, waiting for MarketFrame, or treating
 compile performance as unknown.
@@ -174,7 +176,7 @@ compile performance as unknown.
 ## 6. References
 
 - `docs/planning/sprints/SPRINT_037.md`
-- `docs/planning/sprints/S037_WAVE0_DECISIONS.md` — D-S037-01 … D-S037-08
+- `docs/planning/sprints/S037_WAVE0_DECISIONS.md` — D-S037-01 … D-S037-09
 - `docs/planning/sprints/SPRINT_036.md` §8
 - `docs/planning/sprints/S036_WAVE0_DECISIONS.md` — D-S036-06, D-S036-08
 - `docs/reference/DATA_REPRESENTATION_AUDIT.md` §4.3, §6.1, §8

@@ -34,7 +34,7 @@ Overall Status: STABLE
 Active Sprint: sprint/component-libraries-dsl (S037)
 Last Completed Sprint: SPRINT_036 (research infra audit) → main (#288)
 Capability Tracks: Foundation COMPLETE; Data COMPLETE (core); Research COMPLETE (core); Strategy 6A COMPLETE; Phase 8A dry-run + S024 on main; Dashboard / Live Paper / public demo COMPLETE
-Recent: S036 on main (#288). S037 Wave 0 on sprint/component-libraries-dsl. Next: ATR/true-range + swing DSL, then slope and Session Range. AI/ML later.
+Recent: S036 on main (#288). S037 Wave 0: existing-catalog DSL, then trend.slope. Session Range and ML training later.
 ```
 
 ---
@@ -186,7 +186,7 @@ Bench: `scripts/ops/bench_authoring_analysis_evaluate.py`. See `SPRINT_036.md` a
 
 **Sprint 037 — Component libraries + DSL simplification** is **in progress** on
 `sprint/component-libraries-dsl`. Wave 0: `SPRINT_037.md` and `S037_WAVE0_DECISIONS.md`.
-First code: existing-catalog DSL (ATR / true-range / swing), then slope, then Session Range.
+First code: existing-catalog DSL (ATR / true-range / swing), then one new Feature (`trend.slope`).
 
 ---
 
@@ -546,7 +546,7 @@ Sprint 036 research infra audit COMPLETED on main (#288).
 Recommended next implementation:
     Sprint 037 — Component libraries + DSL simplification
       (sprint/component-libraries-dsl; gate: S037_GATE.md)
-      Wave 1: existing-catalog DSL; then slope; then Session Range
+      Wave 1: existing-catalog DSL; then trend.slope (one new component)
       then AI/ML research (IDEA-014) when authoring foundation is stable
 
 Deferred relative to that track:
@@ -617,7 +617,7 @@ See `docs/planning/sprints/SPRINT_037.md`, `S037_GATE.md`, and `ROADMAP.md` §11
 | 034 | Public Dashboard Demo Polish | COMPLETED | Waves 1–5 (#258–#259); main #260; VPS deploy; follow-ups #261–#264 |
 | 035 | Next increment selection (post public demo) | COMPLETED | chose S024 then S036→S037→AI/ML |
 | 036 | Research infra audit (DSL/component gate) | COMPLETED | 11 / 11 tasks; main #288 |
-| 037 | Component libraries + DSL simplification | IN_PROGRESS | Wave 0 on sprint/component-libraries-dsl |
+| 037 | Component libraries + DSL simplification | IN_PROGRESS | Wave 0: DSL fill-in then trend.slope |
 
 ---
 
