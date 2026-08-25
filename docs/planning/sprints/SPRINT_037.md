@@ -94,7 +94,7 @@ write a market + signal model using only `model_authoring` exports.
 | ID | Task | Status |
 |----|------|--------|
 | S037-T001 | Wave 0: sprint branch, binding decisions, this file | DONE |
-| S037-T002 | DSL fill-in: `volatility.atr` and `volatility.true_range` | TODO |
+| S037-T002 | DSL fill-in: `volatility.atr` and `volatility.true_range` | DONE |
 | S037-T003 | DSL fill-in: author-facing `structure.swing` events and latest levels (not index internals) | TODO |
 | S037-T004 | Authoring docs: one copy-pasteable model using only `model_authoring` exports | TODO |
 | S037-T005 | Feature `trend.slope` — OLS slope of close over `period` + DSL | TODO |

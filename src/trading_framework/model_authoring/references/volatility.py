@@ -1,11 +1,41 @@
 """Volatility component references."""
 
 from trading_framework.market_analysis import OutputId
-from trading_framework.market_analysis.components.volatility import VolatilityStateComponent
+from trading_framework.market_analysis.components.volatility import (
+    AtrComponent,
+    TrueRangeComponent,
+    VolatilityStateComponent,
+)
 from trading_framework.model_authoring.conditions import Condition
 from trading_framework.model_authoring.references.operand import Operand
 from trading_framework.model_authoring.states import VolatilityState
 from trading_framework.model_expression.references import ComponentOutputReference
+
+
+def true_range(*, alias: str | None = None) -> Operand:
+    """``volatility.true_range()`` on the evaluation grid."""
+    component = TrueRangeComponent()
+    return Operand(
+        ComponentOutputReference(
+            component_id=component.component_id,
+            parameters=component.parameter_schema.canonicalize({}),
+            output_id=OutputId("value"),
+            alias=alias,
+        )
+    )
+
+
+def atr(*, period: int = 14, alias: str | None = None) -> Operand:
+    """``volatility.atr(period=14)`` on the evaluation grid."""
+    component = AtrComponent()
+    return Operand(
+        ComponentOutputReference(
+            component_id=component.component_id,
+            parameters=component.parameter_schema.canonicalize({"period": period}),
+            output_id=OutputId("value"),
+            alias=alias,
+        )
+    )
 
 
 def state(

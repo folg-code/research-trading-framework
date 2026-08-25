@@ -21,3 +21,11 @@ def test_format_component_entry_includes_schema_outputs() -> None:
     assert "Outputs:" in rendered
     assert "value:" in rendered
     assert "price.close > trend.ema" in rendered
+
+
+def test_format_atr_and_true_range_include_dsl_examples() -> None:
+    entries = {item.component_id.value: item for item in list_documented_components()}
+    atr_rendered = format_component_entry(entries["volatility.atr"])
+    true_range_rendered = format_component_entry(entries["volatility.true_range"])
+    assert "price.close > volatility.atr(period=14)" in atr_rendered
+    assert "price.close > volatility.true_range()" in true_range_rendered

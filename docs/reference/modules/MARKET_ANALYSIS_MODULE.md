@@ -83,8 +83,8 @@ See ADR-MA-013 and `S005_SWING_STRUCTURE_CONTRACT.md`.
 
 | ComponentId | Implementation | Notes |
 |-------------|----------------|-------|
-| `volatility.true_range` | `numpy.true_range` | OHLC data deps |
-| `volatility.atr` | `numpy.atr` | depends on TR output |
+| `volatility.true_range` | `numpy.true_range` | OHLC data deps; DSL: `volatility.true_range()` |
+| `volatility.atr` | `numpy.atr` | depends on TR output; DSL: `volatility.atr(period=14)` |
 | `volatility.state` | `numpy.volatility_state` | ATR + threshold; diagnostic `distance_to_threshold` |
 | `trend.ema` | `numpy.ema` | close column |
 | `structure.swing` | `numpy.swing` | right-window confirmation; event + state outputs; `pivot_range` param |

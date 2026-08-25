@@ -24,13 +24,14 @@ _DOCUMENTATION: dict[str, ComponentCatalogEntry] = {
         component_id=ComponentId("volatility.true_range"),
         summary="Bar true range from OHLC",
         tags=("volatility", "feature"),
-        examples=("Used internally by volatility.atr",),
+        examples=("price.close > volatility.true_range()",),
+        notes="Also used internally by volatility.atr.",
     ),
     "volatility.atr": ComponentCatalogEntry(
         component_id=ComponentId("volatility.atr"),
         summary="Average true range feature",
         tags=("volatility", "feature"),
-        examples=("volatility.state(period=14, threshold=2.0)",),
+        examples=("price.close > volatility.atr(period=14)",),
     ),
     "volatility.state": ComponentCatalogEntry(
         component_id=ComponentId("volatility.state"),
