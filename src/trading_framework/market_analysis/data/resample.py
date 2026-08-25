@@ -3,18 +3,16 @@
 from __future__ import annotations
 
 from datetime import datetime
-from decimal import Decimal
 from typing import Literal, cast
 
+import numpy as np
 import polars as pl
+from numpy.typing import NDArray
 
 from trading_framework.core.exceptions import ValidationError
-from trading_framework.core.types import Price, Volume
-from trading_framework.market.models import MarketBar
-from trading_framework.market.temporal.bar_interval import derive_bar_interval
+from trading_framework.market.validation import assert_ohlc_invariants
 from trading_framework.market_analysis.data.view import AnalysisDataView
 from trading_framework.market_analysis.models.resample import ResampleSpec
-from trading_framework.time.models.timeframe import Timeframe
 
 _OHLCV_COLUMNS = ("open", "high", "low", "close", "volume")
 
@@ -67,39 +65,45 @@ def resample_ohlcv_dataframe(source: pl.DataFrame, spec: ResampleSpec) -> pl.Dat
     return resampled
 
 
-def polars_ohlcv_to_market_bars(
-    frame: pl.DataFrame,
-    *,
-    timeframe: Timeframe,
-) -> tuple[MarketBar, ...]:
-    """Convert resampled OHLCV rows to canonical market bars."""
-    bars: list[MarketBar] = []
-    for row in frame.iter_rows(named=True):
-        observed = row["observed_at"]
-        if not isinstance(observed, datetime):
-            msg = "observed_at must be datetime"
-            raise TypeError(msg)
-        _, available_at = derive_bar_interval(observed, timeframe)
-        bars.append(
-            MarketBar(
-                open=Price(Decimal(str(row["open"]))),
-                high=Price(Decimal(str(row["high"]))),
-                low=Price(Decimal(str(row["low"]))),
-                close=Price(Decimal(str(row["close"]))),
-                volume=Volume(int(row["volume"])),
-                observed_at=observed,
-                available_at=available_at,
-            )
-        )
-    return tuple(bars)
+def _float_column(frame: pl.DataFrame, name: str) -> NDArray[np.float64]:
+    return np.asarray(frame[name].to_numpy(), dtype=np.float64)
+
+
+def _analysis_view_from_ohlcv_frame(frame: pl.DataFrame) -> AnalysisDataView:
+    """Build an analysis view from resampled columns without ``MarketBar`` objects."""
+    timestamps = frame["observed_at"].to_list()
+    if not timestamps or not all(isinstance(value, datetime) for value in timestamps):
+        msg = "observed_at must be datetime"
+        raise TypeError(msg)
+    open_values = _float_column(frame, "open")
+    high_values = _float_column(frame, "high")
+    low_values = _float_column(frame, "low")
+    close_values = _float_column(frame, "close")
+    volume_values = _float_column(frame, "volume")
+    assert_ohlc_invariants(
+        open=open_values,
+        high=high_values,
+        low=low_values,
+        close=close_values,
+    )
+    if bool((volume_values < 0).any()):
+        msg = "volume must be non-negative"
+        raise ValidationError(msg)
+    return AnalysisDataView.from_columnar(
+        timestamps=tuple(timestamps),
+        open=tuple(float(value) for value in open_values),
+        high=tuple(float(value) for value in high_values),
+        low=tuple(float(value) for value in low_values),
+        close=tuple(float(value) for value in close_values),
+        volume=tuple(float(value) for value in volume_values),
+    )
 
 
 def resample_analysis_view(source: AnalysisDataView, spec: ResampleSpec) -> AnalysisDataView:
     """Resample one analysis view and return a new immutable view."""
     source_frame = analysis_view_to_polars(source)
     resampled_frame = resample_ohlcv_dataframe(source_frame, spec)
-    bars = polars_ohlcv_to_market_bars(resampled_frame, timeframe=spec.target_timeframe)
-    return AnalysisDataView.from_bars(bars)
+    return _analysis_view_from_ohlcv_frame(resampled_frame)
 
 
 def verify_source_frame_unchanged(before: pl.DataFrame, after: pl.DataFrame) -> bool:
