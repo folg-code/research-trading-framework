@@ -27,14 +27,14 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 
 ```text
 Status Date: 2026-08-25
-Current Phase: Sprint 038 Wave 0 (Session Range); maintainer lock pending
+Current Phase: Sprint 038 Session Range (Wave 0 locked A/A/A/A)
 Current Milestone: Sprint 038 Session Range
-Implementation Status: Sprints 001-006, 008-024, 025-037 on main; 038 opening
+Implementation Status: Sprints 001-006, 008-024, 025-037 on main; 038 in progress
 Overall Status: STABLE
-Active Sprint: SPRINT_038 Wave 0 (D-S038-04 … D-S038-07 unlocked)
+Active Sprint: SPRINT_038 (Wave 0 locked)
 Last Completed Sprint: SPRINT_037 (component libraries + DSL) → main (#296)
 Capability Tracks: Foundation COMPLETE; Data COMPLETE (core); Research COMPLETE (core); Strategy 6A COMPLETE; Phase 8A dry-run + S024 on main; Dashboard / Live Paper / public demo COMPLETE
-Recent: S038 Wave 0 opened on sprint/session-range. S037 on main (#296). Next code waits on session-metadata plumbing, running vs final, OUTSIDE_RTH, and MTF grid.
+Recent: S038 Wave 0 locked (D-S038-04…07 = A). Next: session metadata on compute view, then structure.session_range.
 ```
 
 ---
@@ -199,9 +199,9 @@ Wave 0 lock (D-S037-01 … D-S037-09)
 
 `compile.py` was not changed; T006 bench re-run is N/A.
 
-**Sprint 038 — Session Range Structure** is **opening**. Integration branch:
-`sprint/session-range`. Wave 0 records D-S038-01 … D-S038-03 as proposed and **holds
-T002–T005** until D-S038-04 … D-S038-07 are locked. See `SPRINT_038.md` and
+**Sprint 038 — Session Range Structure** is **in progress**. Integration branch:
+`sprint/session-range`. Wave 0 locked D-S038-04…07 as A (compute-view metadata,
+running outputs, RTH-only NaN, HTF re-resolve). See `SPRINT_038.md` and
 `S038_WAVE0_DECISIONS.md`. IDEA-014 training remains deferred.
 
 ---
@@ -559,10 +559,10 @@ Sprint 024 dry-run reliability → main (#270).
 Sprint 035 track choice CLOSED.
 Sprint 036 research infra audit COMPLETED on main (#288).
 Sprint 037 component libraries + DSL COMPLETED on main (#296).
-Sprint 038 Session Range Wave 0 OPEN on sprint/session-range (lock D-S038-04 … D-S038-07).
+Sprint 038 Session Range Wave 0 LOCKED on sprint/session-range (D-S038-04 … D-S038-07 = A).
 
 Recommended next implementation:
-    Lock Sprint 038 Wave 0, then structure.session_range
+    structure.session_range (T002–T005)
     then wick / distance catalog PRs
     then AI/ML research (IDEA-014)
 
@@ -636,7 +636,7 @@ See `docs/planning/sprints/SPRINT_038.md`, `S038_WAVE0_DECISIONS.md`, `S037_GATE
 | 035 | Next increment selection (post public demo) | COMPLETED | chose S024 then S036→S037→AI/ML |
 | 036 | Research infra audit (DSL/component gate) | COMPLETED | 11 / 11 tasks; main #288 |
 | 037 | Component libraries + DSL simplification | COMPLETED | 7 / 7 tasks; main #296 |
-| 038 | Session Range Structure | WAVE 0 OPEN | T001 in progress; T002–T006 blocked on lock |
+| 038 | Session Range Structure | IN PROGRESS | Wave 0 locked; T002–T006 open |
 
 ---
 
