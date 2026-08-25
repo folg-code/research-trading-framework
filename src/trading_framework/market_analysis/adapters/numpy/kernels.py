@@ -36,3 +36,17 @@ def ema(close: np.ndarray, period: int) -> np.ndarray:
     for index in range(period, close.size):
         out[index] = alpha * close[index] + (1.0 - alpha) * out[index - 1]
     return out
+
+
+def ols_slope(close: np.ndarray, period: int) -> np.ndarray:
+    """Causal ordinary-least-squares slope of close versus bar index in ``period``."""
+    out = np.full(close.shape, np.nan, dtype=np.float64)
+    if close.size < period or period < 2:
+        return out
+    windows = np.lib.stride_tricks.sliding_window_view(close, period)
+    x = np.arange(period, dtype=np.float64)
+    x_centered = x - x.mean()
+    denominator = float(np.dot(x_centered, x_centered))
+    y_centered = windows - windows.mean(axis=1, keepdims=True)
+    out[period - 1 :] = y_centered @ x_centered / denominator
+    return out
