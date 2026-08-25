@@ -24,8 +24,8 @@ All of the following must hold:
 3. Every HIGH authoring-path item is either repaid or **explicitly deferred** below.
 4. This gate document is on the sprint branch (or `main` after S036 integration).
 
-S036-T011 (CURRENT_STATUS / ROADMAP closeout) may finish in parallel. It does **not** block
-opening S037 planning.
+S036-T011 records CURRENT_STATUS / ROADMAP closeout on the sprint branch. It does **not**
+block opening S037 planning.
 
 ### 1.1 Authoring-path HIGH items
 

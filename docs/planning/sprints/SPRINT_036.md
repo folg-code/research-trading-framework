@@ -12,11 +12,11 @@ Sprint: 036
 
 Phase: Research authoring foundation (pre–AI/ML)
 
-Status: IN_PROGRESS
+Status: COMPLETED (sprint branch — pending merge to main)
 
 Planned Start: 2026-07-18
 
-Planned End: TBD
+Planned End: 2026-08-25
 
 Sprint Goal Owner: Project Maintainer
 
@@ -212,7 +212,7 @@ before expanding the component catalog or simplifying `model_authoring/`.
 
 | S036-T010 | Gate doc for S037 (DSL simplicity criteria + component library rules) | DONE — `S037_GATE.md` |
 
-| S036-T011 | CURRENT_STATUS / ROADMAP closeout | TODO |
+| S036-T011 | CURRENT_STATUS / ROADMAP closeout | DONE |
 
 The data representation policy and the D-REP decision register live in
 [`../../reference/DATA_REPRESENTATION_AUDIT.md`](../../reference/DATA_REPRESENTATION_AUDIT.md)
@@ -299,6 +299,10 @@ See `S036_WAVE0_DECISIONS.md` for binding decisions D-S036-01 … D-S036-08.
 5. S037 gate criteria written (what “DSL simple enough” and “library ready” mean).  
 
 6. Quality gates pass.
+
+
+
+Met 2026-08-25 on `sprint/research-infra-audit` (T001–T011).
 
 
 
