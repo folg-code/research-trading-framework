@@ -53,7 +53,8 @@ source AnalysisDataView (e.g. 1m)
 `RunAnalysisRequest.evaluation_timeframe` sets the frame index (defaults to source timeframe).
 
 Optional session enrichment (Sprint 005): `RunAnalysisRequest.session_resolver` →
-`TradingSessionMetadata` on workspace and assembled frame.
+`TradingSessionMetadata` on workspace, assembled frame, and (Sprint 038) the
+component compute view. `structure.session_range` fails closed without it.
 
 Built-in components (`register_mvp_components`):
 
@@ -62,6 +63,7 @@ volatility.true_range → volatility.atr → volatility.state
 trend.ema
 trend.slope
 structure.swing
+structure.session_range
 ```
 
 Resampling is **not** a registry component — see ADR-MA-012.
@@ -90,6 +92,7 @@ See ADR-MA-013 and `S005_SWING_STRUCTURE_CONTRACT.md`.
 | `trend.ema` | `numpy.ema` | close column; DSL: `trend.ema(period=20)` |
 | `trend.slope` | `numpy.ols_slope` | causal OLS of close over `period`; DSL: `trend.slope(period=20)` |
 | `structure.swing` | `numpy.swing` | right-window confirmation; DSL: HH/HL/LH/LL events and `latest_*_level` |
+| `structure.session_range` | `numpy.session_range` | running ES RTH OHLC/range; DSL: `structure.session_high()` / `session_completed()` |
 
 All components accept optional `computation_timeframe` on `ComponentRequest`.
 

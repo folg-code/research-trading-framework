@@ -163,6 +163,7 @@ def run_analysis(
             market_view=market_view,
             context=context,
             session_metadata=session_metadata,
+            session_resolver=request.session_resolver,
         )
     frame = None
     if request.frame_request is not None:
