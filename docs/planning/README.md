@@ -53,8 +53,10 @@ Catalog of `docs/planning/`. For taxonomy and reading paths see **[../README.md]
 | [sprints/SPRINT_036.md](sprints/SPRINT_036.md) | Research infra audit — gate for DSL / components (completed on main #288) |
 | [sprints/S036_WAVE0_DECISIONS.md](sprints/S036_WAVE0_DECISIONS.md) | Sprint 036 Wave 0 binding decisions (D-S036-01 … D-S036-08) |
 | [sprints/S037_GATE.md](sprints/S037_GATE.md) | Sprint 037 entry gate — DSL simplicity + library rules |
-| [sprints/SPRINT_037.md](sprints/SPRINT_037.md) | Component libraries + DSL simplification (in progress) |
+| [sprints/SPRINT_037.md](sprints/SPRINT_037.md) | Component libraries + DSL simplification (completed on main #296) |
 | [sprints/S037_WAVE0_DECISIONS.md](sprints/S037_WAVE0_DECISIONS.md) | Sprint 037 Wave 0 binding decisions (D-S037-01 … D-S037-09) |
+| [sprints/SPRINT_038.md](sprints/SPRINT_038.md) | Session Range Structure (Wave 0 locked; in progress) |
+| [sprints/S038_WAVE0_DECISIONS.md](sprints/S038_WAVE0_DECISIONS.md) | Sprint 038 Wave 0 binding decisions (D-S038-01 … D-S038-08) |
 | [sprints/SPRINT_026.md](sprints/SPRINT_026.md) | Research hot-path performance (completed on main) |
 | [sprints/S026_WAVE0_DECISIONS.md](sprints/S026_WAVE0_DECISIONS.md) | Sprint 026 binding decisions (D-S026-01 … D-S026-07) |
 | [sprints/SPRINT_027.md](sprints/SPRINT_027.md) | Market Data import / continuous build performance (completed on main) |
