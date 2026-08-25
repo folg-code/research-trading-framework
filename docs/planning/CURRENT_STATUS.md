@@ -27,14 +27,14 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 
 ```text
 Status Date: 2026-08-25
-Current Phase: Sprint 038 Session Range complete on sprint; next wick / distance after main
-Current Milestone: Sprint 038 Session Range (sprint; main integration pending)
-Implementation Status: Sprints 001-006, 008-024, 025-037 on main; 038 complete on sprint
+Current Phase: Sprint 038 Session Range on main; next catalog wick / distance
+Current Milestone: Sprint 038 on main
+Implementation Status: Sprints 001-006, 008-024, 025-038 on main
 Overall Status: STABLE
-Active Sprint: none (S038 awaiting main integration)
-Last Completed Sprint: SPRINT_038 (Session Range) on sprint/session-range (#297, #298)
+Active Sprint: none (S038 integrated)
+Last Completed Sprint: SPRINT_038 (Session Range) → main (#300)
 Capability Tracks: Foundation COMPLETE; Data COMPLETE (core); Research COMPLETE (core); Strategy 6A COMPLETE; Phase 8A dry-run + S024 on main; Dashboard / Live Paper / public demo COMPLETE
-Recent: S038 Session Range on sprint (#298). structure.session_range + compute-view session metadata. Next: integrate S038 to main, then wick / distance.
+Recent: S038 on main (#300). structure.session_range + compute-view session metadata. Next: wick / distance, then IDEA-014.
 ```
 
 ---
@@ -199,8 +199,8 @@ Wave 0 lock (D-S037-01 … D-S037-09)
 
 `compile.py` was not changed; T006 bench re-run is N/A.
 
-**Sprint 038 — Session Range Structure** is **complete** on `sprint/session-range`
-(#297 Wave 0, #298 component + DSL). Main integration is a maintainer decision.
+**Sprint 038 — Session Range Structure** is **complete** on `main` (#300, 2026-08-25).
+Working PRs: #297–#299.
 
 Delivered:
 
@@ -211,7 +211,7 @@ Wave 0 lock A/A/A/A (D-S038-04 … D-S038-07)
     → model_authoring structure.session_* namespace
 ```
 
-IDEA-014 training remains deferred. Next catalog after main: wick, then distance-to-level.
+IDEA-014 training remains deferred. Next catalog: wick, then distance-to-level.
 See `SPRINT_038.md` and `S038_WAVE0_DECISIONS.md`.
 
 ---
@@ -569,11 +569,10 @@ Sprint 024 dry-run reliability → main (#270).
 Sprint 035 track choice CLOSED.
 Sprint 036 research infra audit COMPLETED on main (#288).
 Sprint 037 component libraries + DSL COMPLETED on main (#296).
-Sprint 038 Session Range COMPLETED on sprint/session-range (#297, #298).
+Sprint 038 Session Range COMPLETED on main (#300).
 
 Recommended next implementation:
-    Integrate Sprint 038 to main
-    then wick / distance catalog PRs
+    wick / distance catalog PRs
     then AI/ML research (IDEA-014)
 
 Deferred relative to that track:
@@ -584,6 +583,7 @@ Deferred relative to that track:
     Residual docs / sample-data narrative
 
 Recently completed (dashboard / demo / dry-run / authoring infra):
+    Sprint 038 — Session Range Structure → main (#300; working PRs #297–#299)
     Sprint 037 — Component libraries + DSL → main (#296; working PRs #289–#295)
     Sprint 036 — Research infra audit → main (#288; working PRs #272–#287)
     Sprint 024 — Dry-run reliability polish → main (#270)
@@ -646,7 +646,7 @@ See `docs/planning/sprints/SPRINT_038.md`, `S038_WAVE0_DECISIONS.md`, `S037_GATE
 | 035 | Next increment selection (post public demo) | COMPLETED | chose S024 then S036→S037→AI/ML |
 | 036 | Research infra audit (DSL/component gate) | COMPLETED | 11 / 11 tasks; main #288 |
 | 037 | Component libraries + DSL simplification | COMPLETED | 7 / 7 tasks; main #296 |
-| 038 | Session Range Structure | COMPLETED on sprint | T001–T006; #297 #298; main pending |
+| 038 | Session Range Structure | COMPLETED | 6 / 6 tasks; main #300 |
 
 ---
 

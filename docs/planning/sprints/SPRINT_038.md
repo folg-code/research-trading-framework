@@ -5,12 +5,13 @@
 ```text
 Sprint: 038
 Phase: Research authoring catalog (pre–AI/ML)
-Status: COMPLETED on sprint/session-range (#297, #298); integration to main pending
+Status: COMPLETED (main #300)
 Planned Start: 2026-08-25
-Planned End: TBD
+Planned End: 2026-08-25
 Sprint Goal Owner: Project Maintainer
 Depends On: S037 on main (#296); S037_GATE.md; SPRINT_005 session metadata
 Sprint Branch: sprint/session-range
+Integrated: main via PR #300 (2026-08-25)
 Task branch convention: feat/ | fix/ | docs/ | test/
 Wave 0 decisions: docs/planning/sprints/S038_WAVE0_DECISIONS.md
 Architecture Sources:
