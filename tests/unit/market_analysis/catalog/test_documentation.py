@@ -29,3 +29,15 @@ def test_format_atr_and_true_range_include_dsl_examples() -> None:
     true_range_rendered = format_component_entry(entries["volatility.true_range"])
     assert "price.close > volatility.atr(period=14)" in atr_rendered
     assert "price.close > volatility.true_range()" in true_range_rendered
+
+
+def test_format_swing_includes_author_facing_dsl_examples() -> None:
+    entry = next(
+        item
+        for item in list_documented_components()
+        if item.component_id.value == "structure.swing"
+    )
+    rendered = format_component_entry(entry)
+    assert "structure.higher_high_event" in rendered
+    assert "latest_higher_low_level" in rendered
+    assert "observed-index internals stay off the namespace" in rendered
