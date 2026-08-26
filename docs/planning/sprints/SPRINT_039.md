@@ -231,9 +231,9 @@ Signal Research.
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S039-T010 | `PurgedWalkForwardSplitSpec` + validation | TODO |
-| S039-T011 | Fold planner (rolling + expanding) with purge and embargo | TODO |
-| S039-T012 | Fold role assignment persisted on the matrix | TODO |
+| S039-T010 | `PurgedWalkForwardSplitSpec` + validation (spec already in Wave 1; planner in this PR) | DONE |
+| S039-T011 | Fold planner (rolling + expanding) with purge and embargo | DONE |
+| S039-T012 | Fold role assignment persisted on the matrix | DONE |
 
 ### Wave 4 — Persistence and CLI
 
@@ -253,7 +253,7 @@ Signal Research.
 | S039-T019 | End-to-end fixture test: spec → dataset → reload → identical fingerprint | TODO |
 | S039-T020 | Docs: MODULE_MAP, DATA_WORKFLOWS, RESEARCH_METHODOLOGIES, CURRENT_STATUS | TODO |
 
-**Progress:** 9 / 20 tasks
+**Progress:** 12 / 20 tasks
 
 ---
 

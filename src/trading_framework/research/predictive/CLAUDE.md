@@ -1,7 +1,7 @@
 # Predictive Research
 
-Responsibility: declared learning-problem specs and labelled feature-matrix
-construction. No estimators.
+Responsibility: declared learning-problem specs, labelled feature-matrix
+construction, and purged walk-forward fold assignment. No estimators.
 
 ## Conventions specific to this module
 
@@ -12,6 +12,16 @@ construction. No estimators.
   `run_analysis` from this package.
 - `RANK` is rejected at matrix-build time in this slice: expanding versus
   cross-sectional rank is ambiguous, and a global rank would leak.
+- Fold assignment is long format: one copy of each participating labelled row
+  per fold, with `fold_id` and `fold_role`.
+- `test_span` and `embargo_span` are applied as datetime arithmetic on
+  `available_at`, not as a 1-minute bar count. Consecutive test windows are
+  separated by `embargo_span` so expanding later folds cannot train on the
+  gap after an earlier test.
+- Role assignment prefers embargo over purge when both apply (this fold's
+  embargo, then a prior fold's embargo, then purge). A row in fold *n*'s
+  embargo whose `label_end_at` also reaches fold *n+1*'s TEST stays
+  `EMBARGOED` so later reports can count each guard (D-S039-09).
 
 ## Tests
 

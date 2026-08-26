@@ -8,4 +8,4 @@ class PredictiveSpecError(ValidationError):
 
 
 class PredictiveMatrixError(PredictiveSpecError):
-    """Raised when a labelled feature matrix cannot be built from the given frame."""
+    """Raised when a labelled feature matrix or fold assignment cannot be built."""
