@@ -81,3 +81,54 @@ def test_split_spec_dict_round_trip() -> None:
     restored = PurgedWalkForwardSplitSpec.from_dict(original.to_dict())
 
     assert restored == original
+
+
+def test_split_mode_is_the_declared_set() -> None:
+    assert {member.value for member in PurgedWalkForwardSplitMode} == {
+        "ROLLING",
+        "EXPANDING",
+    }
+
+
+def test_invalid_split_mode_is_rejected() -> None:
+    payload = _valid_split().to_dict()
+    payload["mode"] = "K_FOLD"
+
+    with pytest.raises(PredictiveSpecError, match="invalid split mode"):
+        PurgedWalkForwardSplitSpec.from_dict(payload)
+
+
+def test_split_spans_reject_tick() -> None:
+    with pytest.raises(PredictiveSpecError, match="test_span must be a bar duration"):
+        PurgedWalkForwardSplitSpec(
+            mode=PurgedWalkForwardSplitMode.ROLLING,
+            fold_count=2,
+            test_span=Timeframe("tick"),
+            embargo_span=Timeframe("15m"),
+            min_train_rows=10,
+        )
+
+    with pytest.raises(PredictiveSpecError, match="embargo_span must be a bar duration"):
+        PurgedWalkForwardSplitSpec(
+            mode=PurgedWalkForwardSplitMode.ROLLING,
+            fold_count=2,
+            test_span=Timeframe("5d"),
+            embargo_span=Timeframe("tick"),
+            min_train_rows=10,
+        )
+
+
+def test_fold_count_rejects_boolean() -> None:
+    payload = _valid_split().to_dict()
+    payload["fold_count"] = True
+
+    with pytest.raises(PredictiveSpecError, match="fold_count must be an integer"):
+        PurgedWalkForwardSplitSpec.from_dict(payload)
+
+
+def test_split_spec_from_dict_rejects_missing_field() -> None:
+    payload = _valid_split().to_dict()
+    del payload["test_span"]
+
+    with pytest.raises(PredictiveSpecError, match="missing field: test_span"):
+        PurgedWalkForwardSplitSpec.from_dict(payload)

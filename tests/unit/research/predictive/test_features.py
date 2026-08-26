@@ -99,3 +99,53 @@ def test_invalid_feature_transform_is_rejected() -> None:
 
     with pytest.raises(PredictiveSpecError, match="invalid feature transform"):
         FeatureSpec.from_dict(payload)
+
+
+def test_feature_transform_is_the_declared_bounded_set() -> None:
+    assert {member.value for member in FeatureTransform} == {
+        "NONE",
+        "LOG",
+        "DIFF",
+        "PCT_CHANGE",
+        "RANK",
+    }
+
+
+def test_feature_spec_from_dict_rejects_missing_field() -> None:
+    payload = _atr_feature().to_dict()
+    del payload["component_id"]
+
+    with pytest.raises(PredictiveSpecError, match="missing field: component_id"):
+        FeatureSpec.from_dict(payload)
+
+
+def test_feature_spec_from_dict_rejects_non_mapping_parameters() -> None:
+    payload = _atr_feature().to_dict()
+    payload["parameters"] = [14]
+
+    with pytest.raises(PredictiveSpecError, match="parameters must be a mapping"):
+        FeatureSpec.from_dict(payload)
+
+
+def test_feature_matrix_from_dict_rejects_non_sequence() -> None:
+    with pytest.raises(PredictiveSpecError, match="must be a sequence"):
+        FeatureMatrixSpec.from_dict({"alias": "atr_14"})
+
+
+def test_feature_matrix_from_dict_rejects_non_mapping_items() -> None:
+    with pytest.raises(PredictiveSpecError, match="each feature must be a mapping"):
+        FeatureMatrixSpec.from_dict(["atr_14"])
+
+
+def test_feature_matrix_from_dict_rejects_empty_list() -> None:
+    with pytest.raises(PredictiveSpecError, match="at least one feature"):
+        FeatureMatrixSpec.from_dict([])
+
+
+def test_feature_matrix_from_dict_rejects_aliases_that_collide_after_strip() -> None:
+    first = _atr_feature(alias="atr_14").to_dict()
+    second = _atr_feature(alias="atr_14").to_dict()
+    second["alias"] = "  atr_14  "
+
+    with pytest.raises(PredictiveSpecError, match="feature aliases must be unique"):
+        FeatureMatrixSpec.from_dict([first, second])
