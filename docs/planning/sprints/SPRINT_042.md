@@ -194,9 +194,9 @@ report next to the headline number.
 | Task | Description | Status |
 |------|-------------|--------|
 | S042-T016 | Study leaderboard across families on one dataset fingerprint | DONE |
-| S042-T017 | Report panel: importance (native + permutation) | TODO |
-| S042-T018 | Report panel: leaderboard including S040 baselines | TODO |
-| S042-T019 | Report panel: candidate selection trace + overfitting gap | TODO |
+| S042-T017 | Report panel: importance (native + permutation) | DONE |
+| S042-T018 | Report panel: leaderboard including S040 baselines | DONE |
+| S042-T019 | Report panel: candidate selection trace + overfitting gap | DONE |
 
 ### Wave 5 — Closure
 
@@ -206,7 +206,7 @@ report next to the headline number.
 | S042-T021 | Import test: framework usable without `ml-trees` | DONE |
 | S042-T022 | Docs: RESEARCH_METHODOLOGIES, MODULE_MAP, CURRENT_STATUS | TODO |
 
-**Progress:** 18 / 22 tasks
+**Progress:** 21 / 22 tasks
 
 ---
 

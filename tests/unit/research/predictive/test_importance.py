@@ -74,6 +74,10 @@ def test_native_importance_relabel_rewrites_names() -> None:
 def test_native_importance_to_dict_omits_missing_split() -> None:
     payload = NativeFeatureImportance(feature_names=("a",), gain=(1.0,)).to_dict()
     assert payload == {"feature_names": ["a"], "gain": [1.0]}
+    restored = NativeFeatureImportance.from_dict(payload)
+    assert restored.feature_names == ("a",)
+    assert restored.gain == (1.0,)
+    assert restored.split is None
 
 
 def test_primary_gap_is_none_when_a_score_is_missing() -> None:

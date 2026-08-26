@@ -159,6 +159,21 @@ class CandidateFoldScore:
             "selected": self.selected,
         }
 
+    @classmethod
+    def from_dict(cls, payload: Mapping[str, Any]) -> CandidateFoldScore:
+        hyperparameters = payload.get("hyperparameters", {})
+        if not isinstance(hyperparameters, Mapping):
+            msg = "candidate hyperparameters must be a mapping"
+            raise PredictiveSpecError(msg)
+        return cls(
+            family=str(payload.get("family", "")),
+            hyperparameters=dict(hyperparameters),
+            seed=_require_int(payload.get("seed"), "seed"),
+            identity_hash=str(payload.get("identity_hash", "")),
+            inner_validation_score=_optional_float(payload.get("inner_validation_score")),
+            selected=bool(payload.get("selected", False)),
+        )
+
 
 @dataclass(frozen=True, slots=True)
 class FoldSelectionTrace:
@@ -175,6 +190,27 @@ class FoldSelectionTrace:
             "candidates": [item.to_dict() for item in self.candidates],
         }
 
+    @classmethod
+    def from_dict(cls, payload: Mapping[str, Any]) -> FoldSelectionTrace:
+        winner_raw = payload.get("winner")
+        if not isinstance(winner_raw, Mapping):
+            msg = "selection winner must be a mapping"
+            raise PredictiveSpecError(msg)
+        candidates_raw = payload.get("candidates")
+        if not isinstance(candidates_raw, Sequence) or isinstance(candidates_raw, (str, bytes)):
+            msg = "selection candidates must be a sequence"
+            raise PredictiveSpecError(msg)
+        return cls(
+            fold_id=_require_int(payload.get("fold_id"), "fold_id"),
+            winner=EstimatorSpec.from_dict(winner_raw),
+            candidates=tuple(
+                CandidateFoldScore.from_dict(item)
+                if isinstance(item, Mapping)
+                else _reject_candidate_score()
+                for item in candidates_raw
+            ),
+        )
+
 
 @dataclass(frozen=True, slots=True)
 class SelectionTrace:
@@ -190,6 +226,29 @@ class SelectionTrace:
             "inner_validation_fraction": self.inner_validation_fraction,
             "folds": [fold.to_dict() for fold in self.folds],
         }
+
+    @classmethod
+    def from_dict(cls, payload: Mapping[str, Any]) -> SelectionTrace:
+        metric_raw = payload.get("selection_metric", SelectionMetric.SPEARMAN_IC.value)
+        try:
+            metric = SelectionMetric(str(metric_raw))
+        except ValueError as exc:
+            msg = f"invalid selection_metric: {metric_raw!r}"
+            raise PredictiveSpecError(msg) from exc
+        folds_raw = payload.get("folds")
+        if not isinstance(folds_raw, Sequence) or isinstance(folds_raw, (str, bytes)):
+            msg = "selection folds must be a sequence"
+            raise PredictiveSpecError(msg)
+        return cls(
+            selection_metric=metric,
+            inner_validation_fraction=float(payload.get("inner_validation_fraction", 0.0)),
+            folds=tuple(
+                FoldSelectionTrace.from_dict(item)
+                if isinstance(item, Mapping)
+                else _reject_fold_trace()
+                for item in folds_raw
+            ),
+        )
 
 
 def split_inner_train_validation(
@@ -270,6 +329,32 @@ def _candidate_identity(spec: EstimatorSpec) -> str:
 def _reject_candidate() -> EstimatorSpec:
     msg = "each candidate must be a mapping"
     raise PredictiveSpecError(msg)
+
+
+def _reject_candidate_score() -> CandidateFoldScore:
+    msg = "each candidate score must be a mapping"
+    raise PredictiveSpecError(msg)
+
+
+def _reject_fold_trace() -> FoldSelectionTrace:
+    msg = "each selection fold must be a mapping"
+    raise PredictiveSpecError(msg)
+
+
+def _require_int(value: object, field_name: str) -> int:
+    if isinstance(value, bool) or not isinstance(value, int):
+        msg = f"{field_name} must be an integer"
+        raise PredictiveSpecError(msg)
+    return value
+
+
+def _optional_float(value: object) -> float | None:
+    if value is None:
+        return None
+    if isinstance(value, bool) or not isinstance(value, int | float):
+        msg = "expected a finite number or null"
+        raise PredictiveSpecError(msg)
+    return float(value)
 
 
 def _optional_positive_int(value: object) -> int | None:

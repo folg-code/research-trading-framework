@@ -230,6 +230,170 @@ def build_sample_composition_figure(
     return figure
 
 
+def build_feature_importance_figure(
+    go: Any,
+    make_subplots: Any,
+    view: PredictiveReportViewModel,
+) -> Any:
+    """Native gain and permutation importance side by side."""
+    names = [bar.feature_name for bar in view.feature_importance]
+    figure = make_subplots(
+        rows=1,
+        cols=2,
+        subplot_titles=("Native gain (train)", "Permutation drop (TEST)"),
+    )
+    native_values = [
+        0.0 if bar.native_gain is None else bar.native_gain for bar in view.feature_importance
+    ]
+    has_native = any(bar.native_gain is not None for bar in view.feature_importance)
+    figure.add_trace(
+        go.Bar(
+            name="Native gain",
+            x=names,
+            y=native_values if has_native else [None] * len(names),
+            marker_color="#2563eb",
+            text=[
+                "n/a" if bar.native_gain is None else format_metric(bar.native_gain)
+                for bar in view.feature_importance
+            ],
+            textposition="outside",
+            showlegend=False,
+        ),
+        row=1,
+        col=1,
+    )
+    figure.add_trace(
+        go.Bar(
+            name="Permutation",
+            x=names,
+            y=[bar.permutation_mean for bar in view.feature_importance],
+            error_y={
+                "type": "data",
+                "array": [bar.permutation_std for bar in view.feature_importance],
+                "visible": True,
+            },
+            marker_color="#16a34a",
+            text=[format_metric(bar.permutation_mean) for bar in view.feature_importance],
+            textposition="outside",
+            showlegend=False,
+        ),
+        row=1,
+        col=2,
+    )
+    if not has_native:
+        figure.add_annotation(
+            text="Native importance is unavailable for this estimator family.",
+            xref="x domain",
+            yref="y domain",
+            x=0.5,
+            y=0.5,
+            showarrow=False,
+            row=1,
+            col=1,
+        )
+    figure.update_layout(height=400, margin={"t": 48, "b": 80})
+    figure.update_xaxes(tickangle=-30)
+    return figure
+
+
+def build_leaderboard_figure(go: Any, view: PredictiveReportViewModel) -> Any:
+    """Ranked families and S040 baselines on one dataset fingerprint."""
+    labels = [
+        f"{row.family} ({row.kind.lower()})" if row.kind == "BASELINE" else row.family
+        for row in view.leaderboard_rows
+    ]
+    values = [row.pooled_primary for row in view.leaderboard_rows]
+    colors = ["#f97316" if row.kind == "BASELINE" else "#0f172a" for row in view.leaderboard_rows]
+    figure = go.Figure(
+        data=[
+            go.Bar(
+                name="Pooled primary",
+                y=labels[::-1],
+                x=values[::-1],
+                orientation="h",
+                marker_color=colors[::-1],
+                text=[format_metric(value) for value in values[::-1]],
+                textposition="outside",
+                showlegend=False,
+            )
+        ]
+    )
+    metric = view.leaderboard_rows[0].metric if view.leaderboard_rows else view.primary_metric
+    figure.update_layout(
+        height=max(280, 48 * len(view.leaderboard_rows) + 80),
+        margin={"t": 24, "b": 48, "l": 160, "r": 48},
+        xaxis_title=metric,
+    )
+    return figure
+
+
+def build_selection_trace_figure(
+    go: Any,
+    make_subplots: Any,
+    view: PredictiveReportViewModel,
+) -> Any:
+    """Inner-validation scores per candidate and the outer train/test gap."""
+    figure = make_subplots(
+        rows=1,
+        cols=2,
+        subplot_titles=("Inner validation scores", "Train vs TEST primary"),
+    )
+    families: list[str] = []
+    seen: set[str] = set()
+    for fold in view.selection_folds:
+        for candidate in fold.candidates:
+            if candidate.label not in seen:
+                seen.add(candidate.label)
+                families.append(candidate.label)
+    fold_labels = [f"Fold {fold.fold_id}" for fold in view.selection_folds]
+    family_colors = ("#2563eb", "#16a34a", "#f59e0b", "#ef4444", "#8b5cf6", "#0f172a")
+    for index, family in enumerate(families):
+        figure.add_trace(
+            go.Bar(
+                name=family,
+                x=fold_labels,
+                y=[
+                    next(
+                        (
+                            candidate.inner_validation_score
+                            for candidate in fold.candidates
+                            if candidate.label == family
+                        ),
+                        None,
+                    )
+                    for fold in view.selection_folds
+                ],
+                marker_color=family_colors[index % len(family_colors)],
+            ),
+            row=1,
+            col=1,
+        )
+    figure.add_trace(
+        go.Bar(
+            name="Train",
+            x=fold_labels,
+            y=[fold.train_primary for fold in view.selection_folds],
+            marker_color="#94a3b8",
+        ),
+        row=1,
+        col=2,
+    )
+    figure.add_trace(
+        go.Bar(
+            name="TEST",
+            x=fold_labels,
+            y=[fold.test_primary for fold in view.selection_folds],
+            marker_color="#16a34a",
+        ),
+        row=1,
+        col=2,
+    )
+    figure.update_layout(barmode="group", height=400, margin={"t": 48, "b": 48})
+    figure.update_yaxes(title_text="inner score", row=1, col=1)
+    figure.update_yaxes(title_text=view.primary_metric, row=1, col=2)
+    return figure
+
+
 def build_prediction_quality_figure(
     go: Any,
     make_subplots: Any,
@@ -476,6 +640,9 @@ def build_panel_figure(
         "calibration": lambda: build_calibration_figure(go, make_subplots, view),
         "prediction_buckets": lambda: build_prediction_buckets_figure(go, view),
         "sample_composition": lambda: build_sample_composition_figure(go, make_subplots, view),
+        "feature_importance": lambda: build_feature_importance_figure(go, make_subplots, view),
+        "leaderboard": lambda: build_leaderboard_figure(go, view),
+        "selection_trace": lambda: build_selection_trace_figure(go, make_subplots, view),
     }
     builder = builders.get(panel_id)
     if builder is None:

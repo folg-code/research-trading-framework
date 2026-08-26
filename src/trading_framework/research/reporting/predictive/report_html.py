@@ -185,6 +185,9 @@ PANEL_BODY_RENDERERS: dict[str, Callable[..., str]] = {
     "prediction_buckets": _plotly_body("prediction_buckets"),
     "sample_composition": _plotly_body("sample_composition"),
     "quality_flags": _quality_flags_body,
+    "feature_importance": _plotly_body("feature_importance"),
+    "leaderboard": _plotly_body("leaderboard"),
+    "selection_trace": _plotly_body("selection_trace"),
 }
 
 
