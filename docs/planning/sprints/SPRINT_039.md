@@ -5,15 +5,16 @@
 ```text
 Sprint: 039
 Phase: Phase 10A — Predictive Research Foundation
-Status: PLANNED
-Planned Start: TBD
+Status: IN_PROGRESS
+Planned Start: 2026-08-26
 Planned End: TBD
 Sprint Goal Owner: Project Maintainer
 Depends On: S036 audit (#288), S037 component libraries + DSL (#296), S038 Session Range (#300) — all on main
 Sprint Branch: sprint/predictive-research-foundation
 Task branch convention: feat/ | fix/ | docs/ | test/ (separate prefix, not nested under sprint ref)
-Wave 0 decisions: docs/planning/sprints/S039_WAVE0_DECISIONS.md (to be written in Wave 0)
+Wave 0 decisions: docs/planning/sprints/S039_WAVE0_DECISIONS.md
 Architecture Sources:
+  - docs/adr/ADR-0023-predictive-research-boundary.md (ACCEPTED)
   - docs/planning/ROADMAP.md (§13A Phase 10)
   - docs/adr/ADR-0013-signal-research-analytics-boundary.md
   - docs/adr/ADR-0020 (model research methodology)
@@ -206,8 +207,8 @@ Signal Research.
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S039-T001 | Wave 0 decisions (`S039_WAVE0_DECISIONS.md`) | TODO |
-| S039-T002 | ADR-0023 — Predictive Research boundary, leakage policy, dependency policy | TODO |
+| S039-T001 | Wave 0 decisions (`S039_WAVE0_DECISIONS.md`) | DONE |
+| S039-T002 | ADR-0023 — Predictive Research boundary, leakage policy, dependency policy | DONE |
 
 ### Wave 1 — Specification contracts
 
@@ -252,7 +253,7 @@ Signal Research.
 | S039-T019 | End-to-end fixture test: spec → dataset → reload → identical fingerprint | TODO |
 | S039-T020 | Docs: MODULE_MAP, DATA_WORKFLOWS, RESEARCH_METHODOLOGIES, CURRENT_STATUS | TODO |
 
-**Progress:** 0 / 20 tasks
+**Progress:** 2 / 20 tasks
 
 ---
 
