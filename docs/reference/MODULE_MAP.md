@@ -106,7 +106,7 @@ apps/dashboard/src/dashboard_app/
 | Signal / Model Research | `application/signal_research/` | `research/`, `strategy/` | Research repositories and report adapters | Research artifacts |
 | Strategy Research | `application/strategy_research/` | `strategy/`, `research/simulation/`, `research/datasets/` | Result storage and reporting adapters | Trades, equity, manifests |
 | Robustness Research | `application/robustness_research/` | `research/robustness/` | Experiment storage and reporting adapters | Experiment artifacts |
-| Predictive Research | `application/predictive_research/` | `research/predictive/`, `research/datasets/predictive.py`, `research/datasets/predictive_run.py` | `infrastructure/ml/`, `infrastructure/storage/paths.py` | Dataset envelope; run envelope (predictions, metrics, opaque blobs) |
+| Predictive Research | `application/predictive_research/` | `research/predictive/`, `research/datasets/predictive.py`, `research/datasets/predictive_run.py`, `research/reporting/predictive/` | `infrastructure/ml/`, `infrastructure/storage/paths.py` | Dataset envelope; run envelope; offline HTML report |
 | Live Execution | `application/execution/` | `execution/` | `infrastructure/providers/`, `infrastructure/storage/` | Runtime state |
 | Visualization | Application view-model builders | `research/analytics/`, reporting packages | HTML, API and dashboard adapters; `apps/dashboard` | Dashboards and reports |
 
@@ -427,11 +427,13 @@ Research Definition
 
 ### Predictive Research
 
-Phase 10A: dataset foundation (Sprint 039) plus baseline estimators (Sprint 040).
-This workflow states a learning problem, persists a fingerprinted labelled matrix,
-then trains declared baselines per fold. It does **not** emit signals or import
+Phase 10A: dataset foundation (Sprint 039), baseline estimators (Sprint 040),
+and offline HTML report (Sprint 041). This workflow states a learning problem,
+persists a fingerprinted labelled matrix, trains declared baselines per fold,
+and reviews one run as standalone HTML. It does **not** emit signals or import
 `strategy/` / `signal_model/`. `research/predictive/` stays library-free (polars,
-numpy, framework contracts). ML libraries live behind optional extra `ml` and
+numpy, framework contracts). Report figures live in `research/reporting/predictive/`
+(plotly; no sklearn). ML libraries live behind optional extra `ml` and
 `infrastructure/ml/` adapters.
 
 | Responsibility | Package |
@@ -442,7 +444,8 @@ numpy, framework contracts). ML libraries live behind optional extra `ml` and
 | Statistical + finance-aware metrics | `research/predictive/metrics.py` |
 | Dataset envelope, fingerprint, repository | `research/datasets/predictive.py` |
 | Run envelope, fingerprint, repository | `research/datasets/predictive_run.py` |
-| Workflow orchestration (build, run, analyze) | `application/predictive_research/` |
+| Workflow orchestration (build, run, analyze, render) | `application/predictive_research/` |
+| Read-only HTML report | `research/reporting/predictive/` |
 | Family registry + sklearn adapters | `infrastructure/ml/` (`registry.py`, `sklearn/`) |
 | Thin CLIs | `scripts/predictive_research/` |
 | Storage paths | `infrastructure/storage/paths.py` |
@@ -459,6 +462,7 @@ Published DatasetRef + PredictiveStudySpec (YAML/JSON)
   → run_predictive_research (fit on TRAIN per fold, predict on TEST)
   → PredictiveRunEnvelope (predictions, metrics, opaque blobs)
   → analyze_predictive_run (writes metrics.json from predictions; never deserializes model blobs)
+  → render_predictive_research_report (offline HTML; never fits or loads model blobs)
 ```
 
 Samples are **evaluation bars**, not `SignalOccurrence` rows. Labels reuse
@@ -499,6 +503,7 @@ Storage:
   manifest.json
   predictions.parquet
   metrics.json
+  report.html            # offline Plotly; first figure embeds JS inline
   models/fold_{n}.bin    # opaque; reproduce by re-fitting, not deserializing
 ```
 
@@ -508,6 +513,7 @@ CLIs:
 uv run python scripts/predictive_research/build_predictive_dataset.py --storage-root <workspace> --definition <spec.yaml>
 uv run python scripts/predictive_research/run_predictive_research.py --storage-root <workspace> --dataset-id <id> --estimator <spec.yaml>
 uv run python scripts/predictive_research/analyze_predictive_run.py --storage-root <workspace> --run-id <id>
+uv run python scripts/predictive_research/render_predictive_report.py --storage-root <workspace> --run-id <id>
 ```
 
 ### Tests
@@ -519,6 +525,7 @@ tests/unit/strategy/
 tests/unit/application/signal_research/
 tests/unit/application/strategy_research/
 tests/unit/application/robustness_research/
+tests/unit/research/reporting/predictive/
 tests/unit/application/predictive_research/
 tests/unit/infrastructure/ml/
 tests/integration/research/

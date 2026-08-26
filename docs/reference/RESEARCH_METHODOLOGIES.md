@@ -385,9 +385,10 @@ Predictive Research is a methodology **alongside** Signal, Strategy and Robustne
 It answers a learning question. It does **not** produce signals, extend Strategy Research,
 or promote a trained model to a tradable component.
 
-Phase 10A now covers the dataset foundation (Sprint 039) and baseline estimators
-(Sprint 040). Linear and logistic baselines are the control group for later tree
-and neural estimators. Models do not trade.
+Phase 10A now covers the dataset foundation (Sprint 039), baseline estimators
+(Sprint 040), and the offline HTML report (Sprint 041). Linear and logistic
+baselines are the control group for later tree and neural estimators. Models
+do not trade.
 
 ### Research Question
 
@@ -399,14 +400,15 @@ and neural estimators. Models do not trade.
 - labelling evaluation bars from reused forward outcomes,
 - proving absence of temporal leakage before any model is fit,
 - training declared baselines (ridge, elastic net, logistic) per fold,
-- measuring statistical and finance-aware metrics against naive reference baselines.
+- measuring statistical and finance-aware metrics against naive reference baselines,
+- reviewing one run as standalone offline HTML (fold timeline, baselines, calibration).
 
 ### Not Suitable For
 
 - emitting tradable signals,
 - Strategy Research (trades, equity, PnL),
 - Robustness Research (parameter / stress verdicts),
-- HTML reports and dashboards (S041 / S044),
+- Streamlit dashboards (S044),
 - tree or neural estimators (S042 / S043),
 - promoting a trained model to Market Analysis (IDEA-014 → S044 / ADR-0024).
 
@@ -443,10 +445,12 @@ Published DatasetRef
   → run_predictive_research (per-fold fit on TRAIN, predict on TEST)
   → PredictiveRunEnvelope (predictions.parquet, metrics.json, opaque blobs)
   → analyze_predictive_run (writes metrics.json from predictions; never deserializes model blobs)
+  → render_predictive_research_report (read-only HTML from run + dataset + metrics.json)
 ```
 
 CLIs: `scripts/predictive_research/build_predictive_dataset.py`,
-`run_predictive_research.py`, `analyze_predictive_run.py`.
+`run_predictive_research.py`, `analyze_predictive_run.py`,
+`render_predictive_report.py`.
 
 ### Fold roles
 
@@ -716,7 +720,7 @@ Core rules:
 | Model Research Methodology | Yes                   | Defines a controlled study protocol   |
 | Strategy Research          | Yes                   | Studies complete simulated strategies |
 | Robustness Research        | Yes                   | Evaluates credibility and stability   |
-| Predictive Research        | Yes                   | Studies predictable structure in features (Phase 10A: dataset + baselines; not trading) |
+| Predictive Research        | Yes                   | Studies predictable structure in features (Phase 10A: dataset + baselines + report; not trading) |
 | Portfolio Research         | Planned               | Studies strategy combinations         |
 | Live Execution             | No                    | Applies selected logic operationally  |
 | Visualization              | No                    | Presents persisted results            |
@@ -747,7 +751,7 @@ artifacts (ADR-0022). Produce them under `artifacts/demo/output/` via
 | Combined Model Research | `artifacts/demo/output/model_research/` / portfolio index entries          | Forward-outcome analysis for a signal conditioned by market context |
 | Strategy Research       | `artifacts/demo/output/00_strategy_dashboard_nq_half_year.html` (hero)     | Trade ledger, equity, drawdown and strategy performance analysis |
 | Robustness Research     | `artifacts/demo/output/07_robustness_dashboard.html`                       | Parameter sensitivity, walk-forward, stress, Monte Carlo and diagnostics |
-| Predictive Research     | — (no HTML report in S040; S041)                                   | Predictions, metrics, and fold envelope; reports are the next sprint |
+| Predictive Research     | `<run-dir>/report.html` via `render_predictive_report.py`           | Fold timeline, baselines, calibration, quality flags; offline Plotly |
 
 For day-to-day inspection of research runs, prefer **`apps/dashboard`**
 (Sprint 028) over regenerating HTML.

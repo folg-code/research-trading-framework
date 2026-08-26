@@ -5,9 +5,9 @@
 ```text
 Sprint: 041
 Phase: Phase 10A — Predictive Research Foundation
-Status: Approved
+Status: COMPLETED (pending sprint → main)
 Planned Start: 2026-08-26
-Planned End: TBD
+Planned End: 2026-08-26
 Sprint Goal Owner: Project Maintainer
 Depends On: SPRINT_040 (PredictiveRunEnvelope, metrics schema)
 Sprint Branch: sprint/predictive-research-report
@@ -61,14 +61,14 @@ guards removed.
 
 ## 2. In scope
 
-- [ ] `research/reporting/predictive/` mirroring the Signal Research reporting layout.
-- [ ] View model built read-only from the persisted envelope.
-- [ ] Nine report panels (§4).
-- [ ] Quality flags surfaced as warnings, not hidden in a metrics table.
-- [ ] Plain-language section intros — the report explains what each panel means.
-- [ ] Offline rendering: no CDN, no network at view time.
-- [ ] CLI `scripts/predictive_research/render_predictive_report.py`.
-- [ ] Extension points documented for S042 importance and S043 learning curves.
+- [x] `research/reporting/predictive/` mirroring the Signal Research reporting layout.
+- [x] View model built read-only from the persisted envelope.
+- [x] Nine report panels (§4).
+- [x] Quality flags surfaced as warnings, not hidden in a metrics table.
+- [x] Plain-language section intros — the report explains what each panel means.
+- [x] Offline rendering: no CDN, no network at view time.
+- [x] CLI `scripts/predictive_research/render_predictive_report.py`.
+- [x] Extension points documented for S042 importance and S043 learning curves.
 
 ## 3. Out of scope
 
@@ -209,10 +209,10 @@ Missing optional data (no probabilities, no importance) degrades to a skipped pa
 | S041-T012 | HTML assembly, offline asset embedding, section intros | DONE |
 | S041-T013 | `render_predictive_research_report` orchestration | DONE |
 | S041-T014 | CLI `render_predictive_report.py` | DONE |
-| S041-T015 | Report smoke test: regression run and classification run | TODO |
-| S041-T016 | Docs: RESEARCH_METHODOLOGIES, MODULE_MAP, CURRENT_STATUS | TODO |
+| S041-T015 | Report smoke test: regression run and classification run | DONE |
+| S041-T016 | Docs: RESEARCH_METHODOLOGIES, MODULE_MAP, CURRENT_STATUS | DONE |
 
-**Progress:** 14 / 16 tasks
+**Progress:** 16 / 16 tasks
 
 ---
 
