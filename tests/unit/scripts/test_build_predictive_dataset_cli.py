@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import ast
 import json
 from datetime import UTC
 from pathlib import Path
@@ -146,3 +147,60 @@ def test_build_predictive_dataset_cli_persists_envelope(
     assert (dataset_dir / "manifest.json").exists()
     assert (dataset_dir / "features.parquet").exists()
     assert (dataset_dir / "folds.json").exists()
+
+
+def test_build_predictive_dataset_cli_no_persist_skips_write(
+    tmp_path: Path,
+    ohlcv_sample_1m_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    storage_root = tmp_path / "workspace"
+    dataset_ref = _write_published_dataset(storage_root, csv_path=ohlcv_sample_1m_path)
+    metadata = FileDatasetRegistry(storage_root).get(DatasetRef.parse(dataset_ref))
+    definition_path = tmp_path / "study.json"
+    _write_definition(
+        definition_path,
+        dataset_ref=dataset_ref,
+        start=metadata.start_at.isoformat(),
+        end=metadata.end_at.isoformat(),
+    )
+
+    exit_code = build_cli.main(
+        [
+            "--storage-root",
+            str(storage_root),
+            "--definition",
+            str(definition_path),
+            "--no-persist",
+            "--json",
+        ]
+    )
+    payload = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert payload["persisted"] is False
+    assert payload["labelled_rows"] > 0
+    dataset_dir = predictive_research_dataset_dir(storage_root, payload["dataset_id"])
+    assert not dataset_dir.exists()
+
+
+def test_cli_is_thin_and_does_not_import_ml_or_domain_builders() -> None:
+    source = Path(build_cli.__file__).read_text(encoding="utf-8")
+    tree = ast.parse(source)
+    imported: list[str] = []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            imported.extend(alias.name for alias in node.names)
+        elif isinstance(node, ast.ImportFrom) and node.module is not None:
+            imported.append(node.module)
+
+    assert "trading_framework.application.predictive_research" in imported
+    assert "trading_framework.research.predictive.spec" in imported
+    assert "trading_framework.research.predictive.matrix" not in imported
+    assert "trading_framework.research.predictive.splitting" not in imported
+    assert "trading_framework.research.datasets.predictive" not in imported
+    assert "trading_framework.application.market_analysis.run_analysis" not in imported
+    assert not any(
+        name == root or name.startswith(f"{root}.")
+        for name in imported
+        for root in ("sklearn", "xgboost", "lightgbm", "catboost", "torch")
+    )

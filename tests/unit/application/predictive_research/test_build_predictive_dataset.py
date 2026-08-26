@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import ast
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from pathlib import Path
@@ -44,10 +45,10 @@ def _timestamps() -> tuple[datetime, ...]:
     return tuple(start + timedelta(minutes=index) for index in range(_BAR_COUNT))
 
 
-def _synthetic_bars() -> tuple[MarketBar, ...]:
+def _synthetic_bars(*, close_start: float = 100.0) -> tuple[MarketBar, ...]:
     bars: list[MarketBar] = []
     for index, observed_at in enumerate(_timestamps()):
-        close = 100.0 + (index * 0.05)
+        close = close_start + (index * 0.05)
         bars.append(
             MarketBar(
                 open=Price(Decimal(str(round(close, 4)))),
@@ -123,6 +124,14 @@ def test_build_predictive_dataset_persists_envelope_with_fold_roles(tmp_path: Pa
         == result.envelope.features.get_column("label").to_list()
     )
     assert "atr" in loaded.features.columns
+    assert result.envelope.manifest.exclusion_counts["labelled_rows"] > 0
+    assert "incomplete_horizon" in result.envelope.manifest.exclusion_counts
+    assert result.envelope.manifest.fold_summary["fold_count"] == 2
+    role_counts = result.envelope.manifest.fold_summary["role_counts"]
+    assert role_counts[FoldRole.TRAIN.value] > 0
+    assert role_counts[FoldRole.TEST.value] > 0
+    assert role_counts[FoldRole.PURGED.value] > 0
+    assert role_counts[FoldRole.EMBARGOED.value] > 0
 
 
 def test_rebuild_from_same_spec_yields_identical_fingerprint(tmp_path: Path) -> None:
@@ -175,3 +184,54 @@ def test_spec_field_change_yields_different_fingerprint(tmp_path: Path) -> None:
 
     assert changed.fingerprint != baseline.fingerprint
     assert changed.dataset_id != baseline.dataset_id
+
+
+def test_rebuild_with_different_bar_values_keeps_fingerprint(tmp_path: Path) -> None:
+    storage_root = tmp_path / "workspace"
+    spec = _study()
+    first = build_predictive_dataset(
+        BuildPredictiveDatasetRequest(
+            spec=spec,
+            storage_root=storage_root,
+            persist=False,
+            preloaded_bars=_synthetic_bars(close_start=100.0),
+        )
+    )
+    second = build_predictive_dataset(
+        BuildPredictiveDatasetRequest(
+            spec=spec,
+            storage_root=storage_root,
+            persist=False,
+            preloaded_bars=_synthetic_bars(close_start=250.0),
+        )
+    )
+
+    assert first.fingerprint == second.fingerprint
+    assert first.dataset_id == second.dataset_id
+    assert (
+        first.envelope.features.get_column("label").to_list()
+        != second.envelope.features.get_column("label").to_list()
+    )
+
+
+def test_application_workflow_uses_run_analysis_and_existing_builders() -> None:
+    source = Path(build_predictive_dataset.__code__.co_filename).read_text(encoding="utf-8")
+    tree = ast.parse(source)
+    imported: list[str] = []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            imported.extend(alias.name for alias in node.names)
+        elif isinstance(node, ast.ImportFrom) and node.module is not None:
+            imported.append(node.module)
+
+    assert "trading_framework.application.market_analysis.run_analysis" in imported
+    assert "trading_framework.research.predictive.matrix" in imported
+    assert "trading_framework.research.predictive.splitting" in imported
+    assert "run_analysis" in source
+    assert "build_labelled_feature_matrix" in source
+    assert "assign_purged_walk_forward_folds" in source
+    assert not any(
+        name == root or name.startswith(f"{root}.")
+        for name in imported
+        for root in ("sklearn", "xgboost", "lightgbm", "catboost", "torch")
+    )

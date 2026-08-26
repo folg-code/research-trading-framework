@@ -112,6 +112,13 @@ def test_repository_write_read_round_trips_fold_roles_and_labels(tmp_path: Path)
     dataset_dir = predictive_research_dataset_dir(storage_root, envelope.manifest.dataset_id)
 
     assert ref == PredictiveDatasetRef(dataset_id=envelope.manifest.dataset_id)
+    assert dataset_dir == (
+        storage_root
+        / "research"
+        / "predictive_research"
+        / "datasets"
+        / envelope.manifest.dataset_id
+    )
     assert (dataset_dir / "manifest.json").exists()
     assert (dataset_dir / "features.parquet").exists()
     assert (dataset_dir / "folds.json").exists()
@@ -122,12 +129,17 @@ def test_repository_write_read_round_trips_fold_roles_and_labels(tmp_path: Path)
     assert loaded.manifest.created_at_utc == envelope.manifest.created_at_utc
     assert loaded.folds == envelope.folds
     assert_frame_equal(loaded.features, envelope.features, check_column_order=True)
-    assert set(loaded.features.get_column("fold_role").to_list()) <= {
+    persisted_roles = set(loaded.features.get_column("fold_role").to_list())
+    assert persisted_roles <= {
         FoldRole.TRAIN.value,
         FoldRole.TEST.value,
         FoldRole.PURGED.value,
         FoldRole.EMBARGOED.value,
     }
+    assert FoldRole.TRAIN.value in persisted_roles
+    assert FoldRole.TEST.value in persisted_roles
+    assert FoldRole.PURGED.value in persisted_roles
+    assert FoldRole.EMBARGOED.value in persisted_roles
     assert (
         loaded.features.get_column("label").to_list()
         == envelope.features.get_column("label").to_list()

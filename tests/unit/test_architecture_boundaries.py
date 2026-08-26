@@ -116,6 +116,44 @@ def _import_offenders(
     return offenders
 
 
+def _wave4_predictive_paths() -> tuple[Path, ...]:
+    framework_root = Path(trading_framework.__file__).resolve().parent
+    repo_root = framework_root.parents[1]
+    return (
+        framework_root / "research" / "datasets" / "predictive.py",
+        framework_root / "application" / "predictive_research",
+        repo_root / "scripts" / "predictive_research",
+    )
+
+
+def _import_offenders_from_roots(
+    roots: tuple[Path, ...],
+    *,
+    predicate: Callable[[str], bool],
+) -> list[str]:
+    files: list[Path] = []
+    for root in roots:
+        if root.is_file():
+            files.append(root)
+        else:
+            files.extend(_python_files(root))
+    offenders: list[str] = []
+    for path in files:
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                offenders.extend(
+                    f"{path.name}:{alias.name}" for alias in node.names if predicate(alias.name)
+                )
+            elif (
+                isinstance(node, ast.ImportFrom)
+                and node.module is not None
+                and predicate(node.module)
+            ):
+                offenders.append(f"{path.name}:{node.module}")
+    return offenders
+
+
 def test_predictive_research_does_not_import_ml_libraries() -> None:
     package_root = Path(trading_framework.__file__).resolve().parent / "research" / "predictive"
 
@@ -135,3 +173,17 @@ def test_predictive_research_does_not_import_trading_capabilities() -> None:
     package_root = Path(trading_framework.__file__).resolve().parent / "research" / "predictive"
 
     assert _import_offenders(package_root, predicate=_is_forbidden_predictive_import) == []
+
+
+def test_predictive_research_wave4_packages_do_not_import_ml_libraries() -> None:
+    assert _import_offenders_from_roots(_wave4_predictive_paths(), predicate=_is_ml_library) == []
+
+
+def test_predictive_research_wave4_packages_do_not_import_trading_capabilities() -> None:
+    assert (
+        _import_offenders_from_roots(
+            _wave4_predictive_paths(),
+            predicate=_is_forbidden_predictive_import,
+        )
+        == []
+    )

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
 from datetime import UTC, datetime
 
 from trading_framework.core.identifiers import Identifier
@@ -191,3 +193,30 @@ def test_fingerprint_changes_when_lineage_dataset_or_range_changes() -> None:
     assert lineage_changed != baseline
     assert dataset_changed != baseline
     assert range_changed != baseline
+
+
+def test_fingerprint_hashes_spec_lineage_ref_and_range_not_frame_bytes() -> None:
+    spec = _study()
+    lineage = {"atr_14": _output_ref()}
+    definition_hash = spec.definition_hash or compute_definition_hash(spec)
+    fingerprint = compute_dataset_fingerprint(
+        definition_hash=definition_hash,
+        feature_lineage=lineage,
+        dataset_ref=spec.dataset_ref,
+        time_range=spec.time_range,
+    )
+    expected_payload = {
+        "definition_hash": definition_hash,
+        "feature_lineage": {"atr_14": lineage["atr_14"].canonical_key()},
+        "dataset_ref": str(spec.dataset_ref),
+        "time_range": {
+            "start": spec.time_range.start.isoformat(),
+            "end": spec.time_range.end.isoformat(),
+        },
+    }
+    canonical = json.dumps(expected_payload, sort_keys=True, separators=(",", ":"))
+    decoded = json.loads(canonical)
+
+    assert fingerprint == hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+    assert set(decoded) == {"definition_hash", "feature_lineage", "dataset_ref", "time_range"}
+    assert decoded["feature_lineage"] == {"atr_14": lineage["atr_14"].canonical_key()}
