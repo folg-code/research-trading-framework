@@ -37,6 +37,10 @@ library-free predictive metrics (`metrics.py`).
   `PURGED` and `EMBARGOED` never reach `fit()`. Default steps are
   `IMPUTE_MEDIAN` then `STANDARDIZE`. The sklearn Pipeline implementation is
   in the adapter, not here.
+- Bounded candidate selection (`selection.py`) is library-free. `CandidateSetSpec`
+  is declared and capped (default 8, hard max 16). Inner validation is the
+  chronological suffix of outer TRAIN rows; outer TEST is predicted once after
+  refit. Early-stopping eval roles may be TRAIN only.
 - `test_span` and `embargo_span` are applied as datetime arithmetic on
   `available_at`, not as a 1-minute bar count. Consecutive test windows are
   separated by `embargo_span` so expanding later folds cannot train on the

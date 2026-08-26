@@ -175,11 +175,11 @@ report next to the headline number.
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S042-T008 | `CandidateSetSpec` + cap validation | TODO |
-| S042-T009 | Inner train/validation split within the training fold | TODO |
-| S042-T010 | Per-fold candidate selection + refit on full train fold | TODO |
-| S042-T011 | Early stopping bound to inner validation; outer-test usage rejected | TODO |
-| S042-T012 | Selection trace persisted (candidate scores per fold) | TODO |
+| S042-T008 | `CandidateSetSpec` + cap validation | DONE |
+| S042-T009 | Inner train/validation split within the training fold | DONE |
+| S042-T010 | Per-fold candidate selection + refit on full train fold | DONE |
+| S042-T011 | Early stopping bound to inner validation; outer-test usage rejected | DONE |
+| S042-T012 | Selection trace persisted (candidate scores per fold) | DONE |
 
 ### Wave 3 — Importance and diagnostics
 
@@ -206,7 +206,7 @@ report next to the headline number.
 | S042-T021 | Import test: framework usable without `ml-trees` | TODO |
 | S042-T022 | Docs: RESEARCH_METHODOLOGIES, MODULE_MAP, CURRENT_STATUS | TODO |
 
-**Progress:** 7 / 22 tasks
+**Progress:** 12 / 22 tasks
 
 ---
 
