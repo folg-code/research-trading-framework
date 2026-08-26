@@ -5,17 +5,19 @@
 ```text
 Sprint: 041
 Phase: Phase 10A — Predictive Research Foundation
-Status: PLANNED
-Planned Start: TBD (after S040 merges)
+Status: Approved
+Planned Start: 2026-08-26
 Planned End: TBD
 Sprint Goal Owner: Project Maintainer
 Depends On: SPRINT_040 (PredictiveRunEnvelope, metrics schema)
 Sprint Branch: sprint/predictive-research-report
 Task branch convention: feat/ | fix/ | docs/ | test/
+Wave 0 decisions: docs/planning/sprints/S041_WAVE0_DECISIONS.md
 Architecture Sources:
   - docs/planning/ROADMAP.md (§13A Phase 10)
   - docs/adr/ADR-0013-signal-research-analytics-boundary.md (read-only analytics boundary)
   - docs/adr/ADR-0020 (report v2 pattern)
+  - docs/planning/sprints/S041_WAVE0_DECISIONS.md
   - src/trading_framework/research/reporting/signal_research/ (structural template)
 ```
 
@@ -178,9 +180,9 @@ Missing optional data (no probabilities, no importance) degrades to a skipped pa
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S041-T001 | Report contracts + view model builder from `PredictiveRunEnvelope` | TODO |
-| S041-T002 | Quality flag evaluation with spec-declared thresholds | TODO |
-| S041-T003 | Panel registry with optional-panel degradation | TODO |
+| S041-T001 | Report contracts + view model builder from `PredictiveRunEnvelope` | DONE |
+| S041-T002 | Quality flag evaluation with spec-declared thresholds | DONE |
+| S041-T003 | Panel registry with optional-panel degradation | DONE |
 
 ### Wave 2 — Diagnostic panels
 
@@ -210,7 +212,7 @@ Missing optional data (no probabilities, no importance) degrades to a skipped pa
 | S041-T015 | Report smoke test: regression run and classification run | TODO |
 | S041-T016 | Docs: RESEARCH_METHODOLOGIES, MODULE_MAP, CURRENT_STATUS | TODO |
 
-**Progress:** 0 / 16 tasks
+**Progress:** 3 / 16 tasks
 
 ---
 
