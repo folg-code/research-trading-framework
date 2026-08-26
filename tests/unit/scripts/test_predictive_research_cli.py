@@ -225,6 +225,16 @@ def test_run_cli_invalid_hyperparameters_json_returns_error(
     assert "hyperparameters must be a mapping" in captured.err
 
 
+def test_run_cli_missing_dataset_returns_error(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    exit_code = run_cli.main(_flag_args(tmp_path))
+    captured = capsys.readouterr()
+    assert exit_code == 1
+    assert "missing manifest" in captured.err
+
+
 def test_analyze_cli_missing_run_returns_error(
     tmp_path: Path,
     capsys: pytest.CaptureFixture[str],
