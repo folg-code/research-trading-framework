@@ -242,9 +242,9 @@ fingerprint by design — it is a different experiment, not the same one re-run.
 | S040-T020 | Determinism test: same spec → identical predictions | DONE |
 | S040-T021 | Known-signal fixture test (see §9) | DONE |
 | S040-T022 | Import test: framework usable without the `ml` extra | DONE |
-| S040-T023 | Docs: MODULE_MAP, DATA_WORKFLOWS, RESEARCH_METHODOLOGIES, CURRENT_STATUS | TODO |
+| S040-T023 | Docs: MODULE_MAP, RESEARCH_METHODOLOGIES, ARCHITECTURE_AND_WORKFLOWS, CURRENT_STATUS | DONE |
 
-**Progress:** 22 / 23 tasks
+**Progress:** 23 / 23 tasks
 
 ---
 
@@ -348,3 +348,84 @@ uv run pytest
 
 Sprint 041 renders these envelopes as an offline HTML report. Metrics schema should be considered
 frozen once S041 consumes it — a later rename forces a report migration.
+
+---
+
+## 16. Review
+
+Closed on the sprint branch 2026-08-26. Working PRs #310–#317 squash-merged into
+`sprint/predictive-baselines`. T023 is this documentation PR. This section records
+outcome; it does not rewrite the plan. Sprint status stays **Approved** until the
+integration PR to `main` — do not treat S040 as complete on `main` yet.
+
+### Completed
+
+- Wave 0 decisions (`S040_WAVE0_DECISIONS.md`) approved (#310, #311).
+- Estimator protocol, `EstimatorSpec`, `TaskType`, family registry, preprocessing
+  spec, optional extra `ml`, pytest marker `ml`, dedicated CI job `ml` (#312).
+- Sklearn adapters: `sklearn.ridge`, `sklearn.elastic_net`, `sklearn.logistic`
+  (binary); `describe()` captures library version and resolved parameters (#313).
+- `run_predictive_research` per-fold loop, prediction table (TEST rows + carried
+  `forward_return`), opaque `models/fold_{n}.bin`, `PredictiveRunEnvelope` + run
+  identity fingerprint (#314).
+- Statistical + finance-aware metrics, reference baselines (`CONSTANT_MEAN`,
+  `MAJORITY_CLASS`, `RANDOM_PERMUTATION`), per-fold + pooled aggregation,
+  `analyze_predictive_run` (#315).
+- CLIs `run_predictive_research.py` and `analyze_predictive_run.py` (#316).
+- Determinism, known-signal, and extra-free import tests (#317).
+- As-implemented docs: `MODULE_MAP.md`, `RESEARCH_METHODOLOGIES.md`,
+  `ARCHITECTURE_AND_WORKFLOWS.md` §6, `CURRENT_STATUS.md` (this PR).
+- All 23 tasks T001–T023 DONE on the sprint branch.
+
+### Not Completed
+
+- None of the in-scope tasks. `DATA_WORKFLOWS.md` is not in the repository; T023
+  recorded the run path in `MODULE_MAP.md`, `RESEARCH_METHODOLOGIES.md`, and
+  `ARCHITECTURE_AND_WORKFLOWS.md` §6 (same convention as S039 T020).
+- Out of scope remains out of scope: trees, networks, hyperparameter search,
+  HTML reports, NQ acceptance, IDEA-014 / ADR-0024.
+
+### Demonstrated Capability
+
+A maintainer runs `scripts/predictive_research/run_predictive_research.py` against
+a persisted `PredictiveDatasetEnvelope` and gets out-of-sample predictions plus
+per-fold and pooled metrics (including the three reference baselines),
+reproducible from the run manifest. `analyze_predictive_run.py` reads predictions
+and metrics only — it does not deserialize fitted blobs. The default install stays
+extra-free; requesting an sklearn family without extra `ml` raises
+`PredictiveExtraError`.
+
+### Problems Discovered
+
+- None logged in `PROBLEM_REGISTRY.md` for this sprint. No new CRITICAL/HIGH entries.
+
+### Decisions Required
+
+- None. ADR-0023 remains ACCEPTED. No new ADR this sprint (ADR-0024 reserved for
+  IDEA-014). Wave 0 locks were not reopened.
+
+### Technical Debt Added
+
+- TD-021 (MEDIUM) — no predictive model registry; runs are content-addressed
+  under `research/predictive_research/runs/{run_id}/`.
+- TD-022 (LOW) — fitted blobs are opaque and not portable across library upgrades;
+  reproduce by re-fitting from the manifest.
+- Both were already planned in `TECHNICAL_DEBT.md` §6; S040 made them live.
+
+### Lessons Learned
+
+- Domain stayed ML-free: `research/predictive/` imports polars/numpy only; the
+  registry lives in `infrastructure/ml/` so application remains extra-free at
+  import time.
+- Metrics in domain (numpy/polars) made extra-free unit tests possible; sklearn
+  metric helpers were not used.
+- Known-signal test 3 (noise label within permutation spread) is the leakage
+  tripwire for later estimator sprints.
+
+### Follow-up
+
+- Sprint 041 — Predictive Research report v1 (offline Plotly HTML over this
+  envelope; freeze metrics schema once the report consumes it).
+- Integrate `sprint/predictive-baselines` → `main` after this docs PR is reviewed
+  (tester + reviewer first). Do not treat Phase 10A as complete until S041 lands.
+- S042–S044 remain later Phase 10B/10C work (trees, networks, IDEA-014 gate).

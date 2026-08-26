@@ -106,7 +106,7 @@ apps/dashboard/src/dashboard_app/
 | Signal / Model Research | `application/signal_research/` | `research/`, `strategy/` | Research repositories and report adapters | Research artifacts |
 | Strategy Research | `application/strategy_research/` | `strategy/`, `research/simulation/`, `research/datasets/` | Result storage and reporting adapters | Trades, equity, manifests |
 | Robustness Research | `application/robustness_research/` | `research/robustness/` | Experiment storage and reporting adapters | Experiment artifacts |
-| Predictive Research | `application/predictive_research/` | `research/predictive/`, `research/datasets/predictive.py` | `infrastructure/storage/paths.py` | Labelled feature matrix, fold roles, dataset envelope |
+| Predictive Research | `application/predictive_research/` | `research/predictive/`, `research/datasets/predictive.py`, `research/datasets/predictive_run.py` | `infrastructure/ml/`, `infrastructure/storage/paths.py` | Dataset envelope; run envelope (predictions, metrics, opaque blobs) |
 | Live Execution | `application/execution/` | `execution/` | `infrastructure/providers/`, `infrastructure/storage/` | Runtime state |
 | Visualization | Application view-model builders | `research/analytics/`, reporting packages | HTML, API and dashboard adapters; `apps/dashboard` | Dashboards and reports |
 
@@ -427,17 +427,24 @@ Research Definition
 
 ### Predictive Research
 
-Phase 10A dataset foundation (Sprint 039). This workflow states a learning problem
-and persists a fingerprinted labelled matrix. It does **not** train an estimator,
-emit signals, or import `strategy/` / `signal_model/`. No ML library is a
-dependency of this slice.
+Phase 10A: dataset foundation (Sprint 039) plus baseline estimators (Sprint 040).
+This workflow states a learning problem, persists a fingerprinted labelled matrix,
+then trains declared baselines per fold. It does **not** emit signals or import
+`strategy/` / `signal_model/`. `research/predictive/` stays library-free (polars,
+numpy, framework contracts). ML libraries live behind optional extra `ml` and
+`infrastructure/ml/` adapters.
 
 | Responsibility | Package |
 |---|---|
 | Study spec, features, labels, matrix, splits | `research/predictive/` |
-| Envelope, fingerprint, repository | `research/datasets/predictive.py` |
-| Workflow orchestration | `application/predictive_research/` |
-| Thin CLI | `scripts/predictive_research/build_predictive_dataset.py` |
+| Estimator protocol, `EstimatorSpec`, `TaskType` | `research/predictive/estimators.py` |
+| Fold-local preprocessing spec | `research/predictive/preprocessing.py` |
+| Statistical + finance-aware metrics | `research/predictive/metrics.py` |
+| Dataset envelope, fingerprint, repository | `research/datasets/predictive.py` |
+| Run envelope, fingerprint, repository | `research/datasets/predictive_run.py` |
+| Workflow orchestration (build, run, analyze) | `application/predictive_research/` |
+| Family registry + sklearn adapters | `infrastructure/ml/` (`registry.py`, `sklearn/`) |
+| Thin CLIs | `scripts/predictive_research/` |
 | Storage paths | `infrastructure/storage/paths.py` |
 
 Workflow:
@@ -448,7 +455,10 @@ Published DatasetRef + PredictiveStudySpec (YAML/JSON)
   → labelled matrix (one row per complete evaluation bar)
   → purged + embargoed walk-forward fold roles
   → PredictiveDatasetEnvelope (manifest + fingerprint)
-  → research/predictive_research/datasets/{dataset_id}/
+  → EstimatorSpec (family + hyperparameters + seed)
+  → run_predictive_research (fit on TRAIN per fold, predict on TEST)
+  → PredictiveRunEnvelope (predictions, metrics, opaque blobs)
+  → analyze_predictive_run (reads predictions + metrics; never reloads blobs)
 ```
 
 Samples are **evaluation bars**, not `SignalOccurrence` rows. Labels reuse
@@ -462,7 +472,21 @@ lineage + `DatasetRef` + time range. It never hashes materialized frame bytes.
 `dataset_id` is the first 16 hex characters of that fingerprint.
 
 Persisted fold roles: `TRAIN` / `TEST` / `PURGED` / `EMBARGOED`. Purged and
-embargoed rows are retained with a role label, not deleted.
+embargoed rows are retained with a role label, not deleted. Preprocessing
+(`IMPUTE_MEDIAN`, `STANDARDIZE`) is fitted inside each fold on `TRAIN` rows
+only; `PURGED` and `EMBARGOED` never reach `fit()`.
+
+Estimator families this slice (registry ids, extra `ml`): `sklearn.ridge`,
+`sklearn.elastic_net`, `sklearn.logistic` (binary). Unknown family ids raise
+`PredictiveSpecError`. Missing extra raises `PredictiveExtraError` naming `ml`.
+Reference baselines (`CONSTANT_MEAN`, `MAJORITY_CLASS`, `RANDOM_PERMUTATION`)
+are metric-layer comparisons, not registry families. Metrics are reported per
+fold and pooled.
+
+Optional extra: `[project.optional-dependencies] ml = ["scikit-learn>=1.6,<2.0"]`.
+Not in the default `dev` group. Dedicated CI job `ml` installs
+`uv sync --locked --extra ml --dev` and runs `uv run pytest -m ml`. Standard
+unit CI stays extra-free (`uv sync --locked --dev`, `-m "not ml"`).
 
 Storage:
 
@@ -471,9 +495,20 @@ Storage:
   manifest.json
   features.parquet
   folds.json
+<workspace>/research/predictive_research/runs/{run_id}/
+  manifest.json
+  predictions.parquet
+  metrics.json
+  models/fold_{n}.bin    # opaque; reproduce by re-fitting, not deserializing
 ```
 
-CLI: `uv run python scripts/predictive_research/build_predictive_dataset.py --storage-root <workspace> --definition <spec.yaml>`.
+CLIs:
+
+```text
+uv run python scripts/predictive_research/build_predictive_dataset.py --storage-root <workspace> --definition <spec.yaml>
+uv run python scripts/predictive_research/run_predictive_research.py --storage-root <workspace> --dataset-id <id> --estimator <spec.yaml>
+uv run python scripts/predictive_research/analyze_predictive_run.py --storage-root <workspace> --run-id <id>
+```
 
 ### Tests
 
@@ -485,6 +520,7 @@ tests/unit/application/signal_research/
 tests/unit/application/strategy_research/
 tests/unit/application/robustness_research/
 tests/unit/application/predictive_research/
+tests/unit/infrastructure/ml/
 tests/integration/research/
 ```
 
@@ -597,7 +633,7 @@ user_data/
 │   ├── market_research/     # Signal Research runs + family experiments
 │   ├── strategy_research/   # Strategy Research runs
 │   ├── strategy_robustness/ # robustness experiments
-│   └── predictive_research/ # Predictive Research datasets (Phase 10A)
+│   └── predictive_research/ # Predictive Research datasets + runs (Phase 10A)
 ├── runtime/                 # execution dry-run state
 ├── reports/                 # optional loose reports
 ├── config/
@@ -614,7 +650,7 @@ user_data/
 | `research/market_research/` | Signal Research runs and model-family experiments |
 | `research/strategy_research/` | Strategy Research runs |
 | `research/strategy_robustness/` | robustness experiments |
-| `research/predictive_research/` | Predictive Research dataset envelopes (`datasets/{dataset_id}/`) |
+| `research/predictive_research/` | Predictive Research datasets (`datasets/{dataset_id}/`) and runs (`runs/{run_id}/`) |
 | `components/` | custom analytical components |
 | `models/` | Market Model and Signal Model definitions |
 | `runtime/` | local execution state and operational data |
