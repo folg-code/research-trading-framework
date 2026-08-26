@@ -442,6 +442,7 @@ numpy, framework contracts). ML libraries live behind optional extra `ml` and
 | Statistical + finance-aware metrics | `research/predictive/metrics.py` |
 | Bounded candidate selection (`CandidateSetSpec`) | `research/predictive/selection.py` |
 | Native + permutation importance, train/test gap | `research/predictive/importance.py` |
+| Single-study leaderboard | `research/predictive/leaderboard.py` |
 | Dataset envelope, fingerprint, repository | `research/datasets/predictive.py` |
 | Run envelope, fingerprint, repository | `research/datasets/predictive_run.py` |
 | Workflow orchestration (build, run, analyze) | `application/predictive_research/` |
@@ -510,6 +511,7 @@ Storage:
   metrics.json
   selection.json         # candidate scores per fold; absent on single-estimator runs
   importance.json        # native + permutation importance and train/test gap
+  leaderboard.json       # optional; single-study comparison of run dirs
   models/fold_{n}.bin    # opaque; reproduce by re-fitting, not deserializing
 ```
 
@@ -519,6 +521,7 @@ CLIs:
 uv run python scripts/predictive_research/build_predictive_dataset.py --storage-root <workspace> --definition <spec.yaml>
 uv run python scripts/predictive_research/run_predictive_research.py --storage-root <workspace> --dataset-id <id> --estimator <spec.yaml>
 uv run python scripts/predictive_research/analyze_predictive_run.py --storage-root <workspace> --run-id <id>
+uv run python scripts/predictive_research/compare_predictive_runs.py --run-dir <run> [--run-dir <run> ...]
 ```
 
 ### Tests

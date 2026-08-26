@@ -483,6 +483,7 @@ characters of that fingerprint.
   metrics.json
   selection.json         # optional; bounded candidate selection
   importance.json        # native + permutation importance and train/test gap
+  leaderboard.json       # optional; single-study comparison of run dirs
   models/fold_{n}.bin    # opaque; reproduce by re-fitting from the manifest
 ```
 
