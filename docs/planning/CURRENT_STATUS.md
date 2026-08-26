@@ -31,7 +31,7 @@ Current Phase: Phase 10A Predictive Research Foundation (S039 complete; S040 pla
 Current Milestone: S039 dataset foundation complete; this PR integrates to main; S040 baselines next
 Implementation Status: Sprints 001-006, 008-024, 025-039 on main (this PR)
 Overall Status: STABLE
-Active Sprint: none (S040 planned, not started)
+Active Sprint: none (S040 Wave 0 proposed on sprint/predictive-baselines; not approved)
 Last Completed Sprint: SPRINT_039 (Predictive Research dataset foundation) → main (this PR)
 Capability Tracks: Foundation COMPLETE; Data COMPLETE (core); Research COMPLETE (core); Strategy 6A COMPLETE; Phase 8A dry-run + S024 on main; Dashboard / Live Paper / public demo COMPLETE; Phase 10A S039 dataset foundation COMPLETE (S040–S041 remain)
 Recent: S039 on main (this PR). Working PRs #302–#308. ADR-0023 ACCEPTED.
@@ -227,7 +227,8 @@ Published DatasetRef + PredictiveStudySpec
 
 ADR: ADR-0023 (ACCEPTED). CLI: `scripts/predictive_research/build_predictive_dataset.py`.
 See `SPRINT_039.md` and `S039_WAVE0_DECISIONS.md`. Next planned: Sprint 040 baselines
-(not started). Phase 10A is not complete until S040–S041 land.
+(Wave 0 proposed on `sprint/predictive-baselines`; not approved). Phase 10A is not
+complete until S040–S041 land.
 
 ---
 
@@ -409,8 +410,9 @@ Maintenance: `.cursor/rules/documentation.mdc`
 
 ## 6. Work in Progress
 
-No active sprint. Sprint 039 is complete on this integration PR. Sprint 040 (baseline
-regression + classification) is **PLANNED**, not started.
+No active implementation sprint. Sprint 039 is complete on `main`. Sprint 040 (baseline
+regression + classification) remains **PLANNED**. Wave 0 decisions are proposed on
+`sprint/predictive-baselines` (`S040_WAVE0_DECISIONS.md`) — not approved.
 
 **Portfolio demo packaging** — `scripts/demo/run_portfolio_demo.py` generates offline HTML artifacts for showcase (workflows + dashboards).
 
@@ -604,7 +606,7 @@ Sprint 038 Session Range COMPLETED on main (#300).
 Sprint 039 Predictive Research dataset foundation COMPLETED (this PR; #302–#308).
 ADR-0023 ACCEPTED. Phase 10A is not complete (S040–S041 remain).
 
-Next capability (not started):
+Next capability (Wave 0 proposed, not approved):
     Sprint 040 — baseline regression + classification (estimator seam, sklearn adapter)
 
 Catalog in parallel (does not block S040):
