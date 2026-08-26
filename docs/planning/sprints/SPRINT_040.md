@@ -5,8 +5,8 @@
 ```text
 Sprint: 040
 Phase: Phase 10A — Predictive Research Foundation
-Status: PLANNED
-Planned Start: TBD (after S039 merges)
+Status: Approved
+Planned Start: 2026-08-26
 Planned End: TBD
 Sprint Goal Owner: Project Maintainer
 Depends On: SPRINT_039 (PredictiveDatasetEnvelope, fold roles, ADR-0023)
@@ -91,6 +91,7 @@ research/predictive/estimators.py        PredictiveEstimator protocol, Estimator
 research/predictive/preprocessing.py     preprocessing spec (fit-on-train contract)
 research/predictive/metrics.py           metric computation over predictions
 research/datasets/predictive_run.py      PredictiveRunEnvelope + repository
+infrastructure/ml/registry.py            family id -> lazy adapter factory
 infrastructure/ml/sklearn/               adapter: spec -> sklearn estimator -> protocol
 application/predictive_research/         run + analyze orchestration
 ```
