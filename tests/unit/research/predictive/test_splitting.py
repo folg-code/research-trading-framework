@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+import ast
 from datetime import UTC, datetime, timedelta
 from itertools import pairwise
+from pathlib import Path
 
 import polars as pl
 import pytest
 
+import trading_framework
 from trading_framework.research.predictive import (
     FoldRole,
     PredictiveMatrixError,
@@ -19,6 +22,10 @@ from trading_framework.research.predictive import (
 from trading_framework.time.models.timeframe import Timeframe
 
 _UTC = pl.Datetime(time_unit="us", time_zone="UTC")
+_SPLITTING_SOURCE = (
+    Path(trading_framework.__file__).resolve().parent / "research" / "predictive" / "splitting.py"
+)
+_ML_LIBRARY_ROOTS = ("sklearn", "xgboost", "lightgbm", "catboost", "torch")
 
 
 def _valid_split() -> PurgedWalkForwardSplitSpec:
@@ -266,6 +273,14 @@ def _embargo_reused_as_train(assigned: pl.DataFrame, spec: PurgedWalkForwardSpli
     return False
 
 
+def _fold_0_test_end(assigned: pl.DataFrame) -> datetime:
+    return _as_datetime(
+        assigned.filter((pl.col("fold_id") == 0) & (pl.col("fold_role") == FoldRole.TEST.value))
+        .get_column("available_at")
+        .max()
+    )
+
+
 def test_assign_folds_is_long_format_with_persisted_roles() -> None:
     assigned = assign_purged_walk_forward_folds(
         _labelled_rows(count=12, horizon_minutes=2),
@@ -280,6 +295,56 @@ def test_assign_folds_is_long_format_with_persisted_roles() -> None:
         FoldRole.EMBARGOED.value,
     }
     assert assigned.select("entity_id", "horizon_bars", "fold_id").height == assigned.height
+
+
+def test_purged_and_embargoed_rows_are_retained_not_deleted() -> None:
+    spec = _planner_spec(embargo_span="2m")
+    rows = _labelled_rows(count=16, horizon_minutes=2)
+    assigned = assign_purged_walk_forward_folds(rows, spec)
+    roles = set(assigned.get_column("fold_role").unique().to_list())
+    test_end = _fold_0_test_end(assigned)
+    test_lower = test_end - timedelta(seconds=spec.test_span.total_seconds)
+    embargo_end = test_end + timedelta(seconds=spec.embargo_span.total_seconds)
+    fold_0 = assigned.filter(pl.col("fold_id") == 0)
+    train_window_ids = set(
+        rows.filter(pl.col("available_at") <= test_lower).get_column("entity_id").to_list()
+    )
+    fold_0_train_window_ids = set(
+        fold_0.filter(pl.col("available_at") <= test_lower).get_column("entity_id").to_list()
+    )
+    embargo_ids = set(
+        rows.filter((pl.col("available_at") > test_end) & (pl.col("available_at") <= embargo_end))
+        .get_column("entity_id")
+        .to_list()
+    )
+    fold_0_embargo_ids = set(
+        fold_0.filter(pl.col("fold_role") == FoldRole.EMBARGOED.value)
+        .get_column("entity_id")
+        .to_list()
+    )
+
+    assert FoldRole.PURGED.value in roles
+    assert FoldRole.EMBARGOED.value in roles
+    assert train_window_ids == fold_0_train_window_ids
+    assert embargo_ids == fold_0_embargo_ids
+    assert embargo_ids
+
+    deleted = assigned.filter(
+        ~pl.col("fold_role").is_in([FoldRole.PURGED.value, FoldRole.EMBARGOED.value])
+    )
+    deleted_fold_0 = deleted.filter(pl.col("fold_id") == 0)
+    deleted_train_window_ids = set(
+        deleted_fold_0.filter(pl.col("available_at") <= test_lower)
+        .get_column("entity_id")
+        .to_list()
+    )
+    deleted_embargo_ids = set(
+        deleted_fold_0.filter(pl.col("fold_role") == FoldRole.EMBARGOED.value)
+        .get_column("entity_id")
+        .to_list()
+    )
+    assert deleted_train_window_ids < train_window_ids
+    assert deleted_embargo_ids != embargo_ids
 
 
 def test_train_label_end_never_falls_inside_same_fold_test_window() -> None:
@@ -331,11 +396,7 @@ def test_expanding_embargo_holds_out_span_after_test() -> None:
         _labelled_rows(count=16, horizon_minutes=1),
         spec,
     )
-    fold_0_test_end = _as_datetime(
-        assigned.filter((pl.col("fold_id") == 0) & (pl.col("fold_role") == FoldRole.TEST.value))
-        .get_column("available_at")
-        .max()
-    )
+    fold_0_test_end = _fold_0_test_end(assigned)
     embargo_end = fold_0_test_end + timedelta(minutes=2)
     fold_0_embargo = assigned.filter(
         (pl.col("fold_id") == 0)
@@ -424,6 +485,60 @@ def test_insufficient_train_rows_after_purge_raises() -> None:
             _labelled_rows(count=12, horizon_minutes=2),
             _planner_spec(min_train_rows=50),
         )
+
+
+def test_min_train_rows_counts_train_after_purge_not_candidates() -> None:
+    rows = _labelled_rows(count=12, horizon_minutes=2)
+    too_strict = _planner_spec(fold_count=1, min_train_rows=9)
+    just_enough = _planner_spec(fold_count=1, min_train_rows=8)
+
+    with pytest.raises(
+        PredictiveMatrixError,
+        match="fold 0 has 8 TRAIN rows after purge/embargo, but min_train_rows is 9",
+    ):
+        assign_purged_walk_forward_folds(rows, too_strict)
+
+    assigned = assign_purged_walk_forward_folds(rows, just_enough)
+    assert assigned.filter(pl.col("fold_role") == FoldRole.TRAIN.value).height == 8
+    assert assigned.filter(pl.col("fold_role") == FoldRole.PURGED.value).height == 2
+
+
+def test_empty_labelled_rows_raise() -> None:
+    rows = _labelled_rows(count=4, horizon_minutes=1).clear()
+
+    with pytest.raises(PredictiveMatrixError, match="labelled rows are empty"):
+        assign_purged_walk_forward_folds(rows, _planner_spec())
+
+
+def test_null_availability_timestamps_raise() -> None:
+    rows = _labelled_rows(count=8, horizon_minutes=1).with_columns(
+        pl.when(pl.int_range(pl.len()) == 0)
+        .then(pl.lit(None, dtype=_UTC))
+        .otherwise(pl.col("label_end_at"))
+        .alias("label_end_at")
+    )
+
+    with pytest.raises(PredictiveMatrixError, match="label_end_at must not be null"):
+        assign_purged_walk_forward_folds(rows, _planner_spec())
+
+
+def test_fold_planner_does_not_import_ml_libraries() -> None:
+    source = _SPLITTING_SOURCE.read_text(encoding="utf-8")
+    tree = ast.parse(source)
+    imported: list[str] = []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            imported.extend(alias.name for alias in node.names)
+        elif isinstance(node, ast.ImportFrom) and node.module is not None:
+            imported.append(node.module)
+
+    assert not any(
+        name == root or name.startswith(f"{root}.")
+        for name in imported
+        for root in _ML_LIBRARY_ROOTS
+    )
+    assert all("sklearn" not in name for name in imported)
+    assert "polars" in imported
 
 
 def test_missing_availability_columns_raise() -> None:
