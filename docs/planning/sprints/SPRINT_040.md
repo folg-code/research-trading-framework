@@ -67,9 +67,9 @@ predictions plus per-fold metrics, reproducible bit-for-bit from the run manifes
 - [x] Preprocessing pipeline spec fitted **per training fold** (imputation, standardization).
 - [x] scikit-learn adapter in `infrastructure/ml/sklearn/`.
 - [x] Regression baselines: ridge, elastic net. Classification baselines: logistic regression.
-- [ ] Naive reference baselines (see §5) — the honest floor every model must clear.
+- [x] Naive reference baselines (see §5) — the honest floor every model must clear.
 - [x] `run_predictive_research` application workflow with per-fold execution.
-- [ ] Metrics module: statistical + finance-aware, per fold and pooled.
+- [x] Metrics module: statistical + finance-aware, per fold and pooled.
 - [x] `PredictiveRunEnvelope` v1 + run identity fingerprint.
 - [ ] CLIs: run, analyze.
 
@@ -228,11 +228,11 @@ fingerprint by design — it is a different experiment, not the same one re-run.
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S040-T014 | Regression metrics (RMSE, MAE, R², rank IC) | TODO |
-| S040-T015 | Classification metrics (AUC, PR AUC, log loss, Brier, calibration bins) | TODO |
-| S040-T016 | Finance-aware metrics (decile buckets, spread, hit rate, coverage) | TODO |
-| S040-T017 | Reference baselines (constant, majority, permutation) | TODO |
-| S040-T018 | Per-fold + pooled aggregation, `analyze_predictive_run` | TODO |
+| S040-T014 | Regression metrics (RMSE, MAE, R², rank IC) | DONE |
+| S040-T015 | Classification metrics (AUC, PR AUC, log loss, Brier, calibration bins) | DONE |
+| S040-T016 | Finance-aware metrics (decile buckets, spread, hit rate, coverage) | DONE |
+| S040-T017 | Reference baselines (constant, majority, permutation) | DONE |
+| S040-T018 | Per-fold + pooled aggregation, `analyze_predictive_run` | DONE |
 
 ### Wave 5 — CLI, tests, closure
 
@@ -244,7 +244,7 @@ fingerprint by design — it is a different experiment, not the same one re-run.
 | S040-T022 | Import test: framework usable without the `ml` extra | TODO |
 | S040-T023 | Docs: MODULE_MAP, DATA_WORKFLOWS, RESEARCH_METHODOLOGIES, CURRENT_STATUS | TODO |
 
-**Progress:** 13 / 23 tasks
+**Progress:** 18 / 23 tasks
 
 ---
 

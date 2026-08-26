@@ -10,6 +10,11 @@ import numpy as np
 import polars as pl
 
 from trading_framework import __version__ as framework_version
+from trading_framework.application.predictive_research.analyze_predictive_run import (
+    AnalyzePredictiveRunRequest,
+    analyze_predictive_run,
+    metrics_report_from_envelopes,
+)
 from trading_framework.core.exceptions import ValidationError
 from trading_framework.infrastructure.ml.registry import dump_fitted_estimator, resolve_estimator
 from trading_framework.infrastructure.storage.paths import predictive_research_run_model_path
@@ -30,6 +35,7 @@ from trading_framework.research.datasets.predictive_run import (
 from trading_framework.research.predictive.errors import PredictiveSpecError
 from trading_framework.research.predictive.estimators import EstimatorSpec, TaskType
 from trading_framework.research.predictive.labels import LabelKind
+from trading_framework.research.predictive.metrics import PredictiveMetricsReport
 from trading_framework.research.predictive.preprocessing import (
     PreprocessingSpec,
     default_preprocessing_spec,
@@ -82,6 +88,7 @@ class RunPredictiveResearchResult:
     fingerprint: str
     envelope: PredictiveRunEnvelope
     persisted: bool
+    metrics: PredictiveMetricsReport
 
 
 def run_predictive_research(request: RunPredictiveResearchRequest) -> RunPredictiveResearchResult:
@@ -202,12 +209,24 @@ def run_predictive_research(request: RunPredictiveResearchRequest) -> RunPredict
         run_repository = request.run_repository or PredictiveRunRepository(request.storage_root)
         run_ref = run_repository.write(run_envelope, model_blobs=model_blobs)
         persisted = True
+        metrics = analyze_predictive_run(
+            AnalyzePredictiveRunRequest(
+                run_ref=run_ref,
+                storage_root=request.storage_root,
+                persist=True,
+                run_repository=run_repository,
+                dataset_repository=dataset_repository,
+            )
+        ).report
+    else:
+        metrics = metrics_report_from_envelopes(run_envelope, envelope.features)
     return RunPredictiveResearchResult(
         run_id=run_id,
         run_ref=run_ref,
         fingerprint=fingerprint,
         envelope=run_envelope,
         persisted=persisted,
+        metrics=metrics,
     )
 
 

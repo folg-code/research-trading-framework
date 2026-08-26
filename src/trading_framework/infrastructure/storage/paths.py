@@ -24,6 +24,7 @@ Canonical workspace root (``--storage-root`` / operator workspace)::
           runs/{run_id}/              # Predictive Research run envelopes
             manifest.json
             predictions.parquet
+            metrics.json
             models/fold_{n}.bin
       runtime/            # execution dry-run state (operator-managed)
       reports/            # optional loose reports (prefer run-local report/)
@@ -119,6 +120,11 @@ def predictive_research_run_dir(root: Path, run_id: str) -> Path:
 def predictive_research_run_model_path(root: Path, run_id: str, fold_id: int) -> Path:
     """Return the opaque fitted-artifact path for one fold of a predictive run."""
     return predictive_research_run_dir(root, run_id) / "models" / f"fold_{fold_id}.bin"
+
+
+def predictive_research_run_metrics_path(root: Path, run_id: str) -> Path:
+    """Return the metrics JSON path for one Predictive Research run."""
+    return predictive_research_run_dir(root, run_id) / "metrics.json"
 
 
 def dataset_metadata_path(root: Path, dataset_ref: DatasetRef) -> Path:
