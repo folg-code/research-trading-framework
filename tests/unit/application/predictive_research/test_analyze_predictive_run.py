@@ -19,6 +19,9 @@ from trading_framework.application.predictive_research import (
     analyze_predictive_run,
     run_predictive_research,
 )
+from trading_framework.application.predictive_research.analyze_predictive_run import (
+    metrics_report_from_envelopes,
+)
 from trading_framework.infrastructure.storage.paths import (
     predictive_research_run_metrics_path,
     predictive_research_run_model_path,
@@ -32,15 +35,25 @@ from trading_framework.research.datasets.predictive import (
     fold_summary_from_features,
     resolve_fold_boundaries,
 )
-from trading_framework.research.datasets.predictive_run import PredictiveRunRef
+from trading_framework.research.datasets.predictive_run import (
+    PREDICTIVE_RUN_SCHEMA_VERSION,
+    PredictiveRunEnvelope,
+    PredictiveRunManifest,
+    PredictiveRunRef,
+)
 from trading_framework.research.predictive import (
     EstimatorDescription,
     EstimatorSpec,
+    FoldRole,
     MetricSource,
     PurgedWalkForwardSplitMode,
     PurgedWalkForwardSplitSpec,
     TaskType,
     assign_purged_walk_forward_folds,
+)
+from trading_framework.research.predictive.metrics import (
+    permutation_shuffle,
+    regression_statistical_metrics,
 )
 from trading_framework.time.clocks.fixed import FixedClock
 from trading_framework.time.models.timeframe import Timeframe
@@ -323,3 +336,93 @@ def test_analyze_and_metrics_modules_do_not_import_joblib_or_sklearn() -> None:
     assert not any(name == "joblib" or name.startswith("joblib.") for name in imported)
     assert not any(name == "sklearn" or name.startswith("sklearn.") for name in imported)
     assert "sklearn.metrics" not in imported
+
+
+def test_metrics_report_from_envelopes_uses_estimator_spec_seed() -> None:
+    y_pred = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
+    predictions = pl.DataFrame(
+        {
+            "entity_id": [str(index) for index in range(len(y_pred))],
+            "fold_id": [0] * len(y_pred),
+            "y_true": y_pred,
+            "y_pred": y_pred,
+            "y_proba": [None] * len(y_pred),
+            "forward_return": y_pred,
+        },
+        schema={
+            "entity_id": pl.String(),
+            "fold_id": pl.Int64(),
+            "y_true": pl.Float64(),
+            "y_pred": pl.Float64(),
+            "y_proba": pl.Float64(),
+            "forward_return": pl.Float64(),
+        },
+    )
+    features = pl.DataFrame(
+        {
+            "fold_id": [0, 0],
+            "fold_role": [FoldRole.TRAIN.value, FoldRole.TRAIN.value],
+            "label": [0.0, 1.0],
+        }
+    )
+    envelope = PredictiveRunEnvelope(
+        manifest=PredictiveRunManifest(
+            schema_version=PREDICTIVE_RUN_SCHEMA_VERSION,
+            run_id="0123456789abcdef",
+            run_fingerprint="c" * 64,
+            dataset_id="fedcba9876543210",
+            dataset_fingerprint="d" * 64,
+            estimator_spec={
+                "family": "sklearn.ridge",
+                "hyperparameters": {"alpha": 1.0},
+                "seed": 7,
+                "task_type": "REGRESSION",
+            },
+            preprocessing_spec={"steps": ["IMPUTE_MEDIAN", "STANDARDIZE"]},
+            library="testlib",
+            library_version="0.0",
+            framework_version=framework_version,
+            created_at_utc=datetime(2024, 6, 1, 12, 0, tzinfo=UTC),
+            model_files={},
+            estimator_description={
+                "library": "testlib",
+                "version": "0.0",
+                "resolved_params": {"alpha": 1.0},
+            },
+        ),
+        predictions=predictions,
+    )
+    report = metrics_report_from_envelopes(envelope, features)
+    expected = regression_statistical_metrics(
+        np.asarray(y_pred, dtype=np.float64),
+        permutation_shuffle(np.asarray(y_pred, dtype=np.float64), seed=7),
+    )
+    permuted = report.pooled[MetricSource.RANDOM_PERMUTATION.value].statistical
+    assert permuted.mae == pytest.approx(expected.mae)
+    assert permuted.spearman_ic == pytest.approx(expected.spearman_ic)
+    other_spec = dict(envelope.manifest.estimator_spec)
+    other_spec["seed"] = 99
+    other = PredictiveRunEnvelope(
+        manifest=PredictiveRunManifest(
+            schema_version=envelope.manifest.schema_version,
+            run_id=envelope.manifest.run_id,
+            run_fingerprint=envelope.manifest.run_fingerprint,
+            dataset_id=envelope.manifest.dataset_id,
+            dataset_fingerprint=envelope.manifest.dataset_fingerprint,
+            estimator_spec=other_spec,
+            preprocessing_spec=envelope.manifest.preprocessing_spec,
+            library=envelope.manifest.library,
+            library_version=envelope.manifest.library_version,
+            framework_version=envelope.manifest.framework_version,
+            created_at_utc=envelope.manifest.created_at_utc,
+            model_files=envelope.manifest.model_files,
+            estimator_description=envelope.manifest.estimator_description,
+        ),
+        predictions=predictions,
+    )
+    other_ic = (
+        metrics_report_from_envelopes(other, features)
+        .pooled[MetricSource.RANDOM_PERMUTATION.value]
+        .statistical.spearman_ic
+    )
+    assert other_ic != pytest.approx(expected.spearman_ic)

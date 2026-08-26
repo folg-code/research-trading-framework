@@ -276,8 +276,8 @@ def test_default_thresholds_match_wave0() -> None:
     assert REGRESSION_DECISION_THRESHOLD == 0.0
 
 
-def test_pooled_only_report_is_rejected() -> None:
-    empty_source = SourceMetrics(
+def _placeholder_source() -> SourceMetrics:
+    return SourceMetrics(
         statistical=StatisticalMetrics(rmse=0.0, mae=0.0, r_squared=1.0),
         finance=finance_metrics(
             np.array([0.1, 0.2], dtype=np.float64),
@@ -285,6 +285,10 @@ def test_pooled_only_report_is_rejected() -> None:
             threshold=0.0,
         ),
     )
+
+
+def test_pooled_only_report_is_rejected() -> None:
+    empty_source = _placeholder_source()
     with pytest.raises(ValidationError, match="per-fold"):
         PredictiveMetricsReport(
             schema_version="predictive_metrics.v1",
@@ -299,6 +303,41 @@ def test_pooled_only_report_is_rejected() -> None:
                 MetricSource.RANDOM_PERMUTATION.value: empty_source,
             },
         )
+
+
+def test_report_rejects_missing_pooled_and_missing_required_baseline() -> None:
+    empty_source = _placeholder_source()
+    complete = {
+        MetricSource.MODEL.value: empty_source,
+        MetricSource.CONSTANT_MEAN.value: empty_source,
+        MetricSource.RANDOM_PERMUTATION.value: empty_source,
+    }
+    with pytest.raises(ValidationError, match="pooled"):
+        PredictiveMetricsReport(
+            schema_version="predictive_metrics.v1",
+            run_id="0123456789abcdef",
+            task_type=TaskType.REGRESSION,
+            decision_threshold=0.0,
+            seed=1,
+            folds={"0": complete},
+            pooled={},
+        )
+    payload = build_predictive_metrics_report(
+        _predictions_frame(
+            fold_ids=[0, 0],
+            y_true=[1.0, 2.0],
+            y_pred=[1.5, 2.5],
+            y_proba=[None, None],
+            forward_return=[1.0, 2.0],
+        ),
+        train_targets_by_fold={0: np.array([0.0, 2.0], dtype=np.float64)},
+        task_type=TaskType.REGRESSION,
+        seed=7,
+        run_id="0123456789abcdef",
+    ).to_dict()
+    del payload["folds"]["0"][MetricSource.RANDOM_PERMUTATION.value]
+    with pytest.raises(ValidationError, match="missing metric sources"):
+        PredictiveMetricsReport.from_dict(payload)
 
 
 def test_fold_train_targets_reads_train_labels_only() -> None:
