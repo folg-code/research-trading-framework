@@ -5,18 +5,19 @@
 ```text
 Sprint: 040
 Phase: Phase 10A — Predictive Research Foundation
-Status: PLANNED
-Planned Start: TBD (after S039 merges)
-Planned End: TBD
+Status: COMPLETED (this integration PR to main)
+Planned Start: 2026-08-26
+Planned End: 2026-08-26
 Sprint Goal Owner: Project Maintainer
 Depends On: SPRINT_039 (PredictiveDatasetEnvelope, fold roles, ADR-0023)
 Sprint Branch: sprint/predictive-baselines
 Task branch convention: feat/ | fix/ | docs/ | test/
-Wave 0 decisions: docs/planning/sprints/S040_WAVE0_DECISIONS.md (to be written in Wave 0)
+Wave 0 decisions: docs/planning/sprints/S040_WAVE0_DECISIONS.md
 Architecture Sources:
   - docs/planning/ROADMAP.md (§13A Phase 10)
   - docs/adr/ADR-0023 (Predictive Research boundary — S039)
   - docs/planning/sprints/SPRINT_039.md
+  - docs/planning/sprints/S040_WAVE0_DECISIONS.md
 ```
 
 ---
@@ -60,17 +61,17 @@ predictions plus per-fold metrics, reproducible bit-for-bit from the run manifes
 
 ## 2. In scope
 
-- [ ] Optional dependency extra `ml` = scikit-learn.
-- [ ] `PredictiveEstimator` protocol in `research/predictive/estimators.py` (domain, library-free).
-- [ ] `EstimatorSpec` — family identifier, hyperparameters, random seed.
-- [ ] Preprocessing pipeline spec fitted **per training fold** (imputation, standardization).
-- [ ] scikit-learn adapter in `infrastructure/ml/sklearn/`.
-- [ ] Regression baselines: ridge, elastic net. Classification baselines: logistic regression.
-- [ ] Naive reference baselines (see §5) — the honest floor every model must clear.
-- [ ] `run_predictive_research` application workflow with per-fold execution.
-- [ ] Metrics module: statistical + finance-aware, per fold and pooled.
-- [ ] `PredictiveRunEnvelope` v1 + run identity fingerprint.
-- [ ] CLIs: run, analyze.
+- [x] Optional dependency extra `ml` = scikit-learn.
+- [x] `PredictiveEstimator` protocol in `research/predictive/estimators.py` (domain, library-free).
+- [x] `EstimatorSpec` — family identifier, hyperparameters, random seed.
+- [x] Preprocessing pipeline spec fitted **per training fold** (imputation, standardization).
+- [x] scikit-learn adapter in `infrastructure/ml/sklearn/`.
+- [x] Regression baselines: ridge, elastic net. Classification baselines: logistic regression.
+- [x] Naive reference baselines (see §5) — the honest floor every model must clear.
+- [x] `run_predictive_research` application workflow with per-fold execution.
+- [x] Metrics module: statistical + finance-aware, per fold and pooled.
+- [x] `PredictiveRunEnvelope` v1 + run identity fingerprint.
+- [x] CLIs: run, analyze.
 
 ## 3. Out of scope
 
@@ -90,6 +91,7 @@ research/predictive/estimators.py        PredictiveEstimator protocol, Estimator
 research/predictive/preprocessing.py     preprocessing spec (fit-on-train contract)
 research/predictive/metrics.py           metric computation over predictions
 research/datasets/predictive_run.py      PredictiveRunEnvelope + repository
+infrastructure/ml/registry.py            family id -> lazy adapter factory
 infrastructure/ml/sklearn/               adapter: spec -> sklearn estimator -> protocol
 application/predictive_research/         run + analyze orchestration
 ```
@@ -193,56 +195,56 @@ fingerprint by design — it is a different experiment, not the same one re-run.
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S040-T001 | Wave 0 decisions (extras policy, artifact policy, first study dataset) | TODO |
+| S040-T001 | Wave 0 decisions (extras policy, artifact policy, first study dataset) | DONE |
 
 ### Wave 1 — Estimator seam
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S040-T002 | `PredictiveEstimator` protocol + `EstimatorSpec` + `TaskType` | TODO |
-| S040-T003 | Estimator family registry + explicit missing-extra error | TODO |
-| S040-T004 | Preprocessing spec with fit-on-train contract | TODO |
-| S040-T005 | Optional extra `ml` in `pyproject.toml` + docs | TODO |
+| S040-T002 | `PredictiveEstimator` protocol + `EstimatorSpec` + `TaskType` | DONE |
+| S040-T003 | Estimator family registry + explicit missing-extra error | DONE |
+| S040-T004 | Preprocessing spec with fit-on-train contract | DONE |
+| S040-T005 | Optional extra `ml` in `pyproject.toml` + docs | DONE |
 
 ### Wave 2 — scikit-learn adapter
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S040-T006 | Adapter package `infrastructure/ml/sklearn/` | TODO |
-| S040-T007 | Ridge + elastic net regression families | TODO |
-| S040-T008 | Logistic regression classification family | TODO |
-| S040-T009 | `describe()` capturing library version and resolved parameters | TODO |
+| S040-T006 | Adapter package `infrastructure/ml/sklearn/` | DONE |
+| S040-T007 | Ridge + elastic net regression families | DONE |
+| S040-T008 | Logistic regression classification family | DONE |
+| S040-T009 | `describe()` capturing library version and resolved parameters | DONE |
 
 ### Wave 3 — Run orchestration
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S040-T010 | `run_predictive_research` per-fold execution loop | TODO |
-| S040-T011 | Prediction table assembly (test rows only) | TODO |
-| S040-T012 | Model artifact persistence per fold | TODO |
-| S040-T013 | `PredictiveRunEnvelope` + repository + run identity fingerprint | TODO |
+| S040-T010 | `run_predictive_research` per-fold execution loop | DONE |
+| S040-T011 | Prediction table assembly (test rows only) | DONE |
+| S040-T012 | Model artifact persistence per fold | DONE |
+| S040-T013 | `PredictiveRunEnvelope` + repository + run identity fingerprint | DONE |
 
 ### Wave 4 — Metrics
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S040-T014 | Regression metrics (RMSE, MAE, R², rank IC) | TODO |
-| S040-T015 | Classification metrics (AUC, PR AUC, log loss, Brier, calibration bins) | TODO |
-| S040-T016 | Finance-aware metrics (decile buckets, spread, hit rate, coverage) | TODO |
-| S040-T017 | Reference baselines (constant, majority, permutation) | TODO |
-| S040-T018 | Per-fold + pooled aggregation, `analyze_predictive_run` | TODO |
+| S040-T014 | Regression metrics (RMSE, MAE, R², rank IC) | DONE |
+| S040-T015 | Classification metrics (AUC, PR AUC, log loss, Brier, calibration bins) | DONE |
+| S040-T016 | Finance-aware metrics (decile buckets, spread, hit rate, coverage) | DONE |
+| S040-T017 | Reference baselines (constant, majority, permutation) | DONE |
+| S040-T018 | Per-fold + pooled aggregation, `analyze_predictive_run` | DONE |
 
 ### Wave 5 — CLI, tests, closure
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S040-T019 | CLIs: `run_predictive_research.py`, `analyze_predictive_run.py` | TODO |
-| S040-T020 | Determinism test: same spec → identical predictions | TODO |
-| S040-T021 | Known-signal fixture test (see §9) | TODO |
-| S040-T022 | Import test: framework usable without the `ml` extra | TODO |
-| S040-T023 | Docs: MODULE_MAP, DATA_WORKFLOWS, RESEARCH_METHODOLOGIES, CURRENT_STATUS | TODO |
+| S040-T019 | CLIs: `run_predictive_research.py`, `analyze_predictive_run.py` | DONE |
+| S040-T020 | Determinism test: same spec → identical predictions | DONE |
+| S040-T021 | Known-signal fixture test (see §9) | DONE |
+| S040-T022 | Import test: framework usable without the `ml` extra | DONE |
+| S040-T023 | Docs: MODULE_MAP, RESEARCH_METHODOLOGIES, ARCHITECTURE_AND_WORKFLOWS, CURRENT_STATUS | DONE |
 
-**Progress:** 0 / 23 tasks
+**Progress:** 23 / 23 tasks
 
 ---
 
@@ -346,3 +348,83 @@ uv run pytest
 
 Sprint 041 renders these envelopes as an offline HTML report. Metrics schema should be considered
 frozen once S041 consumes it — a later rename forces a report migration.
+
+---
+
+## 16. Review
+
+Closed 2026-08-26. Working PRs #310–#318 squash-merged into
+`sprint/predictive-baselines`. This integration PR (`sprint/predictive-baselines`
+→ `main`) closes the sprint. This section records outcome; it does not rewrite
+the plan.
+
+### Completed
+
+- Wave 0 decisions (`S040_WAVE0_DECISIONS.md`) approved (#310, #311).
+- Estimator protocol, `EstimatorSpec`, `TaskType`, family registry, preprocessing
+  spec, optional extra `ml`, pytest marker `ml`, dedicated CI job `ml` (#312).
+- Sklearn adapters: `sklearn.ridge`, `sklearn.elastic_net`, `sklearn.logistic`
+  (binary); `describe()` captures library version and resolved parameters (#313).
+- `run_predictive_research` per-fold loop, prediction table (TEST rows + carried
+  `forward_return`), opaque `models/fold_{n}.bin`, `PredictiveRunEnvelope` + run
+  identity fingerprint (#314).
+- Statistical + finance-aware metrics, reference baselines (`CONSTANT_MEAN`,
+  `MAJORITY_CLASS`, `RANDOM_PERMUTATION`), per-fold + pooled aggregation,
+  `analyze_predictive_run` (#315).
+- CLIs `run_predictive_research.py` and `analyze_predictive_run.py` (#316).
+- Determinism, known-signal, and extra-free import tests (#317).
+- As-implemented docs: `MODULE_MAP.md`, `RESEARCH_METHODOLOGIES.md`,
+  `ARCHITECTURE_AND_WORKFLOWS.md` §6, `CURRENT_STATUS.md` (#318).
+- All 23 tasks T001–T023 DONE.
+
+### Not Completed
+
+- None of the in-scope tasks. `DATA_WORKFLOWS.md` is not in the repository; T023
+  recorded the run path in `MODULE_MAP.md`, `RESEARCH_METHODOLOGIES.md`, and
+  `ARCHITECTURE_AND_WORKFLOWS.md` §6 (same convention as S039 T020).
+- Out of scope remains out of scope: trees, networks, hyperparameter search,
+  HTML reports, NQ acceptance, IDEA-014 / ADR-0024.
+
+### Demonstrated Capability
+
+A maintainer runs `scripts/predictive_research/run_predictive_research.py` against
+a persisted `PredictiveDatasetEnvelope` and gets out-of-sample predictions plus
+per-fold and pooled metrics (including the three reference baselines),
+reproducible from the run manifest. `analyze_predictive_run` writes `metrics.json`
+from predictions; it never deserializes fitted blobs. The default install stays
+extra-free; requesting an sklearn family without extra `ml` raises
+`PredictiveExtraError`.
+
+### Problems Discovered
+
+- None logged in `PROBLEM_REGISTRY.md` for this sprint. No new CRITICAL/HIGH entries.
+
+### Decisions Required
+
+- None. ADR-0023 remains ACCEPTED. No new ADR this sprint (ADR-0024 reserved for
+  IDEA-014). Wave 0 locks were not reopened.
+
+### Technical Debt Added
+
+- TD-021 (MEDIUM) — no predictive model registry; runs are content-addressed
+  under `research/predictive_research/runs/{run_id}/`.
+- TD-022 (LOW) — fitted blobs are opaque and not portable across library upgrades;
+  reproduce by re-fitting from the manifest.
+- Both were already planned in `TECHNICAL_DEBT.md` §6; S040 made them live.
+
+### Lessons Learned
+
+- Domain stayed ML-free: `research/predictive/` imports polars/numpy only; the
+  registry lives in `infrastructure/ml/` so application remains extra-free at
+  import time.
+- Metrics in domain (numpy/polars) made extra-free unit tests possible; sklearn
+  metric helpers were not used.
+- Known-signal test 3 (noise label within permutation spread) is the leakage
+  tripwire for later estimator sprints.
+
+### Follow-up
+
+- Sprint 041 — Predictive Research report v1 (offline Plotly HTML over this
+  envelope; freeze metrics schema once the report consumes it). Not started.
+- Phase 10A is not complete until S041 lands. S042–S044 remain later Phase 10B/10C
+  work (trees, networks, IDEA-014 gate).

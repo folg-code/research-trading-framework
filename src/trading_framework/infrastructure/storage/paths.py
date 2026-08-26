@@ -17,10 +17,15 @@ Canonical workspace root (``--storage-root`` / operator workspace)::
         strategy_robustness/
           experiments/{experiment_id}/
         predictive_research/
-          datasets/{dataset_id}/      # Predictive Research envelopes
+          datasets/{dataset_id}/      # Predictive Research dataset envelopes
             manifest.json
             features.parquet
             folds.json
+          runs/{run_id}/              # Predictive Research run envelopes
+            manifest.json
+            predictions.parquet
+            metrics.json
+            models/fold_{n}.bin
       runtime/            # execution dry-run state (operator-managed)
       reports/            # optional loose reports (prefer run-local report/)
 
@@ -95,6 +100,31 @@ def predictive_research_dataset_dir(root: Path, dataset_id: str) -> Path:
     ``derive_run_id``. The full fingerprint is stored on the manifest.
     """
     return predictive_research_datasets_root(root) / dataset_id
+
+
+def predictive_research_runs_root(workspace: Path) -> Path:
+    """Return the Predictive Research run envelope root."""
+    return predictive_research_root(workspace) / "runs"
+
+
+def predictive_research_run_dir(root: Path, run_id: str) -> Path:
+    """Return the envelope directory for one Predictive Research run.
+
+    ``run_id`` is the first 16 hex characters of the SHA-256 run fingerprint —
+    the same short-hex convention as dataset_id and Signal Research
+    ``derive_run_id``. The full fingerprint is stored on the manifest.
+    """
+    return predictive_research_runs_root(root) / run_id
+
+
+def predictive_research_run_model_path(root: Path, run_id: str, fold_id: int) -> Path:
+    """Return the opaque fitted-artifact path for one fold of a predictive run."""
+    return predictive_research_run_dir(root, run_id) / "models" / f"fold_{fold_id}.bin"
+
+
+def predictive_research_run_metrics_path(root: Path, run_id: str) -> Path:
+    """Return the metrics JSON path for one Predictive Research run."""
+    return predictive_research_run_dir(root, run_id) / "metrics.json"
 
 
 def dataset_metadata_path(root: Path, dataset_ref: DatasetRef) -> Path:

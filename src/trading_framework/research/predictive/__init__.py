@@ -1,8 +1,16 @@
 """Predictive Research specification contracts, labelled matrix, and fold planner."""
 
 from trading_framework.research.predictive.errors import (
+    PredictiveExtraError,
     PredictiveMatrixError,
     PredictiveSpecError,
+)
+from trading_framework.research.predictive.estimators import (
+    EstimatorDescription,
+    EstimatorSpec,
+    FittedPredictiveEstimator,
+    PredictiveEstimator,
+    TaskType,
 )
 from trading_framework.research.predictive.exclusions import MatrixExclusionCounts
 from trading_framework.research.predictive.features import (
@@ -14,6 +22,26 @@ from trading_framework.research.predictive.labels import LabelKind, LabelSpec
 from trading_framework.research.predictive.matrix import (
     LabelledFeatureMatrix,
     build_labelled_feature_matrix,
+)
+from trading_framework.research.predictive.metrics import (
+    CLASSIFICATION_DECISION_THRESHOLD,
+    PREDICTIVE_METRICS_SCHEMA_VERSION,
+    REGRESSION_DECISION_THRESHOLD,
+    FinanceMetrics,
+    MetricSource,
+    PredictiveMetricsReport,
+    SourceMetrics,
+    StatisticalMetrics,
+    build_predictive_metrics_report,
+    default_decision_threshold,
+    fold_train_targets,
+)
+from trading_framework.research.predictive.preprocessing import (
+    PreprocessingSpec,
+    PreprocessingStep,
+    canonicalize_preprocessing_json,
+    default_preprocessing_spec,
+    require_train_only_fit_roles,
 )
 from trading_framework.research.predictive.spec import (
     PredictiveStudySpec,
@@ -29,22 +57,44 @@ from trading_framework.research.predictive.splitting import (
 )
 
 __all__ = [
+    "CLASSIFICATION_DECISION_THRESHOLD",
+    "PREDICTIVE_METRICS_SCHEMA_VERSION",
+    "REGRESSION_DECISION_THRESHOLD",
+    "EstimatorDescription",
+    "EstimatorSpec",
     "FeatureMatrixSpec",
     "FeatureSpec",
     "FeatureTransform",
+    "FinanceMetrics",
+    "FittedPredictiveEstimator",
     "FoldRole",
     "LabelKind",
     "LabelSpec",
     "LabelledFeatureMatrix",
     "MatrixExclusionCounts",
+    "MetricSource",
+    "PredictiveEstimator",
+    "PredictiveExtraError",
     "PredictiveMatrixError",
+    "PredictiveMetricsReport",
     "PredictiveSpecError",
     "PredictiveStudySpec",
+    "PreprocessingSpec",
+    "PreprocessingStep",
     "PurgedWalkForwardSplitMode",
     "PurgedWalkForwardSplitSpec",
+    "SourceMetrics",
+    "StatisticalMetrics",
+    "TaskType",
     "assign_purged_walk_forward_folds",
     "build_labelled_feature_matrix",
+    "build_predictive_metrics_report",
+    "canonicalize_preprocessing_json",
     "compute_definition_hash",
+    "default_decision_threshold",
+    "default_preprocessing_spec",
+    "fold_train_targets",
     "load_predictive_study_spec",
     "load_predictive_study_spec_from_dict",
+    "require_train_only_fit_roles",
 ]

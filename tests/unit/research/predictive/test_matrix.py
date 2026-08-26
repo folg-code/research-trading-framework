@@ -112,8 +112,10 @@ def test_regression_labels_use_complete_forward_returns() -> None:
     assert matrix.exclusions.incomplete_horizon == 3
     first = matrix.rows.row(0, named=True)
     assert first["label"] == pytest.approx(close[3] / close[0] - 1.0)
+    assert first["forward_return"] == pytest.approx(first["label"])
     last = matrix.rows.row(-1, named=True)
     assert last["label"] == pytest.approx(close[7] / close[4] - 1.0)
+    assert last["forward_return"] == pytest.approx(last["label"])
 
 
 def test_binary_and_ternary_labels_from_forward_return() -> None:
@@ -136,13 +138,18 @@ def test_binary_and_ternary_labels_from_forward_return() -> None:
 
     binary_labels = binary.rows.get_column("label").to_list()
     ternary_labels = ternary.rows.get_column("label").to_list()
+    binary_returns = binary.rows.get_column("forward_return").to_list()
     assert binary.exclusions.labelled_rows == 6
     assert binary_labels[0] == 1.0  # 101/100 - 1 > 0
     assert binary_labels[1] == 0.0  # 100/100 - 1 == 0
     assert binary_labels[2] == 0.0  # 99/101 - 1 < 0
+    assert binary_returns[0] == pytest.approx(101.0 / 100.0 - 1.0)
+    assert binary_returns[1] == pytest.approx(0.0)
+    assert binary_labels[0] != binary_returns[0]
     assert ternary_labels[0] == 1.0
     assert ternary_labels[1] == 0.0
     assert ternary_labels[2] == -1.0
+    assert ternary.rows.get_column("forward_return").to_list()[2] != ternary_labels[2]
 
 
 def test_incomplete_horizon_rows_are_excluded_and_counted() -> None:
@@ -517,7 +524,9 @@ def test_empty_frame_returns_empty_labelled_matrix() -> None:
     assert matrix.rows.height == 0
     assert matrix.exclusions.candidate_rows == 0
     assert matrix.exclusions.labelled_rows == 0
-    assert {"detected_at", "available_at", "label_end_at", "label"}.issubset(matrix.rows.columns)
+    assert {"detected_at", "available_at", "label_end_at", "label", "forward_return"}.issubset(
+        matrix.rows.columns
+    )
 
 
 def test_horizon_bars_must_be_at_least_one() -> None:

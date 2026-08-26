@@ -24,6 +24,9 @@ dependencies = [
 requires = ["uv_build>=0.11.14,<0.12.0"]
 build-backend = "uv_build"
 
+[project.optional-dependencies]
+ml = ["scikit-learn>=1.6,<2.0"]
+
 [dependency-groups]
 dev = [
     "exchange-calendars>=4.13.2",
@@ -54,6 +57,7 @@ addopts = [
 markers = [
     "tier2_databento: opt-in integration tests requiring a local Databento DBN archive",
     "binance_network: opt-in integration tests requiring public Binance network access",
+    "ml: tests that require the optional ml extra (scikit-learn)",
 ]
 
 [tool.ruff]
@@ -110,6 +114,10 @@ disable_error_code = ["no-untyped-call"]
 
 [[tool.mypy.overrides]]
 module = ["numba", "numba.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["sklearn", "sklearn.*", "joblib", "joblib.*"]
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]

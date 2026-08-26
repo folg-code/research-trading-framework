@@ -29,6 +29,15 @@ Optional for inspection HTML spikes and portfolio demo:
 uv pip install plotly
 ```
 
+Optional Predictive Research estimator extra (`ml` = scikit-learn). Default
+`uv sync --locked --dev` stays extra-free. Standard unit tests use
+`-m "not ml"`; ML-marked tests need:
+
+```bash
+uv sync --locked --extra ml --dev
+uv run pytest -m ml
+```
+
 ---
 
 ## Tech stack (short)
