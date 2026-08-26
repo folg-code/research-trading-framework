@@ -73,6 +73,25 @@ class LeaderboardRow:
             "library_version": self.library_version,
         }
 
+    @classmethod
+    def from_dict(cls, payload: Mapping[str, Any]) -> LeaderboardRow:
+        try:
+            kind = LeaderboardRowKind(str(payload.get("kind")))
+        except ValueError as exc:
+            msg = f"invalid leaderboard row kind: {payload.get('kind')!r}"
+            raise PredictiveSpecError(msg) from exc
+        return cls(
+            rank=_require_int(payload.get("rank"), "rank"),
+            kind=kind,
+            run_id=str(payload.get("run_id", "")),
+            family=str(payload.get("family", "")),
+            source=str(payload.get("source", "")),
+            pooled_primary=_optional_float(payload.get("pooled_primary")),
+            metric=str(payload.get("metric", "")),
+            library=str(payload.get("library", "")),
+            library_version=str(payload.get("library_version", "")),
+        )
+
 
 @dataclass(frozen=True, slots=True)
 class PredictiveLeaderboard:
@@ -90,6 +109,27 @@ class PredictiveLeaderboard:
             "task_type": self.task_type.value,
             "rows": [row.to_dict() for row in self.rows],
         }
+
+    @classmethod
+    def from_dict(cls, payload: Mapping[str, Any]) -> PredictiveLeaderboard:
+        try:
+            task_type = TaskType(str(payload.get("task_type")))
+        except ValueError as exc:
+            msg = f"invalid leaderboard task_type: {payload.get('task_type')!r}"
+            raise PredictiveSpecError(msg) from exc
+        rows_raw = payload.get("rows")
+        if not isinstance(rows_raw, Sequence) or isinstance(rows_raw, (str, bytes)):
+            msg = "leaderboard rows must be a sequence"
+            raise PredictiveSpecError(msg)
+        return cls(
+            dataset_fingerprint=str(payload.get("dataset_fingerprint", "")),
+            metric=str(payload.get("metric", "")),
+            task_type=task_type,
+            rows=tuple(
+                LeaderboardRow.from_dict(item) if isinstance(item, Mapping) else _reject_row()
+                for item in rows_raw
+            ),
+        )
 
 
 def primary_metric_for_task(task_type: TaskType) -> SelectionMetric:
@@ -187,3 +227,24 @@ def _rank_key(item: tuple[float | None, LeaderboardRow]) -> tuple[int, float]:
     if score is None:
         return (1, 0.0)
     return (0, -score)
+
+
+def _reject_row() -> LeaderboardRow:
+    msg = "each leaderboard row must be a mapping"
+    raise PredictiveSpecError(msg)
+
+
+def _require_int(value: object, field_name: str) -> int:
+    if isinstance(value, bool) or not isinstance(value, int):
+        msg = f"{field_name} must be an integer"
+        raise PredictiveSpecError(msg)
+    return value
+
+
+def _optional_float(value: object) -> float | None:
+    if value is None:
+        return None
+    if isinstance(value, bool) or not isinstance(value, int | float):
+        msg = "expected a finite number or null"
+        raise PredictiveSpecError(msg)
+    return float(value)

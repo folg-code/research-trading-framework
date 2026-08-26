@@ -10,11 +10,16 @@ from trading_framework.research.predictive import (
     FoldRole,
     PredictiveSpecError,
     SelectionMetric,
+    SelectionTrace,
     TaskType,
     candidate_identity_hash,
     require_early_stopping_eval_roles,
     select_winning_index,
     split_inner_train_validation,
+)
+from trading_framework.research.predictive.selection import (
+    CandidateFoldScore,
+    FoldSelectionTrace,
 )
 
 
@@ -138,6 +143,34 @@ def test_early_stopping_rejects_purged_and_embargoed() -> None:
 
 def test_early_stopping_accepts_train_only() -> None:
     require_early_stopping_eval_roles((FoldRole.TRAIN, FoldRole.TRAIN))
+
+
+def test_selection_trace_from_dict_roundtrip() -> None:
+    spec = _ridge(alpha=1.0)
+    trace = SelectionTrace(
+        selection_metric=SelectionMetric.SPEARMAN_IC,
+        inner_validation_fraction=0.2,
+        folds=(
+            FoldSelectionTrace(
+                fold_id=0,
+                winner=spec,
+                candidates=(
+                    CandidateFoldScore(
+                        family=spec.family,
+                        hyperparameters=spec.hyperparameters,
+                        seed=spec.seed,
+                        identity_hash="ridge",
+                        inner_validation_score=0.2,
+                        selected=True,
+                    ),
+                ),
+            ),
+        ),
+    )
+    restored = SelectionTrace.from_dict(trace.to_dict())
+    assert restored.selection_metric is SelectionMetric.SPEARMAN_IC
+    assert restored.folds[0].winner.family == spec.family
+    assert restored.folds[0].candidates[0].inner_validation_score == pytest.approx(0.2)
 
 
 def test_candidate_identity_hash_is_stable() -> None:

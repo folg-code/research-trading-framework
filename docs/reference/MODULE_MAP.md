@@ -466,7 +466,7 @@ Published DatasetRef + PredictiveStudySpec (YAML/JSON)
   → run_predictive_research (fit on TRAIN per fold, predict on TEST)
   → PredictiveRunEnvelope (predictions, metrics, opaque blobs)
   → analyze_predictive_run (writes metrics.json from predictions; never deserializes model blobs)
-  → render_predictive_research_report (offline HTML; never fits or loads model blobs)
+  → render_predictive_research_report (offline HTML; optional importance/selection/leaderboard sidecars; never fits or loads model blobs)
 ```
 
 Samples are **evaluation bars**, not `SignalOccurrence` rows. Labels reuse

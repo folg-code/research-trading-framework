@@ -7,6 +7,7 @@ import pytest
 from trading_framework.research.predictive import (
     LeaderboardRowKind,
     LeaderboardRunSnapshot,
+    PredictiveLeaderboard,
     PredictiveSpecError,
     TaskType,
     build_predictive_leaderboard,
@@ -148,3 +149,14 @@ def test_leaderboard_rejects_empty_and_missing_model_source() -> None:
                 ),
             )
         )
+
+
+def test_leaderboard_from_dict_roundtrip() -> None:
+    board = build_predictive_leaderboard(
+        (_snapshot(run_id="ridge", family="sklearn.ridge", model_score=0.20),)
+    )
+    restored = PredictiveLeaderboard.from_dict(board.to_dict())
+    assert restored.dataset_fingerprint == board.dataset_fingerprint
+    assert restored.metric == board.metric
+    assert [row.family for row in restored.rows] == [row.family for row in board.rows]
+    assert restored.rows[0].kind is board.rows[0].kind

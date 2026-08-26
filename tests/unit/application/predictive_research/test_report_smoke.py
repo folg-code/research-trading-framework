@@ -59,6 +59,9 @@ def test_regression_report_smoke_renders_quality_and_skips_classification_panels
     assert "Skipped" in _section(document, "discrimination")
     assert "Skipped" in _section(document, "calibration")
     assert "Quality flags" in document
+    assert "Skipped" in _section(document, "feature_importance")
+    assert "Skipped" in _section(document, "leaderboard")
+    assert "Skipped" in _section(document, "selection_trace")
 
 
 def test_classification_report_smoke_renders_calibration_when_probabilities_exist(

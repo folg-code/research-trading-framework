@@ -7,7 +7,7 @@ import adapters.
 
 from __future__ import annotations
 
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any
 
@@ -41,6 +41,17 @@ class PermutationImportance:
             "metric": self.metric,
         }
 
+    @classmethod
+    def from_dict(cls, payload: Mapping[str, Any]) -> PermutationImportance:
+        return cls(
+            feature_names=_string_tuple(payload.get("feature_names"), "feature_names"),
+            importances_mean=_float_tuple(payload.get("importances_mean"), "importances_mean"),
+            importances_std=_float_tuple(payload.get("importances_std"), "importances_std"),
+            n_repeats=_require_int(payload.get("n_repeats"), "n_repeats"),
+            seed=_require_int(payload.get("seed"), "seed"),
+            metric=str(payload.get("metric", "")),
+        )
+
 
 @dataclass(frozen=True, slots=True)
 class FoldPrimaryGap:
@@ -56,6 +67,14 @@ class FoldPrimaryGap:
             "test_primary": self.test_primary,
             "primary_gap": self.primary_gap,
         }
+
+    @classmethod
+    def from_dict(cls, payload: Mapping[str, Any]) -> FoldPrimaryGap:
+        return cls(
+            train_primary=_optional_float(payload.get("train_primary")),
+            test_primary=_optional_float(payload.get("test_primary")),
+            primary_gap=_optional_float(payload.get("primary_gap")),
+        )
 
 
 @dataclass(frozen=True, slots=True)
@@ -77,6 +96,26 @@ class FoldImportanceRecord:
             "primary_gap": self.primary_gap.primary_gap,
         }
 
+    @classmethod
+    def from_dict(cls, payload: Mapping[str, Any]) -> FoldImportanceRecord:
+        native_raw = payload.get("native")
+        permutation_raw = payload.get("permutation")
+        if not isinstance(permutation_raw, Mapping):
+            msg = "permutation importance must be a mapping"
+            raise PredictiveSpecError(msg)
+        native = None
+        if native_raw is not None:
+            if not isinstance(native_raw, Mapping):
+                msg = "native importance must be a mapping or null"
+                raise PredictiveSpecError(msg)
+            native = NativeFeatureImportance.from_dict(native_raw)
+        return cls(
+            fold_id=_require_int(payload.get("fold_id"), "fold_id"),
+            native=native,
+            permutation=PermutationImportance.from_dict(permutation_raw),
+            primary_gap=FoldPrimaryGap.from_dict(payload),
+        )
+
 
 @dataclass(frozen=True, slots=True)
 class ImportanceTrace:
@@ -92,6 +131,21 @@ class ImportanceTrace:
             "n_repeats": self.n_repeats,
             "folds": [fold.to_dict() for fold in self.folds],
         }
+
+    @classmethod
+    def from_dict(cls, payload: Mapping[str, Any]) -> ImportanceTrace:
+        folds_raw = payload.get("folds")
+        if not isinstance(folds_raw, Sequence) or isinstance(folds_raw, (str, bytes)):
+            msg = "importance folds must be a sequence"
+            raise PredictiveSpecError(msg)
+        folds = tuple(
+            FoldImportanceRecord.from_dict(_require_mapping(item, "fold")) for item in folds_raw
+        )
+        return cls(
+            metric=str(payload.get("metric", "")),
+            n_repeats=_require_int(payload.get("n_repeats"), "n_repeats"),
+            folds=folds,
+        )
 
 
 def permutation_feature_importance(
@@ -189,3 +243,46 @@ def _feature_names(names: Sequence[str] | None, n_features: int) -> tuple[str, .
         msg = f"feature_names length {len(names)} does not match columns {n_features}"
         raise PredictiveSpecError(msg)
     return tuple(str(name) for name in names)
+
+
+def _require_mapping(value: object, field_name: str) -> Mapping[str, Any]:
+    if not isinstance(value, Mapping):
+        msg = f"{field_name} must be a mapping"
+        raise PredictiveSpecError(msg)
+    return value
+
+
+def _require_int(value: object, field_name: str) -> int:
+    if isinstance(value, bool) or not isinstance(value, int):
+        msg = f"{field_name} must be an integer"
+        raise PredictiveSpecError(msg)
+    return value
+
+
+def _optional_float(value: object) -> float | None:
+    if value is None:
+        return None
+    if isinstance(value, bool) or not isinstance(value, int | float):
+        msg = "expected a finite number or null"
+        raise PredictiveSpecError(msg)
+    return float(value)
+
+
+def _string_tuple(value: object, field_name: str) -> tuple[str, ...]:
+    if not isinstance(value, Sequence) or isinstance(value, (str, bytes)):
+        msg = f"{field_name} must be a sequence of strings"
+        raise PredictiveSpecError(msg)
+    return tuple(str(item) for item in value)
+
+
+def _float_tuple(value: object, field_name: str) -> tuple[float, ...]:
+    if not isinstance(value, Sequence) or isinstance(value, (str, bytes)):
+        msg = f"{field_name} must be a sequence of numbers"
+        raise PredictiveSpecError(msg)
+    numbers: list[float] = []
+    for item in value:
+        if isinstance(item, bool) or not isinstance(item, int | float):
+            msg = f"{field_name} must be a sequence of numbers"
+            raise PredictiveSpecError(msg)
+        numbers.append(float(item))
+    return tuple(numbers)

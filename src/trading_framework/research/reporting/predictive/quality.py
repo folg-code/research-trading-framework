@@ -29,6 +29,7 @@ class PredictiveQualityFlag(StrEnum):
     HIGH_EXCLUSION_SHARE = "HIGH_EXCLUSION_SHARE"
     SINGLE_FOLD_DOMINANCE = "SINGLE_FOLD_DOMINANCE"
     POOR_CALIBRATION = "POOR_CALIBRATION"
+    LARGE_TRAIN_TEST_GAP = "LARGE_TRAIN_TEST_GAP"
 
 
 @dataclass(frozen=True, slots=True)
@@ -52,6 +53,7 @@ class PredictiveReportQualityRules:
     max_exclusion_share: float = 0.40
     max_single_fold_test_share: float = 0.60
     max_calibration_abs_error: float = 0.15
+    max_train_test_gap: float = 0.20
 
     def __post_init__(self) -> None:
         if self.min_test_rows < 1:
@@ -63,6 +65,7 @@ class PredictiveReportQualityRules:
             "max_exclusion_share",
             "max_single_fold_test_share",
             "max_calibration_abs_error",
+            "max_train_test_gap",
         ):
             value = float(getattr(self, name))
             if value < 0.0:
@@ -252,5 +255,26 @@ def evaluate_predictive_quality_flags(
                         observed=abs_error,
                     )
                 )
+
+    fold_primary = metrics.fold_primary or {}
+    for fold_key, values in sorted(fold_primary.items(), key=lambda item: int(item[0])):
+        gap = values.get("primary_gap")
+        if gap is None:
+            continue
+        observed = abs(float(gap))
+        if observed > quality.max_train_test_gap:
+            fold_id = int(fold_key)
+            warnings.append(
+                PredictiveQualityWarning(
+                    code=PredictiveQualityFlag.LARGE_TRAIN_TEST_GAP,
+                    message=(
+                        f"Fold {fold_id} |train - test| on {metric_name} is {observed:.3f} "
+                        f"(threshold {quality.max_train_test_gap:.3f})."
+                    ),
+                    threshold=quality.max_train_test_gap,
+                    observed=observed,
+                    fold_id=fold_id,
+                )
+            )
 
     return tuple(warnings)

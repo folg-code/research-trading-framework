@@ -26,7 +26,22 @@ from trading_framework.research.predictive import (
     PurgedWalkForwardSplitSpec,
     assign_purged_walk_forward_folds,
 )
-from trading_framework.research.predictive.estimators import TaskType
+from trading_framework.research.predictive.estimators import (
+    EstimatorSpec,
+    NativeFeatureImportance,
+    TaskType,
+)
+from trading_framework.research.predictive.importance import (
+    FoldImportanceRecord,
+    FoldPrimaryGap,
+    ImportanceTrace,
+    PermutationImportance,
+)
+from trading_framework.research.predictive.leaderboard import (
+    LeaderboardRow,
+    LeaderboardRowKind,
+    PredictiveLeaderboard,
+)
 from trading_framework.research.predictive.metrics import (
     DECILE_COUNT,
     PREDICTIVE_METRICS_SCHEMA_VERSION,
@@ -36,6 +51,12 @@ from trading_framework.research.predictive.metrics import (
     PredictiveMetricsReport,
     SourceMetrics,
     StatisticalMetrics,
+)
+from trading_framework.research.predictive.selection import (
+    CandidateFoldScore,
+    FoldSelectionTrace,
+    SelectionMetric,
+    SelectionTrace,
 )
 from trading_framework.research.reporting.predictive import (
     PREDICTIVE_REPORT_PANELS,
@@ -198,6 +219,7 @@ def _metrics(
     task_type: TaskType,
     model_fold_values: tuple[float, float],
     permutation_pooled: float,
+    fold_primary: dict[str, dict[str, float | None]] | None = None,
 ) -> PredictiveMetricsReport:
     fold_ids = sorted({int(value) for value in predictions.get_column("fold_id").to_list()})
     baseline = (
@@ -241,6 +263,7 @@ def _metrics(
             baseline.value: _source(**perm_pooled),
             MetricSource.RANDOM_PERMUTATION.value: _source(**perm_pooled),
         },
+        fold_primary=fold_primary,
     )
 
 
@@ -250,6 +273,10 @@ def _source_report(
     with_proba: bool = False,
     model_fold_values: tuple[float, float] = (0.4, 0.5),
     permutation_pooled: float = 0.05,
+    importance: ImportanceTrace | None = None,
+    selection: SelectionTrace | None = None,
+    leaderboard: PredictiveLeaderboard | None = None,
+    fold_primary: dict[str, dict[str, float | None]] | None = None,
 ) -> PredictiveReportSource:
     dataset = _dataset(binary=binary)
     predictions = _predictions_from_dataset(dataset, with_proba=with_proba)
@@ -262,6 +289,133 @@ def _source_report(
             task_type=task_type,
             model_fold_values=model_fold_values,
             permutation_pooled=permutation_pooled,
+            fold_primary=fold_primary,
+        ),
+        importance=importance,
+        selection=selection,
+        leaderboard=leaderboard,
+    )
+
+
+def _permutation(*, signal: float, noise: float = 0.0) -> PermutationImportance:
+    return PermutationImportance(
+        feature_names=("signal", "noise"),
+        importances_mean=(signal, noise),
+        importances_std=(0.01, 0.01),
+        n_repeats=5,
+        seed=7,
+        metric="spearman_ic",
+    )
+
+
+def _importance_trace(*, native: bool) -> ImportanceTrace:
+    native_scores = (
+        NativeFeatureImportance(feature_names=("signal", "noise"), gain=(2.0, 0.1))
+        if native
+        else None
+    )
+    return ImportanceTrace(
+        metric="spearman_ic",
+        n_repeats=5,
+        folds=(
+            FoldImportanceRecord(
+                fold_id=0,
+                native=native_scores,
+                permutation=_permutation(signal=0.4),
+                primary_gap=FoldPrimaryGap(train_primary=0.9, test_primary=0.4, primary_gap=0.5),
+            ),
+            FoldImportanceRecord(
+                fold_id=1,
+                native=native_scores,
+                permutation=_permutation(signal=0.6),
+                primary_gap=FoldPrimaryGap(train_primary=0.8, test_primary=0.5, primary_gap=0.3),
+            ),
+        ),
+    )
+
+
+def _selection_trace() -> SelectionTrace:
+    winner = EstimatorSpec(
+        family="xgboost.regressor",
+        hyperparameters={"n_estimators": 8},
+        seed=7,
+        task_type=TaskType.REGRESSION,
+    )
+    ridge = EstimatorSpec(
+        family="sklearn.ridge",
+        hyperparameters={"alpha": 1.0},
+        seed=7,
+        task_type=TaskType.REGRESSION,
+    )
+    return SelectionTrace(
+        selection_metric=SelectionMetric.SPEARMAN_IC,
+        inner_validation_fraction=0.2,
+        folds=(
+            FoldSelectionTrace(
+                fold_id=0,
+                winner=winner,
+                candidates=(
+                    CandidateFoldScore(
+                        family=winner.family,
+                        hyperparameters=winner.hyperparameters,
+                        seed=winner.seed,
+                        identity_hash="xgb",
+                        inner_validation_score=0.7,
+                        selected=True,
+                    ),
+                    CandidateFoldScore(
+                        family=ridge.family,
+                        hyperparameters=ridge.hyperparameters,
+                        seed=ridge.seed,
+                        identity_hash="ridge",
+                        inner_validation_score=0.2,
+                        selected=False,
+                    ),
+                ),
+            ),
+        ),
+    )
+
+
+def _leaderboard() -> PredictiveLeaderboard:
+    return PredictiveLeaderboard(
+        dataset_fingerprint="b" * 64,
+        metric="spearman_ic",
+        task_type=TaskType.REGRESSION,
+        rows=(
+            LeaderboardRow(
+                rank=1,
+                kind=LeaderboardRowKind.ESTIMATOR,
+                run_id="xgb",
+                family="xgboost.regressor",
+                source="MODEL",
+                pooled_primary=0.8,
+                metric="spearman_ic",
+                library="xgboost",
+                library_version="2.1.0",
+            ),
+            LeaderboardRow(
+                rank=2,
+                kind=LeaderboardRowKind.ESTIMATOR,
+                run_id="ridge",
+                family="sklearn.ridge",
+                source="MODEL",
+                pooled_primary=0.2,
+                metric="spearman_ic",
+                library="sklearn",
+                library_version="1.6.0",
+            ),
+            LeaderboardRow(
+                rank=3,
+                kind=LeaderboardRowKind.BASELINE,
+                run_id="ridge",
+                family="CONSTANT_MEAN",
+                source="CONSTANT_MEAN",
+                pooled_primary=0.0,
+                metric="spearman_ic",
+                library="sklearn",
+                library_version="1.6.0",
+            ),
         ),
     )
 
@@ -324,8 +478,12 @@ def test_panel_registry_skips_calibration_without_probabilities() -> None:
     assert resolved["prediction_quality"].status is PanelStatus.SKIP
     assert resolved["fold_timeline"].status is PanelStatus.RENDER
     assert resolved["quality_flags"].intro
-    assert "feature_importance" not in resolved
-    assert frozenset({"feature_importance", "learning_curves"}) == RESERVED_PANEL_IDS
+    assert resolved["feature_importance"].status is PanelStatus.SKIP
+    assert resolved["leaderboard"].status is PanelStatus.SKIP
+    assert resolved["selection_trace"].status is PanelStatus.SKIP
+    assert resolved["feature_importance"].skip_reason is not None
+    assert "importance.json" in resolved["feature_importance"].skip_reason
+    assert frozenset({"learning_curves"}) == RESERVED_PANEL_IDS
     assert [definition.panel_id for definition in PREDICTIVE_REPORT_PANELS] == [
         "fold_timeline",
         "metric_stability",
@@ -336,6 +494,9 @@ def test_panel_registry_skips_calibration_without_probabilities() -> None:
         "prediction_buckets",
         "sample_composition",
         "quality_flags",
+        "feature_importance",
+        "leaderboard",
+        "selection_trace",
     ]
 
 
@@ -387,3 +548,61 @@ def test_poor_calibration_flag_uses_declared_threshold() -> None:
     codes = {warning.code for warning in view.quality_warnings}
     assert PredictiveQualityFlag.POOR_CALIBRATION in codes
     assert len(view.calibration_bins) == 10
+
+
+def test_tree_sidecars_register_importance_leaderboard_and_selection_panels() -> None:
+    source = _source_report(
+        importance=_importance_trace(native=True),
+        selection=_selection_trace(),
+        leaderboard=_leaderboard(),
+        fold_primary={
+            "0": {"train_primary": 0.9, "test_primary": 0.4, "primary_gap": 0.5},
+        },
+    )
+    view = build_predictive_report_view_model(source, clock=FixedClock(_GENERATED))
+    resolved = {panel.panel_id: panel for panel in resolve_report_panels(view)}
+    assert resolved["feature_importance"].status is PanelStatus.RENDER
+    assert resolved["leaderboard"].status is PanelStatus.RENDER
+    assert resolved["selection_trace"].status is PanelStatus.RENDER
+    assert view.feature_importance[0].feature_name == "signal"
+    assert view.feature_importance[0].native_gain == pytest.approx(2.0)
+    assert view.feature_importance[0].permutation_mean == pytest.approx(0.5)
+    assert [row.family for row in view.leaderboard_rows[:2]] == [
+        "xgboost.regressor",
+        "sklearn.ridge",
+    ]
+    assert view.selection_folds[0].winner_family == "xgboost.regressor"
+    assert view.selection_folds[0].primary_gap == pytest.approx(0.5)
+
+
+def test_large_train_test_gap_flag_uses_declared_threshold() -> None:
+    source = _source_report(
+        fold_primary={
+            "0": {"train_primary": 0.9, "test_primary": 0.4, "primary_gap": 0.5},
+            "1": {"train_primary": 0.5, "test_primary": 0.45, "primary_gap": 0.05},
+        }
+    )
+    view = build_predictive_report_view_model(
+        source,
+        clock=FixedClock(_GENERATED),
+        quality_rules=PredictiveReportQualityRules(min_test_rows=1),
+    )
+    gaps = [
+        warning
+        for warning in view.quality_warnings
+        if warning.code is PredictiveQualityFlag.LARGE_TRAIN_TEST_GAP
+    ]
+    assert len(gaps) == 1
+    assert gaps[0].fold_id == 0
+    assert gaps[0].threshold == pytest.approx(0.20)
+    assert gaps[0].observed == pytest.approx(0.5)
+
+
+def test_sklearn_importance_sidecar_omits_native_gain() -> None:
+    view = build_predictive_report_view_model(
+        _source_report(importance=_importance_trace(native=False)),
+        clock=FixedClock(_GENERATED),
+    )
+    assert view.feature_importance
+    assert all(bar.native_gain is None for bar in view.feature_importance)
+    assert view.feature_importance[0].permutation_mean == pytest.approx(0.5)

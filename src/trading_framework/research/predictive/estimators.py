@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from enum import StrEnum
 from types import MappingProxyType
@@ -143,6 +143,16 @@ class NativeFeatureImportance:
             payload["split"] = list(self.split)
         return payload
 
+    @classmethod
+    def from_dict(cls, payload: Mapping[str, Any]) -> NativeFeatureImportance:
+        split_raw = payload.get("split")
+        split = None if split_raw is None else _float_tuple(split_raw, "split")
+        return cls(
+            feature_names=_string_tuple(payload.get("feature_names"), "feature_names"),
+            gain=_float_tuple(payload.get("gain"), "gain"),
+            split=split,
+        )
+
 
 class FittedPredictiveEstimator(Protocol):
     """Fitted estimator that can score feature rows.
@@ -199,3 +209,23 @@ def _require_int(value: object, *, field_name: str) -> int:
         msg = f"{field_name} must be an integer"
         raise PredictiveSpecError(msg)
     return value
+
+
+def _string_tuple(value: object, field_name: str) -> tuple[str, ...]:
+    if not isinstance(value, Sequence) or isinstance(value, (str, bytes)):
+        msg = f"{field_name} must be a sequence of strings"
+        raise PredictiveSpecError(msg)
+    return tuple(str(item) for item in value)
+
+
+def _float_tuple(value: object, field_name: str) -> tuple[float, ...]:
+    if not isinstance(value, Sequence) or isinstance(value, (str, bytes)):
+        msg = f"{field_name} must be a sequence of numbers"
+        raise PredictiveSpecError(msg)
+    numbers: list[float] = []
+    for item in value:
+        if isinstance(item, bool) or not isinstance(item, int | float):
+            msg = f"{field_name} must be a sequence of numbers"
+            raise PredictiveSpecError(msg)
+        numbers.append(float(item))
+    return tuple(numbers)
