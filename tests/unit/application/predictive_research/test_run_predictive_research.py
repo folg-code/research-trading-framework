@@ -10,6 +10,7 @@ from pathlib import Path
 import numpy as np
 import polars as pl
 import pytest
+from polars.testing import assert_frame_equal
 
 from trading_framework import __version__ as framework_version
 from trading_framework.application.predictive_research import (
@@ -64,30 +65,52 @@ class _RecordingFitted:
         )
 
 
+class _ClassificationFitted:
+    def predict(self, features: np.ndarray) -> np.ndarray:
+        return np.ones(features.shape[0], dtype=np.float64)
+
+    def predict_proba(self, features: np.ndarray) -> np.ndarray | None:
+        n_rows = features.shape[0]
+        return np.column_stack(
+            [np.full(n_rows, 0.25, dtype=np.float64), np.full(n_rows, 0.75, dtype=np.float64)]
+        )
+
+    def describe(self) -> EstimatorDescription:
+        return EstimatorDescription(
+            library="testlib",
+            version="0.0",
+            resolved_params={"C": 1.0},
+        )
+
+
 class _RecordingEstimator:
-    def __init__(self) -> None:
+    def __init__(self, fitted: _RecordingFitted | _ClassificationFitted | None = None) -> None:
         self.fit_role_values: list[tuple[str, ...]] = []
         self.fit_row_counts: list[int] = []
+        self.fit_feature_widths: list[int] = []
+        self._fitted: _RecordingFitted | _ClassificationFitted = fitted or _RecordingFitted()
 
     def fit(
         self,
         features: np.ndarray,
         target: np.ndarray,
         sample_metadata: object,
-    ) -> _RecordingFitted:
+    ) -> _RecordingFitted | _ClassificationFitted:
         assert isinstance(sample_metadata, tuple)
         roles = tuple(
             role.value if isinstance(role, FoldRole) else str(role) for role in sample_metadata
         )
         self.fit_role_values.append(roles)
         self.fit_row_counts.append(int(features.shape[0]))
-        return _RecordingFitted()
+        self.fit_feature_widths.append(int(features.shape[1]))
+        return self._fitted
 
 
-def _labelled_rows(count: int = 40) -> pl.DataFrame:
+def _labelled_rows(count: int = 40, *, binary: bool = False) -> pl.DataFrame:
     start = datetime(2024, 1, 1, 14, 0, tzinfo=UTC)
     timestamps = [start + timedelta(minutes=index) for index in range(count)]
     returns = [0.01 + (index * 0.001) for index in range(count)]
+    labels = [1.0 if index % 2 else 0.0 for index in range(count)] if binary else returns
     return pl.DataFrame(
         {
             "entity_id": [timestamp.isoformat() for timestamp in timestamps],
@@ -96,7 +119,7 @@ def _labelled_rows(count: int = 40) -> pl.DataFrame:
             "available_at": timestamps,
             "label_end_at": [timestamp + timedelta(minutes=5) for timestamp in timestamps],
             "atr_14": [1.0 + (index * 0.1) for index in range(count)],
-            "label": returns,
+            "label": labels,
             "forward_return": returns,
             "outcome_status": ["COMPLETE"] * count,
         },
@@ -114,9 +137,9 @@ def _labelled_rows(count: int = 40) -> pl.DataFrame:
     )
 
 
-def _assigned_features() -> pl.DataFrame:
+def _assigned_features(*, binary: bool = False) -> pl.DataFrame:
     return assign_purged_walk_forward_folds(
-        _labelled_rows(),
+        _labelled_rows(binary=binary),
         PurgedWalkForwardSplitSpec(
             mode=PurgedWalkForwardSplitMode.EXPANDING,
             fold_count=2,
@@ -133,7 +156,7 @@ def _write_dataset(
     dataset_id: str = "0123456789abcdef",
     label_kind: str = "REGRESSION",
 ) -> PredictiveDatasetRef:
-    features = _assigned_features()
+    features = _assigned_features(binary=label_kind == "BINARY")
     envelope = PredictiveDatasetEnvelope(
         manifest=PredictiveDatasetManifest(
             schema_version=PREDICTIVE_DATASET_SCHEMA_VERSION,
@@ -176,13 +199,15 @@ def _ridge_spec() -> EstimatorSpec:
 def _install_fakes(
     monkeypatch: pytest.MonkeyPatch,
     estimator: _RecordingEstimator,
+    *,
+    family: str = "sklearn.ridge",
 ) -> None:
     def fake_resolve(
         spec: EstimatorSpec,
         *,
         preprocessing: object = None,
     ) -> _RecordingEstimator:
-        assert spec.family == "sklearn.ridge"
+        assert spec.family == family
         assert preprocessing is not None
         return estimator
 
@@ -220,9 +245,12 @@ def test_run_writes_test_only_predictions_and_identical_run_id(
 
     features = PredictiveDatasetRepository(storage_root).read(dataset_ref).features
     test_rows = features.filter(pl.col("fold_role") == FoldRole.TEST.value)
+    train_rows = features.filter(pl.col("fold_role") == FoldRole.TRAIN.value)
     predictions = first.envelope.predictions
+    fold_ids = sorted(set(predictions.get_column("fold_id").to_list()))
     assert first.run_id == second.run_id
     assert first.fingerprint == second.fingerprint
+    assert_frame_equal(first.envelope.predictions, second.envelope.predictions)
     assert first.persisted is True
     assert second.persisted is False
     assert predictions.height == test_rows.height
@@ -243,12 +271,16 @@ def test_run_writes_test_only_predictions_and_identical_run_id(
     }
     assert FoldRole.TEST.value not in {role for roles in recorder.fit_role_values for role in roles}
     assert all(roles and set(roles) == {FoldRole.TRAIN.value} for roles in recorder.fit_role_values)
+    assert len(recorder.fit_row_counts) == 2 * len(fold_ids)
+    assert recorder.fit_row_counts[: len(fold_ids)] == recorder.fit_row_counts[len(fold_ids) :]
+    assert sum(recorder.fit_row_counts[: len(fold_ids)]) == train_rows.height
+    assert recorder.fit_feature_widths
+    assert all(width == 1 for width in recorder.fit_feature_widths)
 
     run_dir = predictive_research_run_dir(storage_root, first.run_id)
     assert (run_dir / "manifest.json").exists()
     assert (run_dir / "predictions.parquet").exists()
     assert not (run_dir / "metrics.json").exists()
-    fold_ids = sorted(set(predictions.get_column("fold_id").to_list()))
     for fold_id in fold_ids:
         blob_path = predictive_research_run_model_path(storage_root, first.run_id, int(fold_id))
         assert blob_path.exists()
@@ -258,6 +290,50 @@ def test_run_writes_test_only_predictions_and_identical_run_id(
     assert loaded.predictions.height == predictions.height
     assert loaded.manifest.library == "testlib"
     assert loaded.manifest.library_version == "0.0"
+
+
+def test_run_carries_classification_forward_return_and_positive_class_proba(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    storage_root = tmp_path / "workspace"
+    dataset_ref = _write_dataset(storage_root, label_kind="BINARY")
+    recorder = _RecordingEstimator(_ClassificationFitted())
+    _install_fakes(monkeypatch, recorder, family="sklearn.logistic")
+
+    result = run_predictive_research(
+        RunPredictiveResearchRequest(
+            dataset_ref=dataset_ref,
+            estimator=EstimatorSpec(
+                family="sklearn.logistic",
+                hyperparameters={"C": 1.0},
+                seed=3,
+                task_type=TaskType.CLASSIFICATION,
+            ),
+            storage_root=storage_root,
+            persist=False,
+        )
+    )
+
+    features = PredictiveDatasetRepository(storage_root).read(dataset_ref).features
+    test_rows = features.filter(pl.col("fold_role") == FoldRole.TEST.value)
+    predictions = result.envelope.predictions
+    y_true = predictions.get_column("y_true").to_list()
+    forward_return = predictions.get_column("forward_return").to_list()
+    assert predictions.height == test_rows.height
+    assert y_true == test_rows.get_column("label").to_list()
+    assert forward_return == test_rows.get_column("forward_return").to_list()
+    assert y_true != forward_return
+    assert set(y_true) <= {0.0, 1.0}
+    assert all(
+        value == pytest.approx(0.75) for value in predictions.get_column("y_proba").to_list()
+    )
+    assert FoldRole.PURGED.value not in {
+        role for roles in recorder.fit_role_values for role in roles
+    }
+    assert FoldRole.EMBARGOED.value not in {
+        role for roles in recorder.fit_role_values for role in roles
+    }
+    assert all(roles and set(roles) == {FoldRole.TRAIN.value} for roles in recorder.fit_role_values)
 
 
 def test_run_rejects_ternary_datasets(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:

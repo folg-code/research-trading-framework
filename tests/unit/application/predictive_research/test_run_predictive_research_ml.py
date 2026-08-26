@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
+import importlib
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
+from typing import Any
 
 import polars as pl
 import pytest
+from polars.testing import assert_frame_equal
 
 from trading_framework import __version__ as framework_version
 from trading_framework.application.predictive_research import (
@@ -18,6 +21,7 @@ from trading_framework.research.datasets.predictive import (
     PREDICTIVE_DATASET_SCHEMA_VERSION,
     PredictiveDatasetEnvelope,
     PredictiveDatasetManifest,
+    PredictiveDatasetRef,
     PredictiveDatasetRepository,
     fold_summary_from_features,
     resolve_fold_boundaries,
@@ -41,6 +45,9 @@ pytest.importorskip("sklearn")
 pytestmark = pytest.mark.ml
 
 _UTC_US = pl.Datetime(time_unit="us", time_zone="UTC")
+_RUN_IMPL = importlib.import_module(
+    "trading_framework.application.predictive_research.run_predictive_research"
+)
 
 
 def _labelled_rows(count: int = 40) -> pl.DataFrame:
@@ -73,9 +80,8 @@ def _labelled_rows(count: int = 40) -> pl.DataFrame:
     )
 
 
-def test_sklearn_run_persists_test_predictions_and_joblib_blobs(tmp_path: Path) -> None:
-    storage_root = tmp_path / "workspace"
-    features = assign_purged_walk_forward_folds(
+def _split_features() -> pl.DataFrame:
+    return assign_purged_walk_forward_folds(
         _labelled_rows(),
         PurgedWalkForwardSplitSpec(
             mode=PurgedWalkForwardSplitMode.EXPANDING,
@@ -85,7 +91,10 @@ def test_sklearn_run_persists_test_predictions_and_joblib_blobs(tmp_path: Path) 
             min_train_rows=5,
         ),
     )
-    dataset_ref = PredictiveDatasetRepository(storage_root).write(
+
+
+def _write_regression_dataset(storage_root: Path, features: pl.DataFrame) -> PredictiveDatasetRef:
+    return PredictiveDatasetRepository(storage_root).write(
         PredictiveDatasetEnvelope(
             manifest=PredictiveDatasetManifest(
                 schema_version=PREDICTIVE_DATASET_SCHEMA_VERSION,
@@ -114,12 +123,22 @@ def test_sklearn_run_persists_test_predictions_and_joblib_blobs(tmp_path: Path) 
             folds=resolve_fold_boundaries(features),
         )
     )
-    spec = EstimatorSpec(
+
+
+def _ridge_spec() -> EstimatorSpec:
+    return EstimatorSpec(
         family="sklearn.ridge",
         hyperparameters={"alpha": 1.0},
         seed=7,
         task_type=TaskType.REGRESSION,
     )
+
+
+def test_sklearn_run_persists_test_predictions_and_joblib_blobs(tmp_path: Path) -> None:
+    storage_root = tmp_path / "workspace"
+    features = _split_features()
+    dataset_ref = _write_regression_dataset(storage_root, features)
+    spec = _ridge_spec()
     first = run_predictive_research(
         RunPredictiveResearchRequest(
             dataset_ref=dataset_ref,
@@ -143,6 +162,7 @@ def test_sklearn_run_persists_test_predictions_and_joblib_blobs(tmp_path: Path) 
     test_rows = features.filter(pl.col("fold_role") == FoldRole.TEST.value)
     predictions = first.envelope.predictions
     assert first.run_id == second.run_id
+    assert_frame_equal(first.envelope.predictions, second.envelope.predictions)
     assert predictions.height == test_rows.height
     assert (
         predictions.get_column("forward_return").to_list()
@@ -159,3 +179,64 @@ def test_sklearn_run_persists_test_predictions_and_joblib_blobs(tmp_path: Path) 
     assert loaded.manifest.library == "sklearn"
     assert loaded.manifest.estimator_description["library"] == "sklearn"
     assert loaded.predictions.height == predictions.height
+
+
+def test_sklearn_run_fits_train_only_with_fold_local_preprocessing(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from trading_framework.infrastructure.ml.registry import resolve_estimator as real_resolve
+
+    storage_root = tmp_path / "workspace"
+    features = _split_features()
+    dataset_ref = _write_regression_dataset(storage_root, features)
+    fit_roles: list[set[str]] = []
+    preprocessing_stats: list[dict[str, list[float]]] = []
+
+    class _RecordingResolve:
+        def __init__(self, inner: Any) -> None:
+            self._inner = inner
+
+        def fit(
+            self,
+            train_features: Any,
+            target: Any,
+            sample_metadata: object,
+        ) -> Any:
+            assert isinstance(sample_metadata, tuple)
+            fit_roles.append(
+                {
+                    role.value if isinstance(role, FoldRole) else str(role)
+                    for role in sample_metadata
+                }
+            )
+            fitted = self._inner.fit(train_features, target, sample_metadata)
+            preprocessing_stats.append(fitted.preprocessing_statistics())
+            return fitted
+
+    def wrapping_resolve(
+        spec: EstimatorSpec,
+        *,
+        preprocessing: PreprocessingSpec | None = None,
+    ) -> Any:
+        return _RecordingResolve(real_resolve(spec, preprocessing=preprocessing))
+
+    monkeypatch.setattr(_RUN_IMPL, "resolve_estimator", wrapping_resolve)
+
+    result = run_predictive_research(
+        RunPredictiveResearchRequest(
+            dataset_ref=dataset_ref,
+            estimator=_ridge_spec(),
+            storage_root=storage_root,
+            persist=False,
+        )
+    )
+    test_rows = features.filter(pl.col("fold_role") == FoldRole.TEST.value)
+    assert result.envelope.predictions.height == test_rows.height
+    assert fit_roles
+    assert all(roles == {FoldRole.TRAIN.value} for roles in fit_roles)
+    assert FoldRole.PURGED.value not in {role for roles in fit_roles for role in roles}
+    assert FoldRole.EMBARGOED.value not in {role for roles in fit_roles for role in roles}
+    assert FoldRole.TEST.value not in {role for roles in fit_roles for role in roles}
+    assert len(preprocessing_stats) == len(fit_roles)
+    assert len(preprocessing_stats) >= 2
+    assert preprocessing_stats[0] != preprocessing_stats[1]
