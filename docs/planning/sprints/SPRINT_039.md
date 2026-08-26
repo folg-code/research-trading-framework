@@ -412,7 +412,5 @@ eight leakage regressions in §9.
 
 ### Follow-up
 
-- Sprint 040 — baseline regression and classification (estimator protocol, sklearn adapter,
-  metrics). Planned; not started.
-- Sprint 041 — Predictive Research report v1 (Phase 10A remainder).
-- Phase 10A is not complete until S040–S041 land. S042–S044 remain later Phase 10B/10C work.
+- Sprint 040 landed as #319. Sprint 041 lands with the S041 integration PR.
+- Phase 10A is complete after S041 → `main`. S042–S044 remain later Phase 10B/10C work.

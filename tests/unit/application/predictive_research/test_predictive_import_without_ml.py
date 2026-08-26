@@ -34,13 +34,19 @@ sys.meta_path.insert(0, _BlockSklearn())
 
 import trading_framework.research.predictive as predictive
 import trading_framework.application.predictive_research as application
-from scripts.predictive_research import analyze_predictive_run, run_predictive_research
+from scripts.predictive_research import (
+    analyze_predictive_run,
+    render_predictive_report,
+    run_predictive_research,
+)
 
 assert predictive.EstimatorSpec is not None
 assert application.run_predictive_research is not None
 assert application.analyze_predictive_run is not None
+assert application.render_predictive_research_report is not None
 assert run_predictive_research.main is not None
 assert analyze_predictive_run.main is not None
+assert render_predictive_report.main is not None
 
 sklearn_modules = [
     name for name in sys.modules if name == 'sklearn' or name.startswith('sklearn.')
