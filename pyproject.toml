@@ -26,6 +26,11 @@ build-backend = "uv_build"
 
 [project.optional-dependencies]
 ml = ["scikit-learn>=1.6,<2.0"]
+ml-trees = [
+    "xgboost-cpu>=2.1,<4.0",
+    "lightgbm>=4.5,<5.0",
+    "catboost>=1.2,<2.0",
+]
 
 [dependency-groups]
 dev = [
@@ -58,6 +63,7 @@ markers = [
     "tier2_databento: opt-in integration tests requiring a local Databento DBN archive",
     "binance_network: opt-in integration tests requiring public Binance network access",
     "ml: tests that require the optional ml extra (scikit-learn)",
+    "ml_trees: tests that require the optional ml-trees extra (XGBoost / LightGBM / CatBoost)",
 ]
 
 [tool.ruff]
@@ -118,6 +124,10 @@ ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
 module = ["sklearn", "sklearn.*", "joblib", "joblib.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["xgboost", "xgboost.*", "lightgbm", "lightgbm.*", "catboost", "catboost.*"]
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
