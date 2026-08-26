@@ -2,8 +2,8 @@
 
 Binding decisions for Baseline Regression and Classification (Phase 10A). Date: 2026-08-26.
 Inherited locks from S039 / ADR-0023 (2026-08-26) are restated, not reopened.
-New S040 locks below are Proposed until the maintainer checks off the Wave 0
-checklist.
+New S040 locks below are Accepted (maintainer go-ahead 2026-08-26 after S039
+merged; no new architecture fork).
 
 Basis: `SPRINT_040.md`, `ROADMAP.md` §13A, ADR-0023 (ACCEPTED),
 `S039_WAVE0_DECISIONS.md`. Architecture source:
@@ -455,13 +455,14 @@ identical predictions.
   datasets/{dataset_id}/          (S039 — unchanged)
   runs/{run_id}/
     manifest.json                 dataset fingerprint, estimator spec, preprocessing, seeds, versions
-    predictions.parquet           entity_id, fold_id, y_true, y_pred, y_proba
+    predictions.parquet           entity_id, fold_id, y_true, y_pred, y_proba, forward_return
     metrics.json                  per-fold + pooled, including reference baselines
     models/fold_{n}.bin           fitted artifact (opaque, D-S040-17)
 ```
 
 `entity_id` / `fold_id` reuse the S039 labelled-matrix columns. `y_true` is the
 matrix `label` on TEST rows only. `y_proba` is null for regression.
+`forward_return` is the S039 label source at the declared horizon (D-S040-21).
 
 Path helpers land next to existing `predictive_research_dataset_dir` in
 `infrastructure/storage/paths.py` (T013). Register the `runs/` layout in the
@@ -522,6 +523,18 @@ Forward return for finance-aware metrics is the S039 label source
 (`forward_return` at the declared horizon), carried on TEST rows — not a
 recomputed outcome.
 
+S039 currently drops `forward_return` after deriving `label`. Classification
+cannot recover it from `y_true` (0/1). **Locked carry path (PR 4, T011/T013):**
+
+```text
+Labelled matrix retains forward_return beside label (S039 schema extension)
+predictions.parquet includes forward_return for every TEST row
+analyze_predictive_run reads that column — it does not recompute outcomes
+```
+
+Regression may still use `y_true` as the return; classification must use the
+carried `forward_return` column. Do not invent a third path in PR 5.
+
 Domain `research/predictive/metrics.py` implements these with numpy/polars.
 Do not call `sklearn.metrics` from domain code.
 
@@ -571,23 +584,23 @@ yet exist; it must land with the first adapter module.
 
 ## Wave 0 checklist status
 
-These boxes are the maintainer approval of S040 Wave 0. They stay unchecked
-until that approval. Inherited S039 / ADR-0023 locks are already human-locked
-and are not re-asked here.
+Maintainer approved S040 Wave 0 after S039 merged to main (go-ahead 2026-08-26).
+No new architecture fork — extras, artifacts, and synthetic CI stay as locked
+in ADR-0023. Implementation details below are accepted as written.
 
-- [ ] Confirm sprint branch: `sprint/predictive-baselines` (D-S040-02)
-- [ ] Slice: baselines only — ridge, elastic net, logistic + naive references (D-S040-03)
-- [ ] Registry in `infrastructure/ml/`; domain stays ML-free (D-S040-07)
-- [ ] Extra `ml` = `scikit-learn>=1.6,<2.0`; not in `dev`; dedicated CI job in existing `ci.yml` (D-S040-09, D-S040-10)
-- [ ] Marker `ml` + importorskip; default unit CI stays extra-free (D-S040-11)
-- [ ] mypy override + lazy import; no sklearn under TYPE_CHECKING in domain (D-S040-12)
-- [ ] Synthetic known-signal fixture; no NQ (D-S040-13)
-- [ ] Preprocessing: median impute + standardize, TRAIN-only, per fold (D-S040-14)
-- [ ] Family ids `sklearn.ridge` / `sklearn.elastic_net` / `sklearn.logistic` (D-S040-15)
-- [ ] Artifact policy restated; joblib dump; re-fit to reproduce (D-S040-17)
-- [ ] Metrics per fold and pooled; three reference baselines (D-S040-20, D-S040-21)
-- [ ] Out of scope S040 confirmed (D-S040-22)
-- [ ] PR sequence from SPRINT_040 §10 (D-S040-23)
+- [x] Confirm sprint branch: `sprint/predictive-baselines` (D-S040-02)
+- [x] Slice: baselines only — ridge, elastic net, logistic + naive references (D-S040-03)
+- [x] Registry in `infrastructure/ml/`; domain stays ML-free (D-S040-07)
+- [x] Extra `ml` = `scikit-learn>=1.6,<2.0`; not in `dev`; dedicated CI job in existing `ci.yml` (D-S040-09, D-S040-10)
+- [x] Marker `ml` + importorskip; default unit CI stays extra-free (D-S040-11)
+- [x] mypy override + lazy import; no sklearn under TYPE_CHECKING in domain (D-S040-12)
+- [x] Synthetic known-signal fixture; no NQ (D-S040-13)
+- [x] Preprocessing: median impute + standardize, TRAIN-only, per fold (D-S040-14)
+- [x] Family ids `sklearn.ridge` / `sklearn.elastic_net` / `sklearn.logistic` (D-S040-15)
+- [x] Artifact policy restated; joblib dump; re-fit to reproduce (D-S040-17)
+- [x] Metrics per fold and pooled; three reference baselines (D-S040-20, D-S040-21)
+- [x] Out of scope S040 confirmed (D-S040-22)
+- [x] PR sequence from SPRINT_040 §10 (D-S040-23)
 
-Approved by:
-Approved date:
+Approved by: Project Maintainer
+Approved date: 2026-08-26
