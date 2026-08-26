@@ -100,9 +100,18 @@ def test_no_feature_available_at_later_than_detected_at() -> None:
         label=label,
         horizon_bars=1,
     )
+    equal_available = _build(
+        close=close,
+        feature_values=feature_values,
+        label=label,
+        horizon_bars=1,
+        available_at=timestamps,
+    )
     late_available = tuple(timestamp + timedelta(minutes=1) for timestamp in timestamps)
+    mixed_late = (timestamps[0] + timedelta(minutes=1), *timestamps[1:])
 
     assert not _feature_available_after_detected(valid.rows)
+    assert not _feature_available_after_detected(equal_available.rows)
     with pytest.raises(
         PredictiveMatrixError,
         match="feature available_at must not be later than detected_at",
@@ -113,6 +122,17 @@ def test_no_feature_available_at_later_than_detected_at() -> None:
             label=label,
             horizon_bars=1,
             available_at=late_available,
+        )
+    with pytest.raises(
+        PredictiveMatrixError,
+        match="feature available_at must not be later than detected_at",
+    ):
+        _build(
+            close=close,
+            feature_values=feature_values,
+            label=label,
+            horizon_bars=1,
+            available_at=mixed_late,
         )
 
     leaked = valid.rows.with_columns(
@@ -230,6 +250,8 @@ def test_shuffling_input_row_order_does_not_change_fold_assignment() -> None:
     spec = _planner_spec()
     shuffled = rows.sample(fraction=1.0, shuffle=True, seed=7)
 
+    assert shuffled.get_column("entity_id").to_list() != rows.get_column("entity_id").to_list()
+
     assigned = assign_purged_walk_forward_folds(rows, spec)
     shuffled_assigned = assign_purged_walk_forward_folds(shuffled, spec)
 
@@ -322,6 +344,10 @@ def test_spec_change_produces_a_different_fingerprint(tmp_path: Path) -> None:
     )
     fingerprint_baseline = _fingerprint_study()
     fingerprint_changed = _fingerprint_study(fold_count=3)
+    fingerprint_relabelled = _fingerprint_study(
+        label=LabelSpec(kind=LabelKind.BINARY, horizon=Timeframe("5m"), threshold=0.0)
+    )
+    fingerprint_renamed = _fingerprint_study(alias="atr_21")
     lineage = {"atr_14": _output_ref()}
     unit_baseline = compute_dataset_fingerprint(
         definition_hash=fingerprint_baseline.definition_hash or "",
@@ -335,9 +361,23 @@ def test_spec_change_produces_a_different_fingerprint(tmp_path: Path) -> None:
         dataset_ref=fingerprint_changed.dataset_ref,
         time_range=fingerprint_changed.time_range,
     )
+    unit_relabelled = compute_dataset_fingerprint(
+        definition_hash=fingerprint_relabelled.definition_hash or "",
+        feature_lineage=lineage,
+        dataset_ref=fingerprint_relabelled.dataset_ref,
+        time_range=fingerprint_relabelled.time_range,
+    )
+    unit_renamed = compute_dataset_fingerprint(
+        definition_hash=fingerprint_renamed.definition_hash or "",
+        feature_lineage={"atr_21": _output_ref()},
+        dataset_ref=fingerprint_renamed.dataset_ref,
+        time_range=fingerprint_renamed.time_range,
+    )
 
     assert changed.fingerprint != baseline.fingerprint
     assert unit_changed != unit_baseline
+    assert unit_relabelled != unit_baseline
+    assert unit_renamed != unit_baseline
     assert _fingerprint_from_dataset_ref_only(
         baseline.envelope.manifest.source_dataset_ref
     ) == _fingerprint_from_dataset_ref_only(changed.envelope.manifest.source_dataset_ref)
