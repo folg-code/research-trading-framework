@@ -14,6 +14,7 @@ from trading_framework.infrastructure.storage.paths import (
     predictive_research_run_dir,
     predictive_research_run_metrics_path,
     predictive_research_run_model_path,
+    predictive_research_run_report_path,
     robustness_experiment_dir,
     roll_schedules_base_dir,
     signal_research_family_experiment_dir,
@@ -75,6 +76,9 @@ def test_workspace_market_and_research_namespaces(tmp_path: Path) -> None:
         / "runs"
         / "fedcba9876543210"
         / "metrics.json"
+    )
+    assert predictive_research_run_report_path(workspace, "fedcba9876543210") == (
+        workspace / "research" / "predictive_research" / "runs" / "fedcba9876543210" / "report.html"
     )
     assert roll_schedules_base_dir(workspace, product="NQ", policy_slug="volume-rth-close") == (
         workspace / "market_data" / "continuous" / "schedules" / "NQ" / "volume-rth-close"

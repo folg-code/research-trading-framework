@@ -206,13 +206,13 @@ Missing optional data (no probabilities, no importance) degrades to a skipped pa
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S041-T012 | HTML assembly, offline asset embedding, section intros | TODO |
-| S041-T013 | `render_predictive_research_report` orchestration | TODO |
-| S041-T014 | CLI `render_predictive_report.py` | TODO |
+| S041-T012 | HTML assembly, offline asset embedding, section intros | DONE |
+| S041-T013 | `render_predictive_research_report` orchestration | DONE |
+| S041-T014 | CLI `render_predictive_report.py` | DONE |
 | S041-T015 | Report smoke test: regression run and classification run | TODO |
 | S041-T016 | Docs: RESEARCH_METHODOLOGIES, MODULE_MAP, CURRENT_STATUS | TODO |
 
-**Progress:** 11 / 16 tasks
+**Progress:** 14 / 16 tasks
 
 ---
 

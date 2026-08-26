@@ -20,6 +20,7 @@ from trading_framework.research.reporting.predictive.plotly_figures import (
     build_fold_timeline_figure,
     build_metric_stability_figure,
     build_model_vs_baselines_figure,
+    build_panel_figure,
     build_prediction_buckets_figure,
     build_prediction_quality_figure,
     build_sample_composition_figure,
@@ -32,6 +33,10 @@ from trading_framework.research.reporting.predictive.quality import (
     evaluate_predictive_quality_flags,
     primary_metric_name,
 )
+from trading_framework.research.reporting.predictive.report_html import (
+    PANEL_BODY_RENDERERS,
+    render_predictive_research_report_html,
+)
 from trading_framework.research.reporting.predictive.view_models import (
     FoldMetricSnapshot,
     FoldTimelineBand,
@@ -40,6 +45,7 @@ from trading_framework.research.reporting.predictive.view_models import (
 )
 
 __all__ = [
+    "PANEL_BODY_RENDERERS",
     "PREDICTIVE_REPORT_PANELS",
     "RESERVED_PANEL_IDS",
     "FoldMetricSnapshot",
@@ -56,6 +62,7 @@ __all__ = [
     "build_fold_timeline_figure",
     "build_metric_stability_figure",
     "build_model_vs_baselines_figure",
+    "build_panel_figure",
     "build_prediction_buckets_figure",
     "build_prediction_quality_figure",
     "build_predictive_report_view_model",
@@ -66,6 +73,7 @@ __all__ = [
     "format_return",
     "format_share",
     "primary_metric_name",
+    "render_predictive_research_report_html",
     "require_plotly",
     "resolve_report_panels",
 ]

@@ -10,10 +10,12 @@ from typing import Any
 
 import pytest
 from scripts.predictive_research import analyze_predictive_run as analyze_cli
+from scripts.predictive_research import render_predictive_report as render_cli
 from scripts.predictive_research import run_predictive_research as run_cli
 
 from trading_framework.application.predictive_research import (
     AnalyzePredictiveRunRequest,
+    RenderPredictiveReportRequest,
     RunPredictiveResearchRequest,
 )
 from trading_framework.research.predictive.estimators import EstimatorSpec, TaskType
@@ -26,6 +28,12 @@ class _FakeRunResult:
     run_id: str
     fingerprint: str
     persisted: bool
+
+
+@dataclass(frozen=True, slots=True)
+class _FakeRenderResult:
+    run_id: str
+    output_path: Path
 
 
 @dataclass(frozen=True, slots=True)
@@ -315,8 +323,39 @@ def test_analyze_cli_text_summary_mentions_per_fold(
     assert "per-fold" in output
 
 
+def test_render_cli_missing_run_returns_error(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    exit_code = render_cli.main(["--storage-root", str(tmp_path), "--run-id", "missing-run"])
+    captured = capsys.readouterr()
+    assert exit_code == 1
+    assert "missing manifest" in captured.err
+
+
+def test_render_cli_prints_output_path(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    output_path = tmp_path / "report.html"
+
+    def fake_render(request: RenderPredictiveReportRequest) -> _FakeRenderResult:
+        assert request.run_ref.run_id == "run-html"
+        assert request.storage_root == tmp_path
+        assert request.output_path is None
+        return _FakeRenderResult(run_id="run-html", output_path=output_path)
+
+    monkeypatch.setattr(render_cli, "render_predictive_research_report", fake_render)
+    exit_code = render_cli.main(["--storage-root", str(tmp_path), "--run-id", "run-html", "--json"])
+    payload = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert payload["run_id"] == "run-html"
+    assert payload["output_path"] == str(output_path)
+
+
 def test_clis_are_thin_and_do_not_import_ml_libraries() -> None:
-    for module in (run_cli, analyze_cli):
+    for module in (run_cli, analyze_cli, render_cli):
         module_path = module.__file__
         assert module_path is not None
         imported = _imported_modules(Path(module_path).read_text(encoding="utf-8"))

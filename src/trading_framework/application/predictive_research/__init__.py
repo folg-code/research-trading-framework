@@ -12,6 +12,12 @@ from trading_framework.application.predictive_research.build_predictive_dataset 
     PredictiveDatasetError,
     build_predictive_dataset,
 )
+from trading_framework.application.predictive_research.render_report import (
+    RenderPredictiveReportError,
+    RenderPredictiveReportRequest,
+    RenderPredictiveReportResult,
+    render_predictive_research_report,
+)
 from trading_framework.application.predictive_research.run_predictive_research import (
     PredictiveRunError,
     RunPredictiveResearchRequest,
@@ -27,9 +33,13 @@ __all__ = [
     "BuildPredictiveDatasetResult",
     "PredictiveDatasetError",
     "PredictiveRunError",
+    "RenderPredictiveReportError",
+    "RenderPredictiveReportRequest",
+    "RenderPredictiveReportResult",
     "RunPredictiveResearchRequest",
     "RunPredictiveResearchResult",
     "analyze_predictive_run",
     "build_predictive_dataset",
+    "render_predictive_research_report",
     "run_predictive_research",
 ]
