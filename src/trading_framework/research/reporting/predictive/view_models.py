@@ -11,11 +11,14 @@ import polars as pl
 
 from trading_framework.core.exceptions import ValidationError
 from trading_framework.research.predictive.estimators import TaskType
+from trading_framework.research.predictive.importance import ImportanceTrace
+from trading_framework.research.predictive.leaderboard import PredictiveLeaderboard
 from trading_framework.research.predictive.metrics import (
     CalibrationBin,
     MetricSource,
     PredictiveMetricsReport,
 )
+from trading_framework.research.predictive.selection import SelectionTrace
 from trading_framework.research.predictive.splitting import FoldRole
 from trading_framework.research.reporting.predictive.contracts import PredictiveReportSource
 from trading_framework.research.reporting.predictive.quality import (
@@ -51,6 +54,51 @@ class FoldMetricSnapshot:
 
 
 @dataclass(frozen=True, slots=True)
+class FeatureImportanceBar:
+    """Mean native gain and permutation drop for one feature across folds."""
+
+    feature_name: str
+    native_gain: float | None
+    permutation_mean: float
+    permutation_std: float
+
+
+@dataclass(frozen=True, slots=True)
+class LeaderboardDisplayRow:
+    """One ranked estimator or baseline row for the leaderboard panel."""
+
+    rank: int
+    kind: str
+    family: str
+    source: str
+    pooled_primary: float | None
+    metric: str
+    run_id: str
+
+
+@dataclass(frozen=True, slots=True)
+class SelectionCandidateScore:
+    """One candidate's inner-validation score inside a displayed fold."""
+
+    family: str
+    label: str
+    inner_validation_score: float | None
+    selected: bool
+
+
+@dataclass(frozen=True, slots=True)
+class SelectionFoldDisplay:
+    """Per-fold winner, inner scores, and train/test gap for the selection panel."""
+
+    fold_id: int
+    winner_family: str
+    candidates: tuple[SelectionCandidateScore, ...]
+    train_primary: float | None
+    test_primary: float | None
+    primary_gap: float | None
+
+
+@dataclass(frozen=True, slots=True)
 class PredictiveReportViewModel:
     """Presentation-ready snapshot of one Predictive Research run.
 
@@ -76,6 +124,9 @@ class PredictiveReportViewModel:
     mean_forward_return_all: float | None
     quality_warnings: tuple[PredictiveQualityWarning, ...]
     quality_rules: PredictiveReportQualityRules
+    feature_importance: tuple[FeatureImportanceBar, ...]
+    leaderboard_rows: tuple[LeaderboardDisplayRow, ...]
+    selection_folds: tuple[SelectionFoldDisplay, ...]
 
 
 def build_predictive_report_view_model(
@@ -147,6 +198,9 @@ def build_predictive_report_view_model(
         mean_forward_return_all=model_metrics.finance.mean_forward_return_all,
         quality_warnings=warnings,
         quality_rules=rules,
+        feature_importance=_feature_importance_bars(source.importance),
+        leaderboard_rows=_leaderboard_rows(source.leaderboard),
+        selection_folds=_selection_folds(source.selection, metrics.fold_primary),
     )
 
 
@@ -224,3 +278,108 @@ def _fold_metric_snapshots(
             )
         )
     return tuple(snapshots)
+
+
+def _feature_importance_bars(trace: ImportanceTrace | None) -> tuple[FeatureImportanceBar, ...]:
+    if trace is None or not trace.folds:
+        return ()
+    names: list[str] = []
+    seen: set[str] = set()
+    for fold in trace.folds:
+        for name in fold.permutation.feature_names:
+            if name not in seen:
+                seen.add(name)
+                names.append(name)
+        if fold.native is None:
+            continue
+        for name in fold.native.feature_names:
+            if name not in seen:
+                seen.add(name)
+                names.append(name)
+    bars: list[FeatureImportanceBar] = []
+    for name in names:
+        perm_means: list[float] = []
+        perm_stds: list[float] = []
+        native_gains: list[float] = []
+        for fold in trace.folds:
+            perm_map = dict(
+                zip(fold.permutation.feature_names, fold.permutation.importances_mean, strict=True)
+            )
+            std_map = dict(
+                zip(fold.permutation.feature_names, fold.permutation.importances_std, strict=True)
+            )
+            if name in perm_map:
+                perm_means.append(float(perm_map[name]))
+                perm_stds.append(float(std_map[name]))
+            if fold.native is None:
+                continue
+            native_map = dict(zip(fold.native.feature_names, fold.native.gain, strict=True))
+            if name in native_map:
+                native_gains.append(float(native_map[name]))
+        bars.append(
+            FeatureImportanceBar(
+                feature_name=name,
+                native_gain=None if not native_gains else sum(native_gains) / len(native_gains),
+                permutation_mean=0.0 if not perm_means else sum(perm_means) / len(perm_means),
+                permutation_std=0.0 if not perm_stds else sum(perm_stds) / len(perm_stds),
+            )
+        )
+    return tuple(sorted(bars, key=lambda bar: bar.permutation_mean, reverse=True))
+
+
+def _leaderboard_rows(
+    leaderboard: PredictiveLeaderboard | None,
+) -> tuple[LeaderboardDisplayRow, ...]:
+    if leaderboard is None:
+        return ()
+    return tuple(
+        LeaderboardDisplayRow(
+            rank=row.rank,
+            kind=row.kind.value,
+            family=row.family,
+            source=row.source,
+            pooled_primary=row.pooled_primary,
+            metric=row.metric,
+            run_id=row.run_id,
+        )
+        for row in leaderboard.rows
+    )
+
+
+def _selection_folds(
+    selection: SelectionTrace | None,
+    fold_primary: Mapping[str, Mapping[str, float | None]] | None,
+) -> tuple[SelectionFoldDisplay, ...]:
+    if selection is None or not selection.folds:
+        return ()
+    gaps = fold_primary or {}
+    family_counts: dict[str, int] = {}
+    for fold in selection.folds:
+        for candidate in fold.candidates:
+            family_counts[candidate.family] = family_counts.get(candidate.family, 0) + 1
+    displayed: list[SelectionFoldDisplay] = []
+    for fold in selection.folds:
+        gap = gaps.get(str(fold.fold_id), {})
+        displayed.append(
+            SelectionFoldDisplay(
+                fold_id=fold.fold_id,
+                winner_family=fold.winner.family,
+                candidates=tuple(
+                    SelectionCandidateScore(
+                        family=candidate.family,
+                        label=(
+                            candidate.family
+                            if family_counts[candidate.family] <= len(selection.folds)
+                            else f"{candidate.family} ({candidate.identity_hash[-8:]})"
+                        ),
+                        inner_validation_score=candidate.inner_validation_score,
+                        selected=candidate.selected,
+                    )
+                    for candidate in fold.candidates
+                ),
+                train_primary=gap.get("train_primary"),
+                test_primary=gap.get("test_primary"),
+                primary_gap=gap.get("primary_gap"),
+            )
+        )
+    return tuple(displayed)

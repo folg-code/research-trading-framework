@@ -25,6 +25,9 @@ Canonical workspace root (``--storage-root`` / operator workspace)::
             manifest.json
             predictions.parquet
             metrics.json
+            selection.json    # optional; bounded candidate selection
+            importance.json   # native + permutation + train/test gap
+            leaderboard.json  # optional; single-study comparison artifact
             models/fold_{n}.bin
       runtime/            # execution dry-run state (operator-managed)
       reports/            # optional loose reports (prefer run-local report/)
@@ -130,6 +133,21 @@ def predictive_research_run_metrics_path(root: Path, run_id: str) -> Path:
 def predictive_research_run_report_path(root: Path, run_id: str) -> Path:
     """Return the default HTML report path for one Predictive Research run."""
     return predictive_research_run_dir(root, run_id) / "report.html"
+
+
+def predictive_research_run_selection_path(root: Path, run_id: str) -> Path:
+    """Return the candidate-selection trace path for one Predictive Research run."""
+    return predictive_research_run_dir(root, run_id) / "selection.json"
+
+
+def predictive_research_run_importance_path(root: Path, run_id: str) -> Path:
+    """Return the importance-trace path for one Predictive Research run."""
+    return predictive_research_run_dir(root, run_id) / "importance.json"
+
+
+def predictive_research_run_leaderboard_path(root: Path, run_id: str) -> Path:
+    """Return the study-leaderboard path written beside a predictive run."""
+    return predictive_research_run_dir(root, run_id) / "leaderboard.json"
 
 
 def dataset_metadata_path(root: Path, dataset_ref: DatasetRef) -> Path:

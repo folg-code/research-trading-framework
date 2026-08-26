@@ -428,13 +428,15 @@ Research Definition
 ### Predictive Research
 
 Phase 10A: dataset foundation (Sprint 039), baseline estimators (Sprint 040),
-and offline HTML report (Sprint 041). This workflow states a learning problem,
-persists a fingerprinted labelled matrix, trains declared baselines per fold,
-and reviews one run as standalone HTML. It does **not** emit signals or import
-`strategy/` / `signal_model/`. `research/predictive/` stays library-free (polars,
-numpy, framework contracts). Report figures live in `research/reporting/predictive/`
-(plotly; no sklearn). ML libraries live behind optional extra `ml` and
-`infrastructure/ml/` adapters.
+and offline HTML report (Sprint 041). Phase 10B (Sprint 042) adds tree families
+(XGBoost, LightGBM, CatBoost), bounded inner-fold selection, permutation
+importance, a single-study leaderboard, and three report panels. This workflow
+states a learning problem, persists a fingerprinted labelled matrix, trains
+declared estimators per fold, and reviews one run as standalone HTML. It does
+**not** emit signals or import `strategy/` / `signal_model/`. `research/predictive/`
+stays library-free (polars, numpy, framework contracts). Report figures live in
+`research/reporting/predictive/` (plotly; no sklearn). ML libraries live behind
+optional extras `ml` / `ml-trees` and `infrastructure/ml/` adapters.
 
 | Responsibility | Package |
 |---|---|
@@ -442,11 +444,14 @@ numpy, framework contracts). Report figures live in `research/reporting/predicti
 | Estimator protocol, `EstimatorSpec`, `TaskType` | `research/predictive/estimators.py` |
 | Fold-local preprocessing spec | `research/predictive/preprocessing.py` |
 | Statistical + finance-aware metrics | `research/predictive/metrics.py` |
+| Bounded candidate selection (`CandidateSetSpec`) | `research/predictive/selection.py` |
+| Native + permutation importance, train/test gap | `research/predictive/importance.py` |
+| Single-study leaderboard | `research/predictive/leaderboard.py` |
 | Dataset envelope, fingerprint, repository | `research/datasets/predictive.py` |
 | Run envelope, fingerprint, repository | `research/datasets/predictive_run.py` |
 | Workflow orchestration (build, run, analyze, render) | `application/predictive_research/` |
 | Read-only HTML report | `research/reporting/predictive/` |
-| Family registry + sklearn adapters | `infrastructure/ml/` (`registry.py`, `sklearn/`) |
+| Family registry + sklearn / tree adapters | `infrastructure/ml/` (`registry.py`, `sklearn/`, `trees/xgboost/`, `trees/lightgbm/`, `trees/catboost/`) |
 | Thin CLIs | `scripts/predictive_research/` |
 | Storage paths | `infrastructure/storage/paths.py` |
 
@@ -459,10 +464,11 @@ Published DatasetRef + PredictiveStudySpec (YAML/JSON)
   → purged + embargoed walk-forward fold roles
   → PredictiveDatasetEnvelope (manifest + fingerprint)
   → EstimatorSpec (family + hyperparameters + seed)
+      or CandidateSetSpec (declared, capped; inner TRAIN split, TEST once)
   → run_predictive_research (fit on TRAIN per fold, predict on TEST)
   → PredictiveRunEnvelope (predictions, metrics, opaque blobs)
   → analyze_predictive_run (writes metrics.json from predictions; never deserializes model blobs)
-  → render_predictive_research_report (offline HTML; never fits or loads model blobs)
+  → render_predictive_research_report (offline HTML; optional importance/selection/leaderboard sidecars; never fits or loads model blobs)
 ```
 
 Samples are **evaluation bars**, not `SignalOccurrence` rows. Labels reuse
@@ -480,17 +486,23 @@ embargoed rows are retained with a role label, not deleted. Preprocessing
 (`IMPUTE_MEDIAN`, `STANDARDIZE`) is fitted inside each fold on `TRAIN` rows
 only; `PURGED` and `EMBARGOED` never reach `fit()`.
 
-Estimator families this slice (registry ids, extra `ml`): `sklearn.ridge`,
-`sklearn.elastic_net`, `sklearn.logistic` (binary). Unknown family ids raise
-`PredictiveSpecError`. Missing extra raises `PredictiveExtraError` naming `ml`.
+Estimator families this slice (registry ids): extra `ml` — `sklearn.ridge`,
+`sklearn.elastic_net`, `sklearn.logistic` (binary). Extra `ml-trees` —
+`xgboost.regressor`, `xgboost.classifier` (binary), `lightgbm.regressor`,
+`lightgbm.classifier` (binary), `catboost.regressor`, `catboost.classifier`
+(binary). Unknown family ids raise
+`PredictiveSpecError`. Missing extra raises `PredictiveExtraError` naming the
+extra. Tree families also need extra `ml` for fold-local preprocessing.
 Reference baselines (`CONSTANT_MEAN`, `MAJORITY_CLASS`, `RANDOM_PERMUTATION`)
 are metric-layer comparisons, not registry families. Metrics are reported per
 fold and pooled.
 
-Optional extra: `[project.optional-dependencies] ml = ["scikit-learn>=1.6,<2.0"]`.
-Not in the default `dev` group. Dedicated CI job `ml` installs
-`uv sync --locked --extra ml --dev` and runs `uv run pytest -m ml`. Standard
-unit CI stays extra-free (`uv sync --locked --dev`, `-m "not ml"`).
+Optional extras:
+`ml = ["scikit-learn>=1.6,<2.0"]` and
+`ml-trees = ["xgboost-cpu>=2.1,<4.0", "lightgbm>=4.5,<5.0", "catboost>=1.2,<2.0"]`.
+Not in the default `dev` group. Dedicated CI jobs `ml` and `ml_trees`.
+Standard unit CI stays extra-free (`uv sync --locked --dev`,
+`-m "not ml and not ml_trees"`).
 
 Storage:
 
@@ -504,6 +516,9 @@ Storage:
   predictions.parquet
   metrics.json
   report.html            # offline Plotly; first figure embeds JS inline
+  selection.json         # candidate scores per fold; absent on single-estimator runs
+  importance.json        # native + permutation importance and train/test gap
+  leaderboard.json       # optional; single-study comparison of run dirs
   models/fold_{n}.bin    # opaque; reproduce by re-fitting, not deserializing
 ```
 
@@ -514,6 +529,7 @@ uv run python scripts/predictive_research/build_predictive_dataset.py --storage-
 uv run python scripts/predictive_research/run_predictive_research.py --storage-root <workspace> --dataset-id <id> --estimator <spec.yaml>
 uv run python scripts/predictive_research/analyze_predictive_run.py --storage-root <workspace> --run-id <id>
 uv run python scripts/predictive_research/render_predictive_report.py --storage-root <workspace> --run-id <id>
+uv run python scripts/predictive_research/compare_predictive_runs.py --run-dir <run> [--run-dir <run> ...]
 ```
 
 ### Tests

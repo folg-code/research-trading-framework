@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 
 import polars as pl
@@ -78,6 +78,12 @@ def analyze_predictive_run(
     )
     metrics_path: Path | None = None
     if request.persist:
+        metrics_path = predictive_research_run_metrics_path(
+            request.storage_root, request.run_ref.run_id
+        )
+        existing_primary = _existing_fold_primary(metrics_path)
+        if existing_primary is not None:
+            report = replace(report, fold_primary=existing_primary)
         metrics_path = write_predictive_metrics(
             request.storage_root,
             request.run_ref.run_id,
@@ -118,3 +124,19 @@ def write_predictive_metrics(
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(report.to_dict(), indent=2), encoding="utf-8")
     return path
+
+
+def _existing_fold_primary(
+    path: Path,
+) -> dict[str, dict[str, float | None]] | None:
+    """Keep run-written train/test gap keys when re-analyzing predictions."""
+    if not path.exists():
+        return None
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        existing = PredictiveMetricsReport.from_dict(payload)
+    except (OSError, TypeError, ValueError, ValidationError):
+        return None
+    if existing.fold_primary is None:
+        return None
+    return {fold_id: dict(values) for fold_id, values in existing.fold_primary.items()}

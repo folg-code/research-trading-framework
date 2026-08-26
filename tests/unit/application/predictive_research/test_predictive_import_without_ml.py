@@ -23,17 +23,18 @@ def test_predictive_packages_import_without_sklearn() -> None:
     script = """
 import sys
 
-class _BlockSklearn:
+class _BlockMl:
     def find_spec(self, fullname, path=None, target=None):
         root = fullname.split('.', 1)[0]
-        if root == 'sklearn':
-            raise ImportError('sklearn must not be required to import predictive packages')
+        if root in {'sklearn', 'xgboost', 'lightgbm', 'catboost'}:
+            raise ImportError(f'{root} must not be required to import predictive packages')
         return None
 
-sys.meta_path.insert(0, _BlockSklearn())
+sys.meta_path.insert(0, _BlockMl())
 
 import trading_framework.research.predictive as predictive
 import trading_framework.application.predictive_research as application
+from trading_framework.infrastructure.ml.registry import registered_families
 from scripts.predictive_research import (
     analyze_predictive_run,
     render_predictive_report,
@@ -44,14 +45,24 @@ assert predictive.EstimatorSpec is not None
 assert application.run_predictive_research is not None
 assert application.analyze_predictive_run is not None
 assert application.render_predictive_research_report is not None
+assert application.compare_predictive_runs is not None
 assert run_predictive_research.main is not None
 assert analyze_predictive_run.main is not None
 assert render_predictive_report.main is not None
+assert registered_families()['xgboost.regressor'] == 'ml-trees'
+assert registered_families()['lightgbm.regressor'] == 'ml-trees'
+assert registered_families()['catboost.classifier'] == 'ml-trees'
 
-sklearn_modules = [
-    name for name in sys.modules if name == 'sklearn' or name.startswith('sklearn.')
+from scripts.predictive_research import compare_predictive_runs as compare_cli
+assert compare_cli.main is not None
+assert predictive.build_predictive_leaderboard is not None
+
+blocked = ('sklearn', 'xgboost', 'lightgbm', 'catboost')
+loaded = [
+    name for name in sys.modules
+    if name in blocked or name.startswith(tuple(root + '.' for root in blocked))
 ]
-assert sklearn_modules == [], sklearn_modules
+assert loaded == [], loaded
 """
     completed = subprocess.run(
         [sys.executable, "-c", script],

@@ -77,6 +77,9 @@ class _RecordingFitted:
             library="testlib", version="0.0", resolved_params={"alpha": 1.0}
         )
 
+    def native_feature_importance(self) -> object | None:
+        return None
+
 
 class _ClassificationFitted:
     def predict(self, features: np.ndarray) -> np.ndarray:
@@ -90,6 +93,9 @@ class _ClassificationFitted:
 
     def describe(self) -> EstimatorDescription:
         return EstimatorDescription(library="testlib", version="0.0", resolved_params={"C": 1.0})
+
+    def native_feature_importance(self) -> object | None:
+        return None
 
 
 class _RecordingEstimator:
@@ -317,6 +323,43 @@ def test_analyze_classification_finance_uses_forward_return(
         sum(forward_return) / len(forward_return)
     )
     assert MetricSource.MAJORITY_CLASS.value in run.metrics.pooled
+
+
+def test_analyze_preserves_fold_primary_when_rewriting_metrics(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    storage_root = tmp_path / "workspace"
+    dataset_ref = _write_dataset(storage_root)
+    _install_fakes(monkeypatch, _RecordingEstimator())
+    run = run_predictive_research(
+        RunPredictiveResearchRequest(
+            dataset_ref=dataset_ref,
+            estimator=EstimatorSpec(
+                family="sklearn.ridge",
+                hyperparameters={"alpha": 1.0},
+                seed=7,
+                task_type=TaskType.REGRESSION,
+            ),
+            storage_root=storage_root,
+            persist=True,
+        )
+    )
+    assert run.metrics.fold_primary is not None
+
+    result = analyze_predictive_run(
+        AnalyzePredictiveRunRequest(
+            run_ref=PredictiveRunRef(run_id=run.run_id),
+            storage_root=storage_root,
+        )
+    )
+    payload = json.loads(
+        predictive_research_run_metrics_path(storage_root, run.run_id).read_text(encoding="utf-8")
+    )
+    assert result.report.fold_primary is not None
+    assert "fold_primary" in payload
+    assert payload["fold_primary"] == {
+        fold_id: dict(values) for fold_id, values in run.metrics.fold_primary.items()
+    }
 
 
 def test_analyze_and_metrics_modules_do_not_import_joblib_or_sklearn() -> None:

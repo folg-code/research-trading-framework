@@ -122,4 +122,27 @@ def _register_sklearn_families() -> None:
     register_family("sklearn.logistic", extra="ml", factory=create_logistic_estimator)
 
 
+def _register_tree_families() -> None:
+    from trading_framework.infrastructure.ml.trees.catboost.factories import (
+        create_catboost_classifier,
+        create_catboost_regressor,
+    )
+    from trading_framework.infrastructure.ml.trees.lightgbm.factories import (
+        create_lightgbm_classifier,
+        create_lightgbm_regressor,
+    )
+    from trading_framework.infrastructure.ml.trees.xgboost.factories import (
+        create_xgboost_classifier,
+        create_xgboost_regressor,
+    )
+
+    register_family("xgboost.regressor", extra="ml-trees", factory=create_xgboost_regressor)
+    register_family("xgboost.classifier", extra="ml-trees", factory=create_xgboost_classifier)
+    register_family("lightgbm.regressor", extra="ml-trees", factory=create_lightgbm_regressor)
+    register_family("lightgbm.classifier", extra="ml-trees", factory=create_lightgbm_classifier)
+    register_family("catboost.regressor", extra="ml-trees", factory=create_catboost_regressor)
+    register_family("catboost.classifier", extra="ml-trees", factory=create_catboost_classifier)
+
+
 _register_sklearn_families()
+_register_tree_families()

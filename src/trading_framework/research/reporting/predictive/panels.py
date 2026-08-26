@@ -11,7 +11,7 @@ from trading_framework.research.reporting.predictive.view_models import (
     PredictiveReportViewModel,
 )
 
-RESERVED_PANEL_IDS = frozenset({"feature_importance", "learning_curves"})
+RESERVED_PANEL_IDS = frozenset({"learning_curves"})
 
 
 class PanelStatus(StrEnum):
@@ -68,6 +68,33 @@ def _calibration(view: PredictiveReportViewModel) -> tuple[PanelStatus, str | No
             "calibration would be undefined.",
         )
     return PanelStatus.RENDER, None
+
+
+def _feature_importance(view: PredictiveReportViewModel) -> tuple[PanelStatus, str | None]:
+    if view.feature_importance:
+        return PanelStatus.RENDER, None
+    return (
+        PanelStatus.SKIP,
+        "Skipped: no importance.json sidecar for this run.",
+    )
+
+
+def _leaderboard(view: PredictiveReportViewModel) -> tuple[PanelStatus, str | None]:
+    if view.leaderboard_rows:
+        return PanelStatus.RENDER, None
+    return (
+        PanelStatus.SKIP,
+        "Skipped: no leaderboard.json sidecar for this run.",
+    )
+
+
+def _selection_trace(view: PredictiveReportViewModel) -> tuple[PanelStatus, str | None]:
+    if view.selection_folds:
+        return PanelStatus.RENDER, None
+    return (
+        PanelStatus.SKIP,
+        "Skipped: no selection.json sidecar for this run (single-estimator runs do not select).",
+    )
 
 
 PREDICTIVE_REPORT_PANELS: tuple[PanelDefinition, ...] = (
@@ -151,6 +178,33 @@ PREDICTIVE_REPORT_PANELS: tuple[PanelDefinition, ...] = (
             "PASS/FAIL verdict and they never block the report."
         ),
         applicability=_always_render,
+    ),
+    PanelDefinition(
+        panel_id="feature_importance",
+        title="Feature importance",
+        intro=(
+            "Native gain is a training-fold statistic. Permutation importance is the "
+            "out-of-sample drop when each TEST column is shuffled. Trust permutation first."
+        ),
+        applicability=_feature_importance,
+    ),
+    PanelDefinition(
+        panel_id="leaderboard",
+        title="Study leaderboard",
+        intro=(
+            "Families and S040 baselines on one dataset fingerprint. A tree that cannot "
+            "beat ridge on the same folds is a statement about the features."
+        ),
+        applicability=_leaderboard,
+    ),
+    PanelDefinition(
+        panel_id="selection_trace",
+        title="Candidate selection and train/test gap",
+        intro=(
+            "The inner-validation winner is refit on the full TRAIN fold. A large "
+            "|train - test| gap on the primary metric is overfitting, not skill."
+        ),
+        applicability=_selection_trace,
     ),
 )
 

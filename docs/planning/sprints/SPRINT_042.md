@@ -5,14 +5,14 @@
 ```text
 Sprint: 042
 Phase: Phase 10B — Tree-Based Predictive Models
-Status: PLANNED
-Planned Start: TBD (after S041 merges)
-Planned End: TBD
+Status: COMPLETED (main #335)
+Planned Start: 2026-08-26
+Planned End: 2026-08-26
 Sprint Goal Owner: Project Maintainer
-Depends On: SPRINT_040 (estimator seam), SPRINT_041 (report panel registry)
+Depends On: SPRINT_040 (estimator seam on main #319); SPRINT_041 report panels after #325
 Sprint Branch: sprint/predictive-tree-models
 Task branch convention: feat/ | fix/ | docs/ | test/
-Wave 0 decisions: docs/planning/sprints/S042_WAVE0_DECISIONS.md (to be written in Wave 0)
+Wave 0 decisions: docs/planning/sprints/S042_WAVE0_DECISIONS.md
 Architecture Sources:
   - docs/planning/ROADMAP.md (§13A Phase 10B)
   - docs/adr/ADR-0023 (Predictive Research boundary — S039)
@@ -64,15 +64,15 @@ and are compared against each other and the S040 baselines on one dataset finger
 
 ## 2. In scope
 
-- [ ] Optional extra `ml-trees` = XGBoost, LightGBM, CatBoost.
-- [ ] Three adapters in `infrastructure/ml/trees/`, one protocol, no domain change.
-- [ ] Determinism configuration enforced by the adapter (§4).
-- [ ] `CandidateSetSpec` — declared, capped hyperparameter candidates.
-- [ ] Inner train/validation selection **inside** each training fold (§5).
-- [ ] Native importance (gain / split) plus out-of-sample permutation importance.
-- [ ] Study leaderboard comparing estimator families on one dataset fingerprint.
-- [ ] Report panels: importance, leaderboard, candidate-selection trace.
-- [ ] Overfitting diagnostics: train-fold versus test-fold metric gap.
+- [x] Optional extra `ml-trees` = XGBoost, LightGBM, CatBoost.
+- [x] Three adapters in `infrastructure/ml/trees/`, one protocol, no domain change.
+- [x] Determinism configuration enforced by the adapter (§4).
+- [x] `CandidateSetSpec` — declared, capped hyperparameter candidates.
+- [x] Inner train/validation selection **inside** each training fold (§5).
+- [x] Native importance (gain / split) plus out-of-sample permutation importance.
+- [x] Study leaderboard comparing estimator families on one dataset fingerprint.
+- [x] Report panels: importance, leaderboard, candidate-selection trace.
+- [x] Overfitting diagnostics: train-fold versus test-fold metric gap.
 
 ## 3. Out of scope
 
@@ -158,55 +158,55 @@ report next to the headline number.
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S042-T001 | Wave 0 decisions (library set, thread policy, candidate caps) | TODO |
+| S042-T001 | Wave 0 decisions (library set, thread policy, candidate caps) | DONE |
 
 ### Wave 1 — Adapters
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S042-T002 | Optional extra `ml-trees` + missing-extra errors | TODO |
-| S042-T003 | XGBoost adapter (regression + classification) | TODO |
-| S042-T004 | LightGBM adapter (regression + classification) | TODO |
-| S042-T005 | CatBoost adapter (regression + classification) | TODO |
-| S042-T006 | Determinism enforcement + rejection of non-deterministic options | TODO |
-| S042-T007 | Reproducibility test: identical predictions across repeated fits | TODO |
+| S042-T002 | Optional extra `ml-trees` + missing-extra errors | DONE |
+| S042-T003 | XGBoost adapter (regression + classification) | DONE |
+| S042-T004 | LightGBM adapter (regression + classification) | DONE |
+| S042-T005 | CatBoost adapter (regression + classification) | DONE |
+| S042-T006 | Determinism enforcement + rejection of non-deterministic options | DONE |
+| S042-T007 | Reproducibility test: identical predictions across repeated fits | DONE |
 
 ### Wave 2 — Bounded selection
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S042-T008 | `CandidateSetSpec` + cap validation | TODO |
-| S042-T009 | Inner train/validation split within the training fold | TODO |
-| S042-T010 | Per-fold candidate selection + refit on full train fold | TODO |
-| S042-T011 | Early stopping bound to inner validation; outer-test usage rejected | TODO |
-| S042-T012 | Selection trace persisted (candidate scores per fold) | TODO |
+| S042-T008 | `CandidateSetSpec` + cap validation | DONE |
+| S042-T009 | Inner train/validation split within the training fold | DONE |
+| S042-T010 | Per-fold candidate selection + refit on full train fold | DONE |
+| S042-T011 | Early stopping bound to inner validation; outer-test usage rejected | DONE |
+| S042-T012 | Selection trace persisted (candidate scores per fold) | DONE |
 
 ### Wave 3 — Importance and diagnostics
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S042-T013 | Native importance extraction per library, normalized shape | TODO |
-| S042-T014 | Out-of-sample permutation importance (seeded, repeated) | TODO |
-| S042-T015 | Train-versus-test metric gap per fold | TODO |
+| S042-T013 | Native importance extraction per library, normalized shape | DONE |
+| S042-T014 | Out-of-sample permutation importance (seeded, repeated) | DONE |
+| S042-T015 | Train-versus-test metric gap per fold | DONE |
 
 ### Wave 4 — Leaderboard and report
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S042-T016 | Study leaderboard across families on one dataset fingerprint | TODO |
-| S042-T017 | Report panel: importance (native + permutation) | TODO |
-| S042-T018 | Report panel: leaderboard including S040 baselines | TODO |
-| S042-T019 | Report panel: candidate selection trace + overfitting gap | TODO |
+| S042-T016 | Study leaderboard across families on one dataset fingerprint | DONE |
+| S042-T017 | Report panel: importance (native + permutation) | DONE |
+| S042-T018 | Report panel: leaderboard including S040 baselines | DONE |
+| S042-T019 | Report panel: candidate selection trace + overfitting gap | DONE |
 
 ### Wave 5 — Closure
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S042-T020 | Comparison study on the canonical dataset (baselines + three families) | TODO |
-| S042-T021 | Import test: framework usable without `ml-trees` | TODO |
-| S042-T022 | Docs: RESEARCH_METHODOLOGIES, MODULE_MAP, CURRENT_STATUS | TODO |
+| S042-T020 | Comparison study on the canonical dataset (baselines + three families) | DONE |
+| S042-T021 | Import test: framework usable without `ml-trees` | DONE |
+| S042-T022 | Docs: RESEARCH_METHODOLOGIES, MODULE_MAP, CURRENT_STATUS | DONE |
 
-**Progress:** 0 / 22 tasks
+**Progress:** 22 / 22 tasks
 
 ---
 
@@ -269,7 +269,9 @@ answered by permutation importance; record the decision in the Wave 0 document i
 
 ## 12. Dependencies
 
-**Required:** S040 estimator seam and metrics; S041 panel registry.
+**Required:** S040 estimator seam and metrics (on `main` #319).
+
+**Required for Wave 4 only:** S041 panel registry (integration PR #325).
 
 **Not required:** networks, dashboard, robustness experiments.
 
@@ -290,4 +292,4 @@ uv run pytest
 
 Sprint 043 adds neural estimators through the same seam. The leaderboard built here is what makes
 that comparison meaningful — if networks cannot beat these trees, the leaderboard will say so
-plainly.
+plainly. Integration PR #335 lands the sprint on `main`. Do not start S043 until it merges.

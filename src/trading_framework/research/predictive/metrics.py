@@ -235,10 +235,22 @@ class PredictiveMetricsReport:
     seed: int
     folds: Mapping[str, Mapping[str, SourceMetrics]]
     pooled: Mapping[str, SourceMetrics]
+    fold_primary: Mapping[str, Mapping[str, float | None]] | None = None
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "folds", _freeze_fold_metrics(self.folds))
         object.__setattr__(self, "pooled", _freeze_source_metrics(self.pooled))
+        if self.fold_primary is not None:
+            object.__setattr__(
+                self,
+                "fold_primary",
+                MappingProxyType(
+                    {
+                        str(fold_id): MappingProxyType(dict(values))
+                        for fold_id, values in self.fold_primary.items()
+                    }
+                ),
+            )
         if not self.folds:
             msg = "metrics must include per-fold results; pooled-only output is invalid"
             raise ValidationError(msg)
@@ -260,7 +272,7 @@ class PredictiveMetricsReport:
             raise ValidationError(msg)
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        payload: dict[str, Any] = {
             "schema_version": self.schema_version,
             "run_id": self.run_id,
             "task_type": self.task_type.value,
@@ -272,6 +284,11 @@ class PredictiveMetricsReport:
             },
             "pooled": {source: metrics.to_dict() for source, metrics in self.pooled.items()},
         }
+        if self.fold_primary is not None:
+            payload["fold_primary"] = {
+                fold_id: dict(values) for fold_id, values in self.fold_primary.items()
+            }
+        return payload
 
     @classmethod
     def from_dict(cls, payload: Mapping[str, Any]) -> PredictiveMetricsReport:
@@ -302,6 +319,7 @@ class PredictiveMetricsReport:
                 str(source): SourceMetrics.from_dict(metrics)
                 for source, metrics in pooled_raw.items()
             },
+            fold_primary=_optional_fold_primary(payload.get("fold_primary")),
         )
 
 
@@ -404,6 +422,27 @@ def permutation_shuffle(
     array = np.asarray(values, dtype=np.float64)
     rng = np.random.default_rng(int(seed))
     return array[rng.permutation(array.shape[0])]
+
+
+def selection_metric_value(
+    metric: str,
+    *,
+    y_true: np.ndarray,
+    y_pred: np.ndarray,
+    y_score: np.ndarray | None = None,
+) -> float | None:
+    """Score inner-validation predictions for bounded candidate selection."""
+    if metric == "spearman_ic":
+        return regression_statistical_metrics(y_true, y_pred).spearman_ic
+    if metric == "roc_auc":
+        scores = y_pred if y_score is None else y_score
+        return classification_statistical_metrics(
+            y_true,
+            scores,
+            threshold=CLASSIFICATION_DECISION_THRESHOLD,
+        ).roc_auc
+    msg = f"unsupported selection metric: {metric!r}"
+    raise ValidationError(msg)
 
 
 def regression_statistical_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> StatisticalMetrics:
@@ -780,6 +819,27 @@ def _optional_float(value: object) -> float | None:
     if not np.isfinite(number):
         return None
     return number
+
+
+def _optional_fold_primary(
+    value: object,
+) -> Mapping[str, Mapping[str, float | None]] | None:
+    if value is None:
+        return None
+    if not isinstance(value, Mapping):
+        msg = "fold_primary must be a mapping"
+        raise ValidationError(msg)
+    payload: dict[str, Mapping[str, float | None]] = {}
+    for fold_id, raw in value.items():
+        if not isinstance(raw, Mapping):
+            msg = f"fold_primary[{fold_id!r}] must be a mapping"
+            raise ValidationError(msg)
+        payload[str(fold_id)] = {
+            "train_primary": _optional_float(raw.get("train_primary")),
+            "test_primary": _optional_float(raw.get("test_primary")),
+            "primary_gap": _optional_float(raw.get("primary_gap")),
+        }
+    return payload
 
 
 def _freeze_source_metrics(values: Mapping[str, SourceMetrics]) -> Mapping[str, SourceMetrics]:
