@@ -27,14 +27,14 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 
 ```text
 Status Date: 2026-08-26
-Current Phase: Phase 10B Tree-Based Predictive Models (S042 Wave 0)
-Current Milestone: S042 Wave 0 decisions
-Implementation Status: Sprints 001-006, 008-024, 025-041 on main; S042 Wave 0 on sprint/predictive-tree-models
+Current Phase: Phase 10B Tree-Based Predictive Models (S042)
+Current Milestone: S042 T001–T016 + T020–T021; T017–T019 report panels next
+Implementation Status: Sprints 001-006, 008-024, 025-041 on main; S042 Waves 0–4 T016 on sprint/predictive-tree-models (18/22)
 Overall Status: STABLE
-Active Sprint: SPRINT_042 (Wave 0)
+Active Sprint: SPRINT_042
 Last Completed Sprint: SPRINT_041 (Predictive Research report v1) → main (#325)
 Capability Tracks: Foundation COMPLETE; Data COMPLETE (core); Research COMPLETE (core); Strategy 6A COMPLETE; Phase 8A dry-run + S024 on main; Dashboard / Live Paper / public demo COMPLETE; Phase 10A COMPLETE (S039–S041)
-Recent: S041 on main (#325). S042 Wave 0 on sprint/predictive-tree-models.
+Recent: S041 on main (#325). S042 on sprint/predictive-tree-models through T021 (adapters, selection, importance, leaderboard, comparison). Wave 4 report panels next.
 ```
 
 ---
@@ -264,9 +264,10 @@ CLI: `scripts/predictive_research/render_predictive_report.py`. Offline Plotly
 (inline embed; no CDN). See `SPRINT_041.md` and `S041_WAVE0_DECISIONS.md`.
 
 **Sprint 042 — Tree-Based Predictive Models (Phase 10B)** is **IN PROGRESS**
-(Wave 0 on `sprint/predictive-tree-models`, 2026-08-26).
-
-See `SPRINT_042.md` and `S042_WAVE0_DECISIONS.md`.
+on `sprint/predictive-tree-models` (2026-08-26). Working PRs #326–#332 landed
+adapters, bounded selection, importance diagnostics, the study leaderboard,
+and the known-signal comparison study. Wave 4 report panels (T017–T019)
+and T022 closure docs remain. See `SPRINT_042.md` and `S042_WAVE0_DECISIONS.md`.
 
 ---
 
@@ -575,8 +576,8 @@ determinism and known-signal tests
 
 ## 7. Blocked Work
 
-Nothing is technically blocked. Sprint 042 Wave 0 is in progress. Sprint 017
-integration PR from
+Nothing is technically blocked. Sprint 042 Wave 4 report panels (T017–T019)
+remain after S041 landed as #325. Sprint 017 integration PR from
 `sprint/model-research-methodology-mvp` to `main` remains pending and does not
 block Phase 10.
 
@@ -666,13 +667,13 @@ Sprint 040 Predictive Research baselines COMPLETED on main (#319; #310–#318).
 Sprint 041 Predictive Research report COMPLETED on main (#325; #320–#324).
 ADR-0023 ACCEPTED. Phase 10A is complete.
 
-Next: Sprint 042 — tree-based predictive models (Wave 0 on sprint/predictive-tree-models).
+Next: Sprint 042 report panels after #325; then T022 closure docs.
 
 Catalog in parallel (does not block S042):
     wick / distance catalog PRs
 
 Phase 10 remainder (ROADMAP §13A):
-      S042 tree-based models (XGBoost / LightGBM / CatBoost, bounded search) — Wave 0
+      S042 tree-based models — in progress on sprint/predictive-tree-models
       S043 neural models (feedforward + LSTM, sequence windows)
       S044 dashboard page + IDEA-014 promotion gate (ADR-0024)
 
@@ -754,7 +755,7 @@ See `docs/planning/sprints/SPRINT_042.md`, `S042_WAVE0_DECISIONS.md`, `SPRINT_04
 | 039 | Predictive Research dataset foundation (Phase 10A) | COMPLETED | 20 / 20 tasks; main #309; working PRs #302–#308 |
 | 040 | Baseline regression + classification (Phase 10A) | COMPLETED | 23 / 23 tasks; main #319; working PRs #310–#318 |
 | 041 | Predictive Research report v1 (Phase 10A) | COMPLETED | 16 / 16 tasks; main #325; working PRs #320–#324 |
-| 042 | Tree-based predictive models (Phase 10B) | IN PROGRESS | 1 / 22 tasks; Wave 0; `sprint/predictive-tree-models` |
+| 042 | Tree-based predictive models (Phase 10B) | IN PROGRESS | 18 / 22 tasks; `sprint/predictive-tree-models`; T017–T019 + T022 remain |
 | 043 | Neural predictive models (Phase 10C) | PLANNED | 0 / 21 tasks; `SPRINT_043.md` |
 | 044 | Predictive dashboard + IDEA-014 gate (Phase 10C) | PLANNED | 0 / 18 tasks; `SPRINT_044.md` |
 
