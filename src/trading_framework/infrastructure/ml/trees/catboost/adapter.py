@@ -261,17 +261,13 @@ def _build_catboost_estimator(spec: EstimatorSpec) -> Any:
             "thread_count": 1,
             "task_type": "CPU",
             "random_seed": spec.seed,
-            "random_state": spec.seed,
             "verbose": False,
             "allow_writing_files": False,
             "loss_function": loss_function,
         }
     )
-    probe = cls(allow_writing_files=False, verbose=False)
-    allowed = set(probe.get_params())
-    constructor_kwargs = {key: value for key, value in pinned.items() if key in allowed}
     try:
-        return cls(**constructor_kwargs)
+        return cls(**pinned)
     except (TypeError, ValueError) as exc:
         msg = f"invalid hyperparameters for {spec.family}: {exc}"
         raise PredictiveSpecError(msg) from exc

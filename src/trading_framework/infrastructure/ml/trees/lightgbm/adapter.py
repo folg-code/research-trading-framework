@@ -257,10 +257,8 @@ def _build_lightgbm_estimator(spec: EstimatorSpec) -> Any:
             "boosting_type": "gbdt",
         }
     )
-    allowed = set(cls().get_params())
-    constructor_kwargs = {key: value for key, value in pinned.items() if key in allowed}
     try:
-        return cls(**constructor_kwargs)
+        return cls(**pinned)
     except (TypeError, ValueError) as exc:
         msg = f"invalid hyperparameters for {spec.family}: {exc}"
         raise PredictiveSpecError(msg) from exc
