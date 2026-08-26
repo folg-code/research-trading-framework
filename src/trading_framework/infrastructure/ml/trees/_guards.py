@@ -156,3 +156,26 @@ def _json_stable_value(value: object) -> object:
     if isinstance(value, (list, tuple)):
         return [_json_stable_value(item) for item in value]
     return str(value)
+
+
+def named_importance_vector(scores: Mapping[str, Any], *, n_features: int) -> tuple[float, ...]:
+    """Align ``{f0: gain, ...}`` maps to a dense vector in column order."""
+    values: list[float] = []
+    for index in range(n_features):
+        found = 0.0
+        for key in (f"f{index}", str(index), f"Feature_{index}"):
+            if key in scores:
+                found = float(scores[key])
+                break
+        values.append(found)
+    return tuple(values)
+
+
+def array_importance_vector(scores: object, *, n_features: int) -> tuple[float, ...]:
+    """Align a library importance array to ``n_features`` columns."""
+    array = np.asarray(scores, dtype=np.float64).reshape(-1)
+    if array.shape[0] >= n_features:
+        return tuple(float(value) for value in array[:n_features])
+    padded = np.zeros(n_features, dtype=np.float64)
+    padded[: array.shape[0]] = array
+    return tuple(float(value) for value in padded)

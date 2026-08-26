@@ -101,14 +101,63 @@ class EstimatorSpec:
         )
 
 
+@dataclass(frozen=True, slots=True)
+class NativeFeatureImportance:
+    """Library-native gain / split scores, aligned to feature columns (D-S042-12).
+
+    Training-fold statistics. Displayed beside permutation importance; not the
+    conclusion on their own.
+    """
+
+    feature_names: tuple[str, ...]
+    gain: tuple[float, ...]
+    split: tuple[float, ...] | None = None
+
+    def __post_init__(self) -> None:
+        if len(self.feature_names) != len(self.gain):
+            msg = "native importance feature_names and gain must be the same length"
+            raise PredictiveSpecError(msg)
+        if self.split is not None and len(self.split) != len(self.gain):
+            msg = "native importance split scores must match gain length"
+            raise PredictiveSpecError(msg)
+
+    def relabel(self, feature_names: tuple[str, ...]) -> NativeFeatureImportance:
+        if len(feature_names) != len(self.gain):
+            msg = (
+                f"cannot relabel native importance: got {len(feature_names)} names "
+                f"for {len(self.gain)} scores"
+            )
+            raise PredictiveSpecError(msg)
+        return NativeFeatureImportance(
+            feature_names=feature_names,
+            gain=self.gain,
+            split=self.split,
+        )
+
+    def to_dict(self) -> dict[str, Any]:
+        payload: dict[str, Any] = {
+            "feature_names": list(self.feature_names),
+            "gain": list(self.gain),
+        }
+        if self.split is not None:
+            payload["split"] = list(self.split)
+        return payload
+
+
 class FittedPredictiveEstimator(Protocol):
-    """Fitted estimator that can score feature rows."""
+    """Fitted estimator that can score feature rows.
+
+    ``native_feature_importance()`` is optional at the value level: sklearn
+    adapters return ``None``. Tree adapters return scores after ``fit()``.
+    """
 
     def predict(self, features: np.ndarray) -> np.ndarray: ...
 
     def predict_proba(self, features: np.ndarray) -> np.ndarray | None: ...
 
     def describe(self) -> EstimatorDescription: ...
+
+    def native_feature_importance(self) -> NativeFeatureImportance | None: ...
 
 
 class PredictiveEstimator(Protocol):

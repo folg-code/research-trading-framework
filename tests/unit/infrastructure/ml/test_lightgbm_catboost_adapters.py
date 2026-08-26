@@ -246,3 +246,22 @@ def test_regressor_recovers_linear_signal(family: str) -> None:
     )
     correlation = float(np.corrcoef(target, predicted)[0, 1])
     assert correlation > 0.85
+
+
+@pytest.mark.parametrize("family", _REGRESSORS)
+def test_native_feature_importance_has_gain_per_column(family: str) -> None:
+    rng = np.random.default_rng(0)
+    features = rng.normal(size=(80, 3))
+    target = 2.5 * features[:, 0] - 1.25 * features[:, 1]
+    fitted = resolve_estimator(
+        _spec(family, TaskType.REGRESSION, n_estimators=40, max_depth=3, learning_rate=0.1)
+    ).fit(features, target, None)
+    importance = fitted.native_feature_importance()
+    assert importance is not None
+    assert len(importance.gain) == 3
+    assert importance.gain[0] >= importance.gain[2]
+    if family.startswith("lightgbm"):
+        assert importance.split is not None
+        assert len(importance.split) == 3
+    else:
+        assert importance.split is None

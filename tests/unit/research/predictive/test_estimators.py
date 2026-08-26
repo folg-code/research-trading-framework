@@ -11,6 +11,7 @@ import pytest
 from trading_framework.research.predictive import (
     EstimatorSpec,
     FittedPredictiveEstimator,
+    NativeFeatureImportance,
     PredictiveEstimator,
     PredictiveSpecError,
     TaskType,
@@ -134,6 +135,8 @@ def test_protocols_are_structural() -> None:
     hints = get_type_hints(PredictiveEstimator.fit)
     assert hints["features"] is np.ndarray
     assert hints["return"] is FittedPredictiveEstimator
+    native_hints = get_type_hints(FittedPredictiveEstimator.native_feature_importance)
+    assert native_hints["return"] == NativeFeatureImportance | None
 
 
 def test_estimator_description_freezes_resolved_params() -> None:

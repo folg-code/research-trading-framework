@@ -5,7 +5,7 @@
 ```text
 Sprint: 042
 Phase: Phase 10B — Tree-Based Predictive Models
-Status: IN PROGRESS (Wave 0)
+Status: IN PROGRESS (Wave 3)
 Planned Start: 2026-08-26
 Planned End: TBD
 Sprint Goal Owner: Project Maintainer
@@ -185,9 +185,9 @@ report next to the headline number.
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S042-T013 | Native importance extraction per library, normalized shape | TODO |
-| S042-T014 | Out-of-sample permutation importance (seeded, repeated) | TODO |
-| S042-T015 | Train-versus-test metric gap per fold | TODO |
+| S042-T013 | Native importance extraction per library, normalized shape | DONE |
+| S042-T014 | Out-of-sample permutation importance (seeded, repeated) | DONE |
+| S042-T015 | Train-versus-test metric gap per fold | DONE |
 
 ### Wave 4 — Leaderboard and report
 
@@ -206,7 +206,7 @@ report next to the headline number.
 | S042-T021 | Import test: framework usable without `ml-trees` | TODO |
 | S042-T022 | Docs: RESEARCH_METHODOLOGIES, MODULE_MAP, CURRENT_STATUS | TODO |
 
-**Progress:** 12 / 22 tasks
+**Progress:** 15 / 22 tasks
 
 ---
 

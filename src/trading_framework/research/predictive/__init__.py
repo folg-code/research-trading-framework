@@ -9,6 +9,7 @@ from trading_framework.research.predictive.estimators import (
     EstimatorDescription,
     EstimatorSpec,
     FittedPredictiveEstimator,
+    NativeFeatureImportance,
     PredictiveEstimator,
     TaskType,
 )
@@ -17,6 +18,14 @@ from trading_framework.research.predictive.features import (
     FeatureMatrixSpec,
     FeatureSpec,
     FeatureTransform,
+)
+from trading_framework.research.predictive.importance import (
+    DEFAULT_PERMUTATION_REPEATS,
+    FoldPrimaryGap,
+    ImportanceTrace,
+    PermutationImportance,
+    permutation_feature_importance,
+    primary_gap,
 )
 from trading_framework.research.predictive.labels import LabelKind, LabelSpec
 from trading_framework.research.predictive.matrix import (
@@ -75,6 +84,7 @@ __all__ = [
     "CLASSIFICATION_DECISION_THRESHOLD",
     "DEFAULT_INNER_VALIDATION_FRACTION",
     "DEFAULT_MAX_CANDIDATES",
+    "DEFAULT_PERMUTATION_REPEATS",
     "MAX_CANDIDATES_CAP",
     "MIN_INNER_SPLIT_ROWS",
     "PREDICTIVE_METRICS_SCHEMA_VERSION",
@@ -88,13 +98,17 @@ __all__ = [
     "FeatureTransform",
     "FinanceMetrics",
     "FittedPredictiveEstimator",
+    "FoldPrimaryGap",
     "FoldRole",
     "FoldSelectionTrace",
+    "ImportanceTrace",
     "LabelKind",
     "LabelSpec",
     "LabelledFeatureMatrix",
     "MatrixExclusionCounts",
     "MetricSource",
+    "NativeFeatureImportance",
+    "PermutationImportance",
     "PredictiveEstimator",
     "PredictiveExtraError",
     "PredictiveMatrixError",
@@ -121,6 +135,8 @@ __all__ = [
     "fold_train_targets",
     "load_predictive_study_spec",
     "load_predictive_study_spec_from_dict",
+    "permutation_feature_importance",
+    "primary_gap",
     "require_early_stopping_eval_roles",
     "require_train_only_fit_roles",
     "select_winning_index",
