@@ -1002,6 +1002,112 @@ D-S027-08). Do not silently change continuous Parquet schema.
 - `session_workers` (default 4 via `build_continuous`) parallelizes per-session load/transform/write.
 - Residual: continuous `price` remains string until an explicit ADR/`price_nanos` migration.
 
+---
+
+## TD-021 — Predictive Research Has No Model Registry
+
+```text
+Status: ACCEPTED
+Priority: MEDIUM
+Domain: Predictive Research
+Introduced: Sprint 040 (2026-08-26)
+Target Review: Sprint 044 / IDEA-014 promotion gate
+Owner: Unassigned
+```
+
+### Accepted Shortcut
+
+Predictive runs are addressed by content fingerprint under
+`research/predictive_research/runs/{run_id}/`. There is no registry, no promotion
+workflow, and no model lifecycle state.
+
+### Reason
+
+A registry is a product, not a storage layout. S040 needs reproducible runs, not
+an addressable model store. IDEA-014 promotion (S044 / ADR-0024) is the first
+consumer that might need one.
+
+### Consequences
+
+- runs are found by `run_id` / fingerprint, not by a catalog,
+- there is no promotion or retirement workflow,
+- S044 must decide whether a content-addressed store suffices.
+
+### Safe Operating Boundary
+
+Do not invent a registry in S041–S043. Analyze and report from persisted
+predictions and metrics. Do not treat `run_id` directories as a promotion API.
+
+### Repayment Trigger
+
+Promoting a trained model to a Market Analysis component (IDEA-014), which
+requires an addressable, durable artifact store. Sprint 044 ADR-0024 decides
+whether a content-addressed store suffices or a registry is genuinely required.
+
+### Repayment Direction
+
+Decide in ADR-0024. Do not add a registry as a side effect of trees or networks.
+
+### Related Problems
+
+- IDEA-014 (promotion gate).
+
+---
+
+## TD-022 — Fitted Predictive Artifacts Are Opaque and Not Portable
+
+```text
+Status: ACCEPTED
+Priority: LOW
+Domain: Predictive Research
+Introduced: Sprint 040 (2026-08-26)
+Target Review: When a library upgrade blocks inspection, or at IDEA-014
+Owner: Unassigned
+```
+
+### Accepted Shortcut
+
+The durable facts of a run are `predictions.parquet` and `metrics.json`. Fitted
+estimators are stored as opaque `models/fold_{n}.bin` blobs (joblib), tagged with
+library name and version. The framework makes no promise that a blob can be
+loaded after a library upgrade. Reproduction re-fits from the manifest.
+
+### Reason
+
+Predictions and metrics stay readable in ten years. A model registry or a
+stability-guaranteed serializer would expand S040 into infrastructure that Phase
+10 explicitly deferred.
+
+### Consequences
+
+- a run whose library version is no longer installable can be read and analyzed
+  but not re-fitted identically,
+- `analyze_predictive_run` must not call `joblib.load`,
+- inspection after a bump requires a re-fit.
+
+### Safe Operating Boundary
+
+No workflow may depend on reloading a fitted blob. Fingerprints record library
+name + version so a bump is a different experiment, not a silent drift.
+
+### Repayment Trigger
+
+Model promotion (same as TD-021), or a demonstrated need to inspect old artifacts
+after a library upgrade.
+
+### Repayment Direction
+
+Choose a serialization format with a stability guarantee. That is not the same
+as adding a registry.
+
+### Related Tasks
+
+- `TECHNICAL_DEBT.md` §6 Phase 10 planned boundaries (now live)
+- `SPRINT_040.md` §8
+- ADR-0023 §7
+
+---
+
 # 6. Planned Debt Boundaries
 
 The following shortcuts may be accepted later but are not yet introduced:
@@ -1014,18 +1120,20 @@ The following shortcuts may be accepted later but are not yet introduced:
 - no UI,
 - no distributed task scheduler,
 - no live multi-account support,
-- no automatic ML model registry,
-- no portability guarantee for fitted model artifacts (Phase 10).
+- no automatic ML model registry (accepted as TD-021 in Sprint 040),
+- no portability guarantee for fitted model artifacts (accepted as TD-022 in Sprint 040).
 ```
 
 They should become technical-debt entries only when implementation consciously relies on them and repayment conditions are known.
 
-## Phase 10 — Predictive Research (planned, Sprints 039–044)
+## Phase 10 — Predictive Research (accepted in Sprint 040)
 
-Two shortcuts are accepted by design when Phase 10 starts. They are listed here so that a later
-sprint does not mistake them for oversights.
+The two shortcuts below were planned before S039 and became live when S040 persisted
+run envelopes. Numbered entries: **TD-021** (no model registry, MEDIUM) and
+**TD-022** (opaque fitted blobs, LOW). Restated here so S041–S044 do not treat
+them as oversights.
 
-### No model registry
+### No model registry (TD-021)
 
 Predictive runs are addressed by content fingerprint under
 `research/predictive_research/runs/{run_id}/`. There is no registry, no promotion workflow and no
@@ -1035,7 +1143,7 @@ model lifecycle state.
 requires an addressable, durable artifact store. Sprint 044 ADR-0024 decides whether a
 content-addressed store suffices or a registry is genuinely required.
 
-### Fitted artifacts are not portable
+### Fitted artifacts are not portable (TD-022)
 
 The durable facts of a run are `predictions.parquet` and `metrics.json`. The fitted model is stored
 as an opaque blob tagged with library name and version, and the framework promises nothing about

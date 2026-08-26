@@ -477,12 +477,25 @@ Used to evaluate:
 #### Predictive Research
 
 Used to state a learning problem over Market Analysis outputs and forward
-outcomes, then persist a leakage-guarded labelled dataset. Sprint 039 is the
-Phase 10A **dataset foundation**: study spec, labelled evaluation-bar matrix,
-purged walk-forward fold roles, fingerprint and CLI. It does not produce
-signals and does not train estimators.
+outcomes, persist a leakage-guarded labelled dataset, then train declared
+baselines per fold. Sprint 039 is the dataset foundation (study spec, labelled
+evaluation-bar matrix, purged walk-forward fold roles, fingerprint and CLI).
+Sprint 040 adds the estimator protocol, fold-local preprocessing, sklearn
+adapters (ridge, elastic net, logistic), metrics, and the run envelope.
 
-Storage: `<workspace>/research/predictive_research/datasets/{dataset_id}/`.
+It does not produce signals. Fitted model blobs are opaque convenience artifacts;
+the durable facts are predictions and metrics. A run is reproduced by re-fitting
+from the manifest, not by deserializing a blob.
+
+```text
+PredictiveDatasetEnvelope
+  → run_predictive_research
+  → predictions.parquet + metrics.json + opaque models/fold_{n}.bin
+```
+
+Storage: `<workspace>/research/predictive_research/datasets/{dataset_id}/` and
+`runs/{run_id}/`. Optional extra `ml` (scikit-learn) is required only for the
+estimator path; the default install stays extra-free.
 
 #### Future Portfolio Research
 

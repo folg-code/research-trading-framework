@@ -33,7 +33,7 @@ flowchart LR
 | Model Research Methodology | Is a model study reproducible, bounded and diagnostically sound?       | Study artifacts, diagnostics and comparisons   |
 | Strategy Research          | Does a complete strategy produce acceptable simulated results?         | Trades, equity and performance metrics         |
 | Robustness Research        | Does the result survive variation and stress?                          | Stability diagnostics and robustness verdict   |
-| Predictive Research        | Is there predictable structure in these features out of sample?        | Labelled feature matrix, fold roles, dataset envelope |
+| Predictive Research        | Is there predictable structure in these features out of sample?        | Labelled matrix, fold roles, out-of-sample predictions and metrics |
 | Portfolio Research         | How should multiple strategies be combined?                            | Portfolio behaviour and allocation analysis    |
 
 
@@ -383,10 +383,11 @@ Its purpose is to expose fragility, concentration and unsupported assumptions be
 
 Predictive Research is a methodology **alongside** Signal, Strategy and Robustness research.
 It answers a learning question. It does **not** produce signals, extend Strategy Research,
-or train an estimator in this slice.
+or promote a trained model to a tradable component.
 
-Phase 10A (Sprint 039) is the **dataset foundation only**. Estimators, metrics, reports and
-ML extras belong to later sprints (S040+). Sprint 039 adds no ML dependency.
+Phase 10A now covers the dataset foundation (Sprint 039) and baseline estimators
+(Sprint 040). Linear and logistic baselines are the control group for later tree
+and neural estimators. Models do not trade.
 
 ### Research Question
 
@@ -396,14 +397,18 @@ ML extras belong to later sprints (S040+). Sprint 039 adds no ML dependency.
 
 - declaring a supervised learning problem over Market Analysis outputs,
 - labelling evaluation bars from reused forward outcomes,
-- proving absence of temporal leakage before any model is fit.
+- proving absence of temporal leakage before any model is fit,
+- training declared baselines (ridge, elastic net, logistic) per fold,
+- measuring statistical and finance-aware metrics against naive reference baselines.
 
 ### Not Suitable For
 
 - emitting tradable signals,
 - Strategy Research (trades, equity, PnL),
 - Robustness Research (parameter / stress verdicts),
-- estimator training, predictions, or reports (S040 / S041).
+- HTML reports and dashboards (S041 / S044),
+- tree or neural estimators (S042 / S043),
+- promoting a trained model to Market Analysis (IDEA-014 → S044 / ADR-0024).
 
 ### Samples
 
@@ -421,8 +426,9 @@ Bounded transforms this slice: `NONE`, `LOG`, `DIFF`, `PCT_CHANGE`.
 `RANK` is **rejected** at matrix build — cross-sectional versus expanding rank is
 ambiguous, and a global rank would leak.
 
-Preprocessing that must be fitted (scaling, encoding, imputation) is out of the
-dataset builder; it belongs to training folds in S040.
+Preprocessing that must be fitted (scaling, imputation) is **not** part of the
+dataset builder. Sprint 040 fits `IMPUTE_MEDIAN` then `STANDARDIZE` inside each
+fold on `TRAIN` rows only. `PURGED` and `EMBARGOED` rows never reach `fit()`.
 
 ### Workflow
 
@@ -433,9 +439,14 @@ Published DatasetRef
   → labelled matrix (entity_id, horizon_bars, availability, label)
   → purged + embargoed walk-forward fold roles
   → PredictiveDatasetEnvelope (manifest + fingerprint)
+  → EstimatorSpec (family + hyperparameters + seed)
+  → run_predictive_research (per-fold fit on TRAIN, predict on TEST)
+  → PredictiveRunEnvelope (predictions.parquet, metrics.json, opaque blobs)
+  → analyze_predictive_run (read-only; never deserializes model blobs)
 ```
 
-CLI: `scripts/predictive_research/build_predictive_dataset.py`
+CLIs: `scripts/predictive_research/build_predictive_dataset.py`,
+`run_predictive_research.py`, `analyze_predictive_run.py`.
 
 ### Fold roles
 
@@ -466,13 +477,23 @@ characters of that fingerprint.
   manifest.json
   features.parquet
   folds.json
+<workspace>/research/predictive_research/runs/{run_id}/
+  manifest.json
+  predictions.parquet
+  metrics.json
+  models/fold_{n}.bin    # opaque; reproduce by re-fitting from the manifest
 ```
+
+Durable facts of a run are predictions and metrics. Fitted blobs are convenience
+only, tagged with library name and version. No workflow depends on reloading them.
 
 ### Typical Questions
 
 - Can these analysis columns be assembled into a leakage-safe labelled matrix?
 - How many rows does purge / embargo remove from each fold?
 - Does rebuilding an unchanged spec yield the same fingerprint?
+- Do ridge / elastic net / logistic beat constant, majority, and permutation baselines out of sample?
+- Is the result stable across folds, or does one fold carry the pooled metric?
 
 ---
 
@@ -560,7 +581,7 @@ Examples:
 - a component may be studied without ever becoming part of a strategy,
 - a strategy may be simulated directly from an existing model definition,
 - a robustness experiment may be rerun against an already persisted strategy family,
-- a predictive dataset may be built without ever becoming a signal or a strategy,
+- a predictive dataset may be built and baselines trained without ever becoming a signal or a strategy,
 - portfolio research may compare strategies created through different research paths.
 
 ---
@@ -575,6 +596,7 @@ Research outputs are persisted as structured artifacts.
 | Run manifest        | Records inputs, definitions and assumptions     |
 | Research facts      | Stores observations, outcomes or trades         |
 | Dataset envelope    | Stores labelled matrix, fold roles and fingerprint (Predictive Research) |
+| Run envelope        | Stores predictions, metrics and opaque fitted blobs (Predictive Research) |
 | Analytics           | Stores derived summaries and diagnostics        |
 | Report              | Presents persisted results                      |
 | Experiment manifest | Groups related runs                             |
@@ -694,7 +716,7 @@ Core rules:
 | Model Research Methodology | Yes                   | Defines a controlled study protocol   |
 | Strategy Research          | Yes                   | Studies complete simulated strategies |
 | Robustness Research        | Yes                   | Evaluates credibility and stability   |
-| Predictive Research        | Yes                   | Studies predictable structure in features (Phase 10A: dataset only; no estimators) |
+| Predictive Research        | Yes                   | Studies predictable structure in features (Phase 10A: dataset + baselines; not trading) |
 | Portfolio Research         | Planned               | Studies strategy combinations         |
 | Live Execution             | No                    | Applies selected logic operationally  |
 | Visualization              | No                    | Presents persisted results            |
@@ -725,7 +747,7 @@ artifacts (ADR-0022). Produce them under `artifacts/demo/output/` via
 | Combined Model Research | `artifacts/demo/output/model_research/` / portfolio index entries          | Forward-outcome analysis for a signal conditioned by market context |
 | Strategy Research       | `artifacts/demo/output/00_strategy_dashboard_nq_half_year.html` (hero)     | Trade ledger, equity, drawdown and strategy performance analysis |
 | Robustness Research     | `artifacts/demo/output/07_robustness_dashboard.html`                       | Parameter sensitivity, walk-forward, stress, Monte Carlo and diagnostics |
-| Predictive Research     | — (no HTML report in Phase 10A dataset slice; S041)                        | Labelled matrix and fold envelope; reports are a later sprint |
+| Predictive Research     | — (no HTML report in S040; S041)                                   | Predictions, metrics, and fold envelope; reports are the next sprint |
 
 For day-to-day inspection of research runs, prefer **`apps/dashboard`**
 (Sprint 028) over regenerating HTML.
