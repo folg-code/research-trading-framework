@@ -117,7 +117,7 @@ Market Data policy (facts not indicators, vendor independence): **§14 Research 
 
 Test data tiers and live-data gate: **§15**.
 
-**Recommended next increment:** **Sprint 042 — tree-based predictive models** (Phase 10B; after S041 merges to `main`). Sprint 041 report v1 is **complete** on `sprint/predictive-research-report` (working PRs #320–#323). Sprints 039–040 are on `main`. Phase 10A is complete after the S041 integration PR. Catalog follow-ons (wick / distance) remain in parallel. Deferred by default: Phase 4B/6B, Phase 8 Replay, PBO/CSCV ADR. Stage 3 (`available_at` column / lineage sidecar) and Stage 4 (`MarketFrame`) remain independently sequenced.
+**Recommended next increment:** **Sprint 042 — tree-based predictive models** (Phase 10B). Sprint 041 report v1 is **complete** (this integration PR; working PRs #320–#324). Sprints 039–040 are on `main`. Phase 10A is complete. Catalog follow-ons (wick / distance) remain in parallel. Deferred by default: Phase 4B/6B, Phase 8 Replay, PBO/CSCV ADR. Stage 3 (`available_at` column / lineage sidecar) and Stage 4 (`MarketFrame`) remain independently sequenced.
 
 ---
 
@@ -1137,12 +1137,12 @@ Minimum future requirements include:
 
 # 13A. Phase 10 — Predictive (ML) Research
 
-**Status:** PLANNED. Numbered `13A` to avoid renumbering sections cited elsewhere.
+**Status:** Phase 10A COMPLETE; Phase 10B/10C PLANNED. Numbered `13A` to avoid
+renumbering sections cited elsewhere.
 
 Sprint 039 (dataset foundation: labelled matrix, purged walk-forward folds, persisted envelope,
 leakage suite, ADR-0023), Sprint 040 (estimator seam, sklearn baselines, run envelope, metrics,
-CLIs), and Sprint 041 (offline HTML report) are implemented. Phase 10A is complete after
-Sprint 041 merges to `main`.
+CLIs), and Sprint 041 (offline HTML report) are implemented. Phase 10A is complete.
 
 **Sprint plans:** `SPRINT_039.md` … `SPRINT_044.md`
 

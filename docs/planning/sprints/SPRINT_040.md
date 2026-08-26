@@ -5,7 +5,7 @@
 ```text
 Sprint: 040
 Phase: Phase 10A — Predictive Research Foundation
-Status: COMPLETED (this integration PR to main)
+Status: COMPLETED (main #319)
 Planned Start: 2026-08-26
 Planned End: 2026-08-26
 Sprint Goal Owner: Project Maintainer
@@ -425,6 +425,6 @@ extra-free; requesting an sklearn family without extra `ml` raises
 ### Follow-up
 
 - Sprint 041 — Predictive Research report v1 (offline Plotly HTML over this
-  envelope; freeze metrics schema once the report consumes it). Not started.
-- Phase 10A is not complete until S041 lands. S042–S044 remain later Phase 10B/10C
+  envelope). Lands with the S041 integration PR.
+- Phase 10A is complete after S041 → `main`. S042–S044 remain later Phase 10B/10C
   work (trees, networks, IDEA-014 gate).
