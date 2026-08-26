@@ -49,6 +49,8 @@ assert run_predictive_research.main is not None
 assert analyze_predictive_run.main is not None
 assert render_predictive_report.main is not None
 assert registered_families()['xgboost.regressor'] == 'ml-trees'
+assert registered_families()['lightgbm.regressor'] == 'ml-trees'
+assert registered_families()['catboost.classifier'] == 'ml-trees'
 
 blocked = ('sklearn', 'xgboost', 'lightgbm', 'catboost')
 loaded = [
