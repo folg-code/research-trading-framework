@@ -239,11 +239,11 @@ Signal Research.
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S039-T013 | `PredictiveDatasetEnvelope` + manifest + repository | TODO |
-| S039-T014 | Storage paths in `infrastructure/storage/paths.py` | TODO |
-| S039-T015 | Dataset fingerprint (spec + feature lineage + dataset ref + range) | TODO |
-| S039-T016 | `build_predictive_dataset` application workflow | TODO |
-| S039-T017 | CLI `scripts/predictive_research/build_predictive_dataset.py` | TODO |
+| S039-T013 | `PredictiveDatasetEnvelope` + manifest + repository | DONE |
+| S039-T014 | Storage paths in `infrastructure/storage/paths.py` | DONE |
+| S039-T015 | Dataset fingerprint (spec + feature lineage + dataset ref + range) | DONE |
+| S039-T016 | `build_predictive_dataset` application workflow | DONE |
+| S039-T017 | CLI `scripts/predictive_research/build_predictive_dataset.py` | DONE |
 
 ### Wave 5 — Leakage tests and closure
 
@@ -253,7 +253,7 @@ Signal Research.
 | S039-T019 | End-to-end fixture test: spec → dataset → reload → identical fingerprint | TODO |
 | S039-T020 | Docs: MODULE_MAP, DATA_WORKFLOWS, RESEARCH_METHODOLOGIES, CURRENT_STATUS | TODO |
 
-**Progress:** 12 / 20 tasks
+**Progress:** 17 / 20 tasks
 
 ---
 
