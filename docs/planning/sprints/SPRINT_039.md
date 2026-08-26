@@ -5,7 +5,7 @@
 ```text
 Sprint: 039
 Phase: Phase 10A — Predictive Research Foundation
-Status: IN_PROGRESS
+Status: COMPLETE (sprint branch; pending integration PR to main)
 Planned Start: 2026-08-26
 Planned End: TBD
 Sprint Goal Owner: Project Maintainer
@@ -68,18 +68,18 @@ whose folds are provably free of temporal leakage — verified by tests, not by 
 
 ## 2. In scope
 
-- [ ] `research/predictive/` domain package (polars + numpy only, no ML libraries).
-- [ ] `FeatureSpec` / `FeatureMatrixSpec` mapping declared features onto `AnalysisFrameColumnSpec`.
-- [ ] `LabelSpec` with regression and classification variants derived from forward outcomes.
-- [ ] Feature matrix builder producing one normalized Polars frame.
-- [ ] `PurgedWalkForwardSplitSpec` + fold planner (rolling and expanding).
-- [ ] `PredictiveDatasetEnvelope`, manifest, repository and storage paths.
-- [ ] Dataset fingerprint covering spec, feature lineage, dataset ref and time range.
-- [ ] Declarative YAML/JSON study spec with `definition_hash`, mirroring
+- [x] `research/predictive/` domain package (polars + numpy only, no ML libraries).
+- [x] `FeatureSpec` / `FeatureMatrixSpec` mapping declared features onto `AnalysisFrameColumnSpec`.
+- [x] `LabelSpec` with regression and classification variants derived from forward outcomes.
+- [x] Feature matrix builder producing one normalized Polars frame.
+- [x] `PurgedWalkForwardSplitSpec` + fold planner (rolling and expanding).
+- [x] `PredictiveDatasetEnvelope`, manifest, repository and storage paths.
+- [x] Dataset fingerprint covering spec, feature lineage, dataset ref and time range.
+- [x] Declarative YAML/JSON study spec with `definition_hash`, mirroring
       `SignalResearchDefinitionSpec`.
-- [ ] CLI `scripts/predictive_research/build_predictive_dataset.py`.
+- [x] CLI `scripts/predictive_research/build_predictive_dataset.py`.
 - [x] Leakage regression tests on deterministic fixtures.
-- [ ] ADR-0023 — Predictive Research domain boundary and leakage policy.
+- [x] ADR-0023 — Predictive Research domain boundary and leakage policy.
 
 ## 3. Out of scope
 
@@ -251,9 +251,13 @@ Signal Research.
 |------|-------------|--------|
 | S039-T018 | Leakage regression suite (see §9) | DONE |
 | S039-T019 | End-to-end fixture test: spec → dataset → reload → identical fingerprint | DONE |
-| S039-T020 | Docs: MODULE_MAP, DATA_WORKFLOWS, RESEARCH_METHODOLOGIES, CURRENT_STATUS | TODO |
+| S039-T020 | Docs: MODULE_MAP, DATA_WORKFLOWS, RESEARCH_METHODOLOGIES, CURRENT_STATUS | DONE |
 
-**Progress:** 19 / 20 tasks
+**Progress:** 20 / 20 tasks
+
+`DATA_WORKFLOWS.md` is not in the repository. T020 recorded research paths in
+`MODULE_MAP.md` (package + `research/predictive_research/` subtree),
+`RESEARCH_METHODOLOGIES.md`, and `ARCHITECTURE_AND_WORKFLOWS.md` §6.
 
 ---
 

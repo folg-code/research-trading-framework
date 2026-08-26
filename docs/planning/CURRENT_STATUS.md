@@ -27,14 +27,14 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 
 ```text
 Status Date: 2026-08-26
-Current Phase: Sprint 039 Predictive Research Foundation (Wave 0)
-Current Milestone: Sprint 039 open on sprint/predictive-research-foundation
-Implementation Status: Sprints 001-006, 008-024, 025-038 on main; S039 Wave 0 docs landing
+Current Phase: Sprint 039 Predictive Research Foundation (waves 1–5a + T020)
+Current Milestone: S039 implementation complete on sprint/predictive-research-foundation; T020 docs landing; pending main integration
+Implementation Status: Sprints 001-006, 008-024, 025-038 on main; S039 waves 1–5a merged on sprint branch
 Overall Status: STABLE
 Active Sprint: sprint/predictive-research-foundation (S039)
 Last Completed Sprint: SPRINT_038 (Session Range) → main (#300)
 Capability Tracks: Foundation COMPLETE; Data COMPLETE (core); Research COMPLETE (core); Strategy 6A COMPLETE; Phase 8A dry-run + S024 on main; Dashboard / Live Paper / public demo COMPLETE
-Recent: S038 on main (#300). Sprint 039 Wave 0 in progress (docs landing on sprint/predictive-research-foundation). ADR-0023 ACCEPTED.
+Recent: S038 on main (#300). Sprint 039 waves 1–5a squash-merged (#303–#307); T020 docs landing. ADR-0023 ACCEPTED.
 ```
 
 ---
@@ -214,10 +214,22 @@ Wave 0 lock A/A/A/A (D-S038-04 … D-S038-07)
 IDEA-014 training remains deferred. Next catalog: wick, then distance-to-level.
 See `SPRINT_038.md` and `S038_WAVE0_DECISIONS.md`.
 
-**Sprint 039 — Predictive Research Dataset Foundation (Phase 10A)** is **open** on
-`sprint/predictive-research-foundation` (Wave 0 in progress, 2026-08-26). Docs landing:
-`S039_WAVE0_DECISIONS.md`, ADR-0023 (ACCEPTED). Implementation waves (specs → matrix →
-splits → persistence → leakage tests) follow after the Wave 0 + ADR docs PR.
+**Sprint 039 — Predictive Research Dataset Foundation (Phase 10A)** is **IN_PROGRESS** on
+`sprint/predictive-research-foundation` (waves 1–5a squash-merged, 2026-08-26). Working PRs:
+#302 (Wave 0 + ADR-0023), #303–#306 (specs → matrix → splits → persistence/CLI), #307
+(leakage suite). T020 as-implemented docs landing. Sprint stays IN_PROGRESS until the
+sprint branch integrates to `main`.
+
+Delivered dataset flow (on sprint branch):
+
+```text
+Published DatasetRef + PredictiveStudySpec
+    → labelled evaluation-bar matrix + purged walk-forward fold roles
+    → PredictiveDatasetEnvelope under research/predictive_research/datasets/{dataset_id}/
+```
+
+ADR: ADR-0023 (ACCEPTED). CLI: `scripts/predictive_research/build_predictive_dataset.py`.
+See `SPRINT_039.md` and `S039_WAVE0_DECISIONS.md`. Next: sprint integration, then S040.
 
 ---
 
@@ -399,9 +411,10 @@ Maintenance: `.cursor/rules/documentation.mdc`
 
 ## 6. Work in Progress
 
-**Sprint 039 — Predictive Research Dataset Foundation (Phase 10A)** — **Wave 0 in progress**
-on `sprint/predictive-research-foundation` (2026-08-26). Docs landing: Wave 0 decisions +
-ADR-0023 (ACCEPTED). No production code yet.
+**Sprint 039 — Predictive Research Dataset Foundation (Phase 10A)** — **IN_PROGRESS**
+on `sprint/predictive-research-foundation` (2026-08-26). Waves 1–5a merged (#303–#307).
+Wave 5a leakage suite done. T020 documentation landing. Sprint remains IN_PROGRESS until
+integration to `main`. Next: sprint integration PR, then Sprint 040 (baseline estimators).
 
 **Plan:** `docs/planning/sprints/SPRINT_039.md` · **Wave 0:** `S039_WAVE0_DECISIONS.md` ·
 **ADR:** ADR-0023 (ACCEPTED) · **Branch:** `sprint/predictive-research-foundation`
@@ -500,10 +513,11 @@ ADR-0023 (ACCEPTED). No production code yet.
 
 ## 7. Blocked Work
 
-Nothing is technically blocked. Active next step: Wave 0 + ADR-0023 docs PR into
-`sprint/predictive-research-foundation`, then S039 specification contracts. Sprint 017
-integration PR from `sprint/model-research-methodology-mvp` to `main` remains pending and
-does not block Phase 10.
+Nothing is technically blocked. Active next step: finish T020 docs PR, then open the
+sprint integration PR `sprint/predictive-research-foundation` → `main`, then Sprint 040
+(baseline regression + classification). Sprint 017 integration PR from
+`sprint/model-research-methodology-mvp` to `main` remains pending and does not block
+Phase 10.
 
 ---
 
@@ -588,8 +602,9 @@ Sprint 037 component libraries + DSL COMPLETED on main (#296).
 Sprint 038 Session Range COMPLETED on main (#300).
 
 Active implementation:
-    Sprint 039 — Predictive Research dataset foundation, Wave 0 docs landing
-      (sprint/predictive-research-foundation; ADR-0023 ACCEPTED)
+    Sprint 039 — Predictive Research dataset foundation, waves 1–5a merged
+      (sprint/predictive-research-foundation; ADR-0023 ACCEPTED; T020 docs landing)
+      Next after this PR: sprint → main integration, then S040
 
 Catalog in parallel (does not block S039):
     wick / distance catalog PRs
@@ -673,7 +688,7 @@ See `docs/planning/sprints/SPRINT_039.md`, `S039_WAVE0_DECISIONS.md`, `SPRINT_03
 | 036 | Research infra audit (DSL/component gate) | COMPLETED | 11 / 11 tasks; main #288 |
 | 037 | Component libraries + DSL simplification | COMPLETED | 7 / 7 tasks; main #296 |
 | 038 | Session Range Structure | COMPLETED | 6 / 6 tasks; main #300 |
-| 039 | Predictive Research dataset foundation (Phase 10A) | IN_PROGRESS | 2 / 20 tasks (Wave 0 docs); `SPRINT_039.md` |
+| 039 | Predictive Research dataset foundation (Phase 10A) | IN_PROGRESS | 20 / 20 tasks (T020 docs landing; pending sprint→main); `SPRINT_039.md` |
 | 040 | Baseline regression + classification (Phase 10A) | PLANNED | 0 / 23 tasks; `SPRINT_040.md` |
 | 041 | Predictive Research report v1 (Phase 10A) | PLANNED | 0 / 16 tasks; `SPRINT_041.md` |
 | 042 | Tree-based predictive models (Phase 10B) | PLANNED | 0 / 22 tasks; `SPRINT_042.md` |

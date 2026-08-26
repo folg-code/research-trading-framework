@@ -474,6 +474,16 @@ Used to evaluate:
 - statistical credibility,
 - sensitivity to execution assumptions.
 
+#### Predictive Research
+
+Used to state a learning problem over Market Analysis outputs and forward
+outcomes, then persist a leakage-guarded labelled dataset. Sprint 039 is the
+Phase 10A **dataset foundation**: study spec, labelled evaluation-bar matrix,
+purged walk-forward fold roles, fingerprint and CLI. It does not produce
+signals and does not train estimators.
+
+Storage: `<workspace>/research/predictive_research/datasets/{dataset_id}/`.
+
 #### Future Portfolio Research
 
 Planned portfolio workflows will evaluate combinations of strategies and capital-allocation rules.
