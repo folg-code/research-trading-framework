@@ -5,7 +5,7 @@
 ```text
 Sprint: 042
 Phase: Phase 10B — Tree-Based Predictive Models
-Status: IN PROGRESS (Wave 3)
+Status: IN PROGRESS (Wave 4)
 Planned Start: 2026-08-26
 Planned End: TBD
 Sprint Goal Owner: Project Maintainer
@@ -193,7 +193,7 @@ report next to the headline number.
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S042-T016 | Study leaderboard across families on one dataset fingerprint | TODO |
+| S042-T016 | Study leaderboard across families on one dataset fingerprint | DONE |
 | S042-T017 | Report panel: importance (native + permutation) | TODO |
 | S042-T018 | Report panel: leaderboard including S040 baselines | TODO |
 | S042-T019 | Report panel: candidate selection trace + overfitting gap | TODO |
@@ -206,7 +206,7 @@ report next to the headline number.
 | S042-T021 | Import test: framework usable without `ml-trees` | TODO |
 | S042-T022 | Docs: RESEARCH_METHODOLOGIES, MODULE_MAP, CURRENT_STATUS | TODO |
 
-**Progress:** 15 / 22 tasks
+**Progress:** 16 / 22 tasks
 
 ---
 

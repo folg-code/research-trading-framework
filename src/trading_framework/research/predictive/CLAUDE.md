@@ -45,6 +45,9 @@ library-free predictive metrics (`metrics.py`).
   (`n_repeats=5`, `EstimatorSpec.seed`). Native gain/split comes from tree
   adapters only; sklearn returns `None`. Train vs TEST primary-metric gap is
   stored as added `fold_primary` keys on `metrics.json`.
+- Leaderboard (`leaderboard.py`) ranks runs that share one dataset fingerprint
+  by pooled primary metric. S040 metric-layer baselines appear as rows; they
+  are not estimator families. Mismatched fingerprints are `PredictiveSpecError`.
 - `test_span` and `embargo_span` are applied as datetime arithmetic on
   `available_at`, not as a 1-minute bar count. Consecutive test windows are
   separated by `embargo_span` so expanding later folds cannot train on the
