@@ -192,6 +192,18 @@ def test_predictive_research_wave4_packages_do_not_import_ml_libraries() -> None
     assert _import_offenders_from_roots(_wave4_predictive_paths(), predicate=_is_ml_library) == []
 
 
+def test_predictive_research_wave4_packages_do_not_import_ml_infrastructure() -> None:
+    def is_ml_infrastructure(module_name: str) -> bool:
+        return module_name == "trading_framework.infrastructure.ml" or module_name.startswith(
+            "trading_framework.infrastructure.ml."
+        )
+
+    assert (
+        _import_offenders_from_roots(_wave4_predictive_paths(), predicate=is_ml_infrastructure)
+        == []
+    )
+
+
 def test_predictive_research_wave4_packages_do_not_import_trading_capabilities() -> None:
     assert (
         _import_offenders_from_roots(
