@@ -66,7 +66,7 @@ Maintenance: `.cursor/rules/documentation.mdc`
 |-----|------|
 | [MODULE_MAP.md](reference/MODULE_MAP.md) | Packages and status |
 | [DATA_WORKFLOWS.md](reference/DATA_WORKFLOWS.md) | Data paths and diagrams |
-| [RESEARCH_METHODOLOGIES.md](reference/RESEARCH_METHODOLOGIES.md) | Research workflows — Signal, Model Research, Strategy, Robustness |
+| [RESEARCH_METHODOLOGIES.md](reference/RESEARCH_METHODOLOGIES.md) | Research workflows — Signal, Model Research, Strategy, Robustness, Predictive |
 | [MARKET_ANALYSIS_MODULE.md](reference/modules/MARKET_ANALYSIS_MODULE.md) | MA entry points (thin) |
 | [MODEL_AUTHORING.md](reference/modules/MODEL_AUTHORING.md) | Authoring DSL copy-paste example |
 

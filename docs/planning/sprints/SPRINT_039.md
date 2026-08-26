@@ -5,15 +5,16 @@
 ```text
 Sprint: 039
 Phase: Phase 10A — Predictive Research Foundation
-Status: PLANNED
-Planned Start: TBD
-Planned End: TBD
+Status: COMPLETE
+Planned Start: 2026-08-26
+Planned End: 2026-08-26
 Sprint Goal Owner: Project Maintainer
 Depends On: S036 audit (#288), S037 component libraries + DSL (#296), S038 Session Range (#300) — all on main
 Sprint Branch: sprint/predictive-research-foundation
 Task branch convention: feat/ | fix/ | docs/ | test/ (separate prefix, not nested under sprint ref)
-Wave 0 decisions: docs/planning/sprints/S039_WAVE0_DECISIONS.md (to be written in Wave 0)
+Wave 0 decisions: docs/planning/sprints/S039_WAVE0_DECISIONS.md
 Architecture Sources:
+  - docs/adr/ADR-0023-predictive-research-boundary.md (ACCEPTED)
   - docs/planning/ROADMAP.md (§13A Phase 10)
   - docs/adr/ADR-0013-signal-research-analytics-boundary.md
   - docs/adr/ADR-0020 (model research methodology)
@@ -67,18 +68,18 @@ whose folds are provably free of temporal leakage — verified by tests, not by 
 
 ## 2. In scope
 
-- [ ] `research/predictive/` domain package (polars + numpy only, no ML libraries).
-- [ ] `FeatureSpec` / `FeatureMatrixSpec` mapping declared features onto `AnalysisFrameColumnSpec`.
-- [ ] `LabelSpec` with regression and classification variants derived from forward outcomes.
-- [ ] Feature matrix builder producing one normalized Polars frame.
-- [ ] `PurgedWalkForwardSplitSpec` + fold planner (rolling and expanding).
-- [ ] `PredictiveDatasetEnvelope`, manifest, repository and storage paths.
-- [ ] Dataset fingerprint covering spec, feature lineage, dataset ref and time range.
-- [ ] Declarative YAML/JSON study spec with `definition_hash`, mirroring
+- [x] `research/predictive/` domain package (polars + numpy only, no ML libraries).
+- [x] `FeatureSpec` / `FeatureMatrixSpec` mapping declared features onto `AnalysisFrameColumnSpec`.
+- [x] `LabelSpec` with regression and classification variants derived from forward outcomes.
+- [x] Feature matrix builder producing one normalized Polars frame.
+- [x] `PurgedWalkForwardSplitSpec` + fold planner (rolling and expanding).
+- [x] `PredictiveDatasetEnvelope`, manifest, repository and storage paths.
+- [x] Dataset fingerprint covering spec, feature lineage, dataset ref and time range.
+- [x] Declarative YAML/JSON study spec with `definition_hash`, mirroring
       `SignalResearchDefinitionSpec`.
-- [ ] CLI `scripts/predictive_research/build_predictive_dataset.py`.
-- [ ] Leakage regression tests on deterministic fixtures.
-- [ ] ADR-0023 — Predictive Research domain boundary and leakage policy.
+- [x] CLI `scripts/predictive_research/build_predictive_dataset.py`.
+- [x] Leakage regression tests on deterministic fixtures.
+- [x] ADR-0023 — Predictive Research domain boundary and leakage policy.
 
 ## 3. Out of scope
 
@@ -206,53 +207,57 @@ Signal Research.
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S039-T001 | Wave 0 decisions (`S039_WAVE0_DECISIONS.md`) | TODO |
-| S039-T002 | ADR-0023 — Predictive Research boundary, leakage policy, dependency policy | TODO |
+| S039-T001 | Wave 0 decisions (`S039_WAVE0_DECISIONS.md`) | DONE |
+| S039-T002 | ADR-0023 — Predictive Research boundary, leakage policy, dependency policy | DONE |
 
 ### Wave 1 — Specification contracts
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S039-T003 | `FeatureSpec` / `FeatureMatrixSpec` + validation | TODO |
-| S039-T004 | `LabelSpec` (regression, binary, ternary) + validation | TODO |
-| S039-T005 | `PredictiveStudySpec` YAML/JSON loader + `definition_hash` | TODO |
+| S039-T003 | `FeatureSpec` / `FeatureMatrixSpec` + validation | DONE |
+| S039-T004 | `LabelSpec` (regression, binary, ternary) + validation | DONE |
+| S039-T005 | `PredictiveStudySpec` YAML/JSON loader + `definition_hash` | DONE |
 
 ### Wave 2 — Matrix construction
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S039-T006 | Feature matrix builder over `AnalysisFrame` columns | TODO |
-| S039-T007 | Label derivation from `compute_forward_outcomes_for_horizons` | TODO |
-| S039-T008 | Availability columns (`detected_at`, `available_at`, `label_end_at`) | TODO |
-| S039-T009 | Row exclusion policy + counts (incomplete horizon, null features) | TODO |
+| S039-T006 | Feature matrix builder over `AnalysisFrame` columns | DONE |
+| S039-T007 | Label derivation from `compute_forward_outcomes_for_horizons` | DONE |
+| S039-T008 | Availability columns (`detected_at`, `available_at`, `label_end_at`) | DONE |
+| S039-T009 | Row exclusion policy + counts (incomplete horizon, null features) | DONE |
 
 ### Wave 3 — Splitting
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S039-T010 | `PurgedWalkForwardSplitSpec` + validation | TODO |
-| S039-T011 | Fold planner (rolling + expanding) with purge and embargo | TODO |
-| S039-T012 | Fold role assignment persisted on the matrix | TODO |
+| S039-T010 | `PurgedWalkForwardSplitSpec` + validation (spec already in Wave 1; planner in this PR) | DONE |
+| S039-T011 | Fold planner (rolling + expanding) with purge and embargo | DONE |
+| S039-T012 | Fold role assignment persisted on the matrix | DONE |
 
 ### Wave 4 — Persistence and CLI
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S039-T013 | `PredictiveDatasetEnvelope` + manifest + repository | TODO |
-| S039-T014 | Storage paths in `infrastructure/storage/paths.py` | TODO |
-| S039-T015 | Dataset fingerprint (spec + feature lineage + dataset ref + range) | TODO |
-| S039-T016 | `build_predictive_dataset` application workflow | TODO |
-| S039-T017 | CLI `scripts/predictive_research/build_predictive_dataset.py` | TODO |
+| S039-T013 | `PredictiveDatasetEnvelope` + manifest + repository | DONE |
+| S039-T014 | Storage paths in `infrastructure/storage/paths.py` | DONE |
+| S039-T015 | Dataset fingerprint (spec + feature lineage + dataset ref + range) | DONE |
+| S039-T016 | `build_predictive_dataset` application workflow | DONE |
+| S039-T017 | CLI `scripts/predictive_research/build_predictive_dataset.py` | DONE |
 
 ### Wave 5 — Leakage tests and closure
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S039-T018 | Leakage regression suite (see §9) | TODO |
-| S039-T019 | End-to-end fixture test: spec → dataset → reload → identical fingerprint | TODO |
-| S039-T020 | Docs: MODULE_MAP, DATA_WORKFLOWS, RESEARCH_METHODOLOGIES, CURRENT_STATUS | TODO |
+| S039-T018 | Leakage regression suite (see §9) | DONE |
+| S039-T019 | End-to-end fixture test: spec → dataset → reload → identical fingerprint | DONE |
+| S039-T020 | Docs: MODULE_MAP, DATA_WORKFLOWS, RESEARCH_METHODOLOGIES, CURRENT_STATUS | DONE |
 
-**Progress:** 0 / 20 tasks
+**Progress:** 20 / 20 tasks
+
+`DATA_WORKFLOWS.md` is not in the repository. T020 recorded research paths in
+`MODULE_MAP.md` (package + `research/predictive_research/` subtree),
+`RESEARCH_METHODOLOGIES.md`, and `ARCHITECTURE_AND_WORKFLOWS.md` §6.
 
 ---
 
@@ -346,3 +351,68 @@ uv run pytest
 Sprint 040 adds the estimator protocol and the first baselines on top of this dataset. The dataset
 contract must be stable before then — a change to fold semantics after S040 invalidates every
 persisted run.
+
+---
+
+## 16. Review
+
+Closed 2026-08-26. Working PRs #302–#308 squash-merged into `sprint/predictive-research-foundation`.
+This section records outcome; it does not rewrite the plan.
+
+### Completed
+
+- Wave 0 decisions (`S039_WAVE0_DECISIONS.md`) and ADR-0023 ACCEPTED (#302).
+- Predictive study specification contracts: `FeatureSpec` / `FeatureMatrixSpec`, `LabelSpec`
+  (regression, binary, ternary), `PredictiveStudySpec` YAML/JSON loader, `definition_hash` (#303).
+- Labelled feature matrix builder: `AnalysisFrame` columns, labels from
+  `compute_forward_outcomes_for_horizons`, availability columns, exclusion counts (#304).
+- Purged walk-forward fold planner (rolling and expanding) with persisted `TRAIN` / `TEST` /
+  `PURGED` / `EMBARGOED` roles (#305).
+- `PredictiveDatasetEnvelope`, manifest, fingerprint, repository, storage paths, application
+  workflow, CLI `scripts/predictive_research/build_predictive_dataset.py` (#306).
+- Leakage regression suite with counter-fixtures; end-to-end rebuild fingerprint identity (#307).
+- As-implemented docs: `MODULE_MAP.md`, `RESEARCH_METHODOLOGIES.md`,
+  `ARCHITECTURE_AND_WORKFLOWS.md` §6, `CURRENT_STATUS.md` (#308).
+- All 20 tasks T001–T020 DONE. No ML library added to `pyproject.toml`.
+
+### Not Completed
+
+- None of the in-scope tasks. `DATA_WORKFLOWS.md` is not in the repository; T020 recorded research
+  paths in `MODULE_MAP.md`, `RESEARCH_METHODOLOGIES.md`, and `ARCHITECTURE_AND_WORKFLOWS.md` §6
+  instead (already noted under §8).
+
+### Demonstrated Capability
+
+A maintainer can declare a `PredictiveStudySpec` in YAML, run
+`scripts/predictive_research/build_predictive_dataset.py`, and persist a fingerprinted dataset
+envelope (`manifest.json`, `features.parquet`, `folds.json`) whose fold roles are covered by the
+eight leakage regressions in §9.
+
+### Problems Discovered
+
+- None logged in `PROBLEM_REGISTRY.md` for this sprint. No new CRITICAL/HIGH entries.
+
+### Decisions Required
+
+- None. ADR-0023 is ACCEPTED. S040 Wave 0 remains a later sprint (estimator seam, optional `ml`
+  extra) and is not opened here.
+
+### Technical Debt Added
+
+- None from S039 implementation. Phase 10 planned shortcuts already listed in `TECHNICAL_DEBT.md`
+  §6 (no model registry; fitted artifacts not portable) apply to later sprints (S040+ / S044), not
+  to this dataset-only slice.
+
+### Lessons Learned
+
+- Dataset contract and leakage tests landed before any estimator. That boundary held: `research/predictive/`
+  stays on polars + numpy; architecture-boundary tests reject ML imports.
+- Acceptance criterion 10 named `DATA_WORKFLOWS.md`; the repository has no such file. Future sprint
+  plans should cite the docs that actually exist (`MODULE_MAP.md`, `RESEARCH_METHODOLOGIES.md`).
+
+### Follow-up
+
+- Sprint 040 — baseline regression and classification (estimator protocol, sklearn adapter,
+  metrics). Planned; not started.
+- Sprint 041 — Predictive Research report v1 (Phase 10A remainder).
+- Phase 10A is not complete until S040–S041 land. S042–S044 remain later Phase 10B/10C work.

@@ -14,10 +14,12 @@ flowchart LR
     SIGNAL[Signal and Model Research]
     STRATEGY[Strategy Research]
     ROBUSTNESS[Robustness Research]
+    PREDICTIVE[Predictive Research]
     PORTFOLIO[Portfolio Research]
 
     FOUNDATIONS --> SIGNAL
     FOUNDATIONS --> STRATEGY
+    FOUNDATIONS --> PREDICTIVE
     STRATEGY --> ROBUSTNESS
     STRATEGY -. future .-> PORTFOLIO
 ```
@@ -31,6 +33,7 @@ flowchart LR
 | Model Research Methodology | Is a model study reproducible, bounded and diagnostically sound?       | Study artifacts, diagnostics and comparisons   |
 | Strategy Research          | Does a complete strategy produce acceptable simulated results?         | Trades, equity and performance metrics         |
 | Robustness Research        | Does the result survive variation and stress?                          | Stability diagnostics and robustness verdict   |
+| Predictive Research        | Is there predictable structure in these features out of sample?        | Labelled feature matrix, fold roles, dataset envelope |
 | Portfolio Research         | How should multiple strategies be combined?                            | Portfolio behaviour and allocation analysis    |
 
 
@@ -95,6 +98,7 @@ Analytics and reports should not rerun model evaluation or simulation unless the
 - Signal Research is not required before Strategy Research.
 - Strategy Research is not part of Strategy Execution.
 - Robustness Research consumes persisted strategy results but does not modify them.
+- Predictive Research is independent of Signal and Strategy Research. It does not produce signals.
 - Portfolio Research is a separate methodology built on persisted strategy outputs.
 - Execution is operational and is not a research methodology.
 
@@ -375,7 +379,104 @@ Its purpose is to expose fragility, concentration and unsupported assumptions be
 
 ---
 
-## 8. Portfolio Research
+## 8. Predictive Research
+
+Predictive Research is a methodology **alongside** Signal, Strategy and Robustness research.
+It answers a learning question. It does **not** produce signals, extend Strategy Research,
+or train an estimator in this slice.
+
+Phase 10A (Sprint 039) is the **dataset foundation only**. Estimators, metrics, reports and
+ML extras belong to later sprints (S040+). Sprint 039 adds no ML dependency.
+
+### Research Question
+
+> Is there predictable structure in these declared features, under a split that makes an out-of-sample claim honest?
+
+### Suitable For
+
+- declaring a supervised learning problem over Market Analysis outputs,
+- labelling evaluation bars from reused forward outcomes,
+- proving absence of temporal leakage before any model is fit.
+
+### Not Suitable For
+
+- emitting tradable signals,
+- Strategy Research (trades, equity, PnL),
+- Robustness Research (parameter / stress verdicts),
+- estimator training, predictions, or reports (S040 / S041).
+
+### Samples
+
+Rows are **evaluation bars**, not `SignalOccurrence` objects. The matrix builder
+constructs a synthetic long-only occurrence table (one row per bar) so
+`compute_forward_outcomes_for_horizons` can be reused. Incomplete and non-finite
+rows are excluded and counted in the manifest; they never receive a label.
+
+### Features and transforms
+
+A feature is a declared analysis output (`FeatureSpec` → `AnalysisFrame` column with
+`OutputRef` lineage). The builder never recomputes analysis.
+
+Bounded transforms this slice: `NONE`, `LOG`, `DIFF`, `PCT_CHANGE`.
+`RANK` is **rejected** at matrix build — cross-sectional versus expanding rank is
+ambiguous, and a global rank would leak.
+
+Preprocessing that must be fitted (scaling, encoding, imputation) is out of the
+dataset builder; it belongs to training folds in S040.
+
+### Workflow
+
+```text
+Published DatasetRef
+  → PredictiveStudySpec (YAML/JSON)
+  → declared FeatureSpec columns via run_analysis
+  → labelled matrix (entity_id, horizon_bars, availability, label)
+  → purged + embargoed walk-forward fold roles
+  → PredictiveDatasetEnvelope (manifest + fingerprint)
+```
+
+CLI: `scripts/predictive_research/build_predictive_dataset.py`
+
+### Fold roles
+
+Fold assignment is persisted data, not a training-time courtesy.
+
+```text
+TRAIN | TEST | PURGED | EMBARGOED
+```
+
+Purged and embargoed rows are **retained with a role label**, not deleted.
+
+### Fingerprint and storage
+
+The dataset fingerprint hashes:
+
+```text
+study spec (definition_hash)
+feature lineage (OutputRef per column)
+DatasetRef
+time range
+```
+
+It never hashes materialized frame bytes. `dataset_id` is the first 16 hex
+characters of that fingerprint.
+
+```text
+<workspace>/research/predictive_research/datasets/{dataset_id}/
+  manifest.json
+  features.parquet
+  folds.json
+```
+
+### Typical Questions
+
+- Can these analysis columns be assembled into a leakage-safe labelled matrix?
+- How many rows does purge / embargo remove from each fold?
+- Does rebuilding an unchanged spec yield the same fingerprint?
+
+---
+
+## 9. Portfolio Research
 
 Portfolio Research is a planned methodology.
 
@@ -419,7 +520,7 @@ Persisted Strategy Results
 
 ---
 
-## 9. Choosing a Methodology
+## 10. Choosing a Methodology
 
 
 | Research need                            | Recommended methodology                |
@@ -432,13 +533,14 @@ Persisted Strategy Results
 | Validate parameter stability             | Robustness Research                    |
 | Test sensitivity to costs and slippage   | Robustness Research                    |
 | Evaluate regime dependence               | Signal Research or Robustness Research |
+| Learn a mapping from analysis columns to forward outcomes | Predictive Research                    |
 | Combine multiple strategies              | Portfolio Research                     |
 | Apply selected logic to live data        | Execution workflow, not research       |
 
 
 ---
 
-## 10. Optional Research Progression
+## 11. Optional Research Progression
 
 A common research progression is:
 
@@ -458,11 +560,12 @@ Examples:
 - a component may be studied without ever becoming part of a strategy,
 - a strategy may be simulated directly from an existing model definition,
 - a robustness experiment may be rerun against an already persisted strategy family,
+- a predictive dataset may be built without ever becoming a signal or a strategy,
 - portfolio research may compare strategies created through different research paths.
 
 ---
 
-## 11. Research Artifacts
+## 12. Research Artifacts
 
 Research outputs are persisted as structured artifacts.
 
@@ -471,6 +574,7 @@ Research outputs are persisted as structured artifacts.
 | ------------------- | ----------------------------------------------- |
 | Run manifest        | Records inputs, definitions and assumptions     |
 | Research facts      | Stores observations, outcomes or trades         |
+| Dataset envelope    | Stores labelled matrix, fold roles and fingerprint (Predictive Research) |
 | Analytics           | Stores derived summaries and diagnostics        |
 | Report              | Presents persisted results                      |
 | Experiment manifest | Groups related runs                             |
@@ -484,7 +588,7 @@ Core rule:
 
 ---
 
-## 12. Quality and Anti-Overfitting Principles
+## 13. Quality and Anti-Overfitting Principles
 
 ### Predefined Hypotheses
 
@@ -548,7 +652,7 @@ This reduces repeated testing of failed ideas and limits hindsight bias.
 
 ---
 
-## 13. Relationship to Execution
+## 14. Relationship to Execution
 
 Research and execution are separate capabilities.
 
@@ -579,7 +683,7 @@ Core rules:
 
 ---
 
-## 14. Methodology Boundaries
+## 15. Methodology Boundaries
 
 
 | Capability                 | Research methodology? | Reason                                |
@@ -590,6 +694,7 @@ Core rules:
 | Model Research Methodology | Yes                   | Defines a controlled study protocol   |
 | Strategy Research          | Yes                   | Studies complete simulated strategies |
 | Robustness Research        | Yes                   | Evaluates credibility and stability   |
+| Predictive Research        | Yes                   | Studies predictable structure in features (Phase 10A: dataset only; no estimators) |
 | Portfolio Research         | Planned               | Studies strategy combinations         |
 | Live Execution             | No                    | Applies selected logic operationally  |
 | Visualization              | No                    | Presents persisted results            |
@@ -597,14 +702,14 @@ Core rules:
 
 ---
 
-## 15. References
+## 16. References
 
 Use the following documents for deeper context:
 
 - `README.md` — project overview,
 - `ARCHITECTURE_AND_WORKFLOWS.md` — architectural modules and workflows,
 - `MODULE_MAP.md` — mapping from workflows to source-code packages,
-- Architecture Decision Records,
+- Architecture Decision Records (Predictive Research: ADR-0023),
 - module-specific reference documents,
 - execution and deployment runbooks.
 
@@ -620,6 +725,7 @@ artifacts (ADR-0022). Produce them under `artifacts/demo/output/` via
 | Combined Model Research | `artifacts/demo/output/model_research/` / portfolio index entries          | Forward-outcome analysis for a signal conditioned by market context |
 | Strategy Research       | `artifacts/demo/output/00_strategy_dashboard_nq_half_year.html` (hero)     | Trade ledger, equity, drawdown and strategy performance analysis |
 | Robustness Research     | `artifacts/demo/output/07_robustness_dashboard.html`                       | Parameter sensitivity, walk-forward, stress, Monte Carlo and diagnostics |
+| Predictive Research     | — (no HTML report in Phase 10A dataset slice; S041)                        | Labelled matrix and fold envelope; reports are a later sprint |
 
 For day-to-day inspection of research runs, prefer **`apps/dashboard`**
 (Sprint 028) over regenerating HTML.

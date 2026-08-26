@@ -106,6 +106,7 @@ apps/dashboard/src/dashboard_app/
 | Signal / Model Research | `application/signal_research/` | `research/`, `strategy/` | Research repositories and report adapters | Research artifacts |
 | Strategy Research | `application/strategy_research/` | `strategy/`, `research/simulation/`, `research/datasets/` | Result storage and reporting adapters | Trades, equity, manifests |
 | Robustness Research | `application/robustness_research/` | `research/robustness/` | Experiment storage and reporting adapters | Experiment artifacts |
+| Predictive Research | `application/predictive_research/` | `research/predictive/`, `research/datasets/predictive.py` | `infrastructure/storage/paths.py` | Labelled feature matrix, fold roles, dataset envelope |
 | Live Execution | `application/execution/` | `execution/` | `infrastructure/providers/`, `infrastructure/storage/` | Runtime state |
 | Visualization | Application view-model builders | `research/analytics/`, reporting packages | HTML, API and dashboard adapters; `apps/dashboard` | Dashboards and reports |
 
@@ -422,14 +423,68 @@ Research Definition
   → verdict and report
 ```
 
+---
+
+### Predictive Research
+
+Phase 10A dataset foundation (Sprint 039). This workflow states a learning problem
+and persists a fingerprinted labelled matrix. It does **not** train an estimator,
+emit signals, or import `strategy/` / `signal_model/`. No ML library is a
+dependency of this slice.
+
+| Responsibility | Package |
+|---|---|
+| Study spec, features, labels, matrix, splits | `research/predictive/` |
+| Envelope, fingerprint, repository | `research/datasets/predictive.py` |
+| Workflow orchestration | `application/predictive_research/` |
+| Thin CLI | `scripts/predictive_research/build_predictive_dataset.py` |
+| Storage paths | `infrastructure/storage/paths.py` |
+
+Workflow:
+
+```text
+Published DatasetRef + PredictiveStudySpec (YAML/JSON)
+  → run_analysis (declared FeatureSpec columns only)
+  → labelled matrix (one row per complete evaluation bar)
+  → purged + embargoed walk-forward fold roles
+  → PredictiveDatasetEnvelope (manifest + fingerprint)
+  → research/predictive_research/datasets/{dataset_id}/
+```
+
+Samples are **evaluation bars**, not `SignalOccurrence` rows. Labels reuse
+`compute_forward_outcomes_for_horizons` on a synthetic long-only occurrence
+table (one row per bar). `FeatureTransform.RANK` is rejected at matrix build
+(cross-sectional vs expanding rank is ambiguous; a global rank would leak).
+Supported transforms this slice: `NONE`, `LOG`, `DIFF`, `PCT_CHANGE`.
+
+The dataset fingerprint hashes study spec (`definition_hash`) + `OutputRef`
+lineage + `DatasetRef` + time range. It never hashes materialized frame bytes.
+`dataset_id` is the first 16 hex characters of that fingerprint.
+
+Persisted fold roles: `TRAIN` / `TEST` / `PURGED` / `EMBARGOED`. Purged and
+embargoed rows are retained with a role label, not deleted.
+
+Storage:
+
+```text
+<workspace>/research/predictive_research/datasets/{dataset_id}/
+  manifest.json
+  features.parquet
+  folds.json
+```
+
+CLI: `uv run python scripts/predictive_research/build_predictive_dataset.py --storage-root <workspace> --definition <spec.yaml>`.
+
 ### Tests
 
 ```text
 tests/unit/research/
+tests/unit/research/predictive/
 tests/unit/strategy/
 tests/unit/application/signal_research/
 tests/unit/application/strategy_research/
 tests/unit/application/robustness_research/
+tests/unit/application/predictive_research/
 tests/integration/research/
 ```
 
@@ -437,7 +492,7 @@ tests/integration/research/
 
 - `RESEARCH_METHODOLOGIES.md`
 - `ARCHITECTURE_AND_WORKFLOWS.md`
-- research ADRs
+- research ADRs (Predictive Research: ADR-0023)
 
 ---
 
@@ -541,7 +596,8 @@ user_data/
 ├── research/
 │   ├── market_research/     # Signal Research runs + family experiments
 │   ├── strategy_research/   # Strategy Research runs
-│   └── strategy_robustness/ # robustness experiments
+│   ├── strategy_robustness/ # robustness experiments
+│   └── predictive_research/ # Predictive Research datasets (Phase 10A)
 ├── runtime/                 # execution dry-run state
 ├── reports/                 # optional loose reports
 ├── config/
@@ -558,6 +614,7 @@ user_data/
 | `research/market_research/` | Signal Research runs and model-family experiments |
 | `research/strategy_research/` | Strategy Research runs |
 | `research/strategy_robustness/` | robustness experiments |
+| `research/predictive_research/` | Predictive Research dataset envelopes (`datasets/{dataset_id}/`) |
 | `components/` | custom analytical components |
 | `models/` | Market Model and Signal Model definitions |
 | `runtime/` | local execution state and operational data |

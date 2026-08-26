@@ -26,15 +26,15 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 ## 2. Status Metadata
 
 ```text
-Status Date: 2026-08-25
-Current Phase: Sprint 038 Session Range on main; next catalog wick / distance
-Current Milestone: Sprint 038 on main
-Implementation Status: Sprints 001-006, 008-024, 025-038 on main
+Status Date: 2026-08-26
+Current Phase: Phase 10A Predictive Research Foundation (S039 complete; S040 planned)
+Current Milestone: S039 dataset foundation complete; this PR integrates to main; S040 baselines next
+Implementation Status: Sprints 001-006, 008-024, 025-039 on main (this PR)
 Overall Status: STABLE
-Active Sprint: none (S038 integrated)
-Last Completed Sprint: SPRINT_038 (Session Range) → main (#300)
-Capability Tracks: Foundation COMPLETE; Data COMPLETE (core); Research COMPLETE (core); Strategy 6A COMPLETE; Phase 8A dry-run + S024 on main; Dashboard / Live Paper / public demo COMPLETE
-Recent: S038 on main (#300). structure.session_range + compute-view session metadata. Next: wick / distance, then Phase 10 Predictive Research (S039-S044, planned).
+Active Sprint: none (S040 planned, not started)
+Last Completed Sprint: SPRINT_039 (Predictive Research dataset foundation) → main (this PR)
+Capability Tracks: Foundation COMPLETE; Data COMPLETE (core); Research COMPLETE (core); Strategy 6A COMPLETE; Phase 8A dry-run + S024 on main; Dashboard / Live Paper / public demo COMPLETE; Phase 10A S039 dataset foundation COMPLETE (S040–S041 remain)
+Recent: S039 on main (this PR). Working PRs #302–#308. ADR-0023 ACCEPTED.
 ```
 
 ---
@@ -213,6 +213,21 @@ Wave 0 lock A/A/A/A (D-S038-04 … D-S038-07)
 
 IDEA-014 training remains deferred. Next catalog: wick, then distance-to-level.
 See `SPRINT_038.md` and `S038_WAVE0_DECISIONS.md`.
+
+**Sprint 039 — Predictive Research Dataset Foundation (Phase 10A)** is **COMPLETED**
+(this integration PR to `main`, 2026-08-26). Working PRs: #302–#308.
+
+Delivered dataset flow (on `main` after this PR):
+
+```text
+Published DatasetRef + PredictiveStudySpec
+    → labelled evaluation-bar matrix + purged walk-forward fold roles
+    → PredictiveDatasetEnvelope under research/predictive_research/datasets/{dataset_id}/
+```
+
+ADR: ADR-0023 (ACCEPTED). CLI: `scripts/predictive_research/build_predictive_dataset.py`.
+See `SPRINT_039.md` and `S039_WAVE0_DECISIONS.md`. Next planned: Sprint 040 baselines
+(not started). Phase 10A is not complete until S040–S041 land.
 
 ---
 
@@ -394,11 +409,23 @@ Maintenance: `.cursor/rules/documentation.mdc`
 
 ## 6. Work in Progress
 
+No active sprint. Sprint 039 is complete on this integration PR. Sprint 040 (baseline
+regression + classification) is **PLANNED**, not started.
+
 **Portfolio demo packaging** — `scripts/demo/run_portfolio_demo.py` generates offline HTML artifacts for showcase (workflows + dashboards).
 
 **Sprint 017 — Model Research Methodology MVP (Phase 5B)** — **complete** on `sprint/model-research-methodology-mvp` (Wave 6, 2026-07-15). Final integration PR to `main` pending.
 
 **Plan:** `docs/planning/sprints/SPRINT_017.md` · **Wave 0:** `S017_WAVE0_DECISIONS.md` · **ADR:** ADR-0020 (ACCEPTED) · **Branch:** `sprint/model-research-methodology-mvp`
+
+### Sprint 039 — Closed (Phase 10A dataset foundation)
+
+**Status:** COMPLETE (this integration PR to `main`, 2026-08-26)
+**Plan:** `docs/planning/sprints/SPRINT_039.md`
+**ADR:** ADR-0023 (ACCEPTED)
+**Tasks:** 20 / 20
+**PRs:** #302–#308 (working); this PR (sprint → main)
+**Scope:** study spec, labelled matrix, purged walk-forward folds, dataset envelope + CLI, leakage suite
 
 ### Sprint 017 — Closed (Phase 5B)
 
@@ -488,7 +515,10 @@ Maintenance: `.cursor/rules/documentation.mdc`
 
 ## 7. Blocked Work
 
-Nothing is technically blocked. Next step: merge closure docs PR, then Sprint 017 integration PR from `sprint/model-research-methodology-mvp` to `main`.
+Nothing is technically blocked. Next planned capability: Sprint 040 baseline regression
++ classification (not started). Sprint 017 integration PR from
+`sprint/model-research-methodology-mvp` to `main` remains pending and does not block
+Phase 10.
 
 ---
 
@@ -544,6 +574,7 @@ PRB-002 and PRB-005 received partial MVP resolution in Sprint 003.
 | ADR-0020 | ACCEPTED (Sprint 017) |
 | ADR-0021 | ACCEPTED (Sprint 018) |
 | ADR-0022 Repository Top-Level Layout | ACCEPTED (Sprint 029) |
+| ADR-0023 Predictive Research Domain Boundary | ACCEPTED (Sprint 039) |
 | ADR-0004, ADR-0009, ADR-0010 | PLANNED |
 
 Binding decisions D-001–D-036 and workspace invariants are documented in the architecture files above; ADR materialization is Sprint 003 Wave 6 (including ADR-MA-007 workspace).
@@ -570,11 +601,16 @@ Sprint 035 track choice CLOSED.
 Sprint 036 research infra audit COMPLETED on main (#288).
 Sprint 037 component libraries + DSL COMPLETED on main (#296).
 Sprint 038 Session Range COMPLETED on main (#300).
+Sprint 039 Predictive Research dataset foundation COMPLETED (this PR; #302–#308).
+ADR-0023 ACCEPTED. Phase 10A is not complete (S040–S041 remain).
 
-Recommended next implementation:
+Next capability (not started):
+    Sprint 040 — baseline regression + classification (estimator seam, sklearn adapter)
+
+Catalog in parallel (does not block S040):
     wick / distance catalog PRs
-    then Phase 10 — Predictive (ML) Research, Sprints 039-044 (ROADMAP §13A):
-      S039 dataset foundation (feature matrix, labels, purged walk-forward)
+
+Phase 10 remainder (ROADMAP §13A):
       S040 baseline regression + classification (estimator seam, sklearn adapter)
       S041 Predictive Research report v1 (offline Plotly HTML)
       S042 tree-based models (XGBoost / LightGBM / CatBoost, bounded search)
@@ -588,7 +624,8 @@ Deferred relative to that track:
     PBO / CSCV / deflated Sharpe (ADR first)
     Residual docs / sample-data narrative
 
-Recently completed (dashboard / demo / dry-run / authoring infra):
+Recently completed (dashboard / demo / dry-run / authoring infra / Phase 10A start):
+    Sprint 039 — Predictive Research dataset foundation → main (this PR; working PRs #302–#308)
     Sprint 038 — Session Range Structure → main (#300; working PRs #297–#299)
     Sprint 037 — Component libraries + DSL → main (#296; working PRs #289–#295)
     Sprint 036 — Research infra audit → main (#288; working PRs #272–#287)
@@ -607,7 +644,7 @@ Deferred (explicit):
     Further public-dashboard cosmetics as a default track
 ```
 
-See `docs/planning/sprints/SPRINT_038.md`, `S038_WAVE0_DECISIONS.md`, `S037_GATE.md`, and `ROADMAP.md` §11–§12.
+See `docs/planning/sprints/SPRINT_040.md`, `SPRINT_039.md`, `S039_WAVE0_DECISIONS.md`, `SPRINT_038.md`, `S037_GATE.md`, and `ROADMAP.md` §11–§13A.
 
 ---
 
@@ -653,7 +690,7 @@ See `docs/planning/sprints/SPRINT_038.md`, `S038_WAVE0_DECISIONS.md`, `S037_GATE
 | 036 | Research infra audit (DSL/component gate) | COMPLETED | 11 / 11 tasks; main #288 |
 | 037 | Component libraries + DSL simplification | COMPLETED | 7 / 7 tasks; main #296 |
 | 038 | Session Range Structure | COMPLETED | 6 / 6 tasks; main #300 |
-| 039 | Predictive Research dataset foundation (Phase 10A) | PLANNED | 0 / 20 tasks; `SPRINT_039.md` |
+| 039 | Predictive Research dataset foundation (Phase 10A) | COMPLETED | 20 / 20 tasks; this PR to main; working PRs #302–#308 |
 | 040 | Baseline regression + classification (Phase 10A) | PLANNED | 0 / 23 tasks; `SPRINT_040.md` |
 | 041 | Predictive Research report v1 (Phase 10A) | PLANNED | 0 / 16 tasks; `SPRINT_041.md` |
 | 042 | Tree-based predictive models (Phase 10B) | PLANNED | 0 / 22 tasks; `SPRINT_042.md` |

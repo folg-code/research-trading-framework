@@ -1001,7 +1001,8 @@ user_data/
 ├── research/
 │   ├── market_research/
 │   ├── strategy_research/
-│   └── strategy_robustness/
+│   ├── strategy_robustness/
+│   └── predictive_research/   # datasets/{dataset_id}/ (Phase 10A)
 └── runtime/
 ```
 

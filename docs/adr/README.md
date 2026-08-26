@@ -54,6 +54,7 @@ SUPERSEDED
 | [ADR-0020](ADR-0020-model-research-methodology-mvp.md) | Model Research Methodology MVP | PROPOSED | Sprint 017 |
 | [ADR-0021](ADR-0021-live-dry-run-execution-demo.md) | Live Dry-Run Execution Demo | ACCEPTED | Sprint 018 |
 | [ADR-0022](ADR-0022-repository-top-level-layout.md) | Repository Top-Level Layout | ACCEPTED | Sprint 029 |
+| [ADR-0023](ADR-0023-predictive-research-boundary.md) | Predictive Research Domain Boundary | ACCEPTED | Sprint 039 |
 | ADR-0004 | Independent Research and Execution Workflows | PLANNED | TBD |
 | ADR-0009 | Batch Backtest vs Replay Execution | PLANNED | TBD |
 | ADR-0010 | Working Component and Model Fingerprints | PLANNED | TBD |

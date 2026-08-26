@@ -16,6 +16,11 @@ Canonical workspace root (``--storage-root`` / operator workspace)::
           runs/{run_id}/
         strategy_robustness/
           experiments/{experiment_id}/
+        predictive_research/
+          datasets/{dataset_id}/      # Predictive Research envelopes
+            manifest.json
+            features.parquet
+            folds.json
       runtime/            # execution dry-run state (operator-managed)
       reports/            # optional loose reports (prefer run-local report/)
 
@@ -39,6 +44,7 @@ _RESEARCH = "research"
 _MARKET_RESEARCH = "market_research"
 _STRATEGY_RESEARCH = "strategy_research"
 _STRATEGY_ROBUSTNESS = "strategy_robustness"
+_PREDICTIVE_RESEARCH = "predictive_research"
 
 
 def market_data_root(workspace: Path) -> Path:
@@ -69,6 +75,26 @@ def strategy_research_root(workspace: Path) -> Path:
 def strategy_robustness_root(workspace: Path) -> Path:
     """Return the Strategy Robustness subtree."""
     return research_root(workspace) / _STRATEGY_ROBUSTNESS
+
+
+def predictive_research_root(workspace: Path) -> Path:
+    """Return the Predictive Research subtree."""
+    return research_root(workspace) / _PREDICTIVE_RESEARCH
+
+
+def predictive_research_datasets_root(workspace: Path) -> Path:
+    """Return the Predictive Research dataset envelope root."""
+    return predictive_research_root(workspace) / "datasets"
+
+
+def predictive_research_dataset_dir(root: Path, dataset_id: str) -> Path:
+    """Return the envelope directory for one Predictive Research dataset.
+
+    ``dataset_id`` is the first 16 hex characters of the SHA-256 dataset
+    fingerprint — the same short-hex convention as Signal Research
+    ``derive_run_id``. The full fingerprint is stored on the manifest.
+    """
+    return predictive_research_datasets_root(root) / dataset_id
 
 
 def dataset_metadata_path(root: Path, dataset_ref: DatasetRef) -> Path:
