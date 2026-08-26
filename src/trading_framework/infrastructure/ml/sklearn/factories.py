@@ -5,6 +5,7 @@ from __future__ import annotations
 from trading_framework.infrastructure.ml.sklearn.adapter import SklearnPredictiveEstimator
 from trading_framework.research.predictive.errors import PredictiveExtraError
 from trading_framework.research.predictive.estimators import EstimatorSpec, PredictiveEstimator
+from trading_framework.research.predictive.preprocessing import PreprocessingSpec
 
 _ML_EXTRA = "ml"
 
@@ -26,16 +27,28 @@ def _require_sklearn(family_id: str) -> None:
         raise PredictiveExtraError(msg) from exc
 
 
-def create_ridge_estimator(spec: EstimatorSpec) -> PredictiveEstimator:
+def create_ridge_estimator(
+    spec: EstimatorSpec,
+    *,
+    preprocessing: PreprocessingSpec | None = None,
+) -> PredictiveEstimator:
     _require_sklearn("sklearn.ridge")
-    return SklearnPredictiveEstimator(spec)
+    return SklearnPredictiveEstimator(spec, preprocessing=preprocessing)
 
 
-def create_elastic_net_estimator(spec: EstimatorSpec) -> PredictiveEstimator:
+def create_elastic_net_estimator(
+    spec: EstimatorSpec,
+    *,
+    preprocessing: PreprocessingSpec | None = None,
+) -> PredictiveEstimator:
     _require_sklearn("sklearn.elastic_net")
-    return SklearnPredictiveEstimator(spec)
+    return SklearnPredictiveEstimator(spec, preprocessing=preprocessing)
 
 
-def create_logistic_estimator(spec: EstimatorSpec) -> PredictiveEstimator:
+def create_logistic_estimator(
+    spec: EstimatorSpec,
+    *,
+    preprocessing: PreprocessingSpec | None = None,
+) -> PredictiveEstimator:
     _require_sklearn("sklearn.logistic")
-    return SklearnPredictiveEstimator(spec)
+    return SklearnPredictiveEstimator(spec, preprocessing=preprocessing)

@@ -9,6 +9,15 @@ from trading_framework.research.datasets.predictive import (
     compute_dataset_fingerprint,
     derive_dataset_id,
 )
+from trading_framework.research.datasets.predictive_run import (
+    PREDICTIVE_RUN_SCHEMA_VERSION,
+    PredictiveRunEnvelope,
+    PredictiveRunManifest,
+    PredictiveRunRef,
+    PredictiveRunRepository,
+    compute_run_fingerprint,
+    derive_predictive_run_id,
+)
 from trading_framework.research.datasets.signal_research import (
     SIGNAL_RESEARCH_SCHEMA_V2,
     SIGNAL_RESEARCH_SCHEMA_VERSION,
@@ -35,6 +44,7 @@ from trading_framework.research.datasets.strategy_research import (
 
 __all__ = [
     "PREDICTIVE_DATASET_SCHEMA_VERSION",
+    "PREDICTIVE_RUN_SCHEMA_VERSION",
     "SIGNAL_RESEARCH_SCHEMA_V2",
     "SIGNAL_RESEARCH_SCHEMA_VERSION",
     "STRATEGY_RESEARCH_SCHEMA_VERSION",
@@ -42,6 +52,10 @@ __all__ = [
     "PredictiveDatasetManifest",
     "PredictiveDatasetRef",
     "PredictiveDatasetRepository",
+    "PredictiveRunEnvelope",
+    "PredictiveRunManifest",
+    "PredictiveRunRef",
+    "PredictiveRunRepository",
     "RunDatasetRef",
     "SignalResearchDatasetRepository",
     "SignalResearchRunEnvelope",
@@ -51,7 +65,9 @@ __all__ = [
     "StrategyResearchRunManifest",
     "StrategyResearchRunRef",
     "compute_dataset_fingerprint",
+    "compute_run_fingerprint",
     "derive_dataset_id",
+    "derive_predictive_run_id",
     "derive_run_id",
     "derive_run_id_v2",
     "derive_strategy_run_id",

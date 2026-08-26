@@ -124,6 +124,7 @@ def test_build_predictive_dataset_persists_envelope_with_fold_roles(tmp_path: Pa
         == result.envelope.features.get_column("label").to_list()
     )
     assert "atr" in loaded.features.columns
+    assert "forward_return" in loaded.features.columns
     assert result.envelope.manifest.exclusion_counts["labelled_rows"] > 0
     assert "incomplete_horizon" in result.envelope.manifest.exclusion_counts
     assert result.envelope.manifest.fold_summary["fold_count"] == 2

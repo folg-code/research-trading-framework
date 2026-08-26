@@ -218,3 +218,17 @@ def test_custom_preprocessing_spec_is_honored() -> None:
     stats = estimator.fit(features, target, None).preprocessing_statistics()
     assert "impute_median" in stats
     assert "standardize_mean" not in stats
+
+
+def test_resolve_estimator_threads_preprocessing_spec() -> None:
+    features = np.array([[1.0, np.nan], [3.0, 5.0], [5.0, 7.0]])
+    target = np.array([1.0, 2.0, 3.0])
+    estimator = resolve_estimator(
+        _ridge_spec(),
+        preprocessing=PreprocessingSpec(steps=(PreprocessingStep.IMPUTE_MEDIAN,)),
+    )
+    fitted = estimator.fit(features, target, None)
+    assert isinstance(fitted, FittedSklearnEstimator)
+    stats = fitted.preprocessing_statistics()
+    assert "impute_median" in stats
+    assert "standardize_mean" not in stats
