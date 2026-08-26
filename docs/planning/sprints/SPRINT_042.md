@@ -166,8 +166,8 @@ report next to the headline number.
 |------|-------------|--------|
 | S042-T002 | Optional extra `ml-trees` + missing-extra errors | DONE |
 | S042-T003 | XGBoost adapter (regression + classification) | DONE |
-| S042-T004 | LightGBM adapter (regression + classification) | TODO |
-| S042-T005 | CatBoost adapter (regression + classification) | TODO |
+| S042-T004 | LightGBM adapter (regression + classification) | DONE |
+| S042-T005 | CatBoost adapter (regression + classification) | DONE |
 | S042-T006 | Determinism enforcement + rejection of non-deterministic options | DONE |
 | S042-T007 | Reproducibility test: identical predictions across repeated fits | DONE |
 
@@ -206,7 +206,7 @@ report next to the headline number.
 | S042-T021 | Import test: framework usable without `ml-trees` | TODO |
 | S042-T022 | Docs: RESEARCH_METHODOLOGIES, MODULE_MAP, CURRENT_STATUS | TODO |
 
-**Progress:** 5 / 22 tasks
+**Progress:** 7 / 22 tasks
 
 ---
 

@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import json
 from collections.abc import Mapping, Sequence
+from typing import Any
 
 import numpy as np
 
@@ -78,3 +80,78 @@ def _fold_roles_from_metadata(sample_metadata: object) -> tuple[FoldRole, ...] |
             continue
         return None
     return tuple(roles)
+
+
+def reject_unknown_hyperparameters(
+    hyperparameters: Mapping[str, Any],
+    *,
+    allowed: frozenset[str],
+    family_id: str,
+) -> None:
+    """Reject hyperparameter keys outside the family allow-list (D-S042-10)."""
+    unknown = sorted(key for key in hyperparameters if key not in allowed)
+    if unknown:
+        msg = f"unknown hyperparameters for {family_id}: {unknown}"
+        raise PredictiveSpecError(msg)
+
+
+def unique_hyperparameter_alias(
+    hyperparameters: Mapping[str, Any],
+    aliases: tuple[str, ...],
+    *,
+    family_id: str,
+) -> object | None:
+    """Return the single present alias, or ``None`` when none are set."""
+    present = [key for key in aliases if key in hyperparameters]
+    if len(present) > 1:
+        msg = f"{family_id} accepts only one of {list(aliases)}; got {present}"
+        raise PredictiveSpecError(msg)
+    if not present:
+        return None
+    return hyperparameters[present[0]]
+
+
+def as_lower_str(value: object) -> str | None:
+    if value is None:
+        return None
+    return str(value).strip().lower()
+
+
+def json_stable_mapping(values: Mapping[str, Any]) -> dict[str, Any]:
+    """JSON-stable copy of library ``get_params()`` for ``describe()``."""
+    converted = {str(key): _json_stable_value(value) for key, value in values.items()}
+    try:
+        canonical = json.dumps(converted, sort_keys=True, separators=(",", ":"), allow_nan=False)
+    except (TypeError, ValueError) as exc:
+        msg = "resolved estimator params must be JSON-serializable"
+        raise PredictiveSpecError(msg) from exc
+    loaded = json.loads(canonical)
+    if not isinstance(loaded, dict):
+        msg = "resolved estimator params must be a mapping"
+        raise PredictiveSpecError(msg)
+    return loaded
+
+
+def _json_stable_value(value: object) -> object:
+    if value is None or isinstance(value, (str, int, bool)):
+        return value
+    if isinstance(value, float):
+        if not np.isfinite(value):
+            return None
+        return value
+    if isinstance(value, np.integer):
+        return int(value)
+    if isinstance(value, np.floating):
+        converted = float(value)
+        if not np.isfinite(converted):
+            return None
+        return converted
+    if isinstance(value, np.bool_):
+        return bool(value)
+    if isinstance(value, np.ndarray):
+        return [_json_stable_value(item) for item in value.tolist()]
+    if isinstance(value, Mapping):
+        return {str(key): _json_stable_value(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_json_stable_value(item) for item in value]
+    return str(value)

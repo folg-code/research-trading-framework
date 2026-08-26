@@ -10,13 +10,21 @@ Responsibility: optional-extra estimator adapters and the family-id registry.
 - `research/predictive/` must not import this package. Application may resolve
   families through the registry.
 - Family ids: `sklearn.ridge`, `sklearn.elastic_net`, `sklearn.logistic`,
-  `xgboost.regressor`, `xgboost.classifier`. Unknown ids are
-  `PredictiveSpecError` even if extras are installed.
+  `xgboost.regressor`, `xgboost.classifier`, `lightgbm.regressor`,
+  `lightgbm.classifier`, `catboost.regressor`, `catboost.classifier`.
+  Unknown ids are `PredictiveSpecError` even if extras are installed.
+  Classifier families are binary only.
 - Sklearn adapters pin `n_jobs=1` when accepted, and `random_state` from
   `EstimatorSpec.seed`. `sklearn.logistic` is binary only.
 - XGBoost adapters pin `n_jobs=1` / `nthread=1`, `tree_method="hist"`,
   `device="cpu"`, and `random_state` from `EstimatorSpec.seed`. GPU options
   are `PredictiveSpecError`.
+- LightGBM adapters pin `n_jobs=1` / `num_threads=1`, `deterministic=True`,
+  `force_row_wise=True`, `boosting_type="gbdt"`. GPU `device` / `device_type`
+  and non-gbdt boosters are `PredictiveSpecError`.
+- CatBoost adapters pin `thread_count=1`, `task_type="CPU"`,
+  `allow_writing_files=False`. GPU `task_type` and bootstrap types other than
+  Bernoulli / Bayesian / MVS are `PredictiveSpecError`.
 - Tree families reuse fold-local sklearn preprocessing, so resolving them
   requires extras `ml` and `ml-trees`.
 - Preprocessing (`IMPUTE_MEDIAN` then `STANDARDIZE` by default) is fitted on
