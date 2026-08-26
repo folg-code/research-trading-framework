@@ -443,7 +443,7 @@ numpy, framework contracts). ML libraries live behind optional extra `ml` and
 | Dataset envelope, fingerprint, repository | `research/datasets/predictive.py` |
 | Run envelope, fingerprint, repository | `research/datasets/predictive_run.py` |
 | Workflow orchestration (build, run, analyze) | `application/predictive_research/` |
-| Family registry + sklearn / XGBoost adapters | `infrastructure/ml/` (`registry.py`, `sklearn/`, `trees/xgboost/`) |
+| Family registry + sklearn / tree adapters | `infrastructure/ml/` (`registry.py`, `sklearn/`, `trees/xgboost/`, `trees/lightgbm/`, `trees/catboost/`) |
 | Thin CLIs | `scripts/predictive_research/` |
 | Storage paths | `infrastructure/storage/paths.py` |
 
@@ -478,7 +478,9 @@ only; `PURGED` and `EMBARGOED` never reach `fit()`.
 
 Estimator families this slice (registry ids): extra `ml` — `sklearn.ridge`,
 `sklearn.elastic_net`, `sklearn.logistic` (binary). Extra `ml-trees` —
-`xgboost.regressor`, `xgboost.classifier` (binary). Unknown family ids raise
+`xgboost.regressor`, `xgboost.classifier` (binary), `lightgbm.regressor`,
+`lightgbm.classifier` (binary), `catboost.regressor`, `catboost.classifier`
+(binary). Unknown family ids raise
 `PredictiveSpecError`. Missing extra raises `PredictiveExtraError` naming the
 extra. Tree families also need extra `ml` for fold-local preprocessing.
 Reference baselines (`CONSTANT_MEAN`, `MAJORITY_CLASS`, `RANDOM_PERMUTATION`)

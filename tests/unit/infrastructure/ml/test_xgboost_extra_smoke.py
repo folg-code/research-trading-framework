@@ -15,6 +15,18 @@ def test_xgboost_extra_is_importable() -> None:
     assert xgboost.__version__
 
 
+def test_lightgbm_extra_is_importable() -> None:
+    lightgbm = pytest.importorskip("lightgbm")
+
+    assert lightgbm.__version__
+
+
+def test_catboost_extra_is_importable() -> None:
+    catboost = pytest.importorskip("catboost")
+
+    assert catboost.__version__
+
+
 def test_registry_resolves_xgboost_regressor_when_extra_installed() -> None:
     pytest.importorskip("sklearn")
     from trading_framework.infrastructure.ml.registry import resolve_estimator
