@@ -132,6 +132,11 @@ def predictive_research_run_report_path(root: Path, run_id: str) -> Path:
     return predictive_research_run_dir(root, run_id) / "report.html"
 
 
+def predictive_research_run_selection_path(root: Path, run_id: str) -> Path:
+    """Return the candidate-selection trace path for one Predictive Research run."""
+    return predictive_research_run_dir(root, run_id) / "selection.json"
+
+
 def dataset_metadata_path(root: Path, dataset_ref: DatasetRef) -> Path:
     """Return the metadata file path for a dataset version."""
     dataset_id = dataset_ref.dataset_id

@@ -115,3 +115,31 @@ def test_run_fingerprint_changes_with_seed_library_and_preprocessing() -> None:
     assert library_changed != baseline
     assert preprocessing_changed != baseline
     assert derive_predictive_run_id(seed_changed) != derive_predictive_run_id(baseline)
+
+
+def test_run_fingerprint_includes_candidate_set() -> None:
+    from trading_framework.research.predictive import CandidateSetSpec, SelectionMetric
+
+    spec = _ridge_spec()
+    candidate_set = CandidateSetSpec(
+        candidates=(spec, _ridge_spec(alpha=2.0)),
+        selection_metric=SelectionMetric.SPEARMAN_IC,
+    ).to_dict()
+    without_set = compute_run_fingerprint(
+        dataset_fingerprint="c" * 64,
+        estimator_spec=spec,
+        preprocessing_spec=default_preprocessing_spec(),
+        library="sklearn",
+        library_version="1.6.0",
+        framework_version=framework_version,
+    )
+    with_set = compute_run_fingerprint(
+        dataset_fingerprint="c" * 64,
+        estimator_spec=spec,
+        preprocessing_spec=default_preprocessing_spec(),
+        library="sklearn",
+        library_version="1.6.0",
+        framework_version=framework_version,
+        candidate_set=candidate_set,
+    )
+    assert with_set != without_set
