@@ -5,7 +5,7 @@
 ```text
 Sprint: 042
 Phase: Phase 10B — Tree-Based Predictive Models
-Status: COMPLETED (this integration PR to main)
+Status: COMPLETED (main #335)
 Planned Start: 2026-08-26
 Planned End: 2026-08-26
 Sprint Goal Owner: Project Maintainer
@@ -292,4 +292,4 @@ uv run pytest
 
 Sprint 043 adds neural estimators through the same seam. The leaderboard built here is what makes
 that comparison meaningful — if networks cannot beat these trees, the leaderboard will say so
-plainly. This PR lands the sprint on `main`. Do not start S043 until it merges.
+plainly. Integration PR #335 lands the sprint on `main`. Do not start S043 until it merges.

@@ -117,7 +117,7 @@ Market Data policy (facts not indicators, vendor independence): **§14 Research 
 
 Test data tiers and live-data gate: **§15**.
 
-**Recommended next increment:** **Sprint 043 — neural predictive models** (Phase 10C). Sprint 042 tree-based models lands on `main` in this integration PR (22/22). Phase 10A is complete on `main`. Catalog follow-ons (wick / distance) remain in parallel. Deferred by default: Phase 4B/6B, Phase 8 Replay, PBO/CSCV ADR. Stage 3 (`available_at` column / lineage sidecar) and Stage 4 (`MarketFrame`) remain independently sequenced.
+**Recommended next increment:** **Sprint 043 — neural predictive models** (Phase 10C). Sprint 042 tree-based models lands on `main` in #335 (22/22). Phase 10A is complete on `main`. Catalog follow-ons (wick / distance) remain in parallel. Deferred by default: Phase 4B/6B, Phase 8 Replay, PBO/CSCV ADR. Stage 3 (`available_at` column / lineage sidecar) and Stage 4 (`MarketFrame`) remain independently sequenced.
 
 ---
 
@@ -1137,14 +1137,14 @@ Minimum future requirements include:
 
 # 13A. Phase 10 — Predictive (ML) Research
 
-**Status:** Phase 10A COMPLETE on `main`; Phase 10B COMPLETE (Sprint 042, this integration PR, 22/22). Numbered `13A` to avoid
+**Status:** Phase 10A COMPLETE on `main`; Phase 10B COMPLETE (Sprint 042, #335, 22/22). Numbered `13A` to avoid
 renumbering sections cited elsewhere.
 
 Sprint 039 (dataset foundation: labelled matrix, purged walk-forward folds, persisted envelope,
 leakage suite, ADR-0023), Sprint 040 (estimator seam, sklearn baselines, run envelope, metrics,
 CLIs), and Sprint 041 (offline HTML report) are on `main`. Phase 10A is complete. Sprint 042
 (tree-based models, bounded selection, importance, leaderboard, report panels) lands on `main`
-in this PR.
+in #335.
 
 **Sprint plans:** `SPRINT_039.md` … `SPRINT_044.md`
 

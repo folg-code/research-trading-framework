@@ -28,13 +28,13 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 ```text
 Status Date: 2026-08-26
 Current Phase: Phase 10C Neural Predictive Models (S043 next)
-Current Milestone: S042 complete (22/22); this integration PR to main
-Implementation Status: Sprints 001-006, 008-024, 025-041 on main; S042 complete (this integration PR)
+Current Milestone: S042 complete (22/22); integration PR #335 to main
+Implementation Status: Sprints 001-006, 008-024, 025-041 on main; S042 complete (integration PR #335)
 Overall Status: STABLE
 Active Sprint: none (S042 closing)
-Last Completed Sprint: SPRINT_042 (Tree-Based Predictive Models) → main (this PR)
-Capability Tracks: Foundation COMPLETE; Data COMPLETE (core); Research COMPLETE (core); Strategy 6A COMPLETE; Phase 8A dry-run + S024 on main; Dashboard / Live Paper / public demo COMPLETE; Phase 10A COMPLETE (S039–S041); Phase 10B COMPLETE (S042, this PR)
-Recent: S042 complete (working PRs #326–#334). This integration PR lands Phase 10B on main. Next: S043.
+Last Completed Sprint: SPRINT_042 (Tree-Based Predictive Models) → main (#335)
+Capability Tracks: Foundation COMPLETE; Data COMPLETE (core); Research COMPLETE (core); Strategy 6A COMPLETE; Phase 8A dry-run + S024 on main; Dashboard / Live Paper / public demo COMPLETE; Phase 10A COMPLETE (S039–S041); Phase 10B COMPLETE (S042, #335)
+Recent: S042 complete (working PRs #326–#334). Integration PR #335 lands Phase 10B on main. Next: S043.
 ```
 
 ---
@@ -264,7 +264,7 @@ CLI: `scripts/predictive_research/render_predictive_report.py`. Offline Plotly
 (inline embed; no CDN). See `SPRINT_041.md` and `S041_WAVE0_DECISIONS.md`.
 
 **Sprint 042 — Tree-Based Predictive Models (Phase 10B)** is **COMPLETED**
-on `main` (this integration PR, 2026-08-26, 22/22). Working PRs #326–#334.
+on `main` (#335, 2026-08-26, 22/22). Working PRs #326–#334.
 
 Delivered tree-model flow:
 
@@ -462,7 +462,7 @@ Maintenance: `.cursor/rules/documentation.mdc`
 
 ## 6. Work in Progress
 
-**Active sprint:** none. Sprint 042 lands on `main` in this integration PR.
+**Active sprint:** none. Sprint 042 lands on `main` in #335.
 Next increment: Sprint 043.
 
 **Portfolio demo packaging** — `scripts/demo/run_portfolio_demo.py` generates offline HTML artifacts for showcase (workflows + dashboards).
@@ -473,11 +473,11 @@ Next increment: Sprint 043.
 
 ### Sprint 042 — Closed (Phase 10B trees)
 
-**Status:** COMPLETE on `main` (this integration PR, 22/22, 2026-08-26)
+**Status:** COMPLETE on `main` (#335, 22/22, 2026-08-26)
 **Plan:** `docs/planning/sprints/SPRINT_042.md`
 **ADR:** ADR-0023 (ACCEPTED; no new ADR this sprint; ADR-0024 reserved for IDEA-014)
 **Tasks:** 22 / 22
-**PRs:** #326–#334 (working); this PR (sprint → main)
+**PRs:** #326–#334 (working); #335 (sprint → main)
 **Scope:** extra `ml-trees`, XGBoost / LightGBM / CatBoost adapters, bounded
 candidate selection, native + permutation importance, train/test gap,
 single-study leaderboard, report panels, known-signal comparison study
@@ -600,8 +600,7 @@ determinism and known-signal tests
 
 ## 7. Blocked Work
 
-Nothing is technically blocked. Sprint 042 lands on `main` in this integration
-PR. Sprint 017 integration PR from `sprint/model-research-methodology-mvp` to
+Nothing is technically blocked. Sprint 042 lands on `main` in #335. Sprint 017 integration PR from `sprint/model-research-methodology-mvp` to
 `main` remains pending and does not block Phase 10.
 
 ---
@@ -688,7 +687,7 @@ Sprint 038 Session Range COMPLETED on main (#300).
 Sprint 039 Predictive Research dataset foundation COMPLETED on main (#309; #302–#308).
 Sprint 040 Predictive Research baselines COMPLETED on main (#319; #310–#318).
 Sprint 041 Predictive Research report COMPLETED on main (#325; #320–#324).
-ADR-0023 ACCEPTED. Phase 10A is complete. Phase 10B (S042) lands on main in this PR.
+ADR-0023 ACCEPTED. Phase 10A is complete. Phase 10B (S042) lands on main in #335.
 
 Next: Sprint 043 neural models.
 
@@ -707,7 +706,7 @@ Deferred relative to that track:
     Residual docs / sample-data narrative
 
 Recently completed (dashboard / demo / dry-run / authoring infra / Phase 10A–10B):
-    Sprint 042 — Tree-based predictive models → main (this PR; working PRs #326–#334)
+    Sprint 042 — Tree-based predictive models → main (#335; working PRs #326–#334)
     Sprint 041 — Predictive Research report v1 → main (#325; working PRs #320–#324)
     Sprint 040 — Predictive Research baselines → main (#319; working PRs #310–#318)
     Sprint 039 — Predictive Research dataset foundation → main (#309; working PRs #302–#308)
@@ -778,7 +777,7 @@ See `docs/planning/sprints/SPRINT_043.md`, `SPRINT_042.md`, `S042_WAVE0_DECISION
 | 039 | Predictive Research dataset foundation (Phase 10A) | COMPLETED | 20 / 20 tasks; main #309; working PRs #302–#308 |
 | 040 | Baseline regression + classification (Phase 10A) | COMPLETED | 23 / 23 tasks; main #319; working PRs #310–#318 |
 | 041 | Predictive Research report v1 (Phase 10A) | COMPLETED | 16 / 16 tasks; main #325; working PRs #320–#324 |
-| 042 | Tree-based predictive models (Phase 10B) | COMPLETED | 22 / 22 tasks; this integration PR; working PRs #326–#334 |
+| 042 | Tree-based predictive models (Phase 10B) | COMPLETED | 22 / 22 tasks; main #335; working PRs #326–#334 |
 | 043 | Neural predictive models (Phase 10C) | PLANNED | 0 / 21 tasks; `SPRINT_043.md` |
 | 044 | Predictive dashboard + IDEA-014 gate (Phase 10C) | PLANNED | 0 / 18 tasks; `SPRINT_044.md` |
 
