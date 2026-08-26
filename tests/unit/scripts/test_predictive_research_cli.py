@@ -10,6 +10,7 @@ from typing import Any
 
 import pytest
 from scripts.predictive_research import analyze_predictive_run as analyze_cli
+from scripts.predictive_research import compare_predictive_runs as compare_cli
 from scripts.predictive_research import render_predictive_report as render_cli
 from scripts.predictive_research import run_predictive_research as run_cli
 
@@ -354,8 +355,58 @@ def test_render_cli_prints_output_path(
     assert payload["output_path"] == str(output_path)
 
 
+def test_compare_cli_writes_leaderboard_and_prints_json(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    first = tmp_path / "ridge"
+    second = tmp_path / "xgb"
+    first.mkdir()
+    second.mkdir()
+    for run_dir, run_id, family, score in (
+        (first, "ridge", "sklearn.ridge", 0.2),
+        (second, "xgb", "xgboost.regressor", 0.9),
+    ):
+        (run_dir / "manifest.json").write_text(
+            json.dumps(
+                {
+                    "run_id": run_id,
+                    "dataset_fingerprint": "fp-1",
+                    "estimator_spec": {
+                        "family": family,
+                        "hyperparameters": {},
+                        "seed": 1,
+                        "task_type": "REGRESSION",
+                    },
+                    "library": "testlib",
+                    "library_version": "0.0",
+                }
+            ),
+            encoding="utf-8",
+        )
+        (run_dir / "metrics.json").write_text(
+            json.dumps(
+                {
+                    "pooled": {
+                        "MODEL": {"statistical": {"spearman_ic": score}},
+                        "CONSTANT_MEAN": {"statistical": {"spearman_ic": 0.0}},
+                        "RANDOM_PERMUTATION": {"statistical": {"spearman_ic": 0.0}},
+                    }
+                }
+            ),
+            encoding="utf-8",
+        )
+    exit_code = compare_cli.main(["--run-dir", str(first), "--run-dir", str(second), "--json"])
+    payload = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert payload["dataset_fingerprint"] == "fp-1"
+    estimator_rows = [row for row in payload["rows"] if row["kind"] == "ESTIMATOR"]
+    assert [row["family"] for row in estimator_rows] == ["xgboost.regressor", "sklearn.ridge"]
+    assert (first / "leaderboard.json").exists()
+
+
 def test_clis_are_thin_and_do_not_import_ml_libraries() -> None:
-    for module in (run_cli, analyze_cli, render_cli):
+    for module in (run_cli, analyze_cli, render_cli, compare_cli):
         module_path = module.__file__
         assert module_path is not None
         imported = _imported_modules(Path(module_path).read_text(encoding="utf-8"))

@@ -28,6 +28,14 @@ from trading_framework.research.predictive.importance import (
     primary_gap,
 )
 from trading_framework.research.predictive.labels import LabelKind, LabelSpec
+from trading_framework.research.predictive.leaderboard import (
+    LeaderboardRow,
+    LeaderboardRowKind,
+    LeaderboardRunSnapshot,
+    PredictiveLeaderboard,
+    build_predictive_leaderboard,
+    primary_metric_for_task,
+)
 from trading_framework.research.predictive.matrix import (
     LabelledFeatureMatrix,
     build_labelled_feature_matrix,
@@ -105,12 +113,16 @@ __all__ = [
     "LabelKind",
     "LabelSpec",
     "LabelledFeatureMatrix",
+    "LeaderboardRow",
+    "LeaderboardRowKind",
+    "LeaderboardRunSnapshot",
     "MatrixExclusionCounts",
     "MetricSource",
     "NativeFeatureImportance",
     "PermutationImportance",
     "PredictiveEstimator",
     "PredictiveExtraError",
+    "PredictiveLeaderboard",
     "PredictiveMatrixError",
     "PredictiveMetricsReport",
     "PredictiveSpecError",
@@ -126,6 +138,7 @@ __all__ = [
     "TaskType",
     "assign_purged_walk_forward_folds",
     "build_labelled_feature_matrix",
+    "build_predictive_leaderboard",
     "build_predictive_metrics_report",
     "candidate_identity_hash",
     "canonicalize_preprocessing_json",
@@ -137,6 +150,7 @@ __all__ = [
     "load_predictive_study_spec_from_dict",
     "permutation_feature_importance",
     "primary_gap",
+    "primary_metric_for_task",
     "require_early_stopping_eval_roles",
     "require_train_only_fit_roles",
     "select_winning_index",
