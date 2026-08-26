@@ -297,7 +297,7 @@ def test_available_at_defaults_to_bar_timestamp() -> None:
 def test_explicit_available_at_is_preserved() -> None:
     close = (100.0, 101.0, 102.0, 103.0)
     timestamps = _timestamps(len(close))
-    available_at = tuple(timestamp + timedelta(seconds=30) for timestamp in timestamps)
+    available_at = tuple(timestamp - timedelta(seconds=30) for timestamp in timestamps)
     matrix = _build(
         close=close,
         feature_values=(1.0, 1.0, 1.0, 1.0),

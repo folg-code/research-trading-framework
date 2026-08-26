@@ -149,6 +149,10 @@ def _resolve_available_at(
     if len(available_at) != len(timestamps):
         msg = "available_at length must match frame timestamps"
         raise PredictiveMatrixError(msg)
+    for detected_at, feature_available_at in zip(timestamps, available_at, strict=True):
+        if feature_available_at > detected_at:
+            msg = "feature available_at must not be later than detected_at"
+            raise PredictiveMatrixError(msg)
     return available_at
 
 

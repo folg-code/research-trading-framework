@@ -78,7 +78,7 @@ whose folds are provably free of temporal leakage — verified by tests, not by 
 - [ ] Declarative YAML/JSON study spec with `definition_hash`, mirroring
       `SignalResearchDefinitionSpec`.
 - [ ] CLI `scripts/predictive_research/build_predictive_dataset.py`.
-- [ ] Leakage regression tests on deterministic fixtures.
+- [x] Leakage regression tests on deterministic fixtures.
 - [ ] ADR-0023 — Predictive Research domain boundary and leakage policy.
 
 ## 3. Out of scope
@@ -249,11 +249,11 @@ Signal Research.
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S039-T018 | Leakage regression suite (see §9) | TODO |
-| S039-T019 | End-to-end fixture test: spec → dataset → reload → identical fingerprint | TODO |
+| S039-T018 | Leakage regression suite (see §9) | DONE |
+| S039-T019 | End-to-end fixture test: spec → dataset → reload → identical fingerprint | DONE |
 | S039-T020 | Docs: MODULE_MAP, DATA_WORKFLOWS, RESEARCH_METHODOLOGIES, CURRENT_STATUS | TODO |
 
-**Progress:** 17 / 20 tasks
+**Progress:** 19 / 20 tasks
 
 ---
 
