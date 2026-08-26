@@ -41,6 +41,10 @@ class FittedSklearnPreprocessor:
         transformed = self._pipeline.transform(as_feature_matrix(features))
         return np.asarray(transformed, dtype=np.float64)
 
+    def pipeline(self) -> Any:
+        """Return the fitted sklearn Pipeline for opaque artifact persistence."""
+        return self._pipeline
+
     def statistics(self) -> dict[str, list[float]]:
         """JSON-stable per-column statistics from the fitted sklearn steps."""
         payload: dict[str, list[float]] = {}

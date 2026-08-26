@@ -45,6 +45,7 @@ def _labelled_rows(count: int = 40) -> pl.DataFrame:
             "label_end_at": [timestamp + timedelta(minutes=5) for timestamp in timestamps],
             "atr_14": [1.0] * count,
             "label": [0.01] * count,
+            "forward_return": [0.01] * count,
             "outcome_status": ["COMPLETE"] * count,
         },
         schema={
@@ -55,6 +56,7 @@ def _labelled_rows(count: int = 40) -> pl.DataFrame:
             "label_end_at": _UTC_US,
             "atr_14": pl.Float64(),
             "label": pl.Float64(),
+            "forward_return": pl.Float64(),
             "outcome_status": pl.String(),
         },
     )
@@ -80,7 +82,7 @@ def _envelope(*, dataset_id: str = "0123456789abcdef") -> PredictiveDatasetEnvel
         manifest=PredictiveDatasetManifest(
             schema_version=PREDICTIVE_DATASET_SCHEMA_VERSION,
             dataset_id=dataset_id,
-            study_spec={"study_id": "atr_forward_return"},
+            study_spec={"study_id": "atr_forward_return", "label": {"kind": "REGRESSION"}},
             definition_hash="a" * 64,
             dataset_fingerprint=dataset_id + ("b" * 48),
             source_dataset_ref="ES.c.0|ohlcv|1m|csv|test@1",

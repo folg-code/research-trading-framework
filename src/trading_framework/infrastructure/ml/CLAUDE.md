@@ -20,6 +20,9 @@ Responsibility: optional-extra estimator adapters and the family-id registry.
 - Preprocessing (`IMPUTE_MEDIAN` then `STANDARDIZE` by default) is fitted on
   the feature matrix passed to `fit()` only. Do not pass PURGED / EMBARGOED
   rows; if `sample_metadata` carries fold roles, non-TRAIN roles are rejected.
+- Application constructs estimators only through `resolve_estimator(spec,
+  preprocessing=...)`. Do not import `infrastructure.ml.sklearn` from
+  application. Opaque blobs go through `dump_fitted_estimator` on the registry.
 
 ## Gotchas
 

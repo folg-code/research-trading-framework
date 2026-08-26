@@ -11,6 +11,8 @@ from trading_framework.infrastructure.storage.paths import (
     market_data_root,
     ohlcv_session_dates_overlapping_range,
     predictive_research_dataset_dir,
+    predictive_research_run_dir,
+    predictive_research_run_model_path,
     robustness_experiment_dir,
     roll_schedules_base_dir,
     signal_research_family_experiment_dir,
@@ -52,6 +54,18 @@ def test_workspace_market_and_research_namespaces(tmp_path: Path) -> None:
     )
     assert predictive_research_dataset_dir(workspace, "abc123def4567890") == (
         workspace / "research" / "predictive_research" / "datasets" / "abc123def4567890"
+    )
+    assert predictive_research_run_dir(workspace, "fedcba9876543210") == (
+        workspace / "research" / "predictive_research" / "runs" / "fedcba9876543210"
+    )
+    assert predictive_research_run_model_path(workspace, "fedcba9876543210", 3) == (
+        workspace
+        / "research"
+        / "predictive_research"
+        / "runs"
+        / "fedcba9876543210"
+        / "models"
+        / "fold_3.bin"
     )
     assert roll_schedules_base_dir(workspace, product="NQ", policy_slug="volume-rth-close") == (
         workspace / "market_data" / "continuous" / "schedules" / "NQ" / "volume-rth-close"

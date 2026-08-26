@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import io
 import json
 from collections.abc import Mapping, Sequence
 from typing import Any
@@ -138,6 +139,32 @@ class FittedSklearnEstimator:
     def preprocessing_statistics(self) -> dict[str, list[float]]:
         """Fold-local imputer/scaler statistics fitted on the ``fit()`` matrix."""
         return self._preprocessor.statistics()
+
+    def serialize_artifact(self) -> bytes:
+        """Opaque joblib blob of sklearn objects only (D-S040-17).
+
+        ``EstimatorSpec`` stores hyperparameters as ``mappingproxy``, which
+        pickle cannot serialize. The durable facts of a run are predictions;
+        this blob is convenience, tagged with library name and version.
+        """
+        try:
+            import joblib
+        except ImportError as exc:
+            msg = (
+                f"serializing fitted estimators requires optional extra {_ML_EXTRA!r}; "
+                f"install with `uv sync --extra {_ML_EXTRA}`"
+            )
+            raise PredictiveExtraError(msg) from exc
+        buffer = io.BytesIO()
+        joblib.dump(
+            {
+                "family": self._spec.family,
+                "estimator": self._estimator,
+                "preprocessor": self._preprocessor.pipeline(),
+            },
+            buffer,
+        )
+        return buffer.getvalue()
 
 
 def _require_sklearn(family_id: str) -> None:

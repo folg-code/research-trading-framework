@@ -119,6 +119,7 @@ def _labelled_schema(aliases: tuple[str, ...]) -> dict[str, pl.DataType]:
     for alias in aliases:
         schema[alias] = pl.Float64()
     schema["label"] = pl.Float64()
+    schema["forward_return"] = pl.Float64()
     schema["outcome_status"] = pl.String()
     return schema
 

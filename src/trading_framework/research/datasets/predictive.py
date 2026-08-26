@@ -30,6 +30,7 @@ _REQUIRED_FEATURE_COLUMNS = (
     "available_at",
     "label_end_at",
     "label",
+    "forward_return",
     "outcome_status",
     "fold_id",
     "fold_role",

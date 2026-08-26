@@ -2,13 +2,31 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable, Mapping
+import io
+from collections.abc import Mapping
 from dataclasses import dataclass
+from typing import Protocol
 
-from trading_framework.research.predictive.errors import PredictiveSpecError
-from trading_framework.research.predictive.estimators import EstimatorSpec, PredictiveEstimator
+from trading_framework.research.predictive.errors import PredictiveExtraError, PredictiveSpecError
+from trading_framework.research.predictive.estimators import (
+    EstimatorSpec,
+    FittedPredictiveEstimator,
+    PredictiveEstimator,
+)
+from trading_framework.research.predictive.preprocessing import PreprocessingSpec
 
-FamilyFactory = Callable[[EstimatorSpec], PredictiveEstimator]
+_ML_EXTRA = "ml"
+
+
+class FamilyFactory(Protocol):
+    """Lazy constructor selected by family id. Must not import sklearn at module import."""
+
+    def __call__(
+        self,
+        spec: EstimatorSpec,
+        *,
+        preprocessing: PreprocessingSpec | None = None,
+    ) -> PredictiveEstimator: ...
 
 
 @dataclass(frozen=True, slots=True)
@@ -47,18 +65,49 @@ def registered_families() -> Mapping[str, str]:
     return {family_id: registration.extra for family_id, registration in _REGISTRY.items()}
 
 
-def resolve_estimator(spec: EstimatorSpec) -> PredictiveEstimator:
+def resolve_estimator(
+    spec: EstimatorSpec,
+    *,
+    preprocessing: PreprocessingSpec | None = None,
+) -> PredictiveEstimator:
     """Resolve ``spec.family`` to an estimator.
 
     Unknown family ids raise ``PredictiveSpecError`` even when extras are
     installed. A registered family whose extra is missing raises
     ``PredictiveExtraError`` from inside the lazy factory.
+
+    ``preprocessing`` is threaded into the adapter factory. Application code
+    must not construct sklearn adapters directly.
     """
     registration = _REGISTRY.get(spec.family)
     if registration is None:
         msg = f"unknown estimator family: {spec.family!r}"
         raise PredictiveSpecError(msg)
-    return registration.factory(spec)
+    return registration.factory(spec, preprocessing=preprocessing)
+
+
+def dump_fitted_estimator(fitted: FittedPredictiveEstimator) -> bytes:
+    """Serialize a fitted estimator as an opaque joblib blob (D-S040-17).
+
+    Analysis must not ``joblib.load`` these bytes. Reproduce by re-fitting
+    from the run manifest. Sklearn adapters dump estimator + preprocessor
+    pipeline objects, not the Python wrapper (which holds unpicklable
+    ``mappingproxy`` hyperparameters).
+    """
+    serialize = getattr(fitted, "serialize_artifact", None)
+    if callable(serialize):
+        return bytes(serialize())
+    try:
+        import joblib
+    except ImportError as exc:
+        msg = (
+            f"serializing fitted estimators requires optional extra {_ML_EXTRA!r}; "
+            f"install with `uv sync --extra {_ML_EXTRA}`"
+        )
+        raise PredictiveExtraError(msg) from exc
+    buffer = io.BytesIO()
+    joblib.dump(fitted, buffer)
+    return buffer.getvalue()
 
 
 def _register_sklearn_families() -> None:
