@@ -62,6 +62,9 @@ class _SignedFitted:
             resolved_params={"sign": self._sign},
         )
 
+    def native_feature_importance(self) -> object | None:
+        return None
+
 
 class _SignedEstimator:
     def __init__(self, sign: float) -> None:

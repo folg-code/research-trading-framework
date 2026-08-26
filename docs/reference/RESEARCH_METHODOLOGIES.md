@@ -481,6 +481,8 @@ characters of that fingerprint.
   manifest.json
   predictions.parquet
   metrics.json
+  selection.json         # optional; bounded candidate selection
+  importance.json        # native + permutation importance and train/test gap
   models/fold_{n}.bin    # opaque; reproduce by re-fitting from the manifest
 ```
 

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import ast
 import importlib
+import json
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
@@ -19,6 +20,7 @@ from trading_framework.application.predictive_research import (
 )
 from trading_framework.infrastructure.storage.paths import (
     predictive_research_run_dir,
+    predictive_research_run_importance_path,
     predictive_research_run_metrics_path,
     predictive_research_run_model_path,
 )
@@ -66,6 +68,9 @@ class _RecordingFitted:
             resolved_params={"alpha": 1.0},
         )
 
+    def native_feature_importance(self) -> object | None:
+        return None
+
 
 class _ClassificationFitted:
     def predict(self, features: np.ndarray) -> np.ndarray:
@@ -83,6 +88,9 @@ class _ClassificationFitted:
             version="0.0",
             resolved_params={"C": 1.0},
         )
+
+    def native_feature_importance(self) -> object | None:
+        return None
 
 
 class _RecordingEstimator:
@@ -255,6 +263,9 @@ def test_run_writes_test_only_predictions_and_identical_run_id(
     assert_frame_equal(first.envelope.predictions, second.envelope.predictions)
     assert first.persisted is True
     assert second.persisted is False
+    assert first.metrics.fold_primary is not None
+    assert first.importance_trace is not None
+    assert "train_primary" in next(iter(first.metrics.fold_primary.values()))
     assert predictions.height == test_rows.height
     assert set(predictions.get_column("entity_id").to_list()) == set(
         test_rows.get_column("entity_id").to_list()
@@ -284,6 +295,16 @@ def test_run_writes_test_only_predictions_and_identical_run_id(
     assert (run_dir / "predictions.parquet").exists()
     metrics_path = predictive_research_run_metrics_path(storage_root, first.run_id)
     assert metrics_path.exists()
+    metrics_payload = json.loads(metrics_path.read_text(encoding="utf-8"))
+    assert "fold_primary" in metrics_payload
+    importance_path = predictive_research_run_importance_path(storage_root, first.run_id)
+    assert importance_path.exists()
+    importance_payload = json.loads(importance_path.read_text(encoding="utf-8"))
+    assert importance_payload["n_repeats"] == 5
+    assert importance_payload["metric"] == "spearman_ic"
+    assert importance_payload["folds"]
+    assert importance_payload["folds"][0]["native"] is None
+    assert importance_payload["folds"][0]["permutation"]["feature_names"] == ["atr_14"]
     assert first.metrics.folds
     assert first.metrics.pooled
     assert MetricSource.MODEL.value in first.metrics.pooled
