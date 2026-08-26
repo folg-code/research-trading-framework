@@ -83,6 +83,9 @@ Research Capability Track
   Phase 6A — OHLCV Strategy Research MVP          COMPLETE  (Sprints 013–014)
   Phase 6B — Multi-Data Strategy Research         PLANNED
   Phase 7  — Robustness Research                  COMPLETE  (Sprint 016)
+  Phase 10A — Predictive Research Foundation      PLANNED   (Sprints 039–041)
+  Phase 10B — Tree-Based Predictive Models        PLANNED   (Sprint 042)
+  Phase 10C — Neural Predictive Models            PLANNED   (Sprints 043–044)
 
 Execution Capability Track
   Phase 8 — Replay and Paper Execution            PLANNED
@@ -97,7 +100,14 @@ Phase 2A ──┬── Phase 5 — Signal Research
 
 Phase 2C → Phase 4B → Phase 6B
 Phase 2D → Phase 4C → Phase 6B
+
+Phase 4A ──┬── Phase 10A — Predictive Research Foundation
+Phase 5  ──┘        ├── Phase 10B — Tree-Based Models
+                    └── Phase 10C — Neural Models
 ```
+
+Phase 10 consumes Market Analysis outputs as **features** and Phase 5 forward outcomes as **labels**.
+It does not extend Strategy Research or Execution; see **§13A**.
 
 Strategy Research (**Phase 6A**) may start on OHLCV without waiting for trades or options. That validates Strategy contracts first; it does **not** mean target data coverage is complete (**§15.3**).
 
@@ -107,7 +117,7 @@ Market Data policy (facts not indicators, vendor independence): **§14 Research 
 
 Test data tiers and live-data gate: **§15**.
 
-**Recommended next increment:** wick / distance catalog PRs (S007 follow-on), then AI/ML (IDEA-014). Sprint 038 Session Range is **complete** on `main` (#300). Deferred by default: Phase 4B/6B, Phase 8 Replay, PBO/CSCV ADR. Stage 3 (`available_at` column / lineage sidecar) and Stage 4 (`MarketFrame`) remain independently sequenced.
+**Recommended next increment:** wick / distance catalog PRs (S007 follow-on), then **Phase 10 Predictive Research (Sprints 039–044, §13A)** — the AI/ML track named below. Sprint 038 Session Range is **complete** on `main` (#300). Deferred by default: Phase 4B/6B, Phase 8 Replay, PBO/CSCV ADR. Stage 3 (`available_at` column / lineage sidecar) and Stage 4 (`MarketFrame`) remain independently sequenced.
 
 ---
 
@@ -1125,6 +1135,109 @@ Minimum future requirements include:
 
 ---
 
+# 13A. Phase 10 — Predictive (ML) Research
+
+**Status:** PLANNED. Numbered `13A` to avoid renumbering sections cited elsewhere.
+
+**Sprint plans:** `SPRINT_039.md` … `SPRINT_044.md`
+
+## Purpose
+
+Learn a relationship between Market Analysis outputs and forward market behaviour, and measure
+honestly whether that relationship survives out of sample.
+
+Phase 10 is a **research methodology**, not a trading capability. It answers *is there predictable
+structure in these features?* — not *should we trade this?*
+
+## Phase family
+
+```text
+Phase 10A — Predictive Research Foundation   Sprints 039–041
+Phase 10B — Tree-Based Predictive Models     Sprint 042
+Phase 10C — Neural Predictive Models         Sprints 043–044
+```
+
+## Primary flow
+
+```text
+Market Analysis outputs (Phase 4A + S037/S038 catalog)
+        ↓
+Feature matrix (declared columns + lineage)
+        ↓
+Labels from forward outcomes (Phase 5)
+        ↓
+Purged + embargoed walk-forward split
+        ↓
+Estimator training per fold (statistical / tree / neural)
+        ↓
+Out-of-sample predictions + metrics
+        ↓
+Predictive Research Report (offline HTML)
+```
+
+## Expected capabilities
+
+- declarative feature matrix specification with component lineage,
+- regression and classification label definitions derived from forward outcomes,
+- purged and embargoed walk-forward splitting as a first-class domain object,
+- estimator protocol in the domain, ML libraries behind infrastructure adapters,
+- statistical metrics (RMSE, R², rank IC, AUC, log loss, Brier) and finance-aware metrics
+  (mean forward return per prediction bucket, hit rate),
+- persistent Predictive Research Dataset and run envelope with full run identity,
+- offline HTML report with fold timeline, stability, calibration and bucket panels,
+- tree-based estimators (XGBoost, LightGBM, CatBoost) with deterministic configuration,
+- feedforward and recurrent (LSTM / GRU) sequence estimators,
+- a documented gate for promoting a trained model to a Market Analysis State component.
+
+## Binding rules
+
+```text
+Domain code must not import scikit-learn, XGBoost, LightGBM, CatBoost or torch
+ML libraries are optional dependency extras — never runtime dependencies of the framework
+Scalers, encoders and feature selection are fitted on the training fold only
+Label horizon overlap between train and test folds is purged, not tolerated
+Predictive runs are persisted separately from Signal and Strategy Research runs
+A trained model is never promoted to a tradable signal inside Phase 10
+```
+
+## Completion criteria
+
+Phase 10 is complete when the framework can:
+
+- build a reproducible feature matrix with labels and prove absence of temporal leakage in tests,
+- split it into purged, embargoed walk-forward folds,
+- train and evaluate statistical, tree-based and neural estimators through one shared protocol,
+- persist predictions, metrics and run identity for every fold,
+- render one report that makes overfitting and fold instability visible,
+- compare estimator families on an identical dataset fingerprint,
+- state explicit conditions for promoting a model to Market Analysis (IDEA-014).
+
+## Dependencies
+
+- Phase 4A Market Analysis outputs and `AnalysisFrame` column lineage,
+- Phase 5 forward outcome calculation (`forward_return`, `mfe`, `mae`, outcome status),
+- S037 component libraries and S038 `structure.session_range` — the catalog bounds feature quality;
+  further catalog PRs (wick, distance-to-level) widen it without blocking Phase 10 entry.
+
+## Main risks
+
+- leakage through feature availability, label horizon overlap or preprocessing fitted on all data,
+- overfitting presented as discovery because only aggregate metrics are reported,
+- heavy dependencies leaking into the default install or standard CI,
+- non-reproducible results from unseeded or thread-nondeterministic estimators,
+- silent drift into strategy generation without robustness validation.
+
+## Out of scope (phase family)
+
+- automatic promotion of predictions into Signal Models or Strategy Research,
+- online / incremental learning and live inference,
+- distributed or GPU training infrastructure,
+- a general model registry product,
+- reinforcement learning and generative approaches,
+- automated feature engineering search.
+
+---
+
 # 14. Research Data Strategy
 
 **Status:** ACCEPTED (2026-07-12)
@@ -1477,12 +1590,18 @@ Visual workflow or DAG editor
 Full event sourcing
 MBP-10 / full DOM as primary storage (see §14 — sample validation first)
 Raw option tick streams (snapshots preferred; see §14)
-Automatic ML feature vector layer
 Separate Position Sizing Model
 Distributed Strategy Execution
+Automated feature engineering search
+Online / incremental learning and live model inference
+GPU or distributed model training
 ```
 
 Deferred does not mean rejected.
+
+**Promoted 2026-08-25:** *Automatic ML feature vector layer* left this list and became **Phase 10A**
+(**§13A**). The declared feature matrix is explicit and bounded — it is not an automatic layer over
+every available component.
 
 Each item requires a decision trigger, design review and usually an ADR before implementation.
 
