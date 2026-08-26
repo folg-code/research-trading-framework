@@ -18,6 +18,10 @@ construction, and purged walk-forward fold assignment. No estimators.
   `available_at`, not as a 1-minute bar count. Consecutive test windows are
   separated by `embargo_span` so expanding later folds cannot train on the
   gap after an earlier test.
+- Role assignment prefers embargo over purge when both apply (this fold's
+  embargo, then a prior fold's embargo, then purge). A row in fold *n*'s
+  embargo whose `label_end_at` also reaches fold *n+1*'s TEST stays
+  `EMBARGOED` so later reports can count each guard (D-S039-09).
 
 ## Tests
 

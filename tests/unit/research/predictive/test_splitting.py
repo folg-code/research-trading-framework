@@ -390,6 +390,34 @@ def test_test_windows_are_chronological_and_non_overlapping() -> None:
     assert _test_windows_overlap(overlapping)
 
 
+def test_prior_fold_embargo_is_preferred_over_purge_when_both_apply() -> None:
+    spec = _planner_spec(embargo_span="2m")
+    rows = _labelled_rows(count=16, horizon_minutes=2)
+    assigned = assign_purged_walk_forward_folds(rows, spec)
+    fold_0_test_end = _fold_0_test_end(assigned)
+    embargo_span = timedelta(seconds=spec.embargo_span.total_seconds)
+    test_span = timedelta(seconds=spec.test_span.total_seconds)
+    embargo_end = fold_0_test_end + embargo_span
+    fold_1_test_times = assigned.filter(
+        (pl.col("fold_id") == 1) & (pl.col("fold_role") == FoldRole.TEST.value)
+    ).get_column("available_at")
+    fold_1_test_end = _as_datetime(fold_1_test_times.max())
+    fold_1_test_lower = fold_1_test_end - test_span
+    gap_in_fold_1 = assigned.filter(
+        (pl.col("fold_id") == 1)
+        & (pl.col("available_at") > fold_0_test_end)
+        & (pl.col("available_at") <= embargo_end)
+    )
+    both_guards = gap_in_fold_1.filter(
+        (pl.col("label_end_at") > fold_1_test_lower) & (pl.col("label_end_at") <= fold_1_test_end)
+    )
+
+    assert both_guards.height > 0
+    assert set(both_guards.get_column("fold_role").unique().to_list()) == {FoldRole.EMBARGOED.value}
+    assert FoldRole.PURGED.value not in gap_in_fold_1.get_column("fold_role").to_list()
+    assert FoldRole.TRAIN.value not in gap_in_fold_1.get_column("fold_role").to_list()
+
+
 def test_expanding_embargo_holds_out_span_after_test() -> None:
     spec = _planner_spec(embargo_span="2m", min_train_rows=1)
     assigned = assign_purged_walk_forward_folds(
