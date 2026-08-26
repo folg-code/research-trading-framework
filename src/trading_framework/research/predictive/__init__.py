@@ -1,4 +1,4 @@
-"""Predictive Research specification contracts and labelled feature-matrix builder."""
+"""Predictive Research specification contracts, labelled matrix, and fold planner."""
 
 from trading_framework.research.predictive.errors import (
     PredictiveMatrixError,
@@ -22,14 +22,17 @@ from trading_framework.research.predictive.spec import (
     load_predictive_study_spec_from_dict,
 )
 from trading_framework.research.predictive.splitting import (
+    FoldRole,
     PurgedWalkForwardSplitMode,
     PurgedWalkForwardSplitSpec,
+    assign_purged_walk_forward_folds,
 )
 
 __all__ = [
     "FeatureMatrixSpec",
     "FeatureSpec",
     "FeatureTransform",
+    "FoldRole",
     "LabelKind",
     "LabelSpec",
     "LabelledFeatureMatrix",
@@ -39,6 +42,7 @@ __all__ = [
     "PredictiveStudySpec",
     "PurgedWalkForwardSplitMode",
     "PurgedWalkForwardSplitSpec",
+    "assign_purged_walk_forward_folds",
     "build_labelled_feature_matrix",
     "compute_definition_hash",
     "load_predictive_study_spec",
