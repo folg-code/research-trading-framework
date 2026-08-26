@@ -14,6 +14,6 @@ class PredictiveMatrixError(PredictiveSpecError):
 class PredictiveExtraError(ValidationError):
     """Raised when a requested estimator family requires an uninstalled extra.
 
-    The message must name the extra (``ml``) and the requested family id.
+    The message must name the extra (``ml`` or ``ml-trees``) and the requested family id.
     ``ImportError`` may be chained as ``__cause__`` but must not be the raised type.
     """

@@ -29,13 +29,17 @@ Optional for inspection HTML spikes and portfolio demo:
 uv pip install plotly
 ```
 
-Optional Predictive Research estimator extra (`ml` = scikit-learn). Default
+Optional Predictive Research extras (`ml` = scikit-learn; `ml-trees` =
+XGBoost / LightGBM / CatBoost). Default
 `uv sync --locked --dev` stays extra-free. Standard unit tests use
-`-m "not ml"`; ML-marked tests need:
+`-m "not ml and not ml_trees"`. Optional extras:
 
 ```bash
 uv sync --locked --extra ml --dev
 uv run pytest -m ml
+
+uv sync --locked --extra ml --extra ml-trees --dev
+uv run pytest -m ml_trees
 ```
 
 ---

@@ -131,7 +131,7 @@ Policy inherited (D-S039-06 / ADR-0023 §3). S042 implements it.
 ```text
 [project.optional-dependencies]
 ml-trees = [
-  "xgboost>=2.1,<4.0",
+  "xgboost-cpu>=2.1,<4.0",
   "lightgbm>=4.5,<5.0",
   "catboost>=1.2,<2.0",
 ]
@@ -156,7 +156,9 @@ Missing `ml` while requesting a tree family raises `PredictiveExtraError`
 naming extra `ml` (preprocessing). Missing `ml-trees` while requesting a tree
 family raises `PredictiveExtraError` naming extra `ml-trees`.
 
-Exact pins are `uv lock` work in PR 2 (T002).
+Exact pins are `uv lock` work in PR 2 (T002). The XGBoost dependency is the
+`xgboost-cpu` wheel (import remains ``xgboost``) so the extra stays CPU-only
+and does not pull ``nvidia-nccl``.
 
 ---
 
