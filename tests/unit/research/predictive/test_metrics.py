@@ -182,6 +182,19 @@ def test_report_includes_per_fold_pooled_and_task_baselines() -> None:
     round_trip = PredictiveMetricsReport.from_dict(payload)
     assert round_trip.folds.keys() == report.folds.keys()
     assert round_trip.pooled.keys() == report.pooled.keys()
+    with_gap = PredictiveMetricsReport.from_dict(
+        {
+            **payload,
+            "fold_primary": {
+                "0": {"train_primary": 0.9, "test_primary": 0.4, "primary_gap": 0.5},
+            },
+        }
+    )
+    assert with_gap.fold_primary is not None
+    assert with_gap.fold_primary["0"]["train_primary"] == pytest.approx(0.9)
+    assert with_gap.fold_primary["0"]["primary_gap"] == pytest.approx(0.5)
+    restored_gap = PredictiveMetricsReport.from_dict(with_gap.to_dict())
+    assert restored_gap.fold_primary == with_gap.fold_primary
 
 
 def test_classification_report_uses_forward_return_and_majority_baseline() -> None:

@@ -160,3 +160,18 @@ def test_regressor_recovers_linear_signal() -> None:
     )
     correlation = float(np.corrcoef(target, predicted)[0, 1])
     assert correlation > 0.9
+
+
+def test_native_feature_importance_has_gain_per_column() -> None:
+    rng = np.random.default_rng(0)
+    features = rng.normal(size=(80, 3))
+    target = 2.5 * features[:, 0] - 1.25 * features[:, 1]
+    fitted = resolve_estimator(
+        _regressor_spec(n_estimators=40, max_depth=3, learning_rate=0.1)
+    ).fit(features, target, None)
+    importance = fitted.native_feature_importance()
+    assert importance is not None
+    assert len(importance.gain) == 3
+    assert importance.split is not None
+    assert len(importance.split) == 3
+    assert importance.gain[0] >= importance.gain[2]

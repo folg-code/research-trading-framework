@@ -103,6 +103,7 @@ def test_describe_captures_library_version_and_resolved_params() -> None:
     }
     canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"), allow_nan=False)
     assert json.loads(canonical) == payload
+    assert fitted.native_feature_importance() is None
 
 
 def test_logistic_pins_n_jobs_and_random_state_from_spec() -> None:

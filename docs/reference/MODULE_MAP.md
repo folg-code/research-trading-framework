@@ -443,6 +443,7 @@ numpy, framework contracts). Report figures live in `research/reporting/predicti
 | Fold-local preprocessing spec | `research/predictive/preprocessing.py` |
 | Statistical + finance-aware metrics | `research/predictive/metrics.py` |
 | Bounded candidate selection (`CandidateSetSpec`) | `research/predictive/selection.py` |
+| Native + permutation importance, train/test gap | `research/predictive/importance.py` |
 | Dataset envelope, fingerprint, repository | `research/datasets/predictive.py` |
 | Run envelope, fingerprint, repository | `research/datasets/predictive_run.py` |
 | Workflow orchestration (build, run, analyze, render) | `application/predictive_research/` |
@@ -513,6 +514,7 @@ Storage:
   metrics.json
   report.html            # offline Plotly; first figure embeds JS inline
   selection.json         # candidate scores per fold; absent on single-estimator runs
+  importance.json        # native + permutation importance and train/test gap
   models/fold_{n}.bin    # opaque; reproduce by re-fitting, not deserializing
 ```
 

@@ -16,6 +16,7 @@ from trading_framework.infrastructure.ml.sklearn.preprocessing import (
 )
 from trading_framework.infrastructure.ml.trees._guards import (
     as_target_vector,
+    named_importance_vector,
     reject_non_train_metadata,
     require_binary_labels,
 )
@@ -23,6 +24,7 @@ from trading_framework.research.predictive.errors import PredictiveExtraError, P
 from trading_framework.research.predictive.estimators import (
     EstimatorDescription,
     EstimatorSpec,
+    NativeFeatureImportance,
     TaskType,
 )
 from trading_framework.research.predictive.preprocessing import (
@@ -118,6 +120,7 @@ class XGBoostPredictiveEstimator:
             spec=self._spec,
             estimator=estimator,
             preprocessor=preprocessor,
+            n_features=int(transformed.shape[1]),
         )
 
 
@@ -130,10 +133,12 @@ class FittedXGBoostEstimator:
         *,
         estimator: Any,
         preprocessor: FittedSklearnPreprocessor,
+        n_features: int,
     ) -> None:
         self._spec = spec
         self._estimator = estimator
         self._preprocessor = preprocessor
+        self._n_features = n_features
 
     def predict(self, features: np.ndarray) -> np.ndarray:
         transformed = self._preprocessor.transform(features)
@@ -162,6 +167,22 @@ class FittedXGBoostEstimator:
             library="xgboost",
             version=str(xgboost.__version__),
             resolved_params=_json_stable_mapping(self._estimator.get_params()),
+        )
+
+    def native_feature_importance(self) -> NativeFeatureImportance | None:
+        booster = self._estimator.get_booster()
+        gain = named_importance_vector(
+            booster.get_score(importance_type="gain"),
+            n_features=self._n_features,
+        )
+        split = named_importance_vector(
+            booster.get_score(importance_type="weight"),
+            n_features=self._n_features,
+        )
+        return NativeFeatureImportance(
+            feature_names=tuple(f"f{index}" for index in range(self._n_features)),
+            gain=gain,
+            split=split,
         )
 
     def serialize_artifact(self) -> bytes:

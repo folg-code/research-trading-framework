@@ -18,6 +18,7 @@ from trading_framework.research.predictive.errors import PredictiveExtraError, P
 from trading_framework.research.predictive.estimators import (
     EstimatorDescription,
     EstimatorSpec,
+    NativeFeatureImportance,
     TaskType,
 )
 from trading_framework.research.predictive.preprocessing import (
@@ -135,6 +136,10 @@ class FittedSklearnEstimator:
             version=str(sklearn.__version__),
             resolved_params=_json_stable_mapping(self._estimator.get_params()),
         )
+
+    def native_feature_importance(self) -> NativeFeatureImportance | None:
+        """Sklearn baselines do not expose tree-style native importance."""
+        return None
 
     def preprocessing_statistics(self) -> dict[str, list[float]]:
         """Fold-local imputer/scaler statistics fitted on the ``fit()`` matrix."""

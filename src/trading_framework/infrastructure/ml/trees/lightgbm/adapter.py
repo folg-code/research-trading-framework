@@ -14,6 +14,7 @@ from trading_framework.infrastructure.ml.sklearn.preprocessing import (
     fit_sklearn_preprocessor,
 )
 from trading_framework.infrastructure.ml.trees._guards import (
+    array_importance_vector,
     as_lower_str,
     as_target_vector,
     json_stable_mapping,
@@ -26,6 +27,7 @@ from trading_framework.research.predictive.errors import PredictiveExtraError, P
 from trading_framework.research.predictive.estimators import (
     EstimatorDescription,
     EstimatorSpec,
+    NativeFeatureImportance,
     TaskType,
 )
 from trading_framework.research.predictive.preprocessing import (
@@ -130,6 +132,7 @@ class LightGBMPredictiveEstimator:
             spec=self._spec,
             estimator=estimator,
             preprocessor=preprocessor,
+            n_features=int(transformed.shape[1]),
         )
 
 
@@ -142,10 +145,12 @@ class FittedLightGBMEstimator:
         *,
         estimator: Any,
         preprocessor: FittedSklearnPreprocessor,
+        n_features: int,
     ) -> None:
         self._spec = spec
         self._estimator = estimator
         self._preprocessor = preprocessor
+        self._n_features = n_features
 
     def predict(self, features: np.ndarray) -> np.ndarray:
         transformed = self._preprocessor.transform(features)
@@ -174,6 +179,22 @@ class FittedLightGBMEstimator:
             library="lightgbm",
             version=str(lightgbm.__version__),
             resolved_params=json_stable_mapping(self._estimator.get_params()),
+        )
+
+    def native_feature_importance(self) -> NativeFeatureImportance | None:
+        booster = self._estimator.booster_
+        gain = array_importance_vector(
+            booster.feature_importance(importance_type="gain"),
+            n_features=self._n_features,
+        )
+        split = array_importance_vector(
+            booster.feature_importance(importance_type="split"),
+            n_features=self._n_features,
+        )
+        return NativeFeatureImportance(
+            feature_names=tuple(f"f{index}" for index in range(self._n_features)),
+            gain=gain,
+            split=split,
         )
 
     def serialize_artifact(self) -> bytes:

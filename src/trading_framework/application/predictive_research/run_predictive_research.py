@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Any
 
@@ -15,10 +15,12 @@ from trading_framework.application.predictive_research.analyze_predictive_run im
     AnalyzePredictiveRunRequest,
     analyze_predictive_run,
     metrics_report_from_envelopes,
+    write_predictive_metrics,
 )
 from trading_framework.core.exceptions import ValidationError
 from trading_framework.infrastructure.ml.registry import dump_fitted_estimator, resolve_estimator
 from trading_framework.infrastructure.storage.paths import (
+    predictive_research_run_importance_path,
     predictive_research_run_model_path,
     predictive_research_run_selection_path,
 )
@@ -42,6 +44,13 @@ from trading_framework.research.predictive.estimators import (
     FittedPredictiveEstimator,
     TaskType,
 )
+from trading_framework.research.predictive.importance import (
+    DEFAULT_PERMUTATION_REPEATS,
+    FoldImportanceRecord,
+    ImportanceTrace,
+    permutation_feature_importance,
+    primary_gap,
+)
 from trading_framework.research.predictive.labels import LabelKind
 from trading_framework.research.predictive.metrics import (
     PredictiveMetricsReport,
@@ -56,6 +65,7 @@ from trading_framework.research.predictive.selection import (
     CandidateFoldScore,
     CandidateSetSpec,
     FoldSelectionTrace,
+    SelectionMetric,
     SelectionTrace,
     candidate_identity_hash,
     require_early_stopping_eval_roles,
@@ -112,6 +122,7 @@ class RunPredictiveResearchResult:
     persisted: bool
     metrics: PredictiveMetricsReport
     selection_trace: SelectionTrace | None = None
+    importance_trace: ImportanceTrace | None = None
 
 
 def run_predictive_research(request: RunPredictiveResearchRequest) -> RunPredictiveResearchResult:
@@ -137,6 +148,7 @@ def run_predictive_research(request: RunPredictiveResearchRequest) -> RunPredict
     library = ""
     library_version = ""
     fold_traces: list[FoldSelectionTrace] = []
+    importance_records: list[FoldImportanceRecord] = []
     winner_spec = request.estimator
 
     fold_ids = [boundary.fold_id for boundary in envelope.folds]
@@ -179,6 +191,16 @@ def run_predictive_research(request: RunPredictiveResearchRequest) -> RunPredict
             library_version = description.version
         prediction_frames.append(_prediction_frame(fitted, test_rows, feature_columns, fold_id))
         model_blobs[fold_id] = dump_fitted_estimator(fitted)
+        importance_records.append(
+            _fold_importance_record(
+                fitted,
+                train_rows=train_rows,
+                test_rows=test_rows,
+                feature_columns=feature_columns,
+                fold_id=fold_id,
+                spec=winner_spec,
+            )
+        )
 
     if description_payload is None:
         msg = "run produced no fitted folds"
@@ -254,6 +276,23 @@ def run_predictive_research(request: RunPredictiveResearchRequest) -> RunPredict
         ).report
     else:
         metrics = metrics_report_from_envelopes(run_envelope, envelope.features)
+    importance_trace = ImportanceTrace(
+        metric=_primary_metric(winner_spec.task_type).value,
+        n_repeats=DEFAULT_PERMUTATION_REPEATS,
+        folds=tuple(importance_records),
+    )
+    metrics = replace(
+        metrics,
+        fold_primary={
+            str(record.fold_id): record.primary_gap.to_dict() for record in importance_records
+        },
+    )
+    if request.persist:
+        write_predictive_metrics(request.storage_root, run_id, metrics)
+        predictive_research_run_importance_path(request.storage_root, run_id).write_text(
+            json.dumps(importance_trace.to_dict(), indent=2),
+            encoding="utf-8",
+        )
     return RunPredictiveResearchResult(
         run_id=run_id,
         run_ref=run_ref,
@@ -262,6 +301,7 @@ def run_predictive_research(request: RunPredictiveResearchRequest) -> RunPredict
         persisted=persisted,
         metrics=metrics,
         selection_trace=selection_trace,
+        importance_trace=importance_trace,
     )
 
 
@@ -328,6 +368,68 @@ def _select_and_refit_fold(
         refitted,
         winner,
         FoldSelectionTrace(fold_id=fold_id, winner=winner, candidates=fold_scores),
+    )
+
+
+def _fold_importance_record(
+    fitted: FittedPredictiveEstimator,
+    *,
+    train_rows: pl.DataFrame,
+    test_rows: pl.DataFrame,
+    feature_columns: tuple[str, ...],
+    fold_id: int,
+    spec: EstimatorSpec,
+) -> FoldImportanceRecord:
+    metric = _primary_metric(spec.task_type)
+    train_features = _feature_matrix(train_rows, feature_columns)
+    test_features = _feature_matrix(test_rows, feature_columns)
+    train_target = _label_vector(train_rows)
+    test_target = _label_vector(test_rows)
+    native = None
+    extract = getattr(fitted, "native_feature_importance", None)
+    if callable(extract):
+        native = extract()
+        if native is not None:
+            native = native.relabel(feature_columns)
+    permutation = permutation_feature_importance(
+        test_features,
+        test_target,
+        predict=fitted.predict,
+        metric=metric.value,
+        seed=spec.seed,
+        feature_names=feature_columns,
+        predict_score=lambda matrix: _score_vector(fitted, matrix, n_rows=matrix.shape[0]),
+    )
+    return FoldImportanceRecord(
+        fold_id=fold_id,
+        native=native,
+        permutation=permutation,
+        primary_gap=primary_gap(
+            train_score=_primary_score(fitted, train_features, train_target, metric=metric.value),
+            test_score=_primary_score(fitted, test_features, test_target, metric=metric.value),
+        ),
+    )
+
+
+def _primary_metric(task_type: TaskType) -> SelectionMetric:
+    if task_type is TaskType.CLASSIFICATION:
+        return SelectionMetric.ROC_AUC
+    return SelectionMetric.SPEARMAN_IC
+
+
+def _primary_score(
+    fitted: FittedPredictiveEstimator,
+    features: np.ndarray,
+    target: np.ndarray,
+    *,
+    metric: str,
+) -> float | None:
+    predicted = np.asarray(fitted.predict(features), dtype=np.float64).reshape(-1)
+    return selection_metric_value(
+        metric,
+        y_true=target,
+        y_pred=predicted,
+        y_score=_score_vector(fitted, features, n_rows=features.shape[0]),
     )
 
 
