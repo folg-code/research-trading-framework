@@ -7,13 +7,24 @@ import math
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
+import polars as pl
 import pytest
 
 import trading_framework
+from trading_framework.core.identifiers import Identifier
+from trading_framework.market.datasets import DatasetId, DatasetRef
 from trading_framework.market_analysis.assembly.frame import AnalysisFrame
-from trading_framework.market_analysis.identity.component import ComponentId
+from trading_framework.market_analysis.identity.component import (
+    ComponentId,
+    ComponentVersion,
+    ImplementationId,
+    ImplementationVersion,
+)
+from trading_framework.market_analysis.identity.computation import ComputationIdentity
+from trading_framework.market_analysis.models.output_ref import OutputRef
 from trading_framework.market_analysis.models.outputs import OutputId
 from trading_framework.market_analysis.models.parameters import CanonicalParameters
+from trading_framework.market_analysis.models.time_range import TimeRange
 from trading_framework.research.outcomes.definition import OutcomeStatus
 from trading_framework.research.predictive import (
     FeatureMatrixSpec,
@@ -338,6 +349,241 @@ def test_matrix_builder_does_not_import_ml_or_analysis_runtime() -> None:
     assert all(
         not name.startswith("trading_framework.application.market_analysis") for name in imported
     )
+    assert "trading_framework.research.outcomes.calculator" in imported
+    assert "compute_forward_outcomes_for_horizons" in source
+
+
+def test_pct_change_transform_is_causal() -> None:
+    close = (100.0, 101.0, 102.0, 103.0, 104.0, 105.0)
+    raw = (10.0, 12.0, 15.0, 20.0, 25.0, 30.0)
+    matrix = _build(
+        close=close,
+        feature_values=raw,
+        label=LabelSpec(kind=LabelKind.REGRESSION, horizon=Timeframe("2m")),
+        horizon_bars=2,
+        transform=FeatureTransform.PCT_CHANGE,
+    )
+
+    changes = matrix.rows.get_column("atr_14").to_list()
+    assert matrix.exclusions.null_features == 1
+    assert changes[0] == pytest.approx((raw[1] - raw[0]) / raw[0])
+    assert changes[1] == pytest.approx((raw[2] - raw[1]) / raw[1])
+    # PCT_CHANGE[t] must not look at t+1.
+    assert changes[1] != pytest.approx((raw[3] - raw[1]) / raw[1])
+
+
+def test_feature_resolves_via_column_lineage_when_alias_absent() -> None:
+    close = (100.0, 101.0, 102.0, 103.0)
+    timestamps = _timestamps(len(close))
+    frame_column = "volatility.atr:atr"
+    frame = AnalysisFrame(
+        timestamps=timestamps,
+        columns={frame_column: (1.5, 2.5, 3.5, 4.5)},
+        column_lineage={frame_column: _atr_output_ref()},
+    )
+
+    matrix = build_labelled_feature_matrix(
+        frame=frame,
+        ohlcv=_ohlcv_from_close(close),
+        features=FeatureMatrixSpec(features=(_feature(alias="atr_14"),)),
+        label=LabelSpec(kind=LabelKind.REGRESSION, horizon=Timeframe("1m")),
+        horizon_bars=1,
+    )
+
+    assert "atr_14" in matrix.rows.columns
+    assert frame_column not in matrix.rows.columns
+    assert matrix.rows.get_column("atr_14").to_list() == [1.5, 2.5, 3.5]
+
+
+def test_labels_come_from_compute_forward_outcomes_for_horizons(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    close = (100.0, 101.0, 102.0, 103.0)
+    calls: list[int] = []
+
+    def fake_compute(
+        occurrences: pl.DataFrame,
+        *,
+        frame: AnalysisFrame,
+        ohlcv: dict[str, tuple[float, ...]],
+        horizons: tuple[int, ...],
+        definition: object,
+    ) -> pl.DataFrame:
+        del frame, ohlcv, definition
+        calls.append(len(occurrences))
+        ids = occurrences.get_column("occurrence_id").to_list()
+        horizon = horizons[0]
+        row_count = len(ids)
+        statuses: list[str] = []
+        returns: list[float | None] = []
+        for index in range(row_count):
+            if index + horizon >= row_count:
+                statuses.append(OutcomeStatus.INCOMPLETE_HORIZON.value)
+                returns.append(None)
+            else:
+                statuses.append(OutcomeStatus.COMPLETE.value)
+                returns.append(0.42)
+        return pl.DataFrame(
+            {
+                "occurrence_id": ids,
+                "horizon_bars": [horizon] * row_count,
+                "outcome_status": statuses,
+                "terminal_price": [None] * row_count,
+                "forward_return": returns,
+                "mfe": [None] * row_count,
+                "mae": [None] * row_count,
+            }
+        )
+
+    monkeypatch.setattr(
+        "trading_framework.research.predictive.matrix.compute_forward_outcomes_for_horizons",
+        fake_compute,
+    )
+    matrix = _build(
+        close=close,
+        feature_values=(1.0, 1.0, 1.0, 1.0),
+        label=LabelSpec(kind=LabelKind.REGRESSION, horizon=Timeframe("1m")),
+        horizon_bars=1,
+    )
+
+    assert calls == [4]
+    assert matrix.rows.get_column("label").to_list() == [0.42, 0.42, 0.42]
+    # Distinct from close-path forward return (101/100 - 1 == 0.01).
+    assert close[1] / close[0] - 1.0 != pytest.approx(0.42)
+
+
+def test_incomplete_horizon_takes_precedence_over_null_features() -> None:
+    close = (100.0, 101.0, 102.0, 103.0, 104.0)
+    matrix = _build(
+        close=close,
+        feature_values=(1.0, math.nan, 3.0, math.nan, math.nan),
+        label=LabelSpec(kind=LabelKind.REGRESSION, horizon=Timeframe("2m")),
+        horizon_bars=2,
+    )
+
+    assert matrix.exclusions.candidate_rows == 5
+    assert matrix.exclusions.labelled_rows == 2
+    assert matrix.exclusions.incomplete_horizon == 2
+    assert matrix.exclusions.null_features == 1
+    assert (
+        matrix.exclusions.labelled_rows
+        + matrix.exclusions.incomplete_horizon
+        + matrix.exclusions.insufficient_data
+        + matrix.exclusions.null_features
+        == matrix.exclusions.candidate_rows
+    )
+
+
+def test_labelled_rows_have_availability_columns_and_no_fold_roles() -> None:
+    close = (100.0, 101.0, 102.0, 103.0, 104.0)
+    matrix = _build(
+        close=close,
+        feature_values=(1.0, 1.0, 1.0, 1.0, 1.0),
+        label=LabelSpec(kind=LabelKind.REGRESSION, horizon=Timeframe("2m")),
+        horizon_bars=2,
+    )
+
+    assert {"detected_at", "available_at", "label_end_at"}.issubset(matrix.rows.columns)
+    assert "fold_role" not in matrix.rows.columns
+    assert "fold_id" not in matrix.rows.columns
+    assert matrix.rows.get_column("detected_at").null_count() == 0
+    assert matrix.rows.get_column("available_at").null_count() == 0
+    assert matrix.rows.get_column("label_end_at").null_count() == 0
+
+
+def test_log_of_non_positive_is_excluded_as_null_feature() -> None:
+    close = (100.0, 101.0, 102.0, 103.0, 104.0)
+    matrix = _build(
+        close=close,
+        feature_values=(math.e, 0.0, -1.0, math.e, math.e),
+        label=LabelSpec(kind=LabelKind.REGRESSION, horizon=Timeframe("1m")),
+        horizon_bars=1,
+        transform=FeatureTransform.LOG,
+    )
+
+    assert matrix.exclusions.null_features == 2
+    assert matrix.rows.get_column("atr_14").to_list() == pytest.approx([1.0, 1.0])
+
+
+def test_empty_frame_returns_empty_labelled_matrix() -> None:
+    matrix = build_labelled_feature_matrix(
+        frame=AnalysisFrame(timestamps=(), columns={"atr_14": ()}, column_lineage={}),
+        ohlcv=_ohlcv_from_close(()),
+        features=FeatureMatrixSpec(features=(_feature(),)),
+        label=LabelSpec(kind=LabelKind.REGRESSION, horizon=Timeframe("1m")),
+        horizon_bars=1,
+    )
+
+    assert matrix.rows.height == 0
+    assert matrix.exclusions.candidate_rows == 0
+    assert matrix.exclusions.labelled_rows == 0
+    assert {"detected_at", "available_at", "label_end_at", "label"}.issubset(matrix.rows.columns)
+
+
+def test_horizon_bars_must_be_at_least_one() -> None:
+    with pytest.raises(PredictiveMatrixError, match="horizon_bars must be at least 1"):
+        _build(
+            close=(100.0, 101.0),
+            feature_values=(1.0, 1.0),
+            label=LabelSpec(kind=LabelKind.REGRESSION, horizon=Timeframe("1m")),
+            horizon_bars=0,
+        )
+
+
+def test_any_non_finite_feature_excludes_the_row() -> None:
+    close = (100.0, 101.0, 102.0, 103.0, 104.0)
+    timestamps = _timestamps(len(close))
+    frame = AnalysisFrame(
+        timestamps=timestamps,
+        columns={
+            "atr_14": (1.0, 2.0, math.nan, 4.0, 5.0),
+            "ema_20": (1.0, 1.0, 1.0, 1.0, 1.0),
+        },
+        column_lineage={},
+    )
+
+    matrix = build_labelled_feature_matrix(
+        frame=frame,
+        ohlcv=_ohlcv_from_close(close),
+        features=FeatureMatrixSpec(
+            features=(_feature(alias="atr_14"), _feature(alias="ema_20")),
+        ),
+        label=LabelSpec(kind=LabelKind.REGRESSION, horizon=Timeframe("1m")),
+        horizon_bars=1,
+    )
+
+    assert matrix.exclusions.labelled_rows == 3
+    assert matrix.exclusions.null_features == 1
+    assert matrix.exclusions.incomplete_horizon == 1
+    assert matrix.rows.get_column("atr_14").to_list() == [1.0, 2.0, 4.0]
+
+
+def _atr_output_ref() -> OutputRef:
+    dataset_ref = DatasetRef(
+        DatasetId(
+            instrument_id=Identifier("NQ.c.0"),
+            data_type="ohlcv",
+            timeframe=Timeframe("1m"),
+            provider="csv",
+            source_id="sample",
+        ),
+        version=1,
+    )
+    identity = ComputationIdentity(
+        component_id=ComponentId("volatility.atr"),
+        component_version=ComponentVersion("1.0.0"),
+        implementation_id=ImplementationId("numpy.atr"),
+        implementation_version=ImplementationVersion("1.0.0"),
+        parameters=CanonicalParameters.from_mapping({"period": 14}),
+        dataset_ref=dataset_ref,
+        computation_timeframe=Timeframe("1m"),
+        requested_range=TimeRange(
+            start=datetime(2024, 1, 1, tzinfo=UTC),
+            end=datetime(2024, 1, 2, tzinfo=UTC),
+        ),
+        dependency_keys=(),
+    )
+    return OutputRef(computation_identity=identity, output_id=OutputId("atr"))
 
 
 def _as_utc(value: datetime) -> datetime:
