@@ -27,14 +27,14 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 
 ```text
 Status Date: 2026-08-26
-Current Phase: Phase 10A Predictive Research Foundation (S039 on main; S040 on sprint/predictive-baselines)
-Current Milestone: S040 baseline regression + classification (23/23 tasks on sprint branch; not on main)
-Implementation Status: Sprints 001-006, 008-024, 025-039 on main; S040 on sprint/predictive-baselines
+Current Phase: Phase 10A Predictive Research Foundation (S039–S040 complete; S041 planned)
+Current Milestone: S040 baselines complete; this PR integrates to main; S041 HTML report next
+Implementation Status: Sprints 001-006, 008-024, 025-040 on main (this PR)
 Overall Status: STABLE
-Active Sprint: SPRINT_040 (sprint/predictive-baselines)
-Last Completed Sprint: SPRINT_039 (Predictive Research dataset foundation) → main (#309)
-Capability Tracks: Foundation COMPLETE; Data COMPLETE (core); Research COMPLETE (core); Strategy 6A COMPLETE; Phase 8A dry-run + S024 on main; Dashboard / Live Paper / public demo COMPLETE; Phase 10A S039 dataset foundation COMPLETE (S040 on sprint branch; S041 remains)
-Recent: S039 on main (#309). S040 T001–T022 squash-merged (#310–#317). T023 docs on this branch. ADR-0023 ACCEPTED. S040 is not on main.
+Active Sprint: none (S041 planned, not started)
+Last Completed Sprint: SPRINT_040 (Predictive Research baselines) → main (this PR)
+Capability Tracks: Foundation COMPLETE; Data COMPLETE (core); Research COMPLETE (core); Strategy 6A COMPLETE; Phase 8A dry-run + S024 on main; Dashboard / Live Paper / public demo COMPLETE; Phase 10A S039 dataset + S040 baselines COMPLETE (S041 remains)
+Recent: S040 on main (this PR). Working PRs #310–#318. ADR-0023 ACCEPTED. Phase 10A not complete until S041.
 ```
 
 ---
@@ -215,9 +215,9 @@ IDEA-014 training remains deferred. Next catalog: wick, then distance-to-level.
 See `SPRINT_038.md` and `S038_WAVE0_DECISIONS.md`.
 
 **Sprint 039 — Predictive Research Dataset Foundation (Phase 10A)** is **COMPLETED**
-(this integration PR to `main`, 2026-08-26). Working PRs: #302–#308.
+on `main` (#309, 2026-08-26). Working PRs: #302–#308.
 
-Delivered dataset flow (on `main` after this PR):
+Delivered dataset flow (on `main`):
 
 ```text
 Published DatasetRef + PredictiveStudySpec
@@ -226,15 +226,14 @@ Published DatasetRef + PredictiveStudySpec
 ```
 
 ADR: ADR-0023 (ACCEPTED). CLI: `scripts/predictive_research/build_predictive_dataset.py`.
-See `SPRINT_039.md` and `S039_WAVE0_DECISIONS.md`. Next: Sprint 040 baselines
-(in progress on `sprint/predictive-baselines`; 23/23 tasks after T023; not on
-`main`). Phase 10A is not complete until S040–S041 land on `main`.
+See `SPRINT_039.md` and `S039_WAVE0_DECISIONS.md`. Next: Sprint 041 report (S040
+baselines land on `main` with this PR). Phase 10A is not complete until S041
+lands on `main`.
 
-**Sprint 040 — Baseline Regression and Classification (Phase 10A)** is **in
-progress** on `sprint/predictive-baselines` (not on `main`). Working PRs:
-#310–#317 (T001–T022); T023 is this docs PR.
+**Sprint 040 — Baseline Regression and Classification (Phase 10A)** is **COMPLETED**
+(this integration PR to `main`, 2026-08-26). Working PRs: #310–#318.
 
-Delivered run flow (on the sprint branch after this PR):
+Delivered run flow (on `main` after this PR):
 
 ```text
 PredictiveDatasetEnvelope
@@ -247,8 +246,8 @@ PredictiveDatasetEnvelope
 Extra `ml` = scikit-learn (`scikit-learn>=1.6,<2.0`), not in default `dev`.
 Dedicated CI job `ml`. CLIs: `scripts/predictive_research/run_predictive_research.py`,
 `analyze_predictive_run.py`. See `SPRINT_040.md` and `S040_WAVE0_DECISIONS.md`.
-Next after sprint integration: Sprint 041 report. No new ADR (ADR-0024 reserved
-for IDEA-014).
+Next after this PR: Sprint 041 report. No new ADR (ADR-0024 reserved
+for IDEA-014). Phase 10A is not complete until S041 lands.
 
 ---
 
@@ -430,10 +429,8 @@ Maintenance: `.cursor/rules/documentation.mdc`
 
 ## 6. Work in Progress
 
-**Active sprint:** SPRINT_040 — baseline regression + classification on
-`sprint/predictive-baselines`. Wave 0 approved 2026-08-26 (`S040_WAVE0_DECISIONS.md`).
-Tasks T001–T023 are DONE on the sprint branch (23/23). S040 is **not** on `main`.
-Sprint 039 is complete on `main` (#309).
+No active sprint. Sprint 040 is complete on this integration PR. Sprint 041
+(Predictive Research report v1) is **PLANNED**, not started.
 
 **Portfolio demo packaging** — `scripts/demo/run_portfolio_demo.py` generates offline HTML artifacts for showcase (workflows + dashboards).
 
@@ -441,24 +438,24 @@ Sprint 039 is complete on `main` (#309).
 
 **Plan:** `docs/planning/sprints/SPRINT_017.md` · **Wave 0:** `S017_WAVE0_DECISIONS.md` · **ADR:** ADR-0020 (ACCEPTED) · **Branch:** `sprint/model-research-methodology-mvp`
 
-### Sprint 040 — In progress (Phase 10A baselines)
+### Sprint 040 — Closed (Phase 10A baselines)
 
-**Status:** IN PROGRESS on `sprint/predictive-baselines` (not on `main`, 2026-08-26)
+**Status:** COMPLETE (this integration PR to `main`, 2026-08-26)
 **Plan:** `docs/planning/sprints/SPRINT_040.md`
 **ADR:** ADR-0023 (ACCEPTED; no new ADR this sprint)
 **Tasks:** 23 / 23
-**PRs:** #310–#317 (working T001–T022); T023 this docs PR
+**PRs:** #310–#318 (working); this PR (sprint → main)
 **Scope:** estimator protocol, extra `ml`, sklearn ridge / elastic net / logistic,
 fold-local preprocessing, run envelope, metrics + reference baselines, CLIs,
 determinism and known-signal tests
 
 ### Sprint 039 — Closed (Phase 10A dataset foundation)
 
-**Status:** COMPLETE (this integration PR to `main`, 2026-08-26)
+**Status:** COMPLETE on `main` (#309, 2026-08-26)
 **Plan:** `docs/planning/sprints/SPRINT_039.md`
 **ADR:** ADR-0023 (ACCEPTED)
 **Tasks:** 20 / 20
-**PRs:** #302–#308 (working); this PR (sprint → main)
+**PRs:** #302–#308 (working); #309 (sprint → main)
 **Scope:** study spec, labelled matrix, purged walk-forward folds, dataset envelope + CLI, leakage suite
 
 ### Sprint 017 — Closed (Phase 5B)
@@ -549,10 +546,8 @@ determinism and known-signal tests
 
 ## 7. Blocked Work
 
-Nothing is technically blocked. Sprint 040 tasks are complete on
-`sprint/predictive-baselines` (23/23); the sprint is not on `main` until the
-integration PR. Next planned capability after that: Sprint 041 Predictive
-Research report v1. Sprint 017 integration PR from
+Nothing is technically blocked. Next planned capability: Sprint 041 Predictive
+Research report v1 (not started). Sprint 017 integration PR from
 `sprint/model-research-methodology-mvp` to `main` remains pending and does not
 block Phase 10.
 
@@ -638,17 +633,16 @@ Sprint 036 research infra audit COMPLETED on main (#288).
 Sprint 037 component libraries + DSL COMPLETED on main (#296).
 Sprint 038 Session Range COMPLETED on main (#300).
 Sprint 039 Predictive Research dataset foundation COMPLETED on main (#309; #302–#308).
-ADR-0023 ACCEPTED. Phase 10A is not complete (S040–S041 remain).
+Sprint 040 Predictive Research baselines COMPLETED (this PR; #310–#318).
+ADR-0023 ACCEPTED. Phase 10A is not complete (S041 remains).
 
-Active: Sprint 040 — baseline regression + classification (23/23 tasks on
-`sprint/predictive-baselines`; not on `main`). Working PRs #310–#317; T023 this
-docs PR.
+Next capability (not started):
+    Sprint 041 — Predictive Research report v1 (offline Plotly HTML)
 
-Catalog in parallel (does not block S040):
+Catalog in parallel (does not block S041):
     wick / distance catalog PRs
 
 Phase 10 remainder (ROADMAP §13A):
-      S040 baseline regression + classification (on sprint branch; integrate to main next)
       S041 Predictive Research report v1 (offline Plotly HTML)
       S042 tree-based models (XGBoost / LightGBM / CatBoost, bounded search)
       S043 neural models (feedforward + LSTM, sequence windows)
@@ -661,8 +655,9 @@ Deferred relative to that track:
     PBO / CSCV / deflated Sharpe (ADR first)
     Residual docs / sample-data narrative
 
-Recently completed (dashboard / demo / dry-run / authoring infra / Phase 10A start):
-    Sprint 039 — Predictive Research dataset foundation → main (this PR; working PRs #302–#308)
+Recently completed (dashboard / demo / dry-run / authoring infra / Phase 10A):
+    Sprint 040 — Predictive Research baselines → main (this PR; working PRs #310–#318)
+    Sprint 039 — Predictive Research dataset foundation → main (#309; working PRs #302–#308)
     Sprint 038 — Session Range Structure → main (#300; working PRs #297–#299)
     Sprint 037 — Component libraries + DSL → main (#296; working PRs #289–#295)
     Sprint 036 — Research infra audit → main (#288; working PRs #272–#287)
@@ -681,7 +676,7 @@ Deferred (explicit):
     Further public-dashboard cosmetics as a default track
 ```
 
-See `docs/planning/sprints/SPRINT_040.md`, `SPRINT_039.md`, `S039_WAVE0_DECISIONS.md`, `SPRINT_038.md`, `S037_GATE.md`, and `ROADMAP.md` §11–§13A.
+See `docs/planning/sprints/SPRINT_041.md`, `SPRINT_040.md`, `SPRINT_039.md`, `S040_WAVE0_DECISIONS.md`, `S039_WAVE0_DECISIONS.md`, `SPRINT_038.md`, `S037_GATE.md`, and `ROADMAP.md` §11–§13A.
 
 ---
 
@@ -727,8 +722,8 @@ See `docs/planning/sprints/SPRINT_040.md`, `SPRINT_039.md`, `S039_WAVE0_DECISION
 | 036 | Research infra audit (DSL/component gate) | COMPLETED | 11 / 11 tasks; main #288 |
 | 037 | Component libraries + DSL simplification | COMPLETED | 7 / 7 tasks; main #296 |
 | 038 | Session Range Structure | COMPLETED | 6 / 6 tasks; main #300 |
-| 039 | Predictive Research dataset foundation (Phase 10A) | COMPLETED | 20 / 20 tasks; this PR to main; working PRs #302–#308 |
-| 040 | Baseline regression + classification (Phase 10A) | IN PROGRESS | 23 / 23 tasks on `sprint/predictive-baselines`; not on main; working PRs #310–#317 |
+| 039 | Predictive Research dataset foundation (Phase 10A) | COMPLETED | 20 / 20 tasks; main #309; working PRs #302–#308 |
+| 040 | Baseline regression + classification (Phase 10A) | COMPLETED | 23 / 23 tasks; this PR to main; working PRs #310–#318 |
 | 041 | Predictive Research report v1 (Phase 10A) | PLANNED | 0 / 16 tasks; `SPRINT_041.md` |
 | 042 | Tree-based predictive models (Phase 10B) | PLANNED | 0 / 22 tasks; `SPRINT_042.md` |
 | 043 | Neural predictive models (Phase 10C) | PLANNED | 0 / 21 tasks; `SPRINT_043.md` |

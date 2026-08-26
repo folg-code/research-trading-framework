@@ -458,7 +458,7 @@ Published DatasetRef + PredictiveStudySpec (YAML/JSON)
   → EstimatorSpec (family + hyperparameters + seed)
   → run_predictive_research (fit on TRAIN per fold, predict on TEST)
   → PredictiveRunEnvelope (predictions, metrics, opaque blobs)
-  → analyze_predictive_run (reads predictions + metrics; never reloads blobs)
+  → analyze_predictive_run (writes metrics.json from predictions; never deserializes model blobs)
 ```
 
 Samples are **evaluation bars**, not `SignalOccurrence` rows. Labels reuse

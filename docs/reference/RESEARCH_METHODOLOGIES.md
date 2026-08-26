@@ -442,7 +442,7 @@ Published DatasetRef
   → EstimatorSpec (family + hyperparameters + seed)
   → run_predictive_research (per-fold fit on TRAIN, predict on TEST)
   → PredictiveRunEnvelope (predictions.parquet, metrics.json, opaque blobs)
-  → analyze_predictive_run (read-only; never deserializes model blobs)
+  → analyze_predictive_run (writes metrics.json from predictions; never deserializes model blobs)
 ```
 
 CLIs: `scripts/predictive_research/build_predictive_dataset.py`,

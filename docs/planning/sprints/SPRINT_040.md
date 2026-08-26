@@ -5,9 +5,9 @@
 ```text
 Sprint: 040
 Phase: Phase 10A — Predictive Research Foundation
-Status: Approved
+Status: COMPLETED (this integration PR to main)
 Planned Start: 2026-08-26
-Planned End: TBD
+Planned End: 2026-08-26
 Sprint Goal Owner: Project Maintainer
 Depends On: SPRINT_039 (PredictiveDatasetEnvelope, fold roles, ADR-0023)
 Sprint Branch: sprint/predictive-baselines
@@ -353,10 +353,10 @@ frozen once S041 consumes it — a later rename forces a report migration.
 
 ## 16. Review
 
-Closed on the sprint branch 2026-08-26. Working PRs #310–#317 squash-merged into
-`sprint/predictive-baselines`. T023 is this documentation PR. This section records
-outcome; it does not rewrite the plan. Sprint status stays **Approved** until the
-integration PR to `main` — do not treat S040 as complete on `main` yet.
+Closed 2026-08-26. Working PRs #310–#318 squash-merged into
+`sprint/predictive-baselines`. This integration PR (`sprint/predictive-baselines`
+→ `main`) closes the sprint. This section records outcome; it does not rewrite
+the plan.
 
 ### Completed
 
@@ -374,8 +374,8 @@ integration PR to `main` — do not treat S040 as complete on `main` yet.
 - CLIs `run_predictive_research.py` and `analyze_predictive_run.py` (#316).
 - Determinism, known-signal, and extra-free import tests (#317).
 - As-implemented docs: `MODULE_MAP.md`, `RESEARCH_METHODOLOGIES.md`,
-  `ARCHITECTURE_AND_WORKFLOWS.md` §6, `CURRENT_STATUS.md` (this PR).
-- All 23 tasks T001–T023 DONE on the sprint branch.
+  `ARCHITECTURE_AND_WORKFLOWS.md` §6, `CURRENT_STATUS.md` (#318).
+- All 23 tasks T001–T023 DONE.
 
 ### Not Completed
 
@@ -390,8 +390,8 @@ integration PR to `main` — do not treat S040 as complete on `main` yet.
 A maintainer runs `scripts/predictive_research/run_predictive_research.py` against
 a persisted `PredictiveDatasetEnvelope` and gets out-of-sample predictions plus
 per-fold and pooled metrics (including the three reference baselines),
-reproducible from the run manifest. `analyze_predictive_run.py` reads predictions
-and metrics only — it does not deserialize fitted blobs. The default install stays
+reproducible from the run manifest. `analyze_predictive_run` writes `metrics.json`
+from predictions; it never deserializes fitted blobs. The default install stays
 extra-free; requesting an sklearn family without extra `ml` raises
 `PredictiveExtraError`.
 
@@ -425,7 +425,6 @@ extra-free; requesting an sklearn family without extra `ml` raises
 ### Follow-up
 
 - Sprint 041 — Predictive Research report v1 (offline Plotly HTML over this
-  envelope; freeze metrics schema once the report consumes it).
-- Integrate `sprint/predictive-baselines` → `main` after this docs PR is reviewed
-  (tester + reviewer first). Do not treat Phase 10A as complete until S041 lands.
-- S042–S044 remain later Phase 10B/10C work (trees, networks, IDEA-014 gate).
+  envelope; freeze metrics schema once the report consumes it). Not started.
+- Phase 10A is not complete until S041 lands. S042–S044 remain later Phase 10B/10C
+  work (trees, networks, IDEA-014 gate).
