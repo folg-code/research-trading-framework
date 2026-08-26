@@ -122,4 +122,15 @@ def _register_sklearn_families() -> None:
     register_family("sklearn.logistic", extra="ml", factory=create_logistic_estimator)
 
 
+def _register_tree_families() -> None:
+    from trading_framework.infrastructure.ml.trees.xgboost.factories import (
+        create_xgboost_classifier,
+        create_xgboost_regressor,
+    )
+
+    register_family("xgboost.regressor", extra="ml-trees", factory=create_xgboost_regressor)
+    register_family("xgboost.classifier", extra="ml-trees", factory=create_xgboost_classifier)
+
+
 _register_sklearn_families()
+_register_tree_families()

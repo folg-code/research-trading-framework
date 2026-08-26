@@ -443,7 +443,7 @@ numpy, framework contracts). ML libraries live behind optional extra `ml` and
 | Dataset envelope, fingerprint, repository | `research/datasets/predictive.py` |
 | Run envelope, fingerprint, repository | `research/datasets/predictive_run.py` |
 | Workflow orchestration (build, run, analyze) | `application/predictive_research/` |
-| Family registry + sklearn adapters | `infrastructure/ml/` (`registry.py`, `sklearn/`) |
+| Family registry + sklearn / XGBoost adapters | `infrastructure/ml/` (`registry.py`, `sklearn/`, `trees/xgboost/`) |
 | Thin CLIs | `scripts/predictive_research/` |
 | Storage paths | `infrastructure/storage/paths.py` |
 
@@ -476,17 +476,21 @@ embargoed rows are retained with a role label, not deleted. Preprocessing
 (`IMPUTE_MEDIAN`, `STANDARDIZE`) is fitted inside each fold on `TRAIN` rows
 only; `PURGED` and `EMBARGOED` never reach `fit()`.
 
-Estimator families this slice (registry ids, extra `ml`): `sklearn.ridge`,
-`sklearn.elastic_net`, `sklearn.logistic` (binary). Unknown family ids raise
-`PredictiveSpecError`. Missing extra raises `PredictiveExtraError` naming `ml`.
+Estimator families this slice (registry ids): extra `ml` — `sklearn.ridge`,
+`sklearn.elastic_net`, `sklearn.logistic` (binary). Extra `ml-trees` —
+`xgboost.regressor`, `xgboost.classifier` (binary). Unknown family ids raise
+`PredictiveSpecError`. Missing extra raises `PredictiveExtraError` naming the
+extra. Tree families also need extra `ml` for fold-local preprocessing.
 Reference baselines (`CONSTANT_MEAN`, `MAJORITY_CLASS`, `RANDOM_PERMUTATION`)
 are metric-layer comparisons, not registry families. Metrics are reported per
 fold and pooled.
 
-Optional extra: `[project.optional-dependencies] ml = ["scikit-learn>=1.6,<2.0"]`.
-Not in the default `dev` group. Dedicated CI job `ml` installs
-`uv sync --locked --extra ml --dev` and runs `uv run pytest -m ml`. Standard
-unit CI stays extra-free (`uv sync --locked --dev`, `-m "not ml"`).
+Optional extras:
+`ml = ["scikit-learn>=1.6,<2.0"]` and
+`ml-trees = ["xgboost-cpu>=2.1,<4.0", "lightgbm>=4.5,<5.0", "catboost>=1.2,<2.0"]`.
+Not in the default `dev` group. Dedicated CI jobs `ml` and `ml_trees`.
+Standard unit CI stays extra-free (`uv sync --locked --dev`,
+`-m "not ml and not ml_trees"`).
 
 Storage:
 
