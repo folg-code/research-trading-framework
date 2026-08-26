@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
+from tests.unit.research.reporting.predictive.test_view_model import (
+    _GENERATED,
+    _source_report,
+)
 from trading_framework.research.reporting.predictive.plotly_figures import (
     build_fold_timeline_figure,
     build_metric_stability_figure,
@@ -10,19 +14,15 @@ from trading_framework.research.reporting.predictive.plotly_figures import (
     require_plotly,
 )
 from trading_framework.research.reporting.predictive.view_models import (
+    PredictiveReportViewModel,
     build_predictive_report_view_model,
 )
 from trading_framework.time.clocks.fixed import FixedClock
 
-from tests.unit.research.reporting.predictive.test_view_model import (
-    _GENERATED,
-    _source_report,
-)
-
 _TIMELINE_ROLE_ORDER = ("TRAIN", "PURGED", "EMBARGOED", "TEST")
 
 
-def _view():
+def _view() -> PredictiveReportViewModel:
     return build_predictive_report_view_model(
         _source_report(),
         clock=FixedClock(_GENERATED),

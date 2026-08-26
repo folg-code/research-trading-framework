@@ -106,7 +106,7 @@ def build_metric_stability_figure(go: Any, view: PredictiveReportViewModel) -> A
             y1=max(finite),
             fillcolor="rgba(37, 99, 235, 0.08)",
             line_width=0,
-            annotation_text=f"min–max spread {format_metric(spread)}",
+            annotation_text=f"min-max spread {format_metric(spread)}",
             annotation_position="bottom left",
         )
     if view.pooled_model is not None:
