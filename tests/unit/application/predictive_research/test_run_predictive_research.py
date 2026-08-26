@@ -19,6 +19,7 @@ from trading_framework.application.predictive_research import (
 )
 from trading_framework.infrastructure.storage.paths import (
     predictive_research_run_dir,
+    predictive_research_run_metrics_path,
     predictive_research_run_model_path,
 )
 from trading_framework.research.datasets.predictive import (
@@ -35,6 +36,7 @@ from trading_framework.research.predictive import (
     EstimatorDescription,
     EstimatorSpec,
     FoldRole,
+    MetricSource,
     PredictiveSpecError,
     PurgedWalkForwardSplitMode,
     PurgedWalkForwardSplitSpec,
@@ -280,7 +282,14 @@ def test_run_writes_test_only_predictions_and_identical_run_id(
     run_dir = predictive_research_run_dir(storage_root, first.run_id)
     assert (run_dir / "manifest.json").exists()
     assert (run_dir / "predictions.parquet").exists()
-    assert not (run_dir / "metrics.json").exists()
+    metrics_path = predictive_research_run_metrics_path(storage_root, first.run_id)
+    assert metrics_path.exists()
+    assert first.metrics.folds
+    assert first.metrics.pooled
+    assert MetricSource.MODEL.value in first.metrics.pooled
+    assert MetricSource.CONSTANT_MEAN.value in first.metrics.pooled
+    assert MetricSource.RANDOM_PERMUTATION.value in first.metrics.pooled
+    assert second.metrics.pooled[MetricSource.MODEL.value].statistical.mae is not None
     for fold_id in fold_ids:
         blob_path = predictive_research_run_model_path(storage_root, first.run_id, int(fold_id))
         assert blob_path.exists()

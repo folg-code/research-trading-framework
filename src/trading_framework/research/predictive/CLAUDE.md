@@ -1,8 +1,9 @@
 # Predictive Research
 
 Responsibility: declared learning-problem specs, labelled feature-matrix
-construction, purged walk-forward fold assignment, and the ML-free estimator
-protocol (`PredictiveEstimator`, `EstimatorSpec`, preprocessing spec).
+construction, purged walk-forward fold assignment, the ML-free estimator
+protocol (`PredictiveEstimator`, `EstimatorSpec`, preprocessing spec), and
+library-free predictive metrics (`metrics.py`).
 
 ## Conventions specific to this module
 
@@ -25,6 +26,13 @@ protocol (`PredictiveEstimator`, `EstimatorSpec`, preprocessing spec).
   cross-sectional rank is ambiguous, and a global rank would leak.
 - Fold assignment is long format: one copy of each participating labelled row
   per fold, with `fold_id` and `fold_role`.
+- Metrics (`metrics.py`) use numpy/polars only — never `sklearn.metrics`.
+  Finance-aware scores always read the carried `forward_return` column;
+  classification must not substitute `y_true`. Reference baselines
+  (`CONSTANT_MEAN`, `MAJORITY_CLASS`, `RANDOM_PERMUTATION`) are metric-layer
+  comparators, not registry families. `RANDOM_PERMUTATION` shuffles TEST
+  predictions inside each fold with `EstimatorSpec.seed`. Reports always
+  include per-fold **and** pooled results.
 - Preprocessing (`PreprocessingSpec`) is fitted per fold on TRAIN rows only.
   `PURGED` and `EMBARGOED` never reach `fit()`. Default steps are
   `IMPUTE_MEDIAN` then `STANDARDIZE`. The sklearn Pipeline implementation is
