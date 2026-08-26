@@ -282,6 +282,9 @@ def test_view_model_is_read_only_snapshot_of_persisted_envelopes() -> None:
     assert all(band.row_count > 0 for band in view.fold_timeline)
     assert len(view.fold_metrics) == 2
     assert view.pooled_model == pytest.approx(0.45)
+    assert view.calibration_bins == ()
+    assert view.brier_score is None
+    assert view.mean_forward_return_all == pytest.approx(0.01)
 
 
 def test_quality_flags_surface_threshold_and_observed_values() -> None:
@@ -383,3 +386,4 @@ def test_poor_calibration_flag_uses_declared_threshold() -> None:
     )
     codes = {warning.code for warning in view.quality_warnings}
     assert PredictiveQualityFlag.POOR_CALIBRATION in codes
+    assert len(view.calibration_bins) == 10

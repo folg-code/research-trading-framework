@@ -197,10 +197,10 @@ Missing optional data (no probabilities, no importance) degrades to a skipped pa
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S041-T008 | Regression: scatter, rank IC, residuals | TODO |
-| S041-T009 | Classification: ROC + precision-recall | TODO |
-| S041-T010 | Calibration curve + Brier decomposition | TODO |
-| S041-T011 | Prediction decile buckets versus forward return | TODO |
+| S041-T008 | Regression: scatter, rank IC, residuals | DONE |
+| S041-T009 | Classification: ROC + precision-recall | DONE |
+| S041-T010 | Calibration curve + Brier decomposition | DONE |
+| S041-T011 | Prediction decile buckets versus forward return | DONE |
 
 ### Wave 4 — Assembly and CLI
 
@@ -212,7 +212,7 @@ Missing optional data (no probabilities, no importance) degrades to a skipped pa
 | S041-T015 | Report smoke test: regression run and classification run | TODO |
 | S041-T016 | Docs: RESEARCH_METHODOLOGIES, MODULE_MAP, CURRENT_STATUS | TODO |
 
-**Progress:** 7 / 16 tasks
+**Progress:** 11 / 16 tasks
 
 ---
 

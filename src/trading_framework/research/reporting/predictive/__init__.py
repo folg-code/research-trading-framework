@@ -15,9 +15,13 @@ from trading_framework.research.reporting.predictive.panels import (
     resolve_report_panels,
 )
 from trading_framework.research.reporting.predictive.plotly_figures import (
+    build_calibration_figure,
+    build_discrimination_figure,
     build_fold_timeline_figure,
     build_metric_stability_figure,
     build_model_vs_baselines_figure,
+    build_prediction_buckets_figure,
+    build_prediction_quality_figure,
     build_sample_composition_figure,
     require_plotly,
 )
@@ -47,9 +51,13 @@ __all__ = [
     "PredictiveReportSource",
     "PredictiveReportViewModel",
     "ResolvedPanel",
+    "build_calibration_figure",
+    "build_discrimination_figure",
     "build_fold_timeline_figure",
     "build_metric_stability_figure",
     "build_model_vs_baselines_figure",
+    "build_prediction_buckets_figure",
+    "build_prediction_quality_figure",
     "build_predictive_report_view_model",
     "build_sample_composition_figure",
     "evaluate_predictive_quality_flags",
