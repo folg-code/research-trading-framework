@@ -10,6 +10,10 @@ construction, and purged walk-forward fold assignment. No estimators.
   with `direction="long"` as a string. Do not import `signal_model`.
 - Feature values come from an already-built `AnalysisFrame`. Do not call
   `run_analysis` from this package.
+- Matrix `available_at` must not be later than `detected_at` (ADR-0023 §4 /
+  SPRINT_039 §9.1). Look-ahead availability is rejected at build time. This is
+  not `MarketBar.available_at`, which may be after `observed_at` and is not
+  passed through to the labelled matrix.
 - `RANK` is rejected at matrix-build time in this slice: expanding versus
   cross-sectional rank is ambiguous, and a global rank would leak.
 - Fold assignment is long format: one copy of each participating labelled row
