@@ -12,11 +12,12 @@ Sprint Goal Owner: Project Maintainer
 Depends On: SPRINT_039 (PredictiveDatasetEnvelope, fold roles, ADR-0023)
 Sprint Branch: sprint/predictive-baselines
 Task branch convention: feat/ | fix/ | docs/ | test/
-Wave 0 decisions: docs/planning/sprints/S040_WAVE0_DECISIONS.md (to be written in Wave 0)
+Wave 0 decisions: docs/planning/sprints/S040_WAVE0_DECISIONS.md
 Architecture Sources:
   - docs/planning/ROADMAP.md (§13A Phase 10)
   - docs/adr/ADR-0023 (Predictive Research boundary — S039)
   - docs/planning/sprints/SPRINT_039.md
+  - docs/planning/sprints/S040_WAVE0_DECISIONS.md
 ```
 
 ---
@@ -193,7 +194,7 @@ fingerprint by design — it is a different experiment, not the same one re-run.
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S040-T001 | Wave 0 decisions (extras policy, artifact policy, first study dataset) | TODO |
+| S040-T001 | Wave 0 decisions (extras policy, artifact policy, first study dataset) | DONE |
 
 ### Wave 1 — Estimator seam
 
@@ -242,7 +243,7 @@ fingerprint by design — it is a different experiment, not the same one re-run.
 | S040-T022 | Import test: framework usable without the `ml` extra | TODO |
 | S040-T023 | Docs: MODULE_MAP, DATA_WORKFLOWS, RESEARCH_METHODOLOGIES, CURRENT_STATUS | TODO |
 
-**Progress:** 0 / 23 tasks
+**Progress:** 1 / 23 tasks
 
 ---
 
