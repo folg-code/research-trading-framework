@@ -65,8 +65,8 @@ predictions plus per-fold metrics, reproducible bit-for-bit from the run manifes
 - [x] `PredictiveEstimator` protocol in `research/predictive/estimators.py` (domain, library-free).
 - [x] `EstimatorSpec` — family identifier, hyperparameters, random seed.
 - [x] Preprocessing pipeline spec fitted **per training fold** (imputation, standardization).
-- [ ] scikit-learn adapter in `infrastructure/ml/sklearn/`.
-- [ ] Regression baselines: ridge, elastic net. Classification baselines: logistic regression.
+- [x] scikit-learn adapter in `infrastructure/ml/sklearn/`.
+- [x] Regression baselines: ridge, elastic net. Classification baselines: logistic regression.
 - [ ] Naive reference baselines (see §5) — the honest floor every model must clear.
 - [ ] `run_predictive_research` application workflow with per-fold execution.
 - [ ] Metrics module: statistical + finance-aware, per fold and pooled.
@@ -210,10 +210,10 @@ fingerprint by design — it is a different experiment, not the same one re-run.
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S040-T006 | Adapter package `infrastructure/ml/sklearn/` | TODO |
-| S040-T007 | Ridge + elastic net regression families | TODO |
-| S040-T008 | Logistic regression classification family | TODO |
-| S040-T009 | `describe()` capturing library version and resolved parameters | TODO |
+| S040-T006 | Adapter package `infrastructure/ml/sklearn/` | DONE |
+| S040-T007 | Ridge + elastic net regression families | DONE |
+| S040-T008 | Logistic regression classification family | DONE |
+| S040-T009 | `describe()` capturing library version and resolved parameters | DONE |
 
 ### Wave 3 — Run orchestration
 
@@ -244,7 +244,7 @@ fingerprint by design — it is a different experiment, not the same one re-run.
 | S040-T022 | Import test: framework usable without the `ml` extra | TODO |
 | S040-T023 | Docs: MODULE_MAP, DATA_WORKFLOWS, RESEARCH_METHODOLOGIES, CURRENT_STATUS | TODO |
 
-**Progress:** 5 / 23 tasks
+**Progress:** 9 / 23 tasks
 
 ---
 
