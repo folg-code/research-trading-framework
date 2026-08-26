@@ -1,5 +1,14 @@
 """Research dataset persistence."""
 
+from trading_framework.research.datasets.predictive import (
+    PREDICTIVE_DATASET_SCHEMA_VERSION,
+    PredictiveDatasetEnvelope,
+    PredictiveDatasetManifest,
+    PredictiveDatasetRef,
+    PredictiveDatasetRepository,
+    compute_dataset_fingerprint,
+    derive_dataset_id,
+)
 from trading_framework.research.datasets.signal_research import (
     SIGNAL_RESEARCH_SCHEMA_V2,
     SIGNAL_RESEARCH_SCHEMA_VERSION,
@@ -25,9 +34,14 @@ from trading_framework.research.datasets.strategy_research import (
 )
 
 __all__ = [
+    "PREDICTIVE_DATASET_SCHEMA_VERSION",
     "SIGNAL_RESEARCH_SCHEMA_V2",
     "SIGNAL_RESEARCH_SCHEMA_VERSION",
     "STRATEGY_RESEARCH_SCHEMA_VERSION",
+    "PredictiveDatasetEnvelope",
+    "PredictiveDatasetManifest",
+    "PredictiveDatasetRef",
+    "PredictiveDatasetRepository",
     "RunDatasetRef",
     "SignalResearchDatasetRepository",
     "SignalResearchRunEnvelope",
@@ -36,6 +50,8 @@ __all__ = [
     "StrategyResearchRunEnvelope",
     "StrategyResearchRunManifest",
     "StrategyResearchRunRef",
+    "compute_dataset_fingerprint",
+    "derive_dataset_id",
     "derive_run_id",
     "derive_run_id_v2",
     "derive_strategy_run_id",
