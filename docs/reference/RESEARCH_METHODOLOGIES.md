@@ -387,9 +387,10 @@ or promote a trained model to a tradable component.
 
 Phase 10A now covers the dataset foundation (Sprint 039), baseline estimators
 (Sprint 040), and the offline HTML report (Sprint 041). Linear and logistic
-baselines are the control group. Sprint 042 adds tree families through the
-same estimator protocol, plus bounded candidate selection, permutation
-importance, and a single-study leaderboard. Models do not trade.
+baselines are the control group. Phase 10B (Sprint 042) adds tree families
+through the same estimator protocol, plus bounded candidate selection,
+permutation importance, a single-study leaderboard, and three report panels.
+Models do not trade.
 
 ### Research Question
 
@@ -404,7 +405,8 @@ importance, and a single-study leaderboard. Models do not trade.
 - training declared tree families (XGBoost, LightGBM, CatBoost) per fold,
 - bounded inner-fold candidate selection and a single-study leaderboard,
 - measuring statistical and finance-aware metrics against naive reference baselines,
-- reviewing one run as standalone offline HTML (fold timeline, baselines, calibration).
+- reviewing one run as standalone offline HTML (fold timeline, baselines, calibration,
+  native vs permutation importance, selection trace, study leaderboard).
 
 ### Not Suitable For
 
@@ -445,15 +447,17 @@ Published DatasetRef
   → purged + embargoed walk-forward fold roles
   → PredictiveDatasetEnvelope (manifest + fingerprint)
   → EstimatorSpec (family + hyperparameters + seed)
+      or CandidateSetSpec (declared, capped; inner TRAIN split, TEST once)
   → run_predictive_research (per-fold fit on TRAIN, predict on TEST)
   → PredictiveRunEnvelope (predictions.parquet, metrics.json, opaque blobs)
   → analyze_predictive_run (writes metrics.json from predictions; never deserializes model blobs)
-  → render_predictive_research_report (read-only HTML from run + dataset + metrics.json)
+  → compare_predictive_runs (optional leaderboard.json on one dataset fingerprint)
+  → render_predictive_research_report (read-only HTML; optional importance/selection/leaderboard sidecars)
 ```
 
 CLIs: `scripts/predictive_research/build_predictive_dataset.py`,
 `run_predictive_research.py`, `analyze_predictive_run.py`,
-`render_predictive_report.py`.
+`compare_predictive_runs.py`, `render_predictive_report.py`.
 
 ### Fold roles
 
@@ -488,6 +492,7 @@ characters of that fingerprint.
   manifest.json
   predictions.parquet
   metrics.json
+  report.html            # offline Plotly; first figure embeds JS inline
   selection.json         # optional; bounded candidate selection
   importance.json        # native + permutation importance and train/test gap
   leaderboard.json       # optional; single-study comparison of run dirs
@@ -503,6 +508,9 @@ only, tagged with library name and version. No workflow depends on reloading the
 - How many rows does purge / embargo remove from each fold?
 - Does rebuilding an unchanged spec yield the same fingerprint?
 - Do ridge / elastic net / logistic beat constant, majority, and permutation baselines out of sample?
+- Do XGBoost / LightGBM / CatBoost beat those S040 baselines on the same dataset fingerprint?
+- Is native gain aligned with out-of-sample permutation importance, or only with the training fold?
+- How large is the |train - test| gap on the primary metric per fold?
 - Is the result stable across folds, or does one fold carry the pooled metric?
 
 ---

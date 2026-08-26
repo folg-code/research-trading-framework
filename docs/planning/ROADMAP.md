@@ -84,7 +84,7 @@ Research Capability Track
   Phase 6B — Multi-Data Strategy Research         PLANNED
   Phase 7  — Robustness Research                  COMPLETE  (Sprint 016)
   Phase 10A — Predictive Research Foundation      COMPLETE  (Sprints 039–041)
-  Phase 10B — Tree-Based Predictive Models        IN PROGRESS (Sprint 042 Wave 0)
+  Phase 10B — Tree-Based Predictive Models        COMPLETE  (Sprint 042)
   Phase 10C — Neural Predictive Models            PLANNED   (Sprints 043–044)
 
 Execution Capability Track
@@ -117,7 +117,7 @@ Market Data policy (facts not indicators, vendor independence): **§14 Research 
 
 Test data tiers and live-data gate: **§15**.
 
-**Recommended next increment:** **Sprint 042 — tree-based predictive models** (Phase 10B, Wave 0). Sprint 041 report v1 is **complete** on `main` (#325). Phase 10A is complete. Catalog follow-ons (wick / distance) remain in parallel. Deferred by default: Phase 4B/6B, Phase 8 Replay, PBO/CSCV ADR. Stage 3 (`available_at` column / lineage sidecar) and Stage 4 (`MarketFrame`) remain independently sequenced.
+**Recommended next increment:** **Sprint 043 — neural predictive models** (Phase 10C). Sprint 042 tree-based models is **complete** on `sprint/predictive-tree-models` (22/22; integration PR to `main` follows). Phase 10A is complete on `main`. Catalog follow-ons (wick / distance) remain in parallel. Deferred by default: Phase 4B/6B, Phase 8 Replay, PBO/CSCV ADR. Stage 3 (`available_at` column / lineage sidecar) and Stage 4 (`MarketFrame`) remain independently sequenced.
 
 ---
 
@@ -1137,13 +1137,14 @@ Minimum future requirements include:
 
 # 13A. Phase 10 — Predictive (ML) Research
 
-**Status:** Phase 10A COMPLETE; Phase 10B IN PROGRESS (Sprint 042 Wave 0). Numbered `13A` to avoid
+**Status:** Phase 10A COMPLETE on `main`; Phase 10B COMPLETE on `sprint/predictive-tree-models` (Sprint 042, 22/22). Numbered `13A` to avoid
 renumbering sections cited elsewhere.
 
 Sprint 039 (dataset foundation: labelled matrix, purged walk-forward folds, persisted envelope,
 leakage suite, ADR-0023), Sprint 040 (estimator seam, sklearn baselines, run envelope, metrics,
-CLIs), and Sprint 041 (offline HTML report) are implemented. Phase 10A is complete. Sprint 042
-(tree-based models) Wave 0 is in progress.
+CLIs), and Sprint 041 (offline HTML report) are on `main`. Phase 10A is complete. Sprint 042
+(tree-based models, bounded selection, importance, leaderboard, report panels) is complete on
+the sprint branch; the integration PR to `main` follows.
 
 **Sprint plans:** `SPRINT_039.md` … `SPRINT_044.md`
 
@@ -1190,7 +1191,7 @@ Predictive Research Report (offline HTML)
 - statistical metrics (RMSE, R², rank IC, AUC, log loss, Brier) and finance-aware metrics
   (mean forward return per prediction bucket, hit rate),
 - persistent Predictive Research Dataset and run envelope with full run identity,
-- offline HTML report with fold timeline, stability, calibration and bucket panels,
+- offline HTML report with fold timeline, stability, calibration, bucket, importance, leaderboard and selection-trace panels,
 - tree-based estimators (XGBoost, LightGBM, CatBoost) with deterministic configuration,
 - feedforward and recurrent (LSTM / GRU) sequence estimators,
 - a documented gate for promoting a trained model to a Market Analysis State component.
