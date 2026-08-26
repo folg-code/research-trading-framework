@@ -160,6 +160,17 @@ def test_predictive_research_does_not_import_ml_libraries() -> None:
     assert _import_offenders(package_root, predicate=_is_ml_library) == []
 
 
+def test_predictive_research_does_not_import_ml_infrastructure() -> None:
+    package_root = Path(trading_framework.__file__).resolve().parent / "research" / "predictive"
+
+    def is_ml_infrastructure(module_name: str) -> bool:
+        return module_name == "trading_framework.infrastructure.ml" or module_name.startswith(
+            "trading_framework.infrastructure.ml."
+        )
+
+    assert _import_offenders(package_root, predicate=is_ml_infrastructure) == []
+
+
 def test_domain_modules_do_not_import_ml_libraries() -> None:
     package_root = Path(trading_framework.__file__).resolve().parent
     ml_adapters = package_root / "infrastructure" / "ml"
