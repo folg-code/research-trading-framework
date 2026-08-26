@@ -5,9 +5,9 @@
 ```text
 Sprint: 039
 Phase: Phase 10A — Predictive Research Foundation
-Status: COMPLETE (sprint branch; pending integration PR to main)
+Status: COMPLETE
 Planned Start: 2026-08-26
-Planned End: TBD
+Planned End: 2026-08-26
 Sprint Goal Owner: Project Maintainer
 Depends On: S036 audit (#288), S037 component libraries + DSL (#296), S038 Session Range (#300) — all on main
 Sprint Branch: sprint/predictive-research-foundation
@@ -351,3 +351,68 @@ uv run pytest
 Sprint 040 adds the estimator protocol and the first baselines on top of this dataset. The dataset
 contract must be stable before then — a change to fold semantics after S040 invalidates every
 persisted run.
+
+---
+
+## 16. Review
+
+Closed 2026-08-26. Working PRs #302–#308 squash-merged into `sprint/predictive-research-foundation`.
+This section records outcome; it does not rewrite the plan.
+
+### Completed
+
+- Wave 0 decisions (`S039_WAVE0_DECISIONS.md`) and ADR-0023 ACCEPTED (#302).
+- Predictive study specification contracts: `FeatureSpec` / `FeatureMatrixSpec`, `LabelSpec`
+  (regression, binary, ternary), `PredictiveStudySpec` YAML/JSON loader, `definition_hash` (#303).
+- Labelled feature matrix builder: `AnalysisFrame` columns, labels from
+  `compute_forward_outcomes_for_horizons`, availability columns, exclusion counts (#304).
+- Purged walk-forward fold planner (rolling and expanding) with persisted `TRAIN` / `TEST` /
+  `PURGED` / `EMBARGOED` roles (#305).
+- `PredictiveDatasetEnvelope`, manifest, fingerprint, repository, storage paths, application
+  workflow, CLI `scripts/predictive_research/build_predictive_dataset.py` (#306).
+- Leakage regression suite with counter-fixtures; end-to-end rebuild fingerprint identity (#307).
+- As-implemented docs: `MODULE_MAP.md`, `RESEARCH_METHODOLOGIES.md`,
+  `ARCHITECTURE_AND_WORKFLOWS.md` §6, `CURRENT_STATUS.md` (#308).
+- All 20 tasks T001–T020 DONE. No ML library added to `pyproject.toml`.
+
+### Not Completed
+
+- None of the in-scope tasks. `DATA_WORKFLOWS.md` is not in the repository; T020 recorded research
+  paths in `MODULE_MAP.md`, `RESEARCH_METHODOLOGIES.md`, and `ARCHITECTURE_AND_WORKFLOWS.md` §6
+  instead (already noted under §8).
+
+### Demonstrated Capability
+
+A maintainer can declare a `PredictiveStudySpec` in YAML, run
+`scripts/predictive_research/build_predictive_dataset.py`, and persist a fingerprinted dataset
+envelope (`manifest.json`, `features.parquet`, `folds.json`) whose fold roles are covered by the
+eight leakage regressions in §9.
+
+### Problems Discovered
+
+- None logged in `PROBLEM_REGISTRY.md` for this sprint. No new CRITICAL/HIGH entries.
+
+### Decisions Required
+
+- None. ADR-0023 is ACCEPTED. S040 Wave 0 remains a later sprint (estimator seam, optional `ml`
+  extra) and is not opened here.
+
+### Technical Debt Added
+
+- None from S039 implementation. Phase 10 planned shortcuts already listed in `TECHNICAL_DEBT.md`
+  §6 (no model registry; fitted artifacts not portable) apply to later sprints (S040+ / S044), not
+  to this dataset-only slice.
+
+### Lessons Learned
+
+- Dataset contract and leakage tests landed before any estimator. That boundary held: `research/predictive/`
+  stays on polars + numpy; architecture-boundary tests reject ML imports.
+- Acceptance criterion 10 named `DATA_WORKFLOWS.md`; the repository has no such file. Future sprint
+  plans should cite the docs that actually exist (`MODULE_MAP.md`, `RESEARCH_METHODOLOGIES.md`).
+
+### Follow-up
+
+- Sprint 040 — baseline regression and classification (estimator protocol, sklearn adapter,
+  metrics). Planned; not started.
+- Sprint 041 — Predictive Research report v1 (Phase 10A remainder).
+- Phase 10A is not complete until S040–S041 land. S042–S044 remain later Phase 10B/10C work.
