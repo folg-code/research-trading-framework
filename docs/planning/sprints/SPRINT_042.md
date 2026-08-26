@@ -5,14 +5,14 @@
 ```text
 Sprint: 042
 Phase: Phase 10B — Tree-Based Predictive Models
-Status: PLANNED
-Planned Start: TBD (after S041 merges)
+Status: IN PROGRESS (Wave 0)
+Planned Start: 2026-08-26
 Planned End: TBD
 Sprint Goal Owner: Project Maintainer
-Depends On: SPRINT_040 (estimator seam), SPRINT_041 (report panel registry)
+Depends On: SPRINT_040 (estimator seam on main #319); SPRINT_041 report panels after #325
 Sprint Branch: sprint/predictive-tree-models
 Task branch convention: feat/ | fix/ | docs/ | test/
-Wave 0 decisions: docs/planning/sprints/S042_WAVE0_DECISIONS.md (to be written in Wave 0)
+Wave 0 decisions: docs/planning/sprints/S042_WAVE0_DECISIONS.md
 Architecture Sources:
   - docs/planning/ROADMAP.md (§13A Phase 10B)
   - docs/adr/ADR-0023 (Predictive Research boundary — S039)
@@ -158,7 +158,7 @@ report next to the headline number.
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S042-T001 | Wave 0 decisions (library set, thread policy, candidate caps) | TODO |
+| S042-T001 | Wave 0 decisions (library set, thread policy, candidate caps) | DONE |
 
 ### Wave 1 — Adapters
 
@@ -206,7 +206,7 @@ report next to the headline number.
 | S042-T021 | Import test: framework usable without `ml-trees` | TODO |
 | S042-T022 | Docs: RESEARCH_METHODOLOGIES, MODULE_MAP, CURRENT_STATUS | TODO |
 
-**Progress:** 0 / 22 tasks
+**Progress:** 1 / 22 tasks
 
 ---
 
