@@ -71,7 +71,7 @@ predictions plus per-fold metrics, reproducible bit-for-bit from the run manifes
 - [x] `run_predictive_research` application workflow with per-fold execution.
 - [x] Metrics module: statistical + finance-aware, per fold and pooled.
 - [x] `PredictiveRunEnvelope` v1 + run identity fingerprint.
-- [ ] CLIs: run, analyze.
+- [x] CLIs: run, analyze.
 
 ## 3. Out of scope
 
@@ -238,13 +238,13 @@ fingerprint by design — it is a different experiment, not the same one re-run.
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S040-T019 | CLIs: `run_predictive_research.py`, `analyze_predictive_run.py` | TODO |
+| S040-T019 | CLIs: `run_predictive_research.py`, `analyze_predictive_run.py` | DONE |
 | S040-T020 | Determinism test: same spec → identical predictions | TODO |
 | S040-T021 | Known-signal fixture test (see §9) | TODO |
 | S040-T022 | Import test: framework usable without the `ml` extra | TODO |
 | S040-T023 | Docs: MODULE_MAP, DATA_WORKFLOWS, RESEARCH_METHODOLOGIES, CURRENT_STATUS | TODO |
 
-**Progress:** 18 / 23 tasks
+**Progress:** 19 / 23 tasks
 
 ---
 

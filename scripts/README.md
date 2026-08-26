@@ -10,7 +10,7 @@ application APIs from these entry points rather than embedding domain logic.
 | `signal_research/` | Signal / model research runners and reports |
 | `strategy_research/` | Strategy research runners and HTML dashboard export |
 | `robustness_research/` | Robustness experiment runners and reports |
-| `predictive_research/` | Predictive Research dataset builder (`build_predictive_dataset.py`) |
+| `predictive_research/` | Predictive Research dataset builder, run, and analyze CLIs |
 | `demo/` | Portfolio / marketing demo HTML generation → `artifacts/demo/output/` |
 | `execution/` | Dry-run / execution operator CLIs |
 | `live_data/` | Live feed smoke helpers |
@@ -19,3 +19,14 @@ application APIs from these entry points rather than embedding domain logic.
 
 Layout rules: **ADR-0022**. Containers and local AWS runbooks live under
 `deploy/` (or `apps/<app>/deploy/`), not under `scripts/`.
+
+Predictive Research commands:
+
+```text
+uv run python scripts/predictive_research/build_predictive_dataset.py --storage-root <workspace> --definition <spec.yaml>
+uv run python scripts/predictive_research/run_predictive_research.py --storage-root <workspace> --dataset-id <id> --estimator <spec.yaml>
+uv run python scripts/predictive_research/analyze_predictive_run.py --storage-root <workspace> --run-id <id>
+```
+
+`run_predictive_research.py` also accepts `--family`, `--seed`, `--task-type`, and optional
+`--hyperparameters` JSON instead of `--estimator`.
