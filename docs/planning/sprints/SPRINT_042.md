@@ -269,7 +269,9 @@ answered by permutation importance; record the decision in the Wave 0 document i
 
 ## 12. Dependencies
 
-**Required:** S040 estimator seam and metrics; S041 panel registry.
+**Required:** S040 estimator seam and metrics (on `main` #319).
+
+**Required for Wave 4 only:** S041 panel registry (integration PR #325).
 
 **Not required:** networks, dashboard, robustness experiments.
 
