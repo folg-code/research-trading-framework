@@ -108,7 +108,8 @@ def unique_hyperparameter_alias(
         raise PredictiveSpecError(msg)
     if not present:
         return None
-    return hyperparameters[present[0]]
+    value: object = hyperparameters[present[0]]
+    return value
 
 
 def as_lower_str(value: object) -> str | None:

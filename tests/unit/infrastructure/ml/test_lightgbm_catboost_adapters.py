@@ -113,8 +113,14 @@ def test_lightgbm_rejects_non_gbdt_boosting() -> None:
 
 
 def test_catboost_rejects_gpu_task_type() -> None:
+    spec = EstimatorSpec(
+        family="catboost.regressor",
+        hyperparameters={"task_type": "GPU"},
+        seed=7,
+        task_type=TaskType.REGRESSION,
+    )
     with pytest.raises(PredictiveSpecError, match="GPU"):
-        resolve_estimator(_spec("catboost.regressor", TaskType.REGRESSION, task_type="GPU"))
+        resolve_estimator(spec)
 
 
 def test_catboost_rejects_unknown_bootstrap() -> None:
