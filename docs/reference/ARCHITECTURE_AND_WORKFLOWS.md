@@ -482,15 +482,18 @@ baselines per fold. Sprint 039 is the dataset foundation (study spec, labelled
 evaluation-bar matrix, purged walk-forward fold roles, fingerprint and CLI).
 Sprint 040 adds the estimator protocol, fold-local preprocessing, sklearn
 adapters (ridge, elastic net, logistic), metrics, and the run envelope.
+Sprint 041 adds a read-only offline HTML report over those persisted envelopes.
 
 It does not produce signals. Fitted model blobs are opaque convenience artifacts;
 the durable facts are predictions and metrics. A run is reproduced by re-fitting
-from the manifest, not by deserializing a blob.
+from the manifest, not by deserializing a blob. The report never fits, predicts,
+or loads `models/fold_*.bin`.
 
 ```text
 PredictiveDatasetEnvelope
   → run_predictive_research
   → predictions.parquet + metrics.json + opaque models/fold_{n}.bin
+  → render_predictive_research_report → report.html
 ```
 
 Storage: `<workspace>/research/predictive_research/datasets/{dataset_id}/` and
