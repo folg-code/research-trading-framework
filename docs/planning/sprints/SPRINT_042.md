@@ -5,9 +5,9 @@
 ```text
 Sprint: 042
 Phase: Phase 10B — Tree-Based Predictive Models
-Status: IN PROGRESS (Wave 4)
+Status: COMPLETED (22/22; integration PR to main follows)
 Planned Start: 2026-08-26
-Planned End: TBD
+Planned End: 2026-08-26
 Sprint Goal Owner: Project Maintainer
 Depends On: SPRINT_040 (estimator seam on main #319); SPRINT_041 report panels after #325
 Sprint Branch: sprint/predictive-tree-models
@@ -71,7 +71,7 @@ and are compared against each other and the S040 baselines on one dataset finger
 - [x] Inner train/validation selection **inside** each training fold (§5).
 - [x] Native importance (gain / split) plus out-of-sample permutation importance.
 - [x] Study leaderboard comparing estimator families on one dataset fingerprint.
-- [ ] Report panels: importance, leaderboard, candidate-selection trace.
+- [x] Report panels: importance, leaderboard, candidate-selection trace.
 - [x] Overfitting diagnostics: train-fold versus test-fold metric gap.
 
 ## 3. Out of scope
@@ -204,9 +204,9 @@ report next to the headline number.
 |------|-------------|--------|
 | S042-T020 | Comparison study on the canonical dataset (baselines + three families) | DONE |
 | S042-T021 | Import test: framework usable without `ml-trees` | DONE |
-| S042-T022 | Docs: RESEARCH_METHODOLOGIES, MODULE_MAP, CURRENT_STATUS | TODO |
+| S042-T022 | Docs: RESEARCH_METHODOLOGIES, MODULE_MAP, CURRENT_STATUS | DONE |
 
-**Progress:** 21 / 22 tasks
+**Progress:** 22 / 22 tasks
 
 ---
 
@@ -292,4 +292,4 @@ uv run pytest
 
 Sprint 043 adds neural estimators through the same seam. The leaderboard built here is what makes
 that comparison meaningful — if networks cannot beat these trees, the leaderboard will say so
-plainly.
+plainly. Merge this sprint to `main` before opening S043.

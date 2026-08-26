@@ -428,13 +428,15 @@ Research Definition
 ### Predictive Research
 
 Phase 10A: dataset foundation (Sprint 039), baseline estimators (Sprint 040),
-and offline HTML report (Sprint 041). This workflow states a learning problem,
-persists a fingerprinted labelled matrix, trains declared baselines per fold,
-and reviews one run as standalone HTML. It does **not** emit signals or import
-`strategy/` / `signal_model/`. `research/predictive/` stays library-free (polars,
-numpy, framework contracts). Report figures live in `research/reporting/predictive/`
-(plotly; no sklearn). ML libraries live behind optional extra `ml` and
-`infrastructure/ml/` adapters.
+and offline HTML report (Sprint 041). Phase 10B (Sprint 042) adds tree families
+(XGBoost, LightGBM, CatBoost), bounded inner-fold selection, permutation
+importance, a single-study leaderboard, and three report panels. This workflow
+states a learning problem, persists a fingerprinted labelled matrix, trains
+declared estimators per fold, and reviews one run as standalone HTML. It does
+**not** emit signals or import `strategy/` / `signal_model/`. `research/predictive/`
+stays library-free (polars, numpy, framework contracts). Report figures live in
+`research/reporting/predictive/` (plotly; no sklearn). ML libraries live behind
+optional extras `ml` / `ml-trees` and `infrastructure/ml/` adapters.
 
 | Responsibility | Package |
 |---|---|
