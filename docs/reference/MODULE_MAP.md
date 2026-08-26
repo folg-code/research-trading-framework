@@ -440,6 +440,7 @@ numpy, framework contracts). ML libraries live behind optional extra `ml` and
 | Estimator protocol, `EstimatorSpec`, `TaskType` | `research/predictive/estimators.py` |
 | Fold-local preprocessing spec | `research/predictive/preprocessing.py` |
 | Statistical + finance-aware metrics | `research/predictive/metrics.py` |
+| Bounded candidate selection (`CandidateSetSpec`) | `research/predictive/selection.py` |
 | Dataset envelope, fingerprint, repository | `research/datasets/predictive.py` |
 | Run envelope, fingerprint, repository | `research/datasets/predictive_run.py` |
 | Workflow orchestration (build, run, analyze) | `application/predictive_research/` |
@@ -456,6 +457,7 @@ Published DatasetRef + PredictiveStudySpec (YAML/JSON)
   → purged + embargoed walk-forward fold roles
   → PredictiveDatasetEnvelope (manifest + fingerprint)
   → EstimatorSpec (family + hyperparameters + seed)
+      or CandidateSetSpec (declared, capped; inner TRAIN split, TEST once)
   → run_predictive_research (fit on TRAIN per fold, predict on TEST)
   → PredictiveRunEnvelope (predictions, metrics, opaque blobs)
   → analyze_predictive_run (writes metrics.json from predictions; never deserializes model blobs)
@@ -505,6 +507,7 @@ Storage:
   manifest.json
   predictions.parquet
   metrics.json
+  selection.json         # candidate scores per fold; absent on single-estimator runs
   models/fold_{n}.bin    # opaque; reproduce by re-fitting, not deserializing
 ```
 

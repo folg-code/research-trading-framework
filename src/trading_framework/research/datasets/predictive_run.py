@@ -65,12 +65,14 @@ class PredictiveRunManifest:
     created_at_utc: datetime
     model_files: dict[str, str]
     estimator_description: dict[str, Any]
+    candidate_set: dict[str, Any] | None = None
+    selection_trace_file: str | None = None
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "created_at_utc", require_utc_aware(self.created_at_utc))
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        payload: dict[str, Any] = {
             "schema_version": self.schema_version,
             "run_id": self.run_id,
             "run_fingerprint": self.run_fingerprint,
@@ -92,6 +94,11 @@ class PredictiveRunManifest:
             },
             "estimator_description": dict(self.estimator_description),
         }
+        if self.candidate_set is not None:
+            payload["candidate_set"] = dict(self.candidate_set)
+        if self.selection_trace_file is not None:
+            payload["selection_trace"] = self.selection_trace_file
+        return payload
 
     @classmethod
     def from_dict(cls, payload: dict[str, Any]) -> PredictiveRunManifest:
@@ -129,6 +136,8 @@ class PredictiveRunManifest:
             created_at_utc=datetime.fromisoformat(str(payload["created_at_utc"])),
             model_files={str(fold_id): str(path) for fold_id, path in files_raw.items()},
             estimator_description=dict(estimator_description),
+            candidate_set=_optional_mapping(payload.get("candidate_set")),
+            selection_trace_file=_optional_str(payload.get("selection_trace")),
         )
 
 
@@ -152,20 +161,25 @@ def compute_run_fingerprint(
     library: str,
     library_version: str,
     framework_version: str,
+    candidate_set: Mapping[str, Any] | None = None,
 ) -> str:
     """SHA-256 fingerprint of the declared run identity (D-S040-18).
 
     Prediction rows and fitted blobs are never hashed. A library upgrade
-    changes the fingerprint by design.
+    changes the fingerprint by design. When ``candidate_set`` is provided it
+    replaces ``estimator_spec`` in the hashed payload (D-S042-11).
     """
-    payload = {
+    payload: dict[str, Any] = {
         "dataset_fingerprint": dataset_fingerprint,
-        "estimator_spec": estimator_spec.to_dict(),
         "preprocessing_spec": preprocessing_spec.identity_payload(),
         "library": library,
         "library_version": library_version,
         "framework_version": framework_version,
     }
+    if candidate_set is not None:
+        payload["candidate_set"] = dict(candidate_set)
+    else:
+        payload["estimator_spec"] = estimator_spec.to_dict()
     canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"))
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
@@ -258,3 +272,19 @@ class PredictiveRunRepository:
             predictions = predictions.with_columns(pl.col("fold_id").cast(pl.Int64))
         validate_predictions_dataframe(predictions)
         return PredictiveRunEnvelope(manifest=manifest, predictions=predictions)
+
+
+def _optional_mapping(value: object) -> dict[str, Any] | None:
+    if value is None:
+        return None
+    if not isinstance(value, dict):
+        msg = "manifest candidate_set must be a mapping"
+        raise ValidationError(msg)
+    return dict(value)
+
+
+def _optional_str(value: object) -> str | None:
+    if value is None:
+        return None
+    text = str(value).strip()
+    return text or None

@@ -406,6 +406,27 @@ def permutation_shuffle(
     return array[rng.permutation(array.shape[0])]
 
 
+def selection_metric_value(
+    metric: str,
+    *,
+    y_true: np.ndarray,
+    y_pred: np.ndarray,
+    y_score: np.ndarray | None = None,
+) -> float | None:
+    """Score inner-validation predictions for bounded candidate selection."""
+    if metric == "spearman_ic":
+        return regression_statistical_metrics(y_true, y_pred).spearman_ic
+    if metric == "roc_auc":
+        scores = y_pred if y_score is None else y_score
+        return classification_statistical_metrics(
+            y_true,
+            scores,
+            threshold=CLASSIFICATION_DECISION_THRESHOLD,
+        ).roc_auc
+    msg = f"unsupported selection metric: {metric!r}"
+    raise ValidationError(msg)
+
+
 def regression_statistical_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> StatisticalMetrics:
     """RMSE, MAE, R², Spearman rank IC, Pearson IC."""
     target = _finite_vector(y_true, name="y_true")
