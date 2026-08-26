@@ -6,6 +6,7 @@ Builders consume the view model only — never raw parquet or estimators.
 from __future__ import annotations
 
 import importlib
+from collections.abc import Callable
 from typing import Any
 
 from trading_framework.core.exceptions import ValidationError
@@ -457,3 +458,26 @@ def _add_curve_traces(
         )
     figure.update_xaxes(title_text=x_name, range=[-0.02, 1.02], row=row, col=col)
     figure.update_yaxes(title_text=y_name, range=[-0.02, 1.02], row=row, col=col)
+
+
+def build_panel_figure(
+    panel_id: str,
+    go: Any,
+    make_subplots: Any,
+    view: PredictiveReportViewModel,
+) -> Any | None:
+    """Build the Plotly figure for a registered panel id, if it has one."""
+    builders: dict[str, Callable[[], Any]] = {
+        "fold_timeline": lambda: build_fold_timeline_figure(go, view),
+        "metric_stability": lambda: build_metric_stability_figure(go, view),
+        "model_vs_baselines": lambda: build_model_vs_baselines_figure(go, view),
+        "prediction_quality": lambda: build_prediction_quality_figure(go, make_subplots, view),
+        "discrimination": lambda: build_discrimination_figure(go, make_subplots, view),
+        "calibration": lambda: build_calibration_figure(go, make_subplots, view),
+        "prediction_buckets": lambda: build_prediction_buckets_figure(go, view),
+        "sample_composition": lambda: build_sample_composition_figure(go, make_subplots, view),
+    }
+    builder = builders.get(panel_id)
+    if builder is None:
+        return None
+    return builder()
