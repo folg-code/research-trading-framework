@@ -386,8 +386,10 @@ It answers a learning question. It does **not** produce signals, extend Strategy
 or promote a trained model to a tradable component.
 
 Phase 10A now covers the dataset foundation (Sprint 039) and baseline estimators
-(Sprint 040). Linear and logistic baselines are the control group for later tree
-and neural estimators. Models do not trade.
+(Sprint 040). Linear and logistic baselines are the control group. Sprint 042 adds
+tree families through the same estimator protocol, plus bounded candidate
+selection, permutation importance, and a single-study leaderboard. Models do
+not trade.
 
 ### Research Question
 
@@ -399,6 +401,8 @@ and neural estimators. Models do not trade.
 - labelling evaluation bars from reused forward outcomes,
 - proving absence of temporal leakage before any model is fit,
 - training declared baselines (ridge, elastic net, logistic) per fold,
+- training declared tree families (XGBoost, LightGBM, CatBoost) per fold,
+- bounded inner-fold candidate selection and a single-study leaderboard,
 - measuring statistical and finance-aware metrics against naive reference baselines.
 
 ### Not Suitable For
@@ -407,7 +411,7 @@ and neural estimators. Models do not trade.
 - Strategy Research (trades, equity, PnL),
 - Robustness Research (parameter / stress verdicts),
 - HTML reports and dashboards (S041 / S044),
-- tree or neural estimators (S042 / S043),
+- neural estimators (S043),
 - promoting a trained model to Market Analysis (IDEA-014 → S044 / ADR-0024).
 
 ### Samples

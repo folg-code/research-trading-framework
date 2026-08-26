@@ -40,11 +40,16 @@ from scripts.predictive_research import analyze_predictive_run, run_predictive_r
 assert predictive.EstimatorSpec is not None
 assert application.run_predictive_research is not None
 assert application.analyze_predictive_run is not None
+assert application.compare_predictive_runs is not None
 assert run_predictive_research.main is not None
 assert analyze_predictive_run.main is not None
 assert registered_families()['xgboost.regressor'] == 'ml-trees'
 assert registered_families()['lightgbm.regressor'] == 'ml-trees'
 assert registered_families()['catboost.classifier'] == 'ml-trees'
+
+from scripts.predictive_research import compare_predictive_runs as compare_cli
+assert compare_cli.main is not None
+assert predictive.build_predictive_leaderboard is not None
 
 blocked = ('sklearn', 'xgboost', 'lightgbm', 'catboost')
 loaded = [

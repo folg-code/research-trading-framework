@@ -64,15 +64,15 @@ and are compared against each other and the S040 baselines on one dataset finger
 
 ## 2. In scope
 
-- [ ] Optional extra `ml-trees` = XGBoost, LightGBM, CatBoost.
-- [ ] Three adapters in `infrastructure/ml/trees/`, one protocol, no domain change.
-- [ ] Determinism configuration enforced by the adapter (§4).
-- [ ] `CandidateSetSpec` — declared, capped hyperparameter candidates.
-- [ ] Inner train/validation selection **inside** each training fold (§5).
-- [ ] Native importance (gain / split) plus out-of-sample permutation importance.
-- [ ] Study leaderboard comparing estimator families on one dataset fingerprint.
+- [x] Optional extra `ml-trees` = XGBoost, LightGBM, CatBoost.
+- [x] Three adapters in `infrastructure/ml/trees/`, one protocol, no domain change.
+- [x] Determinism configuration enforced by the adapter (§4).
+- [x] `CandidateSetSpec` — declared, capped hyperparameter candidates.
+- [x] Inner train/validation selection **inside** each training fold (§5).
+- [x] Native importance (gain / split) plus out-of-sample permutation importance.
+- [x] Study leaderboard comparing estimator families on one dataset fingerprint.
 - [ ] Report panels: importance, leaderboard, candidate-selection trace.
-- [ ] Overfitting diagnostics: train-fold versus test-fold metric gap.
+- [x] Overfitting diagnostics: train-fold versus test-fold metric gap.
 
 ## 3. Out of scope
 
@@ -202,11 +202,11 @@ report next to the headline number.
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S042-T020 | Comparison study on the canonical dataset (baselines + three families) | TODO |
-| S042-T021 | Import test: framework usable without `ml-trees` | TODO |
+| S042-T020 | Comparison study on the canonical dataset (baselines + three families) | DONE |
+| S042-T021 | Import test: framework usable without `ml-trees` | DONE |
 | S042-T022 | Docs: RESEARCH_METHODOLOGIES, MODULE_MAP, CURRENT_STATUS | TODO |
 
-**Progress:** 16 / 22 tasks
+**Progress:** 18 / 22 tasks
 
 ---
 
