@@ -57,3 +57,41 @@ def test_databento_imports_only_in_infrastructure() -> None:
                 offenders.append(f"{path.relative_to(package_root)}:{node.module}")
 
     assert offenders == []
+
+
+_ML_LIBRARY_ROOTS = (
+    "sklearn",
+    "xgboost",
+    "lightgbm",
+    "catboost",
+    "torch",
+)
+
+
+def _is_ml_library(module_name: str) -> bool:
+    return module_name in _ML_LIBRARY_ROOTS or any(
+        module_name.startswith(f"{root}.") for root in _ML_LIBRARY_ROOTS
+    )
+
+
+def test_predictive_research_does_not_import_ml_libraries() -> None:
+    package_root = Path(trading_framework.__file__).resolve().parent / "research" / "predictive"
+    offenders: list[str] = []
+
+    for path in _python_files(package_root):
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                offenders.extend(
+                    f"{path.relative_to(package_root)}:{alias.name}"
+                    for alias in node.names
+                    if _is_ml_library(alias.name)
+                )
+            elif (
+                isinstance(node, ast.ImportFrom)
+                and node.module is not None
+                and _is_ml_library(node.module)
+            ):
+                offenders.append(f"{path.relative_to(package_root)}:{node.module}")
+
+    assert offenders == []
