@@ -222,10 +222,10 @@ Signal Research.
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S039-T006 | Feature matrix builder over `AnalysisFrame` columns | TODO |
-| S039-T007 | Label derivation from `compute_forward_outcomes_for_horizons` | TODO |
-| S039-T008 | Availability columns (`detected_at`, `available_at`, `label_end_at`) | TODO |
-| S039-T009 | Row exclusion policy + counts (incomplete horizon, null features) | TODO |
+| S039-T006 | Feature matrix builder over `AnalysisFrame` columns | DONE |
+| S039-T007 | Label derivation from `compute_forward_outcomes_for_horizons` | DONE |
+| S039-T008 | Availability columns (`detected_at`, `available_at`, `label_end_at`) | DONE |
+| S039-T009 | Row exclusion policy + counts (incomplete horizon, null features) | DONE |
 
 ### Wave 3 — Splitting
 
@@ -253,7 +253,7 @@ Signal Research.
 | S039-T019 | End-to-end fixture test: spec → dataset → reload → identical fingerprint | TODO |
 | S039-T020 | Docs: MODULE_MAP, DATA_WORKFLOWS, RESEARCH_METHODOLOGIES, CURRENT_STATUS | TODO |
 
-**Progress:** 5 / 20 tasks
+**Progress:** 9 / 20 tasks
 
 ---
 
