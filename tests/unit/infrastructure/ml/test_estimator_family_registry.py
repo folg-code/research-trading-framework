@@ -83,13 +83,12 @@ def test_registry_modules_do_not_import_sklearn_at_module_level() -> None:
     import trading_framework.infrastructure.ml as ml_package
     import trading_framework.infrastructure.ml.registry as registry
     import trading_framework.infrastructure.ml.sklearn as sklearn_package
-    import trading_framework.infrastructure.ml.sklearn.factories as factories
 
+    sklearn_root = Path(sklearn_package.__file__).resolve().parent
     roots = (
         Path(ml_package.__file__).resolve(),
         Path(registry.__file__).resolve(),
-        Path(sklearn_package.__file__).resolve(),
-        Path(factories.__file__).resolve(),
+        *sorted(sklearn_root.glob("*.py")),
     )
     offenders = [
         f"{path.name}:{name}"

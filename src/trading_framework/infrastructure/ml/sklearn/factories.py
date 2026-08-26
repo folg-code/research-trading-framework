@@ -2,14 +2,9 @@
 
 from __future__ import annotations
 
-import numpy as np
-
+from trading_framework.infrastructure.ml.sklearn.adapter import SklearnPredictiveEstimator
 from trading_framework.research.predictive.errors import PredictiveExtraError
-from trading_framework.research.predictive.estimators import (
-    EstimatorSpec,
-    FittedPredictiveEstimator,
-    PredictiveEstimator,
-)
+from trading_framework.research.predictive.estimators import EstimatorSpec, PredictiveEstimator
 
 _ML_EXTRA = "ml"
 
@@ -31,32 +26,16 @@ def _require_sklearn(family_id: str) -> None:
         raise PredictiveExtraError(msg) from exc
 
 
-class _SklearnFamilyStub:
-    """Placeholder until Wave 2 ships ``describe()`` / ``fit()`` adapters."""
-
-    def __init__(self, spec: EstimatorSpec) -> None:
-        self.spec = spec
-
-    def fit(
-        self,
-        features: np.ndarray,
-        target: np.ndarray,
-        sample_metadata: object,
-    ) -> FittedPredictiveEstimator:
-        msg = f"{self.spec.family} adapter is not implemented yet"
-        raise NotImplementedError(msg)
-
-
 def create_ridge_estimator(spec: EstimatorSpec) -> PredictiveEstimator:
     _require_sklearn("sklearn.ridge")
-    return _SklearnFamilyStub(spec)
+    return SklearnPredictiveEstimator(spec)
 
 
 def create_elastic_net_estimator(spec: EstimatorSpec) -> PredictiveEstimator:
     _require_sklearn("sklearn.elastic_net")
-    return _SklearnFamilyStub(spec)
+    return SklearnPredictiveEstimator(spec)
 
 
 def create_logistic_estimator(spec: EstimatorSpec) -> PredictiveEstimator:
     _require_sklearn("sklearn.logistic")
-    return _SklearnFamilyStub(spec)
+    return SklearnPredictiveEstimator(spec)
