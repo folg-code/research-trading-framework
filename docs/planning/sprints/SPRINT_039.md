@@ -214,9 +214,9 @@ Signal Research.
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S039-T003 | `FeatureSpec` / `FeatureMatrixSpec` + validation | TODO |
-| S039-T004 | `LabelSpec` (regression, binary, ternary) + validation | TODO |
-| S039-T005 | `PredictiveStudySpec` YAML/JSON loader + `definition_hash` | TODO |
+| S039-T003 | `FeatureSpec` / `FeatureMatrixSpec` + validation | DONE |
+| S039-T004 | `LabelSpec` (regression, binary, ternary) + validation | DONE |
+| S039-T005 | `PredictiveStudySpec` YAML/JSON loader + `definition_hash` | DONE |
 
 ### Wave 2 — Matrix construction
 
@@ -253,7 +253,7 @@ Signal Research.
 | S039-T019 | End-to-end fixture test: spec → dataset → reload → identical fingerprint | TODO |
 | S039-T020 | Docs: MODULE_MAP, DATA_WORKFLOWS, RESEARCH_METHODOLOGIES, CURRENT_STATUS | TODO |
 
-**Progress:** 2 / 20 tasks
+**Progress:** 5 / 20 tasks
 
 ---
 
