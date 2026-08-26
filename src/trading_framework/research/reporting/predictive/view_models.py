@@ -11,7 +11,11 @@ import polars as pl
 
 from trading_framework.core.exceptions import ValidationError
 from trading_framework.research.predictive.estimators import TaskType
-from trading_framework.research.predictive.metrics import MetricSource, PredictiveMetricsReport
+from trading_framework.research.predictive.metrics import (
+    CalibrationBin,
+    MetricSource,
+    PredictiveMetricsReport,
+)
 from trading_framework.research.predictive.splitting import FoldRole
 from trading_framework.research.reporting.predictive.contracts import PredictiveReportSource
 from trading_framework.research.reporting.predictive.quality import (
@@ -67,6 +71,9 @@ class PredictiveReportViewModel:
     predictions: pl.DataFrame
     exclusion_counts: Mapping[str, int]
     role_counts: Mapping[str, int]
+    calibration_bins: tuple[CalibrationBin, ...]
+    brier_score: float | None
+    mean_forward_return_all: float | None
     quality_warnings: tuple[PredictiveQualityWarning, ...]
     quality_rules: PredictiveReportQualityRules
 
@@ -116,6 +123,7 @@ def build_predictive_report_view_model(
         for source_name, source_metrics in metrics.pooled.items()
         if source_name != MetricSource.MODEL.value
     }
+    model_metrics = metrics.pooled[MetricSource.MODEL.value]
     generated_at = require_utc_aware(clock.now())
     return PredictiveReportViewModel(
         run_id=run.manifest.run_id,
@@ -134,6 +142,9 @@ def build_predictive_report_view_model(
             {str(key): int(value) for key, value in dataset.manifest.exclusion_counts.items()}
         ),
         role_counts=MappingProxyType(role_counts),
+        calibration_bins=model_metrics.statistical.calibration_bins,
+        brier_score=model_metrics.statistical.brier_score,
+        mean_forward_return_all=model_metrics.finance.mean_forward_return_all,
         quality_warnings=warnings,
         quality_rules=rules,
     )
