@@ -27,14 +27,14 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 
 ```text
 Status Date: 2026-08-26
-Current Phase: Phase 10A Predictive Research Foundation (S039–S040 complete; S041 planned)
-Current Milestone: S040 baselines complete; this PR integrates to main; S041 HTML report next
-Implementation Status: Sprints 001-006, 008-024, 025-040 on main (this PR)
+Current Phase: Phase 10A Predictive Research Foundation (S039–S040 complete; S041 in progress)
+Current Milestone: S041 Predictive Research report v1
+Implementation Status: Sprints 001-006, 008-024, 025-040 on main; S041 on sprint/predictive-research-report
 Overall Status: STABLE
-Active Sprint: none (S041 planned, not started)
-Last Completed Sprint: SPRINT_040 (Predictive Research baselines) → main (this PR)
+Active Sprint: SPRINT_041 (sprint/predictive-research-report)
+Last Completed Sprint: SPRINT_040 (Predictive Research baselines) → main (#319)
 Capability Tracks: Foundation COMPLETE; Data COMPLETE (core); Research COMPLETE (core); Strategy 6A COMPLETE; Phase 8A dry-run + S024 on main; Dashboard / Live Paper / public demo COMPLETE; Phase 10A S039 dataset + S040 baselines COMPLETE (S041 remains)
-Recent: S040 on main (this PR). Working PRs #310–#318. ADR-0023 ACCEPTED. Phase 10A not complete until S041.
+Recent: S040 on main (#319). S041 Wave 0 approved. ADR-0023 ACCEPTED. Phase 10A not complete until S041.
 ```
 
 ---
@@ -429,8 +429,9 @@ Maintenance: `.cursor/rules/documentation.mdc`
 
 ## 6. Work in Progress
 
-No active sprint. Sprint 040 is complete on this integration PR. Sprint 041
-(Predictive Research report v1) is **PLANNED**, not started.
+**Active sprint:** SPRINT_041 — Predictive Research report v1 on
+`sprint/predictive-research-report`. Wave 0 approved 2026-08-26.
+Sprint 040 is complete on `main` (#319).
 
 **Portfolio demo packaging** — `scripts/demo/run_portfolio_demo.py` generates offline HTML artifacts for showcase (workflows + dashboards).
 
@@ -633,11 +634,10 @@ Sprint 036 research infra audit COMPLETED on main (#288).
 Sprint 037 component libraries + DSL COMPLETED on main (#296).
 Sprint 038 Session Range COMPLETED on main (#300).
 Sprint 039 Predictive Research dataset foundation COMPLETED on main (#309; #302–#308).
-Sprint 040 Predictive Research baselines COMPLETED (this PR; #310–#318).
+Sprint 040 Predictive Research baselines COMPLETED on main (#319; #310–#318).
 ADR-0023 ACCEPTED. Phase 10A is not complete (S041 remains).
 
-Next capability (not started):
-    Sprint 041 — Predictive Research report v1 (offline Plotly HTML)
+Active: Sprint 041 — Predictive Research report v1 (Wave 0 approved).
 
 Catalog in parallel (does not block S041):
     wick / distance catalog PRs
@@ -724,7 +724,7 @@ See `docs/planning/sprints/SPRINT_041.md`, `SPRINT_040.md`, `SPRINT_039.md`, `S0
 | 038 | Session Range Structure | COMPLETED | 6 / 6 tasks; main #300 |
 | 039 | Predictive Research dataset foundation (Phase 10A) | COMPLETED | 20 / 20 tasks; main #309; working PRs #302–#308 |
 | 040 | Baseline regression + classification (Phase 10A) | COMPLETED | 23 / 23 tasks; this PR to main; working PRs #310–#318 |
-| 041 | Predictive Research report v1 (Phase 10A) | PLANNED | 0 / 16 tasks; `SPRINT_041.md` |
+| 041 | Predictive Research report v1 (Phase 10A) | IN PROGRESS | 3 / 16 tasks; Wave 0 approved; `sprint/predictive-research-report` |
 | 042 | Tree-based predictive models (Phase 10B) | PLANNED | 0 / 22 tasks; `SPRINT_042.md` |
 | 043 | Neural predictive models (Phase 10C) | PLANNED | 0 / 21 tasks; `SPRINT_043.md` |
 | 044 | Predictive dashboard + IDEA-014 gate (Phase 10C) | PLANNED | 0 / 18 tasks; `SPRINT_044.md` |

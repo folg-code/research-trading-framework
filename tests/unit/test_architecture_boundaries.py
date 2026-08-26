@@ -122,6 +122,7 @@ def _wave4_predictive_paths() -> tuple[Path, ...]:
     return (
         framework_root / "research" / "datasets" / "predictive.py",
         framework_root / "research" / "datasets" / "predictive_run.py",
+        framework_root / "research" / "reporting" / "predictive",
         framework_root / "application" / "predictive_research",
         repo_root / "scripts" / "predictive_research",
     )
