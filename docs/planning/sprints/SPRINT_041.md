@@ -188,10 +188,10 @@ Missing optional data (no probabilities, no importance) degrades to a skipped pa
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S041-T004 | Fold timeline figure (train / purge / embargo / test bands) | TODO |
-| S041-T005 | Metric stability across folds | TODO |
-| S041-T006 | Model versus reference baselines | TODO |
-| S041-T007 | Label and sample composition | TODO |
+| S041-T004 | Fold timeline figure (train / purge / embargo / test bands) | DONE |
+| S041-T005 | Metric stability across folds | DONE |
+| S041-T006 | Model versus reference baselines | DONE |
+| S041-T007 | Label and sample composition | DONE |
 
 ### Wave 3 — Task-specific panels
 
@@ -212,7 +212,7 @@ Missing optional data (no probabilities, no importance) degrades to a skipped pa
 | S041-T015 | Report smoke test: regression run and classification run | TODO |
 | S041-T016 | Docs: RESEARCH_METHODOLOGIES, MODULE_MAP, CURRENT_STATUS | TODO |
 
-**Progress:** 3 / 16 tasks
+**Progress:** 7 / 16 tasks
 
 ---
 
