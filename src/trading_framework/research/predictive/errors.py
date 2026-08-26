@@ -9,3 +9,11 @@ class PredictiveSpecError(ValidationError):
 
 class PredictiveMatrixError(PredictiveSpecError):
     """Raised when a labelled feature matrix or fold assignment cannot be built."""
+
+
+class PredictiveExtraError(ValidationError):
+    """Raised when a requested estimator family requires an uninstalled extra.
+
+    The message must name the extra (``ml``) and the requested family id.
+    ``ImportError`` may be chained as ``__cause__`` but must not be the raised type.
+    """
