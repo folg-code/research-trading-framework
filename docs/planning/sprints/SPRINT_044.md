@@ -5,13 +5,14 @@
 ```text
 Sprint: 044
 Phase: Phase 10C — Neural Predictive Models (closing increment)
-Status: PLANNED
-Planned Start: TBD (after S043 merges)
+Status: IN PROGRESS (Wave 0)
+Planned Start: 2026-08-27
 Planned End: TBD
 Sprint Goal Owner: Project Maintainer
 Depends On: SPRINT_041 (report), SPRINT_042 (leaderboard), SPRINT_043 (neural families)
 Sprint Branch: sprint/predictive-dashboard-and-gate
 Task branch convention: feat/ | fix/ | docs/ | test/
+Wave 0 decisions: docs/planning/sprints/S044_WAVE0_DECISIONS.md
 Architecture Sources:
   - docs/planning/ROADMAP.md (§13A Phase 10)
   - docs/adr/ADR-0022 (repository top-level layout; apps/* consumer boundary)
@@ -146,6 +147,15 @@ still pass Phase 7 robustness validation. Phase 10 metrics are a precondition, n
 
 ## 6. Task breakdown
 
+### Wave 0 — Planning
+
+Binding locks: `S044_WAVE0_DECISIONS.md`. No numbered catalog task — T001–T018
+are unchanged. Wave 0 is planning DONE when that file is on the sprint branch.
+
+Catalog listing is a filesystem walk of `manifest.json` (same as existing
+dashboard pages). DuckDB stays the Parquet read path, not a registry
+(D-S044-04). ADR-0024 is Wave 3, not Wave 0.
+
 ### Wave 1 — Catalog
 
 | Task | Description | Status |
@@ -192,6 +202,7 @@ still pass Phase 7 robustness validation. Phase 10 metrics are a precondition, n
 
 | PR | Branch (example) | Outcome |
 |----|------------------|---------|
+| 0 | `docs/predictive-dashboard-planning` | Wave 0 locks (`S044_WAVE0_DECISIONS.md`) |
 | 1 | `feat/dashboard-predictive-catalog` | T001–T003 catalog + contracts |
 | 2 | `feat/dashboard-predictive-page` | T004–T010 page views |
 | 3 | `docs/idea-014-promotion-gate` | T011–T013 gate + ADR-0024 |
