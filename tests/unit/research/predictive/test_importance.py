@@ -53,7 +53,7 @@ def test_permutation_importance_does_not_mutate_features() -> None:
 
 
 def test_permutation_importance_rejects_empty_matrix() -> None:
-    with pytest.raises(PredictiveSpecError, match="non-empty 2-d"):
+    with pytest.raises(PredictiveSpecError, match="non-empty 2-d or 3-d"):
         permutation_feature_importance(
             np.zeros((0, 2)),
             np.zeros(0),
@@ -61,6 +61,58 @@ def test_permutation_importance_rejects_empty_matrix() -> None:
             metric="spearman_ic",
             seed=1,
         )
+
+
+def test_permutation_importance_flags_the_informative_rank3_channel() -> None:
+    n_windows = 40
+    lookback = 4
+    signal = np.linspace(-1.0, 1.0, n_windows)
+    windows = np.zeros((n_windows, lookback, 2), dtype=np.float64)
+    windows[:, :, 0] = signal[:, None]
+    target = signal.copy()
+
+    def predict(matrix: np.ndarray) -> np.ndarray:
+        return np.asarray(matrix[:, -1, 0], dtype=np.float64)
+
+    result = permutation_feature_importance(
+        windows,
+        target,
+        predict=predict,
+        metric="spearman_ic",
+        seed=7,
+        n_repeats=5,
+        feature_names=("signal", "noise"),
+    )
+    assert result.feature_names == ("signal", "noise")
+    assert result.importances_mean[0] > result.importances_mean[1]
+
+
+def test_rank3_permutation_preserves_lookback_and_does_not_mutate() -> None:
+    windows = np.arange(48, dtype=np.float64).reshape(6, 4, 2)
+    original = windows.copy()
+    captured: list[np.ndarray] = []
+
+    def predict(matrix: np.ndarray) -> np.ndarray:
+        captured.append(matrix.copy())
+        return np.asarray(matrix[:, -1, 0], dtype=np.float64)
+
+    permutation_feature_importance(
+        windows,
+        windows[:, -1, 0],
+        predict=predict,
+        metric="spearman_ic",
+        seed=3,
+        n_repeats=1,
+        feature_names=("signal", "noise"),
+    )
+    np.testing.assert_array_equal(windows, original)
+    shuffled = captured[-1]
+    assert shuffled.shape == windows.shape
+    # Same permutation on axis 0 keeps each window's lookback contiguous.
+    for feature in (0, 1):
+        original_channels = {tuple(row) for row in original[:, :, feature]}
+        shuffled_channels = {tuple(row) for row in shuffled[:, :, feature]}
+        assert shuffled_channels == original_channels
 
 
 def test_native_importance_relabel_rewrites_names() -> None:

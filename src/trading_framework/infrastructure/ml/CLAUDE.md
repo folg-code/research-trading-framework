@@ -36,6 +36,8 @@ Responsibility: optional-extra estimator adapters and the family-id registry.
   `SequenceWindowSpec`. Sequence families (`torch.lstm.*`, `torch.gru.*`)
   require a `SequenceWindowSpec`, rank-3 windows, and 2d TRAIN `scaler_features`
   in `sample_metadata` — the scaler is never fitted on windowed tensors.
+  Application builds those windows before `fit()` / `predict()`; adapters do
+  not import the domain window builder.
   `native_feature_importance()` is `None`.
 - Preprocessing (`IMPUTE_MEDIAN` then `STANDARDIZE` by default) is fitted on
   the feature matrix passed to `fit()` only. Do not pass PURGED / EMBARGOED

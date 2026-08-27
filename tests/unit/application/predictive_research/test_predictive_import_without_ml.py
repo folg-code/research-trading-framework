@@ -1,4 +1,9 @@
-"""T022: Predictive Research packages import without the optional ml extra."""
+"""T020: Predictive Research packages import without optional ml / ml-trees / dl extras.
+
+Importing ``infrastructure.ml.registry`` must not import sklearn, tree
+libraries, or torch (D-S043-19). Neural families stay registered as extra
+``dl`` without loading the extra.
+"""
 
 from __future__ import annotations
 

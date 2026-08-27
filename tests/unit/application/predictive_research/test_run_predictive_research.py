@@ -24,6 +24,7 @@ from trading_framework.infrastructure.storage.paths import (
     predictive_research_run_learning_curves_path,
     predictive_research_run_metrics_path,
     predictive_research_run_model_path,
+    predictive_research_run_window_accounting_path,
 )
 from trading_framework.research.datasets.predictive import (
     PREDICTIVE_DATASET_SCHEMA_VERSION,
@@ -36,6 +37,7 @@ from trading_framework.research.datasets.predictive import (
 )
 from trading_framework.research.datasets.predictive_run import PredictiveRunRepository
 from trading_framework.research.predictive import (
+    CandidateSetSpec,
     EstimatorDescription,
     EstimatorSpec,
     FoldRole,
@@ -43,6 +45,8 @@ from trading_framework.research.predictive import (
     PredictiveSpecError,
     PurgedWalkForwardSplitMode,
     PurgedWalkForwardSplitSpec,
+    SelectionMetric,
+    SequenceWindowSpec,
     TaskType,
     assign_purged_walk_forward_folds,
 )
@@ -121,10 +125,15 @@ class _RecordingEstimator:
     def __init__(
         self,
         fitted: _RecordingFitted | _ClassificationFitted | _CurveFitted | None = None,
+        *,
+        rank: int = 2,
     ) -> None:
         self.fit_role_values: list[tuple[str, ...]] = []
         self.fit_row_counts: list[int] = []
         self.fit_feature_widths: list[int] = []
+        self.fit_ranks: list[int] = []
+        self.fit_metadata: list[object] = []
+        self._rank = rank
         self._fitted: _RecordingFitted | _ClassificationFitted | _CurveFitted = (
             fitted or _RecordingFitted()
         )
@@ -135,12 +144,25 @@ class _RecordingEstimator:
         target: np.ndarray,
         sample_metadata: object,
     ) -> _RecordingFitted | _ClassificationFitted | _CurveFitted:
+        self.fit_metadata.append(sample_metadata)
+        self.fit_ranks.append(int(features.ndim))
+        self.fit_row_counts.append(int(features.shape[0]))
+        if self._rank == 3:
+            assert isinstance(sample_metadata, dict)
+            assert features.ndim == 3
+            assert target.shape == (features.shape[0],)
+            scaler = sample_metadata["scaler_features"]
+            assert isinstance(scaler, np.ndarray)
+            assert scaler.ndim == 2
+            assert scaler.shape[1] == features.shape[2]
+            self.fit_feature_widths.append(int(features.shape[2]))
+            self.fit_role_values.append(())
+            return self._fitted
         assert isinstance(sample_metadata, tuple)
         roles = tuple(
             role.value if isinstance(role, FoldRole) else str(role) for role in sample_metadata
         )
         self.fit_role_values.append(roles)
-        self.fit_row_counts.append(int(features.shape[0]))
         self.fit_feature_widths.append(int(features.shape[1]))
         return self._fitted
 
@@ -233,6 +255,88 @@ def _ridge_spec() -> EstimatorSpec:
         seed=7,
         task_type=TaskType.REGRESSION,
     )
+
+
+def _lstm_spec() -> EstimatorSpec:
+    return EstimatorSpec(
+        family="torch.lstm.regressor",
+        hyperparameters={"hidden_size": 8, "max_epochs": 4},
+        seed=7,
+        task_type=TaskType.REGRESSION,
+    )
+
+
+def _write_series_dataset(
+    storage_root: Path,
+    *,
+    dataset_id: str = "feedcba987654321",
+    count: int = 120,
+) -> PredictiveDatasetRef:
+    start = datetime(2024, 1, 1, 14, 0, tzinfo=UTC)
+    timestamps = [start + timedelta(minutes=index) for index in range(count)]
+    returns = [0.01 + (index * 0.001) for index in range(count)]
+    rows = pl.DataFrame(
+        {
+            "entity_id": ["ES.c.0"] * count,
+            "horizon_bars": [5] * count,
+            "detected_at": timestamps,
+            "available_at": timestamps,
+            "label_end_at": [timestamp + timedelta(minutes=5) for timestamp in timestamps],
+            "atr_14": [1.0 + (index * 0.1) for index in range(count)],
+            "label": returns,
+            "forward_return": returns,
+            "outcome_status": ["COMPLETE"] * count,
+        },
+        schema={
+            "entity_id": pl.String(),
+            "horizon_bars": pl.Int64(),
+            "detected_at": _UTC_US,
+            "available_at": _UTC_US,
+            "label_end_at": _UTC_US,
+            "atr_14": pl.Float64(),
+            "label": pl.Float64(),
+            "forward_return": pl.Float64(),
+            "outcome_status": pl.String(),
+        },
+    )
+    features = assign_purged_walk_forward_folds(
+        rows,
+        PurgedWalkForwardSplitSpec(
+            mode=PurgedWalkForwardSplitMode.EXPANDING,
+            fold_count=2,
+            test_span=Timeframe("20m"),
+            embargo_span=Timeframe("2m"),
+            min_train_rows=15,
+        ),
+    )
+    envelope = PredictiveDatasetEnvelope(
+        manifest=PredictiveDatasetManifest(
+            schema_version=PREDICTIVE_DATASET_SCHEMA_VERSION,
+            dataset_id=dataset_id,
+            study_spec={
+                "study_id": "atr_forward_return",
+                "label": {"kind": "REGRESSION", "horizon": "5m"},
+            },
+            definition_hash="a" * 64,
+            dataset_fingerprint=dataset_id + ("b" * 48),
+            source_dataset_ref="ES.c.0|ohlcv|1m|csv|test@1",
+            time_range_start=datetime(2024, 1, 1, tzinfo=UTC),
+            time_range_end=datetime(2024, 1, 2, tzinfo=UTC),
+            exclusion_counts={
+                "candidate_rows": count,
+                "labelled_rows": count,
+                "incomplete_horizon": 0,
+                "insufficient_data": 0,
+                "null_features": 0,
+            },
+            fold_summary=fold_summary_from_features(features),
+            framework_version=framework_version,
+            created_at_utc=datetime(2024, 6, 1, 12, 0, tzinfo=UTC),
+        ),
+        features=features,
+        folds=resolve_fold_boundaries(features),
+    )
+    return PredictiveDatasetRepository(storage_root).write(envelope)
 
 
 def _install_fakes(
@@ -469,3 +573,97 @@ def test_application_run_imports_registry_not_sklearn() -> None:
         for name in imported
         for root in ("xgboost", "lightgbm", "catboost", "torch")
     )
+
+
+def test_sequence_family_requires_window_spec(tmp_path: Path) -> None:
+    storage_root = tmp_path / "workspace"
+    dataset_ref = _write_dataset(storage_root)
+    with pytest.raises(PredictiveSpecError, match="requires SequenceWindowSpec"):
+        run_predictive_research(
+            RunPredictiveResearchRequest(
+                dataset_ref=dataset_ref,
+                estimator=_lstm_spec(),
+                storage_root=storage_root,
+                persist=False,
+            )
+        )
+
+
+def test_tabular_family_rejects_window_spec(tmp_path: Path) -> None:
+    storage_root = tmp_path / "workspace"
+    dataset_ref = _write_dataset(storage_root)
+    with pytest.raises(PredictiveSpecError, match="does not accept SequenceWindowSpec"):
+        run_predictive_research(
+            RunPredictiveResearchRequest(
+                dataset_ref=dataset_ref,
+                estimator=_ridge_spec(),
+                storage_root=storage_root,
+                persist=False,
+                window_spec=SequenceWindowSpec(lookback_bars=4),
+            )
+        )
+
+
+def test_sequence_family_rejects_candidate_set(tmp_path: Path) -> None:
+    storage_root = tmp_path / "workspace"
+    dataset_ref = _write_dataset(storage_root)
+    with pytest.raises(PredictiveSpecError, match="CandidateSetSpec"):
+        run_predictive_research(
+            RunPredictiveResearchRequest(
+                dataset_ref=dataset_ref,
+                estimator=_lstm_spec(),
+                storage_root=storage_root,
+                persist=False,
+                window_spec=SequenceWindowSpec(lookback_bars=4),
+                candidate_set=CandidateSetSpec(
+                    candidates=(_lstm_spec(),),
+                    selection_metric=SelectionMetric.SPEARMAN_IC,
+                ),
+            )
+        )
+
+
+def test_sequence_run_writes_windows_and_accounting(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    storage_root = tmp_path / "workspace"
+    dataset_ref = _write_series_dataset(storage_root)
+    recorder = _RecordingEstimator(rank=3)
+    _install_fakes(monkeypatch, recorder, family="torch.lstm.regressor")
+    window_spec = SequenceWindowSpec(lookback_bars=4)
+
+    result = run_predictive_research(
+        RunPredictiveResearchRequest(
+            dataset_ref=dataset_ref,
+            estimator=_lstm_spec(),
+            storage_root=storage_root,
+            persist=True,
+            clock=FixedClock(datetime(2024, 7, 1, 12, 0, tzinfo=UTC)),
+            window_spec=window_spec,
+        )
+    )
+
+    features = PredictiveDatasetRepository(storage_root).read(dataset_ref).features
+    test_rows = features.filter(pl.col("fold_role") == FoldRole.TEST.value)
+    assert recorder.fit_ranks
+    assert all(rank == 3 for rank in recorder.fit_ranks)
+    assert all(isinstance(metadata, dict) for metadata in recorder.fit_metadata)
+    assert result.envelope.predictions.height < test_rows.height
+    assert result.envelope.predictions.height >= 10
+    accounting_path = predictive_research_run_window_accounting_path(storage_root, result.run_id)
+    payload = json.loads(accounting_path.read_text(encoding="utf-8"))
+    assert payload["schema_version"] == "window_accounting.v1"
+    assert payload["folds"]
+    built = sum(int(entry["windows_built"]) for entry in payload["folds"])
+    assert built >= result.envelope.predictions.height
+    lookback_changed = run_predictive_research(
+        RunPredictiveResearchRequest(
+            dataset_ref=dataset_ref,
+            estimator=_lstm_spec(),
+            storage_root=storage_root,
+            persist=False,
+            clock=FixedClock(datetime(2024, 7, 1, 12, 0, tzinfo=UTC)),
+            window_spec=SequenceWindowSpec(lookback_bars=8),
+        )
+    )
+    assert lookback_changed.fingerprint != result.fingerprint

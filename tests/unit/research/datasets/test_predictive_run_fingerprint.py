@@ -143,3 +143,40 @@ def test_run_fingerprint_includes_candidate_set() -> None:
         candidate_set=candidate_set,
     )
     assert with_set != without_set
+
+
+def test_run_fingerprint_includes_sequence_window_spec() -> None:
+    spec = _ridge_spec()
+    preprocessing = default_preprocessing_spec()
+    window_payload = {"lookback_bars": 4, "stride": 1, "padding_policy": "DROP"}
+    without_windows = compute_run_fingerprint(
+        dataset_fingerprint="d" * 64,
+        estimator_spec=spec,
+        preprocessing_spec=preprocessing,
+        library="torch",
+        library_version="2.6.0",
+        framework_version=framework_version,
+    )
+    with_windows = compute_run_fingerprint(
+        dataset_fingerprint="d" * 64,
+        estimator_spec=spec,
+        preprocessing_spec=preprocessing,
+        library="torch",
+        library_version="2.6.0",
+        framework_version=framework_version,
+        sequence_window_spec=window_payload,
+    )
+    payload = {
+        "dataset_fingerprint": "d" * 64,
+        "estimator_spec": spec.to_dict(),
+        "preprocessing_spec": preprocessing.identity_payload(),
+        "library": "torch",
+        "library_version": "2.6.0",
+        "framework_version": framework_version,
+        "sequence_window_spec": window_payload,
+    }
+    expected = hashlib.sha256(
+        json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    ).hexdigest()
+    assert with_windows != without_windows
+    assert with_windows == expected

@@ -5,7 +5,7 @@
 ```text
 Sprint: 043
 Phase: Phase 10C — Neural Predictive Models
-Status: IN PROGRESS (Wave 4)
+Status: COMPLETE on sprint/predictive-neural-models (21/21; not yet merged to main)
 Planned Start: 2026-08-26
 Planned End: TBD
 Sprint Goal Owner: Project Maintainer
@@ -76,6 +76,7 @@ every other family, and the leaderboard shows honestly how it compares to trees 
 - [x] Environment-gated test tier, keeping standard CI fast (§6).
 - [x] Report panel: learning curves per fold with stopping epoch.
 - [x] Leaderboard entries alongside trees and baselines.
+- [x] Comparison study on synthetic known-signal / noise fixtures.
 
 ## 3. Out of scope
 
@@ -197,11 +198,32 @@ training loop sits behind the gate. The `dl` extra is never installed in the def
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S043-T019 | Comparison study: baselines vs trees vs feedforward vs LSTM | TODO |
-| S043-T020 | Import test: framework usable without the `dl` extra | TODO |
-| S043-T021 | Docs: RESEARCH_METHODOLOGIES, MODULE_MAP, CURRENT_STATUS | TODO |
+| S043-T019 | Comparison study: baselines vs trees vs feedforward vs LSTM | DONE |
+| S043-T020 | Import test: framework usable without the `dl` extra | DONE |
+| S043-T021 | Docs: RESEARCH_METHODOLOGIES, MODULE_MAP, CURRENT_STATUS | DONE |
 
-**Progress:** 18 / 21 tasks
+**Progress:** 21 / 21 tasks
+
+### Comparison conclusion (T019)
+
+Synthetic known-signal fixture only (one 300-bar entity series, four expanding
+folds). Extra `dl` is independent of extras `ml` / `ml-trees`, so this close
+trains neural families beside S040 metric-layer baselines; tree families were
+compared on the same fixture family in Sprint 042.
+
+Pooled Spearman IC on the known-signal study:
+
+```text
+torch.feedforward.regressor    0.957
+torch.lstm.regressor           0.800
+```
+
+Feedforward ranked first among neural families. LSTM did not beat feedforward.
+Both recovered the known signal above `RANDOM_PERMUTATION` (feedforward 0.957 vs
+-0.170; LSTM 0.800 vs 0.041). Noise-label runs landed within the
+permutation-baseline spread. A tree win on the S042 study remains an acceptable
+close; this sprint's success condition is a trustworthy comparison, not a
+network win.
 
 ---
 
