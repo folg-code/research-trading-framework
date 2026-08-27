@@ -28,3 +28,18 @@ def test_registry_resolves_feedforward_regressor_when_extra_installed() -> None:
         )
     )
     assert estimator is not None
+
+
+def test_registry_resolves_lstm_regressor_when_extra_installed() -> None:
+    from trading_framework.infrastructure.ml.registry import resolve_estimator
+    from trading_framework.research.predictive import EstimatorSpec, TaskType
+
+    estimator = resolve_estimator(
+        EstimatorSpec(
+            family="torch.lstm.regressor",
+            hyperparameters={"max_epochs": 5, "hidden_size": 8},
+            seed=0,
+            task_type=TaskType.REGRESSION,
+        )
+    )
+    assert estimator is not None

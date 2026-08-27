@@ -17,10 +17,13 @@ from trading_framework.infrastructure.ml.torch._guards import (
 from trading_framework.infrastructure.ml.torch.preprocessing import (
     FittedNumpyPreprocessor,
     as_feature_matrix,
+    as_sequence_windows,
     fit_numpy_preprocessor,
+    transform_windows,
 )
 from trading_framework.infrastructure.ml.torch.training import (
     InnerTrainingResult,
+    build_feedforward_module,
     forward_logits,
     refit_for_epochs,
     train_with_early_stopping,
@@ -107,13 +110,26 @@ class TorchFeedforwardAdapter:
             y_fit = np.asarray(y, dtype=np.float64)
         preprocessor = fit_numpy_preprocessor(self._preprocessing, matrix)
         transformed = preprocessor.transform(matrix)
+        n_features = int(transformed.shape[1])
+        hidden_sizes = self._resolved.hidden_sizes
+        if hidden_sizes is None:
+            msg = f"{self._spec.family} is missing hidden_sizes"
+            raise PredictiveSpecError(msg)
+
+        def build_model(torch_module: Any) -> Any:
+            return build_feedforward_module(
+                torch_module,
+                n_features=n_features,
+                hidden_sizes=hidden_sizes,
+                dropout=self._resolved.dropout,
+            )
+
         inner_train, inner_val = split_inner_train_validation(
             transformed.shape[0],
             inner_validation_fraction=DEFAULT_INNER_VALIDATION_FRACTION,
         )
         _, inner_result = train_with_early_stopping(
             torch,
-            n_features=int(transformed.shape[1]),
             x_train=transformed[inner_train],
             y_train=y_fit[inner_train],
             x_val=transformed[inner_val],
@@ -121,16 +137,17 @@ class TorchFeedforwardAdapter:
             resolved=self._resolved,
             task_type=self._spec.task_type,
             seed=self._spec.seed,
+            build_model=build_model,
         )
         model = refit_for_epochs(
             torch,
-            n_features=int(transformed.shape[1]),
             features=transformed,
             target=y_fit,
             resolved=self._resolved,
             task_type=self._spec.task_type,
             seed=self._spec.seed,
             epochs=inner_result.stopping_epoch,
+            build_model=build_model,
         )
         return FittedTorchEstimator(
             spec=self._spec,
@@ -139,6 +156,7 @@ class TorchFeedforwardAdapter:
             preprocessor=preprocessor,
             inner_result=inner_result,
             classes=classes,
+            lookback_bars=None,
         )
 
 
@@ -154,6 +172,7 @@ class FittedTorchEstimator:
         preprocessor: FittedNumpyPreprocessor,
         inner_result: InnerTrainingResult,
         classes: tuple[Any, Any] | None,
+        lookback_bars: int | None = None,
     ) -> None:
         self._spec = spec
         self._resolved = resolved
@@ -161,6 +180,7 @@ class FittedTorchEstimator:
         self._preprocessor = preprocessor
         self._inner_result = inner_result
         self._classes = classes
+        self._lookback_bars = lookback_bars
 
     def predict(self, features: np.ndarray) -> np.ndarray:
         logits = self._logits(features)
@@ -215,7 +235,11 @@ class FittedTorchEstimator:
     def _logits(self, features: np.ndarray) -> np.ndarray:
         _require_torch(self._spec.family)
         torch = _import_torch()
-        transformed = self._preprocessor.transform(features)
+        if self._lookback_bars is None:
+            transformed = self._preprocessor.transform(features)
+        else:
+            windows = as_sequence_windows(features, lookback_bars=self._lookback_bars)
+            transformed = transform_windows(self._preprocessor, windows)
         return forward_logits(torch, self._model, transformed)
 
 

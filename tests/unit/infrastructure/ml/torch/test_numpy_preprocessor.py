@@ -8,6 +8,7 @@ import pytest
 from trading_framework.infrastructure.ml.torch.preprocessing import (
     as_feature_matrix,
     fit_numpy_preprocessor,
+    transform_windows,
 )
 from trading_framework.research.predictive import PredictiveSpecError
 from trading_framework.research.predictive.preprocessing import (
@@ -50,6 +51,21 @@ def test_zero_variance_scale_is_one() -> None:
     assert fitted.standardize_scale[0] == pytest.approx(1.0)
     transformed = fitted.transform(matrix)
     np.testing.assert_allclose(transformed[:, 0], 0.0)
+
+
+def test_transform_windows_applies_2d_statistics_per_timestep() -> None:
+
+    rows = np.array([[0.0, 2.0], [2.0, 4.0], [4.0, 6.0]], dtype=np.float64)
+    fitted = fit_numpy_preprocessor(
+        PreprocessingSpec(steps=(PreprocessingStep.STANDARDIZE,)),
+        rows,
+    )
+    windows = np.stack([rows[:2], rows[1:]], axis=0)
+    transformed = transform_windows(fitted, windows)
+    assert transformed.shape == (2, 2, 2)
+    expected = fitted.transform(rows)
+    np.testing.assert_allclose(transformed[0], expected[:2])
+    np.testing.assert_allclose(transformed[1], expected[1:])
 
 
 def test_preprocessor_statistics_differ_for_different_train_matrices() -> None:

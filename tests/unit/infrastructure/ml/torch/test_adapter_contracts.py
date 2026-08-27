@@ -76,9 +76,9 @@ def test_task_type_mismatch_is_rejected() -> None:
         resolve_estimator(spec)
 
 
-def test_sequence_family_stays_unregistered() -> None:
+def test_unknown_torch_family_is_validation_error() -> None:
     spec = EstimatorSpec(
-        family="torch.lstm.regressor",
+        family="torch.transformer.regressor",
         hyperparameters={},
         seed=0,
         task_type=TaskType.REGRESSION,

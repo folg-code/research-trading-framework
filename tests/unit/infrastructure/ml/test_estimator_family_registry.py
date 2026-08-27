@@ -58,8 +58,10 @@ def test_registered_sklearn_families() -> None:
     assert families["catboost.classifier"] == "ml-trees"
     assert families["torch.feedforward.regressor"] == "dl"
     assert families["torch.feedforward.classifier"] == "dl"
-    assert "torch.lstm.regressor" not in families
-    assert "torch.gru.classifier" not in families
+    assert families["torch.lstm.regressor"] == "dl"
+    assert families["torch.lstm.classifier"] == "dl"
+    assert families["torch.gru.regressor"] == "dl"
+    assert families["torch.gru.classifier"] == "dl"
 
 
 def test_unknown_family_is_validation_error() -> None:

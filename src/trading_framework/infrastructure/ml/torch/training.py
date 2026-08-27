@@ -6,13 +6,14 @@ Import torch inside functions only. Do not import torch at module level.
 from __future__ import annotations
 
 import random
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from typing import Any
 
 import numpy as np
 
 from trading_framework.infrastructure.ml.torch._guards import ResolvedTorchHyperparameters
+from trading_framework.research.predictive.errors import PredictiveSpecError
 from trading_framework.research.predictive.estimators import TaskType
 
 
@@ -58,10 +59,49 @@ def build_feedforward_module(
     return nn.Sequential(*layers)
 
 
+def build_recurrent_module(
+    torch: Any,
+    *,
+    cell: str,
+    n_features: int,
+    hidden_size: int,
+    num_layers: int,
+    dropout: float,
+) -> Any:
+    """Declared LSTM/GRU: last timestep then a scalar head (D-S043-12)."""
+    nn = torch.nn
+    if cell == "lstm":
+        recurrent_cls = nn.LSTM
+    elif cell == "gru":
+        recurrent_cls = nn.GRU
+    else:
+        msg = f"unsupported sequence cell {cell!r}"
+        raise PredictiveSpecError(msg)
+    recurrent_dropout = float(dropout) if num_layers > 1 else 0.0
+
+    class _RecurrentEstimator(nn.Module):  # type: ignore[name-defined,misc]
+        def __init__(self) -> None:
+            super().__init__()
+            self.rnn = recurrent_cls(
+                input_size=int(n_features),
+                hidden_size=int(hidden_size),
+                num_layers=int(num_layers),
+                batch_first=True,
+                dropout=recurrent_dropout,
+                bidirectional=False,
+            )
+            self.head = nn.Linear(int(hidden_size), 1)
+
+        def forward(self, features: Any) -> Any:
+            encoded, _state = self.rnn(features)
+            return self.head(encoded[:, -1, :])
+
+    return _RecurrentEstimator()
+
+
 def train_with_early_stopping(
     torch: Any,
     *,
-    n_features: int,
     x_train: np.ndarray,
     y_train: np.ndarray,
     x_val: np.ndarray,
@@ -69,15 +109,11 @@ def train_with_early_stopping(
     resolved: ResolvedTorchHyperparameters,
     task_type: TaskType,
     seed: int,
+    build_model: Callable[[Any], Any],
 ) -> tuple[Any, InnerTrainingResult]:
     """Train on inner-train, early-stop on inner-val loss, never on TEST."""
     generator = configure_torch_determinism(torch, seed=seed)
-    model = build_feedforward_module(
-        torch,
-        n_features=n_features,
-        hidden_sizes=resolved.hidden_sizes,
-        dropout=resolved.dropout,
-    )
+    model = build_model(torch)
     criterion = _criterion(torch, task_type=task_type)
     optimizer = torch.optim.Adam(
         model.parameters(),
@@ -139,22 +175,17 @@ def train_with_early_stopping(
 def refit_for_epochs(
     torch: Any,
     *,
-    n_features: int,
     features: np.ndarray,
     target: np.ndarray,
     resolved: ResolvedTorchHyperparameters,
     task_type: TaskType,
     seed: int,
     epochs: int,
+    build_model: Callable[[Any], Any],
 ) -> Any:
     """Refit on full outer TRAIN for exactly ``epochs`` steps, no early stop."""
     generator = configure_torch_determinism(torch, seed=seed)
-    model = build_feedforward_module(
-        torch,
-        n_features=n_features,
-        hidden_sizes=resolved.hidden_sizes,
-        dropout=resolved.dropout,
-    )
+    model = build_model(torch)
     criterion = _criterion(torch, task_type=task_type)
     optimizer = torch.optim.Adam(
         model.parameters(),
