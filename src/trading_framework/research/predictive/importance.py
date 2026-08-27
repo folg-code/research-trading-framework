@@ -159,15 +159,17 @@ def permutation_feature_importance(
     feature_names: Sequence[str] | None = None,
     predict_score: Callable[[np.ndarray], np.ndarray] | None = None,
 ) -> PermutationImportance:
-    """Shuffle each TEST column independently; importance is baseline minus shuffled."""
+    """Shuffle each TEST feature independently; importance is baseline minus shuffled.
+
+    Rank-2 shuffles one column across rows. Rank-3 shuffles one feature channel
+    across windows with the same permutation on axis 0 so lookback structure is
+    preserved (D-S043-11).
+    """
     matrix = np.asarray(features, dtype=np.float64)
-    if matrix.ndim != 2 or matrix.shape[0] == 0 or matrix.shape[1] == 0:
-        msg = "permutation importance requires a non-empty 2-d feature matrix"
-        raise PredictiveSpecError(msg)
+    n_features = _permutation_feature_count(matrix)
     if n_repeats < 1:
         msg = "n_repeats must be at least 1"
         raise PredictiveSpecError(msg)
-    n_features = int(matrix.shape[1])
     names = _feature_names(feature_names, n_features)
     baseline = _score_matrix(
         matrix,
@@ -182,8 +184,7 @@ def permutation_feature_importance(
     for column in range(n_features):
         drops: list[float] = []
         for _repeat in range(n_repeats):
-            shuffled = matrix.copy()
-            shuffled[:, column] = rng.permutation(shuffled[:, column])
+            shuffled = _shuffle_feature_channel(matrix, column=column, rng=rng)
             shuffled_score = _score_matrix(
                 shuffled,
                 y_true,
@@ -219,6 +220,36 @@ def primary_gap(
     """Absolute train-minus-test gap on the primary metric."""
     gap = None if train_score is None or test_score is None else abs(train_score - test_score)
     return FoldPrimaryGap(train_primary=train_score, test_primary=test_score, primary_gap=gap)
+
+
+def _permutation_feature_count(matrix: np.ndarray) -> int:
+    if matrix.ndim == 2:
+        if matrix.shape[0] == 0 or matrix.shape[1] == 0:
+            msg = "permutation importance requires a non-empty 2-d or 3-d feature matrix"
+            raise PredictiveSpecError(msg)
+        return int(matrix.shape[1])
+    if matrix.ndim == 3:
+        if matrix.shape[0] == 0 or matrix.shape[2] == 0:
+            msg = "permutation importance requires a non-empty 2-d or 3-d feature matrix"
+            raise PredictiveSpecError(msg)
+        return int(matrix.shape[2])
+    msg = "permutation importance requires a non-empty 2-d or 3-d feature matrix"
+    raise PredictiveSpecError(msg)
+
+
+def _shuffle_feature_channel(
+    matrix: np.ndarray,
+    *,
+    column: int,
+    rng: np.random.Generator,
+) -> np.ndarray:
+    shuffled = matrix.copy()
+    if shuffled.ndim == 2:
+        shuffled[:, column] = rng.permutation(shuffled[:, column])
+        return shuffled
+    perm = rng.permutation(shuffled.shape[0])
+    shuffled[:, :, column] = shuffled[perm, :, column]
+    return shuffled
 
 
 def _score_matrix(

@@ -390,7 +390,9 @@ Phase 10A now covers the dataset foundation (Sprint 039), baseline estimators
 baselines are the control group. Phase 10B (Sprint 042) adds tree families
 through the same estimator protocol, plus bounded candidate selection,
 permutation importance, a single-study leaderboard, and three report panels.
-Models do not trade.
+Phase 10C (Sprint 043) adds optional extra `dl` (CPU PyTorch): feedforward
+MLP on tabular rows and LSTM/GRU on fold-contained sequence windows, plus
+learning-curve and window-accounting report panels. Models do not trade.
 
 ### Research Question
 
@@ -403,10 +405,12 @@ Models do not trade.
 - proving absence of temporal leakage before any model is fit,
 - training declared baselines (ridge, elastic net, logistic) per fold,
 - training declared tree families (XGBoost, LightGBM, CatBoost) per fold,
+- training declared neural families (feedforward MLP; LSTM/GRU on sequence windows) per fold,
 - bounded inner-fold candidate selection and a single-study leaderboard,
 - measuring statistical and finance-aware metrics against naive reference baselines,
 - reviewing one run as standalone offline HTML (fold timeline, baselines, calibration,
-  native vs permutation importance, selection trace, study leaderboard).
+  native vs permutation importance, selection trace, study leaderboard,
+  learning curves, window accounting).
 
 ### Not Suitable For
 
@@ -414,7 +418,6 @@ Models do not trade.
 - Strategy Research (trades, equity, PnL),
 - Robustness Research (parameter / stress verdicts),
 - Streamlit dashboards (S044),
-- neural estimators (S043),
 - promoting a trained model to Market Analysis (IDEA-014 → S044 / ADR-0024).
 
 ### Samples
@@ -448,7 +451,8 @@ Published DatasetRef
   → PredictiveDatasetEnvelope (manifest + fingerprint)
   → EstimatorSpec (family + hyperparameters + seed)
       or CandidateSetSpec (declared, capped; inner TRAIN split, TEST once)
-  → run_predictive_research (per-fold fit on TRAIN, predict on TEST)
+  → run_predictive_research (per-fold fit on TRAIN, predict on TEST;
+      sequence families: application builds windows, then fit / predict)
   → PredictiveRunEnvelope (predictions.parquet, metrics.json, opaque blobs)
   → analyze_predictive_run (writes metrics.json from predictions; never deserializes model blobs)
   → compare_predictive_runs (optional leaderboard.json on one dataset fingerprint)
@@ -511,6 +515,7 @@ only, tagged with library name and version. No workflow depends on reloading the
 - Does rebuilding an unchanged spec yield the same fingerprint?
 - Do ridge / elastic net / logistic beat constant, majority, and permutation baselines out of sample?
 - Do XGBoost / LightGBM / CatBoost beat those S040 baselines on the same dataset fingerprint?
+- Do feedforward and LSTM families recover a known synthetic signal, and which ranks higher?
 - Is native gain aligned with out-of-sample permutation importance, or only with the training fold?
 - How large is the |train - test| gap on the primary metric per fold?
 - Is the result stable across folds, or does one fold carry the pooled metric?

@@ -162,12 +162,14 @@ def compute_run_fingerprint(
     library_version: str,
     framework_version: str,
     candidate_set: Mapping[str, Any] | None = None,
+    sequence_window_spec: Mapping[str, Any] | None = None,
 ) -> str:
-    """SHA-256 fingerprint of the declared run identity (D-S040-18).
+    """SHA-256 fingerprint of the declared run identity (D-S040-18 / D-S043-18).
 
     Prediction rows and fitted blobs are never hashed. A library upgrade
     changes the fingerprint by design. When ``candidate_set`` is provided it
     replaces ``estimator_spec`` in the hashed payload (D-S042-11).
+    ``sequence_window_spec`` is hashed when present.
     """
     payload: dict[str, Any] = {
         "dataset_fingerprint": dataset_fingerprint,
@@ -180,6 +182,8 @@ def compute_run_fingerprint(
         payload["candidate_set"] = dict(candidate_set)
     else:
         payload["estimator_spec"] = estimator_spec.to_dict()
+    if sequence_window_spec is not None:
+        payload["sequence_window_spec"] = dict(sequence_window_spec)
     canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"))
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
