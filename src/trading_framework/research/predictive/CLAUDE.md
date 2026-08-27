@@ -48,6 +48,12 @@ library-free predictive metrics (`metrics.py`).
 - Leaderboard (`leaderboard.py`) ranks runs that share one dataset fingerprint
   by pooled primary metric. S040 metric-layer baselines appear as rows; they
   are not estimator families. Mismatched fingerprints are `PredictiveSpecError`.
+- Sequence windows (`windows.py`) are library-free. `SequenceWindowSpec` is
+  lookback + stride + `DROP` padding. The builder runs **after** fold
+  assignment on the full fold frame (all roles). A window ending on `TEST`
+  may contain only `TEST` rows; cross-role / cross-entity / gapped windows
+  are dropped, never padded or truncated. Accounting is a sidecar JSON, not
+  a predictions column. `research/predictive/` still must not import torch.
 - `test_span` and `embargo_span` are applied as datetime arithmetic on
   `available_at`, not as a 1-minute bar count. Consecutive test windows are
   separated by `embargo_span` so expanding later folds cannot train on the
