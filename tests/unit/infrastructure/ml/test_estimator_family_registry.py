@@ -56,6 +56,10 @@ def test_registered_sklearn_families() -> None:
     assert families["lightgbm.classifier"] == "ml-trees"
     assert families["catboost.regressor"] == "ml-trees"
     assert families["catboost.classifier"] == "ml-trees"
+    assert families["torch.feedforward.regressor"] == "dl"
+    assert families["torch.feedforward.classifier"] == "dl"
+    assert "torch.lstm.regressor" not in families
+    assert "torch.gru.classifier" not in families
 
 
 def test_unknown_family_is_validation_error() -> None:
@@ -133,6 +137,30 @@ def test_missing_ml_trees_extra_raises_predictive_extra_error(
     assert not isinstance(caught.value, ImportError)
 
 
+def test_missing_dl_extra_raises_predictive_extra_error(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    factories = importlib.import_module("trading_framework.infrastructure.ml.torch.factories")
+
+    def missing_torch() -> object:
+        raise ImportError("torch is not installed")
+
+    monkeypatch.setattr(factories, "_import_torch", missing_torch)
+    spec = EstimatorSpec(
+        family="torch.feedforward.regressor",
+        hyperparameters={"max_epochs": 5, "hidden_sizes": [16]},
+        seed=0,
+        task_type=TaskType.REGRESSION,
+    )
+    with pytest.raises(PredictiveExtraError) as caught:
+        resolve_estimator(spec)
+    message = str(caught.value)
+    assert "dl" in message
+    assert "torch.feedforward.regressor" in message
+    assert isinstance(caught.value.__cause__, ImportError)
+    assert not isinstance(caught.value, ImportError)
+
+
 def _is_tree_library(module_name: str) -> bool:
     roots = ("xgboost", "lightgbm", "catboost")
     return module_name in roots or any(module_name.startswith(f"{root}.") for root in roots)
@@ -174,5 +202,29 @@ def test_registry_modules_do_not_import_sklearn_at_module_level() -> None:
         for path in roots
         for name in _module_level_imported_names(path)
         if _is_sklearn(name)
+    ]
+    assert offenders == []
+
+
+def _is_torch(module_name: str) -> bool:
+    return module_name == "torch" or module_name.startswith("torch.")
+
+
+def test_registry_modules_do_not_import_torch_at_module_level() -> None:
+    import trading_framework.infrastructure.ml as ml_package
+    import trading_framework.infrastructure.ml.registry as registry
+    import trading_framework.infrastructure.ml.torch as torch_package
+
+    torch_root = Path(torch_package.__file__).resolve().parent
+    roots = (
+        Path(ml_package.__file__).resolve(),
+        Path(registry.__file__).resolve(),
+        *sorted(torch_root.rglob("*.py")),
+    )
+    offenders = [
+        f"{path.name}:{name}"
+        for path in roots
+        for name in _module_level_imported_names(path)
+        if _is_torch(name)
     ]
     assert offenders == []

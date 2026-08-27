@@ -27,14 +27,14 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 
 ```text
 Status Date: 2026-08-26
-Current Phase: Phase 10C Neural Predictive Models (S043 Wave 0)
-Current Milestone: S043 Wave 0 decisions; S042 complete on main (#335)
-Implementation Status: Sprints 001-006, 008-024, 025-042 on main; S043 Wave 0 on sprint/predictive-neural-models
+Current Phase: Phase 10C Neural Predictive Models (S043 Wave 2)
+Current Milestone: S043 extra `dl` + torch feedforward adapter; Wave 1 windowing on sprint branch
+Implementation Status: Sprints 001-006, 008-024, 025-042 on main; S043 Waves 0–1 on sprint/predictive-neural-models; Wave 2 in progress
 Overall Status: STABLE
-Active Sprint: SPRINT_043 (Wave 0)
+Active Sprint: SPRINT_043 (Wave 2)
 Last Completed Sprint: SPRINT_042 (Tree-Based Predictive Models) → main (#335)
 Capability Tracks: Foundation COMPLETE; Data COMPLETE (core); Research COMPLETE (core); Strategy 6A COMPLETE; Phase 8A dry-run + S024 on main; Dashboard / Live Paper / public demo COMPLETE; Phase 10A COMPLETE (S039–S041); Phase 10B COMPLETE (S042, #335); Phase 10C S043 IN PROGRESS
-Recent: S043 Wave 0 started from main @ #335. S042 complete (working PRs #326–#334; integration #335).
+Recent: S043 Wave 1 sequence windowing merged to sprint/predictive-neural-models (#337). Wave 2 adds extra `dl` and the CPU torch feedforward adapter.
 ```
 
 ---
@@ -283,10 +283,12 @@ No new ADR (ADR-0024 reserved for IDEA-014). See `SPRINT_042.md` and
 `S042_WAVE0_DECISIONS.md`.
 
 **Sprint 043 — Neural Predictive Models (Phase 10C)** is **IN PROGRESS**
-(Wave 0 on `sprint/predictive-neural-models`, 2026-08-26).
+on `sprint/predictive-neural-models` (Wave 0 #336, Wave 1 #337; Wave 2 torch
+adapter in progress).
 
-See `SPRINT_043.md` and `S043_WAVE0_DECISIONS.md`. Sequence windowing
-(Wave 1) is domain-only and does not require the `dl` extra.
+See `SPRINT_043.md` and `S043_WAVE0_DECISIONS.md`. Sequence windowing is
+domain-only. Extra `dl` is CPU PyTorch, not in default `dev`, and independent
+of extra `ml`.
 
 ---
 
@@ -617,8 +619,8 @@ determinism and known-signal tests
 
 ## 7. Blocked Work
 
-Nothing is technically blocked. Sprint 043 Wave 1 (sequence windowing) does
-not require the `dl` extra. Sprint 017 integration PR from
+Nothing is technically blocked. Sprint 043 Wave 2 (torch adapter) uses extra
+`dl` only in the dedicated CI job. Sprint 017 integration PR from
 `sprint/model-research-methodology-mvp` to `main` remains pending and does
 not block Phase 10.
 

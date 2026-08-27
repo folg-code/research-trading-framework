@@ -31,6 +31,7 @@ ml-trees = [
     "lightgbm>=4.5,<5.0",
     "catboost>=1.2,<2.0",
 ]
+dl = ["torch>=2.6,<2.10"]
 
 [dependency-groups]
 dev = [
@@ -51,6 +52,14 @@ module-name = "trading_framework"
 [tool.uv.workspace]
 members = ["apps/dashboard"]
 
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.uv.sources]
+torch = { index = "pytorch-cpu" }
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src", "."]
@@ -64,6 +73,7 @@ markers = [
     "binance_network: opt-in integration tests requiring public Binance network access",
     "ml: tests that require the optional ml extra (scikit-learn)",
     "ml_trees: tests that require the optional ml-trees extra (XGBoost / LightGBM / CatBoost)",
+    "torch: tests that require the optional dl extra (CPU PyTorch)",
 ]
 
 [tool.ruff]
@@ -128,6 +138,10 @@ ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
 module = ["xgboost", "xgboost.*", "lightgbm", "lightgbm.*", "catboost", "catboost.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["torch", "torch.*"]
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]

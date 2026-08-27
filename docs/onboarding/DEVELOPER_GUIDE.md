@@ -30,9 +30,9 @@ uv pip install plotly
 ```
 
 Optional Predictive Research extras (`ml` = scikit-learn; `ml-trees` =
-XGBoost / LightGBM / CatBoost). Default
+XGBoost / LightGBM / CatBoost; `dl` = CPU PyTorch). Default
 `uv sync --locked --dev` stays extra-free. Standard unit tests use
-`-m "not ml and not ml_trees"`. Optional extras:
+`-m "not ml and not ml_trees and not torch"`. Optional extras:
 
 ```bash
 uv sync --locked --extra ml --dev
@@ -40,6 +40,9 @@ uv run pytest -m ml
 
 uv sync --locked --extra ml --extra ml-trees --dev
 uv run pytest -m ml_trees
+
+uv sync --locked --extra dl --dev
+TRADING_FRAMEWORK_RUN_TORCH_TESTS=1 uv run pytest -m torch
 ```
 
 ---
