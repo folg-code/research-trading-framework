@@ -5,14 +5,14 @@
 ```text
 Sprint: 043
 Phase: Phase 10C — Neural Predictive Models
-Status: PLANNED
-Planned Start: TBD (after S042 merges)
+Status: IN PROGRESS (Wave 0)
+Planned Start: 2026-08-26
 Planned End: TBD
 Sprint Goal Owner: Project Maintainer
 Depends On: SPRINT_040 (estimator seam), SPRINT_041 (report panels), SPRINT_042 (leaderboard)
 Sprint Branch: sprint/predictive-neural-models
 Task branch convention: feat/ | fix/ | docs/ | test/
-Wave 0 decisions: docs/planning/sprints/S043_WAVE0_DECISIONS.md (to be written in Wave 0)
+Wave 0 decisions: docs/planning/sprints/S043_WAVE0_DECISIONS.md
 Architecture Sources:
   - docs/planning/ROADMAP.md (§13A Phase 10C)
   - docs/adr/ADR-0023 (Predictive Research boundary — S039)
@@ -154,7 +154,7 @@ training loop sits behind the gate. The `dl` extra is never installed in the def
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S043-T001 | Wave 0 decisions (architectures, tolerance policy, CI tier) | TODO |
+| S043-T001 | Wave 0 decisions (architectures, tolerance policy, CI tier) | DONE |
 
 ### Wave 1 — Sequence windowing (domain, no torch)
 
@@ -201,7 +201,7 @@ training loop sits behind the gate. The `dl` extra is never installed in the def
 | S043-T020 | Import test: framework usable without the `dl` extra | TODO |
 | S043-T021 | Docs: RESEARCH_METHODOLOGIES, MODULE_MAP, CURRENT_STATUS | TODO |
 
-**Progress:** 0 / 21 tasks
+**Progress:** 1 / 21 tasks
 
 ---
 

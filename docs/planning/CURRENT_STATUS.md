@@ -27,14 +27,14 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 
 ```text
 Status Date: 2026-08-26
-Current Phase: Phase 10C Neural Predictive Models (S043 next)
-Current Milestone: S042 complete (22/22); integration PR #335 to main
-Implementation Status: Sprints 001-006, 008-024, 025-041 on main; S042 complete (integration PR #335)
+Current Phase: Phase 10C Neural Predictive Models (S043 Wave 0)
+Current Milestone: S043 Wave 0 decisions; S042 complete on main (#335)
+Implementation Status: Sprints 001-006, 008-024, 025-042 on main; S043 Wave 0 on sprint/predictive-neural-models
 Overall Status: STABLE
-Active Sprint: none (S042 closing)
+Active Sprint: SPRINT_043 (Wave 0)
 Last Completed Sprint: SPRINT_042 (Tree-Based Predictive Models) → main (#335)
-Capability Tracks: Foundation COMPLETE; Data COMPLETE (core); Research COMPLETE (core); Strategy 6A COMPLETE; Phase 8A dry-run + S024 on main; Dashboard / Live Paper / public demo COMPLETE; Phase 10A COMPLETE (S039–S041); Phase 10B COMPLETE (S042, #335)
-Recent: S042 complete (working PRs #326–#334). Integration PR #335 lands Phase 10B on main. Next: S043.
+Capability Tracks: Foundation COMPLETE; Data COMPLETE (core); Research COMPLETE (core); Strategy 6A COMPLETE; Phase 8A dry-run + S024 on main; Dashboard / Live Paper / public demo COMPLETE; Phase 10A COMPLETE (S039–S041); Phase 10B COMPLETE (S042, #335); Phase 10C S043 IN PROGRESS
+Recent: S043 Wave 0 started from main @ #335. S042 complete (working PRs #326–#334; integration #335).
 ```
 
 ---
@@ -282,6 +282,12 @@ needs both `ml` and `ml-trees`. CLI: `scripts/predictive_research/compare_predic
 No new ADR (ADR-0024 reserved for IDEA-014). See `SPRINT_042.md` and
 `S042_WAVE0_DECISIONS.md`.
 
+**Sprint 043 — Neural Predictive Models (Phase 10C)** is **IN PROGRESS**
+(Wave 0 on `sprint/predictive-neural-models`, 2026-08-26).
+
+See `SPRINT_043.md` and `S043_WAVE0_DECISIONS.md`. Sequence windowing
+(Wave 1) is domain-only and does not require the `dl` extra.
+
 ---
 
 ## 4. Completed Capabilities
@@ -462,14 +468,25 @@ Maintenance: `.cursor/rules/documentation.mdc`
 
 ## 6. Work in Progress
 
-**Active sprint:** none. Sprint 042 lands on `main` in #335.
-Next increment: Sprint 043.
+**Active sprint:** SPRINT_043 Wave 0 on `sprint/predictive-neural-models`.
+Sprint 042 is complete on `main` (#335).
 
 **Portfolio demo packaging** — `scripts/demo/run_portfolio_demo.py` generates offline HTML artifacts for showcase (workflows + dashboards).
 
 **Sprint 017 — Model Research Methodology MVP (Phase 5B)** — **complete** on `sprint/model-research-methodology-mvp` (Wave 6, 2026-07-15). Final integration PR to `main` pending.
 
 **Plan:** `docs/planning/sprints/SPRINT_017.md` · **Wave 0:** `S017_WAVE0_DECISIONS.md` · **ADR:** ADR-0020 (ACCEPTED) · **Branch:** `sprint/model-research-methodology-mvp`
+
+### Sprint 043 — In Progress (Phase 10C neural)
+
+**Status:** IN PROGRESS (Wave 0 on `sprint/predictive-neural-models`, 2026-08-26)
+**Plan:** `docs/planning/sprints/SPRINT_043.md`
+**Wave 0:** `docs/planning/sprints/S043_WAVE0_DECISIONS.md`
+**ADR:** ADR-0023 (ACCEPTED; no new ADR this sprint; ADR-0024 reserved for IDEA-014)
+**Tasks:** 1 / 21
+**Branch:** `sprint/predictive-neural-models`
+**Scope:** extra `dl` (CPU PyTorch), sequence windows, feedforward / LSTM / GRU,
+learning-curve and window-accounting panels, leaderboard vs trees and baselines
 
 ### Sprint 042 — Closed (Phase 10B trees)
 
@@ -600,8 +617,10 @@ determinism and known-signal tests
 
 ## 7. Blocked Work
 
-Nothing is technically blocked. Sprint 042 lands on `main` in #335. Sprint 017 integration PR from `sprint/model-research-methodology-mvp` to
-`main` remains pending and does not block Phase 10.
+Nothing is technically blocked. Sprint 043 Wave 1 (sequence windowing) does
+not require the `dl` extra. Sprint 017 integration PR from
+`sprint/model-research-methodology-mvp` to `main` remains pending and does
+not block Phase 10.
 
 ---
 
@@ -687,15 +706,16 @@ Sprint 038 Session Range COMPLETED on main (#300).
 Sprint 039 Predictive Research dataset foundation COMPLETED on main (#309; #302–#308).
 Sprint 040 Predictive Research baselines COMPLETED on main (#319; #310–#318).
 Sprint 041 Predictive Research report COMPLETED on main (#325; #320–#324).
-ADR-0023 ACCEPTED. Phase 10A is complete. Phase 10B (S042) lands on main in #335.
+Sprint 042 tree-based predictive models COMPLETED on main (#335; #326–#334).
+ADR-0023 ACCEPTED. Phase 10A and Phase 10B are complete.
 
-Next: Sprint 043 neural models.
+Next: Sprint 043 — neural predictive models (Wave 0 on sprint/predictive-neural-models).
 
 Catalog in parallel (does not block S043):
     wick / distance catalog PRs
 
 Phase 10 remainder (ROADMAP §13A):
-      S043 neural models (feedforward + LSTM, sequence windows)
+      S043 neural models (feedforward + LSTM, sequence windows) — Wave 0
       S044 dashboard page + IDEA-014 promotion gate (ADR-0024)
 
 Deferred relative to that track:
@@ -728,7 +748,7 @@ Deferred (explicit):
     Further public-dashboard cosmetics as a default track
 ```
 
-See `docs/planning/sprints/SPRINT_043.md`, `SPRINT_042.md`, `S042_WAVE0_DECISIONS.md`, `SPRINT_041.md`, `SPRINT_040.md`, `SPRINT_039.md`, `S041_WAVE0_DECISIONS.md`, `S040_WAVE0_DECISIONS.md`, `S039_WAVE0_DECISIONS.md`, `SPRINT_038.md`, `S037_GATE.md`, and `ROADMAP.md` §11–§13A.
+See `docs/planning/sprints/SPRINT_043.md`, `S043_WAVE0_DECISIONS.md`, `SPRINT_042.md`, `S042_WAVE0_DECISIONS.md`, `SPRINT_041.md`, `SPRINT_040.md`, `SPRINT_039.md`, `S041_WAVE0_DECISIONS.md`, `S040_WAVE0_DECISIONS.md`, `S039_WAVE0_DECISIONS.md`, `SPRINT_038.md`, `S037_GATE.md`, and `ROADMAP.md` §11–§13A.
 
 ---
 
@@ -778,7 +798,7 @@ See `docs/planning/sprints/SPRINT_043.md`, `SPRINT_042.md`, `S042_WAVE0_DECISION
 | 040 | Baseline regression + classification (Phase 10A) | COMPLETED | 23 / 23 tasks; main #319; working PRs #310–#318 |
 | 041 | Predictive Research report v1 (Phase 10A) | COMPLETED | 16 / 16 tasks; main #325; working PRs #320–#324 |
 | 042 | Tree-based predictive models (Phase 10B) | COMPLETED | 22 / 22 tasks; main #335; working PRs #326–#334 |
-| 043 | Neural predictive models (Phase 10C) | PLANNED | 0 / 21 tasks; `SPRINT_043.md` |
+| 043 | Neural predictive models (Phase 10C) | IN PROGRESS | 1 / 21 tasks; Wave 0; `sprint/predictive-neural-models` |
 | 044 | Predictive dashboard + IDEA-014 gate (Phase 10C) | PLANNED | 0 / 18 tasks; `SPRINT_044.md` |
 
 ---
