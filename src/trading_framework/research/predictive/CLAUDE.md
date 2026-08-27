@@ -41,13 +41,30 @@ library-free predictive metrics (`metrics.py`).
   is declared and capped (default 8, hard max 16). Inner validation is the
   chronological suffix of outer TRAIN rows; outer TEST is predicted once after
   refit. Early-stopping eval roles may be TRAIN only.
-- Importance (`importance.py`) is library-free permutation on TEST rows
-  (`n_repeats=5`, `EstimatorSpec.seed`). Native gain/split comes from tree
-  adapters only; sklearn returns `None`. Train vs TEST primary-metric gap is
-  stored as added `fold_primary` keys on `metrics.json`.
+- Importance (`importance.py`) is library-free permutation on TEST rows or
+  TEST windows (`n_repeats=5`, `EstimatorSpec.seed`). Native gain/split comes
+  from tree adapters only; sklearn and neural families return `None`. Train vs
+  TEST primary-metric gap is stored as added `fold_primary` keys on
+  `metrics.json`.
 - Leaderboard (`leaderboard.py`) ranks runs that share one dataset fingerprint
   by pooled primary metric. S040 metric-layer baselines appear as rows; they
-  are not estimator families. Mismatched fingerprints are `PredictiveSpecError`.
+  are not estimator families. Neural families (`torch.*`) rank as ordinary
+  estimator rows. Mismatched fingerprints are `PredictiveSpecError`.
+- Learning curves (`learning_curves.py`) persist inner-train / inner-validation
+  loss per outer fold plus the restored stopping epoch. Application writes
+  `learning_curves.json` when `describe().resolved_params` carries those keys;
+  missing sidecar skips the report panel.
+- Sequence windows (`windows.py`) are library-free. `SequenceWindowSpec` is
+  lookback + stride + `DROP` padding. Application builds windows **after** fold
+  assignment on the full fold frame (all roles) and **before** `fit()` /
+  `predict()` for sequence families. A window ending on `TEST` may contain only
+  `TEST` rows; cross-role / cross-entity / gapped windows are dropped, never
+  padded or truncated. Accounting is a sidecar JSON, not a predictions column.
+  Sequence runs write `window_accounting.json`; missing sidecar skips the
+  report panel. `research/predictive/` still must not import torch.
+- Rank-2 permutation shuffles TEST columns. Rank-3 permutation shuffles one
+  feature channel across windows with the same permutation on axis 0 so
+  lookback structure is preserved. Do not flatten the last bar.
 - `test_span` and `embargo_span` are applied as datetime arithmetic on
   `available_at`, not as a 1-minute bar count. Consecutive test windows are
   separated by `embargo_span` so expanding later folds cannot train on the

@@ -5,14 +5,14 @@
 ```text
 Sprint: 043
 Phase: Phase 10C — Neural Predictive Models
-Status: PLANNED
-Planned Start: TBD (after S042 merges)
-Planned End: TBD
+Status: COMPLETE on main (#342, 21/21)
+Planned Start: 2026-08-26
+Planned End: 2026-08-27
 Sprint Goal Owner: Project Maintainer
 Depends On: SPRINT_040 (estimator seam), SPRINT_041 (report panels), SPRINT_042 (leaderboard)
 Sprint Branch: sprint/predictive-neural-models
 Task branch convention: feat/ | fix/ | docs/ | test/
-Wave 0 decisions: docs/planning/sprints/S043_WAVE0_DECISIONS.md (to be written in Wave 0)
+Wave 0 decisions: docs/planning/sprints/S043_WAVE0_DECISIONS.md
 Architecture Sources:
   - docs/planning/ROADMAP.md (§13A Phase 10C)
   - docs/adr/ADR-0023 (Predictive Research boundary — S039)
@@ -67,15 +67,16 @@ every other family, and the leaderboard shows honestly how it compares to trees 
 
 ## 2. In scope
 
-- [ ] Optional extra `dl` = PyTorch (CPU build).
-- [ ] `SequenceWindowSpec` in the domain — windowing rules, no tensor library.
-- [ ] Window builder enforcing fold containment (§4).
-- [ ] Torch adapter in `infrastructure/ml/torch/`: training loop, early stopping, seeding.
-- [ ] Feedforward MLP (tabular) and LSTM/GRU (sequence) architectures.
-- [ ] Determinism configuration and a documented tolerance policy (§5).
-- [ ] Environment-gated test tier, keeping standard CI fast (§6).
-- [ ] Report panel: learning curves per fold with stopping epoch.
-- [ ] Leaderboard entries alongside trees and baselines.
+- [x] Optional extra `dl` = PyTorch (CPU build).
+- [x] `SequenceWindowSpec` in the domain — windowing rules, no tensor library.
+- [x] Window builder enforcing fold containment (§4).
+- [x] Torch adapter in `infrastructure/ml/torch/`: training loop, early stopping, seeding.
+- [x] Feedforward MLP (tabular) and LSTM/GRU (sequence) architectures.
+- [x] Determinism configuration and a documented tolerance policy (§5).
+- [x] Environment-gated test tier, keeping standard CI fast (§6).
+- [x] Report panel: learning curves per fold with stopping epoch.
+- [x] Leaderboard entries alongside trees and baselines.
+- [x] Comparison study on synthetic known-signal / noise fixtures.
 
 ## 3. Out of scope
 
@@ -154,54 +155,75 @@ training loop sits behind the gate. The `dl` extra is never installed in the def
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S043-T001 | Wave 0 decisions (architectures, tolerance policy, CI tier) | TODO |
+| S043-T001 | Wave 0 decisions (architectures, tolerance policy, CI tier) | DONE |
 
 ### Wave 1 — Sequence windowing (domain, no torch)
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S043-T002 | `SequenceWindowSpec` + validation | TODO |
-| S043-T003 | Window builder with fold containment and gap handling | TODO |
-| S043-T004 | Dropped-window accounting persisted on the run manifest | TODO |
-| S043-T005 | Window leakage tests (no cross-role, no cross-fold windows) | TODO |
+| S043-T002 | `SequenceWindowSpec` + validation | DONE |
+| S043-T003 | Window builder with fold containment and gap handling | DONE |
+| S043-T004 | Dropped-window accounting persisted on the run manifest | DONE |
+| S043-T005 | Window leakage tests (no cross-role, no cross-fold windows) | DONE |
 
 ### Wave 2 — Torch adapter
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S043-T006 | Optional extra `dl` + missing-extra error | TODO |
-| S043-T007 | Adapter skeleton implementing `PredictiveEstimator` | TODO |
-| S043-T008 | Training loop: batching, optimizer, loss per task type | TODO |
-| S043-T009 | Early stopping on inner validation split (never outer TEST) | TODO |
-| S043-T010 | Seeding + deterministic algorithm configuration | TODO |
+| S043-T006 | Optional extra `dl` + missing-extra error | DONE |
+| S043-T007 | Adapter skeleton implementing `PredictiveEstimator` | DONE |
+| S043-T008 | Training loop: batching, optimizer, loss per task type | DONE |
+| S043-T009 | Early stopping on inner validation split (never outer TEST) | DONE |
+| S043-T010 | Seeding + deterministic algorithm configuration | DONE |
 
 ### Wave 3 — Architectures
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S043-T011 | Feedforward MLP (regression + classification) | TODO |
-| S043-T012 | LSTM / GRU sequence estimator (regression + classification) | TODO |
-| S043-T013 | Per-fold scaler fitted on training rows only | TODO |
-| S043-T014 | Reproducibility test within declared tolerance | TODO |
+| S043-T011 | Feedforward MLP (regression + classification) | DONE |
+| S043-T012 | LSTM / GRU sequence estimator (regression + classification) | DONE |
+| S043-T013 | Per-fold scaler fitted on training rows only | DONE |
+| S043-T014 | Reproducibility test within declared tolerance | DONE |
 
 ### Wave 4 — Reporting and comparison
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S043-T015 | Learning curve capture (train/validation loss per epoch, stopping epoch) | TODO |
-| S043-T016 | Report panel: learning curves per fold | TODO |
-| S043-T017 | Report panel: window accounting (dropped windows, effective sample) | TODO |
-| S043-T018 | Leaderboard entries for neural families | TODO |
+| S043-T015 | Learning curve capture (train/validation loss per epoch, stopping epoch) | DONE |
+| S043-T016 | Report panel: learning curves per fold | DONE |
+| S043-T017 | Report panel: window accounting (dropped windows, effective sample) | DONE |
+| S043-T018 | Leaderboard entries for neural families | DONE |
 
 ### Wave 5 — Closure
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S043-T019 | Comparison study: baselines vs trees vs feedforward vs LSTM | TODO |
-| S043-T020 | Import test: framework usable without the `dl` extra | TODO |
-| S043-T021 | Docs: RESEARCH_METHODOLOGIES, MODULE_MAP, CURRENT_STATUS | TODO |
+| S043-T019 | Comparison study: baselines vs trees vs feedforward vs LSTM | DONE |
+| S043-T020 | Import test: framework usable without the `dl` extra | DONE |
+| S043-T021 | Docs: RESEARCH_METHODOLOGIES, MODULE_MAP, CURRENT_STATUS | DONE |
 
-**Progress:** 0 / 21 tasks
+**Progress:** 21 / 21 tasks
+
+### Comparison conclusion (T019)
+
+Synthetic known-signal fixture only (one 300-bar entity series, four expanding
+folds). Extra `dl` is independent of extras `ml` / `ml-trees`, so this close
+trains neural families beside S040 metric-layer baselines; tree families were
+compared on the same fixture family in Sprint 042.
+
+Pooled Spearman IC on the known-signal study:
+
+```text
+torch.feedforward.regressor    0.957
+torch.lstm.regressor           0.800
+```
+
+Feedforward ranked first among neural families. LSTM did not beat feedforward.
+Both recovered the known signal above `RANDOM_PERMUTATION` (feedforward 0.957 vs
+-0.170; LSTM 0.800 vs 0.041). Noise-label runs landed within the
+permutation-baseline spread. A tree win on the S042 study remains an acceptable
+close; this sprint's success condition is a trustworthy comparison, not a
+network win.
 
 ---
 

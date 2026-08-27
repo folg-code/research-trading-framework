@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, replace
+from datetime import timedelta
 from pathlib import Path
 from typing import Any
 
@@ -21,8 +22,10 @@ from trading_framework.core.exceptions import ValidationError
 from trading_framework.infrastructure.ml.registry import dump_fitted_estimator, resolve_estimator
 from trading_framework.infrastructure.storage.paths import (
     predictive_research_run_importance_path,
+    predictive_research_run_learning_curves_path,
     predictive_research_run_model_path,
     predictive_research_run_selection_path,
+    predictive_research_run_window_accounting_path,
 )
 from trading_framework.research.datasets.predictive import (
     PredictiveDatasetEnvelope,
@@ -52,6 +55,12 @@ from trading_framework.research.predictive.importance import (
     primary_gap,
 )
 from trading_framework.research.predictive.labels import LabelKind
+from trading_framework.research.predictive.learning_curves import (
+    FoldLearningCurve,
+    LearningCurves,
+    fold_learning_curve_from_resolved_params,
+    write_learning_curves,
+)
 from trading_framework.research.predictive.metrics import (
     PredictiveMetricsReport,
     selection_metric_value,
@@ -73,8 +82,20 @@ from trading_framework.research.predictive.selection import (
     split_inner_train_validation,
 )
 from trading_framework.research.predictive.splitting import FoldRole
+from trading_framework.research.predictive.windows import (
+    RoleWindowAccounting,
+    SequenceWindows,
+    SequenceWindowSpec,
+    WindowAccounting,
+    build_sequence_windows,
+    require_min_effective_sample,
+    write_window_accounting,
+)
 from trading_framework.time.clocks.protocol import Clock
 from trading_framework.time.clocks.system import SystemClock
+
+_SEQUENCE_FAMILY_PREFIXES = ("torch.lstm.", "torch.gru.")
+_DEFAULT_SEQUENCE_BAR_DURATION = timedelta(minutes=1)
 
 _MATRIX_METADATA_COLUMNS = frozenset(
     {
@@ -109,6 +130,8 @@ class RunPredictiveResearchRequest:
     dataset_repository: PredictiveDatasetRepository | None = None
     run_repository: PredictiveRunRepository | None = None
     candidate_set: CandidateSetSpec | None = None
+    window_spec: SequenceWindowSpec | None = None
+    bar_duration: timedelta | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -131,6 +154,8 @@ def run_predictive_research(request: RunPredictiveResearchRequest) -> RunPredict
     PURGED and EMBARGOED rows never reach ``fit()``. Application resolves
     estimators through ``infrastructure.ml.registry`` only. A run with
     ``candidate_set`` selects inside outer TRAIN and touches TEST once.
+    Sequence families require ``window_spec``; application builds rank-3
+    windows before ``fit()`` / ``predict()`` and writes ``window_accounting.json``.
     """
     preprocessing = request.preprocessing or default_preprocessing_spec()
     dataset_repository = request.dataset_repository or PredictiveDatasetRepository(
@@ -140,6 +165,11 @@ def run_predictive_research(request: RunPredictiveResearchRequest) -> RunPredict
     candidate_set = request.candidate_set
     declared_spec = candidate_set.candidates[0] if candidate_set is not None else request.estimator
     _validate_dataset_for_estimator(envelope, declared_spec)
+    _validate_window_request(request, declared_spec.family)
+    window_spec = request.window_spec
+    bar_duration = request.bar_duration
+    if window_spec is not None and bar_duration is None:
+        bar_duration = _DEFAULT_SEQUENCE_BAR_DURATION
 
     feature_columns = _feature_columns(envelope.features)
     prediction_frames: list[pl.DataFrame] = []
@@ -149,6 +179,8 @@ def run_predictive_research(request: RunPredictiveResearchRequest) -> RunPredict
     library_version = ""
     fold_traces: list[FoldSelectionTrace] = []
     importance_records: list[FoldImportanceRecord] = []
+    learning_curve_folds: list[FoldLearningCurve] = []
+    window_accounting_entries: list[RoleWindowAccounting] = []
     winner_spec = request.estimator
 
     fold_ids = [boundary.fold_id for boundary in envelope.folds]
@@ -166,6 +198,8 @@ def run_predictive_research(request: RunPredictiveResearchRequest) -> RunPredict
             train_rows = train_rows.sort("available_at")
         train_roles = _fold_roles(train_rows)
         require_train_only_fit_roles(train_roles)
+        train_windows: SequenceWindows | None = None
+        test_windows: SequenceWindows | None = None
         if candidate_set is not None:
             fitted, winner_spec, fold_trace = _select_and_refit_fold(
                 candidate_set,
@@ -177,10 +211,30 @@ def run_predictive_research(request: RunPredictiveResearchRequest) -> RunPredict
             fold_traces.append(fold_trace)
         else:
             assert single_estimator is not None
-            train_features = _feature_matrix(train_rows, feature_columns)
-            train_target = _label_vector(train_rows)
-            fitted = single_estimator.fit(train_features, train_target, train_roles)
+            if window_spec is not None:
+                assert bar_duration is not None
+                train_windows, test_windows, fit_metadata = _sequence_fold_windows(
+                    envelope.features,
+                    fold_id=fold_id,
+                    spec=window_spec,
+                    feature_columns=feature_columns,
+                    bar_duration=bar_duration,
+                )
+                window_accounting_entries.append(train_windows.accounting)
+                window_accounting_entries.append(test_windows.accounting)
+                fitted = single_estimator.fit(
+                    train_windows.features,
+                    train_windows.target,
+                    fit_metadata,
+                )
+            else:
+                train_features = _feature_matrix(train_rows, feature_columns)
+                train_target = _label_vector(train_rows)
+                fitted = single_estimator.fit(train_features, train_target, train_roles)
         description = fitted.describe()
+        curve = fold_learning_curve_from_resolved_params(fold_id, description.resolved_params)
+        if curve is not None:
+            learning_curve_folds.append(curve)
         if description_payload is None:
             description_payload = {
                 "library": description.library,
@@ -189,18 +243,38 @@ def run_predictive_research(request: RunPredictiveResearchRequest) -> RunPredict
             }
             library = description.library
             library_version = description.version
-        prediction_frames.append(_prediction_frame(fitted, test_rows, feature_columns, fold_id))
-        model_blobs[fold_id] = dump_fitted_estimator(fitted)
-        importance_records.append(
-            _fold_importance_record(
-                fitted,
-                train_rows=train_rows,
-                test_rows=test_rows,
-                feature_columns=feature_columns,
-                fold_id=fold_id,
-                spec=winner_spec,
-            )
+        prediction_frames.append(
+            _window_prediction_frame(fitted, test_rows, test_windows, fold_id)
+            if test_windows is not None
+            else _prediction_frame(fitted, test_rows, feature_columns, fold_id)
         )
+        model_blobs[fold_id] = dump_fitted_estimator(fitted)
+        if train_windows is not None and test_windows is not None:
+            importance_records.append(
+                _fold_importance_record(
+                    fitted,
+                    train_features=train_windows.features,
+                    test_features=test_windows.features,
+                    train_target=train_windows.target,
+                    test_target=test_windows.target,
+                    feature_columns=feature_columns,
+                    fold_id=fold_id,
+                    spec=winner_spec,
+                )
+            )
+        else:
+            importance_records.append(
+                _fold_importance_record(
+                    fitted,
+                    train_features=_feature_matrix(train_rows, feature_columns),
+                    test_features=_feature_matrix(test_rows, feature_columns),
+                    train_target=_label_vector(train_rows),
+                    test_target=_label_vector(test_rows),
+                    feature_columns=feature_columns,
+                    fold_id=fold_id,
+                    spec=winner_spec,
+                )
+            )
 
     if description_payload is None:
         msg = "run produced no fitted folds"
@@ -226,6 +300,7 @@ def run_predictive_research(request: RunPredictiveResearchRequest) -> RunPredict
         library_version=library_version,
         framework_version=framework_version,
         candidate_set=candidate_payload,
+        sequence_window_spec=None if window_spec is None else window_spec.identity_payload(),
     )
     run_id = derive_predictive_run_id(fingerprint)
     clock = request.clock or SystemClock()
@@ -293,6 +368,16 @@ def run_predictive_research(request: RunPredictiveResearchRequest) -> RunPredict
             json.dumps(importance_trace.to_dict(), indent=2),
             encoding="utf-8",
         )
+        if learning_curve_folds:
+            write_learning_curves(
+                predictive_research_run_learning_curves_path(request.storage_root, run_id),
+                LearningCurves(folds=tuple(learning_curve_folds)),
+            )
+        if window_accounting_entries:
+            write_window_accounting(
+                predictive_research_run_window_accounting_path(request.storage_root, run_id),
+                WindowAccounting(entries=tuple(window_accounting_entries)),
+            )
     return RunPredictiveResearchResult(
         run_id=run_id,
         run_ref=run_ref,
@@ -371,20 +456,74 @@ def _select_and_refit_fold(
     )
 
 
+def _validate_window_request(request: RunPredictiveResearchRequest, family: str) -> None:
+    window_spec = request.window_spec
+    sequence_family = _is_sequence_family(family)
+    if request.candidate_set is not None and (sequence_family or window_spec is not None):
+        msg = "sequence windowing is not combined with CandidateSetSpec in this slice"
+        raise PredictiveSpecError(msg)
+    if sequence_family and window_spec is None:
+        msg = f"estimator family {family!r} requires SequenceWindowSpec"
+        raise PredictiveSpecError(msg)
+    if window_spec is not None and not sequence_family:
+        msg = f"estimator family {family!r} does not accept SequenceWindowSpec"
+        raise PredictiveSpecError(msg)
+    if request.bar_duration is not None and window_spec is None:
+        msg = "bar_duration requires SequenceWindowSpec"
+        raise PredictiveSpecError(msg)
+
+
+def _is_sequence_family(family: str) -> bool:
+    return family.startswith(_SEQUENCE_FAMILY_PREFIXES)
+
+
+def _sequence_fold_windows(
+    features: pl.DataFrame,
+    *,
+    fold_id: int,
+    spec: SequenceWindowSpec,
+    feature_columns: tuple[str, ...],
+    bar_duration: timedelta,
+) -> tuple[SequenceWindows, SequenceWindows, dict[str, object]]:
+    fold_rows = features.filter(pl.col("fold_id") == fold_id)
+    train_rows, _test_rows = _train_and_test_rows(features, fold_id)
+    train_windows = build_sequence_windows(
+        fold_rows,
+        spec=spec,
+        feature_columns=feature_columns,
+        bar_duration=bar_duration,
+        fold_role=FoldRole.TRAIN,
+        fold_id=fold_id,
+    )
+    test_windows = build_sequence_windows(
+        fold_rows,
+        spec=spec,
+        feature_columns=feature_columns,
+        bar_duration=bar_duration,
+        fold_role=FoldRole.TEST,
+        fold_id=fold_id,
+    )
+    require_min_effective_sample(train_windows.accounting)
+    require_min_effective_sample(test_windows.accounting)
+    metadata: dict[str, object] = {
+        "window_spec": spec,
+        "scaler_features": _feature_matrix(train_rows, feature_columns),
+    }
+    return train_windows, test_windows, metadata
+
+
 def _fold_importance_record(
     fitted: FittedPredictiveEstimator,
     *,
-    train_rows: pl.DataFrame,
-    test_rows: pl.DataFrame,
+    train_features: np.ndarray,
+    test_features: np.ndarray,
+    train_target: np.ndarray,
+    test_target: np.ndarray,
     feature_columns: tuple[str, ...],
     fold_id: int,
     spec: EstimatorSpec,
 ) -> FoldImportanceRecord:
     metric = _primary_metric(spec.task_type)
-    train_features = _feature_matrix(train_rows, feature_columns)
-    test_features = _feature_matrix(test_rows, feature_columns)
-    train_target = _label_vector(train_rows)
-    test_target = _label_vector(test_rows)
     native = None
     extract = getattr(fitted, "native_feature_importance", None)
     if callable(extract):
@@ -459,6 +598,65 @@ def _prediction_frame(
             "y_pred": y_pred.tolist(),
             "y_proba": y_proba,
             "forward_return": test_rows.get_column("forward_return").to_list(),
+        },
+        schema={
+            "entity_id": pl.String(),
+            "fold_id": pl.Int64(),
+            "y_true": pl.Float64(),
+            "y_pred": pl.Float64(),
+            "y_proba": pl.Float64(),
+            "forward_return": pl.Float64(),
+        },
+    )
+
+
+def _window_prediction_frame(
+    fitted: FittedPredictiveEstimator,
+    test_rows: pl.DataFrame,
+    windows: SequenceWindows,
+    fold_id: int,
+) -> pl.DataFrame:
+    n_windows = int(windows.features.shape[0])
+    y_pred = np.asarray(fitted.predict(windows.features), dtype=np.float64).reshape(-1)
+    if y_pred.shape[0] != n_windows:
+        msg = (
+            f"fold {fold_id} predict length {y_pred.shape[0]} "
+            f"does not match TEST windows {n_windows}"
+        )
+        raise PredictiveRunError(msg)
+    y_proba = _positive_class_proba(
+        fitted.predict_proba(windows.features),
+        n_rows=n_windows,
+    )
+    stamp_dtype = test_rows.schema["available_at"]
+    predicted = pl.DataFrame(
+        {
+            "entity_id": list(windows.end_entity_ids),
+            "available_at": pl.Series(
+                "available_at",
+                list(windows.end_available_at),
+                dtype=stamp_dtype,
+            ),
+            "y_pred": y_pred.tolist(),
+            "y_proba": y_proba,
+        }
+    )
+    labelled = test_rows.select("entity_id", "available_at", "label", "forward_return")
+    joined = predicted.join(labelled, on=["entity_id", "available_at"], how="inner")
+    if joined.height != n_windows:
+        msg = (
+            f"fold {fold_id} window predictions did not join to TEST rows: "
+            f"{joined.height} joined of {n_windows} windows"
+        )
+        raise PredictiveRunError(msg)
+    return pl.DataFrame(
+        {
+            "entity_id": joined.get_column("entity_id").to_list(),
+            "fold_id": [fold_id] * joined.height,
+            "y_true": joined.get_column("label").to_list(),
+            "y_pred": joined.get_column("y_pred").to_list(),
+            "y_proba": joined.get_column("y_proba").to_list(),
+            "forward_return": joined.get_column("forward_return").to_list(),
         },
         schema={
             "entity_id": pl.String(),

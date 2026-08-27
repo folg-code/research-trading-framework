@@ -188,6 +188,8 @@ PANEL_BODY_RENDERERS: dict[str, Callable[..., str]] = {
     "feature_importance": _plotly_body("feature_importance"),
     "leaderboard": _plotly_body("leaderboard"),
     "selection_trace": _plotly_body("selection_trace"),
+    "learning_curves": _plotly_body("learning_curves"),
+    "window_accounting": _plotly_body("window_accounting"),
 }
 
 

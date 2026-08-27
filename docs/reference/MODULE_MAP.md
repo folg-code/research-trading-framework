@@ -430,13 +430,16 @@ Research Definition
 Phase 10A: dataset foundation (Sprint 039), baseline estimators (Sprint 040),
 and offline HTML report (Sprint 041). Phase 10B (Sprint 042) adds tree families
 (XGBoost, LightGBM, CatBoost), bounded inner-fold selection, permutation
-importance, a single-study leaderboard, and three report panels. This workflow
-states a learning problem, persists a fingerprinted labelled matrix, trains
-declared estimators per fold, and reviews one run as standalone HTML. It does
-**not** emit signals or import `strategy/` / `signal_model/`. `research/predictive/`
-stays library-free (polars, numpy, framework contracts). Report figures live in
-`research/reporting/predictive/` (plotly; no sklearn). ML libraries live behind
-optional extras `ml` / `ml-trees` and `infrastructure/ml/` adapters.
+importance, a single-study leaderboard, and three report panels. Phase 10C
+(Sprint 043) adds extra `dl` (CPU PyTorch): feedforward MLP, LSTM/GRU sequence
+families, fold-contained windows, and learning-curve / window-accounting
+panels. This workflow states a learning problem, persists a fingerprinted
+labelled matrix, trains declared estimators per fold, and reviews one run as
+standalone HTML. It does **not** emit signals or import `strategy/` /
+`signal_model/`. `research/predictive/` stays library-free (polars, numpy,
+framework contracts). Report figures live in `research/reporting/predictive/`
+(plotly; no sklearn). ML libraries live behind optional extras `ml` /
+`ml-trees` / `dl` and `infrastructure/ml/` adapters.
 
 | Responsibility | Package |
 |---|---|
@@ -447,11 +450,13 @@ optional extras `ml` / `ml-trees` and `infrastructure/ml/` adapters.
 | Bounded candidate selection (`CandidateSetSpec`) | `research/predictive/selection.py` |
 | Native + permutation importance, train/test gap | `research/predictive/importance.py` |
 | Single-study leaderboard | `research/predictive/leaderboard.py` |
+| Inner-training learning curves | `research/predictive/learning_curves.py` |
+| Sequence windows + dropped-window accounting | `research/predictive/windows.py` |
 | Dataset envelope, fingerprint, repository | `research/datasets/predictive.py` |
 | Run envelope, fingerprint, repository | `research/datasets/predictive_run.py` |
 | Workflow orchestration (build, run, analyze, render) | `application/predictive_research/` |
 | Read-only HTML report | `research/reporting/predictive/` |
-| Family registry + sklearn / tree adapters | `infrastructure/ml/` (`registry.py`, `sklearn/`, `trees/xgboost/`, `trees/lightgbm/`, `trees/catboost/`) |
+| Family registry + sklearn / tree / torch adapters | `infrastructure/ml/` (`registry.py`, `sklearn/`, `trees/xgboost/`, `trees/lightgbm/`, `trees/catboost/`, `torch/`) |
 | Thin CLIs | `scripts/predictive_research/` |
 | Storage paths | `infrastructure/storage/paths.py` |
 
@@ -465,10 +470,11 @@ Published DatasetRef + PredictiveStudySpec (YAML/JSON)
   → PredictiveDatasetEnvelope (manifest + fingerprint)
   → EstimatorSpec (family + hyperparameters + seed)
       or CandidateSetSpec (declared, capped; inner TRAIN split, TEST once)
-  → run_predictive_research (fit on TRAIN per fold, predict on TEST)
+  → run_predictive_research (fit on TRAIN per fold, predict on TEST;
+      sequence families: application builds windows before fit / predict)
   → PredictiveRunEnvelope (predictions, metrics, opaque blobs)
   → analyze_predictive_run (writes metrics.json from predictions; never deserializes model blobs)
-  → render_predictive_research_report (offline HTML; optional importance/selection/leaderboard sidecars; never fits or loads model blobs)
+  → render_predictive_research_report (offline HTML; optional importance/selection/leaderboard/learning_curves/window_accounting sidecars; never fits or loads model blobs)
 ```
 
 Samples are **evaluation bars**, not `SignalOccurrence` rows. Labels reuse
@@ -490,19 +496,25 @@ Estimator families this slice (registry ids): extra `ml` — `sklearn.ridge`,
 `sklearn.elastic_net`, `sklearn.logistic` (binary). Extra `ml-trees` —
 `xgboost.regressor`, `xgboost.classifier` (binary), `lightgbm.regressor`,
 `lightgbm.classifier` (binary), `catboost.regressor`, `catboost.classifier`
-(binary). Unknown family ids raise
+(binary). Extra `dl` — `torch.feedforward.regressor`,
+`torch.feedforward.classifier` (binary), `torch.lstm.regressor`,
+`torch.lstm.classifier` (binary), `torch.gru.regressor`,
+`torch.gru.classifier` (binary). Unknown family ids raise
 `PredictiveSpecError`. Missing extra raises `PredictiveExtraError` naming the
 extra. Tree families also need extra `ml` for fold-local preprocessing.
-Reference baselines (`CONSTANT_MEAN`, `MAJORITY_CLASS`, `RANDOM_PERMUTATION`)
+Neural families do **not** require extra `ml`; sequence families consume
+rank-3 windows built by application. Reference baselines (`CONSTANT_MEAN`,
+`MAJORITY_CLASS`, `RANDOM_PERMUTATION`)
 are metric-layer comparisons, not registry families. Metrics are reported per
 fold and pooled.
 
 Optional extras:
-`ml = ["scikit-learn>=1.6,<2.0"]` and
-`ml-trees = ["xgboost-cpu>=2.1,<4.0", "lightgbm>=4.5,<5.0", "catboost>=1.2,<2.0"]`.
-Not in the default `dev` group. Dedicated CI jobs `ml` and `ml_trees`.
+`ml = ["scikit-learn>=1.6,<2.0"]`,
+`ml-trees = ["xgboost-cpu>=2.1,<4.0", "lightgbm>=4.5,<5.0", "catboost>=1.2,<2.0"]`,
+and `dl = ["torch>=2.6,<2.10"]` (CPU index).
+Not in the default `dev` group. Dedicated CI jobs `ml`, `ml_trees`, and `dl`.
 Standard unit CI stays extra-free (`uv sync --locked --dev`,
-`-m "not ml and not ml_trees"`).
+`-m "not ml and not ml_trees and not torch"`).
 
 Storage:
 
@@ -519,6 +531,8 @@ Storage:
   selection.json         # candidate scores per fold; absent on single-estimator runs
   importance.json        # native + permutation importance and train/test gap
   leaderboard.json       # optional; single-study comparison of run dirs
+  learning_curves.json   # optional; inner-train / inner-val loss per fold
+  window_accounting.json # optional; dropped windows and effective sample
   models/fold_{n}.bin    # opaque; reproduce by re-fitting, not deserializing
 ```
 
