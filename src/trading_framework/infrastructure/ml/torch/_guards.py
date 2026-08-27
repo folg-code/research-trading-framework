@@ -20,7 +20,11 @@ _DEFAULT_PATIENCE = 5
 _DEFAULT_MIN_DELTA = 0.0
 _DEFAULT_DROPOUT = 0.0
 _DEFAULT_HIDDEN_SIZES = (32, 16)
+_DEFAULT_HIDDEN_SIZE = 32
+_MAX_HIDDEN_SIZE = 128
+_ALLOWED_NUM_LAYERS = frozenset({1, 2})
 _ALLOWED_ACTIVATION = "relu"
+_ALLOWED_CELLS = frozenset({"lstm", "gru"})
 _ALLOWED_OPTIMIZER = "adam"
 _ALLOWED_DEVICE = "cpu"
 _REGRESSION_LOSS = "mse"
@@ -34,7 +38,7 @@ _WINDOW_METADATA_KEYS = frozenset(
 _EARLY_STOP_METADATA_KEYS = frozenset(
     {"early_stopping_eval_role", "eval_fold_role", "early_stopping_on"}
 )
-_ALLOWED_USER_KEYS = frozenset(
+_SHARED_USER_KEYS = frozenset(
     {
         "max_epochs",
         "batch_size",
@@ -43,8 +47,6 @@ _ALLOWED_USER_KEYS = frozenset(
         "patience",
         "min_delta",
         "dropout",
-        "hidden_sizes",
-        "activation",
         "device",
         "optimizer",
         "loss",
@@ -52,6 +54,8 @@ _ALLOWED_USER_KEYS = frozenset(
         "early_stopping_eval_role",
     }
 )
+_FEEDFORWARD_USER_KEYS = _SHARED_USER_KEYS | frozenset({"hidden_sizes", "activation"})
+_SEQUENCE_USER_KEYS = _SHARED_USER_KEYS | frozenset({"hidden_size", "num_layers", "bidirectional"})
 
 
 @dataclass(frozen=True, slots=True)
@@ -65,8 +69,11 @@ class ResolvedTorchHyperparameters:
     patience: int
     min_delta: float
     dropout: float
-    hidden_sizes: tuple[int, ...]
-    activation: str
+    hidden_sizes: tuple[int, ...] | None
+    hidden_size: int | None
+    num_layers: int | None
+    cell: str | None
+    activation: str | None
     device: str
     optimizer: str
     loss: str
@@ -75,12 +82,10 @@ class ResolvedTorchHyperparameters:
     reproducibility_rtol: float
 
     def as_json_mapping(self) -> dict[str, Any]:
-        return {
-            "activation": self.activation,
+        payload: dict[str, Any] = {
             "batch_size": self.batch_size,
             "device": self.device,
             "dropout": self.dropout,
-            "hidden_sizes": list(self.hidden_sizes),
             "learning_rate": self.learning_rate,
             "loss": self.loss,
             "max_epochs": self.max_epochs,
@@ -92,10 +97,23 @@ class ResolvedTorchHyperparameters:
             "reproducibility_rtol": self.reproducibility_rtol,
             "weight_decay": self.weight_decay,
         }
+        if self.cell is None:
+            payload["activation"] = self.activation
+            payload["hidden_sizes"] = list(self.hidden_sizes or ())
+        else:
+            payload["cell"] = self.cell
+            payload["hidden_size"] = self.hidden_size
+            payload["num_layers"] = self.num_layers
+        return payload
 
 
-def reject_unknown_hyperparameters(hyperparameters: Mapping[str, Any], *, family_id: str) -> None:
-    unknown = sorted(key for key in hyperparameters if key not in _ALLOWED_USER_KEYS)
+def reject_unknown_hyperparameters(
+    hyperparameters: Mapping[str, Any],
+    *,
+    family_id: str,
+    allowed: frozenset[str] = _FEEDFORWARD_USER_KEYS,
+) -> None:
+    unknown = sorted(key for key in hyperparameters if key not in allowed)
     if unknown:
         msg = f"unknown hyperparameters for {family_id}: {unknown}"
         raise PredictiveSpecError(msg)
@@ -112,19 +130,16 @@ def reject_gpu_device(hyperparameters: Mapping[str, Any], *, family_id: str) -> 
         raise PredictiveSpecError(msg)
 
 
-def resolve_feedforward_hyperparameters(
+def _resolve_shared_hyperparameters(
     hyperparameters: Mapping[str, Any],
     *,
     family_id: str,
     is_classification: bool,
-) -> ResolvedTorchHyperparameters:
-    reject_unknown_hyperparameters(hyperparameters, family_id=family_id)
+    allowed: frozenset[str],
+) -> dict[str, Any]:
+    reject_unknown_hyperparameters(hyperparameters, family_id=family_id, allowed=allowed)
     reject_gpu_device(hyperparameters, family_id=family_id)
     _reject_outer_test_early_stopping_config(hyperparameters)
-    activation = _optional_str(hyperparameters.get("activation"), default=_ALLOWED_ACTIVATION)
-    if activation != _ALLOWED_ACTIVATION:
-        msg = f"{family_id} supports activation {_ALLOWED_ACTIVATION!r} only; got {activation!r}"
-        raise PredictiveSpecError(msg)
     optimizer = _optional_str(hyperparameters.get("optimizer"), default=_ALLOWED_OPTIMIZER)
     if optimizer != _ALLOWED_OPTIMIZER:
         msg = f"{family_id} supports optimizer {_ALLOWED_OPTIMIZER!r} only; got {optimizer!r}"
@@ -138,26 +153,94 @@ def resolve_feedforward_hyperparameters(
     if num_threads != 1:
         msg = f"{family_id} pins num_threads=1; got {num_threads}"
         raise PredictiveSpecError(msg)
-    return ResolvedTorchHyperparameters(
-        max_epochs=_bounded_max_epochs(hyperparameters.get("max_epochs"), family_id=family_id),
-        batch_size=_optional_positive_int(
+    return {
+        "max_epochs": _bounded_max_epochs(hyperparameters.get("max_epochs"), family_id=family_id),
+        "batch_size": _optional_positive_int(
             hyperparameters.get("batch_size"), default=_DEFAULT_BATCH_SIZE
         ),
-        learning_rate=_learning_rate(hyperparameters.get("learning_rate")),
-        weight_decay=_non_negative_float(
+        "learning_rate": _learning_rate(hyperparameters.get("learning_rate")),
+        "weight_decay": _non_negative_float(
             hyperparameters.get("weight_decay"), default=_DEFAULT_WEIGHT_DECAY
         ),
-        patience=_optional_positive_int(hyperparameters.get("patience"), default=_DEFAULT_PATIENCE),
-        min_delta=_non_negative_float(hyperparameters.get("min_delta"), default=_DEFAULT_MIN_DELTA),
-        dropout=_dropout(hyperparameters.get("dropout")),
+        "patience": _optional_positive_int(
+            hyperparameters.get("patience"), default=_DEFAULT_PATIENCE
+        ),
+        "min_delta": _non_negative_float(
+            hyperparameters.get("min_delta"), default=_DEFAULT_MIN_DELTA
+        ),
+        "dropout": _dropout(hyperparameters.get("dropout")),
+        "device": _ALLOWED_DEVICE,
+        "optimizer": optimizer,
+        "loss": loss,
+        "num_threads": 1,
+        "reproducibility_atol": _REPRO_ATOL,
+        "reproducibility_rtol": _REPRO_RTOL,
+    }
+
+
+def resolve_feedforward_hyperparameters(
+    hyperparameters: Mapping[str, Any],
+    *,
+    family_id: str,
+    is_classification: bool,
+) -> ResolvedTorchHyperparameters:
+    shared = _resolve_shared_hyperparameters(
+        hyperparameters,
+        family_id=family_id,
+        is_classification=is_classification,
+        allowed=_FEEDFORWARD_USER_KEYS,
+    )
+    activation = _optional_str(hyperparameters.get("activation"), default=_ALLOWED_ACTIVATION)
+    if activation != _ALLOWED_ACTIVATION:
+        msg = f"{family_id} supports activation {_ALLOWED_ACTIVATION!r} only; got {activation!r}"
+        raise PredictiveSpecError(msg)
+    return ResolvedTorchHyperparameters(
+        **shared,
         hidden_sizes=_hidden_sizes(hyperparameters.get("hidden_sizes")),
+        hidden_size=None,
+        num_layers=None,
+        cell=None,
         activation=activation,
-        device=_ALLOWED_DEVICE,
-        optimizer=optimizer,
-        loss=loss,
-        num_threads=1,
-        reproducibility_atol=_REPRO_ATOL,
-        reproducibility_rtol=_REPRO_RTOL,
+    )
+
+
+def resolve_sequence_hyperparameters(
+    hyperparameters: Mapping[str, Any],
+    *,
+    family_id: str,
+    cell: str,
+    is_classification: bool,
+) -> ResolvedTorchHyperparameters:
+    if cell not in _ALLOWED_CELLS:
+        msg = f"unsupported sequence cell {cell!r}"
+        raise PredictiveSpecError(msg)
+    shared = _resolve_shared_hyperparameters(
+        hyperparameters,
+        family_id=family_id,
+        is_classification=is_classification,
+        allowed=_SEQUENCE_USER_KEYS,
+    )
+    bidirectional = hyperparameters.get("bidirectional")
+    if bidirectional not in (None, False, 0):
+        msg = f"{family_id} rejects bidirectional recurrent layers"
+        raise PredictiveSpecError(msg)
+    hidden_size = _optional_positive_int(
+        hyperparameters.get("hidden_size"), default=_DEFAULT_HIDDEN_SIZE
+    )
+    if hidden_size > _MAX_HIDDEN_SIZE:
+        msg = f"{family_id} hidden_size must be <= {_MAX_HIDDEN_SIZE}, got {hidden_size}"
+        raise PredictiveSpecError(msg)
+    num_layers = _optional_positive_int(hyperparameters.get("num_layers"), default=1)
+    if num_layers not in _ALLOWED_NUM_LAYERS:
+        msg = f"{family_id} num_layers must be 1 or 2, got {num_layers}"
+        raise PredictiveSpecError(msg)
+    return ResolvedTorchHyperparameters(
+        **shared,
+        hidden_sizes=None,
+        hidden_size=hidden_size,
+        num_layers=num_layers,
+        cell=cell,
+        activation=None,
     )
 
 
@@ -174,6 +257,23 @@ def reject_sequence_window_spec(sample_metadata: object, *, family_id: str) -> N
             continue
         msg = f"{family_id} is tabular and rejects SequenceWindowSpec"
         raise PredictiveSpecError(msg)
+
+
+def require_sequence_window_spec(sample_metadata: object, *, family_id: str) -> SequenceWindowSpec:
+    """Sequence families require a ``SequenceWindowSpec`` (D-S043-08)."""
+    if isinstance(sample_metadata, SequenceWindowSpec):
+        return sample_metadata
+    if isinstance(sample_metadata, Mapping):
+        for key in ("window_spec", "sequence_window_spec"):
+            value = sample_metadata.get(key)
+            if value is None:
+                continue
+            if isinstance(value, SequenceWindowSpec):
+                return value
+            if isinstance(value, Mapping):
+                return SequenceWindowSpec.from_dict(value)
+    msg = f"{family_id} requires SequenceWindowSpec"
+    raise PredictiveSpecError(msg)
 
 
 def reject_outer_test_early_stopping(

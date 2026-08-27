@@ -12,9 +12,10 @@ Responsibility: optional-extra estimator adapters and the family-id registry.
 - Family ids: `sklearn.ridge`, `sklearn.elastic_net`, `sklearn.logistic`,
   `xgboost.regressor`, `xgboost.classifier`, `lightgbm.regressor`,
   `lightgbm.classifier`, `catboost.regressor`, `catboost.classifier`,
-  `torch.feedforward.regressor`, `torch.feedforward.classifier`.
-  Sequence families `torch.lstm.*` / `torch.gru.*` are reserved for a later
-  wave. Unknown ids are `PredictiveSpecError` even if extras are installed.
+  `torch.feedforward.regressor`, `torch.feedforward.classifier`,
+  `torch.lstm.regressor`, `torch.lstm.classifier`,
+  `torch.gru.regressor`, `torch.gru.classifier`.
+  Unknown ids are `PredictiveSpecError` even if extras are installed.
   Classifier families are binary only.
 - Sklearn adapters pin `n_jobs=1` when accepted, and `random_state` from
   `EstimatorSpec.seed`. `sklearn.logistic` is binary only.
@@ -32,7 +33,10 @@ Responsibility: optional-extra estimator adapters and the family-id registry.
 - Torch feedforward families live in `torch/` and require extra `dl` only
   (numpy `PreprocessingSpec`, not extra `ml`). They always inner-split TRAIN
   for early stopping, pin `num_threads=1`, reject GPU/CUDA/MPS, and reject a
-  `SequenceWindowSpec`. `native_feature_importance()` is `None`.
+  `SequenceWindowSpec`. Sequence families (`torch.lstm.*`, `torch.gru.*`)
+  require a `SequenceWindowSpec`, rank-3 windows, and 2d TRAIN `scaler_features`
+  in `sample_metadata` — the scaler is never fitted on windowed tensors.
+  `native_feature_importance()` is `None`.
 - Preprocessing (`IMPUTE_MEDIAN` then `STANDARDIZE` by default) is fitted on
   the feature matrix passed to `fit()` only. Do not pass PURGED / EMBARGOED
   rows; if `sample_metadata` carries fold roles, non-TRAIN roles are rejected.

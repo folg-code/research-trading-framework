@@ -30,6 +30,35 @@ def as_feature_matrix(features: object) -> np.ndarray:
     return array
 
 
+def as_sequence_windows(features: object, *, lookback_bars: int) -> np.ndarray:
+    """Coerce ``features`` to rank-3 float64 windows ``(n, lookback, p)``."""
+    array = np.asarray(features, dtype=np.float64)
+    if array.ndim != 3:
+        msg = f"sequence windows must be 3-dimensional, got {array.ndim} dimensions"
+        raise PredictiveSpecError(msg)
+    if array.shape[0] == 0 or array.shape[2] == 0:
+        msg = "sequence windows must be non-empty"
+        raise PredictiveSpecError(msg)
+    if array.shape[1] != lookback_bars:
+        msg = (
+            f"sequence windows lookback is {array.shape[1]}; "
+            f"SequenceWindowSpec.lookback_bars is {lookback_bars}"
+        )
+        raise PredictiveSpecError(msg)
+    return array
+
+
+def transform_windows(
+    preprocessor: FittedNumpyPreprocessor,
+    windows: np.ndarray,
+) -> np.ndarray:
+    """Apply a 2d-fitted preprocessor to every timestep of every window."""
+    n_windows, lookback, n_features = windows.shape
+    flat = windows.reshape(n_windows * lookback, n_features)
+    transformed = preprocessor.transform(flat)
+    return transformed.reshape(n_windows, lookback, n_features)
+
+
 @dataclass(frozen=True, slots=True)
 class FittedNumpyPreprocessor:
     """Fold-local numpy transforms fitted on one TRAIN feature matrix."""

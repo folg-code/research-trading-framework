@@ -106,6 +106,8 @@ def test_describe_records_stopping_epoch_and_cpu_threads() -> None:
     assert params["num_threads"] == 1
     assert params["optimizer"] == "adam"
     assert params["loss"] == "mse"
+    assert params["reproducibility_atol"] == 1e-5
+    assert params["reproducibility_rtol"] == 1e-4
     assert params["stopping_epoch"] >= 1
     assert params["stopping_epoch"] <= 5
     assert len(params["inner_validation_loss"]) == len(params["inner_train_loss"])

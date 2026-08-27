@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from trading_framework.infrastructure.ml.torch.adapter import TorchFeedforwardAdapter
+from trading_framework.infrastructure.ml.torch.sequence import TorchSequenceAdapter
 from trading_framework.research.predictive.errors import PredictiveExtraError
 from trading_framework.research.predictive.estimators import EstimatorSpec, PredictiveEstimator
 from trading_framework.research.predictive.preprocessing import PreprocessingSpec
@@ -45,3 +46,54 @@ def create_torch_feedforward_classifier(
     estimator = TorchFeedforwardAdapter(spec, preprocessing=preprocessing)
     _require_torch("torch.feedforward.classifier")
     return estimator
+
+
+def _create_sequence_estimator(
+    spec: EstimatorSpec,
+    *,
+    family_id: str,
+    preprocessing: PreprocessingSpec | None,
+) -> PredictiveEstimator:
+    estimator = TorchSequenceAdapter(spec, preprocessing=preprocessing)
+    _require_torch(family_id)
+    return estimator
+
+
+def create_torch_lstm_regressor(
+    spec: EstimatorSpec,
+    *,
+    preprocessing: PreprocessingSpec | None = None,
+) -> PredictiveEstimator:
+    return _create_sequence_estimator(
+        spec, family_id="torch.lstm.regressor", preprocessing=preprocessing
+    )
+
+
+def create_torch_lstm_classifier(
+    spec: EstimatorSpec,
+    *,
+    preprocessing: PreprocessingSpec | None = None,
+) -> PredictiveEstimator:
+    return _create_sequence_estimator(
+        spec, family_id="torch.lstm.classifier", preprocessing=preprocessing
+    )
+
+
+def create_torch_gru_regressor(
+    spec: EstimatorSpec,
+    *,
+    preprocessing: PreprocessingSpec | None = None,
+) -> PredictiveEstimator:
+    return _create_sequence_estimator(
+        spec, family_id="torch.gru.regressor", preprocessing=preprocessing
+    )
+
+
+def create_torch_gru_classifier(
+    spec: EstimatorSpec,
+    *,
+    preprocessing: PreprocessingSpec | None = None,
+) -> PredictiveEstimator:
+    return _create_sequence_estimator(
+        spec, family_id="torch.gru.classifier", preprocessing=preprocessing
+    )

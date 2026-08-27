@@ -126,6 +126,10 @@ def _register_torch_families() -> None:
     from trading_framework.infrastructure.ml.torch.factories import (
         create_torch_feedforward_classifier,
         create_torch_feedforward_regressor,
+        create_torch_gru_classifier,
+        create_torch_gru_regressor,
+        create_torch_lstm_classifier,
+        create_torch_lstm_regressor,
     )
 
     register_family(
@@ -138,6 +142,10 @@ def _register_torch_families() -> None:
         extra="dl",
         factory=create_torch_feedforward_classifier,
     )
+    register_family("torch.lstm.regressor", extra="dl", factory=create_torch_lstm_regressor)
+    register_family("torch.lstm.classifier", extra="dl", factory=create_torch_lstm_classifier)
+    register_family("torch.gru.regressor", extra="dl", factory=create_torch_gru_regressor)
+    register_family("torch.gru.classifier", extra="dl", factory=create_torch_gru_classifier)
 
 
 def _register_tree_families() -> None:

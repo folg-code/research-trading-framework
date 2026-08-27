@@ -5,7 +5,7 @@
 ```text
 Sprint: 043
 Phase: Phase 10C — Neural Predictive Models
-Status: IN PROGRESS (Wave 2)
+Status: IN PROGRESS (Wave 3)
 Planned Start: 2026-08-26
 Planned End: TBD
 Sprint Goal Owner: Project Maintainer
@@ -71,7 +71,7 @@ every other family, and the leaderboard shows honestly how it compares to trees 
 - [x] `SequenceWindowSpec` in the domain — windowing rules, no tensor library.
 - [x] Window builder enforcing fold containment (§4).
 - [x] Torch adapter in `infrastructure/ml/torch/`: training loop, early stopping, seeding.
-- [ ] Feedforward MLP (tabular) and LSTM/GRU (sequence) architectures.
+- [x] Feedforward MLP (tabular) and LSTM/GRU (sequence) architectures.
 - [x] Determinism configuration and a documented tolerance policy (§5).
 - [x] Environment-gated test tier, keeping standard CI fast (§6).
 - [ ] Report panel: learning curves per fold with stopping epoch.
@@ -179,10 +179,10 @@ training loop sits behind the gate. The `dl` extra is never installed in the def
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S043-T011 | Feedforward MLP (regression + classification) | TODO |
-| S043-T012 | LSTM / GRU sequence estimator (regression + classification) | TODO |
-| S043-T013 | Per-fold scaler fitted on training rows only | TODO |
-| S043-T014 | Reproducibility test within declared tolerance | TODO |
+| S043-T011 | Feedforward MLP (regression + classification) | DONE |
+| S043-T012 | LSTM / GRU sequence estimator (regression + classification) | DONE |
+| S043-T013 | Per-fold scaler fitted on training rows only | DONE |
+| S043-T014 | Reproducibility test within declared tolerance | DONE |
 
 ### Wave 4 — Reporting and comparison
 
@@ -201,7 +201,7 @@ training loop sits behind the gate. The `dl` extra is never installed in the def
 | S043-T020 | Import test: framework usable without the `dl` extra | TODO |
 | S043-T021 | Docs: RESEARCH_METHODOLOGIES, MODULE_MAP, CURRENT_STATUS | TODO |
 
-**Progress:** 10 / 21 tasks
+**Progress:** 14 / 21 tasks
 
 ---
 
