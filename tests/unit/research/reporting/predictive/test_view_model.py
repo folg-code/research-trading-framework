@@ -42,6 +42,7 @@ from trading_framework.research.predictive.leaderboard import (
     LeaderboardRowKind,
     PredictiveLeaderboard,
 )
+from trading_framework.research.predictive.learning_curves import FoldLearningCurve, LearningCurves
 from trading_framework.research.predictive.metrics import (
     DECILE_COUNT,
     PREDICTIVE_METRICS_SCHEMA_VERSION,
@@ -58,6 +59,7 @@ from trading_framework.research.predictive.selection import (
     SelectionMetric,
     SelectionTrace,
 )
+from trading_framework.research.predictive.windows import RoleWindowAccounting, WindowAccounting
 from trading_framework.research.reporting.predictive import (
     PREDICTIVE_REPORT_PANELS,
     RESERVED_PANEL_IDS,
@@ -276,6 +278,8 @@ def _source_report(
     importance: ImportanceTrace | None = None,
     selection: SelectionTrace | None = None,
     leaderboard: PredictiveLeaderboard | None = None,
+    learning_curves: LearningCurves | None = None,
+    window_accounting: WindowAccounting | None = None,
     fold_primary: dict[str, dict[str, float | None]] | None = None,
 ) -> PredictiveReportSource:
     dataset = _dataset(binary=binary)
@@ -294,6 +298,8 @@ def _source_report(
         importance=importance,
         selection=selection,
         leaderboard=leaderboard,
+        learning_curves=learning_curves,
+        window_accounting=window_accounting,
     )
 
 
@@ -420,6 +426,45 @@ def _leaderboard() -> PredictiveLeaderboard:
     )
 
 
+def _learning_curves() -> LearningCurves:
+    return LearningCurves(
+        folds=(
+            FoldLearningCurve(
+                fold_id=0,
+                epochs=(1, 2, 3, 4),
+                train_loss=(0.90, 0.70, 0.50, 0.45),
+                validation_loss=(0.95, 0.72, 0.55, 0.58),
+                stopping_epoch=3,
+            ),
+        )
+    )
+
+
+def _window_accounting() -> WindowAccounting:
+    return WindowAccounting(
+        entries=(
+            RoleWindowAccounting(
+                fold_id=0,
+                fold_role=FoldRole.TRAIN,
+                candidate_end_rows=20,
+                windows_built=12,
+                windows_dropped_incomplete=4,
+                windows_dropped_gap=2,
+                windows_dropped_fold_boundary=2,
+            ),
+            RoleWindowAccounting(
+                fold_id=0,
+                fold_role=FoldRole.TEST,
+                candidate_end_rows=10,
+                windows_built=6,
+                windows_dropped_incomplete=3,
+                windows_dropped_gap=1,
+                windows_dropped_fold_boundary=0,
+            ),
+        )
+    )
+
+
 def test_view_model_is_read_only_snapshot_of_persisted_envelopes() -> None:
     source = _source_report()
     view = build_predictive_report_view_model(source, clock=FixedClock(_GENERATED))
@@ -481,9 +526,15 @@ def test_panel_registry_skips_calibration_without_probabilities() -> None:
     assert resolved["feature_importance"].status is PanelStatus.SKIP
     assert resolved["leaderboard"].status is PanelStatus.SKIP
     assert resolved["selection_trace"].status is PanelStatus.SKIP
+    assert resolved["learning_curves"].status is PanelStatus.SKIP
+    assert resolved["window_accounting"].status is PanelStatus.SKIP
     assert resolved["feature_importance"].skip_reason is not None
     assert "importance.json" in resolved["feature_importance"].skip_reason
-    assert frozenset({"learning_curves"}) == RESERVED_PANEL_IDS
+    assert resolved["learning_curves"].skip_reason is not None
+    assert "learning_curves.json" in resolved["learning_curves"].skip_reason
+    assert resolved["window_accounting"].skip_reason is not None
+    assert "window_accounting.json" in resolved["window_accounting"].skip_reason
+    assert not RESERVED_PANEL_IDS
     assert [definition.panel_id for definition in PREDICTIVE_REPORT_PANELS] == [
         "fold_timeline",
         "metric_stability",
@@ -497,7 +548,26 @@ def test_panel_registry_skips_calibration_without_probabilities() -> None:
         "feature_importance",
         "leaderboard",
         "selection_trace",
+        "learning_curves",
+        "window_accounting",
     ]
+
+
+def test_view_model_maps_learning_curves_and_window_accounting() -> None:
+    view = build_predictive_report_view_model(
+        _source_report(
+            learning_curves=_learning_curves(),
+            window_accounting=_window_accounting(),
+        ),
+        clock=FixedClock(_GENERATED),
+    )
+    resolved = {panel.panel_id: panel for panel in resolve_report_panels(view)}
+    assert view.learning_curves[0].stopping_epoch == 3
+    assert view.learning_curves[0].epochs == (1, 2, 3, 4)
+    assert view.window_accounting[0].effective_sample == 12
+    assert view.window_accounting[1].fold_role == FoldRole.TEST.value
+    assert resolved["learning_curves"].status is PanelStatus.RENDER
+    assert resolved["window_accounting"].status is PanelStatus.RENDER
 
 
 def test_classification_with_probabilities_renders_calibration() -> None:

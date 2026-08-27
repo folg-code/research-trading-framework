@@ -13,6 +13,7 @@ from trading_framework.core.exceptions import ValidationError
 from trading_framework.research.predictive.estimators import TaskType
 from trading_framework.research.predictive.importance import ImportanceTrace
 from trading_framework.research.predictive.leaderboard import PredictiveLeaderboard
+from trading_framework.research.predictive.learning_curves import LearningCurves
 from trading_framework.research.predictive.metrics import (
     CalibrationBin,
     MetricSource,
@@ -20,6 +21,7 @@ from trading_framework.research.predictive.metrics import (
 )
 from trading_framework.research.predictive.selection import SelectionTrace
 from trading_framework.research.predictive.splitting import FoldRole
+from trading_framework.research.predictive.windows import WindowAccounting
 from trading_framework.research.reporting.predictive.contracts import PredictiveReportSource
 from trading_framework.research.reporting.predictive.quality import (
     PredictiveQualityWarning,
@@ -99,6 +101,31 @@ class SelectionFoldDisplay:
 
 
 @dataclass(frozen=True, slots=True)
+class FoldLearningCurveDisplay:
+    """Inner-train and inner-validation loss series for one outer fold."""
+
+    fold_id: int
+    epochs: tuple[int, ...]
+    train_loss: tuple[float, ...]
+    validation_loss: tuple[float, ...]
+    stopping_epoch: int
+
+
+@dataclass(frozen=True, slots=True)
+class WindowAccountingBar:
+    """Dropped-window counts and effective sample for one fold role."""
+
+    fold_id: int
+    fold_role: str
+    candidate_end_rows: int
+    windows_built: int
+    windows_dropped_incomplete: int
+    windows_dropped_gap: int
+    windows_dropped_fold_boundary: int
+    effective_sample: int
+
+
+@dataclass(frozen=True, slots=True)
 class PredictiveReportViewModel:
     """Presentation-ready snapshot of one Predictive Research run.
 
@@ -127,6 +154,8 @@ class PredictiveReportViewModel:
     feature_importance: tuple[FeatureImportanceBar, ...]
     leaderboard_rows: tuple[LeaderboardDisplayRow, ...]
     selection_folds: tuple[SelectionFoldDisplay, ...]
+    learning_curves: tuple[FoldLearningCurveDisplay, ...]
+    window_accounting: tuple[WindowAccountingBar, ...]
 
 
 def build_predictive_report_view_model(
@@ -201,6 +230,8 @@ def build_predictive_report_view_model(
         feature_importance=_feature_importance_bars(source.importance),
         leaderboard_rows=_leaderboard_rows(source.leaderboard),
         selection_folds=_selection_folds(source.selection, metrics.fold_primary),
+        learning_curves=_learning_curves(source.learning_curves),
+        window_accounting=_window_accounting_bars(source.window_accounting),
     )
 
 
@@ -383,3 +414,38 @@ def _selection_folds(
             )
         )
     return tuple(displayed)
+
+
+def _learning_curves(curves: LearningCurves | None) -> tuple[FoldLearningCurveDisplay, ...]:
+    if curves is None or not curves.folds:
+        return ()
+    return tuple(
+        FoldLearningCurveDisplay(
+            fold_id=fold.fold_id,
+            epochs=fold.epochs,
+            train_loss=fold.train_loss,
+            validation_loss=fold.validation_loss,
+            stopping_epoch=fold.stopping_epoch,
+        )
+        for fold in curves.folds
+    )
+
+
+def _window_accounting_bars(
+    accounting: WindowAccounting | None,
+) -> tuple[WindowAccountingBar, ...]:
+    if accounting is None or not accounting.entries:
+        return ()
+    return tuple(
+        WindowAccountingBar(
+            fold_id=entry.fold_id,
+            fold_role=entry.fold_role.value,
+            candidate_end_rows=entry.candidate_end_rows,
+            windows_built=entry.windows_built,
+            windows_dropped_incomplete=entry.windows_dropped_incomplete,
+            windows_dropped_gap=entry.windows_dropped_gap,
+            windows_dropped_fold_boundary=entry.windows_dropped_fold_boundary,
+            effective_sample=entry.effective_sample,
+        )
+        for entry in accounting.entries
+    )

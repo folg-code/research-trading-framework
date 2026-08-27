@@ -47,13 +47,20 @@ library-free predictive metrics (`metrics.py`).
   stored as added `fold_primary` keys on `metrics.json`.
 - Leaderboard (`leaderboard.py`) ranks runs that share one dataset fingerprint
   by pooled primary metric. S040 metric-layer baselines appear as rows; they
-  are not estimator families. Mismatched fingerprints are `PredictiveSpecError`.
+  are not estimator families. Neural families (`torch.*`) rank as ordinary
+  estimator rows. Mismatched fingerprints are `PredictiveSpecError`.
+- Learning curves (`learning_curves.py`) persist inner-train / inner-validation
+  loss per outer fold plus the restored stopping epoch. Application writes
+  `learning_curves.json` when `describe().resolved_params` carries those keys;
+  missing sidecar skips the report panel.
 - Sequence windows (`windows.py`) are library-free. `SequenceWindowSpec` is
   lookback + stride + `DROP` padding. The builder runs **after** fold
   assignment on the full fold frame (all roles). A window ending on `TEST`
   may contain only `TEST` rows; cross-role / cross-entity / gapped windows
   are dropped, never padded or truncated. Accounting is a sidecar JSON, not
-  a predictions column. `research/predictive/` still must not import torch.
+  a predictions column. `window_accounting.json` is optional until the
+  application builds windows; missing sidecar skips the report panel.
+  `research/predictive/` still must not import torch.
 - `test_span` and `embargo_span` are applied as datetime arithmetic on
   `available_at`, not as a 1-minute bar count. Consecutive test windows are
   separated by `embargo_span` so expanding later folds cannot train on the

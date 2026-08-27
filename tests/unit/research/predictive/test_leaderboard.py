@@ -63,6 +63,31 @@ def test_leaderboard_ranks_higher_pooled_primary_first() -> None:
     assert "RANDOM_PERMUTATION" in baseline_sources
 
 
+def test_leaderboard_ranks_neural_families_beside_trees_and_baselines() -> None:
+    board = build_predictive_leaderboard(
+        (
+            _snapshot(run_id="ridge", family="sklearn.ridge", model_score=0.20),
+            _snapshot(run_id="xgb", family="xgboost.regressor", model_score=0.80),
+            _snapshot(
+                run_id="ff",
+                family="torch.feedforward.regressor",
+                model_score=0.45,
+            ),
+            _snapshot(run_id="lstm", family="torch.lstm.regressor", model_score=0.55),
+        )
+    )
+    estimator_rows = [row for row in board.rows if row.kind is LeaderboardRowKind.ESTIMATOR]
+    assert [row.family for row in estimator_rows] == [
+        "xgboost.regressor",
+        "torch.lstm.regressor",
+        "torch.feedforward.regressor",
+        "sklearn.ridge",
+    ]
+    baseline_sources = {row.source for row in board.rows if row.kind is LeaderboardRowKind.BASELINE}
+    assert "CONSTANT_MEAN" in baseline_sources
+    assert "RANDOM_PERMUTATION" in baseline_sources
+
+
 def test_leaderboard_tie_keeps_first_declared_run() -> None:
     board = build_predictive_leaderboard(
         (

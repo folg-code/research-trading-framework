@@ -20,6 +20,7 @@ from trading_framework.research.reporting.predictive.plotly_figures import (
     build_feature_importance_figure,
     build_fold_timeline_figure,
     build_leaderboard_figure,
+    build_learning_curves_figure,
     build_metric_stability_figure,
     build_model_vs_baselines_figure,
     build_panel_figure,
@@ -27,6 +28,7 @@ from trading_framework.research.reporting.predictive.plotly_figures import (
     build_prediction_quality_figure,
     build_sample_composition_figure,
     build_selection_trace_figure,
+    build_window_accounting_figure,
     require_plotly,
 )
 from trading_framework.research.reporting.predictive.quality import (
@@ -65,6 +67,7 @@ __all__ = [
     "build_feature_importance_figure",
     "build_fold_timeline_figure",
     "build_leaderboard_figure",
+    "build_learning_curves_figure",
     "build_metric_stability_figure",
     "build_model_vs_baselines_figure",
     "build_panel_figure",
@@ -73,6 +76,7 @@ __all__ = [
     "build_predictive_report_view_model",
     "build_sample_composition_figure",
     "build_selection_trace_figure",
+    "build_window_accounting_figure",
     "evaluate_predictive_quality_flags",
     "format_count",
     "format_metric",

@@ -26,15 +26,15 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 ## 2. Status Metadata
 
 ```text
-Status Date: 2026-08-26
-Current Phase: Phase 10C Neural Predictive Models (S043 Wave 3)
-Current Milestone: S043 LSTM/GRU sequence families; extra `dl` + feedforward on sprint branch
-Implementation Status: Sprints 001-006, 008-024, 025-042 on main; S043 Waves 0–2 on sprint/predictive-neural-models; Wave 3 in progress
+Status Date: 2026-08-27
+Current Phase: Phase 10C Neural Predictive Models (S043 Wave 4)
+Current Milestone: S043 learning-curve and window-accounting report panels on sprint branch
+Implementation Status: Sprints 001-006, 008-024, 025-042 on main; S043 Waves 0–3 on sprint/predictive-neural-models; Wave 4 in progress
 Overall Status: STABLE
-Active Sprint: SPRINT_043 (Wave 3)
+Active Sprint: SPRINT_043 (Wave 4)
 Last Completed Sprint: SPRINT_042 (Tree-Based Predictive Models) → main (#335)
 Capability Tracks: Foundation COMPLETE; Data COMPLETE (core); Research COMPLETE (core); Strategy 6A COMPLETE; Phase 8A dry-run + S024 on main; Dashboard / Live Paper / public demo COMPLETE; Phase 10A COMPLETE (S039–S041); Phase 10B COMPLETE (S042, #335); Phase 10C S043 IN PROGRESS
-Recent: S043 Wave 2 torch feedforward adapter merged to sprint/predictive-neural-models (#338). Wave 3 adds LSTM/GRU sequence families.
+Recent: S043 Wave 3 LSTM/GRU sequence families merged to sprint/predictive-neural-models (#339). Wave 4 registers learning_curves and window_accounting panels.
 ```
 
 ---
@@ -283,8 +283,8 @@ No new ADR (ADR-0024 reserved for IDEA-014). See `SPRINT_042.md` and
 `S042_WAVE0_DECISIONS.md`.
 
 **Sprint 043 — Neural Predictive Models (Phase 10C)** is **IN PROGRESS**
-on `sprint/predictive-neural-models` (Wave 0 #336, Wave 1 #337, Wave 2 #338;
-Wave 3 LSTM/GRU in progress).
+on `sprint/predictive-neural-models` (Wave 0 #336, Wave 1 #337, Wave 2 #338,
+Wave 3 #339; Wave 4 learning-curve / window-accounting panels in progress).
 
 See `SPRINT_043.md` and `S043_WAVE0_DECISIONS.md`. Sequence windowing is
 domain-only. Extra `dl` is CPU PyTorch, not in default `dev`, and independent
@@ -482,11 +482,11 @@ Sprint 042 is complete on `main` (#335).
 
 ### Sprint 043 — In Progress (Phase 10C neural)
 
-**Status:** IN PROGRESS (Wave 0 on `sprint/predictive-neural-models`, 2026-08-26)
+**Status:** IN PROGRESS (Wave 4 on `sprint/predictive-neural-models`, 2026-08-27)
 **Plan:** `docs/planning/sprints/SPRINT_043.md`
 **Wave 0:** `docs/planning/sprints/S043_WAVE0_DECISIONS.md`
 **ADR:** ADR-0023 (ACCEPTED; no new ADR this sprint; ADR-0024 reserved for IDEA-014)
-**Tasks:** 1 / 21
+**Tasks:** 18 / 21
 **Branch:** `sprint/predictive-neural-models`
 **Scope:** extra `dl` (CPU PyTorch), sequence windows, feedforward / LSTM / GRU,
 learning-curve and window-accounting panels, leaderboard vs trees and baselines
@@ -620,10 +620,10 @@ determinism and known-signal tests
 
 ## 7. Blocked Work
 
-Nothing is technically blocked. Sprint 043 Wave 3 (LSTM/GRU) uses extra
-`dl` only in the dedicated CI job. Sprint 017 integration PR from
-`sprint/model-research-methodology-mvp` to `main` remains pending and does
-not block Phase 10.
+Nothing is technically blocked. Sprint 043 Wave 4 (report panels) is extra-free.
+Wave 3 LSTM/GRU uses extra `dl` only in the dedicated CI job. Sprint 017
+integration PR from `sprint/model-research-methodology-mvp` to `main` remains
+pending and does not block Phase 10.
 
 ---
 
@@ -712,7 +712,7 @@ Sprint 041 Predictive Research report COMPLETED on main (#325; #320–#324).
 Sprint 042 tree-based predictive models COMPLETED on main (#335; #326–#334).
 ADR-0023 ACCEPTED. Phase 10A and Phase 10B are complete.
 
-Next: Sprint 043 — neural predictive models (Wave 0 on sprint/predictive-neural-models).
+Next: Sprint 043 — neural predictive models (Wave 4 on sprint/predictive-neural-models).
 
 Catalog in parallel (does not block S043):
     wick / distance catalog PRs
