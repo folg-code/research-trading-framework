@@ -452,7 +452,7 @@ Published DatasetRef
   → PredictiveRunEnvelope (predictions.parquet, metrics.json, opaque blobs)
   → analyze_predictive_run (writes metrics.json from predictions; never deserializes model blobs)
   → compare_predictive_runs (optional leaderboard.json on one dataset fingerprint)
-  → render_predictive_research_report (read-only HTML; optional importance/selection/leaderboard sidecars)
+  → render_predictive_research_report (read-only HTML; optional importance/selection/leaderboard/learning_curves/window_accounting sidecars)
 ```
 
 CLIs: `scripts/predictive_research/build_predictive_dataset.py`,
@@ -496,6 +496,8 @@ characters of that fingerprint.
   selection.json         # optional; bounded candidate selection
   importance.json        # native + permutation importance and train/test gap
   leaderboard.json       # optional; single-study comparison of run dirs
+  learning_curves.json   # optional; inner-train / inner-val loss per fold
+  window_accounting.json # optional; dropped windows and effective sample
   models/fold_{n}.bin    # opaque; reproduce by re-fitting from the manifest
 ```
 
@@ -512,6 +514,8 @@ only, tagged with library name and version. No workflow depends on reloading the
 - Is native gain aligned with out-of-sample permutation importance, or only with the training fold?
 - How large is the |train - test| gap on the primary metric per fold?
 - Is the result stable across folds, or does one fold carry the pooled metric?
+- Did inner early stopping restore an epoch before the last recorded loss?
+- How many sequence windows were dropped by incomplete lookback, gaps, or fold boundaries?
 
 ---
 

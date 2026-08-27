@@ -61,7 +61,8 @@ def analyze_predictive_run(
 ) -> AnalyzePredictiveRunResult:
     """Load predictions, compute per-fold and pooled metrics, optionally persist.
 
-    Does not call ``joblib.load`` or inspect ``models/fold_*.bin``. Reference
+    Does not call ``joblib.load`` or inspect ``models/fold_*.bin``. Does not
+    load ``learning_curves.json`` or ``window_accounting.json``. Reference
     baselines use TRAIN labels from the dataset envelope plus shuffled TEST
     predictions.
     """

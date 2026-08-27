@@ -394,6 +394,111 @@ def build_selection_trace_figure(
     return figure
 
 
+def build_learning_curves_figure(go: Any, view: PredictiveReportViewModel) -> Any:
+    """Inner-train and inner-validation loss per epoch, stopping epoch marked."""
+    figure = go.Figure()
+    for index, curve in enumerate(view.learning_curves):
+        color = _FOLD_COLORS[index % len(_FOLD_COLORS)]
+        fold_name = f"Fold {curve.fold_id}"
+        figure.add_trace(
+            go.Scatter(
+                name=f"{fold_name} train",
+                x=list(curve.epochs),
+                y=list(curve.train_loss),
+                mode="lines",
+                line={"color": color, "width": 2},
+            )
+        )
+        figure.add_trace(
+            go.Scatter(
+                name=f"{fold_name} validation",
+                x=list(curve.epochs),
+                y=list(curve.validation_loss),
+                mode="lines",
+                line={"color": color, "width": 2, "dash": "dash"},
+            )
+        )
+        stop_loss = curve.validation_loss[curve.epochs.index(curve.stopping_epoch)]
+        figure.add_trace(
+            go.Scatter(
+                name=f"{fold_name} stop",
+                x=[curve.stopping_epoch],
+                y=[stop_loss],
+                mode="markers",
+                marker={"size": 12, "symbol": "diamond", "color": color, "line": {"width": 1}},
+                hovertemplate=(
+                    f"{fold_name} stopping epoch=%{{x}}<br>validation loss=%{{y:.4f}}"
+                    "<extra></extra>"
+                ),
+            )
+        )
+    figure.update_layout(
+        height=max(360, 40 * len(view.learning_curves) + 280),
+        xaxis_title="epoch",
+        yaxis_title="inner loss",
+        legend_title_text="",
+        margin={"t": 32, "b": 40},
+    )
+    return figure
+
+
+def build_window_accounting_figure(go: Any, view: PredictiveReportViewModel) -> Any:
+    """Dropped windows and effective sample stacked per fold / role."""
+    labels = [f"Fold {bar.fold_id} {bar.fold_role}" for bar in view.window_accounting]
+    figure = go.Figure()
+    figure.add_trace(
+        go.Bar(
+            name="Effective sample",
+            x=labels,
+            y=[bar.effective_sample for bar in view.window_accounting],
+            marker_color="#16a34a",
+            text=[format_count(bar.effective_sample) for bar in view.window_accounting],
+            textposition="inside",
+        )
+    )
+    figure.add_trace(
+        go.Bar(
+            name="Dropped incomplete",
+            x=labels,
+            y=[bar.windows_dropped_incomplete for bar in view.window_accounting],
+            marker_color="#94a3b8",
+            text=[format_count(bar.windows_dropped_incomplete) for bar in view.window_accounting],
+            textposition="inside",
+        )
+    )
+    figure.add_trace(
+        go.Bar(
+            name="Dropped gap",
+            x=labels,
+            y=[bar.windows_dropped_gap for bar in view.window_accounting],
+            marker_color="#f59e0b",
+            text=[format_count(bar.windows_dropped_gap) for bar in view.window_accounting],
+            textposition="inside",
+        )
+    )
+    figure.add_trace(
+        go.Bar(
+            name="Dropped fold boundary",
+            x=labels,
+            y=[bar.windows_dropped_fold_boundary for bar in view.window_accounting],
+            marker_color="#ef4444",
+            text=[
+                format_count(bar.windows_dropped_fold_boundary) for bar in view.window_accounting
+            ],
+            textposition="inside",
+        )
+    )
+    figure.update_layout(
+        barmode="stack",
+        height=max(360, 48 * len(view.window_accounting) + 160),
+        yaxis_title="windows",
+        legend_title_text="",
+        margin={"t": 32, "b": 80},
+    )
+    figure.update_xaxes(tickangle=-20)
+    return figure
+
+
 def build_prediction_quality_figure(
     go: Any,
     make_subplots: Any,
@@ -643,6 +748,8 @@ def build_panel_figure(
         "feature_importance": lambda: build_feature_importance_figure(go, make_subplots, view),
         "leaderboard": lambda: build_leaderboard_figure(go, view),
         "selection_trace": lambda: build_selection_trace_figure(go, make_subplots, view),
+        "learning_curves": lambda: build_learning_curves_figure(go, view),
+        "window_accounting": lambda: build_window_accounting_figure(go, view),
     }
     builder = builders.get(panel_id)
     if builder is None:

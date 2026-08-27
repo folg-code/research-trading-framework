@@ -447,6 +447,8 @@ optional extras `ml` / `ml-trees` and `infrastructure/ml/` adapters.
 | Bounded candidate selection (`CandidateSetSpec`) | `research/predictive/selection.py` |
 | Native + permutation importance, train/test gap | `research/predictive/importance.py` |
 | Single-study leaderboard | `research/predictive/leaderboard.py` |
+| Inner-training learning curves | `research/predictive/learning_curves.py` |
+| Sequence windows + dropped-window accounting | `research/predictive/windows.py` |
 | Dataset envelope, fingerprint, repository | `research/datasets/predictive.py` |
 | Run envelope, fingerprint, repository | `research/datasets/predictive_run.py` |
 | Workflow orchestration (build, run, analyze, render) | `application/predictive_research/` |
@@ -468,7 +470,7 @@ Published DatasetRef + PredictiveStudySpec (YAML/JSON)
   → run_predictive_research (fit on TRAIN per fold, predict on TEST)
   → PredictiveRunEnvelope (predictions, metrics, opaque blobs)
   → analyze_predictive_run (writes metrics.json from predictions; never deserializes model blobs)
-  → render_predictive_research_report (offline HTML; optional importance/selection/leaderboard sidecars; never fits or loads model blobs)
+  → render_predictive_research_report (offline HTML; optional importance/selection/leaderboard/learning_curves/window_accounting sidecars; never fits or loads model blobs)
 ```
 
 Samples are **evaluation bars**, not `SignalOccurrence` rows. Labels reuse
@@ -519,6 +521,8 @@ Storage:
   selection.json         # candidate scores per fold; absent on single-estimator runs
   importance.json        # native + permutation importance and train/test gap
   leaderboard.json       # optional; single-study comparison of run dirs
+  learning_curves.json   # optional; inner-train / inner-val loss per fold
+  window_accounting.json # optional; dropped windows and effective sample
   models/fold_{n}.bin    # opaque; reproduce by re-fitting, not deserializing
 ```
 

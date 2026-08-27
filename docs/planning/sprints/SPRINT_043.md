@@ -5,7 +5,7 @@
 ```text
 Sprint: 043
 Phase: Phase 10C — Neural Predictive Models
-Status: IN PROGRESS (Wave 3)
+Status: IN PROGRESS (Wave 4)
 Planned Start: 2026-08-26
 Planned End: TBD
 Sprint Goal Owner: Project Maintainer
@@ -74,8 +74,8 @@ every other family, and the leaderboard shows honestly how it compares to trees 
 - [x] Feedforward MLP (tabular) and LSTM/GRU (sequence) architectures.
 - [x] Determinism configuration and a documented tolerance policy (§5).
 - [x] Environment-gated test tier, keeping standard CI fast (§6).
-- [ ] Report panel: learning curves per fold with stopping epoch.
-- [ ] Leaderboard entries alongside trees and baselines.
+- [x] Report panel: learning curves per fold with stopping epoch.
+- [x] Leaderboard entries alongside trees and baselines.
 
 ## 3. Out of scope
 
@@ -188,10 +188,10 @@ training loop sits behind the gate. The `dl` extra is never installed in the def
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S043-T015 | Learning curve capture (train/validation loss per epoch, stopping epoch) | TODO |
-| S043-T016 | Report panel: learning curves per fold | TODO |
-| S043-T017 | Report panel: window accounting (dropped windows, effective sample) | TODO |
-| S043-T018 | Leaderboard entries for neural families | TODO |
+| S043-T015 | Learning curve capture (train/validation loss per epoch, stopping epoch) | DONE |
+| S043-T016 | Report panel: learning curves per fold | DONE |
+| S043-T017 | Report panel: window accounting (dropped windows, effective sample) | DONE |
+| S043-T018 | Leaderboard entries for neural families | DONE |
 
 ### Wave 5 — Closure
 
@@ -201,7 +201,7 @@ training loop sits behind the gate. The `dl` extra is never installed in the def
 | S043-T020 | Import test: framework usable without the `dl` extra | TODO |
 | S043-T021 | Docs: RESEARCH_METHODOLOGIES, MODULE_MAP, CURRENT_STATUS | TODO |
 
-**Progress:** 14 / 21 tasks
+**Progress:** 18 / 21 tasks
 
 ---
 

@@ -21,6 +21,7 @@ from trading_framework.application.predictive_research import (
 from trading_framework.infrastructure.storage.paths import (
     predictive_research_run_dir,
     predictive_research_run_importance_path,
+    predictive_research_run_learning_curves_path,
     predictive_research_run_metrics_path,
     predictive_research_run_model_path,
 )
@@ -93,19 +94,47 @@ class _ClassificationFitted:
         return None
 
 
+class _CurveFitted:
+    def predict(self, features: np.ndarray) -> np.ndarray:
+        return np.full(features.shape[0], 0.25, dtype=np.float64)
+
+    def predict_proba(self, features: np.ndarray) -> np.ndarray | None:
+        return None
+
+    def describe(self) -> EstimatorDescription:
+        return EstimatorDescription(
+            library="torch",
+            version="2.6.0",
+            resolved_params={
+                "family": "torch.feedforward.regressor",
+                "inner_train_loss": [0.9, 0.7, 0.5, 0.45],
+                "inner_validation_loss": [0.95, 0.72, 0.55, 0.58],
+                "stopping_epoch": 3,
+            },
+        )
+
+    def native_feature_importance(self) -> object | None:
+        return None
+
+
 class _RecordingEstimator:
-    def __init__(self, fitted: _RecordingFitted | _ClassificationFitted | None = None) -> None:
+    def __init__(
+        self,
+        fitted: _RecordingFitted | _ClassificationFitted | _CurveFitted | None = None,
+    ) -> None:
         self.fit_role_values: list[tuple[str, ...]] = []
         self.fit_row_counts: list[int] = []
         self.fit_feature_widths: list[int] = []
-        self._fitted: _RecordingFitted | _ClassificationFitted = fitted or _RecordingFitted()
+        self._fitted: _RecordingFitted | _ClassificationFitted | _CurveFitted = (
+            fitted or _RecordingFitted()
+        )
 
     def fit(
         self,
         features: np.ndarray,
         target: np.ndarray,
         sample_metadata: object,
-    ) -> _RecordingFitted | _ClassificationFitted:
+    ) -> _RecordingFitted | _ClassificationFitted | _CurveFitted:
         assert isinstance(sample_metadata, tuple)
         roles = tuple(
             role.value if isinstance(role, FoldRole) else str(role) for role in sample_metadata
@@ -320,6 +349,40 @@ def test_run_writes_test_only_predictions_and_identical_run_id(
     assert loaded.predictions.height == predictions.height
     assert loaded.manifest.library == "testlib"
     assert loaded.manifest.library_version == "0.0"
+    assert not predictive_research_run_learning_curves_path(storage_root, first.run_id).exists()
+
+
+def test_run_writes_learning_curves_sidecar_from_inner_losses(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    storage_root = tmp_path / "workspace"
+    dataset_ref = _write_dataset(storage_root)
+    recorder = _RecordingEstimator(_CurveFitted())
+    _install_fakes(monkeypatch, recorder, family="torch.feedforward.regressor")
+
+    result = run_predictive_research(
+        RunPredictiveResearchRequest(
+            dataset_ref=dataset_ref,
+            estimator=EstimatorSpec(
+                family="torch.feedforward.regressor",
+                hyperparameters={"hidden_sizes": [8], "max_epochs": 4},
+                seed=7,
+                task_type=TaskType.REGRESSION,
+            ),
+            storage_root=storage_root,
+            persist=True,
+            clock=FixedClock(datetime(2024, 7, 1, 12, 0, tzinfo=UTC)),
+        )
+    )
+
+    path = predictive_research_run_learning_curves_path(storage_root, result.run_id)
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    assert payload["schema_version"] == "learning_curves.v1"
+    fold_ids = [fold["fold_id"] for fold in payload["folds"]]
+    assert fold_ids == sorted(set(result.envelope.predictions.get_column("fold_id").to_list()))
+    assert payload["folds"][0]["stopping_epoch"] == 3
+    assert payload["folds"][0]["epochs"] == [1, 2, 3, 4]
+    assert payload["folds"][0]["train_loss"] == [0.9, 0.7, 0.5, 0.45]
 
 
 def test_run_carries_classification_forward_return_and_positive_class_proba(

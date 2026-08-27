@@ -28,6 +28,8 @@ Canonical workspace root (``--storage-root`` / operator workspace)::
             selection.json    # optional; bounded candidate selection
             importance.json   # native + permutation + train/test gap
             leaderboard.json  # optional; single-study comparison artifact
+            learning_curves.json   # optional; inner-train / inner-val loss per fold
+            window_accounting.json # optional; dropped windows and effective sample
             models/fold_{n}.bin
       runtime/            # execution dry-run state (operator-managed)
       reports/            # optional loose reports (prefer run-local report/)
@@ -148,6 +150,16 @@ def predictive_research_run_importance_path(root: Path, run_id: str) -> Path:
 def predictive_research_run_leaderboard_path(root: Path, run_id: str) -> Path:
     """Return the study-leaderboard path written beside a predictive run."""
     return predictive_research_run_dir(root, run_id) / "leaderboard.json"
+
+
+def predictive_research_run_learning_curves_path(root: Path, run_id: str) -> Path:
+    """Return the inner-training learning-curve sidecar path for one run."""
+    return predictive_research_run_dir(root, run_id) / "learning_curves.json"
+
+
+def predictive_research_run_window_accounting_path(root: Path, run_id: str) -> Path:
+    """Return the dropped-window accounting sidecar path for one run."""
+    return predictive_research_run_dir(root, run_id) / "window_accounting.json"
 
 
 def dataset_metadata_path(root: Path, dataset_ref: DatasetRef) -> Path:

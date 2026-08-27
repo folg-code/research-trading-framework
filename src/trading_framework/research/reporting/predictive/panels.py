@@ -11,7 +11,7 @@ from trading_framework.research.reporting.predictive.view_models import (
     PredictiveReportViewModel,
 )
 
-RESERVED_PANEL_IDS = frozenset({"learning_curves"})
+RESERVED_PANEL_IDS: frozenset[str] = frozenset()
 
 
 class PanelStatus(StrEnum):
@@ -94,6 +94,24 @@ def _selection_trace(view: PredictiveReportViewModel) -> tuple[PanelStatus, str 
     return (
         PanelStatus.SKIP,
         "Skipped: no selection.json sidecar for this run (single-estimator runs do not select).",
+    )
+
+
+def _learning_curves(view: PredictiveReportViewModel) -> tuple[PanelStatus, str | None]:
+    if view.learning_curves:
+        return PanelStatus.RENDER, None
+    return (
+        PanelStatus.SKIP,
+        "Skipped: no learning_curves.json sidecar for this run.",
+    )
+
+
+def _window_accounting(view: PredictiveReportViewModel) -> tuple[PanelStatus, str | None]:
+    if view.window_accounting:
+        return PanelStatus.RENDER, None
+    return (
+        PanelStatus.SKIP,
+        "Skipped: no window_accounting.json sidecar for this run.",
     )
 
 
@@ -205,6 +223,25 @@ PREDICTIVE_REPORT_PANELS: tuple[PanelDefinition, ...] = (
             "|train - test| gap on the primary metric is overfitting, not skill."
         ),
         applicability=_selection_trace,
+    ),
+    PanelDefinition(
+        panel_id="learning_curves",
+        title="Learning curves",
+        intro=(
+            "Train and inner-validation loss come from the inner early-stopping run, "
+            "not a TEST-supervised refit. The marker is the epoch that was restored."
+        ),
+        applicability=_learning_curves,
+    ),
+    PanelDefinition(
+        panel_id="window_accounting",
+        title="Window accounting",
+        intro=(
+            "A long lookback on a short fold can discard most samples. Effective sample "
+            "is windows built after DROP; a strong metric on a tiny remainder is not "
+            "the same study."
+        ),
+        applicability=_window_accounting,
     ),
 )
 

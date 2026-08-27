@@ -21,6 +21,7 @@ from trading_framework.core.exceptions import ValidationError
 from trading_framework.infrastructure.ml.registry import dump_fitted_estimator, resolve_estimator
 from trading_framework.infrastructure.storage.paths import (
     predictive_research_run_importance_path,
+    predictive_research_run_learning_curves_path,
     predictive_research_run_model_path,
     predictive_research_run_selection_path,
 )
@@ -52,6 +53,12 @@ from trading_framework.research.predictive.importance import (
     primary_gap,
 )
 from trading_framework.research.predictive.labels import LabelKind
+from trading_framework.research.predictive.learning_curves import (
+    FoldLearningCurve,
+    LearningCurves,
+    fold_learning_curve_from_resolved_params,
+    write_learning_curves,
+)
 from trading_framework.research.predictive.metrics import (
     PredictiveMetricsReport,
     selection_metric_value,
@@ -149,6 +156,7 @@ def run_predictive_research(request: RunPredictiveResearchRequest) -> RunPredict
     library_version = ""
     fold_traces: list[FoldSelectionTrace] = []
     importance_records: list[FoldImportanceRecord] = []
+    learning_curve_folds: list[FoldLearningCurve] = []
     winner_spec = request.estimator
 
     fold_ids = [boundary.fold_id for boundary in envelope.folds]
@@ -181,6 +189,9 @@ def run_predictive_research(request: RunPredictiveResearchRequest) -> RunPredict
             train_target = _label_vector(train_rows)
             fitted = single_estimator.fit(train_features, train_target, train_roles)
         description = fitted.describe()
+        curve = fold_learning_curve_from_resolved_params(fold_id, description.resolved_params)
+        if curve is not None:
+            learning_curve_folds.append(curve)
         if description_payload is None:
             description_payload = {
                 "library": description.library,
@@ -293,6 +304,11 @@ def run_predictive_research(request: RunPredictiveResearchRequest) -> RunPredict
             json.dumps(importance_trace.to_dict(), indent=2),
             encoding="utf-8",
         )
+        if learning_curve_folds:
+            write_learning_curves(
+                predictive_research_run_learning_curves_path(request.storage_root, run_id),
+                LearningCurves(folds=tuple(learning_curve_folds)),
+            )
     return RunPredictiveResearchResult(
         run_id=run_id,
         run_ref=run_ref,

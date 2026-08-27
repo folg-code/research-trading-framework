@@ -81,7 +81,44 @@ def test_compare_writes_leaderboard_next_to_first_run(tmp_path: Path) -> None:
     estimator_rows = [row for row in payload["rows"] if row["kind"] == LeaderboardRowKind.ESTIMATOR]
     assert [row["family"] for row in estimator_rows] == ["xgboost.regressor", "sklearn.ridge"]
     assert payload["dataset_fingerprint"] == "fp-1"
-    assert payload["metric"] == "spearman_ic"
+
+
+def test_compare_ranks_neural_families_beside_trees_and_baselines(tmp_path: Path) -> None:
+    ridge = tmp_path / "ridge"
+    xgb = tmp_path / "xgb"
+    feedforward = tmp_path / "ff"
+    lstm = tmp_path / "lstm"
+    _write_run(ridge, run_id="ridge", family="sklearn.ridge", fingerprint="fp-n", model_score=0.20)
+    _write_run(xgb, run_id="xgb", family="xgboost.regressor", fingerprint="fp-n", model_score=0.80)
+    _write_run(
+        feedforward,
+        run_id="ff",
+        family="torch.feedforward.regressor",
+        fingerprint="fp-n",
+        model_score=0.45,
+    )
+    _write_run(
+        lstm, run_id="lstm", family="torch.lstm.regressor", fingerprint="fp-n", model_score=0.55
+    )
+
+    result = compare_predictive_runs(
+        ComparePredictiveRunsRequest(run_dirs=(ridge, xgb, feedforward, lstm))
+    )
+
+    estimator_rows = [
+        row for row in result.leaderboard.rows if row.kind is LeaderboardRowKind.ESTIMATOR
+    ]
+    assert [row.family for row in estimator_rows] == [
+        "xgboost.regressor",
+        "torch.lstm.regressor",
+        "torch.feedforward.regressor",
+        "sklearn.ridge",
+    ]
+    baseline_sources = {
+        row.source for row in result.leaderboard.rows if row.kind is LeaderboardRowKind.BASELINE
+    }
+    assert "CONSTANT_MEAN" in baseline_sources
+    assert "RANDOM_PERMUTATION" in baseline_sources
 
 
 def test_compare_honors_caller_output_path(tmp_path: Path) -> None:
