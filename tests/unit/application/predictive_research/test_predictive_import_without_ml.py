@@ -52,12 +52,14 @@ assert render_predictive_report.main is not None
 assert registered_families()['xgboost.regressor'] == 'ml-trees'
 assert registered_families()['lightgbm.regressor'] == 'ml-trees'
 assert registered_families()['catboost.classifier'] == 'ml-trees'
+assert registered_families()['torch.feedforward.regressor'] == 'dl'
+assert registered_families()['torch.feedforward.classifier'] == 'dl'
 
 from scripts.predictive_research import compare_predictive_runs as compare_cli
 assert compare_cli.main is not None
 assert predictive.build_predictive_leaderboard is not None
 
-blocked = ('sklearn', 'xgboost', 'lightgbm', 'catboost')
+blocked = ('sklearn', 'xgboost', 'lightgbm', 'catboost', 'torch')
 loaded = [
     name for name in sys.modules
     if name in blocked or name.startswith(tuple(root + '.' for root in blocked))

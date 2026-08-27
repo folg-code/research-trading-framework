@@ -5,7 +5,7 @@
 ```text
 Sprint: 043
 Phase: Phase 10C — Neural Predictive Models
-Status: IN PROGRESS (Wave 0)
+Status: IN PROGRESS (Wave 2)
 Planned Start: 2026-08-26
 Planned End: TBD
 Sprint Goal Owner: Project Maintainer
@@ -67,13 +67,13 @@ every other family, and the leaderboard shows honestly how it compares to trees 
 
 ## 2. In scope
 
-- [ ] Optional extra `dl` = PyTorch (CPU build).
-- [ ] `SequenceWindowSpec` in the domain — windowing rules, no tensor library.
-- [ ] Window builder enforcing fold containment (§4).
-- [ ] Torch adapter in `infrastructure/ml/torch/`: training loop, early stopping, seeding.
+- [x] Optional extra `dl` = PyTorch (CPU build).
+- [x] `SequenceWindowSpec` in the domain — windowing rules, no tensor library.
+- [x] Window builder enforcing fold containment (§4).
+- [x] Torch adapter in `infrastructure/ml/torch/`: training loop, early stopping, seeding.
 - [ ] Feedforward MLP (tabular) and LSTM/GRU (sequence) architectures.
-- [ ] Determinism configuration and a documented tolerance policy (§5).
-- [ ] Environment-gated test tier, keeping standard CI fast (§6).
+- [x] Determinism configuration and a documented tolerance policy (§5).
+- [x] Environment-gated test tier, keeping standard CI fast (§6).
 - [ ] Report panel: learning curves per fold with stopping epoch.
 - [ ] Leaderboard entries alongside trees and baselines.
 
@@ -160,20 +160,20 @@ training loop sits behind the gate. The `dl` extra is never installed in the def
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S043-T002 | `SequenceWindowSpec` + validation | TODO |
-| S043-T003 | Window builder with fold containment and gap handling | TODO |
-| S043-T004 | Dropped-window accounting persisted on the run manifest | TODO |
-| S043-T005 | Window leakage tests (no cross-role, no cross-fold windows) | TODO |
+| S043-T002 | `SequenceWindowSpec` + validation | DONE |
+| S043-T003 | Window builder with fold containment and gap handling | DONE |
+| S043-T004 | Dropped-window accounting persisted on the run manifest | DONE |
+| S043-T005 | Window leakage tests (no cross-role, no cross-fold windows) | DONE |
 
 ### Wave 2 — Torch adapter
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S043-T006 | Optional extra `dl` + missing-extra error | TODO |
-| S043-T007 | Adapter skeleton implementing `PredictiveEstimator` | TODO |
-| S043-T008 | Training loop: batching, optimizer, loss per task type | TODO |
-| S043-T009 | Early stopping on inner validation split (never outer TEST) | TODO |
-| S043-T010 | Seeding + deterministic algorithm configuration | TODO |
+| S043-T006 | Optional extra `dl` + missing-extra error | DONE |
+| S043-T007 | Adapter skeleton implementing `PredictiveEstimator` | DONE |
+| S043-T008 | Training loop: batching, optimizer, loss per task type | DONE |
+| S043-T009 | Early stopping on inner validation split (never outer TEST) | DONE |
+| S043-T010 | Seeding + deterministic algorithm configuration | DONE |
 
 ### Wave 3 — Architectures
 
@@ -201,7 +201,7 @@ training loop sits behind the gate. The `dl` extra is never installed in the def
 | S043-T020 | Import test: framework usable without the `dl` extra | TODO |
 | S043-T021 | Docs: RESEARCH_METHODOLOGIES, MODULE_MAP, CURRENT_STATUS | TODO |
 
-**Progress:** 1 / 21 tasks
+**Progress:** 10 / 21 tasks
 
 ---
 

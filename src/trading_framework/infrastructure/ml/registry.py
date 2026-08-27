@@ -122,6 +122,24 @@ def _register_sklearn_families() -> None:
     register_family("sklearn.logistic", extra="ml", factory=create_logistic_estimator)
 
 
+def _register_torch_families() -> None:
+    from trading_framework.infrastructure.ml.torch.factories import (
+        create_torch_feedforward_classifier,
+        create_torch_feedforward_regressor,
+    )
+
+    register_family(
+        "torch.feedforward.regressor",
+        extra="dl",
+        factory=create_torch_feedforward_regressor,
+    )
+    register_family(
+        "torch.feedforward.classifier",
+        extra="dl",
+        factory=create_torch_feedforward_classifier,
+    )
+
+
 def _register_tree_families() -> None:
     from trading_framework.infrastructure.ml.trees.catboost.factories import (
         create_catboost_classifier,
@@ -146,3 +164,4 @@ def _register_tree_families() -> None:
 
 _register_sklearn_families()
 _register_tree_families()
+_register_torch_families()
