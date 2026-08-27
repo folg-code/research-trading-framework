@@ -5,9 +5,9 @@
 ```text
 Sprint: 043
 Phase: Phase 10C — Neural Predictive Models
-Status: COMPLETE on sprint/predictive-neural-models (21/21; not yet merged to main)
+Status: COMPLETE on main (#342, 21/21)
 Planned Start: 2026-08-26
-Planned End: TBD
+Planned End: 2026-08-27
 Sprint Goal Owner: Project Maintainer
 Depends On: SPRINT_040 (estimator seam), SPRINT_041 (report panels), SPRINT_042 (leaderboard)
 Sprint Branch: sprint/predictive-neural-models
