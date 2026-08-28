@@ -168,13 +168,13 @@ dashboard pages). DuckDB stays the Parquet read path, not a registry
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S044-T004 | Study picker view | TODO |
-| S044-T005 | Leaderboard sorted by baseline delta, flags visible in the row | TODO |
-| S044-T006 | Run detail: per-fold metrics, stability, buckets, calibration | TODO |
-| S044-T007 | Importance panel (present only when the run persisted it) | TODO |
-| S044-T008 | Provenance panel + offline report link | TODO |
-| S044-T009 | Page registration `6_Predictive_Research.py` + navigation | TODO |
-| S044-T010 | Empty-state and missing-artifact handling | TODO |
+| S044-T004 | Study picker view | DONE |
+| S044-T005 | Leaderboard sorted by baseline delta, flags visible in the row | DONE |
+| S044-T006 | Run detail: per-fold metrics, stability, buckets, calibration | DONE |
+| S044-T007 | Importance panel (present only when the run persisted it) | DONE |
+| S044-T008 | Provenance panel + offline report link | DONE |
+| S044-T009 | Page registration `6_Predictive_Research.py` + navigation | DONE |
+| S044-T010 | Empty-state and missing-artifact handling | DONE |
 
 ### Wave 3 — Gate
 
@@ -194,7 +194,7 @@ dashboard pages). DuckDB stays the Parquet read path, not a registry
 | S044-T017 | RESEARCH_METHODOLOGIES: Predictive Research methodology entry | TODO |
 | S044-T018 | MODULE_MAP + DATA_WORKFLOWS final update for Phase 10 | TODO |
 
-**Progress:** 3 / 18 tasks
+**Progress:** 10 / 18 tasks
 
 ---
 
