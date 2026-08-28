@@ -24,6 +24,7 @@ class WorkflowKind(StrEnum):
     STRATEGY = "strategy"
     ROBUSTNESS = "robustness"
     LIVE_PAPER = "live_paper"
+    PREDICTIVE = "predictive"
 
 
 @dataclass(frozen=True, slots=True)
@@ -51,6 +52,48 @@ class RunManifest:
     schema_version: str
     summary: RunSummary
     identity: Mapping[str, Any]
+
+
+@dataclass(frozen=True, slots=True)
+class PredictiveDatasetSummary:
+    """One catalog row for a Predictive Research dataset envelope."""
+
+    schema_version: str
+    dataset_id: str
+    dataset_fingerprint: str
+    created_at_utc: datetime | None
+    source_dataset_ref: str | None
+    label_kind: str | None
+    horizon: str | None
+    storage_path: str
+    run_count: int = 0
+
+
+@dataclass(frozen=True, slots=True)
+class PredictiveQualityFlagView:
+    """One dashboard-local quality warning for a predictive run row."""
+
+    code: str
+    message: str
+
+
+@dataclass(frozen=True, slots=True)
+class PredictiveRunSummary:
+    """One catalog row for a Predictive Research run, grouped by dataset fingerprint."""
+
+    schema_version: str
+    run_id: str
+    dataset_id: str
+    dataset_fingerprint: str
+    created_at_utc: datetime | None
+    family: str | None
+    task_type: str | None
+    primary_metric_name: str | None
+    primary_metric_value: float | None
+    baseline_delta: float | None
+    quality_flags: tuple[PredictiveQualityFlagView, ...]
+    storage_path: str
+    has_metrics: bool
 
 
 @dataclass(frozen=True, slots=True)
