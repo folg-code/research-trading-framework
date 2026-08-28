@@ -129,6 +129,7 @@ def test_valid_dataset_and_run_with_metrics(tmp_path: Path) -> None:
     assert dataset.dataset_fingerprint == "fp-d1"
     assert dataset.label_kind == "TRIPLE_BARRIER"
     assert dataset.horizon == "20b"
+    assert dataset.run_count == 1
 
     assert len(catalog.runs) == 1
     run = catalog.runs[0]
@@ -292,6 +293,64 @@ def test_large_train_test_gap_flag(tmp_path: Path) -> None:
     catalog = list_predictive_catalog(tmp_path)
     codes = {flag.code for flag in catalog.runs[0].quality_flags}
     assert "LARGE_TRAIN_TEST_GAP" in codes
+
+
+def test_unstable_across_folds_flag(tmp_path: Path) -> None:
+    _write_dataset(tmp_path)
+    metrics = _metrics(
+        folds={
+            "0": {
+                "MODEL": {"statistical": {"roc_auc": 0.50}},
+                "RANDOM_PERMUTATION": {"statistical": {"roc_auc": 0.50}},
+            },
+            "1": {
+                "MODEL": {"statistical": {"roc_auc": 0.70}},
+                "RANDOM_PERMUTATION": {"statistical": {"roc_auc": 0.51}},
+            },
+        }
+    )
+    _write_run(tmp_path, metrics=metrics)
+
+    catalog = list_predictive_catalog(tmp_path)
+    codes = {flag.code for flag in catalog.runs[0].quality_flags}
+    assert "UNSTABLE_ACROSS_FOLDS" in codes
+
+
+def test_high_exclusion_share_flag(tmp_path: Path) -> None:
+    _write_dataset(
+        tmp_path,
+        exclusion_counts={
+            "candidate_rows": 100,
+            "labelled_rows": 50,
+            "incomplete_horizon": 40,
+            "insufficient_data": 10,
+            "null_features": 0,
+        },
+    )
+    _write_run(tmp_path)
+
+    catalog = list_predictive_catalog(tmp_path)
+    codes = {flag.code for flag in catalog.runs[0].quality_flags}
+    assert "HIGH_EXCLUSION_SHARE" in codes
+
+
+def test_single_fold_dominance_flag(tmp_path: Path) -> None:
+    _write_dataset(
+        tmp_path,
+        fold_summary={
+            "fold_count": 2,
+            "role_counts": {"TRAIN": 600, "TEST": 1000},
+            "per_fold": [
+                {"fold_id": 0, "TRAIN": 300, "TEST": 800},
+                {"fold_id": 1, "TRAIN": 300, "TEST": 200},
+            ],
+        },
+    )
+    _write_run(tmp_path)
+
+    catalog = list_predictive_catalog(tmp_path)
+    codes = {flag.code for flag in catalog.runs[0].quality_flags}
+    assert "SINGLE_FOLD_DOMINANCE" in codes
 
 
 def test_within_permutation_spread_flag(tmp_path: Path) -> None:

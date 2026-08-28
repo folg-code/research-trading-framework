@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import json
+from collections import Counter
 from collections.abc import Callable, Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -163,6 +164,9 @@ def list_predictive_catalog(storage_root: Path) -> PredictiveCatalog:
                 run_issues.append(CatalogIssue(path=str(manifest_path), reason=str(exc)))
                 continue
             runs.append(summary)
+
+    run_counts = Counter(run.dataset_id for run in runs)
+    datasets = [replace(dataset, run_count=run_counts[dataset.dataset_id]) for dataset in datasets]
 
     datasets.sort(
         key=lambda item: (
