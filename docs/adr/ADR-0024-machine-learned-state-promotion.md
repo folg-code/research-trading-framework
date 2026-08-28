@@ -4,8 +4,8 @@
 
 ACCEPTED (Sprint 044)
 
-Approved-by: Project Maintainer — Sprint 044 Wave 3 (T011–T012), confirming the
-proposed positions locked in `S044_WAVE0_DECISIONS.md` D-S044-12.
+Approved-by: Project Maintainer — explicit condition-by-condition approval of
+this ADR's text, 2026-08-28 (PR #345 review response).
 
 This ADR states **conditions**, not an implementation authorization. No trained
 model is promoted by this document; a future sprint against the gate in
