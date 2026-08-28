@@ -392,7 +392,11 @@ through the same estimator protocol, plus bounded candidate selection,
 permutation importance, a single-study leaderboard, and three report panels.
 Phase 10C (Sprint 043) adds optional extra `dl` (CPU PyTorch): feedforward
 MLP on tabular rows and LSTM/GRU on fold-contained sequence windows, plus
-learning-curve and window-accounting report panels. Models do not trade.
+learning-curve and window-accounting report panels. Sprint 044 closes Phase
+10 with a read-only Predictive Research page in `apps/dashboard` (study
+picker, leaderboard sorted by baseline delta, run detail, provenance, and a
+link out to the offline HTML report) and ADR-0024, the IDEA-014 promotion
+gate. Models do not trade.
 
 ### Research Question
 
@@ -410,15 +414,18 @@ learning-curve and window-accounting report panels. Models do not trade.
 - measuring statistical and finance-aware metrics against naive reference baselines,
 - reviewing one run as standalone offline HTML (fold timeline, baselines, calibration,
   native vs permutation importance, selection trace, study leaderboard,
-  learning curves, window accounting).
+  learning curves, window accounting),
+- browsing studies and runs side by side in the dashboard's Predictive
+  Research page (Sprint 044): study picker, baseline-delta leaderboard,
+  per-fold run detail, and provenance, all read from persisted facts.
 
 ### Not Suitable For
 
 - emitting tradable signals,
 - Strategy Research (trades, equity, PnL),
 - Robustness Research (parameter / stress verdicts),
-- Streamlit dashboards (S044),
-- promoting a trained model to Market Analysis (IDEA-014 → S044 / ADR-0024).
+- computing metrics inside the dashboard (it reads persisted facts only; ADR-0022),
+- promoting a trained model to Market Analysis (IDEA-014 → ADR-0024, gated, not implemented).
 
 ### Samples
 
@@ -457,11 +464,20 @@ Published DatasetRef
   → analyze_predictive_run (writes metrics.json from predictions; never deserializes model blobs)
   → compare_predictive_runs (optional leaderboard.json on one dataset fingerprint)
   → render_predictive_research_report (read-only HTML; optional importance/selection/leaderboard/learning_curves/window_accounting sidecars)
+  → apps/dashboard Predictive Research page (DuckDB catalog scan of the same
+      persisted datasets/runs directory tree; study picker → leaderboard →
+      run detail → link to the offline HTML report)
 ```
 
 CLIs: `scripts/predictive_research/build_predictive_dataset.py`,
 `run_predictive_research.py`, `analyze_predictive_run.py`,
 `compare_predictive_runs.py`, `render_predictive_report.py`.
+
+Dashboard: `apps/dashboard` (`pages/6_Predictive_Research.py`, Sprint 044) reads
+the same `manifest.json` / `metrics.json` / `predictions.parquet` facts through
+a read-only catalog scan and its own DTOs — it never imports
+`trading_framework.research` or an ML library (ADR-0022; enforced by
+`tests/unit/test_apps_boundaries.py`).
 
 ### Fold roles
 
@@ -743,7 +759,7 @@ Core rules:
 | Model Research Methodology | Yes                   | Defines a controlled study protocol   |
 | Strategy Research          | Yes                   | Studies complete simulated strategies |
 | Robustness Research        | Yes                   | Evaluates credibility and stability   |
-| Predictive Research        | Yes                   | Studies predictable structure in features (Phase 10A: dataset + baselines + report; not trading) |
+| Predictive Research        | Yes                   | Studies predictable structure in features (Phase 10, Sprints 039–044: dataset, baselines, trees, neural families, report, and dashboard page; not trading) |
 | Portfolio Research         | Planned               | Studies strategy combinations         |
 | Live Execution             | No                    | Applies selected logic operationally  |
 | Visualization              | No                    | Presents persisted results            |
@@ -758,7 +774,8 @@ Use the following documents for deeper context:
 - `README.md` — project overview,
 - `ARCHITECTURE_AND_WORKFLOWS.md` — architectural modules and workflows,
 - `MODULE_MAP.md` — mapping from workflows to source-code packages,
-- Architecture Decision Records (Predictive Research: ADR-0023),
+- Architecture Decision Records (Predictive Research: ADR-0023; ML State
+  promotion gate: ADR-0024),
 - module-specific reference documents,
 - execution and deployment runbooks.
 

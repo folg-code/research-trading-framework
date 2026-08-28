@@ -85,7 +85,7 @@ Research Capability Track
   Phase 7  — Robustness Research                  COMPLETE  (Sprint 016)
   Phase 10A — Predictive Research Foundation      COMPLETE  (Sprints 039–041)
   Phase 10B — Tree-Based Predictive Models        COMPLETE  (Sprint 042)
-  Phase 10C — Neural Predictive Models            IN PROGRESS (Sprint 043 on main; S044 Wave 0)
+  Phase 10C — Neural Predictive Models            COMPLETE  (Sprints 043–044)
 
 Execution Capability Track
   Phase 8 — Replay and Paper Execution            PLANNED
@@ -117,14 +117,12 @@ Market Data policy (facts not indicators, vendor independence): **§14 Research 
 
 Test data tiers and live-data gate: **§15**.
 
-**Recommended next increment:** **Sprint 044 Wave 0 in progress** on
-`sprint/predictive-dashboard-and-gate` (predictive dashboard + IDEA-014 gate).
-Sprint 043 neural models is complete on `main` (#342, 21/21). Sprint 042
-tree-based models is complete on `main` (#335, 22/22). Phase 10A and Phase 10B
-are complete. Phase 10 is **not** closed until S044 T016. Catalog follow-ons
-(wick / distance) remain in parallel. Deferred by default: Phase 4B/6B, Phase 8
-Replay, PBO/CSCV ADR. Stage 3 (`available_at` column / lineage sidecar) and
-Stage 4 (`MarketFrame`) remain independently sequenced.
+**Phase 10 is COMPLETE** (Sprints 039–044): predictive dashboard page, ADR-0024, and the
+IDEA-014 gate all merged. **Recommended next increment: none scheduled by default** — see
+`docs/planning/sprints/SPRINT_044.md` §12 for candidate follow-ons (none committed). Catalog
+follow-ons (wick / distance) remain in parallel. Deferred by default: Phase 4B/6B, Phase 8
+Replay, PBO/CSCV ADR. Stage 3 (`available_at` column / lineage sidecar) and Stage 4
+(`MarketFrame`) remain independently sequenced.
 
 ---
 
@@ -1144,17 +1142,19 @@ Minimum future requirements include:
 
 # 13A. Phase 10 — Predictive (ML) Research
 
-**Status:** Phase 10A COMPLETE on `main`; Phase 10B COMPLETE (Sprint 042, #335, 22/22);
-Phase 10C Sprint 043 COMPLETE on `main` (#342, 21/21); Sprint 044 Wave 0 IN PROGRESS
-on `sprint/predictive-dashboard-and-gate`. Numbered `13A` to avoid
-renumbering sections cited elsewhere.
+**Status:** COMPLETE. Phase 10A COMPLETE on `main`; Phase 10B COMPLETE (Sprint 042, #335,
+22/22); Phase 10C COMPLETE — Sprint 043 (#342, 21/21) and Sprint 044 (predictive dashboard
+page + ADR-0024 + IDEA-014 gate, 18/18) both merged. Numbered `13A` to avoid renumbering
+sections cited elsewhere.
 
 Sprint 039 (dataset foundation: labelled matrix, purged walk-forward folds, persisted envelope,
 leakage suite, ADR-0023), Sprint 040 (estimator seam, sklearn baselines, run envelope, metrics,
 CLIs), and Sprint 041 (offline HTML report) are on `main`. Phase 10A is complete. Sprint 042
 (tree-based models, bounded selection, importance, leaderboard, report panels) is on `main`
 (#335). Sprint 043 (sequence windows, extra `dl`, feedforward + LSTM/GRU, learning curves,
-synthetic comparison) is complete on `main` (#342).
+synthetic comparison) is complete on `main` (#342). Sprint 044 (Predictive Research dashboard
+page, ADR-0024 promotion conditions, IDEA-014 gate document, boundary test and Phase 10
+closure docs) closes the phase.
 
 **Sprint plans:** `SPRINT_039.md` … `SPRINT_044.md`
 
