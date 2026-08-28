@@ -36,6 +36,25 @@ Page: `pages/5_Live_Paper.py` with helpers in `dashboard_app.views.live_paper`.
 - Dashboard only GETs the status API — never starts the worker or submits orders.
 - See `docs/reference/LIVE_PAPER_PIPELINE_INSPECTION.md` and `apps/dashboard/docs/RUNBOOK.md`.
 
+## Predictive Research (Sprint 044)
+
+Page: `pages/6_Predictive_Research.py` with helpers in
+`dashboard_app.views.predictive` and `dashboard_app.catalog.predictive_quality`.
+
+- Catalog scan reads `research/predictive_research/datasets/{dataset_id}/` and
+  `research/predictive_research/runs/{run_id}/` — the same directory tree
+  `scripts/predictive_research/*` writes (`docs/reference/RESEARCH_METHODOLOGIES.md` §8).
+- Study picker → leaderboard (sorted by baseline delta, not the raw metric) →
+  run detail (per-fold metrics, stability, buckets, calibration) → provenance
+  (dataset fingerprint, estimator spec, seeds, library versions) → link to the
+  offline `report.html`.
+- Never deserializes `models/fold_*.bin`; never imports
+  `trading_framework.research`, `trading_framework.application.predictive_research`,
+  `sklearn`, `xgboost` or `torch` — enforced by
+  `tests/unit/test_apps_boundaries.py`.
+- Importance and calibration panels degrade gracefully when a run did not
+  persist that sidecar file.
+
 ## Adding a page
 
 1. Add `pages/N_Name.py` using `configure_page` + `render_sidebar_storage_root`.

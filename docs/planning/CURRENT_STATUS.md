@@ -26,15 +26,21 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 ## 2. Status Metadata
 
 ```text
-Status Date: 2026-08-27
-Current Phase: Phase 10C Neural Predictive Models (S043 complete on main)
-Current Milestone: S043 neural comparison closed; next is S044 dashboard + IDEA-014 gate
-Implementation Status: Sprints 001-006, 008-024, 025-043 on main
+Status Date: 2026-08-28
+Current Phase: Phase 10 — Predictive (ML) Research — COMPLETE (Sprints 039-044)
+Current Milestone: none — Phase 10 closed; next capability not yet planned
+Implementation Status: Sprints 001-006, 008-024, 025-043 on main; S044 complete (18/18) on
+  sprint/predictive-dashboard-and-gate, final integration PR to main pending
 Overall Status: STABLE
-Active Sprint: none (SPRINT_044 planned)
-Last Completed Sprint: SPRINT_043 (Neural Predictive Models) → main (#342)
-Capability Tracks: Foundation COMPLETE; Data COMPLETE (core); Research COMPLETE (core); Strategy 6A COMPLETE; Phase 8A dry-run + S024 on main; Dashboard / Live Paper / public demo COMPLETE; Phase 10A COMPLETE (S039–S041); Phase 10B COMPLETE (S042, #335); Phase 10C S043 COMPLETE on main (#342); S044 next
-Recent: S043 integrated to main (#342; working PRs #336–#341). Feedforward ranked above LSTM on the synthetic known-signal fixture; both beat RANDOM_PERMUTATION.
+Active Sprint: none
+Last Completed Sprint: SPRINT_044 (Predictive dashboard + IDEA-014 gate, Phase 10C closing
+  increment) — 18/18 tasks complete on sprint/predictive-dashboard-and-gate; integration PR to
+  main pending
+Capability Tracks: Foundation COMPLETE; Data COMPLETE (core); Research COMPLETE (core); Strategy 6A COMPLETE; Phase 8A dry-run + S024 on main; Dashboard / Live Paper / public demo COMPLETE; Phase 10 COMPLETE (S039-S044: Foundation, Tree-Based and Neural Predictive Models, dashboard page, ADR-0024 + IDEA-014 gate)
+Recent: S044 Wave 4 closes Phase 10 — dashboard boundary test extended, IDEA-014 status updated
+  to reflect ADR-0024's accepted gate, ROADMAP/CURRENT_STATUS record Phase 10 complete,
+  Predictive Research methodology and module/data-workflow docs added. Sprint 043 integrated to
+  main (#342; working PRs #336-#341).
 ```
 
 ---
@@ -293,6 +299,12 @@ before `fit()` / `predict()`, and fit the scaler on 2d TRAIN rows. On the
 synthetic known-signal fixture, feedforward ranked above LSTM; both beat
 `RANDOM_PERMUTATION`.
 
+**Sprint 044 — Predictive dashboard + IDEA-014 gate (Phase 10C)** is
+**COMPLETE** (18/18) on `sprint/predictive-dashboard-and-gate`; the final
+integration PR into `main` is pending. Plan: `SPRINT_044.md`. Locks:
+`S044_WAVE0_DECISIONS.md`. ADR-0024 (Wave 3) is ACCEPTED. **Phase 10 is
+closed** — see ROADMAP §13A.
+
 ---
 
 ## 4. Completed Capabilities
@@ -473,14 +485,31 @@ Maintenance: `.cursor/rules/documentation.mdc`
 
 ## 6. Work in Progress
 
-**Active sprint:** none. Sprint 043 is complete on `main` (#342, 21/21).
-Next capability is SPRINT_044. Sprint 042 is complete on `main` (#335).
+**Active sprint:** none. Sprint 044 (cut from `main` @ #342) is complete
+(18/18) on `sprint/predictive-dashboard-and-gate`; the final integration PR
+into `main` is pending — that closes Phase 10. Sprint 043 is complete on
+`main` (#342, 21/21). Sprint 042 is complete on `main` (#335).
 
 **Portfolio demo packaging** — `scripts/demo/run_portfolio_demo.py` generates offline HTML artifacts for showcase (workflows + dashboards).
 
 **Sprint 017 — Model Research Methodology MVP (Phase 5B)** — **complete** on `sprint/model-research-methodology-mvp` (Wave 6, 2026-07-15). Final integration PR to `main` pending.
 
 **Plan:** `docs/planning/sprints/SPRINT_017.md` · **Wave 0:** `S017_WAVE0_DECISIONS.md` · **ADR:** ADR-0020 (ACCEPTED) · **Branch:** `sprint/model-research-methodology-mvp`
+
+### Sprint 044 — Closed (Phase 10C closing increment; Phase 10 complete)
+
+**Status:** COMPLETE (18/18) on `sprint/predictive-dashboard-and-gate`;
+final integration PR into `main` pending
+**Plan:** `docs/planning/sprints/SPRINT_044.md`
+**Wave 0:** `docs/planning/sprints/S044_WAVE0_DECISIONS.md`
+**ADR:** ADR-0024 (ACCEPTED)
+**Tasks:** 18 / 18
+**PRs:** #343 (Wave 0), #344 (catalog), #345 (gate + ADR-0024), #346 (page);
+Wave 4 (this PR, boundary test + Phase 10 closure docs)
+**Branch:** `sprint/predictive-dashboard-and-gate`
+**Scope:** read-only Predictive Research page in the dashboard; IDEA-014
+promotion **conditions** (ADR-0024), not an ML Market Analysis component;
+dashboard boundary test; Phase 10 closure documentation
 
 ### Sprint 043 — Closed (Phase 10C neural)
 
@@ -714,16 +743,18 @@ Sprint 040 Predictive Research baselines COMPLETED on main (#319; #310–#318).
 Sprint 041 Predictive Research report COMPLETED on main (#325; #320–#324).
 Sprint 042 tree-based predictive models COMPLETED on main (#335; #326–#334).
 Sprint 043 neural predictive models COMPLETED on main (#342; #336–#341).
-ADR-0023 ACCEPTED. Phase 10A, Phase 10B, and Sprint 043 are complete.
+Sprint 044 predictive dashboard + IDEA-014 gate COMPLETE (18/18) on
+sprint/predictive-dashboard-and-gate; final integration PR to main pending.
+ADR-0023 and ADR-0024 ACCEPTED. Phase 10 (10A, 10B, 10C) is COMPLETE.
 
-Next: Sprint 044 — predictive dashboard + IDEA-014 promotion gate.
+Active: none. Phase 10 is closed (ROADMAP §13A). The next capability is
+**not yet planned** — no Sprint 045 scope exists; see SPRINT_044.md §12 for
+unscheduled candidate follow-ons (ML Market Analysis component gated by
+ADR-0024, cross-sectional predictive studies, SHAP, content-addressed
+artifact store).
 
-Catalog in parallel (does not block S044):
+Catalog in parallel (independent of Phase 10):
     wick / distance catalog PRs
-
-Phase 10 remainder (ROADMAP §13A):
-      S043 neural models COMPLETE on main (#342, 21/21)
-      S044 dashboard page + IDEA-014 promotion gate (ADR-0024)
 
 Deferred relative to that track:
     Phase 4B — Orderflow Market Analysis
@@ -733,6 +764,8 @@ Deferred relative to that track:
     Residual docs / sample-data narrative
 
 Recently completed (dashboard / demo / dry-run / authoring infra / Phase 10A–10C):
+    Sprint 044 — Predictive dashboard + IDEA-014 gate → sprint branch (18/18;
+        working PRs #343–#346; integration PR to main pending) — closes Phase 10
     Sprint 043 — Neural predictive models → main (#342; working PRs #336–#341)
     Sprint 042 — Tree-based predictive models → main (#335; working PRs #326–#334)
     Sprint 041 — Predictive Research report v1 → main (#325; working PRs #320–#324)
@@ -756,7 +789,7 @@ Deferred (explicit):
     Further public-dashboard cosmetics as a default track
 ```
 
-See `docs/planning/sprints/SPRINT_043.md`, `S043_WAVE0_DECISIONS.md`, `SPRINT_042.md`, `S042_WAVE0_DECISIONS.md`, `SPRINT_041.md`, `SPRINT_040.md`, `SPRINT_039.md`, `S041_WAVE0_DECISIONS.md`, `S040_WAVE0_DECISIONS.md`, `S039_WAVE0_DECISIONS.md`, `SPRINT_038.md`, `S037_GATE.md`, and `ROADMAP.md` §11–§13A.
+See `docs/planning/sprints/SPRINT_044.md`, `S044_WAVE0_DECISIONS.md`, `SPRINT_043.md`, `S043_WAVE0_DECISIONS.md`, `SPRINT_042.md`, `S042_WAVE0_DECISIONS.md`, `SPRINT_041.md`, `SPRINT_040.md`, `SPRINT_039.md`, `S041_WAVE0_DECISIONS.md`, `S040_WAVE0_DECISIONS.md`, `S039_WAVE0_DECISIONS.md`, `SPRINT_038.md`, `S037_GATE.md`, and `ROADMAP.md` §11–§13A.
 
 ---
 
@@ -807,7 +840,7 @@ See `docs/planning/sprints/SPRINT_043.md`, `S043_WAVE0_DECISIONS.md`, `SPRINT_04
 | 041 | Predictive Research report v1 (Phase 10A) | COMPLETED | 16 / 16 tasks; main #325; working PRs #320–#324 |
 | 042 | Tree-based predictive models (Phase 10B) | COMPLETED | 22 / 22 tasks; main #335; working PRs #326–#334 |
 | 043 | Neural predictive models (Phase 10C) | COMPLETED | 21 / 21 tasks; main #342; working PRs #336–#341 |
-| 044 | Predictive dashboard + IDEA-014 gate (Phase 10C) | PLANNED | 0 / 18 tasks; `SPRINT_044.md` |
+| 044 | Predictive dashboard + IDEA-014 gate (Phase 10C) | COMPLETED | 18 / 18 tasks; working PRs #343–#346; integration PR to main pending |
 
 ---
 

@@ -24,6 +24,7 @@ class WorkflowKind(StrEnum):
     STRATEGY = "strategy"
     ROBUSTNESS = "robustness"
     LIVE_PAPER = "live_paper"
+    PREDICTIVE = "predictive"
 
 
 @dataclass(frozen=True, slots=True)
@@ -51,6 +52,100 @@ class RunManifest:
     schema_version: str
     summary: RunSummary
     identity: Mapping[str, Any]
+
+
+@dataclass(frozen=True, slots=True)
+class PredictiveDatasetSummary:
+    """One catalog row for a Predictive Research dataset envelope."""
+
+    schema_version: str
+    dataset_id: str
+    dataset_fingerprint: str
+    created_at_utc: datetime | None
+    source_dataset_ref: str | None
+    label_kind: str | None
+    horizon: str | None
+    storage_path: str
+    run_count: int = 0
+
+
+@dataclass(frozen=True, slots=True)
+class PredictiveQualityFlagView:
+    """One dashboard-local quality warning for a predictive run row."""
+
+    code: str
+    message: str
+
+
+@dataclass(frozen=True, slots=True)
+class PredictiveRunSummary:
+    """One catalog row for a Predictive Research run, grouped by dataset fingerprint."""
+
+    schema_version: str
+    run_id: str
+    dataset_id: str
+    dataset_fingerprint: str
+    created_at_utc: datetime | None
+    family: str | None
+    task_type: str | None
+    primary_metric_name: str | None
+    primary_metric_value: float | None
+    baseline_delta: float | None
+    quality_flags: tuple[PredictiveQualityFlagView, ...]
+    storage_path: str
+    has_metrics: bool
+
+
+@dataclass(frozen=True, slots=True)
+class PredictiveFoldMetricRow:
+    """One fold's MODEL / RANDOM_PERMUTATION primary metric and train/test gap."""
+
+    fold_id: str
+    model_value: float | None
+    permutation_value: float | None
+    train_primary: float | None
+    test_primary: float | None
+    primary_gap: float | None
+
+
+@dataclass(frozen=True, slots=True)
+class PredictiveCalibrationBinView:
+    """One pooled MODEL calibration bin (classification runs only)."""
+
+    bin_index: int
+    lower: float | None
+    upper: float | None
+    count: int
+    mean_predicted: float | None
+    mean_observed: float | None
+
+
+@dataclass(frozen=True, slots=True)
+class PredictiveBucketView:
+    """One pooled MODEL prediction-decile bucket (mean forward return)."""
+
+    decile: int
+    mean_forward_return: float | None
+
+
+@dataclass(frozen=True, slots=True)
+class PredictiveImportanceRow:
+    """One feature's permutation importance averaged across folds."""
+
+    feature_name: str
+    mean_importance: float
+    std_importance: float
+
+
+@dataclass(frozen=True, slots=True)
+class PredictiveLearningCurveView:
+    """One fold's inner-train / inner-validation loss curve (D-S043-16)."""
+
+    fold_id: int
+    epochs: tuple[int, ...]
+    train_loss: tuple[float, ...]
+    validation_loss: tuple[float, ...]
+    stopping_epoch: int
 
 
 @dataclass(frozen=True, slots=True)

@@ -92,6 +92,9 @@ Separate app package (not under `trading_framework`):
 ```text
 apps/dashboard/src/dashboard_app/
     catalog/ query/ views/ charts/ caching/ datasources/
+    catalog/predictive_quality.py   # Predictive Research quality flags (Sprint 044)
+    views/predictive.py             # Predictive Research picker/leaderboard/detail view models
+    pages/6_Predictive_Research.py  # Predictive Research page
 ```
 
 ---
@@ -109,6 +112,7 @@ apps/dashboard/src/dashboard_app/
 | Predictive Research | `application/predictive_research/` | `research/predictive/`, `research/datasets/predictive.py`, `research/datasets/predictive_run.py`, `research/reporting/predictive/` | `infrastructure/ml/`, `infrastructure/storage/paths.py` | Dataset envelope; run envelope; offline HTML report |
 | Live Execution | `application/execution/` | `execution/` | `infrastructure/providers/`, `infrastructure/storage/` | Runtime state |
 | Visualization | Application view-model builders | `research/analytics/`, reporting packages | HTML, API and dashboard adapters; `apps/dashboard` | Dashboards and reports |
+| Predictive Research dashboard | — (read-only catalog scan, no application orchestration import) | `apps/dashboard/src/dashboard_app/catalog/`, `views/`, `caching/`, `contracts.py` | DuckDB/Parquet reads of `research/predictive_research/` | Study picker, leaderboard, run detail, provenance (`pages/6_Predictive_Research.py`) |
 
 ---
 
@@ -640,6 +644,7 @@ tests/integration/live_data/
 | Live dashboard state | execution read-model adapters |
 | Demo generation | `scripts/demo/` |
 | Live dashboard delivery | `scripts/portfolio_live/` (aiohttp); `apps/dashboard` Live Paper page (status GET) |
+| Predictive Research dashboard delivery | `apps/dashboard/src/dashboard_app/catalog/predictive_quality.py` (quality flags), `apps/dashboard/src/dashboard_app/views/predictive.py` (picker/leaderboard/detail/provenance view models); `pages/6_Predictive_Research.py` (Sprint 044) |
 
 ### Boundary
 
@@ -670,7 +675,7 @@ user_data/
 │   ├── market_research/     # Signal Research runs + family experiments
 │   ├── strategy_research/   # Strategy Research runs
 │   ├── strategy_robustness/ # robustness experiments
-│   └── predictive_research/ # Predictive Research datasets + runs (Phase 10A)
+│   └── predictive_research/ # Predictive Research datasets + runs (Phase 10)
 ├── runtime/                 # execution dry-run state
 ├── reports/                 # optional loose reports
 ├── config/

@@ -478,27 +478,39 @@ Used to evaluate:
 
 Used to state a learning problem over Market Analysis outputs and forward
 outcomes, persist a leakage-guarded labelled dataset, then train declared
-baselines per fold. Sprint 039 is the dataset foundation (study spec, labelled
+estimators per fold. Sprint 039 is the dataset foundation (study spec, labelled
 evaluation-bar matrix, purged walk-forward fold roles, fingerprint and CLI).
 Sprint 040 adds the estimator protocol, fold-local preprocessing, sklearn
-adapters (ridge, elastic net, logistic), metrics, and the run envelope.
+baselines (ridge, elastic net, logistic), metrics, and the run envelope.
 Sprint 041 adds a read-only offline HTML report over those persisted envelopes.
+Sprint 042 (Phase 10B) adds tree families (XGBoost, LightGBM, CatBoost) behind
+the same estimator protocol, bounded candidate selection, native/permutation
+importance and a single-study leaderboard. Sprint 043 (Phase 10C) adds optional
+extra `dl` (CPU PyTorch): feedforward MLP and LSTM/GRU sequence estimators,
+learning-curve and window-accounting panels. Sprint 044 closes Phase 10 with a
+read-only Predictive Research page in `apps/dashboard` (reads the same
+persisted envelopes through a DuckDB catalog scan; never imports an estimator
+or `trading_framework.research`) and ADR-0024, the IDEA-014 promotion gate for
+using a trained model as a Market Analysis State input.
 
 It does not produce signals. Fitted model blobs are opaque convenience artifacts;
 the durable facts are predictions and metrics. A run is reproduced by re-fitting
 from the manifest, not by deserializing a blob. The report never fits, predicts,
-or loads `models/fold_*.bin`.
+or loads `models/fold_*.bin`; neither does the dashboard.
 
 ```text
 PredictiveDatasetEnvelope
-  → run_predictive_research
+  → run_predictive_research (baseline / tree / neural estimator, per fold)
   → predictions.parquet + metrics.json + opaque models/fold_{n}.bin
   → render_predictive_research_report → report.html
+  → apps/dashboard Predictive Research page (read-only catalog scan)
 ```
 
 Storage: `<workspace>/research/predictive_research/datasets/{dataset_id}/` and
-`runs/{run_id}/`. Optional extra `ml` (scikit-learn) is required only for the
-estimator path; the default install stays extra-free.
+`runs/{run_id}/`. Optional extras `ml` (scikit-learn), `ml-trees`
+(XGBoost/LightGBM/CatBoost) and `dl` (CPU PyTorch) are required only for their
+respective estimator families; the default install and the `apps/dashboard`
+environment stay extra-free.
 
 #### Future Portfolio Research
 

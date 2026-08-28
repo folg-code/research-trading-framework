@@ -52,6 +52,7 @@ def cache_key_parts(
     window_end: str | None = None,
     timeframe: str | None = None,
     run_id: str | None = None,
+    dataset_id: str | None = None,
 ) -> tuple[str, ...]:
     """Build a stable tuple suitable for ``st.cache_data`` hash inputs."""
     return (
@@ -61,4 +62,5 @@ def cache_key_parts(
         window_end or "",
         timeframe or "",
         run_id or "",
+        dataset_id or "",
     )

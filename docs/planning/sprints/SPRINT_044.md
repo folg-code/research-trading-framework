@@ -5,13 +5,14 @@
 ```text
 Sprint: 044
 Phase: Phase 10C — Neural Predictive Models (closing increment)
-Status: PLANNED
-Planned Start: TBD (after S043 merges)
-Planned End: TBD
+Status: COMPLETE
+Planned Start: 2026-08-27
+Planned End: 2026-08-28
 Sprint Goal Owner: Project Maintainer
 Depends On: SPRINT_041 (report), SPRINT_042 (leaderboard), SPRINT_043 (neural families)
 Sprint Branch: sprint/predictive-dashboard-and-gate
 Task branch convention: feat/ | fix/ | docs/ | test/
+Wave 0 decisions: docs/planning/sprints/S044_WAVE0_DECISIONS.md
 Architecture Sources:
   - docs/planning/ROADMAP.md (§13A Phase 10)
   - docs/adr/ADR-0022 (repository top-level layout; apps/* consumer boundary)
@@ -60,15 +61,15 @@ maintainer holds a written, reviewable answer to "when may a model be promoted?"
 
 ## 2. In scope
 
-- [ ] DuckDB catalog entries for predictive datasets and runs.
-- [ ] Streamlit page `6_Predictive_Research.py` in `apps/dashboard`.
-- [ ] Study picker, family leaderboard, run detail views.
-- [ ] Reuse of existing chart builders and caching layers where they fit.
-- [ ] Quality flags surfaced in the listing, not buried in run detail.
-- [ ] Link out to the full offline HTML report per run.
-- [ ] ADR-0024 — promotion conditions for machine-learned Market Analysis States.
-- [ ] Gate document enumerating unresolved IDEA-014 questions and their required answers.
-- [ ] Phase 10 closure: roadmap, status, methodology index.
+- [x] DuckDB catalog entries for predictive datasets and runs.
+- [x] Streamlit page `6_Predictive_Research.py` in `apps/dashboard`.
+- [x] Study picker, family leaderboard, run detail views.
+- [x] Reuse of existing chart builders and caching layers where they fit.
+- [x] Quality flags surfaced in the listing, not buried in run detail.
+- [x] Link out to the full offline HTML report per run.
+- [x] ADR-0024 — promotion conditions for machine-learned Market Analysis States.
+- [x] Gate document enumerating unresolved IDEA-014 questions and their required answers.
+- [x] Phase 10 closure: roadmap, status, methodology index.
 
 ## 3. Out of scope
 
@@ -146,45 +147,54 @@ still pass Phase 7 robustness validation. Phase 10 metrics are a precondition, n
 
 ## 6. Task breakdown
 
+### Wave 0 — Planning
+
+Binding locks: `S044_WAVE0_DECISIONS.md`. No numbered catalog task — T001–T018
+are unchanged. Wave 0 is planning DONE when that file is on the sprint branch.
+
+Catalog listing is a filesystem walk of `manifest.json` (same as existing
+dashboard pages). DuckDB stays the Parquet read path, not a registry
+(D-S044-04). ADR-0024 is Wave 3, not Wave 0.
+
 ### Wave 1 — Catalog
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S044-T001 | DuckDB catalog scan for predictive datasets and runs | TODO |
-| S044-T002 | Dashboard-side contracts for predictive listings and run detail | TODO |
-| S044-T003 | Caching + fingerprint invalidation reusing existing dashboard layer | TODO |
+| S044-T001 | DuckDB catalog scan for predictive datasets and runs | DONE |
+| S044-T002 | Dashboard-side contracts for predictive listings and run detail | DONE |
+| S044-T003 | Caching + fingerprint invalidation reusing existing dashboard layer | DONE |
 
 ### Wave 2 — Page
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S044-T004 | Study picker view | TODO |
-| S044-T005 | Leaderboard sorted by baseline delta, flags visible in the row | TODO |
-| S044-T006 | Run detail: per-fold metrics, stability, buckets, calibration | TODO |
-| S044-T007 | Importance panel (present only when the run persisted it) | TODO |
-| S044-T008 | Provenance panel + offline report link | TODO |
-| S044-T009 | Page registration `6_Predictive_Research.py` + navigation | TODO |
-| S044-T010 | Empty-state and missing-artifact handling | TODO |
+| S044-T004 | Study picker view | DONE |
+| S044-T005 | Leaderboard sorted by baseline delta, flags visible in the row | DONE |
+| S044-T006 | Run detail: per-fold metrics, stability, buckets, calibration | DONE |
+| S044-T007 | Importance panel (present only when the run persisted it) | DONE |
+| S044-T008 | Provenance panel + offline report link | DONE |
+| S044-T009 | Page registration `6_Predictive_Research.py` + navigation | DONE |
+| S044-T010 | Empty-state and missing-artifact handling | DONE |
 
 ### Wave 3 — Gate
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S044-T011 | Gate document answering the five IDEA-014 questions | TODO |
-| S044-T012 | ADR-0024 — promotion conditions for machine-learned States | TODO |
-| S044-T013 | Parity test design sketch (offline vs runtime State values) | TODO |
+| S044-T011 | Gate document answering the five IDEA-014 questions | DONE — `S044_GATE.md` |
+| S044-T012 | ADR-0024 — promotion conditions for machine-learned States | DONE — `ADR-0024-machine-learned-state-promotion.md` |
+| S044-T013 | Parity test design sketch (offline vs runtime State values) | DONE — `S044_GATE.md` §4 |
 
 ### Wave 4 — Phase closure
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S044-T014 | Boundary test: dashboard imports no research engine or ML library | TODO |
-| S044-T015 | IDEA_INBOX: IDEA-014 status updated with the gate outcome | TODO |
-| S044-T016 | ROADMAP §13A marked COMPLETE; CURRENT_STATUS updated | TODO |
-| S044-T017 | RESEARCH_METHODOLOGIES: Predictive Research methodology entry | TODO |
-| S044-T018 | MODULE_MAP + DATA_WORKFLOWS final update for Phase 10 | TODO |
+| S044-T014 | Boundary test: dashboard imports no research engine or ML library | DONE |
+| S044-T015 | IDEA_INBOX: IDEA-014 status updated with the gate outcome | DONE |
+| S044-T016 | ROADMAP §13A marked COMPLETE; CURRENT_STATUS updated | DONE |
+| S044-T017 | RESEARCH_METHODOLOGIES: Predictive Research methodology entry | DONE |
+| S044-T018 | MODULE_MAP + DATA_WORKFLOWS final update for Phase 10 | DONE |
 
-**Progress:** 0 / 18 tasks
+**Progress:** 18 / 18 tasks
 
 ---
 
@@ -192,6 +202,7 @@ still pass Phase 7 robustness validation. Phase 10 metrics are a precondition, n
 
 | PR | Branch (example) | Outcome |
 |----|------------------|---------|
+| 0 | `docs/predictive-dashboard-planning` | Wave 0 locks (`S044_WAVE0_DECISIONS.md`) |
 | 1 | `feat/dashboard-predictive-catalog` | T001–T003 catalog + contracts |
 | 2 | `feat/dashboard-predictive-page` | T004–T010 page views |
 | 3 | `docs/idea-014-promotion-gate` | T011–T013 gate + ADR-0024 |

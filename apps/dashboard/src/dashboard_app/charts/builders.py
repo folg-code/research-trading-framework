@@ -10,7 +10,14 @@ import pyarrow as pa
 from plotly.subplots import make_subplots
 
 from dashboard_app.charts.overlays import DEFAULT_OVERLAY_REGISTRY, OverlayKind, OverlayRegistry
-from dashboard_app.contracts import TradeView
+from dashboard_app.contracts import (
+    PredictiveBucketView,
+    PredictiveCalibrationBinView,
+    PredictiveFoldMetricRow,
+    PredictiveImportanceRow,
+    PredictiveLearningCurveView,
+    TradeView,
+)
 from dashboard_app.query import OhlcvBarRow
 
 
@@ -549,6 +556,164 @@ def _monte_carlo_method_label(method: object) -> str:
         "TRADE_ORDER_SHUFFLE": "Trade-order shuffle",
     }
     return known.get(method, method.replace("_", " "))
+
+
+def build_predictive_fold_stability_figure(rows: Sequence[PredictiveFoldMetricRow]) -> go.Figure:
+    """Build grouped MODEL vs RANDOM_PERMUTATION bars per fold (D-S044-07)."""
+    from dashboard_app.charts.style import apply_public_layout
+
+    figure = go.Figure()
+    if not rows:
+        apply_public_layout(figure, title="Per-fold metric stability", height=360)
+        return figure
+    labels = [f"Fold {row.fold_id}" for row in rows]
+    figure.add_trace(
+        go.Bar(x=labels, y=[row.model_value for row in rows], name="MODEL", marker_color="#1f4e79")
+    )
+    figure.add_trace(
+        go.Bar(
+            x=labels,
+            y=[row.permutation_value for row in rows],
+            name="RANDOM_PERMUTATION",
+            marker_color="#9e9e9e",
+        )
+    )
+    apply_public_layout(figure, title="Per-fold metric stability", height=380)
+    figure.update_layout(barmode="group")
+    return figure
+
+
+def build_predictive_bucket_figure(rows: Sequence[PredictiveBucketView]) -> go.Figure:
+    """Build mean forward return by prediction decile (pooled MODEL, TEST rows)."""
+    from dashboard_app.charts.style import apply_public_layout
+
+    figure = go.Figure()
+    if not rows:
+        apply_public_layout(figure, title="Prediction buckets", height=360)
+        return figure
+    ordered = sorted(rows, key=lambda row: row.decile)
+    colors = [
+        "#9e9e9e"
+        if row.mean_forward_return is None
+        else ("#2ca02c" if row.mean_forward_return >= 0 else "#d62728")
+        for row in ordered
+    ]
+    figure.add_trace(
+        go.Bar(
+            x=[f"D{row.decile}" for row in ordered],
+            y=[row.mean_forward_return for row in ordered],
+            marker_color=colors,
+        )
+    )
+    apply_public_layout(figure, title="Mean forward return by prediction decile", height=380)
+    figure.add_hline(y=0, line_width=1, line_color="#666666")
+    return figure
+
+
+def build_predictive_calibration_figure(rows: Sequence[PredictiveCalibrationBinView]) -> go.Figure:
+    """Build a reliability curve (mean predicted vs mean observed) with the diagonal."""
+    from dashboard_app.charts.style import apply_public_layout
+
+    figure = go.Figure()
+    usable = [
+        row for row in rows if row.mean_predicted is not None and row.mean_observed is not None
+    ]
+    if not usable:
+        apply_public_layout(figure, title="Calibration", height=360)
+        return figure
+    figure.add_trace(
+        go.Scatter(
+            x=[0, 1],
+            y=[0, 1],
+            mode="lines",
+            name="Perfect calibration",
+            line={"color": "#9e9e9e", "dash": "dash"},
+        )
+    )
+    figure.add_trace(
+        go.Scatter(
+            x=[row.mean_predicted for row in usable],
+            y=[row.mean_observed for row in usable],
+            mode="lines+markers",
+            name="MODEL (pooled)",
+            marker={"size": 9, "color": "#1f4e79"},
+            text=[f"n={row.count}" for row in usable],
+        )
+    )
+    apply_public_layout(figure, title="Calibration (predicted vs observed)", height=420)
+    figure.update_xaxes(title="Mean predicted probability", range=[0, 1])
+    figure.update_yaxes(title="Mean observed outcome", range=[0, 1])
+    return figure
+
+
+def build_predictive_importance_figure(rows: Sequence[PredictiveImportanceRow]) -> go.Figure:
+    """Build a horizontal bar of permutation importance averaged across folds."""
+    from dashboard_app.charts.style import apply_public_layout
+
+    figure = go.Figure()
+    if not rows:
+        apply_public_layout(figure, title="Feature importance", height=360)
+        return figure
+    ordered = sorted(rows, key=lambda row: row.mean_importance)
+    figure.add_trace(
+        go.Bar(
+            x=[row.mean_importance for row in ordered],
+            y=[row.feature_name for row in ordered],
+            orientation="h",
+            error_x={"type": "data", "array": [row.std_importance for row in ordered]},
+            marker_color="#1f4e79",
+        )
+    )
+    apply_public_layout(
+        figure,
+        title="Permutation importance (mean drop, averaged across folds)",
+        height=max(360, 30 * len(ordered) + 120),
+    )
+    figure.update_xaxes(title="Mean primary-metric drop")
+    return figure
+
+
+def build_predictive_learning_curve_figure(curve: PredictiveLearningCurveView) -> go.Figure:
+    """Build train vs inner-validation loss for one fold, marking the restored epoch."""
+    from dashboard_app.charts.style import apply_public_layout
+
+    figure = go.Figure()
+    if not curve.epochs:
+        apply_public_layout(figure, title=f"Fold {curve.fold_id} learning curve", height=320)
+        return figure
+    figure.add_trace(
+        go.Scatter(
+            x=list(curve.epochs),
+            y=list(curve.train_loss),
+            mode="lines",
+            name="Train loss",
+            line={"color": "#9e9e9e"},
+        )
+    )
+    figure.add_trace(
+        go.Scatter(
+            x=list(curve.epochs),
+            y=list(curve.validation_loss),
+            mode="lines",
+            name="Inner-validation loss",
+            line={"color": "#1f4e79"},
+        )
+    )
+    if curve.stopping_epoch in curve.epochs:
+        stop_index = curve.epochs.index(curve.stopping_epoch)
+        figure.add_trace(
+            go.Scatter(
+                x=[curve.stopping_epoch],
+                y=[curve.validation_loss[stop_index]],
+                mode="markers",
+                name="Restored epoch",
+                marker={"color": "#d62728", "size": 11, "symbol": "x"},
+            )
+        )
+    apply_public_layout(figure, title=f"Fold {curve.fold_id} learning curve", height=340)
+    figure.update_xaxes(title="Epoch")
+    figure.update_yaxes(title="Loss")
+    return figure
 
 
 def build_ohlcv_trade_figure(

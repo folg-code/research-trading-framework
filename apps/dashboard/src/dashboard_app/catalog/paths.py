@@ -28,6 +28,16 @@ def robustness_experiments_dir(storage_root: Path) -> Path:
     return research_root(storage_root) / "strategy_robustness" / "experiments"
 
 
+def predictive_research_datasets_dir(storage_root: Path) -> Path:
+    """Return Predictive Research dataset envelope directories."""
+    return research_root(storage_root) / "predictive_research" / "datasets"
+
+
+def predictive_research_runs_dir(storage_root: Path) -> Path:
+    """Return Predictive Research run envelope directories."""
+    return research_root(storage_root) / "predictive_research" / "runs"
+
+
 def run_manifest_path(run_dir: Path) -> Path:
     """Return ``manifest.json`` under a run or experiment directory."""
     return run_dir / "manifest.json"
