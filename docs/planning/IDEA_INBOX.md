@@ -481,10 +481,10 @@ Support Features and States derived from:
 ## IDEA-014 — Machine-Learned State Classifiers
 
 ```text
-Status: SCHEDULED (gate decision in Sprint 044)
+Status: GATED (ADR-0024 accepted, Sprint 044) — promotion not yet approved
 Category: Market Analysis / ML
 Added: 2026-06-19
-Updated: 2026-08-25
+Updated: 2026-08-28
 ```
 
 ### Summary
@@ -503,18 +503,36 @@ Allow trained statistical or ML models to produce Market Analysis States.
 
 Rule-based Market Analysis and Research infrastructure are mature.
 
-### Status Note (2026-08-25)
+### Status Note (2026-08-28) — gate outcome
 
-Phase 10 — Predictive Research (ROADMAP §13A, Sprints 039–044) builds the ML research capability
-**without** promoting models into Market Analysis. It resolves feature lineage (declared `OutputRef`
-features, Sprint 039) and training-time leakage (purged and embargoed walk-forward, Sprint 039), and
-records artifact identity in run fingerprints (Sprint 040).
+`ADR-0024` (`docs/adr/ADR-0024-machine-learned-state-promotion.md`) is **ACCEPTED**. It answers all
+five questions above with testable conditions rather than principles, expanded into entry criteria
+and a parity-test design sketch in `docs/planning/sprints/S044_GATE.md`:
 
-Unresolved and owned by the Sprint 044 gate: durable artifact serialization, inference-time feature
-availability, offline/runtime parity, and whether promotion requires registry infrastructure.
+1. **Training artifact identity** — a fingerprint over dataset, spec, seed and library versions,
+   already computed as `run_fingerprint`, must be recorded in the `Lineage` of every State a
+   promoted model produces. Durable serialization (replacing today's opaque `joblib` blobs, TD-022)
+   is priced as a promotion sprint's first cost, not chosen here.
+2. **Data leakage** — training-time leakage is already solved (purge/embargo, Sprint 039).
+   Inference-time feature availability must be enforced by the component contract (the same
+   `available_at` executor validation rule-based components already get), not by convention.
+3. **Feature lineage** — already solved by Sprint 039's `OutputRef`-declared features; no new
+   mechanism needed.
+4. **Offline/online parity** — the hard condition. Batch research and the dry-run runtime must
+   produce identical State values for identical inputs, which requires the fitted preprocessing
+   transform to ship as part of the promoted artifact. A parity test on recorded data is the
+   minimum, non-negotiable acceptance bar.
+5. **Model registry** — deliberately not required. Promotion needs only a content-addressed
+   artifact store (the layout Predictive Research already uses); TD-021 (no registry product)
+   is restated, not repaid.
 
-**This idea is not approved for implementation.** Sprint 044 delivers ADR-0024 with testable
-promotion conditions; implementation would need its own sprint afterwards.
+Strong out-of-sample metrics alone are explicitly **not sufficient** for promotion — a promoted
+model becomes a Market Analysis input, so downstream strategies must still pass Phase 7 robustness
+validation.
+
+**This idea is still not approved for implementation.** The gate is now written and accepted; a
+future promotion sprint that satisfies all five conditions would be the next step, and is not
+scheduled by default (`docs/planning/ROADMAP.md` §13A, Phase 10 closure).
 
 ---
 

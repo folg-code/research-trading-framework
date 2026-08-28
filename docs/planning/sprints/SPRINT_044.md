@@ -5,9 +5,9 @@
 ```text
 Sprint: 044
 Phase: Phase 10C — Neural Predictive Models (closing increment)
-Status: IN PROGRESS (Wave 0)
+Status: COMPLETE
 Planned Start: 2026-08-27
-Planned End: TBD
+Planned End: 2026-08-28
 Sprint Goal Owner: Project Maintainer
 Depends On: SPRINT_041 (report), SPRINT_042 (leaderboard), SPRINT_043 (neural families)
 Sprint Branch: sprint/predictive-dashboard-and-gate
@@ -61,15 +61,15 @@ maintainer holds a written, reviewable answer to "when may a model be promoted?"
 
 ## 2. In scope
 
-- [ ] DuckDB catalog entries for predictive datasets and runs.
-- [ ] Streamlit page `6_Predictive_Research.py` in `apps/dashboard`.
-- [ ] Study picker, family leaderboard, run detail views.
-- [ ] Reuse of existing chart builders and caching layers where they fit.
-- [ ] Quality flags surfaced in the listing, not buried in run detail.
-- [ ] Link out to the full offline HTML report per run.
-- [ ] ADR-0024 — promotion conditions for machine-learned Market Analysis States.
-- [ ] Gate document enumerating unresolved IDEA-014 questions and their required answers.
-- [ ] Phase 10 closure: roadmap, status, methodology index.
+- [x] DuckDB catalog entries for predictive datasets and runs.
+- [x] Streamlit page `6_Predictive_Research.py` in `apps/dashboard`.
+- [x] Study picker, family leaderboard, run detail views.
+- [x] Reuse of existing chart builders and caching layers where they fit.
+- [x] Quality flags surfaced in the listing, not buried in run detail.
+- [x] Link out to the full offline HTML report per run.
+- [x] ADR-0024 — promotion conditions for machine-learned Market Analysis States.
+- [x] Gate document enumerating unresolved IDEA-014 questions and their required answers.
+- [x] Phase 10 closure: roadmap, status, methodology index.
 
 ## 3. Out of scope
 
@@ -160,9 +160,9 @@ dashboard pages). DuckDB stays the Parquet read path, not a registry
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S044-T001 | DuckDB catalog scan for predictive datasets and runs | TODO |
-| S044-T002 | Dashboard-side contracts for predictive listings and run detail | TODO |
-| S044-T003 | Caching + fingerprint invalidation reusing existing dashboard layer | TODO |
+| S044-T001 | DuckDB catalog scan for predictive datasets and runs | DONE |
+| S044-T002 | Dashboard-side contracts for predictive listings and run detail | DONE |
+| S044-T003 | Caching + fingerprint invalidation reusing existing dashboard layer | DONE |
 
 ### Wave 2 — Page
 
@@ -188,13 +188,13 @@ dashboard pages). DuckDB stays the Parquet read path, not a registry
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S044-T014 | Boundary test: dashboard imports no research engine or ML library | TODO |
-| S044-T015 | IDEA_INBOX: IDEA-014 status updated with the gate outcome | TODO |
-| S044-T016 | ROADMAP §13A marked COMPLETE; CURRENT_STATUS updated | TODO |
-| S044-T017 | RESEARCH_METHODOLOGIES: Predictive Research methodology entry | TODO |
-| S044-T018 | MODULE_MAP + DATA_WORKFLOWS final update for Phase 10 | TODO |
+| S044-T014 | Boundary test: dashboard imports no research engine or ML library | DONE |
+| S044-T015 | IDEA_INBOX: IDEA-014 status updated with the gate outcome | DONE |
+| S044-T016 | ROADMAP §13A marked COMPLETE; CURRENT_STATUS updated | DONE |
+| S044-T017 | RESEARCH_METHODOLOGIES: Predictive Research methodology entry | DONE |
+| S044-T018 | MODULE_MAP + DATA_WORKFLOWS final update for Phase 10 | DONE |
 
-**Progress:** 10 / 18 tasks
+**Progress:** 18 / 18 tasks
 
 ---
 
