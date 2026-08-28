@@ -7,7 +7,7 @@ from pathlib import Path
 import streamlit as st
 
 from dashboard_app.caching.fingerprint import StorageFingerprint, compute_storage_fingerprint
-from dashboard_app.catalog import RunCatalog, list_runs
+from dashboard_app.catalog import PredictiveCatalog, RunCatalog, list_predictive_catalog, list_runs
 from dashboard_app.contracts import PRESENTATION_SCHEMA_VERSION, ChartWindow
 from dashboard_app.query import DashboardQueryService, OhlcvWindowResult
 
@@ -27,6 +27,13 @@ def cached_list_runs(storage_root: str, fingerprint_token: str) -> RunCatalog:
     """List runs with Streamlit cache keyed by storage fingerprint."""
     del fingerprint_token  # included so Streamlit invalidates when storage changes
     return list_runs(Path(storage_root))
+
+
+@st.cache_data(show_spinner=False)
+def cached_list_predictive_catalog(storage_root: str, fingerprint_token: str) -> PredictiveCatalog:
+    """List predictive datasets/runs with Streamlit cache keyed by storage fingerprint."""
+    del fingerprint_token  # included so Streamlit invalidates when storage changes
+    return list_predictive_catalog(Path(storage_root))
 
 
 @st.cache_data(show_spinner=False)

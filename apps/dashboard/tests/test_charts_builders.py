@@ -8,14 +8,90 @@ from dashboard_app.charts import (
     build_monte_carlo_percentile_figure,
     build_monte_carlo_tail_figure,
     build_parameter_sweep_surface_figure,
+    build_predictive_bucket_figure,
+    build_predictive_calibration_figure,
+    build_predictive_fold_stability_figure,
+    build_predictive_importance_figure,
+    build_predictive_learning_curve_figure,
     build_stress_delta_figure,
     build_walk_forward_fold_figure,
+)
+from dashboard_app.contracts import (
+    PredictiveBucketView,
+    PredictiveCalibrationBinView,
+    PredictiveFoldMetricRow,
+    PredictiveImportanceRow,
+    PredictiveLearningCurveView,
 )
 from dashboard_app.views.robustness import (
     ParameterSweepSliceKey,
     filter_parameter_sweep_slice,
     list_parameter_sweep_slices,
 )
+
+
+def test_build_predictive_fold_stability_figure() -> None:
+    rows = [
+        PredictiveFoldMetricRow(
+            fold_id="0",
+            model_value=0.60,
+            permutation_value=0.50,
+            train_primary=0.65,
+            test_primary=0.60,
+            primary_gap=0.05,
+        ),
+    ]
+    figure = build_predictive_fold_stability_figure(rows)
+    assert len(figure.data) == 2
+    assert list(figure.data[0].y) == [0.60]
+
+
+def test_build_predictive_fold_stability_figure_empty() -> None:
+    figure = build_predictive_fold_stability_figure([])
+    assert figure.data == ()
+
+
+def test_build_predictive_bucket_figure() -> None:
+    rows = [PredictiveBucketView(decile=i, mean_forward_return=0.01 * i) for i in range(3)]
+    figure = build_predictive_bucket_figure(rows)
+    assert list(figure.data[0].x) == ["D0", "D1", "D2"]
+
+
+def test_build_predictive_calibration_figure() -> None:
+    rows = [
+        PredictiveCalibrationBinView(
+            bin_index=0, lower=0.0, upper=0.1, count=10, mean_predicted=0.05, mean_observed=0.06
+        ),
+    ]
+    figure = build_predictive_calibration_figure(rows)
+    assert len(figure.data) == 2  # diagonal + model curve
+
+
+def test_build_predictive_calibration_figure_empty() -> None:
+    figure = build_predictive_calibration_figure([])
+    assert figure.data == ()
+
+
+def test_build_predictive_importance_figure() -> None:
+    rows = [
+        PredictiveImportanceRow(feature_name="f1", mean_importance=0.15, std_importance=0.01),
+        PredictiveImportanceRow(feature_name="f2", mean_importance=0.03, std_importance=0.005),
+    ]
+    figure = build_predictive_importance_figure(rows)
+    assert len(figure.data) == 1
+    assert figure.data[0].orientation == "h"
+
+
+def test_build_predictive_learning_curve_figure() -> None:
+    curve = PredictiveLearningCurveView(
+        fold_id=0,
+        epochs=(1, 2, 3),
+        train_loss=(0.9, 0.6, 0.4),
+        validation_loss=(0.95, 0.65, 0.5),
+        stopping_epoch=2,
+    )
+    figure = build_predictive_learning_curve_figure(curve)
+    assert len(figure.data) == 3  # train, validation, stopping marker
 
 
 def test_build_walk_forward_fold_figure_groups_is_oos_by_fold_index() -> None:

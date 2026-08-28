@@ -97,6 +97,58 @@ class PredictiveRunSummary:
 
 
 @dataclass(frozen=True, slots=True)
+class PredictiveFoldMetricRow:
+    """One fold's MODEL / RANDOM_PERMUTATION primary metric and train/test gap."""
+
+    fold_id: str
+    model_value: float | None
+    permutation_value: float | None
+    train_primary: float | None
+    test_primary: float | None
+    primary_gap: float | None
+
+
+@dataclass(frozen=True, slots=True)
+class PredictiveCalibrationBinView:
+    """One pooled MODEL calibration bin (classification runs only)."""
+
+    bin_index: int
+    lower: float | None
+    upper: float | None
+    count: int
+    mean_predicted: float | None
+    mean_observed: float | None
+
+
+@dataclass(frozen=True, slots=True)
+class PredictiveBucketView:
+    """One pooled MODEL prediction-decile bucket (mean forward return)."""
+
+    decile: int
+    mean_forward_return: float | None
+
+
+@dataclass(frozen=True, slots=True)
+class PredictiveImportanceRow:
+    """One feature's permutation importance averaged across folds."""
+
+    feature_name: str
+    mean_importance: float
+    std_importance: float
+
+
+@dataclass(frozen=True, slots=True)
+class PredictiveLearningCurveView:
+    """One fold's inner-train / inner-validation loss curve (D-S043-16)."""
+
+    fold_id: int
+    epochs: tuple[int, ...]
+    train_loss: tuple[float, ...]
+    validation_loss: tuple[float, ...]
+    stopping_epoch: int
+
+
+@dataclass(frozen=True, slots=True)
 class ChartWindow:
     """Bounded market-chart request (windowed OHLCV; never full history)."""
 
