@@ -180,9 +180,9 @@ dashboard pages). DuckDB stays the Parquet read path, not a registry
 
 | Task | Description | Status |
 |------|-------------|--------|
-| S044-T011 | Gate document answering the five IDEA-014 questions | TODO |
-| S044-T012 | ADR-0024 — promotion conditions for machine-learned States | TODO |
-| S044-T013 | Parity test design sketch (offline vs runtime State values) | TODO |
+| S044-T011 | Gate document answering the five IDEA-014 questions | DONE — `S044_GATE.md` |
+| S044-T012 | ADR-0024 — promotion conditions for machine-learned States | DONE — `ADR-0024-machine-learned-state-promotion.md` |
+| S044-T013 | Parity test design sketch (offline vs runtime State values) | DONE — `S044_GATE.md` §4 |
 
 ### Wave 4 — Phase closure
 
@@ -194,7 +194,7 @@ dashboard pages). DuckDB stays the Parquet read path, not a registry
 | S044-T017 | RESEARCH_METHODOLOGIES: Predictive Research methodology entry | TODO |
 | S044-T018 | MODULE_MAP + DATA_WORKFLOWS final update for Phase 10 | TODO |
 
-**Progress:** 0 / 18 tasks
+**Progress:** 3 / 18 tasks
 
 ---
 
