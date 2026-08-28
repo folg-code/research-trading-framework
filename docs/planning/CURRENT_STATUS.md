@@ -27,14 +27,14 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 
 ```text
 Status Date: 2026-08-27
-Current Phase: Phase 10C Neural Predictive Models (S043 complete on main)
-Current Milestone: S043 neural comparison closed; next is S044 dashboard + IDEA-014 gate
-Implementation Status: Sprints 001-006, 008-024, 025-043 on main
+Current Phase: Phase 10C Neural Predictive Models (S043 on main; S044 Wave 0)
+Current Milestone: S044 predictive dashboard + IDEA-014 gate (Wave 0 locks)
+Implementation Status: Sprints 001-006, 008-024, 025-043 on main; S044 in progress
 Overall Status: STABLE
-Active Sprint: none (SPRINT_044 planned)
+Active Sprint: SPRINT_044 Wave 0 (sprint/predictive-dashboard-and-gate)
 Last Completed Sprint: SPRINT_043 (Neural Predictive Models) → main (#342)
-Capability Tracks: Foundation COMPLETE; Data COMPLETE (core); Research COMPLETE (core); Strategy 6A COMPLETE; Phase 8A dry-run + S024 on main; Dashboard / Live Paper / public demo COMPLETE; Phase 10A COMPLETE (S039–S041); Phase 10B COMPLETE (S042, #335); Phase 10C S043 COMPLETE on main (#342); S044 next
-Recent: S043 integrated to main (#342; working PRs #336–#341). Feedforward ranked above LSTM on the synthetic known-signal fixture; both beat RANDOM_PERMUTATION.
+Capability Tracks: Foundation COMPLETE; Data COMPLETE (core); Research COMPLETE (core); Strategy 6A COMPLETE; Phase 8A dry-run + S024 on main; Dashboard / Live Paper / public demo COMPLETE; Phase 10A COMPLETE (S039–S041); Phase 10B COMPLETE (S042, #335); Phase 10C S043 COMPLETE on main (#342); S044 Wave 0 IN PROGRESS
+Recent: S044 opened from main @ #342. S043 integrated to main (#342; working PRs #336–#341). Feedforward ranked above LSTM on the synthetic known-signal fixture; both beat RANDOM_PERMUTATION.
 ```
 
 ---
@@ -293,6 +293,11 @@ before `fit()` / `predict()`, and fit the scaler on 2d TRAIN rows. On the
 synthetic known-signal fixture, feedforward ranked above LSTM; both beat
 `RANDOM_PERMUTATION`.
 
+**Sprint 044 — Predictive dashboard + IDEA-014 gate (Phase 10C)** is
+**IN PROGRESS** (Wave 0). Plan: `SPRINT_044.md`. Locks:
+`S044_WAVE0_DECISIONS.md`. Branch: `sprint/predictive-dashboard-and-gate`.
+ADR-0024 is Wave 3. Phase 10 is not closed until S044 T016.
+
 ---
 
 ## 4. Completed Capabilities
@@ -473,14 +478,26 @@ Maintenance: `.cursor/rules/documentation.mdc`
 
 ## 6. Work in Progress
 
-**Active sprint:** none. Sprint 043 is complete on `main` (#342, 21/21).
-Next capability is SPRINT_044. Sprint 042 is complete on `main` (#335).
+**Active sprint:** Sprint 044 Wave 0 on `sprint/predictive-dashboard-and-gate`
+(cut from `main` @ #342). Sprint 043 is complete on `main` (#342, 21/21).
+Sprint 042 is complete on `main` (#335).
 
 **Portfolio demo packaging** — `scripts/demo/run_portfolio_demo.py` generates offline HTML artifacts for showcase (workflows + dashboards).
 
 **Sprint 017 — Model Research Methodology MVP (Phase 5B)** — **complete** on `sprint/model-research-methodology-mvp` (Wave 6, 2026-07-15). Final integration PR to `main` pending.
 
 **Plan:** `docs/planning/sprints/SPRINT_017.md` · **Wave 0:** `S017_WAVE0_DECISIONS.md` · **ADR:** ADR-0020 (ACCEPTED) · **Branch:** `sprint/model-research-methodology-mvp`
+
+### Sprint 044 — Active (Phase 10C closing increment)
+
+**Status:** IN PROGRESS — Wave 0 planning
+**Plan:** `docs/planning/sprints/SPRINT_044.md`
+**Wave 0:** `docs/planning/sprints/S044_WAVE0_DECISIONS.md`
+**ADR:** ADR-0024 reserved for Wave 3 (not this PR)
+**Tasks:** 0 / 18 (Wave 0 is planning; T001–T018 unchanged)
+**Branch:** `sprint/predictive-dashboard-and-gate`
+**Scope:** read-only Predictive Research page in the dashboard; IDEA-014
+promotion **conditions** (ADR-0024), not an ML Market Analysis component
 
 ### Sprint 043 — Closed (Phase 10C neural)
 
@@ -716,14 +733,15 @@ Sprint 042 tree-based predictive models COMPLETED on main (#335; #326–#334).
 Sprint 043 neural predictive models COMPLETED on main (#342; #336–#341).
 ADR-0023 ACCEPTED. Phase 10A, Phase 10B, and Sprint 043 are complete.
 
-Next: Sprint 044 — predictive dashboard + IDEA-014 promotion gate.
+Active: Sprint 044 Wave 0 — predictive dashboard + IDEA-014 promotion gate
+(`sprint/predictive-dashboard-and-gate`; Wave 0 locks in `S044_WAVE0_DECISIONS.md`).
 
 Catalog in parallel (does not block S044):
     wick / distance catalog PRs
 
 Phase 10 remainder (ROADMAP §13A):
       S043 neural models COMPLETE on main (#342, 21/21)
-      S044 dashboard page + IDEA-014 promotion gate (ADR-0024)
+      S044 dashboard page + IDEA-014 promotion gate (ADR-0024) — IN PROGRESS
 
 Deferred relative to that track:
     Phase 4B — Orderflow Market Analysis
@@ -756,7 +774,7 @@ Deferred (explicit):
     Further public-dashboard cosmetics as a default track
 ```
 
-See `docs/planning/sprints/SPRINT_043.md`, `S043_WAVE0_DECISIONS.md`, `SPRINT_042.md`, `S042_WAVE0_DECISIONS.md`, `SPRINT_041.md`, `SPRINT_040.md`, `SPRINT_039.md`, `S041_WAVE0_DECISIONS.md`, `S040_WAVE0_DECISIONS.md`, `S039_WAVE0_DECISIONS.md`, `SPRINT_038.md`, `S037_GATE.md`, and `ROADMAP.md` §11–§13A.
+See `docs/planning/sprints/SPRINT_044.md`, `S044_WAVE0_DECISIONS.md`, `SPRINT_043.md`, `S043_WAVE0_DECISIONS.md`, `SPRINT_042.md`, `S042_WAVE0_DECISIONS.md`, `SPRINT_041.md`, `SPRINT_040.md`, `SPRINT_039.md`, `S041_WAVE0_DECISIONS.md`, `S040_WAVE0_DECISIONS.md`, `S039_WAVE0_DECISIONS.md`, `SPRINT_038.md`, `S037_GATE.md`, and `ROADMAP.md` §11–§13A.
 
 ---
 
@@ -807,7 +825,7 @@ See `docs/planning/sprints/SPRINT_043.md`, `S043_WAVE0_DECISIONS.md`, `SPRINT_04
 | 041 | Predictive Research report v1 (Phase 10A) | COMPLETED | 16 / 16 tasks; main #325; working PRs #320–#324 |
 | 042 | Tree-based predictive models (Phase 10B) | COMPLETED | 22 / 22 tasks; main #335; working PRs #326–#334 |
 | 043 | Neural predictive models (Phase 10C) | COMPLETED | 21 / 21 tasks; main #342; working PRs #336–#341 |
-| 044 | Predictive dashboard + IDEA-014 gate (Phase 10C) | PLANNED | 0 / 18 tasks; `SPRINT_044.md` |
+| 044 | Predictive dashboard + IDEA-014 gate (Phase 10C) | IN PROGRESS | 0 / 18 tasks; Wave 0; `SPRINT_044.md` |
 
 ---
 

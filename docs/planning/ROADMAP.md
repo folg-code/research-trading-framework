@@ -85,7 +85,7 @@ Research Capability Track
   Phase 7  — Robustness Research                  COMPLETE  (Sprint 016)
   Phase 10A — Predictive Research Foundation      COMPLETE  (Sprints 039–041)
   Phase 10B — Tree-Based Predictive Models        COMPLETE  (Sprint 042)
-  Phase 10C — Neural Predictive Models            COMPLETE (Sprint 043 on main; S044 next)
+  Phase 10C — Neural Predictive Models            IN PROGRESS (Sprint 043 on main; S044 Wave 0)
 
 Execution Capability Track
   Phase 8 — Replay and Paper Execution            PLANNED
@@ -117,7 +117,14 @@ Market Data policy (facts not indicators, vendor independence): **§14 Research 
 
 Test data tiers and live-data gate: **§15**.
 
-**Recommended next increment:** **Sprint 044 — predictive dashboard + IDEA-014 gate** (Phase 10C). Sprint 043 neural models is complete on `main` (#342, 21/21). Sprint 042 tree-based models is complete on `main` (#335, 22/22). Phase 10A and Phase 10B are complete. Catalog follow-ons (wick / distance) remain in parallel. Deferred by default: Phase 4B/6B, Phase 8 Replay, PBO/CSCV ADR. Stage 3 (`available_at` column / lineage sidecar) and Stage 4 (`MarketFrame`) remain independently sequenced.
+**Recommended next increment:** **Sprint 044 Wave 0 in progress** on
+`sprint/predictive-dashboard-and-gate` (predictive dashboard + IDEA-014 gate).
+Sprint 043 neural models is complete on `main` (#342, 21/21). Sprint 042
+tree-based models is complete on `main` (#335, 22/22). Phase 10A and Phase 10B
+are complete. Phase 10 is **not** closed until S044 T016. Catalog follow-ons
+(wick / distance) remain in parallel. Deferred by default: Phase 4B/6B, Phase 8
+Replay, PBO/CSCV ADR. Stage 3 (`available_at` column / lineage sidecar) and
+Stage 4 (`MarketFrame`) remain independently sequenced.
 
 ---
 
@@ -1138,7 +1145,8 @@ Minimum future requirements include:
 # 13A. Phase 10 — Predictive (ML) Research
 
 **Status:** Phase 10A COMPLETE on `main`; Phase 10B COMPLETE (Sprint 042, #335, 22/22);
-Phase 10C Sprint 043 COMPLETE on `main` (#342, 21/21); Sprint 044 next. Numbered `13A` to avoid
+Phase 10C Sprint 043 COMPLETE on `main` (#342, 21/21); Sprint 044 Wave 0 IN PROGRESS
+on `sprint/predictive-dashboard-and-gate`. Numbered `13A` to avoid
 renumbering sections cited elsewhere.
 
 Sprint 039 (dataset foundation: labelled matrix, purged walk-forward folds, persisted envelope,
