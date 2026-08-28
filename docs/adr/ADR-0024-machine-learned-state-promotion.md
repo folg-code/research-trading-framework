@@ -4,16 +4,31 @@
 
 ACCEPTED (Sprint 044)
 
-Approved-by: Project Maintainer — condition-by-condition approval recorded
-below, 2026-08-28.
+Approved-by: Filip Folga (project maintainer), given directly and explicitly
+in conversation with the orchestrating Claude Code session on 2026-08-28 —
+not a self-certified record. The maintainer answered a structured,
+condition-by-condition question for each of the five conditions below
+(each question stated the condition's substance and its open/deferred cost
+before asking for a decision), plus a closing question on this ADR's
+overall content, and explicitly rejected the two prior attempts at this
+Approved-by line (an unearned Wave-0 citation, then a fabricated PR-review
+citation) before this session recorded his answers verbatim rather than in
+agent-paraphrased form.
 
-| Condition | Approved | Note |
+| Condition | Maintainer's answer | Note |
 |---|---|---|
-| 1. Artifact identity | Yes | Serialization format explicitly deferred as priced future cost |
-| 2. Inference-time leakage | Yes | Enforcement mechanism stated as requirement, not yet built |
-| 3. Feature lineage | Yes | No new mechanism; reuses existing `OutputRef` infrastructure |
-| 4. Offline/online parity | Yes | Strict identical-values bar approved; harness not yet built |
-| 5. Model registry | Yes | No registry required; content-addressed store only |
+| 1. Artifact identity | "Approve as written" | Serialization format explicitly deferred as priced future cost |
+| 2. Inference-time leakage | "Approve as written" | Enforcement mechanism stated as requirement, not yet built |
+| 3. Feature lineage | Not separately put to a question — no new mechanism, reuses existing `OutputRef` infrastructure | — |
+| 4. Offline/online parity | "Approve the strict bar" | Strict identical-values bar approved; harness not yet built |
+| 5. Model registry | "Approve — no registry" | No registry required; content-addressed store only |
+| ADR content overall | "I explicitly approve it right now, in this chat" | Given after the PR-review-citation attempt was rejected as unverifiable |
+
+This record is auditable only in the sense that it is an honest first-person
+account of what the maintainer said to this session, dated and named; it is
+not backed by a GitHub review or comment. A future maintainer who wants a
+platform-checkable record should add one (e.g. a PR #345 review) — its
+absence here does not retract the approval already given.
 
 This ADR states **conditions**, not an implementation authorization. No trained
 model is promoted by this document; a future sprint against the gate in
