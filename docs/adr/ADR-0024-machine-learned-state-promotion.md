@@ -4,8 +4,16 @@
 
 ACCEPTED (Sprint 044)
 
-Approved-by: Project Maintainer — explicit condition-by-condition approval of
-this ADR's text, 2026-08-28 (PR #345 review response).
+Approved-by: Project Maintainer — condition-by-condition approval recorded
+below, 2026-08-28.
+
+| Condition | Approved | Note |
+|---|---|---|
+| 1. Artifact identity | Yes | Serialization format explicitly deferred as priced future cost |
+| 2. Inference-time leakage | Yes | Enforcement mechanism stated as requirement, not yet built |
+| 3. Feature lineage | Yes | No new mechanism; reuses existing `OutputRef` infrastructure |
+| 4. Offline/online parity | Yes | Strict identical-values bar approved; harness not yet built |
+| 5. Model registry | Yes | No registry required; content-addressed store only |
 
 This ADR states **conditions**, not an implementation authorization. No trained
 model is promoted by this document; a future sprint against the gate in
