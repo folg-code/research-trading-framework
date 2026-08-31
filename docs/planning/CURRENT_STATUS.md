@@ -28,21 +28,22 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 ```text
 Status Date: 2026-08-31
 Current Phase: Phase 10 — Predictive (ML) Research — COMPLETE (Sprints 039-044);
-  Phase 2F — Exchange REST Historical Import — COMPLETE (Sprint 045)
-Current Milestone: none — Phase 10 and Phase 2F closed; next capability is Sprint 046
-  (Universal Operator CLI, Phase 11)
-Implementation Status: Sprints 001-006, 008-024, 025-044 on main (S044 merged via #348); S045
-  complete (14/14) on sprint/binance-historical-ohlcv, final integration PR to main pending
+  Phase 2F — Exchange REST Historical Import — COMPLETE (Sprint 045);
+  Phase 11 — Universal Operator CLI — COMPLETE (Sprint 046)
+Current Milestone: none — Phase 10, Phase 2F and Phase 11 closed; no next capability
+  scheduled by default
+Implementation Status: Sprints 001-006, 008-024, 025-045 on main (S044 merged via #348; S045
+  merged via #355); S046 complete (14/14) on sprint/operator-cli, final integration PR to
+  main pending
 Overall Status: STABLE
 Active Sprint: none
-Last Completed Sprint: SPRINT_045 (Binance USD-M historical OHLCV ingestion, Phase 2F
-  opening increment) — 14/14 tasks complete on sprint/binance-historical-ohlcv; integration
-  PR to main pending
-Capability Tracks: Foundation COMPLETE; Data COMPLETE (core); Research COMPLETE (core); Strategy 6A COMPLETE; Phase 8A dry-run + S024 on main; Dashboard / Live Paper / public demo COMPLETE; Phase 10 COMPLETE (S039-S044: Foundation, Tree-Based and Neural Predictive Models, dashboard page, ADR-0024 + IDEA-014 gate); Phase 2F COMPLETE (S045: Binance USD-M historical OHLCV import, ADR-0025)
-Recent: S045 Wave 4 closes Phase 2F — Binance import flow documented beside Databento/CSV in
-  ARCHITECTURE_AND_WORKFLOWS.md, credential convention documented once in DEVELOPER_GUIDE.md,
-  MODULE_MAP updated, ROADMAP/CURRENT_STATUS record Phase 2F complete. Sprint 044 integrated to
-  main (#348).
+Last Completed Sprint: SPRINT_046 (Universal Operator CLI, Phase 11 opening and closing
+  increment) — 14/14 tasks complete on sprint/operator-cli; integration PR to main pending.
+  Sprint 045 (Binance USD-M historical OHLCV ingestion, Phase 2F) is merged to main (#355).
+Capability Tracks: Foundation COMPLETE; Data COMPLETE (core); Research COMPLETE (core); Strategy 6A COMPLETE; Phase 8A dry-run + S024 on main; Dashboard / Live Paper / public demo COMPLETE; Phase 10 COMPLETE (S039-S044: Foundation, Tree-Based and Neural Predictive Models, dashboard page, ADR-0024 + IDEA-014 gate); Phase 2F COMPLETE (S045: Binance USD-M historical OHLCV import, ADR-0025, merged to main #355); Phase 11 COMPLETE (S046: Universal Operator CLI trading-cli, ADR-0026)
+Recent: S046 Wave 3 closes Phase 11 — `data fetch binance` wired to the Sprint 045 workflow,
+  example configs per command group, `docs/reference/OPERATOR_CLI.md`, `apps/cli/CLAUDE.md`,
+  ROADMAP/CURRENT_STATUS record Phase 11 complete. Sprint 045 integrated to main (#355).
 ```
 
 ---
@@ -486,11 +487,11 @@ Maintenance: `.cursor/rules/documentation.mdc`
 
 ## 6. Work in Progress
 
-**Active sprint:** none. Sprint 045 (cut from `main` @ #348) is complete
-(14/14) on `sprint/binance-historical-ohlcv`; the final integration PR into
-`main` is pending — that closes Phase 2F. Sprint 044 is complete on `main`
-(#348, 18/18). Sprint 043 is complete on `main` (#342, 21/21). Sprint 042 is
-complete on `main` (#335).
+**Active sprint:** none. Sprint 046 (cut from `main` @ #349, after Sprint 045
+merged via #355) is complete (14/14) on `sprint/operator-cli`; the final
+integration PR into `main` is pending — that closes Phase 11. Sprint 045 is
+merged to `main` (#355, 14/14) and closes Phase 2F. Sprint 044 is complete on
+`main` (#348, 18/18). Sprint 043 is complete on `main` (#342, 21/21).
 
 **Portfolio demo packaging** — `scripts/demo/run_portfolio_demo.py` generates offline HTML artifacts for showcase (workflows + dashboards).
 
@@ -498,10 +499,29 @@ complete on `main` (#335).
 
 **Plan:** `docs/planning/sprints/SPRINT_017.md` · **Wave 0:** `S017_WAVE0_DECISIONS.md` · **ADR:** ADR-0020 (ACCEPTED) · **Branch:** `sprint/model-research-methodology-mvp`
 
+### Sprint 046 — Closed (Phase 11 opening and closing increment; Phase 11 complete)
+
+**Status:** COMPLETE (14/14) on `sprint/operator-cli`; final integration PR
+into `main` pending
+**Plan:** `docs/planning/sprints/SPRINT_046.md`
+**Wave 0:** `docs/planning/sprints/S046_WAVE0_DECISIONS.md`
+**ADR:** ADR-0026 (ACCEPTED)
+**Tasks:** 14 / 14
+**PRs:** #356 (skeleton + config loader + exit-code taxonomy), #357 (command
+groups wired to existing workflows), #358 (ADR-0026 Amendment 1: Wave 2
+import-boundary exceptions), #359 (Binance wiring + example configs +
+operator guide + module context), #360 (this PR, roadmap/status closure)
+**Branch:** `sprint/operator-cli`
+**Scope:** `apps/cli` workspace member exposing `trading-cli` over the four
+command groups (`data fetch`, `research run`, `dry-run start`, `report
+render`), YAML config contract with strict validation, `--dry-run` /
+`--json` / exit-code taxonomy, import-boundary test, example configs,
+`docs/reference/OPERATOR_CLI.md`, `apps/cli/CLAUDE.md`, Phase 11 closure
+documentation
+
 ### Sprint 045 — Closed (Phase 2F opening increment; Phase 2F complete)
 
-**Status:** COMPLETE (14/14) on `sprint/binance-historical-ohlcv`; final
-integration PR into `main` pending
+**Status:** COMPLETE (14/14), merged to `main` via #355
 **Plan:** `docs/planning/sprints/SPRINT_045.md`
 **Wave 0:** `docs/planning/sprints/S045_WAVE0_DECISIONS.md`
 **ADR:** ADR-0025 (ACCEPTED)
@@ -764,17 +784,20 @@ Sprint 043 neural predictive models COMPLETED on main (#342; #336–#341).
 Sprint 044 predictive dashboard + IDEA-014 gate COMPLETE (18/18), merged to
 main via #348. ADR-0023 and ADR-0024 ACCEPTED. Phase 10 (10A, 10B, 10C) is COMPLETE.
 Sprint 045 Binance USD-M historical OHLCV ingestion (Phase 2F) COMPLETE
-(14/14) on sprint/binance-historical-ohlcv; final integration PR to main
-pending. ADR-0025 ACCEPTED. Phase 2F is COMPLETE (ROADMAP §13B).
+(14/14), merged to main via #355. ADR-0025 ACCEPTED. Phase 2F is COMPLETE
+(ROADMAP §13B).
+Sprint 046 Universal Operator CLI (Phase 11) COMPLETE (14/14) on
+sprint/operator-cli; final integration PR to main pending. ADR-0026
+ACCEPTED. Phase 11 is COMPLETE (ROADMAP §13C).
 
-Active: none. Phase 10 and Phase 2F are closed (ROADMAP §13A, §13B). The
-next planned capability is Sprint 046 — Universal Operator CLI
-(`trading-cli`, Phase 11, ADR-0026), which wraps Sprint 045's Binance import
-and the existing Databento import behind one entry point; see SPRINT_044.md
-§12 for other unscheduled candidate follow-ons (ML Market Analysis component
-gated by ADR-0024, cross-sectional predictive studies, SHAP,
-content-addressed artifact store, Binance `trades` mode, resume-after-failure
-imports).
+Active: none. Phase 10, Phase 2F and Phase 11 are closed (ROADMAP §13A,
+§13B, §13C). No next capability is scheduled by default; see SPRINT_044.md
+§12 and SPRINT_046.md §12 for unscheduled candidate follow-ons (ML Market
+Analysis component gated by ADR-0024, cross-sectional predictive studies,
+SHAP, content-addressed artifact store, Binance `trades` mode,
+resume-after-failure imports, exposing the strategy model / session resolver
+through the application layer, additional CLI command groups, shell
+completion).
 
 Catalog in parallel (independent of Phase 10):
     wick / distance catalog PRs
@@ -786,12 +809,13 @@ Deferred relative to that track:
     PBO / CSCV / deflated Sharpe (ADR first)
     Residual docs / sample-data narrative
 
-Recently completed (dashboard / demo / dry-run / authoring infra / Phase 10A–10C, 2F):
-    Sprint 045 — Binance USD-M historical OHLCV ingestion → sprint branch
-        (14/14; working PRs #350–#354; integration PR to main pending) —
-        closes Phase 2F
-    Sprint 044 — Predictive dashboard + IDEA-014 gate → sprint branch (18/18;
-        working PRs #343–#346; integration PR to main pending) — closes Phase 10
+Recently completed (dashboard / demo / dry-run / authoring infra / Phase 10A–10C, 2F, 11):
+    Sprint 046 — Universal Operator CLI → sprint branch (14/14; working PRs
+        #356–#359; integration PR to main pending) — closes Phase 11
+    Sprint 045 — Binance USD-M historical OHLCV ingestion → main (#355;
+        working PRs #350–#354) — closes Phase 2F
+    Sprint 044 — Predictive dashboard + IDEA-014 gate → main (#348; working
+        PRs #343–#347) — closes Phase 10
     Sprint 043 — Neural predictive models → main (#342; working PRs #336–#341)
     Sprint 042 — Tree-based predictive models → main (#335; working PRs #326–#334)
     Sprint 041 — Predictive Research report v1 → main (#325; working PRs #320–#324)
@@ -866,8 +890,9 @@ See `docs/planning/sprints/SPRINT_044.md`, `S044_WAVE0_DECISIONS.md`, `SPRINT_04
 | 041 | Predictive Research report v1 (Phase 10A) | COMPLETED | 16 / 16 tasks; main #325; working PRs #320–#324 |
 | 042 | Tree-based predictive models (Phase 10B) | COMPLETED | 22 / 22 tasks; main #335; working PRs #326–#334 |
 | 043 | Neural predictive models (Phase 10C) | COMPLETED | 21 / 21 tasks; main #342; working PRs #336–#341 |
-| 044 | Predictive dashboard + IDEA-014 gate (Phase 10C) | COMPLETED | 18 / 18 tasks; working PRs #343–#346; integration PR to main pending |
-| 045 | Binance USD-M historical OHLCV ingestion (Phase 2F) | COMPLETED | 14 / 14 tasks; working PRs #350–#354; integration PR to main pending |
+| 044 | Predictive dashboard + IDEA-014 gate (Phase 10C) | COMPLETED | 18 / 18 tasks; main #348; working PRs #343–#347 |
+| 045 | Binance USD-M historical OHLCV ingestion (Phase 2F) | COMPLETED | 14 / 14 tasks; main #355; working PRs #350–#354 |
+| 046 | Universal Operator CLI (Phase 11, `trading-cli`) | COMPLETED | 14 / 14 tasks; working PRs #356–#359; integration PR to main pending |
 
 ---
 
