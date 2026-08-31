@@ -5,9 +5,9 @@
 ```text
 Sprint: 046
 Phase: Phase 11 — Universal Operator CLI (opening and, in scope terms, closing increment)
-Status: PLANNED — design approved 2026-08-28, queued behind Sprint 045 (sequential, not parallel)
-Planned Start: TBD (on approval)
-Planned End: TBD
+Status: COMPLETE — 14/14 tasks done 2026-08-31, Phase 11 closed (ROADMAP §13C)
+Planned Start: 2026-08-31
+Planned End: 2026-08-31
 Sprint Goal Owner: Project Maintainer
 Depends On: SPRINT_045 (for the `data fetch binance` command only — see §9),
             SPRINT_028/029 (apps/* workspace precedent, ADR-0022),
@@ -21,7 +21,7 @@ Architecture Sources:
   - docs/adr/ADR-0026 (CLI framework, placement, config contract) — ACCEPTED
   - docs/adr/ADR-0022 (apps/* consumer boundary; scripts/ stay thin)
   - docs/adr/ADR-0025 (the Binance import this CLI will wrap) — ACCEPTED
-  - docs/planning/ROADMAP_INCREMENT_PHASE_2F_AND_11.md (§13C)
+  - docs/planning/ROADMAP.md §13C (Phase 11, applied in PR #349)
 ```
 
 ---
@@ -177,10 +177,10 @@ Checklist.
 
 | Task | Description | Acceptance | Status |
 |------|-------------|-----------|--------|
-| S046-T001 | `apps/cli` package: `pyproject.toml`, `[project.scripts] trading-cli`, uv workspace member, `argparse` subparser tree for the four groups with no command bodies | `uv run trading-cli --help` lists four groups; every command errors with "not implemented" rather than crashing | TODO |
-| S046-T002 | YAML config loader + strict validation: required `version` and `storage_root`, per-group blocks, unknown keys rejected, credential-shaped keys rejected | a typo in a key fails with the key name and the closest valid key; a config containing an API key is refused | TODO |
-| S046-T003 | Error taxonomy + exit codes (`0` success, `1` workflow failure, `2` config/usage error), `--dry-run` resolved-plan renderer, `--json` output mode | `--dry-run` prints workflow, resolved arguments and output paths and touches nothing on disk | TODO |
-| S046-T004 | Import-boundary test in the CLI's own test suite: only `trading_framework.application.*` is reachable | test fails if a research/execution/infrastructure import is added | TODO |
+| S046-T001 | `apps/cli` package: `pyproject.toml`, `[project.scripts] trading-cli`, uv workspace member, `argparse` subparser tree for the four groups with no command bodies | `uv run trading-cli --help` lists four groups; every command errors with "not implemented" rather than crashing | DONE |
+| S046-T002 | YAML config loader + strict validation: required `version` and `storage_root`, per-group blocks, unknown keys rejected, credential-shaped keys rejected | a typo in a key fails with the key name and the closest valid key; a config containing an API key is refused | DONE |
+| S046-T003 | Error taxonomy + exit codes (`0` success, `1` workflow failure, `2` config/usage error), `--dry-run` resolved-plan renderer, `--json` output mode | `--dry-run` prints workflow, resolved arguments and output paths and touches nothing on disk | DONE |
+| S046-T004 | Import-boundary test in the CLI's own test suite: only `trading_framework.application.*` is reachable | test fails if a research/execution/infrastructure import is added | DONE |
 
 Depends on: nothing. T002–T004 depend on T001.
 
@@ -188,11 +188,11 @@ Depends on: nothing. T002–T004 depend on T001.
 
 | Task | Description | Acceptance | Status |
 |------|-------------|-----------|--------|
-| S046-T005 | `report render` for predictive and strategy runs (pure application calls, smallest slice first) | both render offline HTML at the documented path; missing run → exit code 1 with a clear message | TODO |
-| S046-T006 | `research run` predictive: composed build → run → render, passing typed results between steps, referencing existing `PredictiveStudySpec` / `EstimatorSpec` files by path | one config produces a dataset, a run and a report; identifiers are never round-tripped through stdout | TODO |
-| S046-T007 | `research run` strategy, with the §4 finding 2 limitation documented in `--help` and the operator guide | runs on a published `DatasetRef`; the canonical-strategy-model limitation is stated, not silently implied | TODO |
-| S046-T008 | `dry-run start` wrapping the existing runtime; no execution logic changed; event-loop entry handled per §4 finding 4 | a bounded dry-run starts and stops with the same behaviour as the script | TODO |
-| S046-T009 | `data fetch databento` over the existing archive import path | publishes a `DatasetRef` from a local archive; naming caveat (import, not network fetch) documented | TODO |
+| S046-T005 | `report render` for predictive and strategy runs (pure application calls, smallest slice first) | both render offline HTML at the documented path; missing run → exit code 1 with a clear message | DONE |
+| S046-T006 | `research run` predictive: composed build → run → render, passing typed results between steps, referencing existing `PredictiveStudySpec` / `EstimatorSpec` files by path | one config produces a dataset, a run and a report; identifiers are never round-tripped through stdout | DONE |
+| S046-T007 | `research run` strategy, with the §4 finding 2 limitation documented in `--help` and the operator guide | runs on a published `DatasetRef`; the canonical-strategy-model limitation is stated, not silently implied | DONE |
+| S046-T008 | `dry-run start` wrapping the existing runtime; no execution logic changed; event-loop entry handled per §4 finding 4 | a bounded dry-run starts and stops with the same behaviour as the script | DONE |
+| S046-T009 | `data fetch databento` over the existing archive import path | publishes a `DatasetRef` from a local archive; naming caveat (import, not network fetch) documented | DONE |
 
 Depends on: Wave 1. T005–T009 are independent of each other and may be
 implemented in parallel on separate branches.
@@ -201,13 +201,13 @@ implemented in parallel on separate branches.
 
 | Task | Description | Acceptance | Status |
 |------|-------------|-----------|--------|
-| S046-T010 | `data fetch binance` wired to the Sprint 045 workflow | works end to end once S045 is on `main`; until then the command exists and fails with an explicit "requires Sprint 045" message — never a stack trace | TODO |
-| S046-T011 | Example configs, one per command group, under a documented location | each example runs as-is against fixture data or is marked as requiring real data | TODO |
-| S046-T012 | `docs/reference/OPERATOR_CLI.md` (one schema, documented once) + CI job for the `trading-cli` workspace member | CI runs `ruff` and `pytest` for `apps/cli`; the guide has no second copy of the schema | TODO |
-| S046-T013 | `apps/cli/CLAUDE.md` (boundary that differs from `apps/dashboard`), MODULE_MAP + ARCHITECTURE_OVERVIEW entries | a future agent editing `apps/cli` learns the boundary without reading ADR-0026 | TODO |
-| S046-T014 | Apply the Phase 11 roadmap block, update `CURRENT_STATUS.md` §11/§12, write the sprint Review section | roadmap and status reflect the delivered scope | TODO |
+| S046-T010 | `data fetch binance` wired to the Sprint 045 workflow | works end to end once S045 is on `main`; until then the command exists and fails with an explicit "requires Sprint 045" message — never a stack trace | DONE |
+| S046-T011 | Example configs, one per command group, under a documented location | each example runs as-is against fixture data or is marked as requiring real data | DONE |
+| S046-T012 | `docs/reference/OPERATOR_CLI.md` (one schema, documented once) + CI job for the `trading-cli` workspace member | CI runs `ruff` and `pytest` for `apps/cli`; the guide has no second copy of the schema | DONE |
+| S046-T013 | `apps/cli/CLAUDE.md` (boundary that differs from `apps/dashboard`), MODULE_MAP + ARCHITECTURE_OVERVIEW entries | a future agent editing `apps/cli` learns the boundary without reading ADR-0026 | DONE |
+| S046-T014 | Apply the Phase 11 roadmap block, update `CURRENT_STATUS.md` §11/§12, write the sprint Review section | roadmap and status reflect the delivered scope | DONE |
 
-**Progress:** 0 / 14 tasks
+**Progress:** 14 / 14 tasks
 
 ---
 

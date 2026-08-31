@@ -1,0 +1,18 @@
+# trading-cli dry-run start --config apps/cli/examples/dry_run_start.yaml
+#
+# Wraps the existing BTC futures dry-run runtime unmodified -- it connects to
+# the live Binance USD-M websocket feed for the configured duration and
+# writes runtime events to `event_log`. It does not place real orders; it is
+# a bounded local simulation, not an offline replay -- it needs network
+# access to Binance to receive live market data.
+#
+# Safe to try with --dry-run first: prints the resolved plan and touches
+# nothing (no websocket connection is opened).
+
+version: 1
+storage_root: user_data/workspace
+
+dry_run:
+  symbol: BTCUSDT
+  duration_minutes: 5
+  event_log: user_data/runtime/btc_futures_dry_run/events.jsonl

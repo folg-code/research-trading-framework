@@ -233,3 +233,31 @@ jobs:
 
       - name: Dashboard tests
         run: uv run --package trading-dashboard pytest apps/dashboard/tests -q
+
+  cli:
+    name: CLI tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version-file: ".python-version"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b
+        with:
+          version: "0.11.22"
+          enable-cache: true
+
+      - name: Install workspace (including apps/cli)
+        run: uv sync --locked --dev --all-packages
+
+      - name: CLI ruff
+        run: uv run --package trading-cli ruff check apps/cli
+
+      - name: CLI tests
+        run: uv run --package trading-cli pytest apps/cli/tests -q

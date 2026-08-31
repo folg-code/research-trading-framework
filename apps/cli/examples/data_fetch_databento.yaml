@@ -1,0 +1,18 @@
+# trading-cli data fetch --config apps/cli/examples/data_fetch_databento.yaml
+#
+# Requires a Databento archive (.dbn / .dbn.zst) already on disk at the
+# `archive` path below -- this is a local archive *import*, not a network
+# fetch (see --help on `data fetch`). Replace the path and instrument_id
+# with a real archive before running for real.
+#
+# Safe to try with --dry-run first: prints the resolved plan and touches
+# nothing (it does not require the archive file to exist yet).
+
+version: 1
+storage_root: user_data/workspace
+
+data:
+  provider: databento
+  databento:
+    archive: user_data/archives/nq.c.0.trades.dbn.zst
+    instrument_id: NQ.c.0

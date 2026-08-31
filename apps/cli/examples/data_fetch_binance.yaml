@@ -1,0 +1,26 @@
+# trading-cli data fetch --config apps/cli/examples/data_fetch_binance.yaml
+#
+# Requires network access to the Binance USD-M REST API. Anonymous requests
+# work; setting TRADING_FRAMEWORK_BINANCE_API_KEY in the environment (never
+# in this file -- credential-shaped keys are rejected by the config loader,
+# D-S046-08) raises the request-weight limit. Interval is locked to `1m`
+# today (TD-023): the historical reader reuses the live-path kline mapper,
+# which does not decode any other interval yet -- resolve_plan rejects a
+# different value before any side effect.
+#
+# Safe to try with --dry-run first: prints the resolved plan and touches
+# nothing.
+
+version: 1
+storage_root: user_data/workspace
+
+data:
+  provider: binance
+  binance:
+    mode: ohlcv
+    symbol: BTCUSDT
+    instrument_id: BTCUSDT.P
+    interval: 1m
+    start: 2025-01-01T00:00:00Z
+    end: 2025-01-02T00:00:00Z
+    publish: true

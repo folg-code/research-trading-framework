@@ -1,0 +1,21 @@
+# trading-cli research run --config apps/cli/examples/research_run_strategy.yaml
+#
+# Requires a published DatasetRef (dataset_ref below is a placeholder shape,
+# not a real one -- replace it with the output of a real `data fetch`).
+# Known limitation (SPRINT_046.md Sec4 finding 2, documented in
+# docs/reference/OPERATOR_CLI.md): the canonical strategy model, simulation
+# assumptions and session resolver are hardcoded the same way
+# scripts/strategy_research/run_strategy_research.py hardcodes them -- there
+# is no config key to choose a different one in v1.
+#
+# Safe to try with --dry-run first: prints the resolved plan and touches
+# nothing.
+
+version: 1
+storage_root: user_data/workspace
+
+research:
+  kind: strategy
+  strategy:
+    dataset_ref: "BTCUSDT.P|ohlcv|1m|binance|binance-usdm-klines-v1@1"
+    timeframe: 1m
