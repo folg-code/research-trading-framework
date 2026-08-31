@@ -825,6 +825,47 @@ Tier 2 may use opt-in integration markers; Tier 3 is local-only and published as
 
 ---
 
+## PRB-018 — Torch Smoke Test False-Fails Without `dl` Extra Installed
+
+```text
+Status: OPEN
+Severity: LOW
+Domain: Testing / CI environment
+Owner: Unassigned
+Discovered: 2026-08-28 (Sprint 044, PR #346 QA)
+```
+
+### Description
+
+`tests/unit/infrastructure/ml/torch/` has no `__init__.py`. When the `dl`
+extra (torch) is not installed, pytest's `sys.path` insertion for that
+directory makes `import torch` inside
+`tests/unit/infrastructure/ml/test_torch_extra_smoke.py` silently resolve to
+an empty implicit namespace package instead of raising `ModuleNotFoundError`.
+`pytest.importorskip("torch")` therefore does not skip, and the test fails on
+`torch.__version__` (`AttributeError: module 'torch' has no attribute
+'__version__'`).
+
+Reproduces deterministically on a clean `uv sync` (no `--extra dl` /
+`--all-extras`) and has been observed as an unrelated, pre-existing failure
+across multiple PRs in Sprint 044 and Sprint 045 planning (#346, #349).
+Running `uv sync --all-extras` (or `--extra dl`) first avoids it, which is
+why it hasn't blocked any actual PR — but a clean-environment `uv run pytest`
+run reports a false failure with no code defect behind it.
+
+### Possible Directions
+
+Add the missing `__init__.py` under `tests/unit/infrastructure/ml/torch/` so
+the namespace-package collision cannot happen, or make the smoke test itself
+defensive (catch `ImportError`/`AttributeError` before asserting `__version__`).
+
+### Resolution Criteria
+
+- `uv run pytest` is green on a clean environment with no `ml`/`ml-trees`/`dl`
+  extras installed, without needing `uv sync --all-extras` first.
+
+---
+
 # 6. Resolved Problems
 
 No problems have yet been formally moved to `RESOLVED`.

@@ -73,6 +73,7 @@ Data Capability Track
   Phase 2C — Trades and Quotes                    COMPLETE  (2C.1 + 2C.4 on main; 2C.2 quotes PLANNED)
   Phase 2D — Options Snapshot Data                PLANNED
   Phase 2E — Live Market Data                     GATED
+  Phase 2F — Exchange REST Historical Import      PLANNED   (Sprint 045; Binance USD-M)
 
 Research Capability Track
   Phase 3  — Market Analysis Engine MVP           COMPLETE
@@ -90,6 +91,9 @@ Research Capability Track
 Execution Capability Track
   Phase 8 — Replay and Paper Execution            PLANNED
   Phase 9 — Live and Multi-Account Execution        PLANNED
+
+Operator Experience Track
+  Phase 11 — Universal Operator CLI                  PLANNED   (Sprint 046; trading-cli)
 ```
 
 ### Cross-track dependencies (summary)
@@ -118,11 +122,25 @@ Market Data policy (facts not indicators, vendor independence): **§14 Research 
 Test data tiers and live-data gate: **§15**.
 
 **Phase 10 is COMPLETE** (Sprints 039–044): predictive dashboard page, ADR-0024, and the
-IDEA-014 gate all merged. **Recommended next increment: none scheduled by default** — see
-`docs/planning/sprints/SPRINT_044.md` §12 for candidate follow-ons (none committed). Catalog
-follow-ons (wick / distance) remain in parallel. Deferred by default: Phase 4B/6B, Phase 8
-Replay, PBO/CSCV ADR. Stage 3 (`available_at` column / lineage sidecar) and Stage 4
-(`MarketFrame`) remain independently sequenced.
+IDEA-014 gate all merged.
+
+**Next tracked increment: two independent capability tracks, planned as separate sprints.**
+
+```text
+Phase 2F  Binance USD-M historical OHLCV import   Sprint 045   ADR-0025
+Phase 11  Universal operator CLI (trading-cli)     Sprint 046   ADR-0026
+```
+
+They are sequenced but **not coupled**: Sprint 046's `data fetch binance`
+command wraps whatever Sprint 045 publishes, so 046 depends on 045 for that one
+command group and for nothing else. Either may be approved, started, or
+deferred without the other; 046 ships `data fetch databento` regardless. The
+maintainer chose to run them sequentially (045 first, then 046) rather than in
+parallel.
+
+Catalog follow-ons (wick / distance) remain in parallel. Deferred by default:
+Phase 4B/6B, Phase 8 Replay, PBO/CSCV ADR. Stage 3 (`available_at` column /
+lineage sidecar) and Stage 4 (`MarketFrame`) remain independently sequenced.
 
 ---
 
@@ -1252,6 +1270,166 @@ Phase 10 is complete when the framework can:
 - a general model registry product,
 - reinforcement learning and generative approaches,
 - automated feature engineering search.
+
+---
+
+# 13B. Phase 2F — Exchange REST Historical Import (PLANNED)
+
+**Status:** PLANNED — Sprint 045. **ADR:** ADR-0025 (ACCEPTED).
+**First provider:** Binance USD-M futures.
+
+## Purpose
+
+Obtain historical bars from an exchange **REST API over a date range**, not only
+from a local vendor archive (Phase 2B) or a CSV file (Phase 2A).
+
+The framework's downstream layers are already provider-agnostic; the gap is
+purely at the acquisition boundary. Closing it makes crypto data available to
+Signal, Strategy, Robustness and Predictive Research with **no change to any
+research code**.
+
+## Primary flow
+
+```text
+Binance USD-M REST /fapi/v1/klines
+        ↓
+paginated fetch over [start, end) with weight-aware backoff
+        ↓
+map_kline_payload → canonical MarketBar   (shared with the live path)
+        ↓
+OHLCV validation
+        ↓
+bars.parquet + import_manifest.json       (ADR-0008 layout, unchanged)
+        ↓
+register WORKING → finalize → publish
+        ↓
+published DatasetRef, provider = "binance"
+```
+
+## Expected capabilities
+
+- paginated historical klines fetch over an arbitrary UTC date range,
+- open-bar exclusion and idempotent re-import (same range → same checksum),
+- weight-aware rate limiting with bounded, jittered backoff (no busy-loop retry),
+- optional API key raising public market-data limits, environment-variable only,
+- gap recording (never gap filling) in an import manifest,
+- a mode selector reserving a future `trades` mode without building it,
+- a thin CLI under `scripts/market_data/`.
+
+## Binding rules
+
+```text
+Downstream research must not branch on provider == "binance"
+No signing code, no authenticated endpoint, no account surface — structurally, not by promise
+Credentials live in TRADING_FRAMEWORK_BINANCE_API_KEY only; never in a file, never logged
+A partially fetched range never produces a PUBLISHED version
+Standard CI stays network-free (Tier 1 fake transport; Tier 2 opt-in marker)
+```
+
+## Completion criteria
+
+- a multi-month Binance USD-M range publishes a queryable `DatasetRef`,
+- `query_historical` returns those bars with no provider-specific handling,
+- Strategy or Predictive Research runs on the result unmodified,
+- rate-limit backoff is proven against 429 / 418 / 5xx without real sleeping,
+- a boundary test proves no credential is required by any committed file,
+- the live dry-run reconnect path (`fetch_closed_klines`) is unchanged.
+
+## Dependencies
+
+- Phase 2A lifecycle and repository contracts (ADR-0007 / ADR-0008),
+- the Sprint 019 Binance mapper and symbol normalization.
+
+## Main risks
+
+- vendor-revisable history undermining reproducibility (mitigated by publishing versions),
+- long wall-clock imports under weight limits with no resume in v1,
+- validator behaviour on legitimate market gaps,
+- credential convention drift if a second storage location is ever introduced.
+
+## Out of scope
+
+- Binance spot, options, or any authenticated endpoint,
+- `trades` mode (reserved, not built),
+- resume-after-failure and incremental "top-up" imports,
+- a second exchange (the workflow generalizes only when a second one is needed).
+
+---
+
+# 13C. Phase 11 — Universal Operator CLI (PLANNED)
+
+**Status:** PLANNED — Sprint 046. **ADR:** ADR-0026 (ACCEPTED).
+
+## Purpose
+
+Give the operator one entry point and one input contract for the working loop.
+Today that loop is a remembered sequence of `uv run python scripts/.../foo.py`
+invocations across 45 scripts with 45 flag sets.
+
+This is an **interface** phase. It adds no research, data or execution
+capability, and it deliberately does not replace `scripts/`.
+
+## Primary flow
+
+```text
+one YAML config
+        ↓
+trading-cli <group> <command> --config <path>
+        ↓
+validate + resolve the plan (--dry-run stops here)
+        ↓
+call an existing application-layer workflow
+        ↓
+typed result → human or --json output
+```
+
+## Command groups (v1)
+
+```text
+data fetch     Binance (Phase 2F) and Databento historical import
+research run   Predictive Research and Strategy Research
+dry-run start  the existing BTC futures dry-run runtime (Sprints 018–024)
+report render  offline HTML reports for the above
+```
+
+## Binding rules
+
+```text
+apps/cli may import trading_framework.application.* — and nothing deeper
+apps/cli contains no research, simulation or execution logic
+No workflow is reimplemented; no command parses another command's stdout
+Existing scripts, their flags and their tests remain valid
+No credentials in any config file
+```
+
+## Completion criteria
+
+- the four commands run end to end from a YAML config,
+- an invalid config fails before any side effect, with a clear message,
+- `--dry-run` prints the resolved plan without executing,
+- an import-boundary test proves the CLI touches only the application layer,
+- CI is green for the new workspace member,
+- the operator guide documents one config schema, once.
+
+## Dependencies
+
+- Sprint 045 / ADR-0025 for the `data fetch binance` command only,
+- existing application workflows for the other three groups.
+
+## Main risks
+
+- the CLI drifting from script behaviour (two front doors, one can rot),
+- scope creep toward wrapping all 45 scripts,
+- config schema growing a fat "common" section that couples unrelated commands,
+- hardcoded choices inside scripts (canonical strategy model, session resolver)
+  being mistaken for CLI limitations rather than upstream ones.
+
+## Out of scope
+
+- replacing `scripts/`; ops, demo, robustness and signal-research groups,
+- any change to execution or order-routing logic,
+- interactive/TUI modes, shell completion, packaging for global install,
+- a job scheduler, queue, or run history — the CLI is stateless.
 
 ---
 
