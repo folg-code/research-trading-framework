@@ -750,7 +750,55 @@ Planned directions include:
 
 ---
 
-## 9. Shared Domain Contracts
+## 9. Operator CLI
+
+### Problem
+
+Each workflow above (`data fetch`, `research run`, `dry-run start`, `report
+render`) already has a thin `scripts/` entry point of its own — 45 of them, by
+Phase 11. Running the research loop end to end means remembering the right
+sequence of `uv run python scripts/.../foo.py --flag value` invocations and
+copy-pasting identifiers (dataset refs, run ids) between steps.
+
+### Architectural Approach
+
+`apps/cli` (`trading-cli`) is a single operator-facing entry point, driven by
+one YAML config, over the same application-layer workflows the scripts
+already call — it adds no new capability and reimplements nothing.
+
+```text
+YAML config
+   → validate + resolve plan   (--dry-run stops here)
+   → application-layer workflow
+   → typed result → human output or --json
+```
+
+Like `apps/dashboard`, it is a deployable consumer outside the reusable core
+(ADR-0022), but its import boundary is deliberately wider: the dashboard
+reads persisted artifacts and may not import `trading_framework` at all,
+while the CLI's entire purpose is to invoke workflows, so it may import
+`trading_framework.application.*` plus a short, explicit, tested allow-list
+of value objects and typed identifiers those workflows require as
+constructor arguments (ADR-0026 §2 and Amendment 1).
+
+### Current Scope
+
+Four command groups: `data fetch` (Binance historical OHLCV, Databento
+archive import), `research run` (Predictive, composed build → run → render;
+Strategy), `dry-run start` (the existing BTC futures dry-run runtime),
+`report render` (Predictive, Strategy). `scripts/` is unchanged and remains a
+valid front door; the CLI is additive.
+
+### Future Direction
+
+Additional command groups (`robustness`, `signal`) if the four groups prove
+out; exposing the strategy model / session resolver through the application
+layer so YAML can select them, removing a documented v1 limitation; shell
+completion and a packaged install.
+
+---
+
+## 10. Shared Domain Contracts
 
 Shared domain contracts connect the modules without coupling them to concrete infrastructure.
 
@@ -779,7 +827,7 @@ Domain contracts should remain stable.
 
 ---
 
-## 10. Technology Overview
+## 11. Technology Overview
 
 | Area | Technologies |
 |---|---|
@@ -793,7 +841,7 @@ Domain contracts should remain stable.
 
 ---
 
-## 11. Development Directions
+## 12. Development Directions
 
 ### Market Data
 
@@ -837,7 +885,7 @@ Domain contracts should remain stable.
 
 ---
 
-## 12. Detailed References
+## 13. Detailed References
 
 Detailed implementation documentation remains in:
 

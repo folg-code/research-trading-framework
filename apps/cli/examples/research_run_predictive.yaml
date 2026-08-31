@@ -1,0 +1,22 @@
+# trading-cli research run --config apps/cli/examples/research_run_predictive.yaml
+#
+# Requires an existing PredictiveStudySpec (`definition`) and EstimatorSpec
+# (`estimator`) file, referenced by path and parsed by their own loaders
+# (D-S046-07 -- never inlined here), plus market data already published for
+# the study's target dataset/timeframe. This is the one composed command in
+# v1: build -> run -> render happen in one call, passing typed identifiers
+# between steps (never through stdout).
+#
+# Safe to try with --dry-run first: prints the resolved plan and touches
+# nothing (it does not require the definition/estimator files to exist yet).
+
+version: 1
+storage_root: user_data/workspace
+
+research:
+  kind: predictive
+  predictive:
+    definition: configs/predictive/my_study.yaml
+    estimator: configs/predictive/ridge.yaml
+    persist: true
+    render_report: true

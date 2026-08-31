@@ -23,6 +23,7 @@ src/trading_framework/
 apps/
     deployable consumers outside the monolith (ADR-0022)
     apps/dashboard/ — read-only Streamlit + DuckDB research dashboard (Sprint 028)
+    apps/cli/ — operator CLI, trading-cli, over application-layer workflows (Sprint 046 / ADR-0026)
 
 scripts/
     thin CLIs over application use cases
@@ -95,6 +96,14 @@ apps/dashboard/src/dashboard_app/
     catalog/predictive_quality.py   # Predictive Research quality flags (Sprint 044)
     views/predictive.py             # Predictive Research picker/leaderboard/detail view models
     pages/6_Predictive_Research.py  # Predictive Research page
+
+apps/cli/src/trading_cli/
+    cli.py              # argparse subparser tree + dispatch
+    config.py            # YAML config loader + strict validation (D-S046-07/08)
+    plan.py               # ResolvedPlan model, --dry-run / --json rendering
+    errors.py              # exit-code taxonomy (0 / 1 / 2, D-S046-09)
+    commands/               # one module per command group: data.py, research.py,
+                             # dry_run.py, report.py
 ```
 
 ---
@@ -113,6 +122,7 @@ apps/dashboard/src/dashboard_app/
 | Live Execution | `application/execution/` | `execution/` | `infrastructure/providers/`, `infrastructure/storage/` | Runtime state |
 | Visualization | Application view-model builders | `research/analytics/`, reporting packages | HTML, API and dashboard adapters; `apps/dashboard` | Dashboards and reports |
 | Predictive Research dashboard | — (read-only catalog scan, no application orchestration import) | `apps/dashboard/src/dashboard_app/catalog/`, `views/`, `caching/`, `contracts.py` | DuckDB/Parquet reads of `research/predictive_research/` | Study picker, leaderboard, run detail, provenance (`pages/6_Predictive_Research.py`) |
+| Operator CLI | `apps/cli/src/trading_cli/commands/` (`data.py`, `research.py`, `dry_run.py`, `report.py`) call `application/market_data/`, `application/predictive_research/`, `application/strategy_research/`, `application/execution/` directly | `apps/cli/src/trading_cli/config.py`, `plan.py`, `errors.py` (CLI-local config/plan/error models, not domain packages) | none of its own — delegates entirely to the application layer it wraps | `DatasetRef` (data fetch), dataset/run identifiers + offline HTML (research run, report render), dry-run runtime state |
 
 ---
 
@@ -771,7 +781,8 @@ flowchart LR
 | `strategy/` | `tests/unit/strategy/` |
 | `execution/` | `tests/unit/execution/` |
 | `infrastructure/` | `tests/unit/infrastructure/`, opt-in integration tests |
-| Architecture boundaries | dedicated architecture-boundary tests |
+| `apps/cli/src/trading_cli/` | `apps/cli/tests/` (own CI job, own `--package trading-cli` pytest run) |
+| Architecture boundaries | dedicated architecture-boundary tests (`tests/unit/test_apps_boundaries.py`) |
 
 Tests should mirror module ownership and validate both:
 

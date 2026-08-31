@@ -1,0 +1,18 @@
+# trading-cli report render --config apps/cli/examples/report_render.yaml
+#
+# Requires an existing run_id from a prior `research run predictive` (or set
+# `kind: strategy` and use a strategy run_id instead -- the two kinds are
+# mutually exclusive, this file shows the predictive shape). `output` is
+# optional; when unset it defaults to the workflow's own path convention
+# (documented in docs/reference/OPERATOR_CLI.md).
+#
+# Safe to try with --dry-run first: prints the resolved plan and touches
+# nothing (it does not require run_id to exist yet).
+
+version: 1
+storage_root: user_data/workspace
+
+report:
+  kind: predictive
+  run_id: replace-with-a-real-predictive-run-id
+  # output: user_data/reports/predictive/replace-with-a-real-predictive-run-id.html

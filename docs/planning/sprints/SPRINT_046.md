@@ -201,13 +201,13 @@ implemented in parallel on separate branches.
 
 | Task | Description | Acceptance | Status |
 |------|-------------|-----------|--------|
-| S046-T010 | `data fetch binance` wired to the Sprint 045 workflow | works end to end once S045 is on `main`; until then the command exists and fails with an explicit "requires Sprint 045" message — never a stack trace | TODO |
-| S046-T011 | Example configs, one per command group, under a documented location | each example runs as-is against fixture data or is marked as requiring real data | TODO |
-| S046-T012 | `docs/reference/OPERATOR_CLI.md` (one schema, documented once) + CI job for the `trading-cli` workspace member | CI runs `ruff` and `pytest` for `apps/cli`; the guide has no second copy of the schema | TODO |
-| S046-T013 | `apps/cli/CLAUDE.md` (boundary that differs from `apps/dashboard`), MODULE_MAP + ARCHITECTURE_OVERVIEW entries | a future agent editing `apps/cli` learns the boundary without reading ADR-0026 | TODO |
+| S046-T010 | `data fetch binance` wired to the Sprint 045 workflow | works end to end once S045 is on `main`; until then the command exists and fails with an explicit "requires Sprint 045" message — never a stack trace | DONE |
+| S046-T011 | Example configs, one per command group, under a documented location | each example runs as-is against fixture data or is marked as requiring real data | DONE |
+| S046-T012 | `docs/reference/OPERATOR_CLI.md` (one schema, documented once) + CI job for the `trading-cli` workspace member | CI runs `ruff` and `pytest` for `apps/cli`; the guide has no second copy of the schema | DONE |
+| S046-T013 | `apps/cli/CLAUDE.md` (boundary that differs from `apps/dashboard`), MODULE_MAP + ARCHITECTURE_OVERVIEW entries | a future agent editing `apps/cli` learns the boundary without reading ADR-0026 | DONE |
 | S046-T014 | Apply the Phase 11 roadmap block, update `CURRENT_STATUS.md` §11/§12, write the sprint Review section | roadmap and status reflect the delivered scope | TODO |
 
-**Progress:** 9 / 14 tasks
+**Progress:** 13 / 14 tasks
 
 ---
 
