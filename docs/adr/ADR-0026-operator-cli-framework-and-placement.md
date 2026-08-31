@@ -271,10 +271,10 @@ whose constructor arguments are typed by modules outside
 `trading_framework.application.*` — value objects, typed identifiers, spec
 loaders, and (for two commands) the same hardcoded defaults §0/Finding 2
 already named as an accepted v1 limitation. The implementing engineer widened
-`apps/cli`'s import-boundary test to permit fifteen specific modules,
+`apps/cli`'s import-boundary test to permit seventeen specific modules,
 justified each with a one-line comment, and flagged the change rather than
 hiding it. Independent review confirmed the code itself was correct — but
-also confirmed that roughly ten of those fifteen modules sit inside prefixes
+also confirmed that eleven of those seventeen modules sit inside prefixes
 this ADR's §2 explicitly lists as **Forbidden**, and that widening a binding,
 maintainer-approved Wave 0 decision (D-S046-06) is not something an engineer
 gets to do unilaterally, however sound the reasoning. This amendment is the
