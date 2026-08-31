@@ -177,10 +177,10 @@ Checklist.
 
 | Task | Description | Acceptance | Status |
 |------|-------------|-----------|--------|
-| S046-T001 | `apps/cli` package: `pyproject.toml`, `[project.scripts] trading-cli`, uv workspace member, `argparse` subparser tree for the four groups with no command bodies | `uv run trading-cli --help` lists four groups; every command errors with "not implemented" rather than crashing | TODO |
-| S046-T002 | YAML config loader + strict validation: required `version` and `storage_root`, per-group blocks, unknown keys rejected, credential-shaped keys rejected | a typo in a key fails with the key name and the closest valid key; a config containing an API key is refused | TODO |
-| S046-T003 | Error taxonomy + exit codes (`0` success, `1` workflow failure, `2` config/usage error), `--dry-run` resolved-plan renderer, `--json` output mode | `--dry-run` prints workflow, resolved arguments and output paths and touches nothing on disk | TODO |
-| S046-T004 | Import-boundary test in the CLI's own test suite: only `trading_framework.application.*` is reachable | test fails if a research/execution/infrastructure import is added | TODO |
+| S046-T001 | `apps/cli` package: `pyproject.toml`, `[project.scripts] trading-cli`, uv workspace member, `argparse` subparser tree for the four groups with no command bodies | `uv run trading-cli --help` lists four groups; every command errors with "not implemented" rather than crashing | DONE |
+| S046-T002 | YAML config loader + strict validation: required `version` and `storage_root`, per-group blocks, unknown keys rejected, credential-shaped keys rejected | a typo in a key fails with the key name and the closest valid key; a config containing an API key is refused | DONE |
+| S046-T003 | Error taxonomy + exit codes (`0` success, `1` workflow failure, `2` config/usage error), `--dry-run` resolved-plan renderer, `--json` output mode | `--dry-run` prints workflow, resolved arguments and output paths and touches nothing on disk | DONE |
+| S046-T004 | Import-boundary test in the CLI's own test suite: only `trading_framework.application.*` is reachable | test fails if a research/execution/infrastructure import is added | DONE |
 
 Depends on: nothing. T002–T004 depend on T001.
 
@@ -207,7 +207,7 @@ implemented in parallel on separate branches.
 | S046-T013 | `apps/cli/CLAUDE.md` (boundary that differs from `apps/dashboard`), MODULE_MAP + ARCHITECTURE_OVERVIEW entries | a future agent editing `apps/cli` learns the boundary without reading ADR-0026 | TODO |
 | S046-T014 | Apply the Phase 11 roadmap block, update `CURRENT_STATUS.md` §11/§12, write the sprint Review section | roadmap and status reflect the delivered scope | TODO |
 
-**Progress:** 0 / 14 tasks
+**Progress:** 4 / 14 tasks
 
 ---
 
