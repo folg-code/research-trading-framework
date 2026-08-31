@@ -203,14 +203,22 @@ def test_binance_provider_has_no_signing_code_or_authenticated_endpoint() -> Non
     assert offenders == []
 
 
+def _is_urllib_import(dotted_name: str) -> bool:
+    return dotted_name == "urllib" or dotted_name.startswith("urllib.")
+
+
 def test_no_urllib_import_outside_infrastructure() -> None:
     """HTTP access (urllib) is confined to ``infrastructure/`` (SPRINT_045.md §4).
 
     Application, research and script layers must never see ``urllib`` or raw
     HTTP directly -- they call an application workflow that already returns
-    domain objects.
+    domain objects. Covers both the installed package (everything outside
+    ``infrastructure/``) and ``scripts/``, which is not part of the package
+    and so was previously unchecked -- a thin CLI script is exactly the kind
+    of file where a stray ``import urllib.request`` could slip past review.
     """
     package_root = Path(trading_framework.__file__).resolve().parent
+    repo_root = package_root.parents[1]
     infrastructure_root = package_root / "infrastructure"
     offenders: list[str] = []
 
@@ -223,14 +231,21 @@ def test_no_urllib_import_outside_infrastructure() -> None:
                 offenders.extend(
                     f"{path.relative_to(package_root)}:{alias.name}"
                     for alias in node.names
-                    if alias.name == "urllib" or alias.name.startswith("urllib.")
+                    if _is_urllib_import(alias.name)
                 )
             elif (
                 isinstance(node, ast.ImportFrom)
                 and node.module is not None
-                and (node.module == "urllib" or node.module.startswith("urllib."))
+                and _is_urllib_import(node.module)
             ):
                 offenders.append(f"{path.relative_to(package_root)}:{node.module}")
+
+    offenders.extend(
+        f"scripts/{name}"
+        for name in _import_offenders_from_roots(
+            (repo_root / "scripts",), predicate=_is_urllib_import
+        )
+    )
 
     assert offenders == []
 
