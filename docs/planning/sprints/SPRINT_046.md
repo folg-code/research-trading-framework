@@ -188,11 +188,11 @@ Depends on: nothing. T002–T004 depend on T001.
 
 | Task | Description | Acceptance | Status |
 |------|-------------|-----------|--------|
-| S046-T005 | `report render` for predictive and strategy runs (pure application calls, smallest slice first) | both render offline HTML at the documented path; missing run → exit code 1 with a clear message | TODO |
-| S046-T006 | `research run` predictive: composed build → run → render, passing typed results between steps, referencing existing `PredictiveStudySpec` / `EstimatorSpec` files by path | one config produces a dataset, a run and a report; identifiers are never round-tripped through stdout | TODO |
-| S046-T007 | `research run` strategy, with the §4 finding 2 limitation documented in `--help` and the operator guide | runs on a published `DatasetRef`; the canonical-strategy-model limitation is stated, not silently implied | TODO |
-| S046-T008 | `dry-run start` wrapping the existing runtime; no execution logic changed; event-loop entry handled per §4 finding 4 | a bounded dry-run starts and stops with the same behaviour as the script | TODO |
-| S046-T009 | `data fetch databento` over the existing archive import path | publishes a `DatasetRef` from a local archive; naming caveat (import, not network fetch) documented | TODO |
+| S046-T005 | `report render` for predictive and strategy runs (pure application calls, smallest slice first) | both render offline HTML at the documented path; missing run → exit code 1 with a clear message | DONE |
+| S046-T006 | `research run` predictive: composed build → run → render, passing typed results between steps, referencing existing `PredictiveStudySpec` / `EstimatorSpec` files by path | one config produces a dataset, a run and a report; identifiers are never round-tripped through stdout | DONE |
+| S046-T007 | `research run` strategy, with the §4 finding 2 limitation documented in `--help` and the operator guide | runs on a published `DatasetRef`; the canonical-strategy-model limitation is stated, not silently implied | DONE |
+| S046-T008 | `dry-run start` wrapping the existing runtime; no execution logic changed; event-loop entry handled per §4 finding 4 | a bounded dry-run starts and stops with the same behaviour as the script | DONE |
+| S046-T009 | `data fetch databento` over the existing archive import path | publishes a `DatasetRef` from a local archive; naming caveat (import, not network fetch) documented | DONE |
 
 Depends on: Wave 1. T005–T009 are independent of each other and may be
 implemented in parallel on separate branches.
@@ -207,7 +207,7 @@ implemented in parallel on separate branches.
 | S046-T013 | `apps/cli/CLAUDE.md` (boundary that differs from `apps/dashboard`), MODULE_MAP + ARCHITECTURE_OVERVIEW entries | a future agent editing `apps/cli` learns the boundary without reading ADR-0026 | TODO |
 | S046-T014 | Apply the Phase 11 roadmap block, update `CURRENT_STATUS.md` §11/§12, write the sprint Review section | roadmap and status reflect the delivered scope | TODO |
 
-**Progress:** 4 / 14 tasks
+**Progress:** 9 / 14 tasks
 
 ---
 
