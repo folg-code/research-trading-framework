@@ -28,8 +28,13 @@ apps/cli/
     plan.py            resolved-plan model, --dry-run / --json rendering
     errors.py          exit-code taxonomy (0 / 1 / 2)
     commands/          one module per command group
+  examples/            one example config per command group (S046-T011)
   tests/
 ```
+
+See `docs/reference/OPERATOR_CLI.md` for the full operator guide (config
+schema, all four command groups, exit codes, known limitations) and
+`apps/cli/examples/` for a runnable `--config` starting point per group.
 
 ## Boundary
 
