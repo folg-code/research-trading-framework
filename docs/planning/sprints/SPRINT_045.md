@@ -5,9 +5,9 @@
 ```text
 Sprint: 045
 Phase: Phase 2F — Exchange REST Historical Import (opening increment)
-Status: IN PROGRESS — approved 2026-08-28, Wave 0 checklist complete
+Status: COMPLETE
 Planned Start: TBD (on approval)
-Planned End: TBD
+Planned End: 2026-08-31
 Sprint Goal Owner: Project Maintainer
 Depends On: SPRINT_002 (dataset lifecycle), SPRINT_011/012 (import pattern to mirror),
             SPRINT_019 (Binance mapper, symbol normalization, network-free CI rule)
@@ -166,11 +166,11 @@ Depends on: Wave 2.
 
 | Task | Description | Acceptance | Status |
 |------|-------------|-----------|--------|
-| S045-T012 | `docs/reference/DATA_WORKFLOWS.md`: the Binance import flow beside the Databento flows | a reader can tell which import path applies to which source | TODO |
-| S045-T013 | Credential convention documented **once** (developer guide / onboarding), plus MODULE_MAP entries for the new modules | exactly one documented location for the API key across the repo | TODO |
-| S045-T014 | Apply `ROADMAP_INCREMENT_PHASE_2F_AND_11.md` Block 1/2 + §13B into `ROADMAP.md`, delete the staging file, update `CURRENT_STATUS.md` §11/§12, write the sprint Review section | roadmap has no duplicate/staged section left | TODO |
+| S045-T012 | `docs/reference/ARCHITECTURE_AND_WORKFLOWS.md`: the Binance import flow beside the Databento/CSV import flows (`docs/reference/DATA_WORKFLOWS.md` does not exist in the repository; ARCHITECTURE_AND_WORKFLOWS.md §3 is the actual target, per Sprint 044 precedent) | a reader can tell which import path applies to which source | DONE |
+| S045-T013 | Credential convention documented **once** (`docs/onboarding/DEVELOPER_GUIDE.md`), plus `MODULE_MAP.md` entries for the new modules | exactly one documented location for the API key across the repo | DONE |
+| S045-T014 | Apply `ROADMAP_INCREMENT_PHASE_2F_AND_11.md` Block 1/2 + §13B into `ROADMAP.md`, delete the staging file (done at sprint open, PR #349); update `CURRENT_STATUS.md` §11/§12 and `ROADMAP.md` Phase 2F status to reflect Sprint 045 as complete | roadmap has no duplicate/staged section left | DONE |
 
-**Progress:** 11 / 14 tasks
+**Progress:** 14 / 14 tasks
 
 ---
 
