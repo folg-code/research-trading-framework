@@ -41,9 +41,11 @@ Research pipeline hands-on:
 - **Optional API key, market-data rate limits only**: an API key may be
   configured to raise the weight-based rate limit on public market-data
   endpoints. It is never used for account or order endpoints in this scope —
-  no authenticated/private Binance API surface is touched. Never committed;
-  loaded from local config or environment only (same rule as `user_data/`:
-  proprietary/secret material stays out of version control).
+  no authenticated/private Binance API surface is touched. Never committed
+  (same rule as `user_data/`: proprietary/secret material stays out of
+  version control). This PRD left the exact storage mechanism open; ADR-0025
+  §5 settled it as **environment variable only**
+  (`TRADING_FRAMEWORK_BINANCE_API_KEY`) — no config file convention exists.
 - **Universal CLI (`trading-cli`)**: one entry point, YAML config per
   invocation instead of long flag lists, covering four command groups:
   - `data fetch` — Binance (new) and Databento (existing) historical import

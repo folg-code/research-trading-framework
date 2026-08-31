@@ -18,9 +18,9 @@ PR base: sprint/operator-cli (never main until sprint integration)
 Wave 0 decisions: docs/planning/sprints/S046_WAVE0_DECISIONS.md
 Architecture Sources:
   - docs/product/PRD.md (confirmed)
-  - docs/adr/ADR-0026 (CLI framework, placement, config contract) — PROPOSED
+  - docs/adr/ADR-0026 (CLI framework, placement, config contract) — ACCEPTED
   - docs/adr/ADR-0022 (apps/* consumer boundary; scripts/ stay thin)
-  - docs/adr/ADR-0025 (the Binance import this CLI will wrap) — PROPOSED
+  - docs/adr/ADR-0025 (the Binance import this CLI will wrap) — ACCEPTED
   - docs/planning/ROADMAP_INCREMENT_PHASE_2F_AND_11.md (§13C)
 ```
 

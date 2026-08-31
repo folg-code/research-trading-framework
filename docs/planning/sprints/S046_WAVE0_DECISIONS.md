@@ -4,9 +4,10 @@ Binding decisions for the universal operator CLI `trading-cli` (Phase 11).
 Date: 2026-08-31.
 
 ```text
-Status: Proposed — requires maintainer approval (Wave 0 Checklist, §13)
+Status: Accepted — Wave 0 Checklist (§13) approved 2026-08-28; implementation
+        queued behind Sprint 045 (sequential, not parallel)
 Basis:  docs/product/PRD.md (confirmed)
-        docs/adr/ADR-0026 (PROPOSED)
+        docs/adr/ADR-0026 (ACCEPTED)
         docs/adr/ADR-0022 (apps/* boundary; scripts/ stay thin)
         docs/planning/sprints/SPRINT_046.md
         scripts/ and src/trading_framework/application/ as on main

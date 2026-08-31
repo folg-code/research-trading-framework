@@ -18,7 +18,7 @@ PR base: sprint/binance-historical-ohlcv (never main until sprint integration)
 Wave 0 decisions: docs/planning/sprints/S045_WAVE0_DECISIONS.md
 Architecture Sources:
   - docs/product/PRD.md (confirmed)
-  - docs/adr/ADR-0025 (Binance USD-M historical klines import) — PROPOSED
+  - docs/adr/ADR-0025 (Binance USD-M historical klines import) — ACCEPTED
   - docs/adr/ADR-0007 (dataset lifecycle), ADR-0008 (Parquet storage)
   - docs/adr/ADR-0014 / ADR-0015 (the import pattern being mirrored)
   - docs/adr/ADR-0022 (scripts/ stay thin)

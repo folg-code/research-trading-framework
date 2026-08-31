@@ -4,9 +4,9 @@ Binding decisions for Binance USD-M historical OHLCV ingestion (Phase 2F,
 opening increment). Date: 2026-08-31.
 
 ```text
-Status: Proposed — requires maintainer approval (Wave 0 Checklist, §14)
+Status: Accepted — Wave 0 Checklist (§14) approved 2026-08-28
 Basis:  docs/product/PRD.md (confirmed)
-        docs/adr/ADR-0025 (PROPOSED)
+        docs/adr/ADR-0025 (ACCEPTED)
         docs/planning/sprints/SPRINT_045.md
         ADR-0007 / ADR-0008 / ADR-0014 / ADR-0015 / ADR-0022
         src/trading_framework/infrastructure/providers/binance/ as on main
