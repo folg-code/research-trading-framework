@@ -12,8 +12,8 @@ Every command:
 1. loads and validates `--config` (a `ConfigError` here is exit code 2),
 2. resolves a `ResolvedPlan` from the config alone -- no side effect,
 3. if `--dry-run`, prints the plan and exits 0 -- nothing is touched,
-4. otherwise calls the command's application-layer body, which currently
-   (Wave 1) always raises `NotImplementedCommandError` (exit code 1).
+4. otherwise calls the command's application-layer body and prints the
+   typed result payload it returns (`--json` for machine-readable output).
 
 `argparse` itself calls `sys.exit(2)` on a bad/missing flag, which already
 matches the "configuration/usage error" exit code -- no translation needed
@@ -27,6 +27,7 @@ import argparse
 import sys
 from pathlib import Path
 from types import ModuleType
+from typing import Any
 
 from trading_cli.commands import data, dry_run, report, research
 from trading_cli.config import load_config
@@ -79,13 +80,44 @@ def build_parser() -> argparse.ArgumentParser:
 
     data_parser = groups.add_parser("data", help="fetch/import market data")
     data_commands = data_parser.add_subparsers(dest="command", required=True, metavar="{fetch}")
-    data_commands.add_parser("fetch", parents=[common], help="fetch or import a dataset")
+    data_commands.add_parser(
+        "fetch",
+        parents=[common],
+        help="fetch or import a dataset",
+        description=(
+            "Fetch or import a dataset, selected by 'data.provider' in --config.\n\n"
+            "'databento' is a local archive IMPORT, not a network fetch: it reads a "
+            "'.dbn'/'.dbn.zst' file already on disk (config key 'data.databento.archive') "
+            "and publishes a DatasetRef from it. 'binance' (once wired) fetches over the "
+            "network for a start/end date range instead -- the two providers have "
+            "different config shapes for that reason, not by oversight."
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
 
     research_parser = groups.add_parser("research", help="run predictive or strategy research")
     research_commands = research_parser.add_subparsers(
         dest="command", required=True, metavar="{run}"
     )
-    research_commands.add_parser("run", parents=[common], help="run a research workflow")
+    research_commands.add_parser(
+        "run",
+        parents=[common],
+        help="run a research workflow",
+        description=(
+            "Run Predictive or Strategy Research, selected by 'research.kind' in "
+            "--config.\n\n"
+            "'predictive' is composed: build dataset -> run -> render report, in one "
+            "call, with identifiers passed as typed values between steps.\n\n"
+            "'strategy' runs a single Strategy Research simulation on a published "
+            "DatasetRef. KNOWN LIMITATION: the canonical strategy model, simulation "
+            "assumptions, and session resolver are hardcoded (same as "
+            "scripts/strategy_research/run_strategy_research.py) -- the config cannot "
+            "select a different strategy model in this version. See "
+            "SPRINT_046.md Sec4 finding 2 (docs/reference/OPERATOR_CLI.md, once "
+            "published, documents this too)."
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
 
     dry_run_parser = groups.add_parser("dry-run", help="the BTC futures paper dry-run runtime")
     dry_run_commands = dry_run_parser.add_subparsers(
@@ -124,7 +156,8 @@ def _dispatch(args: argparse.Namespace) -> int:
         _print_plan(plan, json_mode=args.json)
         return EXIT_SUCCESS
 
-    handler.run(plan)
+    result = handler.run(plan)
+    _print_result(result, json_mode=args.json)
     return EXIT_SUCCESS
 
 
@@ -134,6 +167,14 @@ def _print_plan(plan: ResolvedPlan, *, json_mode: bool) -> None:
         print(dump_json(payload))
     else:
         print(render_plan_text(plan))
+
+
+def _print_result(result: dict[str, Any], *, json_mode: bool) -> None:
+    if json_mode:
+        print(dump_json({"status": "success", "result": result}))
+    else:
+        for key, value in result.items():
+            print(f"{key}: {value}")
 
 
 def _print_error(exc: CliError, *, json_mode: bool) -> None:

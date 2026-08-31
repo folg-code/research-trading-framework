@@ -3,8 +3,12 @@
 `apps/dashboard` and `apps/cli` have *different* import boundaries (ADR-0026
 §2, D-S046-06): the dashboard reads persisted artifacts and may not import
 `trading_framework` at all, while the CLI invokes workflows and may import
-`trading_framework.application.*` only. Each app therefore gets its own
-scoped test below rather than one rule applied uniformly over `apps/*`.
+`trading_framework.application.*`, plus a short, explicit allow-list of
+non-application leaf modules Wave 2 found genuinely necessary (typed
+identifiers, value objects, and the two hardcoded defaults documented in
+SPRINT_046.md §4 finding 2 -- see the allow-list below for the per-module
+reason). Each app therefore gets its own scoped test below rather than one
+rule applied uniformly over `apps/*`.
 """
 
 from __future__ import annotations
@@ -93,10 +97,65 @@ def test_dashboard_does_not_import_ml_training_libraries() -> None:
 # workflows, so it MAY import `trading_framework.application.*`, but must
 # never reach past that layer into research/market_analysis/strategy/
 # execution logic or an infrastructure adapter directly.
+#
+# Wave 2 (S046-T005..T009) found that a strict `application.*`-only allow-list
+# is narrower than an operator-facing CLI can honour: several application
+# Request dataclasses take domain *value objects* and *typed identifiers* as
+# constructor arguments (e.g. `EstimatorSpec`, `PredictiveDatasetRef`,
+# `DatasetRef`, `TimeRange`, `Timeframe`), and Sprint 046 §4 finding 2 locks
+# two research-layer defaults (`SimulationAssumptions()`,
+# `build_canonical_strategy_model()`, `CmeEsRthSessionResolver()`) as
+# hardcoded, inherited limitations rather than something the CLI recomputes.
+# Each entry below is one specific leaf module, added because a Wave 2 command
+# genuinely needs it to construct a request or reference a typed identifier --
+# never a blanket `research.*`/`strategy.*` allowance, and never research,
+# simulation or execution *logic* implemented inside apps/cli. See
+# apps/cli/CLAUDE.md and the Wave 2 integration PR description for the
+# per-module justification.
 # ---------------------------------------------------------------------------
 
 _CLI_SRC = _APPS_ROOT / "cli" / "src"
 _CLI_ALLOWED_TRADING_FRAMEWORK_PREFIX = "trading_framework.application"
+_CLI_ALLOWED_TRADING_FRAMEWORK_MODULES = frozenset(
+    {
+        # exception type used in `except` clauses around application calls
+        "trading_framework.core.exceptions",
+        # value object: framework identifier wrapper
+        "trading_framework.core.identifiers",
+        # read-only dataset metadata lookup mirroring the wrapped script
+        # (run_strategy_research.py); no other infrastructure adapter is used
+        "trading_framework.infrastructure.storage.metadata.registry",
+        # typed identifiers/value objects (DatasetRef, DatasetId)
+        "trading_framework.market.datasets",
+        # config value object for the Databento archive import workflow
+        "trading_framework.market.importers",
+        # value object required by RunStrategyResearchRequest
+        "trading_framework.market_analysis.models.time_range",
+        # existing HTML renderer, called (never reimplemented) for
+        # `report render strategy` -- application only builds the view model
+        "trading_framework.research.analytics.strategy_dashboard_report",
+        # typed identifiers produced/consumed between composed steps
+        # (build -> run -> render), never round-tripped through stdout
+        "trading_framework.research.datasets.predictive",
+        "trading_framework.research.datasets.predictive_run",
+        "trading_framework.research.datasets.strategy_research",
+        # spec error type raised by the estimator/study loaders below
+        "trading_framework.research.predictive.errors",
+        # `EstimatorSpec.from_dict` is the spec's own validating loader
+        # (D-S046-07: referenced by path, never re-encoded)
+        "trading_framework.research.predictive.estimators",
+        # `load_predictive_study_spec` is PredictiveStudySpec's own loader
+        "trading_framework.research.predictive.spec",
+        # SPRINT_046.md §4 finding 2: hardcoded default, same as the script
+        "trading_framework.research.simulation",
+        # SPRINT_046.md §4 finding 2: hardcoded canonical strategy model
+        "trading_framework.strategy",
+        # value object required by several application Requests
+        "trading_framework.time.models.timeframe",
+        # SPRINT_046.md §4 finding 2: hardcoded session resolver
+        "trading_framework.time.sessions",
+    }
+)
 
 
 def _is_cli_boundary_violation(module_name: str) -> bool:
@@ -104,9 +163,13 @@ def _is_cli_boundary_violation(module_name: str) -> bool:
         return True
     if not module_name.startswith("trading_framework."):
         return False
-    return not (
-        module_name == _CLI_ALLOWED_TRADING_FRAMEWORK_PREFIX
-        or module_name.startswith(f"{_CLI_ALLOWED_TRADING_FRAMEWORK_PREFIX}.")
+    if module_name == _CLI_ALLOWED_TRADING_FRAMEWORK_PREFIX or module_name.startswith(
+        f"{_CLI_ALLOWED_TRADING_FRAMEWORK_PREFIX}."
+    ):
+        return False
+    return not any(
+        module_name == allowed or module_name.startswith(f"{allowed}.")
+        for allowed in _CLI_ALLOWED_TRADING_FRAMEWORK_MODULES
     )
 
 
