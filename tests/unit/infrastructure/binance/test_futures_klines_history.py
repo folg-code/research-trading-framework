@@ -95,6 +95,7 @@ def test_fetch_historical_klines_assembles_multi_page_range_in_order() -> None:
     assert len(calls) == 2
     assert result.stats.page_count == 2
     assert result.stats.gaps == ()
+    assert result.stats.rows_rejected == 0
     open_times = [bar.observed_at for bar in result.bars]
     assert open_times == sorted(open_times)
     assert len(set(open_times)) == len(open_times)
@@ -122,6 +123,7 @@ def test_fetch_historical_klines_drops_duplicate_open_time_across_pages() -> Non
     assert len(result.bars) == 3
     open_times = [bar.observed_at for bar in result.bars]
     assert len(set(open_times)) == 3
+    assert result.stats.rows_rejected == 1
 
 
 def test_fetch_historical_klines_never_includes_the_open_candle() -> None:
@@ -147,6 +149,7 @@ def test_fetch_historical_klines_never_includes_the_open_candle() -> None:
 
     assert len(result.bars) == 1
     assert float(result.bars[0].close.value) == 100.0
+    assert result.stats.rows_rejected == 1
 
 
 def test_fetch_historical_klines_records_empty_page_as_gap_not_error() -> None:
