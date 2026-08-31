@@ -1156,6 +1156,29 @@ analyzed but not re-fitted identically. Fingerprints make this visible rather th
 artifacts. Repayment means choosing a serialization format with a stability guarantee, not adding a
 registry.
 
+## Phase 2F — Binance Historical OHLCV Import (accepted in Sprint 045)
+
+### Historical klines import only works for 1m (TD-023)
+
+`infrastructure/providers/binance/futures_mapper.py::map_kline_payload` hard-rejects any kline
+payload whose `interval != "1m"`. Sprint 045's historical reader
+(`futures_klines_history.py`) deliberately reuses this mapper unchanged, per D-S045-04's rule
+that Wave 1 must not risk regressing the live dry-run reconnect path
+(`fetch_closed_klines`) by editing shared helpers.
+
+`S045_WAVE0_DECISIONS.md` D-S045-05 originally named `1m`, `5m`, `15m`, `1h`, `4h`, `1d` as v1
+intervals; Wave 2 (PR #351) discovered the mapper limitation and the decision was corrected to
+`1m` only for v1, rather than widening the shared mapper mid-sprint.
+
+**Consequence accepted:** `import_binance_futures_ohlcv` with any interval other than `1m` fails
+at the mapper, not at the workflow's own validation — the error is real but its origin is one
+layer down from where an operator would expect to look first.
+
+**Repayment trigger:** a genuine need for a non-1m Binance interval. Repayment means either
+widening `map_kline_payload` to accept the full interval set (verifying this cannot regress
+`fetch_closed_klines`'s existing behavior), or building an interval-aware variant used only by
+the historical path.
+
 ---
 
 # 7. Debt Review Rules

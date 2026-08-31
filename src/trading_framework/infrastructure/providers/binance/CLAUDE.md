@@ -14,13 +14,13 @@ raw Binance payloads.
   (Sprint 045, ADR-0025) to avoid touching the live path. **Practical
   consequence:** `fetch_historical_klines` — and therefore
   `application.market_data.import_binance_futures_ohlcv` — only actually
-  works for `interval="1m"` today, even though D-S045-05 lists `5m`, `15m`,
-  `1h`, `4h`, `1d` as v1-supported intervals for dataset identity. Importing
-  any non-`1m` interval will raise at the first decoded row. Widening
-  `map_kline_payload` (or adding an interval-aware variant) is required
-  before non-1m imports will work; flagged as follow-up technical debt in
-  Sprint 045 Wave 2, not fixed there to avoid touching the live reconnect
-  path outside its own increment.
+  works for `interval="1m"`. D-S045-05 was corrected after this was found in
+  Wave 2 to state `1m` only for v1 (it originally listed `5m`, `15m`, `1h`,
+  `4h`, `1d`, before the mapper limitation was discovered). Importing any
+  non-`1m` interval raises at the first decoded row. Widening
+  `map_kline_payload` (or adding an interval-aware variant) is tracked as
+  **TD-023** in `docs/planning/TECHNICAL_DEBT.md`, not fixed here to avoid
+  touching the live reconnect path outside its own increment.
 - `fetch_closed_klines` (live reconnect gap-fill) and
   `fetch_historical_klines` (archive import) are deliberately **not**
   unified. Duplicate a helper here rather than share one that risks changing
