@@ -1108,6 +1108,66 @@ as adding a registry.
 
 ---
 
+## TD-023 — Binance Historical Import Only Works for 1m
+
+```text
+Status: ACCEPTED
+Priority: LOW
+Domain: Market Data / Binance Provider
+Introduced: Sprint 045 (2026-08-31)
+Target Review: When a non-1m Binance interval is genuinely needed
+Owner: Unassigned
+```
+
+### Accepted Shortcut
+
+`infrastructure/providers/binance/futures_mapper.py::map_kline_payload` hard-rejects
+any kline payload whose `interval != "1m"`. Sprint 045's historical reader
+(`futures_klines_history.py`) deliberately reuses this mapper unchanged, so
+`import_binance_futures_ohlcv` only actually works for `interval="1m"` today.
+
+### Reason
+
+D-S045-04 forbids Wave 1/2 from editing shared Binance helpers, because
+`map_kline_payload` is also used by the live dry-run reconnect path
+(`fetch_closed_klines`) — widening it mid-sprint would have put that path at
+risk for a capability (non-1m historical import) nothing in Sprint 045
+actually needed. `S045_WAVE0_DECISIONS.md` D-S045-05 originally listed `1m`,
+`5m`, `15m`, `1h`, `4h`, `1d` as v1-supported intervals before this
+limitation was found; it was corrected to `1m` only rather than expanding
+this sprint's scope.
+
+### Consequences
+
+- `import_binance_futures_ohlcv` with any non-`1m` interval fails at the
+  mapper, not at the workflow's own validation — the error is real but one
+  layer down from where an operator would first look,
+- Sprint 046's CLI (`data fetch binance`) inherits this limitation until
+  repaid.
+
+### Safe Operating Boundary
+
+No workflow may assume a non-`1m` Binance interval works. Callers must
+either hardcode `1m` or fail clearly before reaching the mapper.
+
+### Repayment Trigger
+
+A genuine need for a non-1m Binance interval.
+
+### Repayment Direction
+
+Widen `map_kline_payload` to accept the full interval set — verifying this
+cannot regress `fetch_closed_klines`'s existing behavior — or build an
+interval-aware variant used only by the historical import path.
+
+### Related Tasks
+
+- `docs/planning/sprints/S045_WAVE0_DECISIONS.md` D-S045-05
+- `docs/adr/ADR-0025-binance-usdm-historical-klines-import.md`
+- `src/trading_framework/infrastructure/providers/binance/CLAUDE.md`
+
+---
+
 # 6. Planned Debt Boundaries
 
 The following shortcuts may be accepted later but are not yet introduced:

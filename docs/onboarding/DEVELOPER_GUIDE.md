@@ -47,6 +47,23 @@ TRADING_FRAMEWORK_RUN_TORCH_TESTS=1 uv run pytest -m torch
 
 ---
 
+## Credentials
+
+The default install and the standard test suite need no credentials.
+
+| Variable | Purpose | Required |
+|---|---|---|
+| `TRADING_FRAMEWORK_BINANCE_API_KEY` | Sent as the `X-MBX-APIKEY` header on public Binance USD-M market-data GETs only (`/fapi/v1/klines`, used by the historical OHLCV import). Raises the weight-based rate limit; nothing else. | No — unset means anonymous requests at the default rate limit; import still works. |
+
+Set it as a real environment variable in your own shell/session. Never place
+it in a committed file, never in a file under `user_data/`, and it never
+appears in a log line, an error message, or `import_manifest.json` (which
+records only the boolean `api_key_used`). This is the one place this key is
+documented; see `docs/adr/ADR-0025-binance-usdm-historical-klines-import.md`
+for the design rationale.
+
+---
+
 ## Tech stack (short)
 
 | Concern | Choice |

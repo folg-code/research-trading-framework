@@ -116,8 +116,15 @@ Rules:
 
 - `instrument_id` is explicit in the CLI/request. It must not collide with the
   continuous (`.c.`) or contract identity patterns used for futures.
-- v1 intervals: `1m`, `5m`, `15m`, `1h`, `4h`, `1d`. Exotic Binance intervals
-  (`3d`, `1w`, `1M`) are simply not offered.
+- **v1 intervals: `1m` only.** This decision originally listed `1m`, `5m`,
+  `15m`, `1h`, `4h`, `1d` as supported, but Wave 2 (PR #351) found that the
+  shared `map_kline_payload` (deliberately reused unchanged from the live
+  dry-run path, per D-S045-04) hard-rejects any `interval != "1m"`. Rather
+  than widen that shared mapper mid-sprint, the maintainer chose to narrow
+  this decision to match what Wave 2 actually built: `1m` only for v1.
+  Non-1m intervals are TECHNICAL_DEBT.md-tracked, not silently broken —
+  see the entry added alongside this correction. `source_id` still carries
+  the `-v1` suffix for the same reason as below, independent of this change.
 - `source_id` carries the `-v1` suffix so a future normalization change can
   allocate a new logical dataset rather than mutate an existing one.
 
@@ -215,7 +222,12 @@ follow-up note. Two acceptable outcomes: validation passes with the gap
 recorded, or validation fails with a message naming the gap. Silent acceptance
 of an unrecorded gap is not acceptable.
 
-> Open item for T006 — the only genuinely unknown behaviour in this sprint.
+> **Resolved in S045-T006 (2026-08-31):** `OhlcvBarValidator` checks required
+> fields, non-negative volume, duplicate `observed_at` timestamps and
+> non-decreasing ordering only — it does not check that consecutive bars are
+> exactly one interval apart. A gapped range therefore passes validation; the
+> gap is recorded in `import_manifest.json` by `import_binance_futures_ohlcv`
+> and never filled. See `SPRINT_045.md` Wave 2 for the confirming test.
 
 ---
 

@@ -5,9 +5,9 @@
 ```text
 Sprint: 045
 Phase: Phase 2F — Exchange REST Historical Import (opening increment)
-Status: IN PROGRESS — approved 2026-08-28, Wave 0 checklist complete
+Status: COMPLETE
 Planned Start: TBD (on approval)
-Planned End: TBD
+Planned End: 2026-08-31
 Sprint Goal Owner: Project Maintainer
 Depends On: SPRINT_002 (dataset lifecycle), SPRINT_011/012 (import pattern to mirror),
             SPRINT_019 (Binance mapper, symbol normalization, network-free CI rule)
@@ -124,9 +124,9 @@ Checklist.
 
 | Task | Description | Acceptance | Status |
 |------|-------------|-----------|--------|
-| S045-T001 | Paginated kline reader `providers/binance/futures_klines_history.py`: half-open `[start, end)` UTC, `limit=1500`, cursor = `last close_time_ms + 1`, injectable `urlopen`, returns bars + per-page stats | multi-page range assembled in order, no duplicate `open_time`, no bar with `close_time >= now`; empty page inside range recorded as a gap, not an error | TODO |
-| S045-T002 | Rate-limit governor: parse `X-MBX-USED-WEIGHT-1M`, throttle before the limit, bounded exponential backoff with jitter on 429 / 418 / 5xx, honour `Retry-After`, finite retry cap, typed error on exhaustion | unit tests cover each status with an injectable `sleep` (no real sleeping) and assert no unbounded retry loop | TODO |
-| S045-T003 | Optional API key: `TRADING_FRAMEWORK_BINANCE_API_KEY` → `X-MBX-APIKEY` header on market-data GETs; absent key = anonymous request | header present only when the variable is set; key never appears in any log line, error message, exception text or manifest | TODO |
+| S045-T001 | Paginated kline reader `providers/binance/futures_klines_history.py`: half-open `[start, end)` UTC, `limit=1500`, cursor = `last close_time_ms + 1`, injectable `urlopen`, returns bars + per-page stats | multi-page range assembled in order, no duplicate `open_time`, no bar with `close_time >= now`; empty page inside range recorded as a gap, not an error | DONE |
+| S045-T002 | Rate-limit governor: parse `X-MBX-USED-WEIGHT-1M`, throttle before the limit, bounded exponential backoff with jitter on 429 / 418 / 5xx, honour `Retry-After`, finite retry cap, typed error on exhaustion | unit tests cover each status with an injectable `sleep` (no real sleeping) and assert no unbounded retry loop | DONE |
+| S045-T003 | Optional API key: `TRADING_FRAMEWORK_BINANCE_API_KEY` → `X-MBX-APIKEY` header on market-data GETs; absent key = anonymous request | header present only when the variable is set; key never appears in any log line, error message, exception text or manifest | DONE |
 
 Depends on: nothing. T002 and T003 are independent of each other.
 
@@ -134,21 +134,31 @@ Depends on: nothing. T002 and T003 are independent of each other.
 
 | Task | Description | Acceptance | Status |
 |------|-------------|-----------|--------|
-| S045-T004 | `application/market_data/import_binance_futures_ohlcv.py`: request/result dataclasses, `mode` selector accepting only `ohlcv`, validate → `write_bars` → register WORKING metadata | a request with `mode: trades` is rejected with an explicit "not supported in v1" error; a valid range registers a WORKING version | TODO |
-| S045-T005 | `import_manifest.json`: provider, mode, symbol, interval, requested range, page/request counts, rows decoded/rejected, recorded gaps, `normalization_version`, `api_key_used` boolean | manifest written beside the dataset; a test asserts no key material in any field | TODO |
-| S045-T006 | Gap policy + validator interaction: confirm `OhlcvBarValidator` behaviour on a range with missing minutes; record gaps, never fill | a range containing a real gap either passes validation with the gap recorded, or fails with a message naming the gap — decided and documented, never silent | TODO |
-| S045-T007 | finalize + publish integration and idempotency | published `DatasetRef` returned by `query_historical`; re-importing the same range produces an identical bar set and checksum | TODO |
+| S045-T004 | `application/market_data/import_binance_futures_ohlcv.py`: request/result dataclasses, `mode` selector accepting only `ohlcv`, validate → `write_bars` → register WORKING metadata | a request with `mode: trades` is rejected with an explicit "not supported in v1" error; a valid range registers a WORKING version | DONE |
+| S045-T005 | `import_manifest.json`: provider, mode, symbol, interval, requested range, page/request counts, rows decoded/rejected, recorded gaps, `normalization_version`, `api_key_used` boolean | manifest written beside the dataset; a test asserts no key material in any field | DONE |
+| S045-T006 | Gap policy + validator interaction: confirm `OhlcvBarValidator` behaviour on a range with missing minutes; record gaps, never fill | a range containing a real gap either passes validation with the gap recorded, or fails with a message naming the gap — decided and documented, never silent | DONE |
+| S045-T007 | finalize + publish integration and idempotency | published `DatasetRef` returned by `query_historical`; re-importing the same range produces an identical bar set and checksum | DONE |
 
 Depends on: Wave 1 (T004 needs T001).
+
+> **T006 outcome (recorded 2026-08-31):** `OhlcvBarValidator` checks required
+> fields, non-negative volume, duplicate `observed_at` timestamps and
+> non-decreasing ordering — it does **not** check that consecutive bars are
+> exactly one interval apart. A range containing a genuine Binance gap
+> therefore **passes validation**; `import_binance_futures_ohlcv` records the
+> gap in `import_manifest.json` (`gaps`), never fills it. This is the
+> "validation passes with the gap recorded" branch of D-S045-10, confirmed by
+> a Tier 1 test (`test_import_binance_futures_ohlcv_gap_passes_validation_and_is_recorded`),
+> not assumed.
 
 ### Wave 3 — CLI and tests
 
 | Task | Description | Acceptance | Status |
 |------|-------------|-----------|--------|
-| S045-T008 | `scripts/market_data/import_binance_ohlcv.py`, same shape as sibling scripts (`main(argv: list[str] \| None = None) -> int`, argparse, `--json`) | end-to-end import from the command line; `--help` lists every option; exit code 1 on a handled error | TODO |
-| S045-T009 | Tier 1 integration test: fake `urlopen` serving recorded multi-page fixtures → import → finalize → publish → `query_historical` round trip | passes with no network access | TODO |
-| S045-T010 | Tier 2 opt-in network smoke behind `@pytest.mark.binance_network` + `TRADING_FRAMEWORK_RUN_BINANCE_NETWORK_SMOKE=1` (short range, e.g. one hour) | excluded from the standard CI job | TODO |
-| S045-T011 | Architecture boundary test: the Binance provider package contains no `hmac`/signature usage and no authenticated endpoint path; no `urllib` outside infrastructure | test fails if signing code is ever added | TODO |
+| S045-T008 | `scripts/market_data/import_binance_ohlcv.py`, same shape as sibling scripts (`main(argv: list[str] \| None = None) -> int`, argparse, `--json`) | end-to-end import from the command line; `--help` lists every option; exit code 1 on a handled error | DONE |
+| S045-T009 | Tier 1 integration test: fake `urlopen` serving recorded multi-page fixtures → import → finalize → publish → `query_historical` round trip | passes with no network access | DONE |
+| S045-T010 | Tier 2 opt-in network smoke behind `@pytest.mark.binance_network` + `TRADING_FRAMEWORK_RUN_BINANCE_NETWORK_SMOKE=1` (short range, e.g. one hour) | excluded from the standard CI job | DONE |
+| S045-T011 | Architecture boundary test: the Binance provider package contains no `hmac`/signature usage and no authenticated endpoint path; no `urllib` outside infrastructure | test fails if signing code is ever added | DONE |
 
 Depends on: Wave 2.
 
@@ -156,11 +166,11 @@ Depends on: Wave 2.
 
 | Task | Description | Acceptance | Status |
 |------|-------------|-----------|--------|
-| S045-T012 | `docs/reference/DATA_WORKFLOWS.md`: the Binance import flow beside the Databento flows | a reader can tell which import path applies to which source | TODO |
-| S045-T013 | Credential convention documented **once** (developer guide / onboarding), plus MODULE_MAP entries for the new modules | exactly one documented location for the API key across the repo | TODO |
-| S045-T014 | Apply `ROADMAP_INCREMENT_PHASE_2F_AND_11.md` Block 1/2 + §13B into `ROADMAP.md`, delete the staging file, update `CURRENT_STATUS.md` §11/§12, write the sprint Review section | roadmap has no duplicate/staged section left | TODO |
+| S045-T012 | `docs/reference/ARCHITECTURE_AND_WORKFLOWS.md`: the Binance import flow beside the Databento/CSV import flows (`docs/reference/DATA_WORKFLOWS.md` does not exist in the repository; ARCHITECTURE_AND_WORKFLOWS.md §3 is the actual target, per Sprint 044 precedent) | a reader can tell which import path applies to which source | DONE |
+| S045-T013 | Credential convention documented **once** (`docs/onboarding/DEVELOPER_GUIDE.md`), plus `MODULE_MAP.md` entries for the new modules | exactly one documented location for the API key across the repo | DONE |
+| S045-T014 | Apply `ROADMAP_INCREMENT_PHASE_2F_AND_11.md` Block 1/2 + §13B into `ROADMAP.md`, delete the staging file (done at sprint open, PR #349); update `CURRENT_STATUS.md` §11/§12 and `ROADMAP.md` Phase 2F status to reflect Sprint 045 as complete | roadmap has no duplicate/staged section left | DONE |
 
-**Progress:** 0 / 14 tasks
+**Progress:** 14 / 14 tasks
 
 ---
 

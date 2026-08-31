@@ -26,21 +26,23 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 ## 2. Status Metadata
 
 ```text
-Status Date: 2026-08-28
-Current Phase: Phase 10 — Predictive (ML) Research — COMPLETE (Sprints 039-044)
-Current Milestone: none — Phase 10 closed; next capability not yet planned
-Implementation Status: Sprints 001-006, 008-024, 025-043 on main; S044 complete (18/18) on
-  sprint/predictive-dashboard-and-gate, final integration PR to main pending
+Status Date: 2026-08-31
+Current Phase: Phase 10 — Predictive (ML) Research — COMPLETE (Sprints 039-044);
+  Phase 2F — Exchange REST Historical Import — COMPLETE (Sprint 045)
+Current Milestone: none — Phase 10 and Phase 2F closed; next capability is Sprint 046
+  (Universal Operator CLI, Phase 11)
+Implementation Status: Sprints 001-006, 008-024, 025-044 on main (S044 merged via #348); S045
+  complete (14/14) on sprint/binance-historical-ohlcv, final integration PR to main pending
 Overall Status: STABLE
 Active Sprint: none
-Last Completed Sprint: SPRINT_044 (Predictive dashboard + IDEA-014 gate, Phase 10C closing
-  increment) — 18/18 tasks complete on sprint/predictive-dashboard-and-gate; integration PR to
-  main pending
-Capability Tracks: Foundation COMPLETE; Data COMPLETE (core); Research COMPLETE (core); Strategy 6A COMPLETE; Phase 8A dry-run + S024 on main; Dashboard / Live Paper / public demo COMPLETE; Phase 10 COMPLETE (S039-S044: Foundation, Tree-Based and Neural Predictive Models, dashboard page, ADR-0024 + IDEA-014 gate)
-Recent: S044 Wave 4 closes Phase 10 — dashboard boundary test extended, IDEA-014 status updated
-  to reflect ADR-0024's accepted gate, ROADMAP/CURRENT_STATUS record Phase 10 complete,
-  Predictive Research methodology and module/data-workflow docs added. Sprint 043 integrated to
-  main (#342; working PRs #336-#341).
+Last Completed Sprint: SPRINT_045 (Binance USD-M historical OHLCV ingestion, Phase 2F
+  opening increment) — 14/14 tasks complete on sprint/binance-historical-ohlcv; integration
+  PR to main pending
+Capability Tracks: Foundation COMPLETE; Data COMPLETE (core); Research COMPLETE (core); Strategy 6A COMPLETE; Phase 8A dry-run + S024 on main; Dashboard / Live Paper / public demo COMPLETE; Phase 10 COMPLETE (S039-S044: Foundation, Tree-Based and Neural Predictive Models, dashboard page, ADR-0024 + IDEA-014 gate); Phase 2F COMPLETE (S045: Binance USD-M historical OHLCV import, ADR-0025)
+Recent: S045 Wave 4 closes Phase 2F — Binance import flow documented beside Databento/CSV in
+  ARCHITECTURE_AND_WORKFLOWS.md, credential convention documented once in DEVELOPER_GUIDE.md,
+  MODULE_MAP updated, ROADMAP/CURRENT_STATUS record Phase 2F complete. Sprint 044 integrated to
+  main (#348).
 ```
 
 ---
@@ -300,8 +302,7 @@ synthetic known-signal fixture, feedforward ranked above LSTM; both beat
 `RANDOM_PERMUTATION`.
 
 **Sprint 044 — Predictive dashboard + IDEA-014 gate (Phase 10C)** is
-**COMPLETE** (18/18) on `sprint/predictive-dashboard-and-gate`; the final
-integration PR into `main` is pending. Plan: `SPRINT_044.md`. Locks:
+**COMPLETE** (18/18), merged to `main` via #348. Plan: `SPRINT_044.md`. Locks:
 `S044_WAVE0_DECISIONS.md`. ADR-0024 (Wave 3) is ACCEPTED. **Phase 10 is
 closed** — see ROADMAP §13A.
 
@@ -485,10 +486,11 @@ Maintenance: `.cursor/rules/documentation.mdc`
 
 ## 6. Work in Progress
 
-**Active sprint:** none. Sprint 044 (cut from `main` @ #342) is complete
-(18/18) on `sprint/predictive-dashboard-and-gate`; the final integration PR
-into `main` is pending — that closes Phase 10. Sprint 043 is complete on
-`main` (#342, 21/21). Sprint 042 is complete on `main` (#335).
+**Active sprint:** none. Sprint 045 (cut from `main` @ #348) is complete
+(14/14) on `sprint/binance-historical-ohlcv`; the final integration PR into
+`main` is pending — that closes Phase 2F. Sprint 044 is complete on `main`
+(#348, 18/18). Sprint 043 is complete on `main` (#342, 21/21). Sprint 042 is
+complete on `main` (#335).
 
 **Portfolio demo packaging** — `scripts/demo/run_portfolio_demo.py` generates offline HTML artifacts for showcase (workflows + dashboards).
 
@@ -496,17 +498,33 @@ into `main` is pending — that closes Phase 10. Sprint 043 is complete on
 
 **Plan:** `docs/planning/sprints/SPRINT_017.md` · **Wave 0:** `S017_WAVE0_DECISIONS.md` · **ADR:** ADR-0020 (ACCEPTED) · **Branch:** `sprint/model-research-methodology-mvp`
 
+### Sprint 045 — Closed (Phase 2F opening increment; Phase 2F complete)
+
+**Status:** COMPLETE (14/14) on `sprint/binance-historical-ohlcv`; final
+integration PR into `main` pending
+**Plan:** `docs/planning/sprints/SPRINT_045.md`
+**Wave 0:** `docs/planning/sprints/S045_WAVE0_DECISIONS.md`
+**ADR:** ADR-0025 (ACCEPTED)
+**Tasks:** 14 / 14
+**PRs:** #349 (Wave 0), #350 (reader + rate-limit governor), #351 (import
+workflow), #352 (docs fix), #353 (CLI + tests + boundary guard), #354 (docs +
+roadmap/status closure)
+**Branch:** `sprint/binance-historical-ohlcv`
+**Scope:** paginated Binance USD-M historical klines reader, weight-aware
+rate limiting, optional API key, `import_binance_futures_ohlcv` workflow,
+thin CLI, Tier 1/2 tests, provider boundary test, Phase 2F closure
+documentation
+
 ### Sprint 044 — Closed (Phase 10C closing increment; Phase 10 complete)
 
-**Status:** COMPLETE (18/18) on `sprint/predictive-dashboard-and-gate`;
-final integration PR into `main` pending
+**Status:** COMPLETE (18/18), merged to `main` via #348
 **Plan:** `docs/planning/sprints/SPRINT_044.md`
 **Wave 0:** `docs/planning/sprints/S044_WAVE0_DECISIONS.md`
 **ADR:** ADR-0024 (ACCEPTED)
 **Tasks:** 18 / 18
-**PRs:** #343 (Wave 0), #344 (catalog), #345 (gate + ADR-0024), #346 (page);
-Wave 4 (this PR, boundary test + Phase 10 closure docs)
-**Branch:** `sprint/predictive-dashboard-and-gate`
+**PRs:** #343 (Wave 0), #344 (catalog), #345 (gate + ADR-0024), #346 (page),
+#347 (boundary test + Phase 10 closure docs); #348 (integration to main)
+**Branch:** `sprint/predictive-dashboard-and-gate` (merged)
 **Scope:** read-only Predictive Research page in the dashboard; IDEA-014
 promotion **conditions** (ADR-0024), not an ML Market Analysis component;
 dashboard boundary test; Phase 10 closure documentation
@@ -743,15 +761,20 @@ Sprint 040 Predictive Research baselines COMPLETED on main (#319; #310–#318).
 Sprint 041 Predictive Research report COMPLETED on main (#325; #320–#324).
 Sprint 042 tree-based predictive models COMPLETED on main (#335; #326–#334).
 Sprint 043 neural predictive models COMPLETED on main (#342; #336–#341).
-Sprint 044 predictive dashboard + IDEA-014 gate COMPLETE (18/18) on
-sprint/predictive-dashboard-and-gate; final integration PR to main pending.
-ADR-0023 and ADR-0024 ACCEPTED. Phase 10 (10A, 10B, 10C) is COMPLETE.
+Sprint 044 predictive dashboard + IDEA-014 gate COMPLETE (18/18), merged to
+main via #348. ADR-0023 and ADR-0024 ACCEPTED. Phase 10 (10A, 10B, 10C) is COMPLETE.
+Sprint 045 Binance USD-M historical OHLCV ingestion (Phase 2F) COMPLETE
+(14/14) on sprint/binance-historical-ohlcv; final integration PR to main
+pending. ADR-0025 ACCEPTED. Phase 2F is COMPLETE (ROADMAP §13B).
 
-Active: none. Phase 10 is closed (ROADMAP §13A). The next capability is
-**not yet planned** — no Sprint 045 scope exists; see SPRINT_044.md §12 for
-unscheduled candidate follow-ons (ML Market Analysis component gated by
-ADR-0024, cross-sectional predictive studies, SHAP, content-addressed
-artifact store).
+Active: none. Phase 10 and Phase 2F are closed (ROADMAP §13A, §13B). The
+next planned capability is Sprint 046 — Universal Operator CLI
+(`trading-cli`, Phase 11, ADR-0026), which wraps Sprint 045's Binance import
+and the existing Databento import behind one entry point; see SPRINT_044.md
+§12 for other unscheduled candidate follow-ons (ML Market Analysis component
+gated by ADR-0024, cross-sectional predictive studies, SHAP,
+content-addressed artifact store, Binance `trades` mode, resume-after-failure
+imports).
 
 Catalog in parallel (independent of Phase 10):
     wick / distance catalog PRs
@@ -763,7 +786,10 @@ Deferred relative to that track:
     PBO / CSCV / deflated Sharpe (ADR first)
     Residual docs / sample-data narrative
 
-Recently completed (dashboard / demo / dry-run / authoring infra / Phase 10A–10C):
+Recently completed (dashboard / demo / dry-run / authoring infra / Phase 10A–10C, 2F):
+    Sprint 045 — Binance USD-M historical OHLCV ingestion → sprint branch
+        (14/14; working PRs #350–#354; integration PR to main pending) —
+        closes Phase 2F
     Sprint 044 — Predictive dashboard + IDEA-014 gate → sprint branch (18/18;
         working PRs #343–#346; integration PR to main pending) — closes Phase 10
     Sprint 043 — Neural predictive models → main (#342; working PRs #336–#341)
@@ -841,6 +867,7 @@ See `docs/planning/sprints/SPRINT_044.md`, `S044_WAVE0_DECISIONS.md`, `SPRINT_04
 | 042 | Tree-based predictive models (Phase 10B) | COMPLETED | 22 / 22 tasks; main #335; working PRs #326–#334 |
 | 043 | Neural predictive models (Phase 10C) | COMPLETED | 21 / 21 tasks; main #342; working PRs #336–#341 |
 | 044 | Predictive dashboard + IDEA-014 gate (Phase 10C) | COMPLETED | 18 / 18 tasks; working PRs #343–#346; integration PR to main pending |
+| 045 | Binance USD-M historical OHLCV ingestion (Phase 2F) | COMPLETED | 14 / 14 tasks; working PRs #350–#354; integration PR to main pending |
 
 ---
 

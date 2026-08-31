@@ -73,7 +73,7 @@ Data Capability Track
   Phase 2C — Trades and Quotes                    COMPLETE  (2C.1 + 2C.4 on main; 2C.2 quotes PLANNED)
   Phase 2D — Options Snapshot Data                PLANNED
   Phase 2E — Live Market Data                     GATED
-  Phase 2F — Exchange REST Historical Import      PLANNED   (Sprint 045; Binance USD-M)
+  Phase 2F — Exchange REST Historical Import      COMPLETE  (Sprint 045; Binance USD-M)
 
 Research Capability Track
   Phase 3  — Market Analysis Engine MVP           COMPLETE
@@ -124,15 +124,18 @@ Test data tiers and live-data gate: **§15**.
 **Phase 10 is COMPLETE** (Sprints 039–044): predictive dashboard page, ADR-0024, and the
 IDEA-014 gate all merged.
 
-**Next tracked increment: two independent capability tracks, planned as separate sprints.**
+**Phase 2F is COMPLETE** (Sprint 045, 14/14 tasks): Binance USD-M historical
+OHLCV import publishes an ordinary `DatasetRef` from `providers/binance/`,
+network-free by default, no change to any research code or to the live
+dry-run path.
+
+**Next tracked increment:**
 
 ```text
-Phase 2F  Binance USD-M historical OHLCV import   Sprint 045   ADR-0025
 Phase 11  Universal operator CLI (trading-cli)     Sprint 046   ADR-0026
 ```
 
-They are sequenced but **not coupled**: Sprint 046's `data fetch binance`
-command wraps whatever Sprint 045 publishes, so 046 depends on 045 for that one
+Sprint 046's `data fetch binance` command wraps what Sprint 045 publishes, so 046 depends on 045 for that one
 command group and for nothing else. Either may be approved, started, or
 deferred without the other; 046 ships `data fetch databento` regardless. The
 maintainer chose to run them sequentially (045 first, then 046) rather than in
@@ -1273,9 +1276,10 @@ Phase 10 is complete when the framework can:
 
 ---
 
-# 13B. Phase 2F — Exchange REST Historical Import (PLANNED)
+# 13B. Phase 2F — Exchange REST Historical Import (COMPLETE)
 
-**Status:** PLANNED — Sprint 045. **ADR:** ADR-0025 (ACCEPTED).
+**Status:** COMPLETE — Sprint 045 (14/14 tasks, `sprint/binance-historical-ohlcv`).
+**ADR:** ADR-0025 (ACCEPTED).
 **First provider:** Binance USD-M futures.
 
 ## Purpose

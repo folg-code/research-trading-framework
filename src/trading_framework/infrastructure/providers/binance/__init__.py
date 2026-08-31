@@ -5,6 +5,16 @@ from trading_framework.infrastructure.providers.binance.aiohttp_websocket import
     AiohttpBinanceWebSocketConnector,
     AiohttpBinanceWebSocketError,
 )
+from trading_framework.infrastructure.providers.binance.futures_klines_history import (
+    BINANCE_API_KEY_ENV_VAR,
+    BinanceKlinesHistoryError,
+    BinanceKlinesRetryExhaustedError,
+    HistoricalKlinesFetchStats,
+    HistoricalKlinesResult,
+    KlineGap,
+    fetch_historical_klines,
+    resolve_binance_api_key,
+)
 from trading_framework.infrastructure.providers.binance.futures_mapper import (
     map_book_ticker_payload,
     map_kline_payload,
@@ -53,6 +63,7 @@ from trading_framework.infrastructure.providers.binance.futures_websocket import
 )
 
 __all__ = [
+    "BINANCE_API_KEY_ENV_VAR",
     "BINANCE_USDM_MAX_STREAMS_PER_CONNECTION",
     "BINANCE_USDM_REST_BASE_URL",
     "BINANCE_USDM_WS_BASE_URL",
@@ -70,14 +81,20 @@ __all__ = [
     "BinanceFuturesWebSocketClientError",
     "BinanceFuturesWebSocketMessage",
     "BinanceKlinePayload",
+    "BinanceKlinesHistoryError",
+    "BinanceKlinesRetryExhaustedError",
     "BinanceWebSocketConnection",
     "BinanceWebSocketConnector",
+    "HistoricalKlinesFetchStats",
+    "HistoricalKlinesResult",
+    "KlineGap",
     "ReconnectBackoffPolicy",
     "book_ticker_stream",
     "btcusdt_mvp_streams",
     "build_combined_stream_url",
     "build_stream_urls_by_endpoint",
     "fetch_closed_klines",
+    "fetch_historical_klines",
     "group_streams_by_endpoint",
     "kline_1m_stream",
     "map_book_ticker_payload",
@@ -87,5 +104,6 @@ __all__ = [
     "parse_book_ticker_payload",
     "parse_combined_stream_payload",
     "parse_kline_payload",
+    "resolve_binance_api_key",
     "run_binance_futures_feed_smoke",
 ]
