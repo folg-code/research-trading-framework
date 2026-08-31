@@ -5,7 +5,7 @@
 ```text
 Sprint: 046
 Phase: Phase 11 — Universal Operator CLI (opening and, in scope terms, closing increment)
-Status: PLANNED — design approved 2026-08-28, queued behind Sprint 045 (sequential, not parallel)
+Status: IN PROGRESS — Sprint 045 merged to main (#355) 2026-08-31, starting now
 Planned Start: TBD (on approval)
 Planned End: TBD
 Sprint Goal Owner: Project Maintainer
@@ -21,7 +21,7 @@ Architecture Sources:
   - docs/adr/ADR-0026 (CLI framework, placement, config contract) — ACCEPTED
   - docs/adr/ADR-0022 (apps/* consumer boundary; scripts/ stay thin)
   - docs/adr/ADR-0025 (the Binance import this CLI will wrap) — ACCEPTED
-  - docs/planning/ROADMAP_INCREMENT_PHASE_2F_AND_11.md (§13C)
+  - docs/planning/ROADMAP.md §13C (Phase 11, applied in PR #349)
 ```
 
 ---
