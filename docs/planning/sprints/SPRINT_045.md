@@ -124,9 +124,9 @@ Checklist.
 
 | Task | Description | Acceptance | Status |
 |------|-------------|-----------|--------|
-| S045-T001 | Paginated kline reader `providers/binance/futures_klines_history.py`: half-open `[start, end)` UTC, `limit=1500`, cursor = `last close_time_ms + 1`, injectable `urlopen`, returns bars + per-page stats | multi-page range assembled in order, no duplicate `open_time`, no bar with `close_time >= now`; empty page inside range recorded as a gap, not an error | TODO |
-| S045-T002 | Rate-limit governor: parse `X-MBX-USED-WEIGHT-1M`, throttle before the limit, bounded exponential backoff with jitter on 429 / 418 / 5xx, honour `Retry-After`, finite retry cap, typed error on exhaustion | unit tests cover each status with an injectable `sleep` (no real sleeping) and assert no unbounded retry loop | TODO |
-| S045-T003 | Optional API key: `TRADING_FRAMEWORK_BINANCE_API_KEY` → `X-MBX-APIKEY` header on market-data GETs; absent key = anonymous request | header present only when the variable is set; key never appears in any log line, error message, exception text or manifest | TODO |
+| S045-T001 | Paginated kline reader `providers/binance/futures_klines_history.py`: half-open `[start, end)` UTC, `limit=1500`, cursor = `last close_time_ms + 1`, injectable `urlopen`, returns bars + per-page stats | multi-page range assembled in order, no duplicate `open_time`, no bar with `close_time >= now`; empty page inside range recorded as a gap, not an error | DONE |
+| S045-T002 | Rate-limit governor: parse `X-MBX-USED-WEIGHT-1M`, throttle before the limit, bounded exponential backoff with jitter on 429 / 418 / 5xx, honour `Retry-After`, finite retry cap, typed error on exhaustion | unit tests cover each status with an injectable `sleep` (no real sleeping) and assert no unbounded retry loop | DONE |
+| S045-T003 | Optional API key: `TRADING_FRAMEWORK_BINANCE_API_KEY` → `X-MBX-APIKEY` header on market-data GETs; absent key = anonymous request | header present only when the variable is set; key never appears in any log line, error message, exception text or manifest | DONE |
 
 Depends on: nothing. T002 and T003 are independent of each other.
 
@@ -160,7 +160,7 @@ Depends on: Wave 2.
 | S045-T013 | Credential convention documented **once** (developer guide / onboarding), plus MODULE_MAP entries for the new modules | exactly one documented location for the API key across the repo | TODO |
 | S045-T014 | Apply `ROADMAP_INCREMENT_PHASE_2F_AND_11.md` Block 1/2 + §13B into `ROADMAP.md`, delete the staging file, update `CURRENT_STATUS.md` §11/§12, write the sprint Review section | roadmap has no duplicate/staged section left | TODO |
 
-**Progress:** 0 / 14 tasks
+**Progress:** 3 / 14 tasks
 
 ---
 
