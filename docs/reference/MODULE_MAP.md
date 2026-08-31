@@ -189,6 +189,9 @@ Application entry points and runtime assembly.
 | Import and publication workflows | `application/market_data/` |
 | Continuous trades materialize | `application/market_data/materialize_continuous_trades.py` (`session_workers`) |
 | Provider adapters | `infrastructure/providers/` |
+| Binance historical klines reader (paginated REST, rate-limit governor) | `infrastructure/providers/binance/futures_klines_history.py` |
+| Binance historical OHLCV import workflow (validate, write, publish) | `application/market_data/import_binance_futures_ohlcv.py` |
+| Binance historical OHLCV CLI (thin, ADR-0022) | `scripts/market_data/import_binance_ohlcv.py` |
 | File and archive importers | `infrastructure/importers/` (Databento: NumPy `ContractChunkColumns`) |
 | Normalization | `infrastructure/normalization/` |
 | Validation | `infrastructure/validation/` |
