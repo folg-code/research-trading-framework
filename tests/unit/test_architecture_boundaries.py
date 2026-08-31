@@ -156,6 +156,100 @@ def _import_offenders_from_roots(
     return offenders
 
 
+_SIGNING_MODULE_NAMES = frozenset({"hmac"})
+#: Only the literal header Binance uses to carry a request signature -- unlike
+#: the words "hmac"/"signature", this string cannot appear in ordinary prose
+#: (docstrings/comments referencing ADR-0025 legitimately say "no signature").
+_SIGNED_ENDPOINT_HEADER = "x-mbx-signature"
+
+
+def _is_signing_module(dotted_name: str) -> bool:
+    lowered = dotted_name.lower()
+    return lowered in _SIGNING_MODULE_NAMES or lowered.startswith("hmac.")
+
+
+def test_binance_provider_has_no_signing_code_or_authenticated_endpoint() -> None:
+    """ADR-0025 §5: no HMAC/signature usage anywhere in the Binance provider package.
+
+    This is the structural guarantee behind D-S045-08: the optional API key can
+    only ever reach a public market-data GET, because no code path exists that
+    could compute a request signature for an authenticated endpoint.
+    """
+    package_root = Path(trading_framework.__file__).resolve().parent
+    binance_root = package_root / "infrastructure" / "providers" / "binance"
+    offenders: list[str] = []
+
+    for path in _python_files(binance_root):
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                offenders.extend(
+                    f"{path.relative_to(package_root)}:import {alias.name}"
+                    for alias in node.names
+                    if _is_signing_module(alias.name)
+                )
+            elif isinstance(node, ast.ImportFrom) and node.module is not None:
+                if _is_signing_module(node.module):
+                    offenders.append(f"{path.relative_to(package_root)}:from {node.module}")
+            elif isinstance(node, ast.Name) and node.id.lower() in _SIGNING_MODULE_NAMES:
+                offenders.append(f"{path.relative_to(package_root)}:name {node.id}")
+            elif (
+                isinstance(node, ast.Constant)
+                and isinstance(node.value, str)
+                and node.value.lower() == _SIGNED_ENDPOINT_HEADER
+            ):
+                offenders.append(f"{path.relative_to(package_root)}:header {node.value!r}")
+
+    assert offenders == []
+
+
+def _is_urllib_import(dotted_name: str) -> bool:
+    return dotted_name == "urllib" or dotted_name.startswith("urllib.")
+
+
+def test_no_urllib_import_outside_infrastructure() -> None:
+    """HTTP access (urllib) is confined to ``infrastructure/`` (SPRINT_045.md §4).
+
+    Application, research and script layers must never see ``urllib`` or raw
+    HTTP directly -- they call an application workflow that already returns
+    domain objects. Covers both the installed package (everything outside
+    ``infrastructure/``) and ``scripts/``, which is not part of the package
+    and so was previously unchecked -- a thin CLI script is exactly the kind
+    of file where a stray ``import urllib.request`` could slip past review.
+    """
+    package_root = Path(trading_framework.__file__).resolve().parent
+    repo_root = package_root.parents[1]
+    infrastructure_root = package_root / "infrastructure"
+    offenders: list[str] = []
+
+    for path in _python_files(package_root):
+        if infrastructure_root in path.parents:
+            continue
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                offenders.extend(
+                    f"{path.relative_to(package_root)}:{alias.name}"
+                    for alias in node.names
+                    if _is_urllib_import(alias.name)
+                )
+            elif (
+                isinstance(node, ast.ImportFrom)
+                and node.module is not None
+                and _is_urllib_import(node.module)
+            ):
+                offenders.append(f"{path.relative_to(package_root)}:{node.module}")
+
+    offenders.extend(
+        f"scripts/{name}"
+        for name in _import_offenders_from_roots(
+            (repo_root / "scripts",), predicate=_is_urllib_import
+        )
+    )
+
+    assert offenders == []
+
+
 def test_predictive_research_does_not_import_ml_libraries() -> None:
     package_root = Path(trading_framework.__file__).resolve().parent / "research" / "predictive"
 

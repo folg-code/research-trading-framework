@@ -155,10 +155,10 @@ Depends on: Wave 1 (T004 needs T001).
 
 | Task | Description | Acceptance | Status |
 |------|-------------|-----------|--------|
-| S045-T008 | `scripts/market_data/import_binance_ohlcv.py`, same shape as sibling scripts (`main(argv: list[str] \| None = None) -> int`, argparse, `--json`) | end-to-end import from the command line; `--help` lists every option; exit code 1 on a handled error | TODO |
-| S045-T009 | Tier 1 integration test: fake `urlopen` serving recorded multi-page fixtures → import → finalize → publish → `query_historical` round trip | passes with no network access | TODO |
-| S045-T010 | Tier 2 opt-in network smoke behind `@pytest.mark.binance_network` + `TRADING_FRAMEWORK_RUN_BINANCE_NETWORK_SMOKE=1` (short range, e.g. one hour) | excluded from the standard CI job | TODO |
-| S045-T011 | Architecture boundary test: the Binance provider package contains no `hmac`/signature usage and no authenticated endpoint path; no `urllib` outside infrastructure | test fails if signing code is ever added | TODO |
+| S045-T008 | `scripts/market_data/import_binance_ohlcv.py`, same shape as sibling scripts (`main(argv: list[str] \| None = None) -> int`, argparse, `--json`) | end-to-end import from the command line; `--help` lists every option; exit code 1 on a handled error | DONE |
+| S045-T009 | Tier 1 integration test: fake `urlopen` serving recorded multi-page fixtures → import → finalize → publish → `query_historical` round trip | passes with no network access | DONE |
+| S045-T010 | Tier 2 opt-in network smoke behind `@pytest.mark.binance_network` + `TRADING_FRAMEWORK_RUN_BINANCE_NETWORK_SMOKE=1` (short range, e.g. one hour) | excluded from the standard CI job | DONE |
+| S045-T011 | Architecture boundary test: the Binance provider package contains no `hmac`/signature usage and no authenticated endpoint path; no `urllib` outside infrastructure | test fails if signing code is ever added | DONE |
 
 Depends on: Wave 2.
 
@@ -170,7 +170,7 @@ Depends on: Wave 2.
 | S045-T013 | Credential convention documented **once** (developer guide / onboarding), plus MODULE_MAP entries for the new modules | exactly one documented location for the API key across the repo | TODO |
 | S045-T014 | Apply `ROADMAP_INCREMENT_PHASE_2F_AND_11.md` Block 1/2 + §13B into `ROADMAP.md`, delete the staging file, update `CURRENT_STATUS.md` §11/§12, write the sprint Review section | roadmap has no duplicate/staged section left | TODO |
 
-**Progress:** 7 / 14 tasks
+**Progress:** 11 / 14 tasks
 
 ---
 
