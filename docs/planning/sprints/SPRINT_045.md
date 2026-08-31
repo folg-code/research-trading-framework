@@ -134,12 +134,22 @@ Depends on: nothing. T002 and T003 are independent of each other.
 
 | Task | Description | Acceptance | Status |
 |------|-------------|-----------|--------|
-| S045-T004 | `application/market_data/import_binance_futures_ohlcv.py`: request/result dataclasses, `mode` selector accepting only `ohlcv`, validate → `write_bars` → register WORKING metadata | a request with `mode: trades` is rejected with an explicit "not supported in v1" error; a valid range registers a WORKING version | TODO |
-| S045-T005 | `import_manifest.json`: provider, mode, symbol, interval, requested range, page/request counts, rows decoded/rejected, recorded gaps, `normalization_version`, `api_key_used` boolean | manifest written beside the dataset; a test asserts no key material in any field | TODO |
-| S045-T006 | Gap policy + validator interaction: confirm `OhlcvBarValidator` behaviour on a range with missing minutes; record gaps, never fill | a range containing a real gap either passes validation with the gap recorded, or fails with a message naming the gap — decided and documented, never silent | TODO |
-| S045-T007 | finalize + publish integration and idempotency | published `DatasetRef` returned by `query_historical`; re-importing the same range produces an identical bar set and checksum | TODO |
+| S045-T004 | `application/market_data/import_binance_futures_ohlcv.py`: request/result dataclasses, `mode` selector accepting only `ohlcv`, validate → `write_bars` → register WORKING metadata | a request with `mode: trades` is rejected with an explicit "not supported in v1" error; a valid range registers a WORKING version | DONE |
+| S045-T005 | `import_manifest.json`: provider, mode, symbol, interval, requested range, page/request counts, rows decoded/rejected, recorded gaps, `normalization_version`, `api_key_used` boolean | manifest written beside the dataset; a test asserts no key material in any field | DONE |
+| S045-T006 | Gap policy + validator interaction: confirm `OhlcvBarValidator` behaviour on a range with missing minutes; record gaps, never fill | a range containing a real gap either passes validation with the gap recorded, or fails with a message naming the gap — decided and documented, never silent | DONE |
+| S045-T007 | finalize + publish integration and idempotency | published `DatasetRef` returned by `query_historical`; re-importing the same range produces an identical bar set and checksum | DONE |
 
 Depends on: Wave 1 (T004 needs T001).
+
+> **T006 outcome (recorded 2026-08-31):** `OhlcvBarValidator` checks required
+> fields, non-negative volume, duplicate `observed_at` timestamps and
+> non-decreasing ordering — it does **not** check that consecutive bars are
+> exactly one interval apart. A range containing a genuine Binance gap
+> therefore **passes validation**; `import_binance_futures_ohlcv` records the
+> gap in `import_manifest.json` (`gaps`), never fills it. This is the
+> "validation passes with the gap recorded" branch of D-S045-10, confirmed by
+> a Tier 1 test (`test_import_binance_futures_ohlcv_gap_passes_validation_and_is_recorded`),
+> not assumed.
 
 ### Wave 3 — CLI and tests
 
@@ -160,7 +170,7 @@ Depends on: Wave 2.
 | S045-T013 | Credential convention documented **once** (developer guide / onboarding), plus MODULE_MAP entries for the new modules | exactly one documented location for the API key across the repo | TODO |
 | S045-T014 | Apply `ROADMAP_INCREMENT_PHASE_2F_AND_11.md` Block 1/2 + §13B into `ROADMAP.md`, delete the staging file, update `CURRENT_STATUS.md` §11/§12, write the sprint Review section | roadmap has no duplicate/staged section left | TODO |
 
-**Progress:** 3 / 14 tasks
+**Progress:** 7 / 14 tasks
 
 ---
 
