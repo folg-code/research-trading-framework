@@ -19,6 +19,14 @@ from trading_framework.application.market_data.derive_ohlcv_from_trades import (
     derive_ohlcv_from_trades,
 )
 from trading_framework.application.market_data.finalize_dataset import finalize_dataset
+from trading_framework.application.market_data.import_binance_futures_ohlcv import (
+    BinanceImportGap,
+    BinanceImportManifest,
+    ImportBinanceFuturesOhlcvRequest,
+    ImportBinanceFuturesOhlcvResult,
+    import_binance_futures_ohlcv,
+    read_binance_import_manifest,
+)
 from trading_framework.application.market_data.import_databento_contract_trades_archive import (
     ContractTradesImportResult,
     ImportDatabentoContractTradesArchiveResult,
@@ -49,6 +57,8 @@ from trading_framework.application.market_data.query_trades import (
 )
 
 __all__ = [
+    "BinanceImportGap",
+    "BinanceImportManifest",
     "BuildContinuousRequest",
     "BuildContinuousResult",
     "BuildRollScheduleRequest",
@@ -56,6 +66,8 @@ __all__ = [
     "ContractTradesImportResult",
     "DeriveContinuousOhlcvResult",
     "DeriveOhlcvFromTradesResult",
+    "ImportBinanceFuturesOhlcvRequest",
+    "ImportBinanceFuturesOhlcvResult",
     "ImportDatabentoContractTradesArchiveResult",
     "ImportDatabentoTradesArchiveResult",
     "ImportExternalDatasetRequest",
@@ -69,6 +81,7 @@ __all__ = [
     "derive_continuous_ohlcv",
     "derive_ohlcv_from_trades",
     "finalize_dataset",
+    "import_binance_futures_ohlcv",
     "import_databento_contract_trades_archive",
     "import_databento_trades_archive",
     "import_external_dataset",
@@ -76,4 +89,5 @@ __all__ = [
     "publish_dataset",
     "query_historical",
     "query_trades",
+    "read_binance_import_manifest",
 ]
