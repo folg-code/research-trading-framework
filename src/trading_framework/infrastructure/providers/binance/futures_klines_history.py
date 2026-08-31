@@ -113,6 +113,7 @@ class HistoricalKlinesFetchStats:
     request_count: int
     retry_count: int
     rows_decoded: int
+    rows_rejected: int
     gaps: tuple[KlineGap, ...]
     api_key_used: bool
 
@@ -212,6 +213,7 @@ def fetch_historical_klines(
     request_count = 0
     retry_count = 0
     rows_decoded = 0
+    rows_rejected = 0
 
     cursor_ms = start_ms
     while cursor_ms < end_ms:
@@ -239,6 +241,7 @@ def fetch_historical_klines(
         page_count += 1
 
         closed_rows = _select_closed_rows(payload, now_ms=resolved_now_ms)
+        rows_rejected += len(payload) - len(closed_rows)
         if not closed_rows:
             gap_end_ms = min(cursor_ms + page_window_ms, end_ms)
             gaps.append(KlineGap(start_ms=cursor_ms, end_ms=gap_end_ms))
@@ -248,6 +251,7 @@ def fetch_historical_klines(
         for row in closed_rows:
             open_time_ms = int(row[0])
             if open_time_ms in seen_open_times_ms:
+                rows_rejected += 1
                 continue
             seen_open_times_ms.add(open_time_ms)
             kline_payload = _row_to_kline_payload(row, symbol=normalized_symbol, interval=interval)
@@ -262,6 +266,7 @@ def fetch_historical_klines(
         request_count=request_count,
         retry_count=retry_count,
         rows_decoded=rows_decoded,
+        rows_rejected=rows_rejected,
         gaps=tuple(gaps),
         api_key_used=resolved_key is not None,
     )
