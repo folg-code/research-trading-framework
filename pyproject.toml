@@ -50,7 +50,7 @@ dev = [
 module-name = "trading_framework"
 
 [tool.uv.workspace]
-members = ["apps/dashboard"]
+members = ["apps/dashboard", "apps/cli"]
 
 [[tool.uv.index]]
 name = "pytorch-cpu"
