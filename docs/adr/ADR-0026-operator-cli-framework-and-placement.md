@@ -250,6 +250,120 @@ additive; nothing in the design assumes eventual coverage of all 45 scripts.
 - A follow-on increment may expose the strategy model / session resolver in
   the application layer; that is not this ADR's decision to make.
 
+## Amendment 1 — Named exceptions to the import boundary (Sprint 046 Wave 2)
+
+**Status:** ACCEPTED (2026-08-31)
+
+**Approved-by:** Filip Folga (project maintainer), given directly in
+conversation with the orchestrating Claude Code session on 2026-08-31, in
+two steps: first choosing the mechanism ("Zaakceptuj poszerzenie, ale
+formalnie" — a formal ADR amendment with fresh approval, over a silent
+test-file widening or a Wave 2 redesign), then reviewing and approving this
+specific module breakdown once drafted (the five-category split below,
+including the two genuine infra/research exceptions named narrowly) and the
+accompanying TD-024 entry for the module-vs-symbol-granularity gap this
+amendment's enforcement mechanism leaves open.
+
+### What happened
+
+Wave 2 (PR #357) needed to construct application-layer `Request` dataclasses
+whose constructor arguments are typed by modules outside
+`trading_framework.application.*` — value objects, typed identifiers, spec
+loaders, and (for two commands) the same hardcoded defaults §0/Finding 2
+already named as an accepted v1 limitation. The implementing engineer widened
+`apps/cli`'s import-boundary test to permit seventeen specific modules,
+justified each with a one-line comment, and flagged the change rather than
+hiding it. Independent review confirmed the code itself was correct — but
+also confirmed that eleven of those seventeen modules sit inside prefixes
+this ADR's §2 explicitly lists as **Forbidden**, and that widening a binding,
+maintainer-approved Wave 0 decision (D-S046-06) is not something an engineer
+gets to do unilaterally, however sound the reasoning. This amendment is the
+maintainer's explicit re-approval, replacing the test-comment-only
+justification with a real one.
+
+### The module list, categorized honestly
+
+**Value objects, typed identifiers, error types — always were the ADR's
+intent, never should have needed a widening in the first place:**
+
+```text
+trading_framework.core.exceptions              exception type
+trading_framework.core.identifiers              identifier value object
+trading_framework.market.datasets               DatasetRef, DatasetId
+trading_framework.market.importers              config value object
+trading_framework.market_analysis.models.time_range   TimeRange value object
+trading_framework.time.models.timeframe         Timeframe value object
+trading_framework.research.predictive.errors    error type
+```
+
+**Spec loaders — the mechanism the config contract (§4) already requires
+("existing spec files are referenced by path, never re-parsed"):**
+
+```text
+trading_framework.research.predictive.estimators   EstimatorSpec.from_dict
+trading_framework.research.predictive.spec         PredictiveStudySpec's own loader
+```
+
+**Typed identifiers/envelopes passed between composed steps — the ADR
+already anticipated this ("Composition ... is only allowed on the
+application path, because that is the only path that returns
+identifiers"):**
+
+```text
+trading_framework.research.datasets.predictive
+trading_framework.research.datasets.predictive_run
+trading_framework.research.datasets.strategy_research
+```
+
+**Genuine exceptions — infra/presentation code, approved here specifically
+and narrowly, not as a category:**
+
+```text
+trading_framework.infrastructure.storage.metadata.registry
+    FileDatasetRegistry, read-only dataset-metadata lookup, mirrors what
+    scripts/strategy_research/run_strategy_research.py already does
+    directly. Real file I/O — a genuine infrastructure adapter, not a value
+    object. Approved for this one read-only lookup only.
+
+trading_framework.research.analytics.strategy_dashboard_report
+    render_strategy_research_dashboard, called (never reimplemented) for
+    `report render strategy`. Presentation code under a forbidden prefix.
+    Approved because the alternative is reimplementing HTML rendering
+    inside apps/cli, which §2's "MUST NOT reimplement" rule explicitly
+    rules out — wrapping the existing renderer is the compliant choice
+    between two ways of violating the letter of the module-prefix rule.
+```
+
+**Finding-2-tied hardcoded defaults — already conceptually accepted by
+SPRINT_046.md §4 Finding 2 ("the CLI inherits the limitation and documents
+it; it does not patch the script"); this amendment formalizes the specific
+imports that limitation requires:**
+
+```text
+trading_framework.research.simulation    SimulationAssumptions()
+trading_framework.strategy               build_canonical_strategy_model()
+trading_framework.time.sessions          CmeEsRthSessionResolver()
+```
+
+### What did not change
+
+`apps/cli` still contains no research, simulation, or execution *logic* — it
+imports these modules only to construct request objects or call an existing
+renderer, never to compute anything §2 assigns to another layer. The
+category-level rule ("no research/market_analysis/strategy/execution/infra
+imports") is narrowed to a named allow-list; it is not lifted.
+
+### Accepted residual risk
+
+The allow-list operates at **module granularity**, not symbol granularity —
+the boundary test permits importing anything from an allowed module, not
+only the specific symbol a command currently uses. A future command could
+import a heavier symbol (e.g. a full repository class) from an
+already-allowed module without the test noticing. This is accepted as v1
+scope, not fixed here: tightening to symbol-level enforcement is logged as
+**TD-024** in `docs/planning/TECHNICAL_DEBT.md`, with a concrete repayment
+trigger, rather than silently left unaddressed.
+
 ## Related
 
 - `docs/adr/ADR-0022-repository-top-level-layout.md`
@@ -257,3 +371,4 @@ additive; nothing in the design assumes eventual coverage of all 45 scripts.
 - `docs/product/PRD.md`
 - `docs/planning/sprints/SPRINT_046.md`
 - `docs/planning/sprints/S046_WAVE0_DECISIONS.md`
+- `docs/planning/TECHNICAL_DEBT.md` TD-024 (module-granularity boundary gap)
