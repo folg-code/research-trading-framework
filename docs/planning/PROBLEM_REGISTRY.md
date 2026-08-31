@@ -866,6 +866,45 @@ defensive (catch `ImportError`/`AttributeError` before asserting `__version__`).
 
 ---
 
+## PRB-019 — `plain mypy .` Fails on Duplicate `test_config` Module Name
+
+```text
+Status: OPEN
+Severity: LOW
+Domain: Testing / Tooling configuration
+Owner: Unassigned
+Discovered: 2026-08-31 (Sprint 046, PR #358 QA)
+```
+
+### Description
+
+Running a bare `uv run mypy .` from the repo root (rather than the
+root-scoped `uv run mypy`, which respects `[tool.mypy] files = ["src",
+"tests"]` and excludes `apps/*`) fails immediately with `Duplicate module
+named "test_config"`, because both `apps/dashboard/tests/test_config.py` and
+`apps/cli/tests/test_config.py` exist and neither package directory has an
+`__init__.py` making them distinct packages to mypy's module resolver.
+
+This has surfaced repeatedly across recent PR reviews (Sprint 044, Sprint
+045, Sprint 046) whenever a reviewer or tester runs plain `mypy .` instead of
+the project's actual configured invocation — it is always a false alarm
+about the code under review, never a real defect, but it costs review time
+to re-diagnose each time.
+
+### Possible Directions
+
+Add `__init__.py` files to `apps/*/tests/` directories (mypy then
+namespaces them by package), or configure `mypy_path`/explicit per-package
+mypy invocations so `apps/*` workspace members are never scanned by a bare
+`mypy .` from the root.
+
+### Resolution Criteria
+
+- `uv run mypy .` (no path scoping) does not fail on module-name collisions
+  between `apps/*` workspace members' test directories.
+
+---
+
 # 6. Resolved Problems
 
 No problems have yet been formally moved to `RESOLVED`.
