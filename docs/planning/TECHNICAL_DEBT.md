@@ -1168,6 +1168,77 @@ interval-aware variant used only by the historical import path.
 
 ---
 
+## TD-024 — CLI Import Boundary Is Module-Level, Not Symbol-Level
+
+```text
+Status: ACCEPTED
+Priority: LOW
+Domain: apps/cli / Architecture Boundary Tests
+Introduced: Sprint 046 (2026-08-31)
+Target Review: When a new apps/cli command needs a heavier symbol from an
+  already-allowed module, or at the next apps/cli boundary audit
+Owner: Unassigned
+```
+
+### Accepted Shortcut
+
+`tests/unit/test_apps_boundaries.py::test_cli_only_imports_application_layer`
+enforces ADR-0026 Amendment 1's named module allow-list by checking which
+*modules* `apps/cli` imports from, not which *symbols* it imports. A module
+on the allow-list (e.g. `trading_framework.research.datasets.predictive`) may
+contain both the narrow value objects/identifiers a command uses today and
+heavier symbols (e.g. a full repository class) nothing currently imports.
+
+### Reason
+
+Symbol-level enforcement (parsing which names are pulled from each
+`ImportFrom` node, not just which module) is meaningfully more test logic
+for a boundary that, as of Sprint 046 Wave 2, has exactly one violation
+category worth catching: an accidental future import of something heavier
+than what today's five command bodies actually use. Module-level enforcement
+with an explicit, reviewed allow-list (Amendment 1) already prevents the
+open-ended violation this test exists to catch; symbol-level tightening is a
+refinement, not a missing guardrail.
+
+### Consequences
+
+- A future `apps/cli` command could import, say,
+  `PredictiveDatasetRepository` (file I/O) from
+  `trading_framework.research.datasets.predictive` without the boundary
+  test noticing, since that module is already allow-listed for its
+  `PredictiveDatasetRef` value object.
+- Code review remains the actual backstop for this specific gap until
+  repaid.
+
+### Safe Operating Boundary
+
+No `apps/cli` command may assume the boundary test would catch a heavier
+symbol from an already-allowed module. Reviewers checking a Wave 3+ CLI PR
+should read *which symbols* are imported from Amendment 1's modules, not
+just confirm the module itself is on the list.
+
+### Repayment Trigger
+
+A new `apps/cli` command needs a symbol from an allow-listed module that
+goes meaningfully beyond a value object/identifier/loader (e.g. a repository
+class, a service object) — that is the moment to either tighten the test to
+symbol-level checks or add a fresh, specifically-justified amendment entry
+rather than relying on the existing module-level entry to cover it.
+
+### Repayment Direction
+
+Extend `test_cli_only_imports_application_layer` to record, per allow-listed
+module, the specific symbol names Wave 2 actually used, and fail if a new
+import pulls a different symbol from that module without an explicit
+allow-list update.
+
+### Related Tasks
+
+- `docs/adr/ADR-0026-operator-cli-framework-and-placement.md` Amendment 1
+- `tests/unit/test_apps_boundaries.py`
+
+---
+
 # 6. Planned Debt Boundaries
 
 The following shortcuts may be accepted later but are not yet introduced:
