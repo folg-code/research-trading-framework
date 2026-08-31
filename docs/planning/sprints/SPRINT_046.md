@@ -5,9 +5,9 @@
 ```text
 Sprint: 046
 Phase: Phase 11 — Universal Operator CLI (opening and, in scope terms, closing increment)
-Status: IN PROGRESS — Sprint 045 merged to main (#355) 2026-08-31, starting now
-Planned Start: TBD (on approval)
-Planned End: TBD
+Status: COMPLETE — 14/14 tasks done 2026-08-31, Phase 11 closed (ROADMAP §13C)
+Planned Start: 2026-08-31
+Planned End: 2026-08-31
 Sprint Goal Owner: Project Maintainer
 Depends On: SPRINT_045 (for the `data fetch binance` command only — see §9),
             SPRINT_028/029 (apps/* workspace precedent, ADR-0022),
@@ -205,9 +205,9 @@ implemented in parallel on separate branches.
 | S046-T011 | Example configs, one per command group, under a documented location | each example runs as-is against fixture data or is marked as requiring real data | DONE |
 | S046-T012 | `docs/reference/OPERATOR_CLI.md` (one schema, documented once) + CI job for the `trading-cli` workspace member | CI runs `ruff` and `pytest` for `apps/cli`; the guide has no second copy of the schema | DONE |
 | S046-T013 | `apps/cli/CLAUDE.md` (boundary that differs from `apps/dashboard`), MODULE_MAP + ARCHITECTURE_OVERVIEW entries | a future agent editing `apps/cli` learns the boundary without reading ADR-0026 | DONE |
-| S046-T014 | Apply the Phase 11 roadmap block, update `CURRENT_STATUS.md` §11/§12, write the sprint Review section | roadmap and status reflect the delivered scope | TODO |
+| S046-T014 | Apply the Phase 11 roadmap block, update `CURRENT_STATUS.md` §11/§12, write the sprint Review section | roadmap and status reflect the delivered scope | DONE |
 
-**Progress:** 13 / 14 tasks
+**Progress:** 14 / 14 tasks
 
 ---
 

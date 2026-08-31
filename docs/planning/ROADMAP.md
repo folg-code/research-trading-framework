@@ -93,7 +93,7 @@ Execution Capability Track
   Phase 9 — Live and Multi-Account Execution        PLANNED
 
 Operator Experience Track
-  Phase 11 — Universal Operator CLI                  PLANNED   (Sprint 046; trading-cli)
+  Phase 11 — Universal Operator CLI                  COMPLETE  (Sprint 046; trading-cli)
 ```
 
 ### Cross-track dependencies (summary)
@@ -129,17 +129,15 @@ OHLCV import publishes an ordinary `DatasetRef` from `providers/binance/`,
 network-free by default, no change to any research code or to the live
 dry-run path.
 
-**Next tracked increment:**
+**Phase 11 is COMPLETE** (Sprint 046, 14/14 tasks): `apps/cli` ships
+`trading-cli` over four command groups (`data fetch`, `research run`,
+`dry-run start`, `report render`), driven by one YAML config contract, wired
+to the existing application-layer workflows with no new capability and no
+change to any wrapped script.
 
-```text
-Phase 11  Universal operator CLI (trading-cli)     Sprint 046   ADR-0026
-```
-
-Sprint 046's `data fetch binance` command wraps what Sprint 045 publishes, so 046 depends on 045 for that one
-command group and for nothing else. Either may be approved, started, or
-deferred without the other; 046 ships `data fetch databento` regardless. The
-maintainer chose to run them sequentially (045 first, then 046) rather than in
-parallel.
+**Next tracked increment:** none — no phase is currently PLANNED. Candidate
+follow-ons are unscheduled by default; see `SPRINT_044.md` §12 and
+`SPRINT_046.md` §12.
 
 Catalog follow-ons (wick / distance) remain in parallel. Deferred by default:
 Phase 4B/6B, Phase 8 Replay, PBO/CSCV ADR. Stage 3 (`available_at` column /
@@ -1360,9 +1358,10 @@ Standard CI stays network-free (Tier 1 fake transport; Tier 2 opt-in marker)
 
 ---
 
-# 13C. Phase 11 — Universal Operator CLI (PLANNED)
+# 13C. Phase 11 — Universal Operator CLI (COMPLETE)
 
-**Status:** PLANNED — Sprint 046. **ADR:** ADR-0026 (ACCEPTED).
+**Status:** COMPLETE — Sprint 046 (14/14 tasks, `sprint/operator-cli`).
+**ADR:** ADR-0026 (ACCEPTED).
 
 ## Purpose
 
