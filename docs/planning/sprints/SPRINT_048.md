@@ -5,7 +5,7 @@
 ```text
 Sprint: 048
 Phase: Phase 13 — Exit/Risk Model Expansion (opening and, in scope terms, closing increment)
-Status: APPROVED — Wave 0 Checklist (D-S048-14) signed off by the maintainer on 2026-09-01
+Status: COMPLETE — 13/13 tasks, all four waves done, on `sprint/exit-risk-and-catalog`
 Planned Start: 2026-09-01
 Planned End: TBD
 Sprint Goal Owner: Project Maintainer
@@ -301,11 +301,11 @@ wave** — drop T010 first, then T009. Never Waves 1 or 2.
 
 | Task | Description | Acceptance | Deps | Status |
 |------|-------------|-----------|------|--------|
-| S048-T011 | Three example strategies per D-S048-11 (`ema_reversion_bracket`, `range_expansion_breakout`, `quiet_wick_rejection`) under `user_data/components/strategies/`, each with a committed example config under the Sprint 046 examples location, and each reproduced verbatim in the docs (ADR-0002 — the directory is gitignored) | all three run through `trading-cli research run strategy` with **no** edit to `apps/cli`; E1's parameters produce at least one `stop_loss`, one `take_profit` and one `max_bars` trade on the fixture; E3 runs on the unchanged fixed-bars kernel with `EquityPercentRiskModel` | T008, T010 | TODO |
-| S048-T012 | Framework-side end-to-end test: a bracket strategy loaded through `strategy_file` produces a run whose trades table contains more than one distinct `exit_reason` and whose manifest carries `exit_model_id == "bracket"` (PRD success metric 1) | the test fails if the run silently falls back to a fixed-bars path or if only one exit reason ever appears; committed fixture data only, no network, no ML extra | T011 | TODO |
-| S048-T013 | Docs and closure: `STRATEGY_AUTHORING.md` gains bracket + sizing sections (both fill conventions in one strategy; the operator-owned stop-consistency caveat; the three examples verbatim); `MODULE_MAP.md` + `ARCHITECTURE_OVERVIEW.md` entries for `kernels/bracket.py` and the two components; TD-026/027/028 in `TECHNICAL_DEBT.md`; `CURRENT_STATUS.md` §2/§6/§11/§12; ROADMAP §13E Status PROPOSED -> COMPLETE; the sprint Review section | a reader of the trades table can learn from the guide why two exit rows in the same run used different fill conventions; every TD entry has a named repayment trigger; the config schema still appears exactly once | T012 | TODO |
+| S048-T011 | Three example strategies per D-S048-11 (`ema_reversion_bracket`, `range_expansion_breakout`, `quiet_wick_rejection`) under `user_data/components/strategies/`, each with a committed example config under the Sprint 046 examples location, and each reproduced verbatim in the docs (ADR-0002 — the directory is gitignored) | all three run through `trading-cli research run strategy` with **no** edit to `apps/cli`; E1's parameters produce at least one `stop_loss`, one `take_profit` and one `max_bars` trade on the fixture; E3 runs on the unchanged fixed-bars kernel with `EquityPercentRiskModel` | T008, T010 | DONE (#380) — also fixed a pre-existing gap: `trading_framework.strategy.__init__` never re-exported `BracketExitModel`/`EquityPercentRiskModel` |
+| S048-T012 | Framework-side end-to-end test: a bracket strategy loaded through `strategy_file` produces a run whose trades table contains more than one distinct `exit_reason` and whose manifest carries `exit_model_id == "bracket"` (PRD success metric 1) | the test fails if the run silently falls back to a fixed-bars path or if only one exit reason ever appears; committed fixture data only, no network, no ML extra | T011 | DONE (#381) |
+| S048-T013 | Docs and closure: `STRATEGY_AUTHORING.md` gains bracket + sizing sections (both fill conventions in one strategy; the operator-owned stop-consistency caveat; the three examples verbatim); `MODULE_MAP.md` + `ARCHITECTURE_OVERVIEW.md` entries for `kernels/bracket.py` and the two components; TD-026/027/028 in `TECHNICAL_DEBT.md`; `CURRENT_STATUS.md` §2/§6/§11/§12; ROADMAP §13E Status PROPOSED -> COMPLETE; the sprint Review section | a reader of the trades table can learn from the guide why two exit rows in the same run used different fill conventions; every TD entry has a named repayment trigger; the config schema still appears exactly once | T012 | DONE |
 
-**Progress:** 10 / 13 — Wave 1 complete (#368, #369, #370); Wave 2 complete (#372, #373, #374, #375); Wave 3 complete (#377, #378)
+**Progress:** 13 / 13 — Wave 1 complete (#368, #369, #370); Wave 2 complete (#372, #373, #374, #375); Wave 3 complete (#377, #378); Wave 4 complete (#380, #381, this closure)
 
 ---
 
@@ -438,3 +438,158 @@ Candidates, none scheduled by default:
 - Exposing `SimulationAssumptions` and the session resolver through config (the
   remaining third of SPRINT_046.md §4 Finding 2).
 - A declarative strategy format, only if the Python loader proves limiting.
+
+---
+
+## 13. Review
+
+Closed 2026-09-01 on `sprint/exit-risk-and-catalog`, 13/13 tasks. This section
+records outcome; it does not rewrite the plan. The final integration PR
+(`sprint/exit-risk-and-catalog` -> `main`) has not been opened yet as of this
+entry — see "Not Completed" below.
+
+### Completed
+
+- Wave 0 (`S048_WAVE0_DECISIONS.md`) approved by the maintainer 2026-09-01;
+  ADR-0028 flipped in place to ACCEPTED (resumed for Sprint 048).
+- T001 — golden run captured on the unmodified tree (#368).
+- T002/T003 — `strategy_model.py` and `engine.py` MVP gates widened to
+  structural/dispatch checks (#369).
+- T004 — `run_strategy_research.py` gate widened, `derive_strategy_run_id`
+  generalized to `exit_model_parameters: str`; a 5-file scope exceedance
+  (Correction 6) was found and maintainer-approved the same day (#370).
+- T005 — `BracketExitModel`, `PriceBracketExit` protocol, `ExitReason`
+  `STOP_LOSS`/`TAKE_PROFIT`/`MAX_BARS`; D-S048-08 consumer audit implemented
+  (TD-027 in `stress.py`) (#372).
+- T006 — `research/simulation/kernels/bracket.py`, hand-computed fixtures,
+  `kernels/fixed_bars.py` untouched (#373).
+- T007 — `EquityPercentRiskModel`, static authoring-time sizing, TD-026
+  logged (#374).
+- T008 — dispatch wired to the real kernel end to end (#375).
+- T009/T010 — `trend.ema_distance` and `volatility.range_expansion`
+  components (#377, #378).
+- T011 — three worked example strategies (E1/E2/E3) + committed configs
+  (#380); discovered and fixed a pre-existing gap along the way —
+  `trading_framework.strategy.__init__` never re-exported
+  `BracketExitModel`/`EquityPercentRiskModel`, so the documented import
+  convention in `STRATEGY_AUTHORING.md` would have failed for any operator
+  who followed it verbatim.
+- T012 — framework-side end-to-end test proving PRD success metric 1 via
+  `strategy_file` (#381).
+- T013 (this entry) — `STRATEGY_AUTHORING.md` gained a dedicated "Bracket
+  exits and equity-percent sizing" section (both fill conventions named
+  explicitly, plus the operator-owned stop-consistency caveat as
+  standalone prose, not only inside example docstrings — the worked
+  examples themselves were already verbatim-correct from T011 and needed
+  no changes); `MODULE_MAP.md` gained entries for `kernels/bracket.py` and
+  the two new components; `docs/reference/ARCHITECTURE_AND_WORKFLOWS.md`
+  §6 "Simulation Engine" gained a paragraph on the two-kernel dispatch
+  (see "Problems Discovered" — this sprint's `ARCHITECTURE_OVERVIEW.md`
+  is a naming alias, not a distinct file); TD-026/027/028 verified accurate
+  and complete, unchanged; `CURRENT_STATUS.md` closed fully (§2, §6, §11,
+  §12 sweep); `ROADMAP.md` §13E flipped PROPOSED -> COMPLETE, matching the
+  §13D/Phase 12 closure wording; this Review section added.
+
+### Not Completed
+
+- **The final integration PR `sprint/exit-risk-and-catalog` -> `main` has
+  not been opened.** All 13 tasks are done on the sprint branch, and
+  `CURRENT_STATUS.md`/`ROADMAP.md` record the sprint as COMPLETE-on-branch
+  (mirroring the Sprint 017 precedent: "COMPLETE on sprint branch ...
+  integration PR to main pending"), not merged. Opening and merging that PR
+  is a human/maintainer action outside this task's guardrails (docs-only,
+  commit locally, no push, no PR).
+- No sprint-scoped task was dropped or descoped. Waves 1 and 2 were never at
+  risk (per §10's risk table); the descope order (T010 then T009) was never
+  invoked.
+
+### Demonstrated Capability
+
+An operator writes a `BracketExitModel`/`EquityPercentRiskModel` strategy
+file, points `research.strategy.strategy_file` at it, and runs it through
+`trading-cli research run strategy` with no CLI change. The resulting trades
+table shows `stop_loss`, `take_profit` and `max_bars` exits in one run
+(verified: 43 trades, 3/3/37 split, on `ema_reversion_bracket.py` against the
+committed fixture), while the canonical Sprint 013 strategy's trades, equity
+and `run_id` remain byte-identical to the pre-sprint tree (golden run, T001,
+still green). `EquityPercentRiskModel` runs unmodified on the untouched
+fixed-bars kernel (`quiet_wick_rejection.py`, the isolation case).
+
+### Problems Discovered
+
+- **Missing package re-export** (found during T011, fixed in #380):
+  `trading_framework/strategy/__init__.py` never exported `BracketExitModel`
+  or `EquityPercentRiskModel`, even after T005/T007 added them. Anyone
+  following `STRATEGY_AUTHORING.md`'s documented import convention verbatim
+  (`from trading_framework.strategy import BracketExitModel, ...`) would
+  have hit an `ImportError`. Not logged as a PROBLEM_REGISTRY entry — it was
+  found and fixed within the same sprint, before any example shipped
+  publicly, by the task that would have surfaced it (T011), with no
+  external report needed.
+- **`ARCHITECTURE_OVERVIEW.md` does not exist as a file.** Both
+  `SPRINT_047.md` and this sprint's own plan (§2, task table) name it as a
+  target, but the repository has no file by that name; the nearest
+  as-implemented equivalent is `docs/reference/ARCHITECTURE_AND_WORKFLOWS.md`
+  (§6 "Research and Simulation" / "Simulation Engine"), which is where the
+  bracket-kernel paragraph was actually added, both this sprint and (by the
+  same reasoning) presumably Sprint 047's T013. Worth a housekeeping fix in
+  a future sprint: either rename the target consistently across sprint
+  templates, or create the file the plans keep naming.
+- No new CRITICAL/HIGH entries were logged in `PROBLEM_REGISTRY.md` this
+  sprint; nothing from this sprint appears there to move to "Resolved".
+
+### Decisions Required
+
+- None new. ADR-0028 remains ACCEPTED as resumed; no further engine change
+  (a "sixth change") was needed beyond the five D-S048-06 corrected the plan
+  to.
+
+### Technical Debt Added
+
+- TD-026 (MEDIUM) — `EquityPercentRiskModel` is static, authoring-time
+  sizing only; repayment trigger: a demonstrated need for dynamic sizing, or
+  a request to cross-validate `stop_distance` against `stop_loss_bps`.
+- TD-027 (MEDIUM) — the Robustness delay stress dimension rejects
+  `BracketExitModel` strategies by design; repayment trigger: the first
+  request to stress a bracket strategy's timing, or bracket-parameter stress
+  dimensions.
+- TD-028 (MEDIUM) — no independent (non-njit) reference implementation for
+  `kernels/bracket.py`; repayment trigger: the first numerically surprising
+  bracket-path result, or the first change to the locked fill semantics.
+- All three were logged during Waves 1/2 (T005/T007), reviewed for accuracy
+  at this closure, and required no changes.
+
+### Lessons Learned
+
+- The re-verification demanded by the PRD (§4) earned its keep: ADR-0028's
+  original four-change plan would have shipped a bracket model that passed
+  validation and the simulator and was still refused by
+  `run_strategy_research.py` (Finding 2), and would have silently
+  re-identified every persisted run through an unhashed `exit_after_bars`
+  field (Finding 3). Re-reading the current tree against a deferred design,
+  rather than resurrecting it unchanged, caught both before any code was
+  written.
+- A worked-examples task (T011) is a real integration test for a package's
+  public export surface, not just for the strategy composition itself — the
+  missing `BracketExitModel`/`EquityPercentRiskModel` re-export would not
+  have been caught by any of T005-T008's own unit tests, which import from
+  the concrete submodule.
+- Naming drift between planning documents (`ARCHITECTURE_OVERVIEW.md`) and
+  the actual repository (`ARCHITECTURE_AND_WORKFLOWS.md`) costs a closure
+  task real time reconciling intent with the tree; worth fixing at the
+  template level rather than re-discovering per sprint.
+
+### Follow-up
+
+- Open the final integration PR `sprint/exit-risk-and-catalog` -> `main`
+  (human/maintainer action; not performed by this closure task).
+- Candidates in §12 above, none scheduled by default: bracket-aware
+  Robustness stress dimensions (TD-027's repayment), dynamic
+  equity-curve-following sizing (TD-026's repayment), a bracket reference
+  kernel (TD-028's repayment), a `stop_distance`/`stop_loss_bps`
+  cross-validation helper, `momentum.rsi`/`structure.session_position`,
+  arithmetic in the model-expression IR, exposing `SimulationAssumptions`
+  and the session resolver through config, a declarative strategy format.
+- Housekeeping: reconcile the `ARCHITECTURE_OVERVIEW.md` naming drift noted
+  above, either by creating that file or by correcting sprint templates to
+  name `ARCHITECTURE_AND_WORKFLOWS.md`.
