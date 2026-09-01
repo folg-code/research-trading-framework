@@ -1309,6 +1309,85 @@ that needs to repay this would need its own ADR.
 
 ---
 
+## TD-026 — EquityPercentRiskModel Is Static, Authoring-Time Sizing Only
+
+```text
+Status: ACCEPTED
+Priority: MEDIUM
+Domain: Strategy / Research Simulation
+Introduced: Sprint 048 (2026-09-01)
+Target Review: A demonstrated need for dynamic sizing, or a request to
+  cross-validate stop_distance against a bracket's stop_loss_bps
+Owner: Unassigned
+```
+
+### Accepted Shortcut
+
+`EquityPercentRiskModel` (`strategy/risk_model.py`) resolves
+`quantity = (account_equity * risk_percent) / stop_distance` exactly ONCE,
+in `__post_init__`. `position_quantity()` always returns that one stored
+value, for every entry, for the life of a run. It has no access to running
+equity, entry price, realized P&L, or the trade being sized, because
+`RiskModel.position_quantity()` takes no arguments (ADR-0028 §4). It also
+does not cross-validate `stop_distance` against a `BracketExitModel`'s
+`stop_loss_bps` — the risk model has no reference price with which to
+convert a basis-point offset into a price-point distance.
+
+### Reason
+
+`RiskModel.position_quantity()`'s no-argument shape is the same MVP
+contract from ADR-0016 and is deliberately unchanged by Sprint 048
+(D-S048-06 — the Protocol definitions are locked). "Equity-percentage
+sizing" can therefore only mean sizing resolved once, at authoring time,
+from values the author supplies. This is a real improvement over
+hand-computing a lot size, but it is not compounding or
+equity-curve-following sizing, and must never be described as such.
+
+### Consequences
+
+- An operator who wants sizing to track realized equity as a run
+  progresses cannot get that from this model; they must re-author the
+  strategy with new numbers, or accept static sizing.
+- `EquityPercentRiskModel.stop_distance` and a paired `BracketExitModel`'s
+  `stop_loss_bps` describe the same stop from two directions and can
+  silently disagree; the operator owns keeping them consistent (documented
+  in `STRATEGY_AUTHORING.md`, not enforced by validation).
+
+### Safe Operating Boundary
+
+No docstring, test name, log line, or guide text may describe
+`EquityPercentRiskModel` as dynamic, compounding, or
+equity-curve-following. No workflow may assume `stop_distance` and a
+bracket's `stop_loss_bps` are cross-validated — they are not.
+
+### Repayment Trigger
+
+Dynamic sizing requires passing simulation state into
+`position_quantity()` — a `RiskModel` protocol change also affecting the
+paper broker and live execution runtime
+(`execution/runtime/strategy_orders.py`,
+`execution/broker_sim/paper_broker.py`) — a separate increment with its
+own ADR. The stop-distance/stop_loss_bps cross-validation is a smaller,
+independent follow-on once a reference price is available to convert
+between them.
+
+### Repayment Direction
+
+Design the dynamic-sizing `RiskModel` protocol change through its own ADR,
+covering research simulation, paper broker and live execution impact
+together rather than widening the Protocol as a side effect of a research
+sprint. The cross-validation helper (if pursued) does not require a
+Protocol change and can land independently.
+
+### Related Tasks
+
+- `docs/adr/ADR-0028-bracket-exit-and-equity-relative-sizing.md` §4
+- `docs/planning/sprints/S048_WAVE0_DECISIONS.md` D-S048-05
+- `src/trading_framework/strategy/risk_model.py`
+- `tests/unit/strategy/test_risk_model.py`
+
+---
+
 ## TD-027 — Robustness Delay Stress Rejects Bracket Exits
 
 ```text
