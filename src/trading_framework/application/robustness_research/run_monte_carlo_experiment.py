@@ -206,7 +206,7 @@ def _execute_strategy_run(
         market_model_id=strategy_model.market_model.market_model_id,
         signal_model_id=strategy_model.signal_model.signal_model_id,
         exit_model_id=exit_model.exit_model_id,
-        exit_after_bars=int(exit_model.exit_after_bars),
+        exit_model_parameters=str(int(exit_model.exit_after_bars)),
         risk_model_id=risk_model.risk_model_id,
         position_quantity=format(risk_model.position_quantity(), "f"),
         source_dataset_ref=str(request.dataset_ref),

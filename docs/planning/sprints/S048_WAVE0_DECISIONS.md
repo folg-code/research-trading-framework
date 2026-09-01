@@ -295,6 +295,7 @@ Each consumer, with a reason. "Probably fine" is not an audit.
 | `research/analytics/strategy_dashboard.py:41,212,373` and `strategy_dashboard_report.py:389` | Safe — reads `exit_reason` as an opaque `str`, no exhaustive match; new members render as their string values. |
 | `research/simulation/facts.py:66,120` | Safe — persists `exit_reason.value` into a `pl.String` column; adding `StrEnum` members is additive for existing records. |
 | `strategy/canonical_examples.py`, `strategy/btc_futures_demo.py` | Safe — construct FixedBars/FixedQuantity explicitly; unchanged, and covered by the golden run. |
+| `application/robustness_research/{run_monte_carlo_experiment, run_stress_experiment, run_robustness_experiment, run_walk_forward_experiment, analyze_diagnostics_experiment}.py` | **Discovered during T004 implementation (not in the original audit) — five `derive_strategy_run_id` callers passing `exit_after_bars=int(...)`.** Fixed as a byte-identical mechanical rename (`exit_model_parameters=str(int(...))`); zero behavior change, no existing `run_id` moves. Raised to the maintainer per the STOP-and-ask rule and approved 2026-09-01 (see ADR-0028 Correction 6) rather than silently absorbed. |
 
 ```text
 LOCKED  this table is the audit. A task may ADD a row it discovers; it may not

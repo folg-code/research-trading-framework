@@ -53,8 +53,8 @@ from trading_framework.research.simulation import (
     SimulationAssumptions,
     simulation_assumptions_fingerprint,
 )
-from trading_framework.strategy.exit_model import FixedBarsExitModel
-from trading_framework.strategy.risk_model import FixedQuantityRiskModel
+from trading_framework.strategy.exit_model import ExitModel, FixedBarsExitModel
+from trading_framework.strategy.risk_model import RiskModel
 from trading_framework.strategy.strategy_model import (
     StrategyModelDefinition,
     validate_strategy_model_definition,
@@ -103,8 +103,8 @@ def run_strategy_research(
     """Evaluate strategy models, simulate trades, and optionally persist the run."""
     validate_strategy_model_definition(request.strategy_model)
     strategy_model = request.strategy_model
-    exit_model = _require_fixed_bars_exit(strategy_model)
-    risk_model = _require_fixed_quantity_risk(strategy_model)
+    exit_model = _dispatch_exit_model(strategy_model)
+    risk_model = _require_structural_risk_model(strategy_model)
 
     evaluation_timeframe = request.evaluation_timeframe or request.timeframe
     preloaded_column_batch, eval_result = _resolve_evaluation_inputs(request)
@@ -145,7 +145,7 @@ def run_strategy_research(
         market_model_id=strategy_model.market_model.market_model_id,
         signal_model_id=strategy_model.signal_model.signal_model_id,
         exit_model_id=exit_model.exit_model_id,
-        exit_after_bars=exit_model.exit_after_bars,
+        exit_model_parameters=_exit_model_parameters(exit_model),
         risk_model_id=risk_model.risk_model_id,
         position_quantity=format(risk_model.position_quantity(), "f"),
         source_dataset_ref=source_dataset_ref,
@@ -266,17 +266,49 @@ def _resolve_evaluation_inputs(
     return preloaded_column_batch, eval_result
 
 
-def _require_fixed_bars_exit(strategy_model: StrategyModelDefinition) -> FixedBarsExitModel:
+def _dispatch_exit_model(strategy_model: StrategyModelDefinition) -> FixedBarsExitModel:
+    """Dispatch ``strategy_model.exit_model`` to the kernel it can run on.
+
+    Mirrors ``research/simulation/engine.py``'s ``_dispatch_exit_model`` (Sprint
+    048, Correction 1 / D-S048-06): this is the SAME dispatch, one layer above
+    the engine, so a structurally-valid exit model is not refused here before
+    the engine ever sees it, nor accepted here only to be refused one layer
+    down. ``FixedBarsExitModel`` dispatches to the existing kernel; there is no
+    bracket kernel yet, so any other exit model is still refused here, with the
+    same error message this function has always raised.
+    """
     exit_model = strategy_model.exit_model
-    if not isinstance(exit_model, FixedBarsExitModel):
-        msg = "run_strategy_research supports FixedBarsExitModel only"
-        raise StrategyResearchError(msg)
-    return exit_model
+    if isinstance(exit_model, FixedBarsExitModel):
+        return exit_model
+    msg = "run_strategy_research supports FixedBarsExitModel only"
+    raise StrategyResearchError(msg)
 
 
-def _require_fixed_quantity_risk(strategy_model: StrategyModelDefinition) -> FixedQuantityRiskModel:
-    risk_model = strategy_model.risk_model
-    if not isinstance(risk_model, FixedQuantityRiskModel):
+def _require_structural_risk_model(strategy_model: StrategyModelDefinition) -> RiskModel:
+    """Accept any ``RiskModel`` structurally; this layer only reads ``position_quantity()``."""
+    risk_model: object = strategy_model.risk_model
+    if not isinstance(risk_model, RiskModel):
         msg = "run_strategy_research supports FixedQuantityRiskModel only"
         raise StrategyResearchError(msg)
     return risk_model
+
+
+def _exit_model_parameters(exit_model: ExitModel) -> str:
+    """Encode an exit model's identity-relevant parameters for run-id derivation.
+
+    Sprint 048, Correction 2 / D-S048-06 (the sprint's highest-risk item):
+    ``derive_strategy_run_id`` used to hash ``exit_after_bars`` directly, a
+    ``FixedBarsExitModel``-only field. This function is the single place that
+    turns an exit model into the ``exit_model_parameters`` string it hashes.
+
+    ``FixedBarsExitModel`` MUST emit exactly ``str(exit_after_bars)`` so the
+    hashed payload, and therefore every existing persisted ``run_id``, stays
+    byte-identical. A future exit model dispatched here (e.g. a bracket exit)
+    must add its own branch encoding its own parameters by name, not just by
+    value, so it can never collide with a FixedBars encoding of different
+    parameters.
+    """
+    if isinstance(exit_model, FixedBarsExitModel):
+        return str(exit_model.exit_after_bars)
+    msg = f"no run-identity parameter encoding for exit model: {type(exit_model).__name__}"
+    raise StrategyResearchError(msg)

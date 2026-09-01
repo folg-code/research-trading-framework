@@ -110,7 +110,7 @@ def derive_strategy_run_id(
     market_model_id: str,
     signal_model_id: str,
     exit_model_id: str,
-    exit_after_bars: int,
+    exit_model_parameters: str,
     risk_model_id: str,
     position_quantity: str,
     source_dataset_ref: str,
@@ -120,7 +120,17 @@ def derive_strategy_run_id(
     framework_version: str,
     simulation_assumptions_fingerprint: str,
 ) -> str:
-    """Deterministic run identity including strategy models and simulation assumptions."""
+    """Deterministic run identity including strategy models and simulation assumptions.
+
+    ``exit_model_parameters`` is a caller-supplied, deterministic string encoding
+    of the exit model's identity-relevant parameters (Sprint 048, Correction 2 /
+    D-S048-06). For ``FixedBarsExitModel`` this MUST be exactly
+    ``str(exit_after_bars)`` so the joined payload — and therefore every
+    existing persisted ``run_id`` — stays byte-identical to before this
+    generalization. A different exit model must encode its own parameters so
+    that it can never collide with a FixedBars encoding for different values
+    (e.g. by including its own parameter names, not just their values).
+    """
     payload = "|".join(
         [
             "strategy_research",
@@ -128,7 +138,7 @@ def derive_strategy_run_id(
             market_model_id,
             signal_model_id,
             exit_model_id,
-            str(exit_after_bars),
+            exit_model_parameters,
             risk_model_id,
             position_quantity,
             source_dataset_ref,
