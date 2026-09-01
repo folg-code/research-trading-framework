@@ -33,7 +33,7 @@ from trading_framework.research.simulation.kernels.reference import (
     _open_position_counts_by_bar_index,
 )
 from trading_framework.strategy.exit_model import FixedBarsExitModel
-from trading_framework.strategy.risk_model import FixedQuantityRiskModel
+from trading_framework.strategy.risk_model import RiskModel
 from trading_framework.strategy.strategy_model import StrategyModelDefinition
 
 
@@ -69,8 +69,8 @@ class BarSequentialSimulator:
                 equity=equity_points_to_dataframe([]),
             )
         _validate_entry_signals(entry_signals)
-        exit_model = _require_fixed_bars_exit(strategy_model)
-        risk_model = _require_fixed_quantity_risk(strategy_model)
+        exit_model = _dispatch_exit_model(strategy_model)
+        risk_model = _require_structural_risk_model(strategy_model)
         with optional_phase("simulate.compile_input"):
             compiled = compile_simulation_input(
                 bars=ordered_bars,
@@ -121,8 +121,8 @@ class BarSequentialSimulator:
                 equity=equity_points_to_dataframe([]),
             )
         _validate_entry_signals(entry_signals)
-        exit_model = _require_fixed_bars_exit(strategy_model)
-        risk_model = _require_fixed_quantity_risk(strategy_model)
+        exit_model = _dispatch_exit_model(strategy_model)
+        risk_model = _require_structural_risk_model(strategy_model)
         with optional_phase("simulate.compile_input"):
             compiled = compile_simulation_input_from_columnar(
                 column_batch=column_batch,
@@ -165,17 +165,29 @@ def _validate_entry_signals(entry_signals: pl.DataFrame) -> None:
         raise SimulationEngineError(msg)
 
 
-def _require_fixed_bars_exit(strategy_model: StrategyModelDefinition) -> FixedBarsExitModel:
+def _dispatch_exit_model(strategy_model: StrategyModelDefinition) -> FixedBarsExitModel:
+    """Dispatch ``strategy_model.exit_model`` to the kernel it can run on.
+
+    ``FixedBarsExitModel`` dispatches to the existing ``kernels/fixed_bars.py``
+    kernel, unchanged. There is no bracket kernel yet (that lands in a later
+    task), so any other exit model - including one that is structurally a
+    ``PriceBracketExit`` - is still refused here, with the same error message
+    ``BarSequentialSimulator`` has always raised for an unsupported exit model.
+    This function is the single dispatch point for both ``simulate()`` and
+    ``simulate_from_columnar()``; a bracket branch is added here, not
+    duplicated at each call site, once the bracket kernel exists.
+    """
     exit_model = strategy_model.exit_model
-    if not isinstance(exit_model, FixedBarsExitModel):
-        msg = "BarSequentialSimulator supports FixedBarsExitModel only"
-        raise SimulationEngineError(msg)
-    return exit_model
+    if isinstance(exit_model, FixedBarsExitModel):
+        return exit_model
+    msg = "BarSequentialSimulator supports FixedBarsExitModel only"
+    raise SimulationEngineError(msg)
 
 
-def _require_fixed_quantity_risk(strategy_model: StrategyModelDefinition) -> FixedQuantityRiskModel:
-    risk_model = strategy_model.risk_model
-    if not isinstance(risk_model, FixedQuantityRiskModel):
+def _require_structural_risk_model(strategy_model: StrategyModelDefinition) -> RiskModel:
+    """Accept any ``RiskModel`` structurally; the engine only calls ``position_quantity()``."""
+    risk_model: object = strategy_model.risk_model
+    if not isinstance(risk_model, RiskModel):
         msg = "BarSequentialSimulator supports FixedQuantityRiskModel only"
         raise SimulationEngineError(msg)
     return risk_model

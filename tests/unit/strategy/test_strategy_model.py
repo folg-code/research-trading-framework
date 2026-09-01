@@ -50,8 +50,39 @@ def test_strategy_model_rejects_neutral_signal_direction() -> None:
         validate_strategy_model_definition(definition)
 
 
-def test_strategy_model_requires_supported_exit_and_risk_implementations() -> None:
+def test_strategy_model_rejects_exit_model_missing_protocol_members() -> None:
     definition = build_canonical_strategy_model()
     object.__setattr__(definition, "exit_model", object())
-    with pytest.raises(StrategyModelDefinitionError, match="FixedBarsExitModel"):
+    with pytest.raises(StrategyModelDefinitionError, match="exit_bar_index"):
         validate_strategy_model_definition(definition)
+
+
+def test_strategy_model_rejects_risk_model_missing_protocol_members() -> None:
+    definition = build_canonical_strategy_model()
+    object.__setattr__(definition, "risk_model", object())
+    with pytest.raises(StrategyModelDefinitionError, match="position_quantity"):
+        validate_strategy_model_definition(definition)
+
+
+def test_strategy_model_accepts_structurally_conformant_exit_and_risk_models() -> None:
+    """A test double satisfying the protocols structurally must not be rejected by class."""
+
+    class _StubExitModel:
+        exit_model_id = "stub_exit"
+
+        def exit_bar_index(self, *, entry_fill_bar_index: int) -> int:
+            return entry_fill_bar_index + 1
+
+    class _StubRiskModel:
+        risk_model_id = "stub_risk"
+
+        def position_quantity(self) -> Decimal:
+            return Decimal("1")
+
+        def allows_new_entry(self, *, open_position_count: int) -> bool:
+            return open_position_count < 1
+
+    definition = build_canonical_strategy_model()
+    object.__setattr__(definition, "exit_model", _StubExitModel())
+    object.__setattr__(definition, "risk_model", _StubRiskModel())
+    validate_strategy_model_definition(definition)

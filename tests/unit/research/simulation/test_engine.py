@@ -14,12 +14,14 @@ from trading_framework.application.model_evaluation.canonical_examples import (
 )
 from trading_framework.core.types import Price, Volume
 from trading_framework.market.models import MarketBar
+from trading_framework.market_analysis.data.columnar import OhlcvColumnBatch
 from trading_framework.research.simulation import (
     BarSequentialSimulator,
     SimulationAssumptions,
 )
 from trading_framework.research.simulation.compile import compile_simulation_input
 from trading_framework.research.simulation.engine import (
+    SimulationEngineError,
     _build_bar_timestamp_index,
     _closed_pnl_by_exit_observed_at,
     _observed_at_index_by_ns,
@@ -300,6 +302,98 @@ def test_closed_pnl_by_exit_observed_at_aggregates_same_exit_bar() -> None:
     closed_pnl = _closed_pnl_by_exit_observed_at(trades)
 
     assert closed_pnl[exit_at] == Decimal("3")
+
+
+def test_simulate_rejects_unknown_exit_model_with_stable_message() -> None:
+    bars = [_bar(0), _bar(1)]
+    entry_signals = pl.DataFrame(
+        {
+            "available_at": [bars[0].observed_at],
+            "direction": ["long"],
+        }
+    )
+    strategy_model = _strategy_model()
+    object.__setattr__(strategy_model, "exit_model", object())
+    with pytest.raises(SimulationEngineError) as exc_info:
+        BarSequentialSimulator().simulate(
+            bars=bars,
+            entry_signals=entry_signals,
+            strategy_model=strategy_model,
+            assumptions=SimulationAssumptions(),
+            instrument="ES.c.0",
+            source_dataset_ref="dataset:test:1",
+        )
+    assert str(exc_info.value) == "BarSequentialSimulator supports FixedBarsExitModel only"
+
+
+def test_simulate_from_columnar_rejects_unknown_exit_model_with_stable_message() -> None:
+    bars = [_bar(0), _bar(1)]
+    column_batch = OhlcvColumnBatch(
+        timestamps=tuple(bar.observed_at for bar in bars),
+        available_at=tuple(bar.available_at for bar in bars),
+        open=tuple(float(bar.open.value) for bar in bars),
+        high=tuple(float(bar.high.value) for bar in bars),
+        low=tuple(float(bar.low.value) for bar in bars),
+        close=tuple(float(bar.close.value) for bar in bars),
+        volume=tuple(float(bar.volume.value) for bar in bars),
+    )
+    entry_signals = pl.DataFrame(
+        {
+            "available_at": [bars[0].observed_at],
+            "direction": ["long"],
+        }
+    )
+    strategy_model = _strategy_model()
+    object.__setattr__(strategy_model, "exit_model", object())
+    with pytest.raises(SimulationEngineError) as exc_info:
+        BarSequentialSimulator().simulate_from_columnar(
+            column_batch=column_batch,
+            entry_signals=entry_signals,
+            strategy_model=strategy_model,
+            assumptions=SimulationAssumptions(),
+            instrument="ES.c.0",
+            source_dataset_ref="dataset:test:1",
+        )
+    assert str(exc_info.value) == "BarSequentialSimulator supports FixedBarsExitModel only"
+
+
+def test_simulate_accepts_structurally_conformant_risk_model() -> None:
+    """A RiskModel test double, not FixedQuantityRiskModel by class, must not be rejected."""
+
+    class _StubRiskModel:
+        risk_model_id = "stub_risk"
+
+        def position_quantity(self) -> Decimal:
+            return Decimal("1")
+
+        def allows_new_entry(self, *, open_position_count: int) -> bool:
+            return open_position_count < 1
+
+    bars = [
+        _bar(0),
+        _bar(1, open_price="100"),
+        _bar(2),
+        _bar(3),
+        _bar(4, open_price="103"),
+        _bar(5),
+    ]
+    entry_signals = pl.DataFrame(
+        {
+            "available_at": [bars[0].observed_at],
+            "direction": ["long"],
+        }
+    )
+    strategy_model = _strategy_model(exit_after_bars=2)
+    object.__setattr__(strategy_model, "risk_model", _StubRiskModel())
+    result = BarSequentialSimulator().simulate(
+        bars=bars,
+        entry_signals=entry_signals,
+        strategy_model=strategy_model,
+        assumptions=SimulationAssumptions(),
+        instrument="ES.c.0",
+        source_dataset_ref="dataset:test:1",
+    )
+    assert len(result.trades) == 1
 
 
 def test_equity_curve_applies_closed_pnl_on_exit_bar() -> None:
