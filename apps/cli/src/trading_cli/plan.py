@@ -13,13 +13,21 @@ never round-trips an identifier through printed output.
 from __future__ import annotations
 
 import json
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass, field
 from typing import Any
 
 
 @dataclass(frozen=True, slots=True)
 class ResolvedPlan:
-    """The concrete plan a command would execute, resolved from config alone."""
+    """The concrete plan a command would execute, resolved from config alone.
+
+    ``runtime_context`` (S047-T003) carries typed, in-process objects a
+    command's own `run()` needs but that must never be serialized or printed
+    -- e.g. an already-loaded `StrategyModelDefinition` (ADR-0027 Sec4: loaded
+    exactly once, during `resolve_plan`, so both `--dry-run` and an actual run
+    share the single pre-flight load). It is deliberately excluded from
+    `render_plan_text`/`render_plan_json`.
+    """
 
     group: str
     command: str
@@ -28,13 +36,25 @@ class ResolvedPlan:
     output_paths: tuple[str, ...] = ()
     storage_root: str = ""
     implemented: bool = False
+    runtime_context: dict[str, Any] = field(default_factory=dict)
 
 
 def render_plan_json(plan: ResolvedPlan) -> dict[str, Any]:
-    """Return the machine-readable (`--json`) representation of a plan."""
-    payload = asdict(plan)
-    payload["output_paths"] = list(plan.output_paths)
-    return payload
+    """Return the machine-readable (`--json`) representation of a plan.
+
+    ``runtime_context`` is intentionally omitted: it holds in-process objects
+    (not config-derived data) that are neither JSON-serializable nor part of
+    the operator-facing plan contract.
+    """
+    return {
+        "group": plan.group,
+        "command": plan.command,
+        "workflow": plan.workflow,
+        "arguments": dict(plan.arguments),
+        "output_paths": list(plan.output_paths),
+        "storage_root": plan.storage_root,
+        "implemented": plan.implemented,
+    }
 
 
 def render_plan_text(plan: ResolvedPlan) -> str:

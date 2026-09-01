@@ -45,7 +45,7 @@ _ALLOWED_KEYS_BY_BLOCK: dict[str, frozenset[str]] = {
     "data.databento": frozenset({"archive", "instrument_id"}),
     "research": frozenset({"kind", "predictive", "strategy"}),
     "research.predictive": frozenset({"definition", "estimator", "persist", "render_report"}),
-    "research.strategy": frozenset({"dataset_ref", "timeframe"}),
+    "research.strategy": frozenset({"dataset_ref", "timeframe", "strategy_file"}),
     "dry_run": frozenset({"symbol", "duration_minutes", "event_log"}),
     "report": frozenset({"kind", "run_id", "output"}),
 }

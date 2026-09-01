@@ -122,6 +122,48 @@ data:
         load_config(path)
 
 
+def test_research_strategy_strategy_file_key_is_accepted(tmp_path: Path) -> None:
+    """S047-T001: `research.strategy.strategy_file` is a recognised, optional key."""
+    path = _write(
+        tmp_path,
+        (
+            "version: 1\nstorage_root: user_data/workspace\n"
+            "research:\n"
+            "  kind: strategy\n"
+            "  strategy:\n"
+            "    dataset_ref: 'BTCUSDT.P|ohlcv|1m|binance|binance-usdm-klines-v1@1'\n"
+            "    timeframe: 1m\n"
+            "    strategy_file: user_data/components/strategies/my_strategy.py\n"
+        ),
+    )
+
+    config = load_config(path)
+
+    assert config.research is not None
+    assert (
+        config.research["strategy"]["strategy_file"]
+        == "user_data/components/strategies/my_strategy.py"
+    )
+
+
+def test_research_strategy_strategy_path_typo_is_rejected(tmp_path: Path) -> None:
+    """S047-T001: a mistyped `strategy_path` is still rejected by name, not silently accepted."""
+    path = _write(
+        tmp_path,
+        (
+            "version: 1\nstorage_root: user_data/workspace\n"
+            "research:\n"
+            "  kind: strategy\n"
+            "  strategy:\n"
+            "    dataset_ref: 'BTCUSDT.P|ohlcv|1m|binance|binance-usdm-klines-v1@1'\n"
+            "    strategy_path: user_data/components/strategies/my_strategy.py\n"
+        ),
+    )
+
+    with pytest.raises(ConfigError, match="strategy_path"):
+        load_config(path)
+
+
 def test_unknown_key_suggests_closest_match(tmp_path: Path) -> None:
     path = _write(
         tmp_path,
