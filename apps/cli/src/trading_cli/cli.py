@@ -109,12 +109,15 @@ def build_parser() -> argparse.ArgumentParser:
             "'predictive' is composed: build dataset -> run -> render report, in one "
             "call, with identifiers passed as typed values between steps.\n\n"
             "'strategy' runs a single Strategy Research simulation on a published "
-            "DatasetRef. KNOWN LIMITATION: the canonical strategy model, simulation "
-            "assumptions, and session resolver are hardcoded (same as "
-            "scripts/strategy_research/run_strategy_research.py) -- the config cannot "
-            "select a different strategy model in this version. See "
-            "SPRINT_046.md Sec4 finding 2 (docs/reference/OPERATOR_CLI.md, once "
-            "published, documents this too)."
+            "DatasetRef, using either the canonical example strategy or an "
+            "operator-authored one selected via 'research.strategy.strategy_file' "
+            "(a path to a Python file with a zero-argument build_strategy() "
+            "function). TRUST MODEL: a strategy_file is loaded and executed with "
+            "no sandbox and no import restriction -- the same blast radius as "
+            "running that file directly with 'uv run python <file>'. KNOWN "
+            "LIMITATION: the simulation assumptions and session resolver remain "
+            "hardcoded (same as scripts/strategy_research/run_strategy_research.py). "
+            "See docs/reference/OPERATOR_CLI.md (Sprint 047 adds a strategy-authoring guide)."
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
