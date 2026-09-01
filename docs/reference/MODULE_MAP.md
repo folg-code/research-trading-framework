@@ -263,7 +263,7 @@ tests/integration/market_data/
 | Batch execution | `market_analysis/execution/` |
 | Analysis input data | `market_analysis/data/` |
 | Results and workspace | `market_analysis/storage/` |
-| Built-in components | `market_analysis/components/` (incl. `components/candle/wick.py` -- `candle.wick`, and `components/structure/level_distance.py` -- `structure.level_distance`, both Sprint 047 / ADR-0027) |
+| Built-in components | `market_analysis/components/` (incl. `components/candle/wick.py` -- `candle.wick`, and `components/structure/level_distance.py` -- `structure.level_distance`, both Sprint 047 / ADR-0027; and `components/trend/ema_distance.py` -- `trend.ema_distance` (signed `distance_atr`, depends on `trend.ema` + `volatility.atr`), and `components/volatility/range_expansion.py` -- `volatility.range_expansion` (dimensionless `ratio`, depends on `volatility.true_range` + `volatility.atr`), both Sprint 048 / ADR-0028) |
 | Frame assembly and alignment | `market_analysis/assembly/` |
 | Workflow orchestration | `application/market_analysis/` |
 
@@ -401,7 +401,7 @@ Published Dataset
 | Workflow orchestration | `application/strategy_research/` |
 | Shared OHLCV + model-eval cache | `application/strategy_research/shared_evaluation.py` |
 | Strategy contracts | `strategy/` |
-| Simulation engine | `research/simulation/` |
+| Simulation engine | `research/simulation/` (incl. `simulation/kernels/fixed_bars.py` -- the original `@njit` fixed-bars kernel, unchanged since Sprint 013, and `simulation/kernels/bracket.py` -- the Sprint 048 / ADR-0028 `@njit` bracket kernel dispatched for `PriceBracketExit` models, with its own result dataclass and per-trade-reason materializers; no reference/non-njit counterpart, see TD-028) |
 | Run artifacts | `research/datasets/` |
 | Analytics | `research/analytics/` |
 | Reporting | strategy reporting packages |

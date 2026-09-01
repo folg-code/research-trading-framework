@@ -556,6 +556,21 @@ This allows the framework to combine:
 - deterministic strategy evaluation,
 - reusable research definitions.
 
+The engine dispatches to one of two `@njit` kernels depending on the
+strategy's Exit model, chosen per D-S048-04: `kernels/fixed_bars.py` (Sprint
+013, unchanged since) exits every position a fixed number of bars after
+entry, at the next bar's open. `kernels/bracket.py` (Sprint 048 / ADR-0028)
+exits on whichever of a price-triggered stop-loss, a price-triggered
+take-profit, or a bar-count timeout occurs first — stop and target fill at
+their own trigger price with adverse slippage, the timeout keeps the
+fixed-bars kernel's next-bar-open convention, and the stop always wins a
+same-bar tie. The two kernels are independent files with their own result
+types and materializers; the fixed-bars path is provably untouched by the
+bracket kernel's existence (a golden-run regression asserts byte-identical
+output). See `docs/reference/STRATEGY_AUTHORING.md` for the operator-facing
+explanation and `docs/adr/ADR-0028-bracket-exit-and-equity-relative-sizing.md`
+for the design record.
+
 ### Results Storage
 
 Research results are serialized and persisted as structured artifacts.

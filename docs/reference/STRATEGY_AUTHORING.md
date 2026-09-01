@@ -233,6 +233,66 @@ equity-relative sizing) were scoped in `docs/adr/ADR-0028-bracket-exit-and-equit
 declined for Sprint 047, and resumed and shipped in Sprint 048 — see the
 next section for worked examples using them.
 
+### Bracket exits and equity-percent sizing (Sprint 048)
+
+Two new models widen what an Exit/Risk pairing can express, on top of the
+unchanged `FixedBarsExitModel` / `FixedQuantityRiskModel` pair above. Both are
+adopted from `docs/adr/ADR-0028-bracket-exit-and-equity-relative-sizing.md`
+unchanged; nothing below is new design, only how to use what shipped.
+
+**`BracketExitModel`** — `stop_loss_bps`, `take_profit_bps`, `max_bars`. On
+each bar after entry, the kernel (`research/simulation/kernels/bracket.py`)
+checks the bar's high/low against the stop and target prices, and the bar
+count against `max_bars`. Three exit reasons are possible in one run:
+`stop_loss`, `take_profit`, `max_bars`.
+
+**Two fill conventions in the same trades table.** This is the part worth
+reading closely if you're staring at a trades table with mixed exit reasons:
+
+```text
+stop_loss / take_profit   fills AT ITS OWN TRIGGER PRICE (the stop or target
+                           price itself), with the existing slippage_bps
+                           applied against the trade — the same direction
+                           _apply_exit_slippage already applies elsewhere.
+max_bars                  fills at the NEXT BAR'S OPEN — byte-identical to
+                           the FixedBarsExitModel/fixed_bars.py convention.
+```
+
+A single `BracketExitModel` strategy can therefore produce exit rows under
+**two different fill conventions in the same trades table** — a `stop_loss`
+or `take_profit` row priced at its trigger level, and a `max_bars` row priced
+at the following bar's open. This is deliberate, not an inconsistency: it is
+how you tell, per trade, why that row's fill price was computed the way it
+was. `exit_reason` is the column that tells you which convention applied to
+that row.
+
+If a bar's low reaches the stop **and** its high reaches the target on the
+same bar, **the stop always wins** — no intrabar path reconstruction, no
+open-proximity heuristic, no config flag. The entry bar itself is scanned
+inclusively (a stop/target can trigger on the same bar the position was
+filled on).
+
+**`EquityPercentRiskModel`** — `account_equity`, `risk_percent`,
+`stop_distance` (a price-point distance, not bps). The position quantity is
+`(account_equity * risk_percent) / stop_distance`, derived **once, at
+construction** (`__post_init__`), not recomputed per trade or per bar. It is
+**static, authoring-time sizing** — never equity-curve-following,
+compounding, or dynamic. If your account grows or shrinks during a run, the
+quantity does not change with it; that is TD-026, an accepted gap with its
+own repayment trigger in `docs/planning/TECHNICAL_DEBT.md`.
+
+**The operator-owned stop-consistency caveat.** `EquityPercentRiskModel.stop_distance`
+is a price-point distance; `BracketExitModel.stop_loss_bps` is a basis-points
+distance. **v1 does not cross-validate the two** — the risk model has no
+reference price available to convert bps into points, so nothing checks that
+your `stop_distance` actually corresponds to your `stop_loss_bps` near the
+instrument's price level. If you pair the two models, **you, the operator,
+own keeping them consistent.** Get this wrong and the strategy still runs
+without error — it just risks a different amount of capital per stop than you
+intended. A validation helper that closes this gap, once a reference price is
+available to do the bps-to-points conversion, is named as unscheduled
+post-sprint direction (`SPRINT_048.md` §12), not a v1 promise.
+
 ### Worked examples — Sprint 048 (bracket exits + equity-percent sizing)
 
 Three more example strategies, per `S048_WAVE0_DECISIONS.md` D-S048-11, each

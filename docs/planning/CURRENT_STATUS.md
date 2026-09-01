@@ -31,28 +31,35 @@ Current Phase: Phase 10 — Predictive (ML) Research — COMPLETE (Sprints 039-0
   Phase 2F — Exchange REST Historical Import — COMPLETE (Sprint 045);
   Phase 11 — Universal Operator CLI — COMPLETE (Sprint 046);
   Phase 12 — Custom Strategy Authoring — COMPLETE (Sprint 047);
-  Phase 13 — Exit/Risk Model Expansion — PROPOSED, approved, in progress (Sprint 048)
-Current Milestone: Sprint 048 (Phase 13) approved and starting — resumes ADR-0028
-  (BracketExitModel, EquityPercentRiskModel, five bounded engine changes, a new
-  bracket kernel, two catalog components, three example strategies)
+  Phase 13 — Exit/Risk Model Expansion and Catalog Growth — COMPLETE (Sprint 048,
+  13/13, on sprint branch; integration PR to main pending)
+Current Milestone: Sprint 048 (Phase 13) complete on `sprint/exit-risk-and-catalog`
+  (13/13) — BracketExitModel, EquityPercentRiskModel, five bounded engine changes, a
+  new bracket kernel, two catalog components, three example strategies, closure docs.
+  Final integration PR to `main` is the next step (not yet opened). No further
+  milestone scheduled by default.
 Implementation Status: Sprints 001-047 on main (S044 merged via #348; S045 merged via
-  #355; S046 merged via #361; S047 merged via #366); S048 in progress (10/13, Waves 1-3
-  complete via #368-#378) on sprint/exit-risk-and-catalog
+  #355; S046 merged via #361; S047 merged via #366); S048 COMPLETE (13/13, all four
+  waves, #368-#381) on sprint/exit-risk-and-catalog; integration PR to main pending
 Overall Status: STABLE
-Active Sprint: SPRINT_048 (Exit/Risk Model Expansion, Catalog Growth and New Strategies,
-  Phase 13) — Waves 1-3 complete (golden run, gate widening, run-identity generalization,
-  BracketExitModel, kernels/bracket.py, EquityPercentRiskModel, dispatch wired end to
-  end, trend.ema_distance, volatility.range_expansion); Wave 4 (example strategies +
-  closure) starting
-Last Completed Sprint: SPRINT_047 (Custom Strategy Authoring, Phase 12 opening and closing
-  increment) — 10/10 tasks complete, merged to main via #366. Sprint 046 (Universal
-  Operator CLI, Phase 11) is merged to main (#361).
-Capability Tracks: Foundation COMPLETE; Data COMPLETE (core); Research COMPLETE (core); Strategy 6A COMPLETE; Phase 8A dry-run + S024 on main; Dashboard / Live Paper / public demo COMPLETE; Phase 10 COMPLETE (S039-S044: Foundation, Tree-Based and Neural Predictive Models, dashboard page, ADR-0024 + IDEA-014 gate); Phase 2F COMPLETE (S045: Binance USD-M historical OHLCV import, ADR-0025, merged to main #355); Phase 11 COMPLETE (S046: Universal Operator CLI trading-cli, ADR-0026, merged to main #361); Phase 12 COMPLETE (S047: Custom Strategy Authoring, `strategy_file` loader + candle.wick + structure.level_distance, ADR-0027, merged to main #366; ADR-0028 declined for S047); Phase 13 APPROVED, IN PROGRESS (S048: resumes ADR-0028 with corrections, Status flipped to ACCEPTED — BracketExitModel, EquityPercentRiskModel, trend.ema_distance, volatility.range_expansion, three example strategies)
-Recent: S047 merged to main via #366, closing Phase 12. S048 (Phase 13) planning PR
-  opened ADR-0028's resumption (Status flip PROPOSED-declined -> ACCEPTED, with five
-  corrections found by re-verifying the original engine-change plan against the
-  post-S047 tree), SPRINT_048.md, S048_WAVE0_DECISIONS.md and ROADMAP §13E; approved by
-  the maintainer 2026-09-01. Wave 1 (golden-run capture) is the next task.
+Active Sprint: None in progress. SPRINT_048 (Exit/Risk Model Expansion, Catalog Growth
+  and New Strategies, Phase 13) is complete on its sprint branch (13/13) and awaits its
+  final integration PR to `main` — see "Last Completed Sprint" below.
+Last Completed Sprint: SPRINT_048 (Exit/Risk Model Expansion, Catalog Growth and New
+  Strategies, Phase 13) — 13/13 tasks complete on `sprint/exit-risk-and-catalog`
+  (#368-#381); integration PR to `main` pending (Sprint 017 precedent: complete on
+  branch, merge not yet performed). SPRINT_047 (Custom Strategy Authoring, Phase 12) is
+  the most recent sprint merged to `main` (10/10, via #366).
+Capability Tracks: Foundation COMPLETE; Data COMPLETE (core); Research COMPLETE (core); Strategy 6A COMPLETE; Phase 8A dry-run + S024 on main; Dashboard / Live Paper / public demo COMPLETE; Phase 10 COMPLETE (S039-S044: Foundation, Tree-Based and Neural Predictive Models, dashboard page, ADR-0024 + IDEA-014 gate); Phase 2F COMPLETE (S045: Binance USD-M historical OHLCV import, ADR-0025, merged to main #355); Phase 11 COMPLETE (S046: Universal Operator CLI trading-cli, ADR-0026, merged to main #361); Phase 12 COMPLETE (S047: Custom Strategy Authoring, `strategy_file` loader + candle.wick + structure.level_distance, ADR-0027, merged to main #366; ADR-0028 declined for S047); Phase 13 COMPLETE (S048: resumed ADR-0028 with corrections, Status ACCEPTED — BracketExitModel, EquityPercentRiskModel, kernels/bracket.py, trend.ema_distance, volatility.range_expansion, three example strategies; 13/13 on sprint/exit-risk-and-catalog, integration PR to main pending)
+Recent: S048 (Phase 13) reached 13/13 on `sprint/exit-risk-and-catalog` (#368-#381):
+  golden-run safety net, widened MVP gates, run-identity generalization,
+  BracketExitModel + kernels/bracket.py, EquityPercentRiskModel, dispatch wired end to
+  end, trend.ema_distance, volatility.range_expansion, three worked example strategies
+  (discovering and fixing a missing `strategy/__init__.py` re-export along the way), a
+  framework-side end-to-end bracket test, and this closure (STRATEGY_AUTHORING.md,
+  MODULE_MAP.md, ARCHITECTURE_AND_WORKFLOWS.md, TECHNICAL_DEBT.md verified, ROADMAP
+  §13E COMPLETE). The final integration PR `sprint/exit-risk-and-catalog` -> `main` has
+  not been opened yet.
 ```
 
 ---
@@ -496,10 +503,10 @@ Maintenance: `.cursor/rules/documentation.mdc`
 
 ## 6. Work in Progress
 
-**Active sprint:** Sprint 048 (Exit/Risk Model Expansion, Catalog Growth and
-New Strategies, Phase 13) — approved by the maintainer 2026-09-01, cut from
-`main` after Sprint 047 merged; Waves 1-3 complete (10/13, #368-#378), Wave 4
-starting. Sprint 047 is merged
+**Active sprint:** None. Sprint 048 (Exit/Risk Model Expansion, Catalog
+Growth and New Strategies, Phase 13) is complete (13/13, #368-#381) on
+`sprint/exit-risk-and-catalog`; its final integration PR to `main` has not
+been opened yet (see its "Closed" entry below). Sprint 047 is merged
 to `main` (#366, 10/10) and closes Phase 12. Sprint 046 is merged to `main`
 (#361, 14/14) and closes Phase 11. Sprint 045 is merged to `main` (#355,
 14/14) and closes Phase 2F. Sprint 044 is complete on `main` (#348, 18/18).
@@ -511,23 +518,30 @@ Sprint 043 is complete on `main` (#342, 21/21).
 
 **Plan:** `docs/planning/sprints/SPRINT_017.md` · **Wave 0:** `S017_WAVE0_DECISIONS.md` · **ADR:** ADR-0020 (ACCEPTED) · **Branch:** `sprint/model-research-methodology-mvp`
 
-### Sprint 048 — Active (Phase 13 opening increment)
+### Sprint 048 — Closed (Phase 13 opening and closing increment; Phase 13 complete)
 
-**Status:** IN PROGRESS (Wave 0 signed off 2026-09-01; Waves 1-3 complete)
+**Status:** COMPLETE (13/13), on `sprint/exit-risk-and-catalog`; final
+integration PR to `main` pending (not yet opened)
 **Plan:** `docs/planning/sprints/SPRINT_048.md`
 **Wave 0:** `docs/planning/sprints/S048_WAVE0_DECISIONS.md`
 **ADR:** ADR-0028 (ACCEPTED — declined for Sprint 047, resumed with
 corrections for Sprint 048; Status flipped in place, dated decline record
 preserved under "History")
-**Tasks:** 10 / 13 — Wave 1 complete (#368, #369, #370); Wave 2 complete (#372, #373, #374, #375); Wave 3 complete (#377, #378)
-**Branch:** `sprint/exit-risk-and-catalog` (cut from `main` after #366)
+**Tasks:** 13 / 13 — Wave 1 complete (#368, #369, #370); Wave 2 complete
+(#372, #373, #374, #375); Wave 3 complete (#377, #378); Wave 4 complete
+(#380, #381, and this closure)
+**Branch:** `sprint/exit-risk-and-catalog` (cut from `main` after #366; not
+yet merged to `main`)
 **Scope:** `BracketExitModel` + `EquityPercentRiskModel`; five bounded engine
 changes across three files plus a new `kernels/bracket.py`; a golden-run
 regression protecting the fixed-bars path; `trend.ema_distance` and
 `volatility.range_expansion` Market Analysis components; three worked
 example strategies (`ema_reversion_bracket`, `range_expansion_breakout`,
 `quiet_wick_rejection`) proving the new models compose with the catalog and
-the unchanged Sprint 047 loader.
+the unchanged Sprint 047 loader; a framework-side end-to-end test proving
+PRD success metric 1; `STRATEGY_AUTHORING.md` / `MODULE_MAP.md` /
+`ARCHITECTURE_AND_WORKFLOWS.md` / `TECHNICAL_DEBT.md` / ROADMAP §13E closure
+documentation.
 
 ### Sprint 047 — Closed (Phase 12 opening and closing increment; Phase 12 complete)
 
@@ -845,19 +859,22 @@ Sprint 047 Custom Strategy Authoring (Phase 12) COMPLETE (10/10), merged to
 main via #366. ADR-0027 ACCEPTED; ADR-0028 declined for this sprint (Wave 2
 dropped). Phase 12 is COMPLETE (ROADMAP §13D).
 Sprint 048 Exit/Risk Model Expansion, Catalog Growth and New Strategies
-(Phase 13) APPROVED (2026-09-01) on sprint/exit-risk-and-catalog; 10/13,
-Waves 1-3 complete, Wave 4 starting. ADR-0028 resumed with corrections and ACCEPTED (Status
-flipped in place). Phase 13 is PROPOSED, in progress (ROADMAP §13E).
+(Phase 13) COMPLETE (13/13) on sprint/exit-risk-and-catalog (#368-#381);
+final integration PR to main pending. ADR-0028 resumed with corrections and
+ACCEPTED (Status flipped in place). Phase 13 is COMPLETE (ROADMAP §13E).
 
-Active: Sprint 048 (Phase 13). Phase 10, Phase 2F, Phase 11 and Phase 12 are
-closed (ROADMAP §13A, §13B, §13C, §13D). See SPRINT_048.md for the current
-sprint's task breakdown; SPRINT_044.md §12, SPRINT_046.md §12 and
-SPRINT_047.md §12 for unscheduled candidate follow-ons beyond Sprint 048 (ML
-Market Analysis component gated by ADR-0024, cross-sectional predictive
+Active: none. Phase 10, Phase 2F, Phase 11, Phase 12 and Phase 13 are all
+closed (ROADMAP §13A-§13E); Sprint 048's final integration PR to `main` is
+the one remaining mechanical step, not a scope gap. No next phase is
+scheduled by default — see SPRINT_044.md §12, SPRINT_046.md §12,
+SPRINT_047.md §12 and SPRINT_048.md §12 for unscheduled candidate follow-ons
+(ML Market Analysis component gated by ADR-0024, cross-sectional predictive
 studies, SHAP, content-addressed artifact store, Binance `trades` mode,
 resume-after-failure imports, exposing the simulation assumptions / session
 resolver through the application layer, additional CLI command groups, shell
-completion, arithmetic in the model-expression IR).
+completion, arithmetic in the model-expression IR, bracket-aware Robustness
+stress dimensions (TD-027), dynamic equity-curve-following sizing (TD-026),
+a bracket reference kernel (TD-028)).
 
 Deferred relative to that track:
     Phase 4B — Orderflow Market Analysis
@@ -866,7 +883,10 @@ Deferred relative to that track:
     PBO / CSCV / deflated Sharpe (ADR first)
     Residual docs / sample-data narrative
 
-Recently completed (dashboard / demo / dry-run / authoring infra / Phase 10A–10C, 2F, 11, 12):
+Recently completed (dashboard / demo / dry-run / authoring infra / Phase 10A–10C, 2F, 11, 12, 13):
+    Sprint 048 — Exit/Risk Model Expansion, Catalog Growth and New
+        Strategies → sprint/exit-risk-and-catalog (#368-#381), 13/13;
+        integration PR to main pending — closes Phase 13
     Sprint 047 — Custom Strategy Authoring → main (#366; working PRs
         #363–#365) — closes Phase 12
     Sprint 046 — Universal Operator CLI → main (#361; working PRs #356–#360)
@@ -953,7 +973,7 @@ See `docs/planning/sprints/SPRINT_044.md`, `S044_WAVE0_DECISIONS.md`, `SPRINT_04
 | 045 | Binance USD-M historical OHLCV ingestion (Phase 2F) | COMPLETED | 14 / 14 tasks; main #355; working PRs #350–#354 |
 | 046 | Universal Operator CLI (Phase 11, `trading-cli`) | COMPLETED | 14 / 14 tasks; main #361; working PRs #356–#360 |
 | 047 | Custom Strategy Authoring (Phase 12, `strategy_file` loader) | COMPLETED | 10 / 10 tasks; main #366; working PRs #363–#365 |
-| 048 | Exit/Risk Model Expansion, Catalog Growth and New Strategies (Phase 13) | IN PROGRESS | 10 / 13 tasks; Waves 1-3 complete (#368-#378); branch sprint/exit-risk-and-catalog |
+| 048 | Exit/Risk Model Expansion, Catalog Growth and New Strategies (Phase 13) | COMPLETE | 13 / 13 tasks; all four waves (#368-#381); branch sprint/exit-risk-and-catalog; integration PR to main pending |
 
 ---
 

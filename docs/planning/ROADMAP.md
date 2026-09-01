@@ -95,7 +95,7 @@ Execution Capability Track
 Operator Experience Track
   Phase 11 — Universal Operator CLI                  COMPLETE  (Sprint 046; trading-cli)
   Phase 12 — Custom Strategy Authoring               COMPLETE  (Sprint 047)
-  Phase 13 — Exit/Risk Model Expansion               PROPOSED  (Sprint 048)
+  Phase 13 — Exit/Risk Model Expansion               COMPLETE  (Sprint 048)
 ```
 
 ### Cross-track dependencies (summary)
@@ -145,16 +145,18 @@ third of SPRINT_046.md §4 Finding 2. Two new Market Analysis components
 prove the loader composes with the catalog end to end. Exit/Risk model
 expansion (ADR-0028) was declined for this sprint and deferred.
 
-**Phase 13 is PROPOSED** (Sprint 048, approved 2026-09-01, see §13E):
-resumes ADR-0028 (Status flipped to ACCEPTED, with corrections found by
+**Phase 13 is COMPLETE** (Sprint 048, 13/13 tasks, see §13E): resumed
+ADR-0028 (Status flipped to ACCEPTED, with corrections found by
 re-verifying the engine-change plan against the post-Sprint-047 tree) —
 `BracketExitModel`, `EquityPercentRiskModel`, a new `kernels/bracket.py`,
 five bounded engine changes across three files, a golden-run regression, two
 new Market Analysis components (`trend.ema_distance`,
 `volatility.range_expansion`), and three worked example strategies.
 
-**Next tracked increment:** Sprint 048 (Phase 13, §13E) is in progress —
-see `docs/planning/sprints/SPRINT_048.md`.
+**Next tracked increment:** none scheduled by default — see SPRINT_048.md
+§12 for unscheduled candidates (bracket-aware Robustness stress dimensions,
+dynamic equity-curve-following sizing, arithmetic in the model-expression
+IR, among others).
 
 Phase 12 absorbs the previously parallel catalog follow-ons (wick, then
 distance-to-level — named as next in D-S037-08 and D-S038-03), because those
@@ -1581,12 +1583,11 @@ kernels/fixed_bars.py, ExitModel/RiskModel protocols, and BarSequentialSimulator
 
 ---
 
-# 13E. Phase 13 — Exit/Risk Model Expansion and Catalog Growth (PROPOSED)
+# 13E. Phase 13 — Exit/Risk Model Expansion and Catalog Growth (COMPLETE)
 
-**Status:** PROPOSED — approved by the maintainer on 2026-09-01 as Sprint 048
-(13 tasks, `sprint/exit-risk-and-catalog`); flips to COMPLETE at sprint
-closure. Numbered `13E` to continue the §13A-§13D pattern without
-renumbering earlier phases.
+**Status:** COMPLETE — Sprint 048 (13/13 tasks, `sprint/exit-risk-and-catalog`).
+Approved by the maintainer on 2026-09-01. Numbered `13E` to continue the
+§13A-§13D pattern without renumbering earlier phases.
 **ADRs:** ADR-0028 (bracket exits + equity-relative sizing) — **ACCEPTED**
 (declined for Sprint 047, resumed with corrections for Sprint 048; Status
 flipped in place, dated decline record preserved under "History").
