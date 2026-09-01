@@ -59,7 +59,7 @@ SUPERSEDED
 | [ADR-0025](ADR-0025-binance-usdm-historical-klines-import.md) | Binance USD-M Historical Klines Import | ACCEPTED | Sprint 045 |
 | [ADR-0026](ADR-0026-operator-cli-framework-and-placement.md) | Operator CLI: Framework, Placement and Config Contract | ACCEPTED | Sprint 046 |
 | [ADR-0027](ADR-0027-operator-authored-strategy-loading.md) | Operator-Authored Strategy Loading (`strategy_file` + `build_strategy()`) | ACCEPTED | Sprint 047 |
-| [ADR-0028](ADR-0028-bracket-exit-and-equity-relative-sizing.md) | Bracket Exits and Equity-Relative Sizing: Widening the Strategy Model Gate | PROPOSED (declined for Sprint 047) | Sprint 047 |
+| [ADR-0028](ADR-0028-bracket-exit-and-equity-relative-sizing.md) | Bracket Exits and Equity-Relative Sizing: Widening the Strategy Model Gate | ACCEPTED (declined for Sprint 047; resumed with corrections for Sprint 048) | Sprint 047 / 048 |
 | ADR-0004 | Independent Research and Execution Workflows | PLANNED | TBD |
 | ADR-0009 | Batch Backtest vs Replay Execution | PLANNED | TBD |
 | ADR-0010 | Working Component and Model Fingerprints | PLANNED | TBD |
@@ -100,4 +100,3 @@ Positive and negative outcomes of the decision.
 - `docs/vision/MARKET_ANALYSIS_WITH_DECISIONS.md`
 - `docs/vision/ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md`
 - `docs/planning/PROBLEM_REGISTRY.md` — PRB-016
-</content>
