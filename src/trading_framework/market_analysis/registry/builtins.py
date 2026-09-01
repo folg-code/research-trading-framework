@@ -1,6 +1,12 @@
 """Built-in Market Analysis component registration."""
 
+from trading_framework.market_analysis.components.candle import (
+    CandleWickComponent,
+    NumpyCandleWickImplementation,
+)
 from trading_framework.market_analysis.components.structure import (
+    LevelDistanceComponent,
+    NumpyLevelDistanceImplementation,
     NumpySessionRangeImplementation,
     NumpySwingStructureImplementation,
     SessionRangeComponent,
@@ -60,6 +66,20 @@ def register_session_range_component(registry: ComponentRegistry) -> None:
     )
 
 
+def register_candle_wick_component(registry: ComponentRegistry) -> None:
+    """Register the Candle Wick feature component."""
+    registry.register(CandleWickComponent(), NumpyCandleWickImplementation(), default=True)
+
+
+def register_level_distance_component(registry: ComponentRegistry) -> None:
+    """Register the Level Distance structure component."""
+    registry.register(
+        LevelDistanceComponent(),
+        NumpyLevelDistanceImplementation(),
+        default=True,
+    )
+
+
 def register_mvp_components(registry: ComponentRegistry) -> None:
     """Register Sprint 003 MVP feature and state components."""
     register_volatility_components(registry)
@@ -67,6 +87,8 @@ def register_mvp_components(registry: ComponentRegistry) -> None:
     register_slope_component(registry)
     register_swing_structure_component(registry)
     register_session_range_component(registry)
+    register_candle_wick_component(registry)
+    register_level_distance_component(registry)
 
 
 def default_mvp_registry() -> ComponentRegistry:
@@ -78,7 +100,9 @@ def default_mvp_registry() -> ComponentRegistry:
 
 __all__ = [
     "default_mvp_registry",
+    "register_candle_wick_component",
     "register_ema_component",
+    "register_level_distance_component",
     "register_mvp_components",
     "register_session_range_component",
     "register_slope_component",

@@ -2,6 +2,7 @@
 
 from trading_framework.market_analysis import OutputId
 from trading_framework.market_analysis.components.structure import (
+    LevelDistanceComponent,
     SessionRangeComponent,
     SwingStructureComponent,
 )
@@ -235,4 +236,55 @@ def session_completed(
         timeframe=timeframe,
         alias=alias,
         is_event=True,
+    )
+
+
+def _level_distance_operand(
+    output_id: str,
+    *,
+    period: int,
+    timeframe: str | Timeframe | None,
+    alias: str | None,
+) -> Operand:
+    component = LevelDistanceComponent()
+    return Operand(
+        ComponentOutputReference(
+            component_id=component.component_id,
+            parameters=component.parameter_schema.canonicalize({"period": period}),
+            output_id=OutputId(output_id),
+            computation_timeframe=None if timeframe is None else parse_timeframe(timeframe),
+            alias=alias,
+        ),
+    )
+
+
+def distance_to_session_high(
+    *,
+    period: int = 14,
+    timeframe: str | Timeframe | None = None,
+    alias: str | None = None,
+) -> Operand:
+    """``structure.distance_to_session_high(period=14)`` ATR-normalized distance
+    from close to the running RTH session high."""
+    return _level_distance_operand(
+        "distance_to_session_high_atr",
+        period=period,
+        timeframe=timeframe,
+        alias=alias,
+    )
+
+
+def distance_to_session_low(
+    *,
+    period: int = 14,
+    timeframe: str | Timeframe | None = None,
+    alias: str | None = None,
+) -> Operand:
+    """``structure.distance_to_session_low(period=14)`` ATR-normalized distance
+    from close to the running RTH session low."""
+    return _level_distance_operand(
+        "distance_to_session_low_atr",
+        period=period,
+        timeframe=timeframe,
+        alias=alias,
     )

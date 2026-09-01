@@ -1,7 +1,7 @@
 """User-facing DSL for declarative Market and Signal models."""
 
 from trading_framework.model_authoring.market_model import AuthoredMarketModel, market_model
-from trading_framework.model_authoring.references import structure, trend, volatility
+from trading_framework.model_authoring.references import candle, structure, trend, volatility
 from trading_framework.model_authoring.references.price import price
 from trading_framework.model_authoring.signal_model import (
     LONG,
@@ -23,6 +23,7 @@ __all__ = [
     "AuthoredMarketModel",
     "AuthoredSignalModel",
     "VolatilityState",
+    "candle",
     "market_model",
     "price",
     "signal_model",
