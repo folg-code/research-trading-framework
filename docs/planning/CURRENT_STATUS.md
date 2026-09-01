@@ -838,9 +838,12 @@ Deferred relative to that track:
     PBO / CSCV / deflated Sharpe (ADR first)
     Residual docs / sample-data narrative
 
-Recently completed (dashboard / demo / dry-run / authoring infra / Phase 10A–10C, 2F, 11):
-    Sprint 046 — Universal Operator CLI → sprint branch (14/14; working PRs
-        #356–#359; integration PR to main pending) — closes Phase 11
+Recently completed (dashboard / demo / dry-run / authoring infra / Phase 10A–10C, 2F, 11, 12):
+    Sprint 047 — Custom Strategy Authoring → sprint/strategy-authoring
+        (10/10; working PRs #363–#365; integration PR to main pending) —
+        closes Phase 12
+    Sprint 046 — Universal Operator CLI → main (#361; working PRs #356–#360)
+        — closes Phase 11
     Sprint 045 — Binance USD-M historical OHLCV ingestion → main (#355;
         working PRs #350–#354) — closes Phase 2F
     Sprint 044 — Predictive dashboard + IDEA-014 gate → main (#348; working
@@ -922,7 +925,7 @@ See `docs/planning/sprints/SPRINT_044.md`, `S044_WAVE0_DECISIONS.md`, `SPRINT_04
 | 044 | Predictive dashboard + IDEA-014 gate (Phase 10C) | COMPLETED | 18 / 18 tasks; main #348; working PRs #343–#347 |
 | 045 | Binance USD-M historical OHLCV ingestion (Phase 2F) | COMPLETED | 14 / 14 tasks; main #355; working PRs #350–#354 |
 | 046 | Universal Operator CLI (Phase 11, `trading-cli`) | COMPLETED | 14 / 14 tasks; main #361; working PRs #356–#360 |
-| 047 | Custom Strategy Authoring (Phase 12, `strategy_file` loader) | COMPLETED | 10 / 10 tasks; working PRs #363–#364 (this PR closes it); integration PR to main pending |
+| 047 | Custom Strategy Authoring (Phase 12, `strategy_file` loader) | COMPLETED | 10 / 10 tasks; working PRs #363–#365; integration PR to main pending |
 
 ---
 
