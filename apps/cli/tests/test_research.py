@@ -114,6 +114,127 @@ def test_research_run_strategy_end_to_end(
     assert result["strategy_model_id"] == "high_vol_higher_low_fixed_exit"
 
 
+_FIXTURE_STRATEGY = (
+    Path(__file__).parent / "fixtures" / "strategies" / "valid_strategy.py"
+).resolve()
+
+
+def test_research_run_strategy_file_dry_run_prints_loaded_id_and_path(
+    tmp_path: Path, ohlcv_sample_1m_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """S047-T003 / ADR-0027 Sec4: `--dry-run` proves the file loads pre-flight."""
+    storage_root = tmp_path / "workspace"
+    dataset_ref = _write_published_dataset(storage_root, csv_path=ohlcv_sample_1m_path)
+    config_path = _write_config(
+        tmp_path,
+        storage_root=storage_root,
+        text=(
+            "version: 1\n"
+            "storage_root: {storage_root}\n\n"
+            "research:\n"
+            "  kind: strategy\n"
+            "  strategy:\n"
+            f"    dataset_ref: '{dataset_ref}'\n"
+            "    timeframe: 1m\n"
+            f"    strategy_file: {_FIXTURE_STRATEGY.as_posix()}\n"
+        ),
+    )
+
+    exit_code = main(["research", "run", "--config", str(config_path), "--dry-run", "--json"])
+
+    assert exit_code == EXIT_SUCCESS
+    payload = json.loads(capsys.readouterr().out)
+    arguments = payload["plan"]["arguments"]
+    assert arguments["strategy_model_id"] == "fixture_valid_strategy"
+    assert arguments["strategy_file"] == str(_FIXTURE_STRATEGY)
+    assert arguments["strategy_source"] == "strategy_file"
+
+
+def test_research_run_strategy_file_end_to_end_uses_loaded_strategy(
+    tmp_path: Path, ohlcv_sample_1m_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """PRD success metric 1: the run manifest carries the loaded strategy's id."""
+    storage_root = tmp_path / "workspace"
+    dataset_ref = _write_published_dataset(storage_root, csv_path=ohlcv_sample_1m_path)
+    config_path = _write_config(
+        tmp_path,
+        storage_root=storage_root,
+        text=(
+            "version: 1\n"
+            "storage_root: {storage_root}\n\n"
+            "research:\n"
+            "  kind: strategy\n"
+            "  strategy:\n"
+            f"    dataset_ref: '{dataset_ref}'\n"
+            "    timeframe: 1m\n"
+            f"    strategy_file: {_FIXTURE_STRATEGY.as_posix()}\n"
+        ),
+    )
+
+    exit_code = main(["research", "run", "--config", str(config_path), "--json"])
+
+    assert exit_code == EXIT_SUCCESS
+    payload = json.loads(capsys.readouterr().out)
+    result = payload["result"]
+    assert result["run_id"]
+    assert result["strategy_model_id"] == "fixture_valid_strategy"
+
+
+def test_research_run_strategy_without_strategy_file_still_uses_canonical(
+    tmp_path: Path, ohlcv_sample_1m_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """D-S047-05: an absent `strategy_file` resolves exactly as it did on main."""
+    storage_root = tmp_path / "workspace"
+    dataset_ref = _write_published_dataset(storage_root, csv_path=ohlcv_sample_1m_path)
+    config_path = _write_config(
+        tmp_path,
+        storage_root=storage_root,
+        text=(
+            "version: 1\n"
+            "storage_root: {storage_root}\n\n"
+            "research:\n"
+            "  kind: strategy\n"
+            "  strategy:\n"
+            f"    dataset_ref: '{dataset_ref}'\n"
+            "    timeframe: 1m\n"
+        ),
+    )
+
+    exit_code = main(["research", "run", "--config", str(config_path), "--dry-run", "--json"])
+
+    assert exit_code == EXIT_SUCCESS
+    payload = json.loads(capsys.readouterr().out)
+    arguments = payload["plan"]["arguments"]
+    assert arguments["strategy_model_id"] == "high_vol_higher_low_fixed_exit"
+    assert arguments["strategy_source"] == "canonical"
+    assert "strategy_file" not in arguments
+
+
+def test_research_run_strategy_file_missing_is_config_error(
+    tmp_path: Path, ohlcv_sample_1m_path: Path
+) -> None:
+    storage_root = tmp_path / "workspace"
+    dataset_ref = _write_published_dataset(storage_root, csv_path=ohlcv_sample_1m_path)
+    missing = tmp_path / "does_not_exist.py"
+    config_path = _write_config(
+        tmp_path,
+        storage_root=storage_root,
+        text=(
+            "version: 1\n"
+            "storage_root: {storage_root}\n\n"
+            "research:\n"
+            "  kind: strategy\n"
+            "  strategy:\n"
+            f"    dataset_ref: '{dataset_ref}'\n"
+            f"    strategy_file: {missing.as_posix()}\n"
+        ),
+    )
+
+    exit_code = main(["research", "run", "--config", str(config_path), "--dry-run"])
+
+    assert exit_code == EXIT_CONFIG_ERROR
+
+
 def test_research_run_strategy_missing_dataset_ref_is_config_error(tmp_path: Path) -> None:
     storage_root = tmp_path / "workspace"
     config_path = _write_config(
