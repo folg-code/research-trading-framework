@@ -95,6 +95,7 @@ Execution Capability Track
 Operator Experience Track
   Phase 11 — Universal Operator CLI                  COMPLETE  (Sprint 046; trading-cli)
   Phase 12 — Custom Strategy Authoring               COMPLETE  (Sprint 047)
+  Phase 13 — Exit/Risk Model Expansion               COMPLETE  (Sprint 048)
 ```
 
 ### Cross-track dependencies (summary)
@@ -144,8 +145,18 @@ third of SPRINT_046.md §4 Finding 2. Two new Market Analysis components
 prove the loader composes with the catalog end to end. Exit/Risk model
 expansion (ADR-0028) was declined for this sprint and deferred.
 
-**Next tracked increment:** none scheduled by default — see §12 "Post-sprint
-direction" in SPRINT_047.md for unscheduled candidates.
+**Phase 13 is COMPLETE** (Sprint 048, 13/13 tasks, see §13E): resumed
+ADR-0028 (Status flipped to ACCEPTED, with corrections found by
+re-verifying the engine-change plan against the post-Sprint-047 tree) —
+`BracketExitModel`, `EquityPercentRiskModel`, a new `kernels/bracket.py`,
+five bounded engine changes across three files, a golden-run regression, two
+new Market Analysis components (`trend.ema_distance`,
+`volatility.range_expansion`), and three worked example strategies.
+
+**Next tracked increment:** none scheduled by default — see SPRINT_048.md
+§12 for unscheduled candidates (bracket-aware Robustness stress dimensions,
+dynamic equity-curve-following sizing, arithmetic in the model-expression
+IR, among others).
 
 Phase 12 absorbs the previously parallel catalog follow-ons (wick, then
 distance-to-level — named as next in D-S037-08 and D-S038-03), because those
@@ -1569,6 +1580,135 @@ kernels/fixed_bars.py, ExitModel/RiskModel protocols, and BarSequentialSimulator
 - Robustness Research stress dimensions over bracket parameters (deferred with the above),
 - any change to live trading, order routing, or the dry-run runtime,
 - deleting or rewriting `user_data/run_example_strategies.py`.
+
+---
+
+# 13E. Phase 13 — Exit/Risk Model Expansion and Catalog Growth (COMPLETE)
+
+**Status:** COMPLETE — Sprint 048 (13/13 tasks, `sprint/exit-risk-and-catalog`).
+Approved by the maintainer on 2026-09-01. Numbered `13E` to continue the
+§13A-§13D pattern without renumbering earlier phases.
+**ADRs:** ADR-0028 (bracket exits + equity-relative sizing) — **ACCEPTED**
+(declined for Sprint 047, resumed with corrections for Sprint 048; Status
+flipped in place, dated decline record preserved under "History").
+**PRD:** `docs/product/PRD-exit-risk-and-catalog-expansion.md` (confirmed).
+
+## Purpose
+
+Turn Exit and Risk models from placeholders into strategy-construction
+primitives — the third piece Phase 12 scoped, designed and deliberately did
+not ship.
+
+Phase 12 made a strategy authorable. But every authorable strategy still exits
+`N` bars after entry and sizes at a hand-computed constant, because
+`ExitModel`'s whole contract is a function of one integer and three separate
+`isinstance` gates refuse anything but the two Sprint 013 placeholders. A
+framework whose backtests cannot express a stop-loss cannot honestly evaluate
+risk.
+
+This is a **capability** phase that deliberately narrows a Phase 12 non-goal:
+it changes `BarSequentialSimulator`.
+
+## Primary flow
+
+```text
+BracketExitModel(stop_loss_bps=50, take_profit_bps=120, max_bars=40)
+EquityPercentRiskModel(account_equity=100_000, risk_percent=0.01, stop_distance=...)
+        ↓
+build_strategy() in an operator file        (Phase 12 loader, UNCHANGED)
+        ↓
+validate_strategy_model_definition  -> supported-combination check
+run_strategy_research               -> structural check
+BarSequentialSimulator              -> dispatch on PriceBracketExit
+        ↓
+kernels/bracket.py  (@njit over open/high/low)     kernels/fixed_bars.py untouched
+        ↓
+trades table with per-trade exit_reason:
+    stop_loss | take_profit | max_bars
+```
+
+## Expected capabilities
+
+- `BracketExitModel`: stop-loss and take-profit as **basis-point** offsets from
+  the entry fill, plus a mandatory `max_bars` timeout so no position can be held
+  to the end of the dataset; satisfies `ExitModel` unchanged plus an additive
+  `PriceBracketExit` protocol,
+- `EquityPercentRiskModel`: **static, authoring-time** sizing
+  (`equity x risk_percent / stop_distance`, resolved once at construction) —
+  explicitly not equity-curve-following,
+- five bounded engine changes across three files plus one new `@njit` kernel,
+  with `kernels/fixed_bars.py`, `compile.py`, `input.py` and both Protocol
+  definitions untouched,
+- a **golden-run regression** as the binding safety net: the canonical Sprint 013
+  strategy produces byte-identical trades, equity and `run_id`,
+- Market Analysis catalog: `trend.ema_distance` and
+  `volatility.range_expansion` — both chosen because the authoring DSL has no
+  arithmetic, so a ratio or a signed difference must be a component,
+- three worked example strategies covering bracket-only, bracket + equity
+  sizing, and equity sizing on the unchanged fixed-bars path.
+
+## Binding rules
+
+```text
+kernels/fixed_bars.py is NOT edited — not one character
+research/simulation/compile.py and input.py are NOT edited (high/low already compiled)
+ExitModel and RiskModel Protocol definitions are NOT modified
+apps/cli is NOT modified — the Phase 12 loader already returns any definition
+The fixed-bars path's fill, accounting AND RUN-IDENTITY semantics are unchanged
+A sixth engine change is a STOP-and-ask with a fresh ADR amendment, never a
+    quiet widening
+Same-bar stop/target ambiguity resolves to the STOP. Always. No configuration flag.
+Equity-percent sizing is STATIC and must never be described as compounding
+```
+
+## Completion criteria
+
+- a strategy using `BracketExitModel` runs end to end through
+  `trading-cli research run strategy` and produces trades distinguishable by
+  `exit_reason` (more than one distinct reason in one run),
+- the golden run passes: byte-identical trades, equity, `run_id` and
+  deterministic manifest fields for the canonical strategy,
+- the three ADR-0016-era `isinstance` MVP gates no longer block Exit/Risk models
+  by class, while still rejecting genuinely unsupported models clearly,
+- both new catalog components are registered, causal, warmup-correct and
+  reachable from the DSL,
+- three example strategies run through the CLI with no loader change,
+- TD-026, TD-027 and TD-028 are logged with named repayment triggers.
+
+## Dependencies
+
+- Phase 12 / ADR-0027 (the loader and the two Sprint 047 components),
+- Phase 6A / ADR-0016 (the Strategy Model, Exit/Risk contracts, the simulator
+  and the MVP gates this widens),
+- Phase 11 / ADR-0026 (the CLI this runs through, unchanged),
+- **ADR-0028 ACCEPTED (resumed)** — no fallback: there is no useful subset of
+  this phase that leaves the engine alone, which is exactly what Sprint 047
+  established.
+
+## Main risks
+
+- **It narrows a non-goal that was previously declined**, and by a wider margin
+  than the version declined on 2026-09-01 (five changes, not four, plus a
+  run-identity signature change). The golden run bounds the risk; it does not
+  eliminate it.
+- **Run identity.** `derive_strategy_run_id` hashes a FixedBars-only field; a
+  careless generalization silently re-identifies every persisted run.
+- Two fill conventions inside one strategy (trigger-price for stop/target,
+  next-bar-open for the timeout) is a real cognitive cost.
+- A second `@njit` kernel with no reference counterpart (TD-028).
+
+## Out of scope
+
+- dynamic, equity-curve-following position sizing (TD-026),
+- any change to the `ExitModel` / `RiskModel` Protocol definitions,
+- bracket-aware Robustness stress dimensions; the delay stress keeps rejecting
+  bracket exits, loudly and for a stated reason (TD-027),
+- a reference (non-njit) implementation of the bracket kernel (TD-028),
+- a declarative (YAML/JSON) strategy specification format,
+- arithmetic in the model-expression IR,
+- cross-validating `stop_distance` against `stop_loss_bps` — the operator owns
+  that consistency in v1,
+- any third catalog component, any fourth example strategy.
 
 ---
 

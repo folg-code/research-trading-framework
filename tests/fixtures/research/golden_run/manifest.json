@@ -1,0 +1,12 @@
+{
+  "evaluation_timeframe": "1m",
+  "exit_model_id": "fixed_bars",
+  "market_model_id": "high_volatility",
+  "risk_model_id": "fixed_quantity",
+  "run_id": "619d96b9a752e180",
+  "schema_version": "strategy_research.v1",
+  "signal_model_id": "higher_low_long",
+  "simulation_assumptions_fingerprint": "1aa6ee647c5cc636",
+  "source_dataset_ref": "ES.c.0|ohlcv|1m|csv|s048-golden-run@1",
+  "strategy_model_id": "high_vol_higher_low_fixed_exit"
+}

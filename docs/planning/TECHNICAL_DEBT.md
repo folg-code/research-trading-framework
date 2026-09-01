@@ -1309,6 +1309,205 @@ that needs to repay this would need its own ADR.
 
 ---
 
+## TD-026 — EquityPercentRiskModel Is Static, Authoring-Time Sizing Only
+
+```text
+Status: ACCEPTED
+Priority: MEDIUM
+Domain: Strategy / Research Simulation
+Introduced: Sprint 048 (2026-09-01)
+Target Review: A demonstrated need for dynamic sizing, or a request to
+  cross-validate stop_distance against a bracket's stop_loss_bps
+Owner: Unassigned
+```
+
+### Accepted Shortcut
+
+`EquityPercentRiskModel` (`strategy/risk_model.py`) resolves
+`quantity = (account_equity * risk_percent) / stop_distance` exactly ONCE,
+in `__post_init__`. `position_quantity()` always returns that one stored
+value, for every entry, for the life of a run. It has no access to running
+equity, entry price, realized P&L, or the trade being sized, because
+`RiskModel.position_quantity()` takes no arguments (ADR-0028 §4). It also
+does not cross-validate `stop_distance` against a `BracketExitModel`'s
+`stop_loss_bps` — the risk model has no reference price with which to
+convert a basis-point offset into a price-point distance.
+
+### Reason
+
+`RiskModel.position_quantity()`'s no-argument shape is the same MVP
+contract from ADR-0016 and is deliberately unchanged by Sprint 048
+(D-S048-06 — the Protocol definitions are locked). "Equity-percentage
+sizing" can therefore only mean sizing resolved once, at authoring time,
+from values the author supplies. This is a real improvement over
+hand-computing a lot size, but it is not compounding or
+equity-curve-following sizing, and must never be described as such.
+
+### Consequences
+
+- An operator who wants sizing to track realized equity as a run
+  progresses cannot get that from this model; they must re-author the
+  strategy with new numbers, or accept static sizing.
+- `EquityPercentRiskModel.stop_distance` and a paired `BracketExitModel`'s
+  `stop_loss_bps` describe the same stop from two directions and can
+  silently disagree; the operator owns keeping them consistent (documented
+  in `STRATEGY_AUTHORING.md`, not enforced by validation).
+
+### Safe Operating Boundary
+
+No docstring, test name, log line, or guide text may describe
+`EquityPercentRiskModel` as dynamic, compounding, or
+equity-curve-following. No workflow may assume `stop_distance` and a
+bracket's `stop_loss_bps` are cross-validated — they are not.
+
+### Repayment Trigger
+
+Dynamic sizing requires passing simulation state into
+`position_quantity()` — a `RiskModel` protocol change also affecting the
+paper broker and live execution runtime
+(`execution/runtime/strategy_orders.py`,
+`execution/broker_sim/paper_broker.py`) — a separate increment with its
+own ADR. The stop-distance/stop_loss_bps cross-validation is a smaller,
+independent follow-on once a reference price is available to convert
+between them.
+
+### Repayment Direction
+
+Design the dynamic-sizing `RiskModel` protocol change through its own ADR,
+covering research simulation, paper broker and live execution impact
+together rather than widening the Protocol as a side effect of a research
+sprint. The cross-validation helper (if pursued) does not require a
+Protocol change and can land independently.
+
+### Related Tasks
+
+- `docs/adr/ADR-0028-bracket-exit-and-equity-relative-sizing.md` §4
+- `docs/planning/sprints/S048_WAVE0_DECISIONS.md` D-S048-05
+- `src/trading_framework/strategy/risk_model.py`
+- `tests/unit/strategy/test_risk_model.py`
+
+---
+
+## TD-027 — Robustness Delay Stress Rejects Bracket Exits
+
+```text
+Status: ACCEPTED
+Priority: MEDIUM
+Domain: Research Robustness / Strategy Research
+Introduced: Sprint 048 (2026-09-01)
+Target Review: First request to stress a bracket strategy
+Owner: Unassigned
+```
+
+### Accepted Shortcut
+
+`research/robustness/stress.py::apply_stress_strategy_model` (the delay stress
+dimension) raises `ValidationError` for any `BracketExitModel`, naming the
+model and the reason, instead of defining a delay semantics for it.
+
+### Reason
+
+"Delay a price-triggered exit by N bars" has no obviously correct meaning: a
+bracket's exit is driven by price (stop/target trigger), not by a fixed bar
+offset, so there is nothing analogous to `FixedBarsExitModel.exit_after_bars`
+to extend. Inventing a semantic here would be an unreviewed research-semantics
+decision smuggled into an engine sprint (D-S048-08, D-S048-09).
+
+### Consequences
+
+- An operator cannot run the entry/exit delay stress dimension against a
+  bracket strategy; the scenario fails fast with an explicit error instead of
+  silently producing a meaningless result.
+- Commission/slippage-multiplier and post-process (remove-top-N) stress
+  dimensions are unaffected — they do not touch the exit model.
+
+### Safe Operating Boundary
+
+No workflow may assume the delay stress dimension works for a
+`BracketExitModel` strategy. The rejection is deliberate, not a bug.
+
+### Repayment Trigger
+
+The first request to stress a bracket strategy's entry/exit timing, or the
+bracket-parameter stress dimensions (stressing `stop_loss_bps` /
+`take_profit_bps`) named as a Sprint 048 follow-on.
+
+### Repayment Direction
+
+Design a bracket-aware stress dimension (e.g. widening/narrowing
+`stop_loss_bps` / `take_profit_bps`) through its own ADR/Wave 0 decision
+rather than overloading "delay by N bars".
+
+### Related Tasks
+
+- `docs/planning/sprints/S048_WAVE0_DECISIONS.md` D-S048-08, D-S048-09
+- `src/trading_framework/research/robustness/stress.py`
+- `tests/unit/research/robustness/test_stress.py`
+
+---
+
+## TD-028 — No Independent Reference Implementation for the Bracket Kernel
+
+```text
+Status: ACCEPTED
+Priority: MEDIUM
+Domain: Research Simulation
+Introduced: Sprint 048 (2026-09-01)
+Target Review: First bracket-path numerical bug, or first change to bracket
+  fill semantics
+Owner: Unassigned
+```
+
+### Accepted Shortcut
+
+`research/simulation/kernels/bracket.py` (Sprint 048 Wave 2) will have no
+Python cross-check counterpart, unlike `kernels/fixed_bars.py`, which is
+verified against `kernels/reference.py`. `kernels/reference.py` stays typed
+to `FixedBarsExitModel` / `FixedQuantityRiskModel` and is not widened.
+
+### Reason
+
+A second reference implementation doubles the surface that must stay
+numerically consistent, for a new path with no legacy behaviour to protect.
+The bracket kernel is instead verified against hand-computed fixtures whose
+expected fill prices are written out by hand in the test, never derived from
+the implementation (D-S048-09, D-S048-10).
+
+### Consequences
+
+- A numerical bug in the bracket kernel has one fewer independent check than
+  the fixed-bars path has.
+- `kernels/reference.py` is explicitly typed to `FixedBarsExitModel` /
+  `FixedQuantityRiskModel`; passing a `BracketExitModel` through it is a type
+  error and would fail loudly (its `default_exit_reason` attribute lookup
+  raises `AttributeError`), not silently misbehave.
+
+### Safe Operating Boundary
+
+No workflow may treat `kernels/reference.py` as a cross-check for
+`kernels/bracket.py` results. The hand-computed fixtures are the only
+independent check until this is repaid.
+
+### Repayment Trigger
+
+The first numerically surprising bracket-path result, or the first change to
+bracket fill semantics (D-S048-04's locked stop/target/timeout rules).
+
+### Repayment Direction
+
+Add a Python reference implementation of the bracket kernel, built
+independently from `kernels/bracket.py`, and cross-check it the same way
+`kernels/fixed_bars.py` is cross-checked today.
+
+### Related Tasks
+
+- `docs/planning/sprints/S048_WAVE0_DECISIONS.md` D-S048-08, D-S048-09
+- `src/trading_framework/research/simulation/kernels/reference.py`
+- `src/trading_framework/research/simulation/kernels/bracket.py` (Sprint 048
+  Wave 2, not yet built as of this entry)
+
+---
+
 # 6. Planned Debt Boundaries
 
 The following shortcuts may be accepted later but are not yet introduced:

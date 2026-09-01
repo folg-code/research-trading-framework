@@ -23,6 +23,12 @@ from trading_framework.research.simulation.facts import (
     equity_points_to_dataframe,
     simulated_trades_to_dataframe,
 )
+from trading_framework.research.simulation.input import CompiledSimulationInput
+from trading_framework.research.simulation.kernels.bracket import (
+    materialize_bracket_kernel_equity,
+    materialize_bracket_kernel_trades,
+    run_bracket_kernel,
+)
 from trading_framework.research.simulation.kernels.fixed_bars import (
     materialize_kernel_equity,
     materialize_kernel_trades,
@@ -32,8 +38,8 @@ from trading_framework.research.simulation.kernels.reference import (
     _observed_at_index_by_ns,
     _open_position_counts_by_bar_index,
 )
-from trading_framework.strategy.exit_model import FixedBarsExitModel
-from trading_framework.strategy.risk_model import FixedQuantityRiskModel
+from trading_framework.strategy.exit_model import FixedBarsExitModel, PriceBracketExit
+from trading_framework.strategy.risk_model import RiskModel
 from trading_framework.strategy.strategy_model import StrategyModelDefinition
 
 
@@ -69,39 +75,22 @@ class BarSequentialSimulator:
                 equity=equity_points_to_dataframe([]),
             )
         _validate_entry_signals(entry_signals)
-        exit_model = _require_fixed_bars_exit(strategy_model)
-        risk_model = _require_fixed_quantity_risk(strategy_model)
+        exit_model = _dispatch_exit_model(strategy_model)
+        risk_model = _require_structural_risk_model(strategy_model)
         with optional_phase("simulate.compile_input"):
             compiled = compile_simulation_input(
                 bars=ordered_bars,
                 entry_signals=entry_signals,
             )
         quantity = risk_model.position_quantity()
-        with optional_phase("simulate.run_kernel"):
-            kernel_result = run_fixed_bars_kernel(
-                compiled,
-                exit_after_bars=exit_model.exit_after_bars,
-                quantity=float(quantity),
-                slippage_bps=float(assumptions.slippage_bps),
-                commission_per_side=float(assumptions.commission_per_side),
-                initial_capital=float(assumptions.initial_capital),
-            )
-        with optional_phase("simulate.materialize_results"):
-            trades = materialize_kernel_trades(
-                kernel_result,
-                strategy_model_id=strategy_model.strategy_model_id,
-                instrument=instrument,
-                source_dataset_ref=source_dataset_ref,
-                exit_reason=exit_model.default_exit_reason,
-                quantity=quantity,
-            )
-            equity = materialize_kernel_equity(
-                kernel_result,
-                compiled.bars.observed_at_ns,
-            )
-        return SimulationResult(
-            trades=simulated_trades_to_dataframe(trades),
-            equity=equity_points_to_dataframe(equity),
+        return _run_dispatched_kernel(
+            exit_model=exit_model,
+            compiled=compiled,
+            quantity=quantity,
+            assumptions=assumptions,
+            strategy_model_id=strategy_model.strategy_model_id,
+            instrument=instrument,
+            source_dataset_ref=source_dataset_ref,
         )
 
     def simulate_from_columnar(
@@ -121,39 +110,22 @@ class BarSequentialSimulator:
                 equity=equity_points_to_dataframe([]),
             )
         _validate_entry_signals(entry_signals)
-        exit_model = _require_fixed_bars_exit(strategy_model)
-        risk_model = _require_fixed_quantity_risk(strategy_model)
+        exit_model = _dispatch_exit_model(strategy_model)
+        risk_model = _require_structural_risk_model(strategy_model)
         with optional_phase("simulate.compile_input"):
             compiled = compile_simulation_input_from_columnar(
                 column_batch=column_batch,
                 entry_signals=entry_signals,
             )
         quantity = risk_model.position_quantity()
-        with optional_phase("simulate.run_kernel"):
-            kernel_result = run_fixed_bars_kernel(
-                compiled,
-                exit_after_bars=exit_model.exit_after_bars,
-                quantity=float(quantity),
-                slippage_bps=float(assumptions.slippage_bps),
-                commission_per_side=float(assumptions.commission_per_side),
-                initial_capital=float(assumptions.initial_capital),
-            )
-        with optional_phase("simulate.materialize_results"):
-            trades = materialize_kernel_trades(
-                kernel_result,
-                strategy_model_id=strategy_model.strategy_model_id,
-                instrument=instrument,
-                source_dataset_ref=source_dataset_ref,
-                exit_reason=exit_model.default_exit_reason,
-                quantity=quantity,
-            )
-            equity = materialize_kernel_equity(
-                kernel_result,
-                compiled.bars.observed_at_ns,
-            )
-        return SimulationResult(
-            trades=simulated_trades_to_dataframe(trades),
-            equity=equity_points_to_dataframe(equity),
+        return _run_dispatched_kernel(
+            exit_model=exit_model,
+            compiled=compiled,
+            quantity=quantity,
+            assumptions=assumptions,
+            strategy_model_id=strategy_model.strategy_model_id,
+            instrument=instrument,
+            source_dataset_ref=source_dataset_ref,
         )
 
 
@@ -165,20 +137,115 @@ def _validate_entry_signals(entry_signals: pl.DataFrame) -> None:
         raise SimulationEngineError(msg)
 
 
-def _require_fixed_bars_exit(strategy_model: StrategyModelDefinition) -> FixedBarsExitModel:
+def _dispatch_exit_model(
+    strategy_model: StrategyModelDefinition,
+) -> FixedBarsExitModel | PriceBracketExit:
+    """Dispatch ``strategy_model.exit_model`` to the kernel it can run on.
+
+    Two shapes are supported: ``FixedBarsExitModel`` dispatches to the
+    existing ``kernels/fixed_bars.py`` kernel, unchanged; any exit model
+    structurally conformant with ``PriceBracketExit`` dispatches to
+    ``kernels/bracket.py`` (``kernels/bracket.py`` is not edited by this
+    dispatch - only called). Anything that is neither is refused here, with
+    the same ``SimulationEngineError`` ``BarSequentialSimulator`` has always
+    raised for an unsupported exit model, its wording widened to describe
+    both supported shapes rather than naming one class. This function is the
+    single dispatch point for both ``simulate()`` and
+    ``simulate_from_columnar()``; the actual kernel call is factored into
+    ``_run_dispatched_kernel`` so neither call site duplicates the branch.
+    """
     exit_model = strategy_model.exit_model
-    if not isinstance(exit_model, FixedBarsExitModel):
-        msg = "BarSequentialSimulator supports FixedBarsExitModel only"
-        raise SimulationEngineError(msg)
-    return exit_model
+    if isinstance(exit_model, FixedBarsExitModel | PriceBracketExit):
+        return exit_model
+    msg = (
+        "BarSequentialSimulator supports FixedBarsExitModel or a "
+        "PriceBracketExit-conformant exit model only"
+    )
+    raise SimulationEngineError(msg)
 
 
-def _require_fixed_quantity_risk(strategy_model: StrategyModelDefinition) -> FixedQuantityRiskModel:
-    risk_model = strategy_model.risk_model
-    if not isinstance(risk_model, FixedQuantityRiskModel):
-        msg = "BarSequentialSimulator supports FixedQuantityRiskModel only"
+def _require_structural_risk_model(strategy_model: StrategyModelDefinition) -> RiskModel:
+    """Accept any ``RiskModel`` structurally; the engine only calls ``position_quantity()``."""
+    risk_model: object = strategy_model.risk_model
+    if not isinstance(risk_model, RiskModel):
+        msg = (
+            "BarSequentialSimulator requires a RiskModel exposing "
+            "position_quantity() and allows_new_entry()"
+        )
         raise SimulationEngineError(msg)
     return risk_model
+
+
+def _run_dispatched_kernel(
+    *,
+    exit_model: FixedBarsExitModel | PriceBracketExit,
+    compiled: CompiledSimulationInput,
+    quantity: Decimal,
+    assumptions: SimulationAssumptions,
+    strategy_model_id: str,
+    instrument: str,
+    source_dataset_ref: str,
+) -> SimulationResult:
+    """Run and materialize the kernel matching ``exit_model``'s dispatched shape.
+
+    Shared by ``simulate()`` and ``simulate_from_columnar()`` so the
+    fixed-bars/bracket branch is written once, not duplicated per call site.
+    """
+    if isinstance(exit_model, PriceBracketExit):
+        with optional_phase("simulate.run_kernel"):
+            bracket_kernel_result = run_bracket_kernel(
+                compiled,
+                stop_loss_bps=exit_model.stop_loss_bps,
+                take_profit_bps=exit_model.take_profit_bps,
+                max_bars=exit_model.max_bars,
+                quantity=float(quantity),
+                slippage_bps=float(assumptions.slippage_bps),
+                commission_per_side=float(assumptions.commission_per_side),
+                initial_capital=float(assumptions.initial_capital),
+            )
+        with optional_phase("simulate.materialize_results"):
+            trades = materialize_bracket_kernel_trades(
+                bracket_kernel_result,
+                strategy_model_id=strategy_model_id,
+                instrument=instrument,
+                source_dataset_ref=source_dataset_ref,
+                quantity=quantity,
+            )
+            equity = materialize_bracket_kernel_equity(
+                bracket_kernel_result,
+                compiled.bars.observed_at_ns,
+            )
+        return SimulationResult(
+            trades=simulated_trades_to_dataframe(trades),
+            equity=equity_points_to_dataframe(equity),
+        )
+
+    with optional_phase("simulate.run_kernel"):
+        fixed_bars_kernel_result = run_fixed_bars_kernel(
+            compiled,
+            exit_after_bars=exit_model.exit_after_bars,
+            quantity=float(quantity),
+            slippage_bps=float(assumptions.slippage_bps),
+            commission_per_side=float(assumptions.commission_per_side),
+            initial_capital=float(assumptions.initial_capital),
+        )
+    with optional_phase("simulate.materialize_results"):
+        trades = materialize_kernel_trades(
+            fixed_bars_kernel_result,
+            strategy_model_id=strategy_model_id,
+            instrument=instrument,
+            source_dataset_ref=source_dataset_ref,
+            exit_reason=exit_model.default_exit_reason,
+            quantity=quantity,
+        )
+        equity = materialize_kernel_equity(
+            fixed_bars_kernel_result,
+            compiled.bars.observed_at_ns,
+        )
+    return SimulationResult(
+        trades=simulated_trades_to_dataframe(trades),
+        equity=equity_points_to_dataframe(equity),
+    )
 
 
 # Backward-compatible helpers retained for unit tests.

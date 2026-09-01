@@ -148,6 +148,10 @@ ignore_missing_imports = true
 module = ["trading_framework.research.simulation.kernels.fixed_bars"]
 disable_error_code = ["call-arg", "arg-type", "operator", "call-overload", "type-var"]
 
+[[tool.mypy.overrides]]
+module = ["trading_framework.research.simulation.kernels.bracket"]
+disable_error_code = ["call-arg", "arg-type", "operator", "call-overload", "type-var", "assignment"]
+
 [tool.coverage.run]
 source = ["trading_framework"]
 branch = true

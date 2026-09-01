@@ -3,19 +3,36 @@
 from __future__ import annotations
 
 from datetime import UTC
+from decimal import Decimal
 from pathlib import Path
 from unittest.mock import patch
 
+import pytest
+
+from trading_framework.application.model_evaluation.canonical_examples import (
+    build_canonical_market_model_high_volatility,
+    build_canonical_signal_higher_low_on_event,
+)
 from trading_framework.application.strategy_research import (
     RunStrategyResearchRequest,
     run_strategy_research,
+)
+from trading_framework.application.strategy_research.run_strategy_research import (
+    StrategyResearchError,
+    _dispatch_exit_model,
+    _exit_model_parameters,
 )
 from trading_framework.core.identifiers import Identifier
 from trading_framework.infrastructure.storage.metadata.registry import FileDatasetRegistry
 from trading_framework.market.datasets import DatasetId, DatasetLifecycleState, DatasetRef
 from trading_framework.market_analysis import TimeRange
 from trading_framework.research.simulation import SimulationAssumptions
-from trading_framework.strategy import build_canonical_strategy_model
+from trading_framework.strategy import (
+    FixedQuantityRiskModel,
+    StrategyModelDefinition,
+    build_canonical_strategy_model,
+)
+from trading_framework.strategy.exit_model import BracketExitModel, FixedBarsExitModel
 from trading_framework.time.models.timeframe import Timeframe
 from trading_framework.time.sessions import CmeEsRthSessionResolver
 
@@ -152,3 +169,55 @@ def test_run_strategy_research_records_subphase_timings_when_timer_active(
     assert "ohlcv.query_columnar" in timer._stats
     assert "evaluate_models.build_evaluation_table" in timer._stats
     assert timer._stats["strategy_research.evaluate_models"].call_count == 1
+
+
+def _bracket_strategy_model() -> StrategyModelDefinition:
+    return StrategyModelDefinition(
+        strategy_model_id="test_bracket_strategy",
+        market_model=build_canonical_market_model_high_volatility(market_model_id="m1"),
+        signal_model=build_canonical_signal_higher_low_on_event(signal_model_id="s1"),
+        exit_model=BracketExitModel(
+            stop_loss_bps=50,
+            take_profit_bps=120,
+            max_bars=40,
+        ),
+        risk_model=FixedQuantityRiskModel(quantity=Decimal("1")),
+    )
+
+
+def test_dispatch_exit_model_accepts_bracket_exit_model() -> None:
+    """S048-T008: the application-layer dispatch no longer refuses a bracket exit."""
+    strategy_model = _bracket_strategy_model()
+
+    dispatched = _dispatch_exit_model(strategy_model)
+
+    assert dispatched is strategy_model.exit_model
+
+
+def test_dispatch_exit_model_still_rejects_unknown_exit_model() -> None:
+    strategy_model = build_canonical_strategy_model()
+    object.__setattr__(strategy_model, "exit_model", object())
+
+    with pytest.raises(StrategyResearchError) as exc_info:
+        _dispatch_exit_model(strategy_model)
+    assert str(exc_info.value) == (
+        "run_strategy_research supports FixedBarsExitModel or a "
+        "PriceBracketExit-conformant exit model only"
+    )
+
+
+def test_exit_model_parameters_encodes_bracket_fields_by_name() -> None:
+    bracket = BracketExitModel(stop_loss_bps=50, take_profit_bps=120, max_bars=40)
+
+    payload = _exit_model_parameters(bracket)
+
+    assert payload == "stop_loss_bps=50,take_profit_bps=120,max_bars=40"
+
+
+def test_exit_model_parameters_cannot_collide_fixed_bars_vs_bracket() -> None:
+    fixed_bars_payload = _exit_model_parameters(FixedBarsExitModel(exit_after_bars=40))
+    bracket_payload = _exit_model_parameters(
+        BracketExitModel(stop_loss_bps=50, take_profit_bps=120, max_bars=40)
+    )
+
+    assert fixed_bars_payload != bracket_payload
