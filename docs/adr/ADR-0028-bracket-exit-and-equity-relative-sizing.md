@@ -302,7 +302,34 @@ legitimately nondeterministic `created_at_utc`, `framework_version`, and any
 path derived from them. If any of the above drifts, **the change is wrong,
 not the golden run.**
 
-### §2's change list, corrected — five changes, three files, one new file
+### Correction 6 — five more `derive_strategy_run_id` callers surfaced during implementation, fixed mechanically (approved 2026-09-01)
+
+While implementing Correction 2's signature change (`exit_after_bars: int` ->
+`exit_model_parameters: str`), five callers outside `strategy_research.py`
+were discovered: `application/robustness_research/{run_monte_carlo_experiment,
+run_stress_experiment, run_robustness_experiment, run_walk_forward_experiment,
+analyze_diagnostics_experiment}.py`, each passing
+`exit_after_bars=int(exit_model.exit_after_bars)`. None were named in the
+original D-S048-08 consumer audit, which only covered `FixedBarsExitModel`/
+`ExitReason` consumers, not `derive_strategy_run_id` callers specifically.
+
+```text
+LOCKED  the fix in each of the five files is a byte-identical rename:
+        exit_after_bars=int(x)  ->  exit_model_parameters=str(int(x))
+        str(int(x)) == str(x) for the int x these call sites already pass;
+        no run_id for any existing robustness-research run moves.
+```
+
+Per this project's STOP-and-ask rule (a change beyond the locked file list
+requires fresh maintainer approval, not a quiet widening), this was raised
+to the maintainer rather than silently absorbed. Approved-by: Filip Folga
+(project maintainer), 2026-09-01, in conversation with the orchestrating
+Claude Code session, choosing "Akceptuję, zaktualizuj audyt" (Accept, update
+the audit) over reverting T004 for a separate ADR amendment — on the
+reasoning that the fix is a byte-identical mechanical rename with zero
+behavior change, not a new engine decision.
+
+### §2's change list, corrected — five changes, three files, one new file (plus five mechanical renames, Correction 6)
 
 | # | Change | File | Blast radius |
 |---|---|---|---|
