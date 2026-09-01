@@ -1,0 +1,44 @@
+# trading-cli research run --config apps/cli/examples/research_run_strategy_range_expansion_breakout.yaml
+#
+# Sprint 048 (ADR-0028, resumed): demonstrates research.strategy.strategy_file
+# loading an operator-authored strategy that composes BOTH new Wave 2 models
+# together -- BracketExitModel and EquityPercentRiskModel -- with the new
+# volatility.range_expansion component and the existing
+# structure.session_high component.
+#
+# Requires a published DatasetRef (dataset_ref below is a placeholder shape,
+# not a real one -- replace it with the output of a real `data fetch`).
+#
+# strategy_file points at user_data/components/strategies/range_expansion_breakout.py.
+# That file is gitignored (ADR-0002) and does NOT ship with the repository --
+# recreate it from docs/reference/STRATEGY_AUTHORING.md ("Worked examples --
+# Sprint 048"), which reproduces it verbatim, before running this config for
+# real.
+#
+# TRUST MODEL (ADR-0027 Sec2, D-S047-09): strategy_file names a Python file
+# that is imported and executed with no sandbox and no import restriction --
+# the same blast radius as `uv run python <that file>`. --dry-run's
+# "touches nothing" guarantee narrows to "the CLI itself touches nothing";
+# the loaded module still executes at import (ADR-0027 Sec4).
+#
+# Safe to try with --dry-run first: proves the file loads and prints the
+# resolved strategy_model_id without running a simulation.
+#
+# NOTE: on the committed one-day OHLCV fixture this strategy produces zero
+# trades -- structure.session_high() is a running, current-bar-inclusive
+# high, so "close > session_high()" can only fire when a bar's close equals
+# its own high on a fresh session high, which that fixture's single RTH
+# session does not happen to contain (same structural note as the Sprint 047
+# precedent, session_high_breakout.py, this signal is borrowed from). The
+# strategy still loads and runs end to end with no error -- see
+# STRATEGY_AUTHORING.md for the full note.
+
+version: 1
+storage_root: user_data/workspace
+
+research:
+  kind: strategy
+  strategy:
+    dataset_ref: "BTCUSDT.P|ohlcv|1m|binance|binance-usdm-klines-v1@1"
+    timeframe: 1m
+    strategy_file: user_data/components/strategies/range_expansion_breakout.py

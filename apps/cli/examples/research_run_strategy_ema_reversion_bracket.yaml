@@ -1,0 +1,39 @@
+# trading-cli research run --config apps/cli/examples/research_run_strategy_ema_reversion_bracket.yaml
+#
+# Sprint 048 (ADR-0028, resumed): demonstrates research.strategy.strategy_file
+# loading an operator-authored strategy that exercises BracketExitModel in
+# isolation, on the new bracket simulation kernel, composed from the new
+# trend.ema_distance component.
+#
+# Requires a published DatasetRef (dataset_ref below is a placeholder shape,
+# not a real one -- replace it with the output of a real `data fetch`).
+#
+# strategy_file points at user_data/components/strategies/ema_reversion_bracket.py.
+# That file is gitignored (ADR-0002) and does NOT ship with the repository --
+# recreate it from docs/reference/STRATEGY_AUTHORING.md ("Worked examples --
+# Sprint 048"), which reproduces it verbatim, before running this config for
+# real.
+#
+# TRUST MODEL (ADR-0027 Sec2, D-S047-09): strategy_file names a Python file
+# that is imported and executed with no sandbox and no import restriction --
+# the same blast radius as `uv run python <that file>`. --dry-run's
+# "touches nothing" guarantee narrows to "the CLI itself touches nothing";
+# the loaded module still executes at import (ADR-0027 Sec4).
+#
+# Safe to try with --dry-run first: proves the file loads and prints the
+# resolved strategy_model_id without running a simulation.
+#
+# On the committed OHLCV fixture (tests/fixtures/market_data/ohlcv_sample_1m.csv)
+# this strategy's tuned stop/target/timeout produce 43 trades split
+# 3 stop_loss / 3 take_profit / 37 max_bars -- proof that all three bracket
+# exit reasons are reachable, not just the timeout.
+
+version: 1
+storage_root: user_data/workspace
+
+research:
+  kind: strategy
+  strategy:
+    dataset_ref: "BTCUSDT.P|ohlcv|1m|binance|binance-usdm-klines-v1@1"
+    timeframe: 1m
+    strategy_file: user_data/components/strategies/ema_reversion_bracket.py
