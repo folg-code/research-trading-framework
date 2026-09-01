@@ -1239,6 +1239,76 @@ allow-list update.
 
 ---
 
+## TD-025 — Boundary Test Is Structurally Blind to Dynamically Loaded Strategy Files
+
+```text
+Status: ACCEPTED
+Priority: LOW
+Domain: apps/cli / Architecture Boundary Tests
+Introduced: Sprint 047 (2026-09-01)
+Target Review: If the loader is ever extended to run untrusted or
+  third-party strategies (see Repayment Trigger)
+Owner: Unassigned
+```
+
+### Accepted Shortcut
+
+`tests/unit/test_apps_boundaries.py` is a static AST scan of `apps/cli/src`.
+`trading_cli/strategy_loader.py` (S047-T002, ADR-0027) loads a
+`research.strategy.strategy_file` path at runtime via
+`importlib.util.spec_from_file_location`; that file is not part of
+`apps/cli/src`, is never scanned, and can import anything the operator's
+own Python environment can import. A green boundary test is not, and never
+was intended to be, proof that nothing outside the allow-list was imported
+by a loaded strategy at runtime.
+
+### Reason
+
+ADR-0027 Sec6 decided this deliberately, not by oversight: the boundary
+governs what this repository ships and CI can enforce, a typical strategy
+file lives in gitignored `user_data/` and CI never sees it, the file is the
+operator's own trusted code running with their own privileges (no security
+benefit from restricting it), and enforcing it would require import hooks or
+AST rewriting at load time -- real machinery, protecting nothing.
+
+### Consequences
+
+- A loaded strategy file can import anything, including
+  `trading_framework.research.*`/`trading_framework.execution.*` modules
+  `apps/cli`'s own boundary forbids itself, with no test noticing.
+- The advisory convention (an authored strategy should need only
+  `trading_framework.model_authoring`, `trading_framework.strategy.*`, and
+  `trading_framework.time.models.timeframe`) is documented in
+  `docs/reference/STRATEGY_AUTHORING.md`, not enforced anywhere.
+
+### Safe Operating Boundary
+
+Nobody may read a green `test_cli_only_imports_application_layer` result as
+evidence about what a *loaded* strategy file imports -- it only proves
+`apps/cli/src` itself stayed within the allow-list.
+
+### Repayment Trigger
+
+The loader is ever extended to run strategy files that are not the
+operator's own trusted code (e.g. a shared strategy marketplace, a
+third-party plugin mechanism) -- at that point this becomes a real gap
+requiring a real mechanism (import hooks, subprocess isolation, or similar),
+not a static scan.
+
+### Repayment Direction
+
+Not designed here; ADR-0027 Sec6 alternative 5 lists sandboxing options
+considered and rejected for this sprint's trust model. A future increment
+that needs to repay this would need its own ADR.
+
+### Related Tasks
+
+- `docs/adr/ADR-0027-operator-authored-strategy-loading.md` Sec6
+- `docs/planning/sprints/S047_WAVE0_DECISIONS.md` D-S047-08
+- `tests/unit/test_apps_boundaries.py`
+
+---
+
 # 6. Planned Debt Boundaries
 
 The following shortcuts may be accepted later but are not yet introduced:

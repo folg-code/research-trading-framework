@@ -1,0 +1,2 @@
+def build_strategy():
+    raise AssertionError("this file must never be imported (wrong extension)")

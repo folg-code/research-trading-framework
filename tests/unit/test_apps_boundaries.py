@@ -14,9 +14,13 @@ rule applied uniformly over `apps/*`.
 from __future__ import annotations
 
 import ast
+import subprocess
 from pathlib import Path
 
+import pytest
+
 _REPO_ROOT = Path(__file__).resolve().parents[2]
+_CLI_ALLOWLIST_TEST_FILE = Path(__file__).resolve()
 _APPS_ROOT = _REPO_ROOT / "apps"
 _DASHBOARD_SRC = _APPS_ROOT / "dashboard" / "src"
 
@@ -184,3 +188,76 @@ def test_cli_only_imports_application_layer() -> None:
                 offenders.append(f"{relative}:{module}")
 
     assert offenders == []
+
+
+# ---------------------------------------------------------------------------
+# Sprint 047 / S047-T004: the loader (trading_cli/strategy_loader.py) needs
+# `trading_framework.strategy`, which was already on the allow-list (Amendment
+# 1, added for `build_canonical_strategy_model`). SPRINT_047.md §4 finding 2
+# claims this requires *zero* widening -- this test asserts that claim rather
+# than assuming it: the allow-list constant below is byte-identical to what
+# `git show origin/main:...` returns for this same file. If a future PR needs
+# to widen the allow-list, that is a new ADR-0026 amendment with fresh
+# maintainer approval (D-S047-08) -- never a silent edit here.
+# ---------------------------------------------------------------------------
+
+
+def _git_show_main_file(relative_posix_path: str) -> str | None:
+    """Return this file's content on `origin/main`, or None if unavailable.
+
+    None (never a failure) when the ref can't be resolved -- e.g. a shallow
+    clone with no `origin/main` -- so this assertion degrades to a skip
+    rather than a false failure on an unrelated CI/checkout shape.
+    """
+    for ref in ("origin/main", "main"):
+        try:
+            result = subprocess.run(  # fixed args, read-only "git show"
+                ["git", "show", f"{ref}:{relative_posix_path}"],
+                cwd=_REPO_ROOT,
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+                timeout=10,
+            )
+        except (OSError, subprocess.SubprocessError):
+            continue
+        if result.returncode == 0 and result.stdout:
+            return result.stdout
+    return None
+
+
+def test_cli_boundary_allow_list_is_byte_identical_to_main() -> None:
+    """SPRINT_047.md §4 finding 2 / D-S047-08: the loader widens nothing."""
+    relative_path = _CLI_ALLOWLIST_TEST_FILE.relative_to(_REPO_ROOT).as_posix()
+    main_content = _git_show_main_file(relative_path)
+    if main_content is None:
+        pytest.skip("origin/main not reachable in this checkout; cannot diff against it")
+
+    current_content = _CLI_ALLOWLIST_TEST_FILE.read_text(encoding="utf-8")
+
+    current_block = _extract_allow_list_block(current_content)
+    main_block = _extract_allow_list_block(main_content)
+
+    assert current_block == main_block, (
+        "apps/cli's import allow-list changed relative to main -- widening it "
+        "requires a new ADR-0026 amendment with fresh maintainer approval "
+        "(D-S047-08), not an edit to this test"
+    )
+
+
+_ALLOW_LIST_START_MARKER = "_CLI_ALLOWED_TRADING_FRAMEWORK_PREFIX = "
+_ALLOW_LIST_END_MARKER = "\n)\n"
+
+
+def _extract_allow_list_block(source: str) -> str:
+    """Return the exact `_CLI_ALLOWED_TRADING_FRAMEWORK_PREFIX`/`_MODULES` text.
+
+    Extracting just this block (rather than diffing the whole file) keeps the
+    assertion scoped to what Finding 2 actually claims -- the allow-list
+    itself -- and immune to unrelated docstring/comment edits elsewhere in
+    the file.
+    """
+    start = source.index(_ALLOW_LIST_START_MARKER)
+    end = source.index(_ALLOW_LIST_END_MARKER, start) + len(_ALLOW_LIST_END_MARKER)
+    return source[start:end]

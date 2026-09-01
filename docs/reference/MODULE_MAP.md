@@ -104,6 +104,9 @@ apps/cli/src/trading_cli/
     errors.py              # exit-code taxonomy (0 / 1 / 2, D-S046-09)
     commands/               # one module per command group: data.py, research.py,
                              # dry_run.py, report.py
+    strategy_loader.py       # Sprint 047 / ADR-0027: research.strategy.strategy_file
+                              # -- import-by-path + build_strategy() convention, full
+                              # error taxonomy, no sys.path mutation
 ```
 
 ---
@@ -260,7 +263,7 @@ tests/integration/market_data/
 | Batch execution | `market_analysis/execution/` |
 | Analysis input data | `market_analysis/data/` |
 | Results and workspace | `market_analysis/storage/` |
-| Built-in components | `market_analysis/components/` |
+| Built-in components | `market_analysis/components/` (incl. `components/candle/wick.py` -- `candle.wick`, and `components/structure/level_distance.py` -- `structure.level_distance`, both Sprint 047 / ADR-0027) |
 | Frame assembly and alignment | `market_analysis/assembly/` |
 | Workflow orchestration | `application/market_analysis/` |
 
@@ -311,7 +314,7 @@ tests/integration/market_analysis/
 | Expression tree and references | `model_expression/` |
 | Expression validation | `model_expression/` |
 | Expression evaluation | `model_expression/evaluation/` |
-| User-facing typed DSL | `model_authoring/` |
+| User-facing typed DSL | `model_authoring/` (incl. `references/candle.py` -- `candle.upper_wick_ratio`/`lower_wick_ratio`/`body_ratio`, and `references/structure.py`'s `distance_to_session_high`/`distance_to_session_low` -- both Sprint 047 / ADR-0027) |
 | Market Model contracts | `market_model/` |
 | Signal Model contracts | `signal_model/` |
 | Shared model evaluation workflow | `application/model_evaluation/` |

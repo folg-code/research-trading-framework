@@ -94,7 +94,7 @@ Execution Capability Track
 
 Operator Experience Track
   Phase 11 — Universal Operator CLI                  COMPLETE  (Sprint 046; trading-cli)
-  Phase 12 — Custom Strategy Authoring               PLANNED   (Sprint 047)
+  Phase 12 — Custom Strategy Authoring               COMPLETE  (Sprint 047)
 ```
 
 ### Cross-track dependencies (summary)
@@ -136,11 +136,16 @@ dry-run path.
 to the existing application-layer workflows with no new capability and no
 change to any wrapped script.
 
-**Next tracked increment:** **Phase 12 — Custom Strategy Authoring** (Sprint
-047, see §13D). It closes the strategy-model third of SPRINT_046.md §4
-Finding 2: the operator can point `trading-cli research run strategy` at
-their own Python strategy file instead of always evaluating the Sprint 013
-canonical example.
+**Phase 12 is COMPLETE** (Sprint 047, 10/10 tasks, see §13D): `trading-cli
+research run strategy` accepts an optional `research.strategy.strategy_file`
+key naming an operator-authored Python file, closing the strategy-model
+third of SPRINT_046.md §4 Finding 2. Two new Market Analysis components
+(`candle.wick`, `structure.level_distance`) and two worked example strategies
+prove the loader composes with the catalog end to end. Exit/Risk model
+expansion (ADR-0028) was declined for this sprint and deferred.
+
+**Next tracked increment:** none scheduled by default — see §12 "Post-sprint
+direction" in SPRINT_047.md for unscheduled candidates.
 
 Phase 12 absorbs the previously parallel catalog follow-ons (wick, then
 distance-to-level — named as next in D-S037-08 and D-S038-03), because those
@@ -1442,9 +1447,9 @@ No credentials in any config file
 
 ---
 
-# 13D. Phase 12 — Custom Strategy Authoring (PLANNED)
+# 13D. Phase 12 — Custom Strategy Authoring (COMPLETE)
 
-**Status:** PLANNED — Sprint 047 (`sprint/strategy-authoring`).
+**Status:** COMPLETE — Sprint 047 (10/10 tasks, `sprint/strategy-authoring`).
 **ADRs:** ADR-0027 (strategy loading) — ACCEPTED. ADR-0028 (bracket exit /
 equity sizing) — PROPOSED, **declined for this sprint** (2026-09-01); its
 Exit/Risk expansion is deferred to a possible future sprint with its own

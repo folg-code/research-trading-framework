@@ -8,17 +8,22 @@ existing `PredictiveStudySpec` / `EstimatorSpec` files by path only; their own
 loaders parse them (D-S046-07) -- this module never re-encodes their schema.
 
 ``research run strategy`` runs a single Strategy Research simulation on a
-published `DatasetRef`. **Known limitation (SPRINT_046.md Sec4 finding 2,
-D-S046-03):** `run_strategy_research.py` hardcodes the canonical strategy
-model (`build_canonical_strategy_model()`), the simulation assumptions
-(`SimulationAssumptions()`), and the session resolver
-(`CmeEsRthSessionResolver()`) -- the underlying application workflow accepts
-them as parameters, but no script or config surface ever exposed a way to
-choose different ones. This CLI command inherits that limitation rather than
-inventing a new strategy-model-from-YAML mechanism that does not exist
-anywhere else in the framework. Selecting a different strategy model requires
-a direct call to `run_strategy_research` in Python, or a follow-on increment
-to the application layer (see ADR-0026 "Follow-up").
+published `DatasetRef`. **Sprint 047 (ADR-0027) closes the strategy-model
+third of SPRINT_046.md Sec4 finding 2 / D-S046-03:** an optional
+`research.strategy.strategy_file` config key names an operator-authored
+Python file with a zero-argument `build_strategy() -> StrategyModelDefinition`
+entry point (`trading_cli.strategy_loader`); when set, the loaded strategy
+runs instead of the Sprint 013 canonical example. When absent, this command
+keeps using `build_canonical_strategy_model()` exactly as before -- purely
+additive, every Sprint 046 example config keeps working unchanged.
+**TRUST MODEL (ADR-0027 Sec2, D-S047-09):** a `strategy_file` is loaded and
+executed with no sandbox, no import restriction and no static analysis --
+the same blast radius as running the file directly with
+`uv run python <that file>`. `--dry-run`'s guarantee narrows accordingly: the
+CLI itself performs no side effect, but the loaded module is operator code
+and executes at import (ADR-0027 Sec4). The simulation assumptions and
+session resolver remain hardcoded (the other two thirds of finding 2,
+unchanged this sprint).
 """
 
 from __future__ import annotations
@@ -57,13 +62,14 @@ from trading_framework.research.predictive.errors import PredictiveSpecError
 from trading_framework.research.predictive.estimators import EstimatorSpec
 from trading_framework.research.predictive.spec import load_predictive_study_spec
 from trading_framework.research.simulation import SimulationAssumptions
-from trading_framework.strategy import build_canonical_strategy_model
+from trading_framework.strategy import CANONICAL_STRATEGY_MODEL_ID, build_canonical_strategy_model
 from trading_framework.time.models.timeframe import Timeframe
 from trading_framework.time.sessions import CmeEsRthSessionResolver
 
 from trading_cli.config import CliConfig
 from trading_cli.errors import ConfigError, WorkflowError
 from trading_cli.plan import ResolvedPlan
+from trading_cli.strategy_loader import load_strategy_definition
 
 _SUPPORTED_KINDS = ("predictive", "strategy")
 
@@ -77,11 +83,13 @@ def resolve_plan(config: CliConfig) -> ResolvedPlan:
             f"unsupported 'research.kind': {kind!r}; supported: {', '.join(_SUPPORTED_KINDS)}"
         )
     kind_args = dict(config.research.get(kind) or {})
+    runtime_context: dict[str, Any] = {}
     if kind == "predictive":
         _require(kind_args, "definition", "research.predictive")
         _require(kind_args, "estimator", "research.predictive")
     else:
         _require(kind_args, "dataset_ref", "research.strategy")
+        _resolve_strategy_source(kind_args, runtime_context)
     output_path = str(Path(config.storage_root) / "research" / kind)
     return ResolvedPlan(
         group="research",
@@ -91,7 +99,35 @@ def resolve_plan(config: CliConfig) -> ResolvedPlan:
         output_paths=(output_path,),
         storage_root=str(config.storage_root),
         implemented=True,
+        runtime_context=runtime_context,
     )
+
+
+def _resolve_strategy_source(kind_args: dict[str, Any], runtime_context: dict[str, Any]) -> None:
+    """Resolve `research.strategy.strategy_file`, or fall back to the canonical example.
+
+    Loading happens here -- during `resolve_plan`, before any framework side
+    effect (ADR-0027 Sec4) -- so a missing file, a typo'd entry-point name or
+    a wrong return type fails pre-flight and `--dry-run` proves the file loads
+    by printing the resolved `strategy_model_id`. `strategy_file` is optional
+    (D-S047-05): its absence keeps producing the canonical example, exactly as
+    on `main` today.
+    """
+    strategy_file = kind_args.get("strategy_file")
+    if strategy_file is None:
+        kind_args["strategy_model_id"] = CANONICAL_STRATEGY_MODEL_ID
+        kind_args["strategy_source"] = "canonical"
+        return
+    if not isinstance(strategy_file, str):
+        raise ConfigError(
+            "'research.strategy.strategy_file' must be a string path; got "
+            f"{type(strategy_file).__name__}"
+        )
+    loaded = load_strategy_definition(strategy_file)
+    kind_args["strategy_file"] = str(loaded.strategy_file)
+    kind_args["strategy_model_id"] = loaded.definition.strategy_model_id
+    kind_args["strategy_source"] = "strategy_file"
+    runtime_context["strategy_model"] = loaded.definition
 
 
 def run(plan: ResolvedPlan) -> dict[str, Any]:
@@ -100,7 +136,7 @@ def run(plan: ResolvedPlan) -> dict[str, Any]:
     try:
         if kind == "predictive":
             return _run_predictive(plan.arguments, storage_root)
-        return _run_strategy(plan.arguments, storage_root)
+        return _run_strategy(plan.arguments, plan.runtime_context, storage_root)
     except (ValidationError, PredictiveSpecError, FileNotFoundError, FileExistsError) as exc:
         raise WorkflowError(f"'research run {kind}' failed: {exc}") from exc
 
@@ -148,17 +184,25 @@ def _run_predictive(arguments: dict[str, Any], storage_root: Path) -> dict[str, 
     return payload
 
 
-def _run_strategy(arguments: dict[str, Any], storage_root: Path) -> dict[str, Any]:
+def _run_strategy(
+    arguments: dict[str, Any], runtime_context: dict[str, Any], storage_root: Path
+) -> dict[str, Any]:
     """Run one Strategy Research simulation (not composed with reporting).
 
-    Mirrors ``scripts/strategy_research/run_strategy_research.py``: the
-    canonical strategy model, simulation assumptions, and session resolver
-    are the same hardcoded defaults the script uses (Sec4 finding 2).
+    The strategy model is either the one `resolve_plan` already loaded from
+    `research.strategy.strategy_file` (via `runtime_context`, loaded exactly
+    once, pre-flight -- ADR-0027 Sec4) or, when no `strategy_file` was
+    configured, `build_canonical_strategy_model()` (D-S047-05). The
+    simulation assumptions and session resolver remain the same hardcoded
+    defaults `scripts/strategy_research/run_strategy_research.py` uses
+    (Sec4 finding 2, unchanged this sprint).
     """
     dataset_ref = DatasetRef.parse(arguments["dataset_ref"])
     timeframe = Timeframe(arguments.get("timeframe", "1m"))
     registry = FileDatasetRegistry(storage_root)
     metadata = registry.get(dataset_ref)
+
+    strategy_model = runtime_context.get("strategy_model") or build_canonical_strategy_model()
 
     result = run_strategy_research(
         RunStrategyResearchRequest(
@@ -166,7 +210,7 @@ def _run_strategy(arguments: dict[str, Any], storage_root: Path) -> dict[str, An
             timeframe=timeframe,
             requested_range=TimeRange(start=metadata.start_at, end=metadata.end_at),
             storage_root=storage_root,
-            strategy_model=build_canonical_strategy_model(),
+            strategy_model=strategy_model,
             assumptions=SimulationAssumptions(),
             evaluation_timeframe=timeframe,
             session_resolver=CmeEsRthSessionResolver(),
