@@ -1,14 +1,21 @@
-"""End-to-end metric test for operator-authored strategy examples (S047-T012).
+"""End-to-end metric tests for operator-authored strategy examples.
 
-Proves, against a real CLI run over a committed fixture dataset, both halves
-of the PRD's success metrics this sprint delivers:
+Proves, against real CLI runs over a committed fixture dataset, the PRD
+success metrics that Sprints 047 and 048 deliver:
 
 1. the run manifest's ``strategy_model_id`` is the *loaded* strategy's, not
-   the Sprint 013 canonical example's (PRD success metric 1) -- this fails
-   loudly if the loader ever silently falls back to the canonical example;
+   the Sprint 013 canonical example's (PRD success metric 1, Sprint 047) --
+   this fails loudly if the loader ever silently falls back to the
+   canonical example;
 2. the loaded strategy's Market Model actually composes one of the two new
    catalog components, ``candle.wick`` (PRD success metric 2, component
-   half -- the Exit/Risk half is deferred with Wave 2, ADR-0028 declined).
+   half, Sprint 047 -- the Exit/Risk half was deferred with Wave 2 there,
+   ADR-0028 declined for that sprint);
+3. a bracket strategy loaded through ``strategy_file`` produces a run whose
+   trades table contains more than one distinct ``exit_reason``, and whose
+   manifest carries ``exit_model_id == "bracket"`` (PRD success metric 1,
+   Sprint 048 -- S048-T012). This fails if the run silently falls back to a
+   fixed-bars path, or if only one exit reason ever appears.
 
 No network. No ML/DL extra. Committed fixture data only
 (``tests/fixtures/market_data/ohlcv_sample_1m.csv`` via ``ohlcv_sample_1m_path``).
@@ -33,6 +40,10 @@ from trading_framework.model_expression.expressions import (
     OrExpression,
 )
 from trading_framework.model_expression.references import ComponentOutputReference
+from trading_framework.research.datasets.strategy_research import (
+    StrategyResearchDatasetRepository,
+    StrategyResearchRunRef,
+)
 from trading_framework.strategy import CANONICAL_STRATEGY_MODEL_ID
 
 from trading_cli.cli import main
@@ -41,6 +52,10 @@ from trading_cli.strategy_loader import load_strategy_definition
 
 _FIXTURE_STRATEGY = (
     Path(__file__).parent / "fixtures" / "strategies" / "uses_candle_wick.py"
+).resolve()
+
+_BRACKET_FIXTURE_STRATEGY = (
+    Path(__file__).parent / "fixtures" / "strategies" / "uses_bracket_exit.py"
 ).resolve()
 
 
@@ -149,3 +164,51 @@ def test_research_run_strategy_file_manifest_uses_loaded_id_not_canonical(
     assert result["run_id"]
     assert result["strategy_model_id"] == "fixture_candle_wick_strategy"
     assert result["strategy_model_id"] != CANONICAL_STRATEGY_MODEL_ID
+
+
+def test_research_run_bracket_strategy_produces_multiple_exit_reasons(
+    tmp_path: Path, ohlcv_sample_1m_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """PRD success metric 1 (Sprint 048, S048-T012): a ``BracketExitModel``
+    strategy loaded through ``strategy_file`` produces a run whose trades
+    table contains more than one distinct ``exit_reason``, and whose
+    manifest carries ``exit_model_id == "bracket"``.
+
+    Fails if the run silently falls back to a fixed-bars path (only
+    ``exit_model_id == "fixed_bars"`` and a single ``fixed_bars`` reason
+    would ever appear) or if the bracket kernel only ever times out (only
+    one distinct ``exit_reason`` would appear).
+    """
+    storage_root = tmp_path / "workspace"
+    dataset_ref = _write_published_dataset(storage_root, csv_path=ohlcv_sample_1m_path)
+    config_path = tmp_path / "config.yaml"
+    config_path.write_text(
+        "version: 1\n"
+        f"storage_root: {storage_root.as_posix()}\n\n"
+        "research:\n"
+        "  kind: strategy\n"
+        "  strategy:\n"
+        f"    dataset_ref: '{dataset_ref}'\n"
+        "    timeframe: 1m\n"
+        f"    strategy_file: {_BRACKET_FIXTURE_STRATEGY.as_posix()}\n",
+        encoding="utf-8",
+    )
+
+    exit_code = main(["research", "run", "--config", str(config_path), "--json"])
+
+    assert exit_code == EXIT_SUCCESS
+    payload = json.loads(capsys.readouterr().out)
+    result = payload["result"]
+    assert result["run_id"]
+    assert result["strategy_model_id"] == "fixture_bracket_exit_strategy"
+
+    repository = StrategyResearchDatasetRepository(storage_root)
+    envelope = repository.read(StrategyResearchRunRef(run_id=result["run_id"]))
+
+    assert envelope.manifest.exit_model_id == "bracket"
+
+    distinct_exit_reasons = set(envelope.trades["exit_reason"].to_list())
+    assert len(distinct_exit_reasons) > 1, (
+        f"expected more than one distinct exit_reason, got {distinct_exit_reasons!r}"
+    )
+    assert distinct_exit_reasons <= {"stop_loss", "take_profit", "max_bars"}
