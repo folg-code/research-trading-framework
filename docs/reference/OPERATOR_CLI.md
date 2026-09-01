@@ -51,7 +51,7 @@ every invocation goes through `uv run trading-cli ...`.
 | Flag | Effect |
 |---|---|
 | `--config PATH` | Required. Path to the YAML config document (see §4). |
-| `--dry-run` | Validate and resolve the plan (workflow, arguments, output paths), print it, and stop. No file write, no dataset registration, no network call, no side effect of any kind. |
+| `--dry-run` | Validate and resolve the plan (workflow, arguments, output paths), print it, and stop. No file write, no dataset registration, no network call, no side effect of any kind **from the CLI itself**. **Narrowed exception (Sprint 047, ADR-0027 §4):** when `research.strategy.strategy_file` is set, resolving the plan imports and executes that file to prove it loads — the CLI performs no side effect, but the loaded module is your own code and executes at import time. See §5 `research run` and `docs/reference/STRATEGY_AUTHORING.md` §2. |
 | `--json` | Print the plan (`--dry-run`) or the result as structured JSON instead of the human-readable text form — for scripting, not a different behaviour. |
 | `--verbose` | Additional diagnostics on stderr. Never prints a credential in any mode, including `--dry-run` and `--verbose` (D-S046-08). |
 
@@ -81,7 +81,8 @@ edit directly:
 | `data fetch` (binance) | `apps/cli/examples/data_fetch_binance.yaml` |
 | `data fetch` (databento) | `apps/cli/examples/data_fetch_databento.yaml` |
 | `research run` (predictive) | `apps/cli/examples/research_run_predictive.yaml` |
-| `research run` (strategy) | `apps/cli/examples/research_run_strategy.yaml` |
+| `research run` (strategy, canonical example) | `apps/cli/examples/research_run_strategy.yaml` |
+| `research run` (strategy, operator-authored via `strategy_file`) | `apps/cli/examples/research_run_strategy_candle_wick.yaml`, `apps/cli/examples/research_run_strategy_level_distance.yaml` |
 | `dry-run start` | `apps/cli/examples/dry_run_start.yaml` |
 | `report render` | `apps/cli/examples/report_render.yaml` |
 
@@ -141,18 +142,38 @@ Selected by `research.kind: predictive | strategy`.
   and `estimator` reference existing `PredictiveStudySpec` /
   `EstimatorSpec` files by path; their own loaders parse them.
 - **`strategy`** runs one Strategy Research simulation against a published
-  `dataset_ref`.
+  `dataset_ref`. By default it evaluates the Sprint 013 canonical example.
+  **Sprint 047 (ADR-0027) adds an optional `strategy_file` key** naming your
+  own Python strategy file — see below.
 
-**Known limitation — SPRINT_046.md §4 finding 2 (binding):**
-`research run strategy` inherits the same hardcoded choices
-`scripts/strategy_research/run_strategy_research.py` already makes: the
-canonical strategy model (`build_canonical_strategy_model()`), the
-simulation assumptions (`SimulationAssumptions()`), and the session resolver
-(`CmeEsRthSessionResolver()`). There is no config key to choose a different
-one in v1 — this is a stated limitation, not a silently-implied one.
-Selecting a different strategy model requires calling
-`run_strategy_research` directly in Python, or a follow-on increment to the
-application layer.
+**`research.strategy.strategy_file` (Sprint 047, ADR-0027) — run your own strategy:**
+
+```yaml
+research:
+  kind: strategy
+  strategy:
+    dataset_ref: "..."
+    timeframe: 1m
+    strategy_file: user_data/components/strategies/my_strategy.py   # optional
+```
+
+`strategy_file` names a Python file with a zero-argument
+`build_strategy() -> StrategyModelDefinition` entry point. When set, the run
+manifest's `strategy_model_id` is *that* strategy's, not the canonical
+example's. **Trust model: no sandbox, no import restriction** — loading a
+`strategy_file` has the same blast radius as `uv run python <that file>`.
+The full convention, error table, and worked examples are in
+`docs/reference/STRATEGY_AUTHORING.md`.
+
+**Known limitation — SPRINT_046.md §4 finding 2 (binding, two of three thirds
+remain):** `research run strategy` still hardcodes the simulation
+assumptions (`SimulationAssumptions()`) and the session resolver
+(`CmeEsRthSessionResolver()`) the same way
+`scripts/strategy_research/run_strategy_research.py` does — Sprint 047
+closes only the strategy-model third of this finding. There is still no
+config key to choose a different assumptions/session-resolver pair; that
+requires calling `run_strategy_research` directly in Python, or a follow-on
+increment to the application layer.
 
 ### `dry-run start`
 
@@ -199,17 +220,20 @@ error naming the offending config key instead.
 
 ## 7. Known limitations (v1)
 
-Two limitations are inherited from the workflows this CLI wraps, not
-introduced by the CLI itself. Both are documented here and in the relevant
-command's `--help` text rather than silently implied:
-
-1. **`research run strategy` hardcodes the canonical strategy model.**
-   `build_canonical_strategy_model()`, `SimulationAssumptions()` and
-   `CmeEsRthSessionResolver()` are fixed, the same way the wrapped script
-   fixes them (SPRINT_046.md §4 finding 2). See §5 above.
+1. **`research run strategy` still hardcodes the simulation assumptions and
+   session resolver.** `SimulationAssumptions()` and `CmeEsRthSessionResolver()`
+   are fixed, the same way the wrapped script fixes them (SPRINT_046.md §4
+   finding 2). The *strategy model* third of this finding is closed as of
+   Sprint 047: `research.strategy.strategy_file` selects your own strategy
+   instead of the canonical example. See §5 above and
+   `docs/reference/STRATEGY_AUTHORING.md`.
 2. **`data fetch binance` only supports `interval: 1m`** (TD-023). See §5
    above; `docs/planning/TECHNICAL_DEBT.md` TD-023 has the full root cause
    and repayment trigger.
+3. **A loaded `strategy_file` is unsandboxed and unrestricted** (ADR-0027
+   §2) — the same trust level as running any local script. `--dry-run`'s
+   "touches nothing" guarantee narrows accordingly when `strategy_file` is
+   set (§3 above, ADR-0027 §4).
 
 ---
 
@@ -217,6 +241,10 @@ command's `--help` text rather than silently implied:
 
 - `docs/adr/ADR-0026-operator-cli-framework-and-placement.md` — design
   record: framework choice, placement, import boundary, full config schema.
+- `docs/adr/ADR-0027-operator-authored-strategy-loading.md` — design record
+  for `research.strategy.strategy_file` (Sprint 047).
+- `docs/reference/STRATEGY_AUTHORING.md` — the operator guide for writing
+  and running your own strategy file.
 - `docs/planning/sprints/SPRINT_046.md` — sprint scope, thin-wrapper
   feasibility audit, task breakdown.
 - `apps/cli/CLAUDE.md` — module context for anyone editing `apps/cli`.
