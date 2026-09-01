@@ -14,6 +14,8 @@ from trading_framework.market_analysis.components.structure import (
 )
 from trading_framework.market_analysis.components.trend import (
     EmaComponent,
+    EmaDistanceComponent,
+    NumpyEmaDistanceImplementation,
     NumpyEmaImplementation,
     NumpySlopeImplementation,
     SlopeComponent,
@@ -46,6 +48,15 @@ def register_ema_component(registry: ComponentRegistry) -> None:
 def register_slope_component(registry: ComponentRegistry) -> None:
     """Register the reusable OLS slope feature component."""
     registry.register(SlopeComponent(), NumpySlopeImplementation(), default=True)
+
+
+def register_ema_distance_component(registry: ComponentRegistry) -> None:
+    """Register the EMA Distance feature component."""
+    registry.register(
+        EmaDistanceComponent(),
+        NumpyEmaDistanceImplementation(),
+        default=True,
+    )
 
 
 def register_swing_structure_component(registry: ComponentRegistry) -> None:
@@ -84,6 +95,7 @@ def register_mvp_components(registry: ComponentRegistry) -> None:
     """Register Sprint 003 MVP feature and state components."""
     register_volatility_components(registry)
     register_ema_component(registry)
+    register_ema_distance_component(registry)
     register_slope_component(registry)
     register_swing_structure_component(registry)
     register_session_range_component(registry)
@@ -102,6 +114,7 @@ __all__ = [
     "default_mvp_registry",
     "register_candle_wick_component",
     "register_ema_component",
+    "register_ema_distance_component",
     "register_level_distance_component",
     "register_mvp_components",
     "register_session_range_component",
