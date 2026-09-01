@@ -46,13 +46,16 @@ field selects anything else. Behind that, the component catalog has ~7 entries
 and the Exit/Risk shelves have one placeholder each.
 
 **This sprint ships exactly:** one config key that loads an operator-authored
-Python strategy file; two Market Analysis components; one Exit model and one
-Risk model plus the engine dispatch that makes them runnable; and example
-strategies proving the three compose end to end.
+Python strategy file; two Market Analysis components; and example strategies
+proving the two compose end to end through the loader.
 
-**Not this sprint:** a declarative strategy format; sandboxing; a strategy
-registry; exposing the session resolver or simulation assumptions; dynamic
-position sizing; any third component.
+**Not this sprint (updated 2026-09-01 — ADR-0028 declined):** a declarative
+strategy format; sandboxing; a strategy registry; exposing the session
+resolver or simulation assumptions; dynamic position sizing; any third
+component; **and, per the maintainer's explicit decision, the new Exit/Risk
+models and their engine dispatch (`BracketExitModel`, `EquityPercentRiskModel`,
+the `BarSequentialSimulator` changes ADR-0028 scoped) — deferred to a possible
+future sprint, see D-S047-11/D-S047-12.**
 
 ---
 
@@ -468,7 +471,7 @@ while any box is unchecked.
 - [x] **D-S047-11/12 disposition confirmed:** DEFERRED, not built this sprint (see ADR-0028 answer above) — not applicable as an approval, but explicitly acknowledged rather than silently dropped.
 - [x] **Sprint 047 scope approved as 10 tasks, 3 waves** (Wave 1 loader, Wave 3 catalog, Wave 4 composition/docs/closure) — Wave 2 and its 4 tasks removed per the ADR-0028 decision, not merely deferred by overrun.
 - [x] **Branch `sprint/strategy-authoring` approved.** Sprint 046's integration PR (#361) has already merged to `main` — the D-S047-02 precondition is satisfied.
-- [x] **ROADMAP Phase 12 approved** — apply the three splices in `docs/planning/ROADMAP_PHASE_12_PROPOSAL.md` and delete that file (S047-T014).
+- [x] **ROADMAP Phase 12 approved** — already applied as `ROADMAP.md` §13D in this same planning PR (matching the #349 precedent for Phase 2F/11); no separate proposal file remains to splice. S047-T014 only needs to flip §13D's Status line to COMPLETE at sprint closure.
 
 Approved-by: Filip Folga (project maintainer), given directly in conversation
 with the orchestrating Claude Code session on 2026-09-01, across a structured
