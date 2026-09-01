@@ -11,7 +11,7 @@ from typing import Any
 
 from trading_framework.core.exceptions import ValidationError
 from trading_framework.research.simulation import SimulationAssumptions
-from trading_framework.strategy.exit_model import FixedBarsExitModel
+from trading_framework.strategy.exit_model import BracketExitModel, FixedBarsExitModel
 from trading_framework.strategy.strategy_model import StrategyModelDefinition
 
 
@@ -247,6 +247,14 @@ def apply_stress_strategy_model(
     if extra_bars == 0:
         return strategy_model
     exit_model = strategy_model.exit_model
+    if isinstance(exit_model, BracketExitModel):
+        msg = (
+            "delay stress is undefined for BracketExitModel: a bracket's exit is "
+            "price-driven (stop/target trigger, not a fixed bar offset), so "
+            "'delay the exit by N bars' has no well-defined meaning for it "
+            "(TD-027)"
+        )
+        raise ValidationError(msg)
     if not isinstance(exit_model, FixedBarsExitModel):
         msg = "stress delay requires FixedBarsExitModel"
         raise ValidationError(msg)
