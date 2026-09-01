@@ -249,6 +249,30 @@ a config at it. Each has a matching, committed example config under
 (config: `apps/cli/examples/research_run_strategy_ema_reversion_bracket.yaml`):
 
 ```python
+"""Strategy E1 (Sprint 048) — EMA-distance reversion, on the bracket kernel.
+
+Market Model : ``trend.ema_distance(period=20, atr_period=14) < -0.5`` — price
+               is at least half an ATR below its 20-period EMA (a stretched,
+               scale-free reversion filter).
+Signal Model : the same condition, dense — enter long while the stretch
+               holds.
+Exit Model   : ``BracketExitModel`` — 10 bps stop, 10 bps target, 15-bar
+               timeout.
+Risk Model   : fixed 1-lot.
+
+Demonstrates ``BracketExitModel`` in isolation, on the new bracket kernel
+(``research/simulation/kernels/bracket.py``). The stop/target/timeout are
+tuned so all three exit reasons — ``stop_loss``, ``take_profit`` and
+``max_bars`` — are genuinely reachable on the committed OHLCV fixture
+(``tests/fixtures/market_data/ohlcv_sample_1m.csv``): a run on that fixture
+produces 43 trades split 3 ``stop_loss`` / 3 ``take_profit`` / 37
+``max_bars``. A bracket example that only ever times out proves nothing
+(D-S048-11) — these parameters are chosen, not guessed, and were verified by
+an actual run before being committed here.
+"""
+
+from __future__ import annotations
+
 from decimal import Decimal
 
 from trading_framework.model_authoring import LONG, market_model, signal_model, trend
@@ -258,10 +282,20 @@ from trading_framework.strategy import (
     StrategyModelDefinition,
 )
 
+STRATEGY_ID = "ema_reversion_bracket"
+
+EMA_PERIOD = 20
+ATR_PERIOD = 14
+DISTANCE_THRESHOLD_ATR = 0.5
+STOP_LOSS_BPS = 10.0
+TAKE_PROFIT_BPS = 10.0
+MAX_BARS = 15
+POSITION_QUANTITY = 1
+
 
 def build_strategy() -> StrategyModelDefinition:
     stretched_below_ema = (
-        trend.ema_distance(period=20, atr_period=14) < -0.5
+        trend.ema_distance(period=EMA_PERIOD, atr_period=ATR_PERIOD) < -DISTANCE_THRESHOLD_ATR
     )
 
     market = market_model(
@@ -276,15 +310,15 @@ def build_strategy() -> StrategyModelDefinition:
     ).definition
 
     return StrategyModelDefinition(
-        strategy_model_id="ema_reversion_bracket",
+        strategy_model_id=STRATEGY_ID,
         market_model=market,
         signal_model=signal,
         exit_model=BracketExitModel(
-            stop_loss_bps=10.0,
-            take_profit_bps=10.0,
-            max_bars=15,
+            stop_loss_bps=STOP_LOSS_BPS,
+            take_profit_bps=TAKE_PROFIT_BPS,
+            max_bars=MAX_BARS,
         ),
-        risk_model=FixedQuantityRiskModel(quantity=Decimal(1)),
+        risk_model=FixedQuantityRiskModel(quantity=Decimal(POSITION_QUANTITY)),
     )
 ```
 
@@ -303,6 +337,38 @@ would prove nothing (D-S048-11).
 (config: `apps/cli/examples/research_run_strategy_range_expansion_breakout.yaml`):
 
 ```python
+"""Strategy E2 (Sprint 048) — range-expansion filter + session-high breakout,
+on the bracket kernel with equity-percent sizing.
+
+Market Model : ``volatility.range_expansion(period=14) > 1.5`` — the current
+               bar's true range is at least 1.5x the 14-period ATR (volatility
+               is already expanding, same idea as the volatility-state filter
+               in the Sprint 013/047 examples, expressed with the new
+               dimensionless component instead).
+Signal Model : ``price.close > structure.session_high()`` — same comparison
+               as ``session_high_breakout.py`` (Sprint 047).
+Exit Model   : ``BracketExitModel`` — 15 bps stop, 30 bps target, 40-bar
+               timeout.
+Risk Model   : ``EquityPercentRiskModel`` — risk 1% of a $100,000 account
+               against a 2-point stop distance (chosen by the operator to
+               roughly match the bracket's 15 bps stop near this instrument's
+               price level; v1 does not cross-validate the two, D-S048-05).
+
+Demonstrates both new Wave 2 models composed together, end to end through
+the CLI (this is the pairing PRD success metric 1 / T012 exercises). Unlike
+E1, this example is not required to produce a trade on the committed
+one-day fixture to satisfy its purpose here — ``structure.session_high()``
+is a running, current-bar-inclusive high (``max(session_high[i-1],
+high[i])``), so ``close > session_high()`` can only fire when a bar's close
+equals its own high on a fresh session high, which the committed fixture's
+single RTH session does not happen to contain. It is exercised end to end
+against a longer/live dataset instead; see the STRATEGY_AUTHORING.md note
+next to this example for the same caveat as the Sprint 047 precedent
+(``session_high_breakout.py``) it borrows the signal from.
+"""
+
+from __future__ import annotations
+
 from decimal import Decimal
 
 from trading_framework.model_authoring import (
@@ -320,11 +386,24 @@ from trading_framework.strategy import (
     StrategyModelDefinition,
 )
 
+STRATEGY_ID = "range_expansion_breakout"
+
+RANGE_EXPANSION_PERIOD = 14
+RANGE_EXPANSION_THRESHOLD = 1.5
+STOP_LOSS_BPS = 15.0
+TAKE_PROFIT_BPS = 30.0
+MAX_BARS = 40
+ACCOUNT_EQUITY = Decimal(100_000)
+RISK_PERCENT = Decimal("0.01")
+STOP_DISTANCE = Decimal("2")
+
 
 def build_strategy() -> StrategyModelDefinition:
     market = market_model(
         "range_expansion_breakout_market",
-        when=(volatility.range_expansion(period=14) > 1.5),
+        when=(
+            volatility.range_expansion(period=RANGE_EXPANSION_PERIOD) > RANGE_EXPANSION_THRESHOLD
+        ),
     ).definition
 
     signal = signal_model(
@@ -335,18 +414,18 @@ def build_strategy() -> StrategyModelDefinition:
     ).definition
 
     return StrategyModelDefinition(
-        strategy_model_id="range_expansion_breakout",
+        strategy_model_id=STRATEGY_ID,
         market_model=market,
         signal_model=signal,
         exit_model=BracketExitModel(
-            stop_loss_bps=15.0,
-            take_profit_bps=30.0,
-            max_bars=40,
+            stop_loss_bps=STOP_LOSS_BPS,
+            take_profit_bps=TAKE_PROFIT_BPS,
+            max_bars=MAX_BARS,
         ),
         risk_model=EquityPercentRiskModel(
-            account_equity=Decimal(100_000),
-            risk_percent=Decimal("0.01"),
-            stop_distance=Decimal("2"),
+            account_equity=ACCOUNT_EQUITY,
+            risk_percent=RISK_PERCENT,
+            stop_distance=STOP_DISTANCE,
         ),
     )
 ```
@@ -376,6 +455,33 @@ actually fire.
 (config: `apps/cli/examples/research_run_strategy_quiet_wick_rejection.yaml`):
 
 ```python
+"""Strategy E3 (Sprint 048) — quiet-range wick rejection, on the UNCHANGED
+fixed-bars kernel with equity-percent sizing.
+
+Market Model : ``volatility.range_expansion(period=14) < 0.8`` — the current
+               bar's true range is below 0.8x the 14-period ATR ("quiet").
+Signal Model : ``candle.lower_wick_ratio() > 0.4`` (Sprint 047 component) —
+               a long lower wick relative to the bar's own range, read as a
+               rejection of lower prices, fired ``ON_TRUE_EDGE``.
+Exit Model   : ``FixedBarsExitModel`` — fixed 10-bar hold. Deliberately the
+               **unchanged** Sprint 013 exit kernel, not ``BracketExitModel``.
+Risk Model   : ``EquityPercentRiskModel`` — risk 1% of a $100,000 account
+               against a 2-point stop distance (a sizing reference distance
+               only; ``FixedBarsExitModel`` has no stop of its own).
+
+This is the deliberate isolation case (D-S048-11): the new Wave 2 Risk
+model, run through the OLD, byte-identical fixed-bars kernel
+(``kernels/fixed_bars.py``, not edited this sprint). It proves the
+risk-model widening is orthogonal to the bracket exit-model change — a
+strategy can adopt equity-percent sizing without touching its exit model at
+all. On the committed OHLCV fixture this produces 53 trades, every one
+with ``exit_reason == "fixed_bars"`` (the only reason ``FixedBarsExitModel``
+ever emits) -- there is intentionally only one distinct reason here, unlike
+E1.
+"""
+
+from __future__ import annotations
+
 from decimal import Decimal
 
 from trading_framework.model_authoring import LONG, ON_TRUE_EDGE, candle, market_model, signal_model, volatility
@@ -385,29 +491,42 @@ from trading_framework.strategy import (
     StrategyModelDefinition,
 )
 
+STRATEGY_ID = "quiet_wick_rejection"
+
+RANGE_EXPANSION_PERIOD = 14
+QUIET_RANGE_EXPANSION_THRESHOLD = 0.8
+LOWER_WICK_RATIO_THRESHOLD = 0.4
+EXIT_AFTER_BARS = 10
+ACCOUNT_EQUITY = Decimal(100_000)
+RISK_PERCENT = Decimal("0.01")
+STOP_DISTANCE = Decimal("2")
+
 
 def build_strategy() -> StrategyModelDefinition:
     market = market_model(
         "quiet_wick_rejection_market",
-        when=(volatility.range_expansion(period=14) < 0.8),
+        when=(
+            volatility.range_expansion(period=RANGE_EXPANSION_PERIOD)
+            < QUIET_RANGE_EXPANSION_THRESHOLD
+        ),
     ).definition
 
     signal = signal_model(
         "quiet_wick_rejection_signal",
         direction=LONG,
-        when=(candle.lower_wick_ratio() > 0.4),
+        when=(candle.lower_wick_ratio() > LOWER_WICK_RATIO_THRESHOLD),
         firing=ON_TRUE_EDGE,
     ).definition
 
     return StrategyModelDefinition(
-        strategy_model_id="quiet_wick_rejection",
+        strategy_model_id=STRATEGY_ID,
         market_model=market,
         signal_model=signal,
-        exit_model=FixedBarsExitModel(exit_after_bars=10),
+        exit_model=FixedBarsExitModel(exit_after_bars=EXIT_AFTER_BARS),
         risk_model=EquityPercentRiskModel(
-            account_equity=Decimal(100_000),
-            risk_percent=Decimal("0.01"),
-            stop_distance=Decimal("2"),
+            account_equity=ACCOUNT_EQUITY,
+            risk_percent=RISK_PERCENT,
+            stop_distance=STOP_DISTANCE,
         ),
     )
 ```
