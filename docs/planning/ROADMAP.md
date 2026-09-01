@@ -94,6 +94,7 @@ Execution Capability Track
 
 Operator Experience Track
   Phase 11 — Universal Operator CLI                  COMPLETE  (Sprint 046; trading-cli)
+  Phase 12 — Custom Strategy Authoring               PLANNED   (Sprint 047)
 ```
 
 ### Cross-track dependencies (summary)
@@ -135,13 +136,18 @@ dry-run path.
 to the existing application-layer workflows with no new capability and no
 change to any wrapped script.
 
-**Next tracked increment:** none — no phase is currently PLANNED. Candidate
-follow-ons are unscheduled by default; see `SPRINT_044.md` §12 and
-`SPRINT_046.md` §12.
+**Next tracked increment:** **Phase 12 — Custom Strategy Authoring** (Sprint
+047, see §13D). It closes the strategy-model third of SPRINT_046.md §4
+Finding 2: the operator can point `trading-cli research run strategy` at
+their own Python strategy file instead of always evaluating the Sprint 013
+canonical example.
 
-Catalog follow-ons (wick / distance) remain in parallel. Deferred by default:
-Phase 4B/6B, Phase 8 Replay, PBO/CSCV ADR. Stage 3 (`available_at` column /
-lineage sidecar) and Stage 4 (`MarketFrame`) remain independently sequenced.
+Phase 12 absorbs the previously parallel catalog follow-ons (wick, then
+distance-to-level — named as next in D-S037-08 and D-S038-03), because those
+components are what an authored strategy has to compose from. Deferred by
+default: Phase 4B/6B, Phase 8 Replay, PBO/CSCV ADR. Stage 3 (`available_at`
+column / lineage sidecar) and Stage 4 (`MarketFrame`) remain independently
+sequenced.
 
 ---
 
@@ -1433,6 +1439,131 @@ No credentials in any config file
 - any change to execution or order-routing logic,
 - interactive/TUI modes, shell completion, packaging for global install,
 - a job scheduler, queue, or run history — the CLI is stateless.
+
+---
+
+# 13D. Phase 12 — Custom Strategy Authoring (PLANNED)
+
+**Status:** PLANNED — Sprint 047 (`sprint/strategy-authoring`).
+**ADRs:** ADR-0027 (strategy loading) — ACCEPTED. ADR-0028 (bracket exit /
+equity sizing) — PROPOSED, **declined for this sprint** (2026-09-01); its
+Exit/Risk expansion is deferred to a possible future sprint with its own
+engine-focused ADR, not part of Phase 12's Sprint 047 delivery.
+**PRD:** `docs/product/PRD-strategy-authoring.md` (confirmed).
+
+## Purpose
+
+Make the framework's own strategy vocabulary usable **by the operator, from the
+CLI**, rather than only by an engineer editing Python inside the repository.
+
+Phase 11 gave the operator one front door. Behind that door,
+`research run strategy` still always evaluates the Sprint 013 canonical example
+(SPRINT_046.md §4 Finding 2). Phase 12 opens it — and closes the two structural
+gaps that made the limitation more than a CLI oversight: a thin component
+catalog, and Exit/Risk models that were placeholders rather than
+strategy-construction primitives.
+
+This is a **capability** phase, unlike Phase 11's interface-only scope: it adds
+Market Analysis components. Exit/Risk model expansion was scoped (ADR-0028)
+but declined for Sprint 047 — see Out of scope.
+
+## Primary flow
+
+```text
+operator writes user_data/.../my_strategy.py
+        def build_strategy() -> StrategyModelDefinition
+        ↓
+research:
+  strategy:
+    strategy_file: user_data/.../my_strategy.py
+        ↓
+trading-cli research run strategy --config <path>
+        ↓
+resolve_plan: import the file, call build_strategy(), validate the definition
+        (--dry-run stops here and prints the resolved strategy_model_id)
+        ↓
+run_strategy_research(strategy_model=<the loaded definition>)
+        ↓
+run manifest strategy_model_id == the operator's strategy
+```
+
+## Expected capabilities
+
+- one config key, `research.strategy.strategy_file`, naming a Python file; a
+  fixed zero-argument `build_strategy()` entry-point convention (ADR-0027),
+- a pre-flight error taxonomy covering missing file, import failure, missing or
+  non-callable entry point, wrong return type, and invalid definition — every
+  one an exit-2 config error naming the key, before any side effect,
+- an explicitly documented trust model: the loaded file is operator code and is
+  not sandboxed or import-restricted (ADR-0027 §2, §6),
+- Market Analysis catalog: `candle.wick` and `structure.level_distance`, the
+  two items D-S037-08 / D-S038-03 named as the next catalog increments,
+- working example strategies composing the new catalog components, runnable
+  through the CLI.
+- *(Exit/Risk expansion — `BracketExitModel`, `EquityPercentRiskModel`, and
+  the simulation kernel dispatch that would make them runnable — was scoped
+  in ADR-0028 and declined for this sprint on 2026-09-01. Deferred, not
+  delivered by Phase 12's Sprint 047.)*
+
+## Binding rules
+
+```text
+The loaded strategy file is the operator's own trusted code — no sandbox, no
+    import restriction, and the boundary test does not and cannot scan it (TD-025)
+apps/cli's own ADR-0026 Amendment 1 allow-list is NOT widened by this phase
+strategy_file is optional; its absence keeps the canonical example (additive)
+No declarative YAML strategy schema is introduced — Python loading only
+Existing FixedBars strategies produce byte-identical runs (no engine change)
+kernels/fixed_bars.py, ExitModel/RiskModel protocols, and BarSequentialSimulator
+    are untouched this sprint (ADR-0028 declined; not merely unedited by luck)
+```
+
+## Completion criteria
+
+- `trading-cli research run strategy --config <path>` runs a user-authored
+  strategy and the run manifest's `strategy_model_id` is that strategy's,
+- every loader failure mode fails pre-flight with an exit-2 message naming
+  `research.strategy.strategy_file` and the resolved absolute path,
+- at least one new Market Analysis component is exercised by a passing
+  example composed through the loader (the Exit/Risk half of this criterion
+  is deferred with ADR-0028),
+- the canonical example still runs unchanged with no `strategy_file` key, and
+  every Sprint 046 example config still works,
+- the fixed-bars simulation path, the simulator, and both Exit/Risk protocols
+  are unchanged — trivially true this sprint since the engine was not touched,
+- the trust model is stated in the operator guide and in `--help`, not implied.
+
+## Dependencies
+
+- Phase 11 / ADR-0026 (the CLI, its config contract and its error taxonomy),
+- Phase 6A / ADR-0016 (Strategy Model, Exit/Risk contracts, the simulator),
+- Sprint 037/038 (`model_authoring` DSL and the component reference pattern),
+- session metadata on the component compute view (Sprint 038) for
+  `structure.level_distance`.
+
+## Main risks
+
+- **Arbitrary code execution by config.** Accepted deliberately and documented;
+  it is the same trust level as running any script in this repository.
+- **`--dry-run`'s promise narrows** from "touches nothing" to "the CLI touches
+  nothing" — a loaded module executes at import (ADR-0027 §4).
+- Catalog scope creep — exactly two components, no more.
+
+## Out of scope
+
+- a declarative (YAML/JSON) strategy specification format,
+- sandboxing, import restriction, or static analysis of loaded strategy files,
+- a strategy registry, catalog UI, or any discovery mechanism,
+- exposing `SimulationAssumptions` or the session resolver through config (the
+  other two thirds of SPRINT_046.md §4 Finding 2),
+- **`BracketExitModel`, `EquityPercentRiskModel`, and any change to
+  `BarSequentialSimulator` or its kernels** — ADR-0028's requested non-goal
+  narrowing was declined by the maintainer (2026-09-01); deferred to a
+  possible future sprint with its own engine-focused ADR,
+- dynamic, equity-curve-following position sizing (TD-026, deferred with the above),
+- Robustness Research stress dimensions over bracket parameters (deferred with the above),
+- any change to live trading, order routing, or the dry-run runtime,
+- deleting or rewriting `user_data/run_example_strategies.py`.
 
 ---
 
