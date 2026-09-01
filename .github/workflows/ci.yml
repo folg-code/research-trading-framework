@@ -59,6 +59,16 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
+        with:
+          # test_cli_boundary_allow_list_is_byte_identical_to_main
+          # (tests/unit/test_apps_boundaries.py, Sprint 047) diffs the CLI's
+          # import-boundary allow-list against origin/main via `git show`. A
+          # default shallow/single-ref checkout doesn't fetch main, so that
+          # assertion silently skips instead of enforcing anything. Full
+          # history keeps it a real check, not a no-op. This lives on the
+          # unit job, not cli, because that's the job that actually runs
+          # tests/unit/.
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -241,13 +251,6 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
-        with:
-          # test_cli_boundary_allow_list_is_byte_identical_to_main (Sprint 047)
-          # diffs the CLI's import-boundary allow-list against origin/main via
-          # `git show`. A default shallow/single-ref checkout doesn't fetch
-          # main, so that assertion silently skips instead of enforcing
-          # anything. Full history keeps it a real check, not a no-op.
-          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v6
