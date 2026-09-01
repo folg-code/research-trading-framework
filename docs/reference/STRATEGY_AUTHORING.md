@@ -226,10 +226,200 @@ def build_strategy() -> StrategyModelDefinition:
 ```
 
 Both use the existing `FixedBarsExitModel` / `FixedQuantityRiskModel` —
-those are the only Exit/Risk models the simulator supports today.
+those were the only Exit/Risk models the simulator supported at the time
+Sprint 047 wrote these two examples.
 `BracketExitModel` / `EquityPercentRiskModel` (stop-loss, take-profit,
-equity-relative sizing) were scoped in `docs/adr/ADR-0028-bracket-exit-and-equity-relative-sizing.md`
-and **declined** for this sprint; see that ADR if you were expecting them.
+equity-relative sizing) were scoped in `docs/adr/ADR-0028-bracket-exit-and-equity-relative-sizing.md`,
+declined for Sprint 047, and resumed and shipped in Sprint 048 — see the
+next section for worked examples using them.
+
+### Worked examples — Sprint 048 (bracket exits + equity-percent sizing)
+
+Three more example strategies, per `S048_WAVE0_DECISIONS.md` D-S048-11, each
+composing at least one of Sprint 048's new catalog components
+(`trend.ema_distance`, `volatility.range_expansion`) with one or both of the
+new Exit/Risk models. Like the two above, all three are **gitignored**
+(`user_data/` — ADR-0002) — recreate the file below verbatim before pointing
+a config at it. Each has a matching, committed example config under
+`apps/cli/examples/`.
+
+#### `ema_reversion_bracket.py` — `BracketExitModel` in isolation
+
+`user_data/components/strategies/ema_reversion_bracket.py`
+(config: `apps/cli/examples/research_run_strategy_ema_reversion_bracket.yaml`):
+
+```python
+from decimal import Decimal
+
+from trading_framework.model_authoring import LONG, market_model, signal_model, trend
+from trading_framework.strategy import (
+    BracketExitModel,
+    FixedQuantityRiskModel,
+    StrategyModelDefinition,
+)
+
+
+def build_strategy() -> StrategyModelDefinition:
+    stretched_below_ema = (
+        trend.ema_distance(period=20, atr_period=14) < -0.5
+    )
+
+    market = market_model(
+        "ema_reversion_bracket_market",
+        when=stretched_below_ema,
+    ).definition
+
+    signal = signal_model(
+        "ema_reversion_bracket_signal",
+        direction=LONG,
+        when=stretched_below_ema,
+    ).definition
+
+    return StrategyModelDefinition(
+        strategy_model_id="ema_reversion_bracket",
+        market_model=market,
+        signal_model=signal,
+        exit_model=BracketExitModel(
+            stop_loss_bps=10.0,
+            take_profit_bps=10.0,
+            max_bars=15,
+        ),
+        risk_model=FixedQuantityRiskModel(quantity=Decimal(1)),
+    )
+```
+
+`BracketExitModel` in isolation, on the bracket kernel
+(`research/simulation/kernels/bracket.py`) — stop, target and timeout are
+all reachable. The stop/target/timeout above are not arbitrary: on the
+committed OHLCV fixture (`tests/fixtures/market_data/ohlcv_sample_1m.csv`)
+this strategy produces **43 trades, split 3 `stop_loss` / 3 `take_profit` /
+37 `max_bars`** — verified by an actual run before being committed, not
+asserted without checking. A bracket example that only ever times out
+would prove nothing (D-S048-11).
+
+#### `range_expansion_breakout.py` — both new models together
+
+`user_data/components/strategies/range_expansion_breakout.py`
+(config: `apps/cli/examples/research_run_strategy_range_expansion_breakout.yaml`):
+
+```python
+from decimal import Decimal
+
+from trading_framework.model_authoring import (
+    LONG,
+    ON_TRUE_EDGE,
+    market_model,
+    price,
+    signal_model,
+    structure,
+    volatility,
+)
+from trading_framework.strategy import (
+    BracketExitModel,
+    EquityPercentRiskModel,
+    StrategyModelDefinition,
+)
+
+
+def build_strategy() -> StrategyModelDefinition:
+    market = market_model(
+        "range_expansion_breakout_market",
+        when=(volatility.range_expansion(period=14) > 1.5),
+    ).definition
+
+    signal = signal_model(
+        "range_expansion_breakout_signal",
+        direction=LONG,
+        when=(price.close > structure.session_high()),
+        firing=ON_TRUE_EDGE,
+    ).definition
+
+    return StrategyModelDefinition(
+        strategy_model_id="range_expansion_breakout",
+        market_model=market,
+        signal_model=signal,
+        exit_model=BracketExitModel(
+            stop_loss_bps=15.0,
+            take_profit_bps=30.0,
+            max_bars=40,
+        ),
+        risk_model=EquityPercentRiskModel(
+            account_equity=Decimal(100_000),
+            risk_percent=Decimal("0.01"),
+            stop_distance=Decimal("2"),
+        ),
+    )
+```
+
+Composes `BracketExitModel` and `EquityPercentRiskModel` together, end to
+end through the CLI (PRD success metric 1). The `EquityPercentRiskModel`
+`stop_distance` (2 points) is the operator's own estimate of what the
+bracket's 15 bps stop is worth near this instrument's price level — v1
+does not cross-validate the two (D-S048-05), so keeping them consistent is
+the operator's responsibility.
+
+**A structural note, not a bug in this example specifically:**
+`structure.session_high()` is a running, current-bar-**inclusive** high
+(`max(session_high[i-1], high[i])`). Because a bar's own `high` is always
+`>= close`, the condition `price.close > structure.session_high()` can only
+become true on a bar whose close equals its own (freshly-set) high — a
+narrow condition that the committed one-day fixture does not happen to
+contain, so this example produces **0 trades** on that fixture specifically.
+The strategy still loads and runs end to end through the CLI with no error;
+`session_high_breakout.py` (Sprint 047, above) uses the same comparison and
+has the same characteristic. Point it at a longer/live dataset to see it
+actually fire.
+
+#### `quiet_wick_rejection.py` — the risk-model isolation case
+
+`user_data/components/strategies/quiet_wick_rejection.py`
+(config: `apps/cli/examples/research_run_strategy_quiet_wick_rejection.yaml`):
+
+```python
+from decimal import Decimal
+
+from trading_framework.model_authoring import LONG, ON_TRUE_EDGE, candle, market_model, signal_model, volatility
+from trading_framework.strategy import (
+    EquityPercentRiskModel,
+    FixedBarsExitModel,
+    StrategyModelDefinition,
+)
+
+
+def build_strategy() -> StrategyModelDefinition:
+    market = market_model(
+        "quiet_wick_rejection_market",
+        when=(volatility.range_expansion(period=14) < 0.8),
+    ).definition
+
+    signal = signal_model(
+        "quiet_wick_rejection_signal",
+        direction=LONG,
+        when=(candle.lower_wick_ratio() > 0.4),
+        firing=ON_TRUE_EDGE,
+    ).definition
+
+    return StrategyModelDefinition(
+        strategy_model_id="quiet_wick_rejection",
+        market_model=market,
+        signal_model=signal,
+        exit_model=FixedBarsExitModel(exit_after_bars=10),
+        risk_model=EquityPercentRiskModel(
+            account_equity=Decimal(100_000),
+            risk_percent=Decimal("0.01"),
+            stop_distance=Decimal("2"),
+        ),
+    )
+```
+
+The deliberate isolation case (D-S048-11): `EquityPercentRiskModel` on the
+**unchanged** fixed-bars kernel (`kernels/fixed_bars.py`, not touched this
+sprint), proving the new sizing model is orthogonal to the new bracket
+exit-model change — a strategy can adopt equity-percent sizing without
+touching its exit model at all. On the committed OHLCV fixture this
+produces 53 trades, every one with `exit_reason == "fixed_bars"` (the only
+reason `FixedBarsExitModel` ever emits — intentionally only one distinct
+reason here, unlike `ema_reversion_bracket.py` above).
 
 ---
 
@@ -284,9 +474,12 @@ an oversight.
 - `docs/adr/ADR-0027-operator-authored-strategy-loading.md` — the design
   record: loading mechanism, the two import boundaries, error taxonomy.
 - `docs/adr/ADR-0028-bracket-exit-and-equity-relative-sizing.md` — the
-  declined Exit/Risk expansion, kept for a possible future sprint.
+  Exit/Risk expansion: declined for Sprint 047, resumed and accepted for
+  Sprint 048 (`BracketExitModel`, `EquityPercentRiskModel`).
 - `docs/reference/OPERATOR_CLI.md` — the full CLI operator guide.
 - `apps/cli/CLAUDE.md` — module context for anyone editing `apps/cli`.
+- `docs/planning/sprints/SPRINT_048.md`, `S048_WAVE0_DECISIONS.md` — the
+  sprint that shipped the three worked examples in §5's second block.
 - `docs/planning/sprints/SPRINT_047.md`, `S047_WAVE0_DECISIONS.md` — sprint
   scope and binding decisions.
 - `docs/planning/TECHNICAL_DEBT.md` TD-025 — the boundary test's blind spot.
