@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
 from decimal import Decimal
 
 import pytest
@@ -18,7 +19,7 @@ from trading_framework.research.robustness.stress import (
 )
 from trading_framework.research.simulation import SimulationAssumptions
 from trading_framework.strategy.canonical_examples import build_canonical_strategy_model
-from trading_framework.strategy.exit_model import FixedBarsExitModel
+from trading_framework.strategy.exit_model import BracketExitModel, FixedBarsExitModel
 
 
 def test_stress_scenario_spec_roundtrip_dict() -> None:
@@ -92,6 +93,21 @@ def test_apply_stress_strategy_model_adds_delay_bars() -> None:
     exit_model = stressed.exit_model
     assert isinstance(exit_model, FixedBarsExitModel)
     assert exit_model.exit_after_bars == 8
+
+
+def test_apply_stress_strategy_model_rejects_bracket_exit_delay() -> None:
+    strategy = build_canonical_strategy_model(exit_after_bars=5)
+    bracket_strategy = replace(
+        strategy,
+        exit_model=BracketExitModel(stop_loss_bps=50, take_profit_bps=120, max_bars=40),
+    )
+    scenario = StressScenarioSpec(
+        scenario_id="delay",
+        entry_delay_bars=1,
+        exit_delay_bars=2,
+    )
+    with pytest.raises(ValidationError, match="BracketExitModel"):
+        apply_stress_strategy_model(bracket_strategy, scenario)
 
 
 def test_stress_test_spec_requires_unique_scenario_ids() -> None:

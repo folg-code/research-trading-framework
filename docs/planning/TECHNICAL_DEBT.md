@@ -1309,6 +1309,126 @@ that needs to repay this would need its own ADR.
 
 ---
 
+## TD-027 — Robustness Delay Stress Rejects Bracket Exits
+
+```text
+Status: ACCEPTED
+Priority: MEDIUM
+Domain: Research Robustness / Strategy Research
+Introduced: Sprint 048 (2026-09-01)
+Target Review: First request to stress a bracket strategy
+Owner: Unassigned
+```
+
+### Accepted Shortcut
+
+`research/robustness/stress.py::apply_stress_strategy_model` (the delay stress
+dimension) raises `ValidationError` for any `BracketExitModel`, naming the
+model and the reason, instead of defining a delay semantics for it.
+
+### Reason
+
+"Delay a price-triggered exit by N bars" has no obviously correct meaning: a
+bracket's exit is driven by price (stop/target trigger), not by a fixed bar
+offset, so there is nothing analogous to `FixedBarsExitModel.exit_after_bars`
+to extend. Inventing a semantic here would be an unreviewed research-semantics
+decision smuggled into an engine sprint (D-S048-08, D-S048-09).
+
+### Consequences
+
+- An operator cannot run the entry/exit delay stress dimension against a
+  bracket strategy; the scenario fails fast with an explicit error instead of
+  silently producing a meaningless result.
+- Commission/slippage-multiplier and post-process (remove-top-N) stress
+  dimensions are unaffected — they do not touch the exit model.
+
+### Safe Operating Boundary
+
+No workflow may assume the delay stress dimension works for a
+`BracketExitModel` strategy. The rejection is deliberate, not a bug.
+
+### Repayment Trigger
+
+The first request to stress a bracket strategy's entry/exit timing, or the
+bracket-parameter stress dimensions (stressing `stop_loss_bps` /
+`take_profit_bps`) named as a Sprint 048 follow-on.
+
+### Repayment Direction
+
+Design a bracket-aware stress dimension (e.g. widening/narrowing
+`stop_loss_bps` / `take_profit_bps`) through its own ADR/Wave 0 decision
+rather than overloading "delay by N bars".
+
+### Related Tasks
+
+- `docs/planning/sprints/S048_WAVE0_DECISIONS.md` D-S048-08, D-S048-09
+- `src/trading_framework/research/robustness/stress.py`
+- `tests/unit/research/robustness/test_stress.py`
+
+---
+
+## TD-028 — No Independent Reference Implementation for the Bracket Kernel
+
+```text
+Status: ACCEPTED
+Priority: MEDIUM
+Domain: Research Simulation
+Introduced: Sprint 048 (2026-09-01)
+Target Review: First bracket-path numerical bug, or first change to bracket
+  fill semantics
+Owner: Unassigned
+```
+
+### Accepted Shortcut
+
+`research/simulation/kernels/bracket.py` (Sprint 048 Wave 2) will have no
+Python cross-check counterpart, unlike `kernels/fixed_bars.py`, which is
+verified against `kernels/reference.py`. `kernels/reference.py` stays typed
+to `FixedBarsExitModel` / `FixedQuantityRiskModel` and is not widened.
+
+### Reason
+
+A second reference implementation doubles the surface that must stay
+numerically consistent, for a new path with no legacy behaviour to protect.
+The bracket kernel is instead verified against hand-computed fixtures whose
+expected fill prices are written out by hand in the test, never derived from
+the implementation (D-S048-09, D-S048-10).
+
+### Consequences
+
+- A numerical bug in the bracket kernel has one fewer independent check than
+  the fixed-bars path has.
+- `kernels/reference.py` is explicitly typed to `FixedBarsExitModel` /
+  `FixedQuantityRiskModel`; passing a `BracketExitModel` through it is a type
+  error and would fail loudly (its `default_exit_reason` attribute lookup
+  raises `AttributeError`), not silently misbehave.
+
+### Safe Operating Boundary
+
+No workflow may treat `kernels/reference.py` as a cross-check for
+`kernels/bracket.py` results. The hand-computed fixtures are the only
+independent check until this is repaid.
+
+### Repayment Trigger
+
+The first numerically surprising bracket-path result, or the first change to
+bracket fill semantics (D-S048-04's locked stop/target/timeout rules).
+
+### Repayment Direction
+
+Add a Python reference implementation of the bracket kernel, built
+independently from `kernels/bracket.py`, and cross-check it the same way
+`kernels/fixed_bars.py` is cross-checked today.
+
+### Related Tasks
+
+- `docs/planning/sprints/S048_WAVE0_DECISIONS.md` D-S048-08, D-S048-09
+- `src/trading_framework/research/simulation/kernels/reference.py`
+- `src/trading_framework/research/simulation/kernels/bracket.py` (Sprint 048
+  Wave 2, not yet built as of this entry)
+
+---
+
 # 6. Planned Debt Boundaries
 
 The following shortcuts may be accepted later but are not yet introduced:
