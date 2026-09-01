@@ -291,8 +291,8 @@ catalog-only sprint, which is what Sprint 047 already was.**
 
 | Task | Description | Acceptance | Deps | Status |
 |------|-------------|-----------|------|--------|
-| S048-T009 | `trend.ema_distance` FEATURE component (depends on `trend.ema` + `volatility.atr`) outputting signed `distance_atr`; DSL `trend.ema_distance(period=20, atr_period=14, timeframe=None)` following the `LevelDistanceComponent` shape exactly | causal, no look-ahead; `valid_from_index` respects `max(EMA, ATR)` warmup; the zero-or-NaN-ATR convention is documented in the docstring and asserted by a test; the DSL returns an `Operand` usable in a `Condition`; MTF behaviour matches its dependencies | T004 | TODO |
-| S048-T010 | `volatility.range_expansion` FEATURE component (depends on `volatility.true_range` + `volatility.atr`) outputting dimensionless `ratio`; DSL `volatility.range_expansion(period=14, timeframe=None)` | causal; ATR warmup respected; zero-or-NaN-ATR convention documented and tested; a hand-computed fixture asserts `ratio == true_range / atr` on known bars | T009 | TODO |
+| S048-T009 | `trend.ema_distance` FEATURE component (depends on `trend.ema` + `volatility.atr`) outputting signed `distance_atr`; DSL `trend.ema_distance(period=20, atr_period=14, timeframe=None)` following the `LevelDistanceComponent` shape exactly | causal, no look-ahead; `valid_from_index` respects `max(EMA, ATR)` warmup; the zero-or-NaN-ATR convention is documented in the docstring and asserted by a test; the DSL returns an `Operand` usable in a `Condition`; MTF behaviour matches its dependencies | T004 | DONE (#377) |
+| S048-T010 | `volatility.range_expansion` FEATURE component (depends on `volatility.true_range` + `volatility.atr`) outputting dimensionless `ratio`; DSL `volatility.range_expansion(period=14, timeframe=None)` | causal; ATR warmup respected; zero-or-NaN-ATR convention documented and tested; a hand-computed fixture asserts `ratio == true_range / atr` on known bars | T009 | DONE (#378) |
 
 Depends on: Wave 1 (for a stable tree), not on Wave 2. **This is the descope
 wave** — drop T010 first, then T009. Never Waves 1 or 2.
@@ -305,7 +305,7 @@ wave** — drop T010 first, then T009. Never Waves 1 or 2.
 | S048-T012 | Framework-side end-to-end test: a bracket strategy loaded through `strategy_file` produces a run whose trades table contains more than one distinct `exit_reason` and whose manifest carries `exit_model_id == "bracket"` (PRD success metric 1) | the test fails if the run silently falls back to a fixed-bars path or if only one exit reason ever appears; committed fixture data only, no network, no ML extra | T011 | TODO |
 | S048-T013 | Docs and closure: `STRATEGY_AUTHORING.md` gains bracket + sizing sections (both fill conventions in one strategy; the operator-owned stop-consistency caveat; the three examples verbatim); `MODULE_MAP.md` + `ARCHITECTURE_OVERVIEW.md` entries for `kernels/bracket.py` and the two components; TD-026/027/028 in `TECHNICAL_DEBT.md`; `CURRENT_STATUS.md` §2/§6/§11/§12; ROADMAP §13E Status PROPOSED -> COMPLETE; the sprint Review section | a reader of the trades table can learn from the guide why two exit rows in the same run used different fill conventions; every TD entry has a named repayment trigger; the config schema still appears exactly once | T012 | TODO |
 
-**Progress:** 8 / 13 — Wave 1 complete (#368, #369, #370); Wave 2 complete (#372, #373, #374, #375)
+**Progress:** 10 / 13 — Wave 1 complete (#368, #369, #370); Wave 2 complete (#372, #373, #374, #375); Wave 3 complete (#377, #378)
 
 ---
 
