@@ -53,7 +53,7 @@ from trading_framework.research.simulation import (
     SimulationAssumptions,
     simulation_assumptions_fingerprint,
 )
-from trading_framework.strategy.exit_model import ExitModel, FixedBarsExitModel
+from trading_framework.strategy.exit_model import ExitModel, FixedBarsExitModel, PriceBracketExit
 from trading_framework.strategy.risk_model import RiskModel
 from trading_framework.strategy.strategy_model import (
     StrategyModelDefinition,
@@ -266,21 +266,26 @@ def _resolve_evaluation_inputs(
     return preloaded_column_batch, eval_result
 
 
-def _dispatch_exit_model(strategy_model: StrategyModelDefinition) -> FixedBarsExitModel:
+def _dispatch_exit_model(strategy_model: StrategyModelDefinition) -> ExitModel:
     """Dispatch ``strategy_model.exit_model`` to the kernel it can run on.
 
     Mirrors ``research/simulation/engine.py``'s ``_dispatch_exit_model`` (Sprint
     048, Correction 1 / D-S048-06): this is the SAME dispatch, one layer above
     the engine, so a structurally-valid exit model is not refused here before
     the engine ever sees it, nor accepted here only to be refused one layer
-    down. ``FixedBarsExitModel`` dispatches to the existing kernel; there is no
-    bracket kernel yet, so any other exit model is still refused here, with the
-    same error message this function has always raised.
+    down. ``FixedBarsExitModel`` dispatches to the existing kernel; any exit
+    model structurally conformant with ``PriceBracketExit`` dispatches to
+    ``kernels/bracket.py``. Anything else is still refused here, with the same
+    error message this function has always raised, its wording widened to
+    describe both supported shapes.
     """
     exit_model = strategy_model.exit_model
-    if isinstance(exit_model, FixedBarsExitModel):
+    if isinstance(exit_model, FixedBarsExitModel | PriceBracketExit):
         return exit_model
-    msg = "run_strategy_research supports FixedBarsExitModel only"
+    msg = (
+        "run_strategy_research supports FixedBarsExitModel or a "
+        "PriceBracketExit-conformant exit model only"
+    )
     raise StrategyResearchError(msg)
 
 
@@ -288,7 +293,10 @@ def _require_structural_risk_model(strategy_model: StrategyModelDefinition) -> R
     """Accept any ``RiskModel`` structurally; this layer only reads ``position_quantity()``."""
     risk_model: object = strategy_model.risk_model
     if not isinstance(risk_model, RiskModel):
-        msg = "run_strategy_research supports FixedQuantityRiskModel only"
+        msg = (
+            "run_strategy_research requires a RiskModel exposing "
+            "position_quantity() and allows_new_entry()"
+        )
         raise StrategyResearchError(msg)
     return risk_model
 
@@ -303,12 +311,19 @@ def _exit_model_parameters(exit_model: ExitModel) -> str:
 
     ``FixedBarsExitModel`` MUST emit exactly ``str(exit_after_bars)`` so the
     hashed payload, and therefore every existing persisted ``run_id``, stays
-    byte-identical. A future exit model dispatched here (e.g. a bracket exit)
-    must add its own branch encoding its own parameters by name, not just by
-    value, so it can never collide with a FixedBars encoding of different
-    parameters.
+    byte-identical. ``BracketExitModel`` (or any other ``PriceBracketExit``
+    -conformant model) encodes its stop/target/timeout fields by NAME, not
+    just by value, so it can never collide with a FixedBars encoding of
+    different parameters, or with a bracket model whose fields happen to
+    coincide numerically with something else.
     """
     if isinstance(exit_model, FixedBarsExitModel):
         return str(exit_model.exit_after_bars)
+    if isinstance(exit_model, PriceBracketExit):
+        return (
+            f"stop_loss_bps={exit_model.stop_loss_bps}"
+            f",take_profit_bps={exit_model.take_profit_bps}"
+            f",max_bars={exit_model.max_bars}"
+        )
     msg = f"no run-identity parameter encoding for exit model: {type(exit_model).__name__}"
     raise StrategyResearchError(msg)

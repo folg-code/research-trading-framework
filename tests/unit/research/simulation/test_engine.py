@@ -35,7 +35,8 @@ from trading_framework.strategy import (
     StrategyModelDefinition,
     build_canonical_strategy_model,
 )
-from trading_framework.strategy.exit_model import ExitReason
+from trading_framework.strategy.exit_model import BracketExitModel, ExitReason
+from trading_framework.strategy.risk_model import EquityPercentRiskModel
 
 
 def _bar(minute: int, *, open_price: str = "100", close_price: str = "103") -> MarketBar:
@@ -323,7 +324,10 @@ def test_simulate_rejects_unknown_exit_model_with_stable_message() -> None:
             instrument="ES.c.0",
             source_dataset_ref="dataset:test:1",
         )
-    assert str(exc_info.value) == "BarSequentialSimulator supports FixedBarsExitModel only"
+    assert str(exc_info.value) == (
+        "BarSequentialSimulator supports FixedBarsExitModel or a "
+        "PriceBracketExit-conformant exit model only"
+    )
 
 
 def test_simulate_from_columnar_rejects_unknown_exit_model_with_stable_message() -> None:
@@ -354,7 +358,10 @@ def test_simulate_from_columnar_rejects_unknown_exit_model_with_stable_message()
             instrument="ES.c.0",
             source_dataset_ref="dataset:test:1",
         )
-    assert str(exc_info.value) == "BarSequentialSimulator supports FixedBarsExitModel only"
+    assert str(exc_info.value) == (
+        "BarSequentialSimulator supports FixedBarsExitModel or a "
+        "PriceBracketExit-conformant exit model only"
+    )
 
 
 def test_simulate_accepts_structurally_conformant_risk_model() -> None:
@@ -427,3 +434,146 @@ def test_equity_curve_applies_closed_pnl_on_exit_bar() -> None:
         ]
         == 0
     )
+
+
+def _bracket_bar(
+    minute: int,
+    *,
+    open_price: str,
+    high_price: str,
+    low_price: str,
+    close_price: str,
+) -> MarketBar:
+    observed_at = datetime(2024, 1, 1, 12, minute, tzinfo=UTC)
+    return MarketBar(
+        open=Price(Decimal(open_price)),
+        high=Price(Decimal(high_price)),
+        low=Price(Decimal(low_price)),
+        close=Price(Decimal(close_price)),
+        volume=Volume(1000),
+        observed_at=observed_at,
+        available_at=observed_at + timedelta(seconds=1),
+    )
+
+
+def _bracket_strategy_model(
+    *, risk_model: FixedQuantityRiskModel | EquityPercentRiskModel | None = None
+) -> StrategyModelDefinition:
+    return StrategyModelDefinition(
+        strategy_model_id="test_bracket_strategy",
+        market_model=build_canonical_market_model_high_volatility(market_model_id="m1"),
+        signal_model=build_canonical_signal_higher_low_on_event(signal_model_id="s1"),
+        exit_model=BracketExitModel(
+            stop_loss_bps=100,
+            take_profit_bps=200,
+            max_bars=2,
+        ),
+        risk_model=risk_model or FixedQuantityRiskModel(quantity=Decimal("1")),
+    )
+
+
+def test_simulate_dispatches_bracket_exit_model_to_bracket_kernel() -> None:
+    """A BracketExitModel run produces trades under more than one distinct exit_reason.
+
+    Three sequential entries, hand-crafted so the first stops out on its own
+    entry bar, the second hits its take-profit one bar later, and the third
+    times out at max_bars -- proving the engine dispatches PriceBracketExit
+    strategies to kernels/bracket.py rather than raising or silently falling
+    back to the fixed-bars kernel (D-S048-04: stop=99, target=102 off a
+    100 entry fill; max_bars=2).
+    """
+    bars = [
+        _bracket_bar(0, open_price="100", high_price="100.2", low_price="99.8", close_price="100"),
+        # entry fill for trade 1 (open=100); its own low gaps through the
+        # stop (99) -> STOP_LOSS, held 0 bars. Also the signal source for
+        # trade 2.
+        _bracket_bar(1, open_price="100", high_price="100.5", low_price="98", close_price="99"),
+        # entry fill for trade 2 (open=100); stays inside the (99, 102) band.
+        _bracket_bar(2, open_price="100", high_price="101", low_price="99.5", close_price="100"),
+        # target (102) breached -> TAKE_PROFIT. Also the signal source for
+        # trade 3.
+        _bracket_bar(3, open_price="100", high_price="102.5", low_price="99.5", close_price="102"),
+        # entry fill for trade 3 (open=100); bars 4-5 stay inside the band
+        # for the whole max_bars=2 scan window.
+        _bracket_bar(4, open_price="100", high_price="101.5", low_price="99.5", close_price="100"),
+        _bracket_bar(5, open_price="100", high_price="101.8", low_price="99.2", close_price="100"),
+        # timeout signal bar (index 6); not scanned for triggers.
+        _bracket_bar(6, open_price="100", high_price="100.5", low_price="99.5", close_price="100"),
+        # timeout fill bar (index 7) -> MAX_BARS, filled at this bar's open.
+        _bracket_bar(7, open_price="105", high_price="105.5", low_price="104.5", close_price="105"),
+    ]
+    entry_signals = pl.DataFrame(
+        {
+            "available_at": [bars[0].observed_at, bars[1].observed_at, bars[3].observed_at],
+            "direction": ["long", "long", "long"],
+        }
+    )
+
+    result = BarSequentialSimulator().simulate(
+        bars=bars,
+        entry_signals=entry_signals,
+        strategy_model=_bracket_strategy_model(),
+        assumptions=SimulationAssumptions(),
+        instrument="ES.c.0",
+        source_dataset_ref="dataset:test:1",
+    )
+
+    assert len(result.trades) == 3
+    exit_reasons = set(result.trades["exit_reason"].to_list())
+    assert exit_reasons == {
+        ExitReason.STOP_LOSS.value,
+        ExitReason.TAKE_PROFIT.value,
+        ExitReason.MAX_BARS.value,
+    }
+    assert len(exit_reasons) > 1
+
+
+def test_simulate_with_equity_percent_risk_model_on_fixed_bars_kernel_runs_unchanged() -> None:
+    """The isolation case (D-S048-11 E3): EquityPercentRiskModel on the UNCHANGED
+    fixed-bars kernel, proving the risk-model widening (T007) is orthogonal to
+    the bracket kernel dispatch (T005/T006/T008).
+    """
+    bars = [
+        _bar(0),
+        _bar(1, open_price="100"),
+        _bar(2),
+        _bar(3),
+        _bar(4, open_price="103"),
+        _bar(5),
+    ]
+    entry_signals = pl.DataFrame(
+        {
+            "available_at": [bars[0].observed_at],
+            "direction": ["long"],
+        }
+    )
+    strategy_model = StrategyModelDefinition(
+        strategy_model_id="test_equity_percent_strategy",
+        market_model=build_canonical_market_model_high_volatility(market_model_id="m1"),
+        signal_model=build_canonical_signal_higher_low_on_event(signal_model_id="s1"),
+        exit_model=FixedBarsExitModel(exit_after_bars=2),
+        risk_model=EquityPercentRiskModel(
+            account_equity=Decimal("100000"),
+            risk_percent=Decimal("0.01"),
+            stop_distance=Decimal("50"),
+        ),
+    )
+
+    result = BarSequentialSimulator().simulate(
+        bars=bars,
+        entry_signals=entry_signals,
+        strategy_model=strategy_model,
+        assumptions=SimulationAssumptions(
+            initial_capital=Decimal("1000"),
+            commission_per_side=Decimal("1"),
+        ),
+        instrument="ES.c.0",
+        source_dataset_ref="dataset:test:1",
+    )
+
+    assert len(result.trades) == 1
+    trade = result.trades.row(0, named=True)
+    assert trade["exit_reason"] == ExitReason.FIXED_BARS.value
+    # quantity = (100000 * 0.01) / 50 = 20, derived once at construction.
+    assert trade["quantity"] == pytest.approx(20.0)
+    assert trade["gross_pnl"] == pytest.approx(3.0 * 20.0)
