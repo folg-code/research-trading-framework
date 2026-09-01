@@ -5,9 +5,9 @@
 ```text
 Sprint: 047
 Phase: Phase 12 — Custom Strategy Authoring (opening and, in scope terms, closing increment)
-Status: IN PROGRESS — approved 2026-09-01. ADR-0028 declined; Wave 2 dropped.
+Status: COMPLETE — 10/10 tasks. ADR-0028 declined; Wave 2 dropped.
 Planned Start: 2026-09-01
-Planned End: TBD
+Planned End: 2026-09-01
 Sprint Goal Owner: Project Maintainer
 Depends On: SPRINT_046 (the CLI being extended; merged to main via #361),
             SPRINT_013 (Strategy Model, Exit/Risk contracts, BarSequentialSimulator),
@@ -255,12 +255,12 @@ T010 first, then T009. Never Wave 1.
 
 | Task | Description | Acceptance | Deps | Status |
 |------|-------------|-----------|------|--------|
-| S047-T011 | Two new example strategies under `user_data/components/strategies/` — one exercising `candle.wick`, one exercising `structure.level_distance` (both still with the existing `FixedBarsExitModel`/`FixedQuantityRiskModel`, since Wave 2 is dropped) — each with a committed example config under the Sprint 046 examples location | both run through `trading-cli research run strategy`; each file is copy-pasteable and commented in the style of the existing three | W1, W3 | TODO |
-| S047-T012 | Framework-side fixture strategy + an end-to-end test in `apps/cli/tests` asserting the run manifest's `strategy_model_id` is the loaded strategy's, not the canonical one (PRD success metric 1), and that at least one new component is exercised (metric 2, component half only — Wave 2's Exit/Risk half is deferred) | the test fails if the loader silently falls back to the canonical example; committed fixture data only, no network, no ML extra | T011 | TODO |
-| S047-T013 | Docs: new `docs/reference/STRATEGY_AUTHORING.md` (the convention, the trust model, the error table, the advisory import convention); `OPERATOR_CLI.md` gains `strategy_file` and the narrowed `--dry-run` wording; `apps/cli/CLAUDE.md` gains the loader gotchas; MODULE_MAP + ARCHITECTURE_OVERVIEW entries; TD-025 in `TECHNICAL_DEBT.md` (TD-026 deferred with Wave 2) | the config schema still appears exactly once; a future agent editing `apps/cli` learns the trust model without opening ADR-0027 | T012 | TODO |
-| S047-T014 | ROADMAP.md §13D already applied (this sprint's planning PR, matching the #349 precedent — no separate proposal file to splice); update `CURRENT_STATUS.md` §2/§6/§11/§12, write the sprint Review section | status reflects delivered scope; `SPRINT_046.md` §4 Finding 2 is annotated as partially closed (strategy model only); §13D's Status line flips PLANNED -> COMPLETE | T013 | TODO |
+| S047-T011 | Two new example strategies under `user_data/components/strategies/` — one exercising `candle.wick`, one exercising `structure.level_distance` (both still with the existing `FixedBarsExitModel`/`FixedQuantityRiskModel`, since Wave 2 is dropped) — each with a committed example config under the Sprint 046 examples location | both run through `trading-cli research run strategy`; each file is copy-pasteable and commented in the style of the existing three | W1, W3 | DONE |
+| S047-T012 | Framework-side fixture strategy + an end-to-end test in `apps/cli/tests` asserting the run manifest's `strategy_model_id` is the loaded strategy's, not the canonical one (PRD success metric 1), and that at least one new component is exercised (metric 2, component half only — Wave 2's Exit/Risk half is deferred) | the test fails if the loader silently falls back to the canonical example; committed fixture data only, no network, no ML extra | T011 | DONE |
+| S047-T013 | Docs: new `docs/reference/STRATEGY_AUTHORING.md` (the convention, the trust model, the error table, the advisory import convention); `OPERATOR_CLI.md` gains `strategy_file` and the narrowed `--dry-run` wording; `apps/cli/CLAUDE.md` gains the loader gotchas; MODULE_MAP + ARCHITECTURE_OVERVIEW entries; TD-025 in `TECHNICAL_DEBT.md` (TD-026 deferred with Wave 2) | the config schema still appears exactly once; a future agent editing `apps/cli` learns the trust model without opening ADR-0027 | T012 | DONE |
+| S047-T014 | ROADMAP.md §13D already applied (this sprint's planning PR, matching the #349 precedent — no separate proposal file to splice); update `CURRENT_STATUS.md` §2/§6/§11/§12, write the sprint Review section | status reflects delivered scope; `SPRINT_046.md` §4 Finding 2 is annotated as partially closed (strategy model only); §13D's Status line flips PLANNED -> COMPLETE | T013 | DONE |
 
-**Progress:** 6 / 10 (S047-T005–T008 retired with Wave 2 — see §6 Wave 2 note)
+**Progress:** 10 / 10 (S047-T005–T008 retired with Wave 2 — see §6 Wave 2 note)
 
 ---
 

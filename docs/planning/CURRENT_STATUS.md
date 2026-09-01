@@ -26,24 +26,27 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 ## 2. Status Metadata
 
 ```text
-Status Date: 2026-08-31
+Status Date: 2026-09-01
 Current Phase: Phase 10 — Predictive (ML) Research — COMPLETE (Sprints 039-044);
   Phase 2F — Exchange REST Historical Import — COMPLETE (Sprint 045);
-  Phase 11 — Universal Operator CLI — COMPLETE (Sprint 046)
-Current Milestone: none — Phase 10, Phase 2F and Phase 11 closed; no next capability
-  scheduled by default
-Implementation Status: Sprints 001-006, 008-024, 025-045 on main (S044 merged via #348; S045
-  merged via #355); S046 complete (14/14) on sprint/operator-cli, final integration PR to
-  main pending
+  Phase 11 — Universal Operator CLI — COMPLETE (Sprint 046);
+  Phase 12 — Custom Strategy Authoring — COMPLETE (Sprint 047)
+Current Milestone: none — Phase 10, Phase 2F, Phase 11 and Phase 12 closed; no next
+  capability scheduled by default
+Implementation Status: Sprints 001-046 on main (S044 merged via #348; S045 merged via #355;
+  S046 merged via #361); S047 complete (10/10) on sprint/strategy-authoring, final
+  integration PR to main pending
 Overall Status: STABLE
 Active Sprint: none
-Last Completed Sprint: SPRINT_046 (Universal Operator CLI, Phase 11 opening and closing
-  increment) — 14/14 tasks complete on sprint/operator-cli; integration PR to main pending.
-  Sprint 045 (Binance USD-M historical OHLCV ingestion, Phase 2F) is merged to main (#355).
-Capability Tracks: Foundation COMPLETE; Data COMPLETE (core); Research COMPLETE (core); Strategy 6A COMPLETE; Phase 8A dry-run + S024 on main; Dashboard / Live Paper / public demo COMPLETE; Phase 10 COMPLETE (S039-S044: Foundation, Tree-Based and Neural Predictive Models, dashboard page, ADR-0024 + IDEA-014 gate); Phase 2F COMPLETE (S045: Binance USD-M historical OHLCV import, ADR-0025, merged to main #355); Phase 11 COMPLETE (S046: Universal Operator CLI trading-cli, ADR-0026)
-Recent: S046 Wave 3 closes Phase 11 — `data fetch binance` wired to the Sprint 045 workflow,
-  example configs per command group, `docs/reference/OPERATOR_CLI.md`, `apps/cli/CLAUDE.md`,
-  ROADMAP/CURRENT_STATUS record Phase 11 complete. Sprint 045 integrated to main (#355).
+Last Completed Sprint: SPRINT_047 (Custom Strategy Authoring, Phase 12 opening and closing
+  increment) — 10/10 tasks complete on sprint/strategy-authoring; integration PR to main
+  pending. Sprint 046 (Universal Operator CLI, Phase 11) is merged to main (#361).
+Capability Tracks: Foundation COMPLETE; Data COMPLETE (core); Research COMPLETE (core); Strategy 6A COMPLETE; Phase 8A dry-run + S024 on main; Dashboard / Live Paper / public demo COMPLETE; Phase 10 COMPLETE (S039-S044: Foundation, Tree-Based and Neural Predictive Models, dashboard page, ADR-0024 + IDEA-014 gate); Phase 2F COMPLETE (S045: Binance USD-M historical OHLCV import, ADR-0025, merged to main #355); Phase 11 COMPLETE (S046: Universal Operator CLI trading-cli, ADR-0026, merged to main #361); Phase 12 COMPLETE (S047: Custom Strategy Authoring, `strategy_file` loader + candle.wick + structure.level_distance, ADR-0027; ADR-0028 declined)
+Recent: S047 Wave 4 closes Phase 12 — two worked example strategies (candle.wick,
+  structure.level_distance) plus their example configs, an end-to-end metric test proving
+  the loaded strategy's id reaches the run manifest, `docs/reference/STRATEGY_AUTHORING.md`,
+  OPERATOR_CLI.md / apps/cli/CLAUDE.md / MODULE_MAP.md updates, ROADMAP/CURRENT_STATUS record
+  Phase 12 complete. Sprint 046 integrated to main (#361).
 ```
 
 ---
@@ -487,9 +490,10 @@ Maintenance: `.cursor/rules/documentation.mdc`
 
 ## 6. Work in Progress
 
-**Active sprint:** none. Sprint 046 (cut from `main` @ #349, after Sprint 045
-merged via #355) is complete (14/14) on `sprint/operator-cli`; the final
-integration PR into `main` is pending — that closes Phase 11. Sprint 045 is
+**Active sprint:** none. Sprint 047 (cut from `main` @ #362, after Sprint 046
+merged via #361) is complete (10/10) on `sprint/strategy-authoring`; the
+final integration PR into `main` is pending — that closes Phase 12. Sprint
+046 is merged to `main` (#361, 14/14) and closes Phase 11. Sprint 045 is
 merged to `main` (#355, 14/14) and closes Phase 2F. Sprint 044 is complete on
 `main` (#348, 18/18). Sprint 043 is complete on `main` (#342, 21/21).
 
@@ -499,10 +503,33 @@ merged to `main` (#355, 14/14) and closes Phase 2F. Sprint 044 is complete on
 
 **Plan:** `docs/planning/sprints/SPRINT_017.md` · **Wave 0:** `S017_WAVE0_DECISIONS.md` · **ADR:** ADR-0020 (ACCEPTED) · **Branch:** `sprint/model-research-methodology-mvp`
 
+### Sprint 047 — Closed (Phase 12 opening and closing increment; Phase 12 complete)
+
+**Status:** COMPLETE (10/10) on `sprint/strategy-authoring`; final
+integration PR into `main` pending
+**Plan:** `docs/planning/sprints/SPRINT_047.md`
+**Wave 0:** `docs/planning/sprints/S047_WAVE0_DECISIONS.md`
+**ADR:** ADR-0027 (ACCEPTED); ADR-0028 (PROPOSED, declined for this sprint —
+Wave 2 dropped, see SPRINT_047.md §4 Finding 1)
+**Tasks:** 10 / 10 (S047-T005–T008 retired with Wave 2, not renumbered)
+**PRs:** #363 (`strategy_file` loader, T001–T004), #364 (`candle.wick` +
+`structure.level_distance` components, T009–T010), (this PR, examples +
+end-to-end metric test + docs + closure, T011–T014)
+**Branch:** `sprint/strategy-authoring`
+**Scope:** `research.strategy.strategy_file` config key loading an
+operator-authored Python strategy file (`trading_cli/strategy_loader.py`,
+fixed `build_strategy()` convention, full pre-flight error taxonomy);
+`candle.wick` and `structure.level_distance` Market Analysis components;
+two worked example strategies + example configs proving the loader composes
+with the catalog end to end; `docs/reference/STRATEGY_AUTHORING.md`;
+`OPERATOR_CLI.md` / `apps/cli/CLAUDE.md` / `MODULE_MAP.md` updates; Phase 12
+closure documentation. Wave 2 (`BracketExitModel`, `EquityPercentRiskModel`,
+engine dispatch) was declined by the maintainer and is not part of this
+sprint's delivery — deferred to a possible future sprint.
+
 ### Sprint 046 — Closed (Phase 11 opening and closing increment; Phase 11 complete)
 
-**Status:** COMPLETE (14/14) on `sprint/operator-cli`; final integration PR
-into `main` pending
+**Status:** COMPLETE (14/14), merged to `main` via #361
 **Plan:** `docs/planning/sprints/SPRINT_046.md`
 **Wave 0:** `docs/planning/sprints/S046_WAVE0_DECISIONS.md`
 **ADR:** ADR-0026 (ACCEPTED)
@@ -510,8 +537,9 @@ into `main` pending
 **PRs:** #356 (skeleton + config loader + exit-code taxonomy), #357 (command
 groups wired to existing workflows), #358 (ADR-0026 Amendment 1: Wave 2
 import-boundary exceptions), #359 (Binance wiring + example configs +
-operator guide + module context), #360 (this PR, roadmap/status closure)
-**Branch:** `sprint/operator-cli`
+operator guide + module context), #361 (roadmap/status closure, merged to
+`main`)
+**Branch:** `sprint/operator-cli` (merged)
 **Scope:** `apps/cli` workspace member exposing `trading-cli` over the four
 command groups (`data fetch`, `research run`, `dry-run start`, `report
 render`), YAML config contract with strict validation, `--dry-run` /
@@ -786,21 +814,22 @@ main via #348. ADR-0023 and ADR-0024 ACCEPTED. Phase 10 (10A, 10B, 10C) is COMPL
 Sprint 045 Binance USD-M historical OHLCV ingestion (Phase 2F) COMPLETE
 (14/14), merged to main via #355. ADR-0025 ACCEPTED. Phase 2F is COMPLETE
 (ROADMAP §13B).
-Sprint 046 Universal Operator CLI (Phase 11) COMPLETE (14/14) on
-sprint/operator-cli; final integration PR to main pending. ADR-0026
-ACCEPTED. Phase 11 is COMPLETE (ROADMAP §13C).
+Sprint 046 Universal Operator CLI (Phase 11) COMPLETE (14/14), merged to
+main via #361. ADR-0026 ACCEPTED. Phase 11 is COMPLETE (ROADMAP §13C).
+Sprint 047 Custom Strategy Authoring (Phase 12) COMPLETE (10/10) on
+sprint/strategy-authoring; final integration PR to main pending. ADR-0027
+ACCEPTED; ADR-0028 declined (Wave 2 dropped). Phase 12 is COMPLETE
+(ROADMAP §13D).
 
-Active: none. Phase 10, Phase 2F and Phase 11 are closed (ROADMAP §13A,
-§13B, §13C). No next capability is scheduled by default; see SPRINT_044.md
-§12 and SPRINT_046.md §12 for unscheduled candidate follow-ons (ML Market
-Analysis component gated by ADR-0024, cross-sectional predictive studies,
-SHAP, content-addressed artifact store, Binance `trades` mode,
-resume-after-failure imports, exposing the strategy model / session resolver
-through the application layer, additional CLI command groups, shell
-completion).
-
-Catalog in parallel (independent of Phase 10):
-    wick / distance catalog PRs
+Active: none. Phase 10, Phase 2F, Phase 11 and Phase 12 are closed (ROADMAP
+§13A, §13B, §13C, §13D). No next capability is scheduled by default; see
+SPRINT_044.md §12, SPRINT_046.md §12 and SPRINT_047.md §12 for unscheduled
+candidate follow-ons (ML Market Analysis component gated by ADR-0024,
+cross-sectional predictive studies, SHAP, content-addressed artifact store,
+Binance `trades` mode, resume-after-failure imports, exposing the simulation
+assumptions / session resolver through the application layer, additional CLI
+command groups, shell completion, Exit/Risk model expansion per ADR-0028 if
+revisited, arithmetic in the model-expression IR).
 
 Deferred relative to that track:
     Phase 4B — Orderflow Market Analysis
@@ -892,7 +921,8 @@ See `docs/planning/sprints/SPRINT_044.md`, `S044_WAVE0_DECISIONS.md`, `SPRINT_04
 | 043 | Neural predictive models (Phase 10C) | COMPLETED | 21 / 21 tasks; main #342; working PRs #336–#341 |
 | 044 | Predictive dashboard + IDEA-014 gate (Phase 10C) | COMPLETED | 18 / 18 tasks; main #348; working PRs #343–#347 |
 | 045 | Binance USD-M historical OHLCV ingestion (Phase 2F) | COMPLETED | 14 / 14 tasks; main #355; working PRs #350–#354 |
-| 046 | Universal Operator CLI (Phase 11, `trading-cli`) | COMPLETED | 14 / 14 tasks; working PRs #356–#359; integration PR to main pending |
+| 046 | Universal Operator CLI (Phase 11, `trading-cli`) | COMPLETED | 14 / 14 tasks; main #361; working PRs #356–#360 |
+| 047 | Custom Strategy Authoring (Phase 12, `strategy_file` loader) | COMPLETED | 10 / 10 tasks; working PRs #363–#364 (this PR closes it); integration PR to main pending |
 
 ---
 

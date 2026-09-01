@@ -1,6 +1,6 @@
 # apps/cli (`trading-cli`)
 
-Responsibility: one operator-facing entry point (`trading-cli <group> <command> --config <path>`) over the existing application-layer research/data/execution workflows. See `docs/reference/MODULE_MAP.md` for the full component list and `docs/reference/OPERATOR_CLI.md` for the operator-facing how-to guide (config schema pointer, all four command groups, exit codes, known limitations).
+Responsibility: one operator-facing entry point (`trading-cli <group> <command> --config <path>`) over the existing application-layer research/data/execution workflows. See `docs/reference/MODULE_MAP.md` for the full component list and `docs/reference/OPERATOR_CLI.md` for the operator-facing how-to guide (config schema pointer, all four command groups, exit codes, known limitations). `docs/reference/STRATEGY_AUTHORING.md` is the operator guide for `research.strategy.strategy_file` specifically (Sprint 047, ADR-0027): the `build_strategy()` convention, the full error table, and two worked examples matching `apps/cli/examples/research_run_strategy_candle_wick.yaml` / `research_run_strategy_level_distance.yaml`.
 
 ## Conventions specific to this module
 
@@ -22,3 +22,4 @@ Responsibility: one operator-facing entry point (`trading-cli <group> <command> 
 ## Tests
 
 - `apps/cli/tests/` is this package's own suite (own CI job, `apps/dashboard` pattern). Tier 1, network-free, no ML extra (`ml`/`dl`) installed or required -- workflow bodies that need one (e.g. `research run predictive`'s estimator fit) are faked at the module boundary; the CLI's own coverage is the seam (config -> typed request -> typed result), not the wrapped workflow's internals, which already has its own test suite.
+- `apps/cli/tests/fixtures/strategies/` holds two different kinds of fixture, don't conflate them: the loader's own error-matrix fixtures (`missing_entry_point.py`, `not_callable.py`, ... -- one per ADR-0027 §5 row, S047-T004) each exist to *fail* in one specific way; `uses_candle_wick.py` (S047-T012) is a *passing* fixture composed from the new `candle.wick` component, backing the end-to-end test that the run manifest's `strategy_model_id` is the loaded strategy's and that a new catalog component is actually exercised (PRD success metrics 1 and 2, component half).

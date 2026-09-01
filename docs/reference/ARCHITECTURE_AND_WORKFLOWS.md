@@ -789,12 +789,28 @@ Strategy), `dry-run start` (the existing BTC futures dry-run runtime),
 `report render` (Predictive, Strategy). `scripts/` is unchanged and remains a
 valid front door; the CLI is additive.
 
+**Phase 12 (Sprint 047, ADR-0027)** closed the strategy-model third of the
+v1 limitation below: `research run strategy` now accepts an optional
+`research.strategy.strategy_file` key naming an operator-authored Python
+file with a zero-argument `build_strategy() -> StrategyModelDefinition`
+entry point, loaded during plan resolution (before any side effect) with no
+sandbox and no import restriction — the same trust level as running any
+local script. See `docs/reference/STRATEGY_AUTHORING.md` and
+`docs/adr/ADR-0027-operator-authored-strategy-loading.md`. The simulation
+assumptions and session resolver remain hardcoded — the other two thirds of
+the limitation, unchanged this phase.
+
 ### Future Direction
 
 Additional command groups (`robustness`, `signal`) if the four groups prove
-out; exposing the strategy model / session resolver through the application
-layer so YAML can select them, removing a documented v1 limitation; shell
-completion and a packaged install.
+out; exposing the simulation assumptions / session resolver through the
+application layer so YAML can select them, closing the remaining two thirds
+of the v1 limitation Phase 12 only partially closed; shell completion and a
+packaged install. Exit/Risk model expansion (`BracketExitModel`,
+`EquityPercentRiskModel`, stop-loss / take-profit, equity-relative sizing)
+was scoped in `docs/adr/ADR-0028-bracket-exit-and-equity-relative-sizing.md`
+and declined for Sprint 047; deferred to a possible future sprint with its
+own engine-focused ADR.
 
 ---
 
