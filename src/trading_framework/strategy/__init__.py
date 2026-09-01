@@ -14,7 +14,13 @@ from trading_framework.strategy.canonical_examples import (
     CANONICAL_STRATEGY_MODEL_ID,
     build_canonical_strategy_model,
 )
-from trading_framework.strategy.exit_model import ExitModel, ExitReason, FixedBarsExitModel
+from trading_framework.strategy.exit_model import (
+    BracketExitModel,
+    ExitModel,
+    ExitReason,
+    FixedBarsExitModel,
+    PriceBracketExit,
+)
 from trading_framework.strategy.reference_price import (
     ReferencePriceLookup,
     ReferencePricePolicy,
@@ -22,7 +28,11 @@ from trading_framework.strategy.reference_price import (
     require_close_at_detected_at_policy,
     resolve_reference_price,
 )
-from trading_framework.strategy.risk_model import FixedQuantityRiskModel, RiskModel
+from trading_framework.strategy.risk_model import (
+    EquityPercentRiskModel,
+    FixedQuantityRiskModel,
+    RiskModel,
+)
 from trading_framework.strategy.signal_occurrence import (
     OccurrenceMaterializationContext,
     derive_occurrence_id,
@@ -43,12 +53,15 @@ __all__ = [
     "CANONICAL_EXIT_AFTER_BARS",
     "CANONICAL_POSITION_QUANTITY",
     "CANONICAL_STRATEGY_MODEL_ID",
+    "BracketExitModel",
     "BtcFuturesDemoStrategyConfig",
+    "EquityPercentRiskModel",
     "ExitModel",
     "ExitReason",
     "FixedBarsExitModel",
     "FixedQuantityRiskModel",
     "OccurrenceMaterializationContext",
+    "PriceBracketExit",
     "ReferencePriceLookup",
     "ReferencePricePolicy",
     "RiskModel",
