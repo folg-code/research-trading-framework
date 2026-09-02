@@ -87,7 +87,7 @@ Research Capability Track
   Phase 10A — Predictive Research Foundation      COMPLETE  (Sprints 039–041)
   Phase 10B — Tree-Based Predictive Models        COMPLETE  (Sprint 042)
   Phase 10C — Neural Predictive Models            COMPLETE  (Sprints 043–044)
-  Phase 14 — Predictive Model Promotion           APPROVED  (Sprints 049 + 050; 049 IN PROGRESS)
+  Phase 14 — Predictive Model Promotion           APPROVED  (Sprints 049 + 050; 049 COMPLETE, 14A only — 050 NOT planned)
 
 Execution Capability Track
   Phase 8 — Replay and Paper Execution            PLANNED
@@ -1715,9 +1715,14 @@ Equity-percent sizing is STATIC and must never be described as compounding
 
 # 13F. Phase 14 — Predictive Model Promotion (APPROVED)
 
-**Status:** **APPROVED** (maintainer, 2026-09-02). Sprint 049 (increment 14A)
-is IN PROGRESS — Wave 0 approved in full, Wave 1 (S049-T001) complete
-(#387). Sprint 050 (increment 14B) is NOT planned yet.
+**Status:** **APPROVED** (maintainer, 2026-09-02). **Sprint 049 (increment
+14A) is COMPLETE** (15/15, on `sprint/promotable-predictive-artifact`; final
+integration PR to `main` pending) — ADR-0024 conditions 1 and 5 closed,
+condition 4's offline half (Path A) built and passing at its locked bars
+(measured maximum `y_proba` deviation: `0.0`). **Sprint 050 (increment 14B)
+is NOT planned yet.** Phase 14 as a whole is **NOT complete** — 14A ships no
+Market Analysis component, no State, no executor change, and no dry-run
+session; see `docs/planning/sprints/SPRINT_049.md` §13 Review.
 **Product source:** `docs/product/PRD-ml-signal-promotion.md` — the maintainer's
 discovery record; authoritative on scope, format, fold selection and the parity
 bar.
@@ -1766,10 +1771,11 @@ follow-on track once this mechanism is proven end to end.
 ## Two increments, deliberately sequenced
 
 ```text
-14A — Promotable Predictive Artifact          Sprint 049 (IN PROGRESS)
+14A — Promotable Predictive Artifact          Sprint 049 (COMPLETE, 15/15)
       ADR-0024 conditions 1 and 5 closed; condition 4's OFFLINE half (Path A)
-      built and passing. Touches the research pipeline and storage only.
-      Ships NO Market Analysis component, NO executor change, NO State.
+      built and passing (measured maximum y_proba deviation: 0.0). Touches
+      the research pipeline and storage only. Ships NO Market Analysis
+      component, NO executor change, NO State.
 
 14B — Model-Backed Market Analysis State      Sprint 050 (NOT planned yet)
       ADR-0024 conditions 2, 3 and condition 4's RUNTIME half (Path B) closed.
