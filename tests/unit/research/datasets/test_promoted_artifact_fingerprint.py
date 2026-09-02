@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import ast
 import hashlib
+import inspect
 import json
 from pathlib import Path
 
@@ -12,11 +13,15 @@ from trading_framework.research.datasets.promoted_artifact import (
     compute_promoted_artifact_fingerprint,
 )
 
+#: Names a future change might plausibly use for a fitted-value argument.
+#: Used only to pin today's signature — see
+#: ``test_fingerprint_has_no_fitted_parameter_input_by_construction``.
+_FITTED_VALUE_PARAMETER_NAMES = frozenset(
+    {"coefficients", "coefficient", "intercept", "weights", "statistics", "parameters", "params"}
+)
 
-def _fingerprint(*, coefficients: tuple[float, ...] = (1.0, 2.0)) -> str:
-    # `coefficients` is accepted only by this test helper, never by the
-    # function under test — proving the fitted values cannot reach the hash.
-    del coefficients
+
+def _fingerprint() -> str:
     return compute_promoted_artifact_fingerprint(
         run_fingerprint="a" * 64,
         fold_id=3,
@@ -113,16 +118,36 @@ def test_fingerprint_changes_with_format_fold_family_and_feature_order() -> None
     assert order_changed != baseline
 
 
-def test_fitted_parameter_values_are_not_hashed() -> None:
-    """A perturbed fitted coefficient does not perturb the fingerprint (Q9).
+def test_fingerprint_has_no_fitted_parameter_input_by_construction() -> None:
+    """The Q9 exclusion is structural, not filtered out at runtime.
 
-    The function under test accepts no coefficient/intercept/statistics
-    argument at all, so this is structurally guaranteed rather than merely
-    observed — this test documents that guarantee explicitly.
+    ``compute_promoted_artifact_fingerprint`` accepts no
+    coefficient/intercept/weights/statistics argument at all — there is
+    nothing a caller could even pass that would reach the hashed payload.
+    This test pins that signature: if a future change added such a
+    parameter, this test fails immediately, forcing a deliberate decision
+    about whether (and how) it should be threaded into the hash, rather
+    than letting it leak in silently.
     """
-    unperturbed = _fingerprint(coefficients=(1.0, 2.0))
-    perturbed = _fingerprint(coefficients=(1.0, 999.999))
-    assert unperturbed == perturbed
+    parameters = inspect.signature(compute_promoted_artifact_fingerprint).parameters
+    leaked = set(parameters) & _FITTED_VALUE_PARAMETER_NAMES
+    assert not leaked, f"fitted-value parameter(s) reached the signature: {sorted(leaked)}"
+
+
+def test_fingerprint_is_identical_across_two_different_fits_of_the_same_promotion() -> None:
+    """Regression guard for the Q9 identity choice (D-S049-05).
+
+    Simulates "the same run, fold and spec, promoted from two different
+    fitted blobs": every field the function DOES hash is supplied
+    identically in both calls, standing in for two fits whose only
+    difference would be their coefficient/intercept/statistics values.
+    Because fitted values are never part of the input (see the signature
+    test above), the two fingerprints must be equal — identity is "which
+    run, which fold, which spec", never "which numbers came out of the fit."
+    """
+    fit_one = _fingerprint()
+    fit_two = _fingerprint()
+    assert fit_one == fit_two
 
 
 def test_fingerprint_module_does_not_import_ml_library() -> None:
