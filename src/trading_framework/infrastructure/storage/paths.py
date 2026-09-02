@@ -31,6 +31,9 @@ Canonical workspace root (``--storage-root`` / operator workspace)::
             learning_curves.json   # optional; inner-train / inner-val loss per fold
             window_accounting.json # optional; dropped windows and effective sample
             models/fold_{n}.bin
+          promoted/{artifact_fingerprint}/     # promoted predictive artifacts
+            manifest.json      # PromotedArtifactManifest; independently readable
+            artifact.json      # parameter payload (coefficients, statistics)
       runtime/            # execution dry-run state (operator-managed)
       reports/            # optional loose reports (prefer run-local report/)
 
@@ -160,6 +163,30 @@ def predictive_research_run_learning_curves_path(root: Path, run_id: str) -> Pat
 def predictive_research_run_window_accounting_path(root: Path, run_id: str) -> Path:
     """Return the dropped-window accounting sidecar path for one run."""
     return predictive_research_run_dir(root, run_id) / "window_accounting.json"
+
+
+def promoted_artifacts_root(workspace: Path) -> Path:
+    """Return the promoted-artifact store root (ADR-0029 §2, D-S049-03).
+
+    Content-addressed by ``artifact_fingerprint`` only — no index, no
+    ``latest`` pointer, no registry lives under this root.
+    """
+    return predictive_research_root(workspace) / "promoted"
+
+
+def promoted_artifact_dir(root: Path, artifact_fingerprint: str) -> Path:
+    """Return the content-addressed directory for one promoted artifact."""
+    return promoted_artifacts_root(root) / artifact_fingerprint
+
+
+def promoted_artifact_manifest_path(root: Path, artifact_fingerprint: str) -> Path:
+    """Return the manifest path for one promoted artifact."""
+    return promoted_artifact_dir(root, artifact_fingerprint) / "manifest.json"
+
+
+def promoted_artifact_payload_path(root: Path, artifact_fingerprint: str) -> Path:
+    """Return the parameter-payload path for one promoted artifact."""
+    return promoted_artifact_dir(root, artifact_fingerprint) / "artifact.json"
 
 
 def dataset_metadata_path(root: Path, dataset_ref: DatasetRef) -> Path:
