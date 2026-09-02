@@ -5,7 +5,9 @@
 ```text
 Sprint: 049
 Phase: Phase 14 — Predictive Model Promotion; increment 14A (opening increment; NOT closing)
-Status: APPROVED (2026-09-02) — Wave 0 Checklist D-S049-12 signed off in full
+Status: COMPLETE (2026-09-02) — 15/15 tasks on `sprint/promotable-predictive-artifact`;
+  final integration PR to `main` pending. Phase 14A (this sprint) is complete;
+  Phase 14 as a whole is NOT — Sprint 050 / Phase 14B is not opened. See §13 Review.
 Planned Start: 2026-09-02
 Planned End: TBD
 Sprint Goal Owner: Project Maintainer
@@ -364,10 +366,13 @@ T009. T010a and T010b are never dropped.**
 
 | Task | Description | Acceptance | Deps | Status |
 |------|-------------|-----------|------|--------|
-| S049-T013 | `docs/reference/PREDICTIVE_PROMOTION.md`: what a promoted artifact is and is not; the parameter-file schema and store layout; the fingerprint derivation; **both guards** (load-time and promotion-time) and what to do when each fires; the **linear/logistic-only restriction and the deferred joblib path**; the last-fold policy and its one-fold staleness; **the two parity comparisons and why only one of them carries a tolerance**; and a loud statement that a promoted artifact is **not** a tradeable verdict. Update `research/predictive/CLAUDE.md` and `infrastructure/ml/CLAUDE.md` (the latter for the `FittedNumpyPreprocessor` move) | the store layout appears exactly once across all docs; a future agent learns both guard postures and the family restriction without opening ADR-0029; TD-022's disposition is stated in `TECHNICAL_DEBT.md` with its reason; TD-021 restated as deferred; **the deferred tree/neural joblib path gets a tracked owner** (TD or Idea Inbox entry) rather than living only as a PRD Non-goal | T012 | TODO |
-| S049-T014 | Closure: flip ROADMAP §13F's 14A status, update `CURRENT_STATUS.md` §2/§6/§9/§11/§12, write the sprint Review, and record which ADR-0024 conditions remain open for Sprint 050, the S049-T001 verdict, **the measured maximum `y_proba` deviation from T010b**, and Finding 8's TD-027 flag for Sprint 050's robustness plan | `CURRENT_STATUS.md` never claims Phase 14 is complete; the ADR table gains ADR-0029 (and ADR-0030 if T001 concluded it is needed); the Review states plainly that no model has been promoted to a State, and whether Path A held at the locked bars — the single most important fact for Sprint 050's planning | T013 | TODO |
+| S049-T013 | `docs/reference/PREDICTIVE_PROMOTION.md`: what a promoted artifact is and is not; the parameter-file schema and store layout; the fingerprint derivation; **both guards** (load-time and promotion-time) and what to do when each fires; the **linear/logistic-only restriction and the deferred joblib path**; the last-fold policy and its one-fold staleness; **the two parity comparisons and why only one of them carries a tolerance**; and a loud statement that a promoted artifact is **not** a tradeable verdict. Update `research/predictive/CLAUDE.md` and `infrastructure/ml/CLAUDE.md` (the latter for the `FittedNumpyPreprocessor` move) | the store layout appears exactly once across all docs; a future agent learns both guard postures and the family restriction without opening ADR-0029; TD-022's disposition is stated in `TECHNICAL_DEBT.md` with its reason; TD-021 restated as deferred; **the deferred tree/neural joblib path gets a tracked owner** (TD or Idea Inbox entry) rather than living only as a PRD Non-goal | T012 | DONE |
+| S049-T014 | Closure: flip ROADMAP §13F's 14A status, update `CURRENT_STATUS.md` §2/§6/§9/§11/§12, write the sprint Review, and record which ADR-0024 conditions remain open for Sprint 050, the S049-T001 verdict, **the measured maximum `y_proba` deviation from T010b**, and Finding 8's TD-027 flag for Sprint 050's robustness plan | `CURRENT_STATUS.md` never claims Phase 14 is complete; the ADR table gains ADR-0029 (and ADR-0030 if T001 concluded it is needed); the Review states plainly that no model has been promoted to a State, and whether Path A held at the locked bars — the single most important fact for Sprint 050's planning | T013 | DONE |
 
-**Progress:** 14 / 15
+**Progress:** 15 / 15 — **Sprint 049 (Phase 14A) is COMPLETE on
+`sprint/promotable-predictive-artifact`.** Phase 14 as a whole (both
+increments) is **NOT** complete — Sprint 050 / Phase 14B is not opened. See
+§13 Review.
 
 ---
 
@@ -505,3 +510,186 @@ Other candidates: **the deferred joblib path for tree/neural promotion**;
 §7 amendment's exception entirely); extending Predictive Research itself (the
 maintainer's stated next priority); report/dashboard extensions; cross-sectional
 studies; SHAP.
+
+---
+
+## 13. Review
+
+Closed 2026-09-02 on `sprint/promotable-predictive-artifact`, 15/15 tasks.
+This section records outcome; it does not rewrite the plan. **Sprint 049
+(Phase 14A) is COMPLETE on its sprint branch. Phase 14 as a whole is NOT
+complete** — this sprint shipped no Market Analysis component, no State, no
+executor change, and no dry-run session; Sprint 050 (Phase 14B) is not
+opened. The final integration PR `sprint/promotable-predictive-artifact` ->
+`main` has not been opened yet — see "Not Completed" below.
+
+### The single most important fact for Sprint 050
+
+**No model has been promoted to a Market Analysis State — none can be; this
+sprint ships no such component.** Path A held at the locked bars: `y_pred`
+exact for all families, the logistic decision function `z` exact, and the
+logistic `y_proba` measured maximum deviation was **`0.0`**, well under the
+`atol=1e-15` ceiling (T010b). The evaluator is exactly self-consistent
+(T010a, default CI, no ML extra) and matches scikit-learn's own recorded
+predictions at the locked bars (T010b, `ml` job). The maintainer's named
+riskiest assumption — that the framework's NumPy `predict` can reproduce the
+sklearn fit's own numbers — survived its first real test. This says nothing
+about Comparison 1 (offline vs online, the actual release gate), which has
+not been built yet; see §8 (Wave 3 Findings, "Finding 7") and
+`docs/reference/PREDICTIVE_PROMOTION.md` §8.
+
+### Completed
+
+- Wave 0 — Wave 0 Decisions signed off in full (D-S049-12); ADR-0029
+  ACCEPTED and landed on the sprint branch with the ROADMAP §13F splice
+  (#385, #386, #388).
+- T001 — availability-enforcement spike: the executor mechanism ADR-0024
+  condition 2 presupposes does not exist; ADR-0030 is needed and sizes
+  Sprint 050 (#387).
+- T003–T005 — `PromotedArtifactManifest` / `PromotedArtifactRef`, the
+  fingerprint derivation (fitted values never hashed), and the
+  content-addressed `PromotedArtifactRepository` (#389).
+- T006a/T007 — the pure-NumPy promoted-artifact evaluator, the
+  `FittedNumpyPreprocessor` move from `infrastructure/ml/torch/` into
+  `research/predictive/promotion/`, and the load-time format/family guard
+  with no bypass; the architecture boundary allow-list stayed byte-identical
+  to `main` (#390).
+- T006b — the blob-read + parameter-extraction adapter
+  (`infrastructure/ml/promotion.py`), the model-family allow-list, and the
+  promotion-time scikit-learn version guard (#391).
+- T008/T009 — `promote_predictive_run` workflow and `trading-cli research
+  promote` (#392).
+- T010a/T010b/T011/T012 — the evaluator exactness suite in default CI, the
+  Path A replay test (measured max `y_proba` deviation `0.0`, mutation check
+  genuine), the determinism/refusal suite, and the ADR-0024
+  condition-1/condition-5 coverage test naming conditions 2/3/4-Path-B as
+  explicitly not closed here (#393).
+- T013 (this entry) — `docs/reference/PREDICTIVE_PROMOTION.md` written as
+  the practical reference (schema, store layout stated exactly once, both
+  guards, the family restriction, the two parity comparisons, and the "not a
+  tradeable verdict" statement); `research/predictive/CLAUDE.md` and
+  `infrastructure/ml/CLAUDE.md` gained pointers to it; `MODULE_MAP.md`
+  gained rows for the promotion package/adapter/workflow/CLI and a
+  non-duplicating pointer to the store layout; `OPERATOR_CLI.md` now points
+  at the new guide alongside ADR-0029; TD-021 restated as deferred (a
+  negative constraint, not unfinished work) and TD-022 marked partially
+  addressed (promoted artifacts are portable; research-run blobs are
+  unchanged) with dated disposition notes; the deferred tree/neural joblib
+  path was given a tracked owner as new **TD-029**.
+- T014 (this entry) — this Review; ROADMAP §13F's 14A line updated to
+  COMPLETE with Sprint 050 still NOT planned; `CURRENT_STATUS.md` §2/§6/§9/
+  §11/§12 updated, stating plainly that Phase 14 is not complete.
+
+### Not Completed
+
+- **The final integration PR `sprint/promotable-predictive-artifact` ->
+  `main` has not been opened.** All 15 tasks are done on the sprint branch;
+  opening and merging the final integration PR is a human/maintainer action
+  outside this closure task's guardrails (mirrors the Sprint 017/048
+  precedent).
+- No sprint-scoped task was dropped or descoped. The stated descope order
+  (T012 first, then T009) was never invoked — the sprint did not overrun.
+- Sprint 050 (Phase 14B) is not opened, not planned in detail, and not
+  started. Nothing in this sprint builds a Market Analysis component, an
+  executor change, or a dry-run session — by design (§0).
+
+### Demonstrated Capability
+
+An operator runs `trading-cli research promote --config <path>` (or the
+thin script) against an existing Predictive Research run's `run_id` and gets
+back a content-addressed directory of plain numbers
+(`research/predictive_research/promoted/{artifact_fingerprint}/`) —
+`manifest.json` plus `artifact.json`, nothing else. `load_promoted_artifact`
+evaluates that artifact using only NumPy, with no ML extra installed
+(T010a, default CI). Re-predicting the run's own TEST rows through the
+loaded evaluator reproduces `predictions.parquet` exactly for `y_pred` and
+the logistic decision function, and within `atol=1e-15` (measured: `0.0`)
+for the logistic `y_proba` (T010b, `ml` job). Promoting the same run twice
+is byte-identical, fingerprint-identical (T011). A tree or neural family, an
+unknown `format_version`, a permuted feature order, or a scikit-learn
+version mismatch are each refused with a named error, before any work is
+written (T007, T011).
+
+### Problems Discovered
+
+- No new CRITICAL/HIGH problems were discovered during T013/T014. The one
+  substantive finding of the sprint — the executor availability-enforcement
+  mechanism ADR-0024 condition 2 presupposes does not exist — was
+  discovered and fully documented by T001 (#387) and is not repeated here as
+  new; it is the sprint's headline risk for Sprint 050, restated below.
+- Nothing found while writing T013/T014 required editing already-merged
+  Wave 1–3 code; this closure is documentation- and registry-only, as
+  scoped.
+
+### Decisions Required
+
+- **ADR-0030** (inference-time availability enforcement) must be written
+  and approved before Sprint 050 implements condition 2 — this is new
+  architect work with maintainer approval, not something Sprint 050's
+  `engineer` work should improvise. Candidates for where the check lives are
+  named, not decided, in `S049_AVAILABILITY_FINDING.md` §7.
+- **A real (non-synthetic) trained candidate model** showing genuine
+  out-of-sample structure on BTC data does not exist yet (Finding 5,
+  S044_GATE §1.4). Gates Sprint 050 and the PRD's success metrics 2/3; no
+  Sprint 049 task depended on it, and none was blocked by its absence.
+- **A named downstream Phase 7 robustness plan** for the promoted-model
+  strategy (S044_GATE §1.5) does not exist yet, and per Finding 8 it must
+  account for **TD-027** (the Robustness delay stress rejects
+  `BracketExitModel`) if the strategy composes with a bracket exit, which
+  Finding 8 makes the more realistic composition after Sprint 048.
+
+### Technical Debt Added
+
+- **TD-029** (LOW) — tree and neural model families are deferred to a
+  future version-pinned joblib promotion path; no implementation exists.
+  Repayment trigger: linear/logistic promotion proven end to end, or the
+  first real BTC candidate model that shows structure turns out to be a
+  tree model.
+- TD-021 (no model registry, MEDIUM) — restated as deferred by design
+  (ADR-0024 condition 5 is a negative constraint), not repaid, not newly
+  introduced.
+- TD-022 (opaque fitted artifacts, LOW) — disposition updated to partially
+  addressed: promoted artifacts are portable; research-run blobs remain
+  opaque and unchanged. Not repaid, not newly introduced.
+
+### Lessons Learned
+
+- **The two-comparison parity split (ADR-0029 §6) needed to be stated
+  plainly in every downstream document, not just the ADR**, because
+  ADR-0029 itself names conflating Comparison 1 (the release gate) with
+  Comparison 2 (this sprint's cross-check) as "the single most likely way
+  this mechanism gets misread later." `PREDICTIVE_PROMOTION.md` §8 restates
+  it in full for exactly this reason, rather than pointing readers back to
+  the ADR for the one distinction most likely to be misremembered.
+- **A store-layout tree diagram is worth stating in exactly one document.**
+  ADR-0029, the sprint plan, and the sprint goal diagram all restate the
+  promoted-artifact directory shape for their own narrative purposes (this
+  is expected and correct for a design record and a plan). The as-implemented
+  reference documents (`PREDICTIVE_PROMOTION.md`, `MODULE_MAP.md`,
+  `OPERATOR_CLI.md`) instead converge on one canonical statement
+  (`PREDICTIVE_PROMOTION.md` §3) and point to it, so a future edit to the
+  store shape has exactly one reference-doc location to update.
+- **"Deferred" needs a named owner, not just a Non-goal line in a PRD** — the
+  tree/neural joblib path was real, scoped, deferred work with a concrete
+  trigger; giving it TD-029 rather than leaving it only in the PRD's
+  Non-goals and ADR-0029's Alternatives Considered makes it discoverable by
+  the same registry review that would have caught an unowned CRITICAL/HIGH
+  problem.
+
+### Follow-up
+
+- Open the final integration PR `sprint/promotable-predictive-artifact` ->
+  `main` (human/maintainer action; not performed by this closure task).
+- Write and get maintainer approval for **ADR-0030** before Sprint 050
+  implementation begins.
+- Open and plan **Sprint 050 (Phase 14B)** — not opened here — covering
+  ADR-0024 conditions 2, 3, and the online half of condition 4 (Comparison 1
+  as a release gate), the model-backed State, the registry-injection seam in
+  the dry-run runtime, composition via `strategy_file` with Sprint 048's
+  Exit/Risk models, and the 3–5 day BTC dry-run session. Its robustness plan
+  must account for TD-027 if the composed strategy uses `BracketExitModel`.
+- Candidates in §12 above, none scheduled by default: the deferred
+  tree/neural joblib path (TD-029's repayment); extracting parameters at run
+  time (retiring the ADR-0023 §7 amendment's exception entirely); extending
+  Predictive Research itself (the maintainer's stated next priority);
+  report/dashboard extensions; cross-sectional studies; SHAP.

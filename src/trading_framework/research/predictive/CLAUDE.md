@@ -83,7 +83,11 @@ library-free predictive metrics (`metrics.py`).
   `research.datasets` (layering runs `research/predictive` -> `research/datasets`,
   never the reverse — ADR-0029 §9); `load_promoted_artifact` accepts a
   structural `PromotedManifestLike` Protocol instead of the concrete
-  `PromotedArtifactManifest` class for that reason.
+  `PromotedArtifactManifest` class for that reason. Practical reference (schema,
+  store layout, both guards, the family restriction, the two parity
+  comparisons): `docs/reference/PREDICTIVE_PROMOTION.md`. A promoted artifact
+  is not a tradeable verdict and this package ships no Market Analysis
+  component — see that document §1 and §9.
 
 ## Tests
 
