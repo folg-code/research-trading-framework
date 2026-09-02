@@ -5,9 +5,8 @@ Date: 2026-09-02. Reconciled against `docs/product/PRD-ml-signal-promotion.md`,
 then updated with the maintainer's answers to the five remaining forks.
 
 ```text
-Status: PROPOSED — requires maintainer approval of the Wave 0 Checklist below.
-        All Wave 0 questions are ANSWERED. Nothing is left open for an agent
-        to decide. ADR-0029 is separately ACCEPTED.
+Status: APPROVED (2026-09-02) — Wave 0 Checklist below signed off in full by
+        the maintainer. ADR-0029 is separately ACCEPTED.
 
 Numbering: drafted as "Sprint 048 / Phase 13A" against a stale base. Those
         numbers are taken by merged work (Sprint 048 = Exit/Risk Model
@@ -495,30 +494,33 @@ Nothing below may be checked off by an agent. `engineer` must refuse to start
 while any box is unchecked. The question boxes are **transcription checks** —
 confirming the answers were recorded correctly, not re-deciding them.
 
-- [ ] **ROADMAP §13F approved** (`PROPOSED` -> accepted): Phase 14 exists, and it is **two** increments (14A this sprint, 14B Sprint 050), not one.
-- [ ] **The renumbering confirmed** — Sprint 049 / Phase 14A / ROADMAP §13F for this sprint, Sprint 050 / Phase 14B for its successor; the earlier "Sprint 048 / Phase 13A" drafts referred to numbers now taken by merged Exit/Risk work.
-- [ ] **ADR-0029 on the sprint branch** with its ACCEPTED status and `Approved-by` line preserved exactly as given, plus the `docs/adr/README.md` index row.
-- [ ] **The two-sprint split re-confirmed** after reconciliation (SPRINT_049.md §0, reason 4).
-- [ ] **D-S049-13 transcription confirmed** — NumPy parameter format, linear/logistic only, zero ML dependency in the runtime, ONNX and v1-joblib rejected, tree/neural deferred with a tracked owner.
-- [ ] **D-S049-04 transcription confirmed** — last walk-forward fold; one-fold staleness documented.
-- [ ] **D-S049-14 transcription confirmed (Q2)** — extract from the existing blob, one-time promotion-time read, no re-fit, no Phase 10 pipeline change — **and the two consequences accepted: promotion needs the `ml` extra, and a promotion-time library-version guard is added.**
-- [ ] **D-S049-15 transcription confirmed (Q4)** — `trading-cli research promote`; any ADR-0026 allow-list change is a fresh amendment, not a test edit.
-- [ ] **D-S049-06 transcription confirmed (Q7)** — **this is the answer that overruled the architect's recommendation.** Confirm specifically: both families stay in v1; the `rtol=0, atol=1e-15` tolerance applies to `y_proba` for logistic **only**, in Comparison 2 **only**; Comparison 1 (the release gate) stays exact; an observed deviation above the ceiling is a STOP-and-report, never a widening.
-- [ ] **D-S049-08 transcription confirmed (Q8)** — `FittedNumpyPreprocessor` **moves** into `research/predictive/`; the torch path and its tests are updated and gated; the boundary allow-list is not widened.
-- [ ] **D-S049-05 transcription confirmed (Q9)** — fitted parameter values stay out of the fingerprint.
-- [ ] **Q5 and Q6 acknowledged as PREREQUISITES TRACKED OUTSIDE THIS SPRINT** — no Sprint 049 task depends on them; they still need answers before Sprint 050 is planned, and Q6's plan must account for TD-027.
-- [ ] **Finding 8 acknowledged** — Sprint 047/048's merged Exit/Risk and catalog work does not collide with this sprint; it improves Sprint 050's dry-run composition; TD-027 is flagged for Sprint 050's robustness plan.
-- [ ] **D-S049-03 confirmed:** the ADR-0023 §7 amendment is narrow — one workflow, one read, one purpose; research-run blobs stay non-reloadable by everything else and their manifest policy string is untouched.
-- [ ] **D-S049-07 confirmed:** the load-time guard has no bypass; the training-library relaxation is accepted; the new promotion-time version guard is accepted.
-- [ ] **D-S049-09 confirmed:** the evaluator and its exactness suite run in **default CI**; S049-T006b, T008 and T010b run in the `ml` job; the `dl` torch tests are a gate because of the Q8 move.
-- [ ] **D-S049-10 confirmed:** S049-T001 is a docs-only spike whose verdict may resize Sprint 050 but may not expand Sprint 049.
-- [ ] **Sprint 049 scope approved as 15 tasks, 5 waves**, explicitly shipping **no** Market Analysis component and **no** runtime change.
-- [ ] **Branch `sprint/promotable-predictive-artifact` approved**, cut from `main` at `d65de4c`.
+- [x] **ROADMAP §13F approved** (`PROPOSED` -> accepted): Phase 14 exists, and it is **two** increments (14A this sprint, 14B Sprint 050), not one.
+- [x] **The renumbering confirmed** — Sprint 049 / Phase 14A / ROADMAP §13F for this sprint, Sprint 050 / Phase 14B for its successor; the earlier "Sprint 048 / Phase 13A" drafts referred to numbers now taken by merged Exit/Risk work.
+- [x] **ADR-0029 on the sprint branch** with its ACCEPTED status and `Approved-by` line preserved exactly as given, plus the `docs/adr/README.md` index row.
+- [x] **The two-sprint split re-confirmed** after reconciliation (SPRINT_049.md §0, reason 4).
+- [x] **D-S049-13 transcription confirmed** — NumPy parameter format, linear/logistic only, zero ML dependency in the runtime, ONNX and v1-joblib rejected, tree/neural deferred with a tracked owner.
+- [x] **D-S049-04 transcription confirmed** — last walk-forward fold; one-fold staleness documented.
+- [x] **D-S049-14 transcription confirmed (Q2)** — extract from the existing blob, one-time promotion-time read, no re-fit, no Phase 10 pipeline change — **and the two consequences accepted: promotion needs the `ml` extra, and a promotion-time library-version guard is added.**
+- [x] **D-S049-15 transcription confirmed (Q4)** — `trading-cli research promote`; any ADR-0026 allow-list change is a fresh amendment, not a test edit.
+- [x] **D-S049-06 transcription confirmed (Q7)** — **this is the answer that overruled the architect's recommendation.** Confirm specifically: both families stay in v1; the `rtol=0, atol=1e-15` tolerance applies to `y_proba` for logistic **only**, in Comparison 2 **only**; Comparison 1 (the release gate) stays exact; an observed deviation above the ceiling is a STOP-and-report, never a widening.
+- [x] **D-S049-08 transcription confirmed (Q8)** — `FittedNumpyPreprocessor` **moves** into `research/predictive/`; the torch path and its tests are updated and gated; the boundary allow-list is not widened.
+- [x] **D-S049-05 transcription confirmed (Q9)** — fitted parameter values stay out of the fingerprint.
+- [x] **Q5 and Q6 acknowledged as PREREQUISITES TRACKED OUTSIDE THIS SPRINT** — no Sprint 049 task depends on them; they still need answers before Sprint 050 is planned, and Q6's plan must account for TD-027.
+- [x] **Finding 8 acknowledged** — Sprint 047/048's merged Exit/Risk and catalog work does not collide with this sprint; it improves Sprint 050's dry-run composition; TD-027 is flagged for Sprint 050's robustness plan.
+- [x] **D-S049-03 confirmed:** the ADR-0023 §7 amendment is narrow — one workflow, one read, one purpose; research-run blobs stay non-reloadable by everything else and their manifest policy string is untouched.
+- [x] **D-S049-07 confirmed:** the load-time guard has no bypass; the training-library relaxation is accepted; the new promotion-time version guard is accepted.
+- [x] **D-S049-09 confirmed:** the evaluator and its exactness suite run in **default CI**; S049-T006b, T008 and T010b run in the `ml` job; the `dl` torch tests are a gate because of the Q8 move.
+- [x] **D-S049-10 confirmed:** S049-T001 is a docs-only spike whose verdict may resize Sprint 050 but may not expand Sprint 049.
+- [x] **Sprint 049 scope approved as 15 tasks, 5 waves**, explicitly shipping **no** Market Analysis component and **no** runtime change.
+- [x] **Branch `sprint/promotable-predictive-artifact` approved**, cut from `main` at `d65de4c`.
 
-Approved-by: _(not yet given — this document is `PROPOSED`. No approval is
-recorded here, and none may be inferred from any agent message. The maintainer's
-answers to Q2/Q4/Q7/Q8/Q9 are recorded above as ANSWERS to specific questions,
-and ADR-0029 is separately ACCEPTED; neither is an approval of this checklist.)_
+Approved-by: Filip Folga (project maintainer), given directly in conversation
+with the orchestrating Claude Code session on 2026-09-02. The maintainer was
+shown this checklist's full content and scope (all 16 items above, including
+ROADMAP §13F, the 15-task/5-wave split, and the branch cut point) and answered:
+"Tak, zatwierdzam całą checklistę Wave 0" — explicit approval of the checklist
+as a whole, in addition to the item-by-item answers to Q2/Q4/Q7/Q8/Q9 already
+recorded earlier in this document and ADR-0029's separate ACCEPTED status.
 
 Once every box is checked, the first task for `engineer` is **S049-T001** (the
 docs-only availability spike) on `docs/inference-availability-enforcement-spike`,
