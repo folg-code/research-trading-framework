@@ -54,7 +54,6 @@ def test_zero_variance_scale_is_one() -> None:
 
 
 def test_transform_windows_applies_2d_statistics_per_timestep() -> None:
-
     rows = np.array([[0.0, 2.0], [2.0, 4.0], [4.0, 6.0]], dtype=np.float64)
     fitted = fit_numpy_preprocessor(
         PreprocessingSpec(steps=(PreprocessingStep.STANDARDIZE,)),
