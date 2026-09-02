@@ -25,22 +25,28 @@ from __future__ import annotations
 
 import argparse
 import sys
+from collections.abc import Callable
 from pathlib import Path
-from types import ModuleType
 from typing import Any
 
 from trading_cli.commands import data, dry_run, report, research
-from trading_cli.config import load_config
+from trading_cli.config import CliConfig, load_config
 from trading_cli.errors import EXIT_SUCCESS, CliError
 from trading_cli.plan import ResolvedPlan, dump_json, render_plan_json, render_plan_text
 
 _PROG = "trading-cli"
 
-_HANDLERS: dict[tuple[str, str], ModuleType] = {
-    ("data", "fetch"): data,
-    ("research", "run"): research,
-    ("dry-run", "start"): dry_run,
-    ("report", "render"): report,
+_Handler = tuple[
+    Callable[[CliConfig], ResolvedPlan],
+    Callable[[ResolvedPlan], dict[str, Any]],
+]
+
+_HANDLERS: dict[tuple[str, str], _Handler] = {
+    ("data", "fetch"): (data.resolve_plan, data.run),
+    ("research", "run"): (research.resolve_plan, research.run),
+    ("research", "promote"): (research.resolve_promote_plan, research.run_promote),
+    ("dry-run", "start"): (dry_run.resolve_plan, dry_run.run),
+    ("report", "render"): (report.resolve_plan, report.run),
 }
 
 
@@ -97,7 +103,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     research_parser = groups.add_parser("research", help="run predictive or strategy research")
     research_commands = research_parser.add_subparsers(
-        dest="command", required=True, metavar="{run}"
+        dest="command", required=True, metavar="{run,promote}"
     )
     research_commands.add_parser(
         "run",
@@ -118,6 +124,20 @@ def build_parser() -> argparse.ArgumentParser:
             "LIMITATION: the simulation assumptions and session resolver remain "
             "hardcoded (same as scripts/strategy_research/run_strategy_research.py). "
             "See docs/reference/OPERATOR_CLI.md (Sprint 047 adds a strategy-authoring guide)."
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    research_commands.add_parser(
+        "promote",
+        parents=[common],
+        help="promote an existing Predictive Research run into a promoted artifact",
+        description=(
+            "Promote the last walk-forward fold of an existing Predictive Research "
+            "run ('research.promote.run_id' in --config) into a content-addressed "
+            "promoted artifact under research/predictive_research/promoted/ "
+            "(ADR-0029). Refuses a tree/neural model family or a promotion-time "
+            "scikit-learn version mismatch and writes nothing on refusal. Requires "
+            "the 'ml' extra (reads the run's fitted joblib blob once)."
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
@@ -150,16 +170,16 @@ def main(argv: list[str] | None = None) -> int:
 
 
 def _dispatch(args: argparse.Namespace) -> int:
-    handler = _HANDLERS[(args.group, args.command)]
+    resolve_plan_fn, run_fn = _HANDLERS[(args.group, args.command)]
 
     config = load_config(args.config)
-    plan = handler.resolve_plan(config)
+    plan = resolve_plan_fn(config)
 
     if args.dry_run:
         _print_plan(plan, json_mode=args.json)
         return EXIT_SUCCESS
 
-    result = handler.run(plan)
+    result = run_fn(plan)
     _print_result(result, json_mode=args.json)
     return EXIT_SUCCESS
 
