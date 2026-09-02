@@ -11,11 +11,13 @@ from typing import Any
 import pytest
 from scripts.predictive_research import analyze_predictive_run as analyze_cli
 from scripts.predictive_research import compare_predictive_runs as compare_cli
+from scripts.predictive_research import promote_predictive_run as promote_cli
 from scripts.predictive_research import render_predictive_report as render_cli
 from scripts.predictive_research import run_predictive_research as run_cli
 
 from trading_framework.application.predictive_research import (
     AnalyzePredictiveRunRequest,
+    PromotePredictiveRunRequest,
     RenderPredictiveReportRequest,
     RunPredictiveResearchRequest,
 )
@@ -42,6 +44,13 @@ class _FakeAnalyzeResult:
     run_id: str
     report: Any
     metrics_path: Path | None
+
+
+@dataclass(frozen=True, slots=True)
+class _FakePromoteResult:
+    artifact_fingerprint: str
+    directory: Path
+    fold_id: int
 
 
 class _FakeMetricsReport:
@@ -355,6 +364,39 @@ def test_render_cli_prints_output_path(
     assert payload["output_path"] == str(output_path)
 
 
+def test_promote_cli_missing_run_returns_error(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    exit_code = promote_cli.main(["--storage-root", str(tmp_path), "--run-id", "missing-run"])
+    captured = capsys.readouterr()
+    assert exit_code == 1
+    assert "missing manifest" in captured.err
+
+
+def test_promote_cli_prints_fingerprint_and_directory(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    directory = tmp_path / "promoted" / ("f" * 64)
+
+    def fake_promote(request: PromotePredictiveRunRequest) -> _FakePromoteResult:
+        assert request.run_ref.run_id == "run-promote"
+        assert request.storage_root == tmp_path
+        return _FakePromoteResult(artifact_fingerprint="f" * 64, directory=directory, fold_id=1)
+
+    monkeypatch.setattr(promote_cli, "promote_predictive_run", fake_promote)
+    exit_code = promote_cli.main(
+        ["--storage-root", str(tmp_path), "--run-id", "run-promote", "--json"]
+    )
+    payload = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert payload["artifact_fingerprint"] == "f" * 64
+    assert payload["directory"] == str(directory)
+    assert payload["fold_id"] == 1
+
+
 def test_compare_cli_writes_leaderboard_and_prints_json(
     tmp_path: Path,
     capsys: pytest.CaptureFixture[str],
@@ -406,7 +448,7 @@ def test_compare_cli_writes_leaderboard_and_prints_json(
 
 
 def test_clis_are_thin_and_do_not_import_ml_libraries() -> None:
-    for module in (run_cli, analyze_cli, render_cli, compare_cli):
+    for module in (run_cli, analyze_cli, render_cli, compare_cli, promote_cli):
         module_path = module.__file__
         assert module_path is not None
         imported = _imported_modules(Path(module_path).read_text(encoding="utf-8"))

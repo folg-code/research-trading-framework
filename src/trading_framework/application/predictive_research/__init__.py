@@ -17,6 +17,12 @@ from trading_framework.application.predictive_research.compare_predictive_runs i
     ComparePredictiveRunsResult,
     compare_predictive_runs,
 )
+from trading_framework.application.predictive_research.promote_predictive_run import (
+    PromotePredictiveRunError,
+    PromotePredictiveRunRequest,
+    PromotePredictiveRunResult,
+    promote_predictive_run,
+)
 from trading_framework.application.predictive_research.render_report import (
     RenderPredictiveReportError,
     RenderPredictiveReportRequest,
@@ -40,6 +46,9 @@ __all__ = [
     "ComparePredictiveRunsResult",
     "PredictiveDatasetError",
     "PredictiveRunError",
+    "PromotePredictiveRunError",
+    "PromotePredictiveRunRequest",
+    "PromotePredictiveRunResult",
     "RenderPredictiveReportError",
     "RenderPredictiveReportRequest",
     "RenderPredictiveReportResult",
@@ -48,6 +57,7 @@ __all__ = [
     "analyze_predictive_run",
     "build_predictive_dataset",
     "compare_predictive_runs",
+    "promote_predictive_run",
     "render_predictive_research_report",
     "run_predictive_research",
 ]

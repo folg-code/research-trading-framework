@@ -15,10 +15,11 @@ points at a runnable example for each command group.
 One entry point, four command groups, one YAML config:
 
 ```text
-trading-cli data fetch     binance | databento
-trading-cli research run   predictive | strategy
+trading-cli data fetch      binance | databento
+trading-cli research run    predictive | strategy
+trading-cli research promote
 trading-cli dry-run start
-trading-cli report render  predictive | strategy
+trading-cli report render   predictive | strategy
 ```
 
 Every command is a thin wrapper over an existing `trading_framework.application.*`
@@ -83,6 +84,7 @@ edit directly:
 | `research run` (predictive) | `apps/cli/examples/research_run_predictive.yaml` |
 | `research run` (strategy, canonical example) | `apps/cli/examples/research_run_strategy.yaml` |
 | `research run` (strategy, operator-authored via `strategy_file`) | `apps/cli/examples/research_run_strategy_candle_wick.yaml`, `apps/cli/examples/research_run_strategy_level_distance.yaml` |
+| `research promote` | `apps/cli/examples/research_promote.yaml` |
 | `dry-run start` | `apps/cli/examples/dry_run_start.yaml` |
 | `report render` | `apps/cli/examples/report_render.yaml` |
 
@@ -175,6 +177,44 @@ config key to choose a different assumptions/session-resolver pair; that
 requires calling `run_strategy_research` directly in Python, or a follow-on
 increment to the application layer.
 
+### `research promote`
+
+```powershell
+uv run trading-cli research promote --config <path>
+```
+
+Promotes the **last walk-forward fold** of one persisted Predictive Research
+run (`research.promote.run_id`) into a content-addressed **promoted
+artifact** under `research/predictive_research/promoted/{artifact_fingerprint}/`
+(ADR-0029). It is a sibling subcommand of `research run`, selected by its own
+`--config` block — not a `research.kind` value.
+
+```yaml
+research:
+  promote:
+    run_id: 0123456789abcdef
+```
+
+On success it prints `artifact_fingerprint` (the promoted artifact's
+content-addressed identity) and the absolute `directory` it was written to,
+plus the promoted `fold_id`. A promotion is **refused, and writes nothing**,
+when:
+
+- the run's model family is a tree or neural family (v1 supports
+  `sklearn.ridge` / `sklearn.elastic_net` / `sklearn.logistic` only — a tree
+  or neural family is deferred, not rejected forever),
+- the run was trained under a different scikit-learn version than is
+  currently installed (the remedy is to re-run the study).
+
+**Requires the `ml` extra.** Promotion is the one operation that reads the
+run's fitted joblib blob once, offline, to extract plain-number parameters
+(ADR-0023 §7's narrow amendment, ADR-0029 §4) — it needs `sklearn`/`joblib`
+installed on the machine you run it from. **Loading an already-promoted
+artifact needs no extra at all** — that asymmetry is deliberate (promotion is
+an offline operator act; inference is not). See
+`docs/adr/ADR-0029-promoted-predictive-artifact.md` for the full mechanism,
+both guards, and what a promoted artifact is and is not.
+
 ### `dry-run start`
 
 ```powershell
@@ -243,6 +283,9 @@ error naming the offending config key instead.
   record: framework choice, placement, import boundary, full config schema.
 - `docs/adr/ADR-0027-operator-authored-strategy-loading.md` — design record
   for `research.strategy.strategy_file` (Sprint 047).
+- `docs/adr/ADR-0029-promoted-predictive-artifact.md` — design record for
+  `research promote` (Sprint 049): the parameter format, the promotion store,
+  both guards, and the narrow ADR-0023 §7 amendment.
 - `docs/reference/STRATEGY_AUTHORING.md` — the operator guide for writing
   and running your own strategy file.
 - `docs/planning/sprints/SPRINT_046.md` — sprint scope, thin-wrapper

@@ -402,6 +402,87 @@ def test_research_run_predictive_skips_render_when_disabled(tmp_path: Path) -> N
     assert render_called is False
 
 
+@dataclass(frozen=True, slots=True)
+class _FakePromoteResult:
+    artifact_fingerprint: str
+    directory: Path
+    fold_id: int
+
+
+def test_research_promote_end_to_end(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    storage_root = tmp_path / "workspace"
+    config_path = _write_config(
+        tmp_path,
+        storage_root=storage_root,
+        text=(
+            "version: 1\n"
+            "storage_root: {storage_root}\n\n"
+            "research:\n"
+            "  promote:\n"
+            "    run_id: '0123456789abcdef'\n"
+        ),
+    )
+    calls: dict[str, object] = {}
+
+    def fake_promote(request: object) -> _FakePromoteResult:
+        calls["run_id"] = request.run_ref.run_id  # type: ignore[attr-defined]
+        calls["storage_root"] = request.storage_root  # type: ignore[attr-defined]
+        return _FakePromoteResult(
+            artifact_fingerprint="f" * 64,
+            directory=storage_root / "research" / "predictive_research" / "promoted" / ("f" * 64),
+            fold_id=1,
+        )
+
+    with patch.object(research_cmd, "promote_predictive_run", fake_promote):
+        exit_code = main(["research", "promote", "--config", str(config_path), "--json"])
+
+    assert exit_code == EXIT_SUCCESS
+    assert calls["run_id"] == "0123456789abcdef"
+    assert calls["storage_root"] == storage_root
+    payload = json.loads(capsys.readouterr().out)
+    result = payload["result"]
+    assert result["artifact_fingerprint"] == "f" * 64
+    assert result["fold_id"] == 1
+    assert result["directory"].endswith("f" * 64)
+
+
+def test_research_promote_dry_run_prints_plan_without_side_effect(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    storage_root = tmp_path / "workspace"
+    config_path = _write_config(
+        tmp_path,
+        storage_root=storage_root,
+        text=(
+            "version: 1\n"
+            "storage_root: {storage_root}\n\n"
+            "research:\n"
+            "  promote:\n"
+            "    run_id: '0123456789abcdef'\n"
+        ),
+    )
+
+    exit_code = main(["research", "promote", "--config", str(config_path), "--dry-run", "--json"])
+
+    assert exit_code == EXIT_SUCCESS
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["plan"]["arguments"]["run_id"] == "0123456789abcdef"
+    assert payload["plan"]["command"] == "promote"
+
+
+def test_research_promote_missing_run_id_is_config_error(tmp_path: Path) -> None:
+    storage_root = tmp_path / "workspace"
+    config_path = _write_config(
+        tmp_path,
+        storage_root=storage_root,
+        text="version: 1\nstorage_root: {storage_root}\n\nresearch:\n  promote:\n",
+    )
+
+    exit_code = main(["research", "promote", "--config", str(config_path)])
+
+    assert exit_code == EXIT_CONFIG_ERROR
+
+
 def test_research_run_predictive_missing_definition_is_config_error(tmp_path: Path) -> None:
     storage_root = tmp_path / "workspace"
     estimator_path = tmp_path / "estimator.json"
