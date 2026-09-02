@@ -14,13 +14,6 @@ from trading_framework.infrastructure.ml.torch._guards import (
     reject_sequence_window_spec,
     resolve_feedforward_hyperparameters,
 )
-from trading_framework.infrastructure.ml.torch.preprocessing import (
-    FittedNumpyPreprocessor,
-    as_feature_matrix,
-    as_sequence_windows,
-    fit_numpy_preprocessor,
-    transform_windows,
-)
 from trading_framework.infrastructure.ml.torch.training import (
     InnerTrainingResult,
     build_feedforward_module,
@@ -44,6 +37,13 @@ from trading_framework.research.predictive.estimators import (
 from trading_framework.research.predictive.preprocessing import (
     PreprocessingSpec,
     default_preprocessing_spec,
+)
+from trading_framework.research.predictive.promotion.preprocessing import (
+    FittedNumpyPreprocessor,
+    as_feature_matrix,
+    as_sequence_windows,
+    fit_numpy_preprocessor,
+    transform_windows,
 )
 from trading_framework.research.predictive.selection import (
     DEFAULT_INNER_VALIDATION_FRACTION,

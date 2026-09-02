@@ -12,6 +12,10 @@ from trading_framework.research.datasets.promoted_artifact import (
     PromotedArtifactManifest,
     PromotedArtifactRef,
 )
+from trading_framework.research.predictive.promotion.evaluator import load_promoted_artifact
+from trading_framework.research.predictive.promotion.parameters import (
+    PromotedArtifactParameters,
+)
 
 
 def _manifest(**overrides: object) -> PromotedArtifactManifest:
@@ -83,3 +87,26 @@ def test_promoted_artifact_ref_normalizes_and_rejects_empty() -> None:
     assert ref.artifact_fingerprint == "a" * 64
     with pytest.raises(ValidationError):
         PromotedArtifactRef(artifact_fingerprint="   ")
+
+
+def test_manifest_satisfies_the_evaluator_s_promoted_manifest_like_protocol() -> None:
+    """The real PromotedArtifactManifest, not just the evaluator's test double.
+
+    research/datasets legitimately imports research/predictive (never the
+    reverse -- ADR-0029 Section 9), so this is the correct place to prove
+    load_promoted_artifact's structural PromotedManifestLike Protocol
+    actually accepts the concrete manifest type it is meant for, not only
+    the ad-hoc _FakeManifest used by the evaluator's own unit tests.
+    """
+    manifest = _manifest()
+    payload = PromotedArtifactParameters(
+        coefficients=(1.0, -2.0),
+        intercept=0.5,
+        standardize_mean=(0.0, 0.0),
+        standardize_scale=(1.0, 1.0),
+    )
+
+    predictor = load_promoted_artifact(manifest, payload)
+
+    predicted = predictor.predict([[1.0, 1.0]])
+    assert predicted[0] == 1.0 * 1.0 + 1.0 * -2.0 + 0.5

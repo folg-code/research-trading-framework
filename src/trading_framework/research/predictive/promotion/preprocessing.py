@@ -1,7 +1,13 @@
 """Numpy implementation of domain PreprocessingSpec for neural families (D-S043-15).
 
-Fits on the 2d feature matrix passed to ``fit()`` only. Does not import sklearn
-or torch, so extra ``dl`` does not require extra ``ml``.
+Moved here from ``infrastructure/ml/torch/preprocessing.py`` (Sprint 049 Q8 /
+D-S049-08): this is the promoted-artifact evaluator's preprocessing half, and
+the domain layer (``research/predictive/``) is where Sprint 050's Market
+Analysis component must be able to reach it from, without pulling in torch.
+
+Fits on the 2d feature matrix passed to ``fit()`` only. Does not import
+sklearn or torch, so extra ``dl`` does not require extra ``ml``. The torch
+adapter (``infrastructure/ml/torch/``) imports this module downward.
 """
 
 from __future__ import annotations
