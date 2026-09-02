@@ -42,6 +42,12 @@ Responsibility: optional-extra estimator adapters and the family-id registry.
 - Preprocessing (`IMPUTE_MEDIAN` then `STANDARDIZE` by default) is fitted on
   the feature matrix passed to `fit()` only. Do not pass PURGED / EMBARGOED
   rows; if `sample_metadata` carries fold roles, non-TRAIN roles are rejected.
+- `FittedNumpyPreprocessor` / `fit_numpy_preprocessor` (and their matrix/window
+  coercion helpers) moved to `research/predictive/promotion/preprocessing.py`
+  in Sprint 049 (Q8 / D-S049-08) — they are the promoted-artifact evaluator's
+  preprocessing half and live in the domain layer now. The torch adapter
+  (`torch/adapter.py`, `torch/sequence.py`) imports them downward from there;
+  do not re-add a copy under `infrastructure/ml/torch/`.
 - Application constructs estimators only through `resolve_estimator(spec,
   preprocessing=...)`. Do not import `infrastructure.ml.sklearn`,
   `infrastructure.ml.trees`, or `infrastructure.ml.torch` from application.

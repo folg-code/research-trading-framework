@@ -17,12 +17,6 @@ from trading_framework.infrastructure.ml.torch.adapter import (
     _import_torch,
     _require_torch,
 )
-from trading_framework.infrastructure.ml.torch.preprocessing import (
-    as_feature_matrix,
-    as_sequence_windows,
-    fit_numpy_preprocessor,
-    transform_windows,
-)
 from trading_framework.infrastructure.ml.torch.training import (
     build_recurrent_module,
     refit_for_epochs,
@@ -38,6 +32,12 @@ from trading_framework.research.predictive.estimators import EstimatorSpec, Task
 from trading_framework.research.predictive.preprocessing import (
     PreprocessingSpec,
     default_preprocessing_spec,
+)
+from trading_framework.research.predictive.promotion.preprocessing import (
+    as_feature_matrix,
+    as_sequence_windows,
+    fit_numpy_preprocessor,
+    transform_windows,
 )
 from trading_framework.research.predictive.selection import (
     DEFAULT_INNER_VALIDATION_FRACTION,
