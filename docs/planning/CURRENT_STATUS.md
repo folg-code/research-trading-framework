@@ -26,40 +26,68 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 ## 2. Status Metadata
 
 ```text
-Status Date: 2026-09-01
+Status Date: 2026-09-02
 Current Phase: Phase 10 — Predictive (ML) Research — COMPLETE (Sprints 039-044);
   Phase 2F — Exchange REST Historical Import — COMPLETE (Sprint 045);
   Phase 11 — Universal Operator CLI — COMPLETE (Sprint 046);
   Phase 12 — Custom Strategy Authoring — COMPLETE (Sprint 047);
   Phase 13 — Exit/Risk Model Expansion and Catalog Growth — COMPLETE (Sprint 048,
-  13/13, on sprint branch; integration PR to main pending)
-Current Milestone: Sprint 048 (Phase 13) complete on `sprint/exit-risk-and-catalog`
-  (13/13) — BracketExitModel, EquityPercentRiskModel, five bounded engine changes, a
-  new bracket kernel, two catalog components, three example strategies, closure docs.
-  Final integration PR to `main` is the next step (not yet opened). No further
-  milestone scheduled by default.
+  13/13, merged to main via #383);
+  Phase 14 — Predictive Model Promotion — **PARTIALLY COMPLETE**. Increment 14A
+  (Sprint 049) is COMPLETE (15/15, on sprint branch; integration PR to main
+  pending) — ADR-0024 conditions 1 and 5 closed, condition 4's OFFLINE half
+  (Path A) built and passing. Increment 14B (Sprint 050) is NOT planned yet.
+  **Phase 14 as a whole is NOT complete: no Market Analysis component, no
+  State, no executor change, and no dry-run session exist yet.**
+Current Milestone: Sprint 049 (Phase 14A) complete on
+  `sprint/promotable-predictive-artifact` (15/15) — promoted-artifact
+  contracts, content-addressed store, pure-NumPy evaluator with load-time
+  guard, blob-extraction adapter with promotion-time guard,
+  `promote_predictive_run` workflow, `trading-cli research promote`, Path A
+  parity (measured maximum y_proba deviation: 0.0), determinism/refusal
+  suite, ADR-0024 condition-1/5 coverage, and this closure. Final integration
+  PR to `main` is the next step (not yet opened). Sprint 048 (Phase 13) is
+  merged to main via #383 (13/13), before Sprint 049 branched. Sprint 050 (Phase 14B) is not
+  scheduled by default.
 Implementation Status: Sprints 001-047 on main (S044 merged via #348; S045 merged via
   #355; S046 merged via #361; S047 merged via #366); S048 COMPLETE (13/13, all four
-  waves, #368-#381) on sprint/exit-risk-and-catalog; integration PR to main pending
+  waves, #368-#381) merged to main via #383;
+  S049 COMPLETE (15/15, #385-#393 plus this closure) on
+  sprint/promotable-predictive-artifact, integration PR to main pending
 Overall Status: STABLE
-Active Sprint: None in progress. SPRINT_048 (Exit/Risk Model Expansion, Catalog Growth
-  and New Strategies, Phase 13) is complete on its sprint branch (13/13) and awaits its
-  final integration PR to `main` — see "Last Completed Sprint" below.
-Last Completed Sprint: SPRINT_048 (Exit/Risk Model Expansion, Catalog Growth and New
-  Strategies, Phase 13) — 13/13 tasks complete on `sprint/exit-risk-and-catalog`
-  (#368-#381); integration PR to `main` pending (Sprint 017 precedent: complete on
-  branch, merge not yet performed). SPRINT_047 (Custom Strategy Authoring, Phase 12) is
-  the most recent sprint merged to `main` (10/10, via #366).
-Capability Tracks: Foundation COMPLETE; Data COMPLETE (core); Research COMPLETE (core); Strategy 6A COMPLETE; Phase 8A dry-run + S024 on main; Dashboard / Live Paper / public demo COMPLETE; Phase 10 COMPLETE (S039-S044: Foundation, Tree-Based and Neural Predictive Models, dashboard page, ADR-0024 + IDEA-014 gate); Phase 2F COMPLETE (S045: Binance USD-M historical OHLCV import, ADR-0025, merged to main #355); Phase 11 COMPLETE (S046: Universal Operator CLI trading-cli, ADR-0026, merged to main #361); Phase 12 COMPLETE (S047: Custom Strategy Authoring, `strategy_file` loader + candle.wick + structure.level_distance, ADR-0027, merged to main #366; ADR-0028 declined for S047); Phase 13 COMPLETE (S048: resumed ADR-0028 with corrections, Status ACCEPTED — BracketExitModel, EquityPercentRiskModel, kernels/bracket.py, trend.ema_distance, volatility.range_expansion, three example strategies; 13/13 on sprint/exit-risk-and-catalog, integration PR to main pending)
-Recent: S048 (Phase 13) reached 13/13 on `sprint/exit-risk-and-catalog` (#368-#381):
-  golden-run safety net, widened MVP gates, run-identity generalization,
-  BracketExitModel + kernels/bracket.py, EquityPercentRiskModel, dispatch wired end to
-  end, trend.ema_distance, volatility.range_expansion, three worked example strategies
-  (discovering and fixing a missing `strategy/__init__.py` re-export along the way), a
-  framework-side end-to-end bracket test, and this closure (STRATEGY_AUTHORING.md,
-  MODULE_MAP.md, ARCHITECTURE_AND_WORKFLOWS.md, TECHNICAL_DEBT.md verified, ROADMAP
-  §13E COMPLETE). The final integration PR `sprint/exit-risk-and-catalog` -> `main` has
-  not been opened yet.
+Active Sprint: None in progress. SPRINT_049 (Promotable Predictive Artifact,
+  Phase 14A) is complete on its sprint branch (15/15) and awaits its final
+  integration PR to `main` — see "Last Completed Sprint" below. SPRINT_048
+  (Exit/Risk Model Expansion, Catalog Growth and New Strategies, Phase 13) is
+  separately complete on its own sprint branch (13/13), integration PR also
+  pending.
+Last Completed Sprint: SPRINT_049 (Promotable Predictive Artifact, Phase 14A)
+  — 15/15 tasks complete on `sprint/promotable-predictive-artifact`
+  (#385-#393, plus this closure PR); integration PR to `main` pending (Sprint
+  017/048 precedent: complete on branch, merge not yet performed). SPRINT_048
+  (Exit/Risk Model Expansion, Catalog Growth and New Strategies, Phase 13) is
+  the immediately preceding sprint, also complete on its own branch (13/13)
+  with its own integration PR pending — the two are independent, unmerged
+  sprint branches. SPRINT_047 (Custom Strategy Authoring, Phase 12) is the
+  most recent sprint merged to `main` (10/10, via #366).
+Capability Tracks: Foundation COMPLETE; Data COMPLETE (core); Research COMPLETE (core); Strategy 6A COMPLETE; Phase 8A dry-run + S024 on main; Dashboard / Live Paper / public demo COMPLETE; Phase 10 COMPLETE (S039-S044: Foundation, Tree-Based and Neural Predictive Models, dashboard page, ADR-0024 + IDEA-014 gate); Phase 2F COMPLETE (S045: Binance USD-M historical OHLCV import, ADR-0025, merged to main #355); Phase 11 COMPLETE (S046: Universal Operator CLI trading-cli, ADR-0026, merged to main #361); Phase 12 COMPLETE (S047: Custom Strategy Authoring, `strategy_file` loader + candle.wick + structure.level_distance, ADR-0027, merged to main #366; ADR-0028 declined for S047); Phase 13 COMPLETE (S048: resumed ADR-0028 with corrections, Status ACCEPTED — BracketExitModel, EquityPercentRiskModel, kernels/bracket.py, trend.ema_distance, volatility.range_expansion, three example strategies; 13/13, merged to main via #383); Phase 14A COMPLETE, Phase 14 overall NOT COMPLETE (S049: promoted-artifact parameter format and store, ADR-0029 ACCEPTED — pure-NumPy evaluator, blob-extraction adapter, promote_predictive_run + trading-cli research promote, Path A parity; 15/15 on sprint/promotable-predictive-artifact, integration PR to main pending; Phase 14B / Sprint 050 not started — no Market Analysis component, State, executor change, or dry-run session exists)
+Recent: S049 (Phase 14A) reached 15/15 on `sprint/promotable-predictive-artifact`
+  (#385-#393): ADR-0029 landed (ACCEPTED), the availability-enforcement spike
+  (S049-T001, verdict: the executor mechanism does not exist, ADR-0030
+  needed), promoted-artifact manifest/fingerprint/repository, the pure-NumPy
+  evaluator with the FittedNumpyPreprocessor move and load-time guard, the
+  blob-extraction adapter with the promotion-time sklearn version guard, the
+  promote_predictive_run workflow and trading-cli research promote, the Path
+  A parity replay (measured maximum y_proba deviation: 0.0, well under the
+  atol=1e-15 ceiling — the maintainer's named riskiest assumption held),
+  determinism/refusal tests, ADR-0024 condition-1/5 coverage, and this
+  closure (PREDICTIVE_PROMOTION.md new, research/predictive/CLAUDE.md +
+  infrastructure/ml/CLAUDE.md updated, MODULE_MAP.md updated, TD-021/TD-022
+  dispositions recorded, TD-029 added for the deferred tree/neural joblib
+  path, ROADMAP §13F's 14A line flipped to COMPLETE). The final integration
+  PR `sprint/promotable-predictive-artifact` -> `main` has not been opened
+  yet. S048 (Phase 13) reached 13/13 (#368-#381) and merged to main via
+  #383 before this sprint branched, independently of S049.
 ```
 
 ---
@@ -503,14 +531,18 @@ Maintenance: `.cursor/rules/documentation.mdc`
 
 ## 6. Work in Progress
 
-**Active sprint:** None. Sprint 048 (Exit/Risk Model Expansion, Catalog
-Growth and New Strategies, Phase 13) is complete (13/13, #368-#381) on
-`sprint/exit-risk-and-catalog`; its final integration PR to `main` has not
-been opened yet (see its "Closed" entry below). Sprint 047 is merged
-to `main` (#366, 10/10) and closes Phase 12. Sprint 046 is merged to `main`
-(#361, 14/14) and closes Phase 11. Sprint 045 is merged to `main` (#355,
-14/14) and closes Phase 2F. Sprint 044 is complete on `main` (#348, 18/18).
-Sprint 043 is complete on `main` (#342, 21/21).
+**Active sprint:** None. Sprint 049 (Promotable Predictive Artifact, Phase
+14A) is complete (15/15, #385-#393) on
+`sprint/promotable-predictive-artifact`; its final integration PR to `main`
+has not been opened yet (see its "Closed" entry below). **Phase 14 overall
+is NOT complete** — Sprint 050 (Phase 14B, the model-backed Market Analysis
+State) is not planned or started. Sprint 048 (Exit/Risk Model Expansion,
+Catalog Growth and New Strategies, Phase 13) is separately complete (13/13,
+#368-#381) and merged to `main` via #383 (see its "Closed" entry below).
+Sprint 047 is merged to `main` (#366, 10/10) and closes Phase 12. Sprint 046 is
+merged to `main` (#361, 14/14) and closes Phase 11. Sprint 045 is merged to
+`main` (#355, 14/14) and closes Phase 2F. Sprint 044 is complete on `main`
+(#348, 18/18). Sprint 043 is complete on `main` (#342, 21/21).
 
 **Portfolio demo packaging** — `scripts/demo/run_portfolio_demo.py` generates offline HTML artifacts for showcase (workflows + dashboards).
 
@@ -518,10 +550,40 @@ Sprint 043 is complete on `main` (#342, 21/21).
 
 **Plan:** `docs/planning/sprints/SPRINT_017.md` · **Wave 0:** `S017_WAVE0_DECISIONS.md` · **ADR:** ADR-0020 (ACCEPTED) · **Branch:** `sprint/model-research-methodology-mvp`
 
+### Sprint 049 — Closed (Phase 14A opening and closing increment; Phase 14 as a whole NOT complete)
+
+**Status:** COMPLETE (15/15), on `sprint/promotable-predictive-artifact`;
+final integration PR to `main` pending (not yet opened)
+**Plan:** `docs/planning/sprints/SPRINT_049.md`
+**Wave 0:** `docs/planning/sprints/S049_WAVE0_DECISIONS.md`
+**ADR:** ADR-0029 (ACCEPTED 2026-09-02 — the promoted-artifact parameter
+format, promotion store, parity bars, and the narrow ADR-0023 §7 amendment);
+ADR-0030 (inference-time availability enforcement) NOT yet written — needed
+per the S049-T001 finding, sizes Sprint 050
+**Tasks:** 15 / 15 — Wave 0 complete (#385-#388); Wave 1 complete (#389);
+Wave 2 complete (#390-#392); Wave 3 complete (#393); Wave 4 complete (this
+closure)
+**Branch:** `sprint/promotable-predictive-artifact` (cut from `main` after
+the tree at #384; not yet merged to `main`)
+**Scope:** a `promote_predictive_run` workflow + `trading-cli research
+promote` turning one Predictive Research run's last walk-forward fold into a
+content-addressed, portable, framework-owned parameter file
+(`research/predictive_research/promoted/{artifact_fingerprint}/`); a
+pure-NumPy evaluator living in the domain layer needing no ML extra; a
+load-time format/family guard with no bypass; a promotion-time
+blob-extraction adapter with a scikit-learn version guard; linear and
+logistic families only in v1 (tree/neural deferred, TD-029); Path A parity
+proving the evaluator reproduces the run's own recorded predictions at
+locked bars (measured maximum `y_proba` deviation: `0.0`); determinism and
+refusal tests; ADR-0024 condition-1/condition-5 coverage; and
+`docs/reference/PREDICTIVE_PROMOTION.md` plus module/CLAUDE.md/MODULE_MAP.md
+closure documentation. **Ships no Market Analysis component, no State, no
+executor change, and no dry-run session — Phase 14 as a whole is not
+complete; see SPRINT_049.md §13 Review.**
+
 ### Sprint 048 — Closed (Phase 13 opening and closing increment; Phase 13 complete)
 
-**Status:** COMPLETE (13/13), on `sprint/exit-risk-and-catalog`; final
-integration PR to `main` pending (not yet opened)
+**Status:** COMPLETE (13/13), merged to `main` via #383.
 **Plan:** `docs/planning/sprints/SPRINT_048.md`
 **Wave 0:** `docs/planning/sprints/S048_WAVE0_DECISIONS.md`
 **ADR:** ADR-0028 (ACCEPTED — declined for Sprint 047, resumed with
@@ -530,8 +592,8 @@ preserved under "History")
 **Tasks:** 13 / 13 — Wave 1 complete (#368, #369, #370); Wave 2 complete
 (#372, #373, #374, #375); Wave 3 complete (#377, #378); Wave 4 complete
 (#380, #381, and this closure)
-**Branch:** `sprint/exit-risk-and-catalog` (cut from `main` after #366; not
-yet merged to `main`)
+**Branch:** `sprint/exit-risk-and-catalog` (cut from `main` after #366;
+merged back to `main` via #383)
 **Scope:** `BracketExitModel` + `EquityPercentRiskModel`; five bounded engine
 changes across three files plus a new `kernels/bracket.py`; a golden-run
 regression protecting the fixed-bars path; `trend.ema_distance` and
@@ -817,6 +879,9 @@ PRB-002 and PRB-005 received partial MVP resolution in Sprint 003.
 | ADR-0021 | ACCEPTED (Sprint 018) |
 | ADR-0022 Repository Top-Level Layout | ACCEPTED (Sprint 029) |
 | ADR-0023 Predictive Research Domain Boundary | ACCEPTED (Sprint 039) |
+| ADR-0024 Machine-Learned State Promotion (five conditions) | ACCEPTED (Sprint 044) |
+| ADR-0029 Promoted Predictive Artifact (parameter format, promotion store, parity bars, narrow ADR-0023 §7 amendment) | ACCEPTED (Sprint 049, 2026-09-02) |
+| ADR-0030 Inference-Time Availability Enforcement | **NOT YET WRITTEN** — needed per the S049-T001 finding (the executor mechanism ADR-0024 condition 2 presupposes does not exist); required before Sprint 050 implements condition 2 |
 | ADR-0004, ADR-0009, ADR-0010 | PLANNED |
 
 Binding decisions D-001–D-036 and workspace invariants are documented in the architecture files above; ADR materialization is Sprint 003 Wave 6 (including ADR-MA-007 workspace).
@@ -859,17 +924,27 @@ Sprint 047 Custom Strategy Authoring (Phase 12) COMPLETE (10/10), merged to
 main via #366. ADR-0027 ACCEPTED; ADR-0028 declined for this sprint (Wave 2
 dropped). Phase 12 is COMPLETE (ROADMAP §13D).
 Sprint 048 Exit/Risk Model Expansion, Catalog Growth and New Strategies
-(Phase 13) COMPLETE (13/13) on sprint/exit-risk-and-catalog (#368-#381);
-final integration PR to main pending. ADR-0028 resumed with corrections and
+(Phase 13) COMPLETE (13/13), merged to main via #383. ADR-0028 resumed with corrections and
 ACCEPTED (Status flipped in place). Phase 13 is COMPLETE (ROADMAP §13E).
+Sprint 049 Promotable Predictive Artifact (Phase 14A) COMPLETE (15/15) on
+sprint/promotable-predictive-artifact (#385-#393); final integration PR to
+main pending. ADR-0029 ACCEPTED. **Phase 14A is complete; Phase 14 as a
+whole is NOT** — ADR-0024 conditions 2, 3 and the online half of 4 remain
+open, ADR-0030 is needed and not yet written, and Sprint 050 (Phase 14B) is
+not planned (ROADMAP §13F).
 
-Active: none. Phase 10, Phase 2F, Phase 11, Phase 12 and Phase 13 are all
-closed (ROADMAP §13A-§13E); Sprint 048's final integration PR to `main` is
-the one remaining mechanical step, not a scope gap. No next phase is
-scheduled by default — see SPRINT_044.md §12, SPRINT_046.md §12,
-SPRINT_047.md §12 and SPRINT_048.md §12 for unscheduled candidate follow-ons
-(ML Market Analysis component gated by ADR-0024, cross-sectional predictive
-studies, SHAP, content-addressed artifact store, Binance `trades` mode,
+Active: none. Phase 10, Phase 2F, Phase 11, Phase 12, Phase 13 and Phase
+14A are all closed on their sprint branches (ROADMAP §13A-§13F); Sprint 048's
+and Sprint 049's final integration PRs to `main` are the remaining mechanical
+steps for those two, not scope gaps. **Phase 14 as a whole remains open** —
+Sprint 050 (Phase 14B: the model-backed Market Analysis State, executor
+availability enforcement via ADR-0030, and the 3-5 day BTC dry-run session)
+is not scheduled by default. No other next phase is scheduled by default
+either — see SPRINT_044.md §12, SPRINT_046.md §12, SPRINT_047.md §12,
+SPRINT_048.md §12 and SPRINT_049.md §12/§13 for unscheduled candidate
+follow-ons (Sprint 050 / Phase 14B itself, the deferred tree/neural joblib
+promotion path (TD-029), extracting promoted parameters at run time,
+cross-sectional predictive studies, SHAP, Binance `trades` mode,
 resume-after-failure imports, exposing the simulation assumptions / session
 resolver through the application layer, additional CLI command groups, shell
 completion, arithmetic in the model-expression IR, bracket-aware Robustness
@@ -883,10 +958,14 @@ Deferred relative to that track:
     PBO / CSCV / deflated Sharpe (ADR first)
     Residual docs / sample-data narrative
 
-Recently completed (dashboard / demo / dry-run / authoring infra / Phase 10A–10C, 2F, 11, 12, 13):
+Recently completed (dashboard / demo / dry-run / authoring infra / Phase 10A–10C, 2F, 11, 12, 13, 14A):
+    Sprint 049 — Promotable Predictive Artifact →
+        sprint/promotable-predictive-artifact (#385-#393), 15/15;
+        integration PR to main pending — closes Phase 14A only (Phase 14
+        overall remains open; Sprint 050 / Phase 14B not started)
     Sprint 048 — Exit/Risk Model Expansion, Catalog Growth and New
-        Strategies → sprint/exit-risk-and-catalog (#368-#381), 13/13;
-        integration PR to main pending — closes Phase 13
+        Strategies → sprint/exit-risk-and-catalog (#368-#381), 13/13,
+        merged to main via #383 — closes Phase 13
     Sprint 047 — Custom Strategy Authoring → main (#366; working PRs
         #363–#365) — closes Phase 12
     Sprint 046 — Universal Operator CLI → main (#361; working PRs #356–#360)
@@ -973,7 +1052,8 @@ See `docs/planning/sprints/SPRINT_044.md`, `S044_WAVE0_DECISIONS.md`, `SPRINT_04
 | 045 | Binance USD-M historical OHLCV ingestion (Phase 2F) | COMPLETED | 14 / 14 tasks; main #355; working PRs #350–#354 |
 | 046 | Universal Operator CLI (Phase 11, `trading-cli`) | COMPLETED | 14 / 14 tasks; main #361; working PRs #356–#360 |
 | 047 | Custom Strategy Authoring (Phase 12, `strategy_file` loader) | COMPLETED | 10 / 10 tasks; main #366; working PRs #363–#365 |
-| 048 | Exit/Risk Model Expansion, Catalog Growth and New Strategies (Phase 13) | COMPLETE | 13 / 13 tasks; all four waves (#368-#381); branch sprint/exit-risk-and-catalog; integration PR to main pending |
+| 048 | Exit/Risk Model Expansion, Catalog Growth and New Strategies (Phase 13) | COMPLETE | 13 / 13 tasks; all four waves (#368-#381); merged to main via #383 |
+| 049 | Promotable Predictive Artifact (Phase 14A) | COMPLETE | 15 / 15 tasks; all five waves (#385-#393, plus closure); branch sprint/promotable-predictive-artifact; integration PR to main pending; Phase 14A only — Phase 14 overall NOT complete (Sprint 050 / Phase 14B not started) |
 
 ---
 

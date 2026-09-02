@@ -42,6 +42,21 @@ Responsibility: optional-extra estimator adapters and the family-id registry.
 - Preprocessing (`IMPUTE_MEDIAN` then `STANDARDIZE` by default) is fitted on
   the feature matrix passed to `fit()` only. Do not pass PURGED / EMBARGOED
   rows; if `sample_metadata` carries fold roles, non-TRAIN roles are rejected.
+- `FittedNumpyPreprocessor` / `fit_numpy_preprocessor` (and their matrix/window
+  coercion helpers) moved to `research/predictive/promotion/preprocessing.py`
+  in Sprint 049 (Q8 / D-S049-08) — they are the promoted-artifact evaluator's
+  preprocessing half and live in the domain layer now. The torch adapter
+  (`torch/adapter.py`, `torch/sequence.py`) imports them downward from there;
+  do not re-add a copy under `infrastructure/ml/torch/`.
+- `promotion.py` (Sprint 049, ADR-0029 §4/§9) is the **only** module that
+  reads a Predictive Research fold's fitted joblib blob outside re-fitting
+  (the single narrow exception ADR-0023 §7 was amended for). It enforces the
+  model-family allow-list and the promotion-time scikit-learn version guard,
+  both **before** any unpickling, and extracts `coef_` / `intercept_` plus
+  fitted preprocessing statistics as plain numbers — no library object
+  leaves this module. Sklearn and joblib are imported lazily inside function
+  bodies only. Practical reference (both guards, the family restriction, the
+  store layout): `docs/reference/PREDICTIVE_PROMOTION.md`.
 - Application constructs estimators only through `resolve_estimator(spec,
   preprocessing=...)`. Do not import `infrastructure.ml.sklearn`,
   `infrastructure.ml.trees`, or `infrastructure.ml.torch` from application.

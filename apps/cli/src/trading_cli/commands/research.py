@@ -24,6 +24,16 @@ CLI itself performs no side effect, but the loaded module is operator code
 and executes at import (ADR-0027 Sec4). The simulation assumptions and
 session resolver remain hardcoded (the other two thirds of finding 2,
 unchanged this sprint).
+
+``research promote`` (S049-T009, D-S049-15) is a separate subcommand of the
+same `research` group -- not a `research.kind` value -- that promotes the
+last walk-forward fold of an existing Predictive Research run
+(`research.promote.run_id`) into a content-addressed promoted artifact
+(ADR-0029). It is a thin wrapper over
+`application.predictive_research.promote_predictive_run`: no business logic
+lives here, only config -> typed request -> typed result. Requires the `ml`
+extra to actually run (the workflow reads the run's fitted joblib blob once);
+this module itself does not import sklearn/joblib.
 """
 
 from __future__ import annotations
@@ -35,9 +45,11 @@ from typing import Any
 import yaml
 from trading_framework.application.predictive_research import (
     BuildPredictiveDatasetRequest,
+    PromotePredictiveRunRequest,
     RenderPredictiveReportRequest,
     RunPredictiveResearchRequest,
     build_predictive_dataset,
+    promote_predictive_run,
     render_predictive_research_report,
     run_predictive_research,
 )
@@ -101,6 +113,48 @@ def resolve_plan(config: CliConfig) -> ResolvedPlan:
         implemented=True,
         runtime_context=runtime_context,
     )
+
+
+def resolve_promote_plan(config: CliConfig) -> ResolvedPlan:
+    """Resolve `research promote`'s plan from `research.promote.run_id`.
+
+    Unrelated to the `research.kind` selector `research run` uses --
+    `promote` is a sibling subcommand, not a `kind` value (D-S049-15).
+    """
+    if config.research is None:
+        raise ConfigError("config is missing the 'research' block required by 'research promote'")
+    promote_args = dict(config.research.get("promote") or {})
+    _require(promote_args, "run_id", "research.promote")
+    output_path = str(Path(config.storage_root) / "research" / "promoted")
+    return ResolvedPlan(
+        group="research",
+        command="promote",
+        workflow="research.promote",
+        arguments={"run_id": promote_args["run_id"]},
+        output_paths=(output_path,),
+        storage_root=str(config.storage_root),
+        implemented=True,
+    )
+
+
+def run_promote(plan: ResolvedPlan) -> dict[str, Any]:
+    """Promote one existing Predictive Research run. Thin wrapper, no logic."""
+    storage_root = Path(plan.storage_root)
+    run_id = str(plan.arguments["run_id"])
+    try:
+        result = promote_predictive_run(
+            PromotePredictiveRunRequest(
+                run_ref=PredictiveRunRef(run_id=run_id),
+                storage_root=storage_root,
+            )
+        )
+    except (ValidationError, PredictiveSpecError, FileNotFoundError, FileExistsError) as exc:
+        raise WorkflowError(f"'research promote' failed: {exc}") from exc
+    return {
+        "artifact_fingerprint": result.artifact_fingerprint,
+        "directory": str(result.directory),
+        "fold_id": result.fold_id,
+    }
 
 
 def _resolve_strategy_source(kind_args: dict[str, Any], runtime_context: dict[str, Any]) -> None:

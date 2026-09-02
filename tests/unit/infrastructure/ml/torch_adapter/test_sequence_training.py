@@ -9,9 +9,9 @@ import pytest
 
 from trading_framework.infrastructure.ml.registry import resolve_estimator
 from trading_framework.infrastructure.ml.torch.adapter import FittedTorchEstimator
-from trading_framework.infrastructure.ml.torch.preprocessing import fit_numpy_preprocessor
 from trading_framework.research.predictive import EstimatorSpec, SequenceWindowSpec, TaskType
 from trading_framework.research.predictive.preprocessing import default_preprocessing_spec
+from trading_framework.research.predictive.promotion.preprocessing import fit_numpy_preprocessor
 
 pytest.importorskip("torch")
 

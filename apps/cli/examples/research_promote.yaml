@@ -1,0 +1,19 @@
+# trading-cli research promote --config apps/cli/examples/research_promote.yaml
+#
+# Promotes the last walk-forward fold of an existing Predictive Research run
+# (`research.promote.run_id`) into a content-addressed promoted artifact
+# under research/predictive_research/promoted/ (ADR-0029). Refuses a
+# tree/neural model family or a promotion-time scikit-learn version mismatch
+# and writes nothing on refusal. Requires the `ml` extra to actually run
+# (promotion reads the run's fitted joblib blob once, offline) -- inference
+# from an already-promoted artifact needs no extra at all.
+#
+# Safe to try with --dry-run first: prints the resolved plan and touches
+# nothing (it does not require the run to exist yet).
+
+version: 1
+storage_root: user_data/workspace
+
+research:
+  promote:
+    run_id: 0123456789abcdef

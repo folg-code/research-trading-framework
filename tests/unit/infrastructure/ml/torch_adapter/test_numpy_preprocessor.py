@@ -5,15 +5,15 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from trading_framework.infrastructure.ml.torch.preprocessing import (
-    as_feature_matrix,
-    fit_numpy_preprocessor,
-    transform_windows,
-)
 from trading_framework.research.predictive import PredictiveSpecError
 from trading_framework.research.predictive.preprocessing import (
     PreprocessingSpec,
     PreprocessingStep,
+)
+from trading_framework.research.predictive.promotion.preprocessing import (
+    as_feature_matrix,
+    fit_numpy_preprocessor,
+    transform_windows,
 )
 
 

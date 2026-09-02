@@ -43,9 +43,10 @@ _ALLOWED_KEYS_BY_BLOCK: dict[str, frozenset[str]] = {
         {"mode", "symbol", "instrument_id", "interval", "start", "end", "publish"}
     ),
     "data.databento": frozenset({"archive", "instrument_id"}),
-    "research": frozenset({"kind", "predictive", "strategy"}),
+    "research": frozenset({"kind", "predictive", "strategy", "promote"}),
     "research.predictive": frozenset({"definition", "estimator", "persist", "render_report"}),
     "research.strategy": frozenset({"dataset_ref", "timeframe", "strategy_file"}),
+    "research.promote": frozenset({"run_id"}),
     "dry_run": frozenset({"symbol", "duration_minutes", "event_log"}),
     "report": frozenset({"kind", "run_id", "output"}),
 }
@@ -142,6 +143,7 @@ def _validate(document: dict[str, Any]) -> CliConfig:
         _validate_nested_provider_block(data_block, "data", "provider")
     if research_block is not None:
         _validate_nested_provider_block(research_block, "research", "kind")
+        _validate_promote_block(research_block)
 
     return CliConfig(
         version=version,
@@ -187,6 +189,21 @@ def _validate_nested_provider_block(block: dict[str, Any], name: str, selector_k
     if not isinstance(nested, dict):
         raise ConfigError(f"config block '{nested_path}' must be a mapping")
     _check_keys(nested.keys(), _ALLOWED_KEYS_BY_BLOCK[nested_path], nested_path)
+
+
+def _validate_promote_block(research_block: dict[str, Any]) -> None:
+    """Validate `research.promote`, unrelated to the `research.kind` selector.
+
+    `research promote` (S049-T009) is a sibling *subcommand* of
+    `research run`, not a `research.kind` value -- its config lives at
+    `research.promote` regardless of whether `research.kind` is set.
+    """
+    promote = research_block.get("promote")
+    if promote is None:
+        return
+    if not isinstance(promote, dict):
+        raise ConfigError("config block 'research.promote' must be a mapping")
+    _check_keys(promote.keys(), _ALLOWED_KEYS_BY_BLOCK["research.promote"], "research.promote")
 
 
 def _check_keys(actual: Any, allowed: frozenset[str], path: str) -> None:

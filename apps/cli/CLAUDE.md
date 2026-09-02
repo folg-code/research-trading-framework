@@ -10,6 +10,24 @@ Responsibility: one operator-facing entry point (`trading-cli <group> <command> 
 - **Never**: reimplement research/simulation/execution logic in this package, or parse another command's stdout to compose commands. Composition (`research run predictive`) passes typed Python values between steps within one process (see `trading_cli/commands/research.py`).
 - **Config schema is locked** (D-S046-07): `version` + `storage_root` are the only cross-group keys; per-group blocks are validated in `trading_cli/config.py`. Existing spec files (`PredictiveStudySpec`, `EstimatorSpec`) are referenced by path and parsed by their own loaders -- never re-encoded here.
 
+- **`research promote`** (Sprint 049, ADR-0029) is a second command under the
+  `research` group, dispatched separately from `research run` — `cli.py`'s
+  `_HANDLERS` maps `(group, command)` to a `(resolve_plan, run)` callable
+  pair rather than a whole module, specifically so one module
+  (`trading_cli/commands/research.py`, per D-S049-15) can expose two
+  independent command bodies (`resolve_plan`/`run` for `run`,
+  `resolve_promote_plan`/`run_promote` for `promote`) without either command
+  needing to inspect which subcommand was invoked. `research.promote` is its
+  own config sub-block (`run_id` only) — unrelated to the `research.kind`
+  selector `research run` uses; `config.py`'s `_validate_promote_block`
+  validates it independently of the `kind`-driven nested-block validation.
+  It needs no import-boundary widening: `promote_predictive_run` /
+  `PromotePredictiveRunRequest` live under `trading_framework.application.*`
+  (always allowed), `PredictiveRunRef` was already on the allow-list
+  (Amendment 1, category 3), and `PromotePredictiveRunResult`'s fields are
+  plain `str`/`Path` so the CLI never needs to import
+  `research.datasets.promoted_artifact` at all.
+
 ## Gotchas
 
 - `research run strategy` (Sprint 047, ADR-0027): `research.strategy.strategy_file` is an optional config key naming a Python file with a zero-argument `build_strategy() -> StrategyModelDefinition` entry point (`trading_cli/strategy_loader.py`). It is loaded and executed during `resolve_plan` (before any side effect) so `--dry-run` proves the file loads by printing the resolved `strategy_model_id`; the loaded `StrategyModelDefinition` travels from `resolve_plan` to `run()` via `ResolvedPlan.runtime_context` (never re-imported, never re-executed, never rendered by `--dry-run`/`--json`). **No sandbox, no import restriction** -- loading a `strategy_file` has the exact blast radius of `uv run python <that file>` (stated in `--help`). The simulation assumptions and session resolver are still hardcoded the same way `scripts/strategy_research/run_strategy_research.py` hardcodes them -- that half of the limitation remains, stated in `--help`, not silently implied.
