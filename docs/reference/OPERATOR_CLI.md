@@ -212,8 +212,10 @@ run's fitted joblib blob once, offline, to extract plain-number parameters
 installed on the machine you run it from. **Loading an already-promoted
 artifact needs no extra at all** — that asymmetry is deliberate (promotion is
 an offline operator act; inference is not). See
-`docs/adr/ADR-0029-promoted-predictive-artifact.md` for the full mechanism,
-both guards, and what a promoted artifact is and is not.
+`docs/reference/PREDICTIVE_PROMOTION.md` for the practical reference (schema,
+store layout, both guards, refusal messages) and
+`docs/adr/ADR-0029-promoted-predictive-artifact.md` for the full design
+record.
 
 ### `dry-run start`
 

@@ -479,6 +479,11 @@ framework contracts). Report figures live in `research/reporting/predictive/`
 | Family registry + sklearn / tree / torch adapters | `infrastructure/ml/` (`registry.py`, `sklearn/`, `trees/xgboost/`, `trees/lightgbm/`, `trees/catboost/`, `torch/`) |
 | Thin CLIs | `scripts/predictive_research/` |
 | Storage paths | `infrastructure/storage/paths.py` |
+| Promoted-artifact manifest, fingerprint, content-addressed repository (Phase 14A, Sprint 049) | `research/datasets/promoted_artifact.py` |
+| Pure-NumPy promoted-artifact evaluator, parameter payload schema, load-time guard (Phase 14A) | `research/predictive/promotion/` |
+| Promoted-artifact blob read, extraction, promotion-time version guard (Phase 14A) | `infrastructure/ml/promotion.py` |
+| `promote_predictive_run` workflow (Phase 14A) | `application/predictive_research/promote_predictive_run.py` |
+| Operator surface (Phase 14A) | `trading-cli research promote` (`apps/cli/`), `scripts/predictive_research/promote_predictive_run.py` |
 
 Workflow:
 
@@ -556,6 +561,12 @@ Storage:
   models/fold_{n}.bin    # opaque; reproduce by re-fitting, not deserializing
 ```
 
+**Promoted artifacts** (Phase 14A, Sprint 049) live in a separate,
+content-addressed store under
+`<workspace>/research/predictive_research/promoted/{artifact_fingerprint}/` —
+see `docs/reference/PREDICTIVE_PROMOTION.md` §3 for the exact two-file
+layout, which is documented there only (not repeated here).
+
 CLIs:
 
 ```text
@@ -585,7 +596,9 @@ tests/integration/research/
 
 - `RESEARCH_METHODOLOGIES.md`
 - `ARCHITECTURE_AND_WORKFLOWS.md`
-- research ADRs (Predictive Research: ADR-0023)
+- `PREDICTIVE_PROMOTION.md` — promoted-artifact schema, store layout, both
+  guards, the family restriction, and the two parity comparisons (Phase 14A)
+- research ADRs (Predictive Research: ADR-0023; promotion: ADR-0029)
 
 ---
 

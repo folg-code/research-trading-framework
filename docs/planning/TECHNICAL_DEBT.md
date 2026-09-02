@@ -1048,6 +1048,17 @@ whether a content-addressed store suffices or a registry is genuinely required.
 
 Decide in ADR-0024. Do not add a registry as a side effect of trees or networks.
 
+### Sprint 049 disposition (2026-09-02)
+
+**Restated as deferred, not repaid.** ADR-0024 decided: a content-addressed
+directory (`research/predictive_research/promoted/{artifact_fingerprint}/`,
+ADR-0029 §2) suffices — no index, no `latest` pointer, no lifecycle/status
+field. This is a **negative constraint** (ADR-0024 condition 5), not a gap
+still to fill: a future plan that starts adding an index file has misread
+the decision, not found unfinished work. TD-021 stays open at its original
+status because "no registry" is the accepted design, not a shortcut awaiting
+repayment on its original terms.
+
 ### Related Problems
 
 - IDEA-014 (promotion gate).
@@ -1100,11 +1111,30 @@ after a library upgrade.
 Choose a serialization format with a stability guarantee. That is not the same
 as adding a registry.
 
+### Sprint 049 disposition (2026-09-02)
+
+**Partially addressed, not resolved.** ADR-0029's promoted-artifact
+parameter format (`research/datasets/promoted_artifact.py`,
+`research/predictive/promotion/parameters.py`) gives **promoted** artifacts a
+stability guarantee this entry originally asked for: they are plain-number
+JSON, portable across scikit-learn upgrades, human-readable, and inspectable
+without installing anything. That resolves the repayment trigger's *first*
+branch ("model promotion") but not its second: **research-run blobs
+(`models/fold_{n}.bin`) are completely unchanged** — still opaque joblib,
+still version-tagged, still non-reloadable by any workflow except the one
+narrow promotion-time read ADR-0023 §7 was amended for (ADR-0029 §7). A run
+that is never promoted is exactly as opaque as it was before this sprint.
+Do not describe TD-022 as repaid; the durable-portability guarantee exists
+only for artifacts that have gone through `promote_predictive_run`.
+
 ### Related Tasks
 
 - `TECHNICAL_DEBT.md` §6 Phase 10 planned boundaries (now live)
 - `SPRINT_040.md` §8
 - ADR-0023 §7
+- `docs/adr/ADR-0029-promoted-predictive-artifact.md` — the partial
+  repayment mechanism (Sprint 049)
+- `docs/reference/PREDICTIVE_PROMOTION.md`
 
 ---
 
@@ -1505,6 +1535,88 @@ independently from `kernels/bracket.py`, and cross-check it the same way
 - `src/trading_framework/research/simulation/kernels/reference.py`
 - `src/trading_framework/research/simulation/kernels/bracket.py` (Sprint 048
   Wave 2, not yet built as of this entry)
+
+---
+
+## TD-029 — Tree and Neural Predictive Model Promotion Is Deferred to a Version-Pinned Joblib Path
+
+```text
+Status: ACCEPTED
+Priority: LOW
+Domain: Predictive Research / Model Promotion
+Introduced: Sprint 049 (2026-09-02)
+Target Review: Once linear/logistic promotion (ADR-0029) is proven end to
+  end, or the first real BTC candidate model that shows structure is a tree
+  model
+Owner: Unassigned
+```
+
+### Accepted Shortcut
+
+`promote_predictive_run` and `load_promoted_artifact` support exactly three
+model families — `sklearn.ridge`, `sklearn.elastic_net`, `sklearn.logistic`
+(`research/datasets/promoted_artifact.py::MODEL_FAMILY_ALLOWLIST`,
+`research/predictive/promotion/evaluator.py::MODEL_FAMILY_ALLOWLIST`).
+Attempting to promote a tree family (XGBoost, LightGBM, CatBoost) or a
+neural family (torch feedforward/LSTM/GRU) raises
+`PromotedFamilyUnsupportedError` (`infrastructure/ml/promotion.py`), naming
+the family, and writes nothing. No implementation of the tree/neural
+promotion path exists anywhere.
+
+### Reason
+
+The v1 promoted-artifact format (ADR-0029) is a closed-form NumPy expression
+that only linear/logistic families reduce to. Tree ensembles and neural
+networks have no equivalent closed form; promoting them would require a
+different, version-pinned serialization path (most likely a pinned
+joblib/ONNX-style blob per ADR-0029's Alternatives Considered), which would
+put scikit-learn, XGBoost/LightGBM/CatBoost, or torch into the dry-run/live
+runtime image — the exact outcome the NumPy parameter-file format exists to
+avoid. Building that second path in the same sprint that proves the first
+one would have doubled the sprint's risk surface for no immediate benefit,
+per ADR-0029's Alternatives Considered table ("Version-pinned joblib blob
+for v1... Deferred, not rejected: it is the intended path for tree and
+neural families once this mechanism is proven").
+
+### Consequences
+
+- An operator whose best-performing BTC candidate model is a tree or neural
+  family cannot promote it today; they hit a named refusal, not a silent
+  failure or an unsupported-forever wall.
+- The PRD's v1 scope is smaller than Predictive Research's full family
+  coverage (Sprints 042/043 shipped tree and neural training; promotion
+  does not yet reach them).
+
+### Safe Operating Boundary
+
+No workflow may assume tree or neural families are promotable. The refusal
+in `infrastructure/ml/promotion.py::require_supported_model_family` is the
+only gate; nothing bypasses it.
+
+### Repayment Trigger
+
+Either linear/logistic promotion has been exercised end to end (proving the
+mechanism, the store, and the parity harness work) and Predictive Research
+research priorities turn to it next, or a real candidate model with genuine
+BTC structure turns out to be a tree model, making the refusal an active
+blocker rather than a documented gap.
+
+### Repayment Direction
+
+Design a version-pinned joblib (or equivalent) promotion path for tree and
+neural families through its own ADR — it changes the runtime deployment
+footprint (ADR-0029's whole point was keeping that footprint at zero for
+linear/logistic), so it cannot be added as a side effect of another sprint.
+The design should reuse `infrastructure/ml/promotion.py`'s guard ordering
+(family allow-list check, then a version guard, before any unpickling) as
+its starting shape.
+
+### Related Tasks
+
+- `docs/adr/ADR-0029-promoted-predictive-artifact.md` — Alternatives
+  Considered ("Version-pinned joblib blob for v1")
+- `docs/reference/PREDICTIVE_PROMOTION.md` §6
+- `src/trading_framework/infrastructure/ml/promotion.py`
 
 ---
 
