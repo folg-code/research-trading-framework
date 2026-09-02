@@ -74,6 +74,17 @@ library-free predictive metrics (`metrics.py`).
   embargo whose `label_end_at` also reaches fold *n+1*'s TEST stays
   `EMBARGOED` so later reports can count each guard (D-S039-09).
 
+- `promotion/` (Sprint 049, ADR-0029) is the pure-NumPy promoted-artifact
+  evaluator: `PromotedArtifactParameters` (the parameter-file payload schema),
+  `load_promoted_artifact` (the load-time format/family guard, no bypass), and
+  `FittedNumpyPreprocessor` / `fit_numpy_preprocessor` (moved here from
+  `infrastructure/ml/torch/preprocessing.py`, Q8/D-S049-08 — the torch adapter
+  imports them downward from here now). This subpackage must not import
+  `research.datasets` (layering runs `research/predictive` -> `research/datasets`,
+  never the reverse — ADR-0029 §9); `load_promoted_artifact` accepts a
+  structural `PromotedManifestLike` Protocol instead of the concrete
+  `PromotedArtifactManifest` class for that reason.
+
 ## Tests
 
 Unit tests live under `tests/unit/research/predictive/`. Architecture boundary
