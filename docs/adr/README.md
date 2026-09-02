@@ -54,15 +54,17 @@ SUPERSEDED
 | [ADR-0020](ADR-0020-model-research-methodology-mvp.md) | Model Research Methodology MVP | PROPOSED | Sprint 017 |
 | [ADR-0021](ADR-0021-live-dry-run-execution-demo.md) | Live Dry-Run Execution Demo | ACCEPTED | Sprint 018 |
 | [ADR-0022](ADR-0022-repository-top-level-layout.md) | Repository Top-Level Layout | ACCEPTED | Sprint 029 |
-| [ADR-0023](ADR-0023-predictive-research-boundary.md) | Predictive Research Domain Boundary | ACCEPTED | Sprint 039 |
+| [ADR-0023](ADR-0023-predictive-research-boundary.md) | Predictive Research Domain Boundary | ACCEPTED (§7 amended by ADR-0029) | Sprint 039 |
 | [ADR-0024](ADR-0024-machine-learned-state-promotion.md) | Promotion Conditions for Machine-Learned Market Analysis States | ACCEPTED | Sprint 044 |
 | [ADR-0025](ADR-0025-binance-usdm-historical-klines-import.md) | Binance USD-M Historical Klines Import | ACCEPTED | Sprint 045 |
 | [ADR-0026](ADR-0026-operator-cli-framework-and-placement.md) | Operator CLI: Framework, Placement and Config Contract | ACCEPTED | Sprint 046 |
 | [ADR-0027](ADR-0027-operator-authored-strategy-loading.md) | Operator-Authored Strategy Loading (`strategy_file` + `build_strategy()`) | ACCEPTED | Sprint 047 |
 | [ADR-0028](ADR-0028-bracket-exit-and-equity-relative-sizing.md) | Bracket Exits and Equity-Relative Sizing: Widening the Strategy Model Gate | ACCEPTED (declined for Sprint 047; resumed with corrections for Sprint 048) | Sprint 047 / 048 |
+| [ADR-0029](ADR-0029-promoted-predictive-artifact.md) | Promoted Predictive Artifact: Parameter Format, Promotion Store, and the Narrow ADR-0023 §7 Amendment | ACCEPTED | Sprint 049 |
 | ADR-0004 | Independent Research and Execution Workflows | PLANNED | TBD |
 | ADR-0009 | Batch Backtest vs Replay Execution | PLANNED | TBD |
 | ADR-0010 | Working Component and Model Fingerprints | PLANNED | TBD |
+| ADR-0030 | Inference-Time Availability Enforcement | PLANNED (conditional on the S049-T001 finding) | TBD |
 
 Market Analysis binding decisions D-001–D-036 remain authoritative in
 `docs/vision/MARKET_ANALYSIS_WITH_DECISIONS.md`. Sprint 003 materialized the engine subset above as
