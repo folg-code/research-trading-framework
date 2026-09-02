@@ -5,8 +5,8 @@
 ```text
 Sprint: 049
 Phase: Phase 14 — Predictive Model Promotion; increment 14A (opening increment; NOT closing)
-Status: PLANNED — requires maintainer approval (Wave 0 Checklist D-S049-12 is unchecked)
-Planned Start: TBD
+Status: APPROVED (2026-09-02) — Wave 0 Checklist D-S049-12 signed off in full
+Planned Start: 2026-09-02
 Planned End: TBD
 Sprint Goal Owner: Project Maintainer
 Depends On: SPRINT_039-044 (Phase 10 Predictive Research; ADR-0023, ADR-0024, S044_GATE)
