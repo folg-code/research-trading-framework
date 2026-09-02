@@ -84,11 +84,24 @@ class PromotedArtifactRef:
 class PromotedArtifactManifest:
     """Manifest for one promoted predictive artifact (ADR-0029 §2).
 
-    ``feature_output_refs`` is the **ordered** list of feature ``OutputRef``
-    identities (``OutputRef.canonical_key()`` strings) that fed the promoted
-    model, positional per ADR-0029 §1 — the evaluator's column order is
-    positional, so this order is part of the artifact's meaning, not
-    incidental metadata.
+    ``feature_output_refs`` is the **ordered** list of feature identity
+    strings that fed the promoted model, positional per ADR-0029 §1 — the
+    evaluator's column order is positional, so this order is part of the
+    artifact's meaning, not incidental metadata.
+
+    **What these strings actually are:** canonical-JSON encodings of the
+    declared ``FeatureSpec`` (component/parameters/output/alias) — not
+    resolved ``OutputRef.canonical_key()`` strings. Resolving a real
+    ``OutputRef`` requires live analysis-assembly context (component/
+    implementation versions, ``dataset_ref``, timeframe, dependency keys)
+    that an already-persisted run/dataset envelope does not retain, and
+    re-deriving it would mean re-running analysis, which promotion does not
+    do (D-S049-14). See
+    ``application.predictive_research.promote_predictive_run._feature_identity``
+    for the exact construction and the full rationale. A future increment
+    that persists real ``OutputRef`` lineage on the dataset envelope could
+    tighten this field to the fully resolved identity; until then, treat it
+    as "which declared feature, in which order" rather than a cache key.
 
     ``training_library`` / ``training_library_version`` are recorded for
     **provenance only** and are never a load-time gate (D-S049-07): a
@@ -199,10 +212,15 @@ def compute_promoted_artifact_fingerprint(
     ``json.dumps(payload, sort_keys=True, separators=(",", ":"))``.
 
     Hashed: ``run_fingerprint``, ``fold_id``, ``format``, ``format_version``,
-    ``model_family``, the ordered feature ``OutputRef`` identities, and both
-    specs. ``features`` may be passed as ``OutputRef`` objects (their
-    ``canonical_key()`` is hashed) or as pre-derived identity strings; either
-    way feature **order is preserved, not sorted** — the evaluator's column
+    ``model_family``, the ordered feature identities, and both specs.
+    ``features`` may be passed as ``OutputRef`` objects (their
+    ``canonical_key()`` is hashed) or as pre-derived identity strings —
+    callers that cannot resolve a real ``OutputRef`` (for example,
+    ``promote_predictive_run``, which only has a persisted run/dataset
+    envelope, not live analysis-assembly context) pass their own identity
+    strings instead; see ``PromotedArtifactManifest.feature_output_refs``'s
+    docstring for what those strings actually encode today. Either way,
+    feature **order is preserved, not sorted** — the evaluator's column
     order is positional, so a permutation is a different artifact.
 
     **Fitted parameter values are never hashed** — this is a deliberate
