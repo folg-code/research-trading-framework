@@ -6,9 +6,11 @@
 Sprint: 054
 Phase: Cross-cutting docs architecture — not part of the Phase 15 predictive
        research track (Sprint 052 / Phase 15B is unaffected).
-Status: IN PROGRESS — approved by maintainer, opened 2026-09-03.
+Status: TASKS COMPLETE — all T001-T010 done on
+  `sprint/vision-and-reference-reclassification`; awaiting maintainer
+  review and the final integration PR into `main`.
 Planned Start: 2026-09-03
-Planned End: TBD
+Planned End: 2026-09-03
 Sprint Goal Owner: Project Maintainer
 Depends On: Sprint 053 (repo workflow & docs hygiene) — closed on `main`
             (#418). This sprint picks up the two items Sprint 053
@@ -115,7 +117,7 @@ answers:
 | T007 | Content audit of 12+3 `docs/reference/` files, produce split plan | — | DONE |
 | T008 | Execute `docs/reference/` → `system/`/`workflows/`/`modules/`/`runbooks/` split | T007 | DONE |
 | T009 | Update all inbound references | T004, T005, T006a-c, T008 | DONE |
-| T010 | Phase F validation re-run (5 checks) | T001-T009 | TODO |
+| T010 | Phase F validation re-run (5 checks) | T001-T009 | DONE |
 
 ## 5. Progress
 
@@ -411,10 +413,52 @@ answers:
   vision/reference split), and is flagged here as a candidate for a
   follow-up docs-hygiene fix rather than fixed inline, to keep this task's
   diff scoped to Sprint 054's own moves.
+- 2026-09-03: T010 complete. Re-ran the 4 Phase F checks from
+  `docs/historical/REPO_WORKFLOW_DOCS_AUDIT.md` plus this sprint's added
+  5th check against the post-T009 repo state — see
+  `docs/planning/sprints/SPRINT_054_T010_PHASE_F_VALIDATION.md` for the
+  full walkthrough. 4/5 passed as-is (market-data-ingestion resolves via
+  `docs/reference/README.md` → `system/MODULE_MAP.md` §5 in 2 lookups,
+  even though the check's originally-named `DATA_WORKFLOWS.md` target was
+  already dead before this sprint; the `apps/*` → ADR-0022 check resolves
+  from `AGENTS.md` line 37, shifted from line 30 by T006b's edits; the
+  `.gitignore` worktree exclusions from Sprint 053 Phase A are intact; the
+  new "how does strategy execution work" check resolves via
+  `docs/reference/system/WORKFLOWS_ARCHITECTURE.md`'s dedicated section
+  rather than the sprint doc's originally-guessed
+  `workflows/STRATEGY_EXECUTION.md`, since T007's audit rejected fabricating
+  that file from non-existent source content). 1/5 failed and was fixed
+  inline as part of this task (a one-line factual correction, within a
+  validation task's remit): `docs/planning/CURRENT_STATUS.md` still named
+  the already-closed SPRINT_053 as the Active Sprint; corrected to
+  SPRINT_054 on `sprint/vision-and-reference-reclassification`, with
+  SPRINT_053 recorded as the last completed cross-cutting sprint.
 
 ## 6. Outcome
 
-TBD.
+All ten tasks (T001-T010, including the T003b/T006a-c rescope produced
+mid-sprint) are complete. The sprint's two goals are both met: (a) the
+current-vs-future status of every section in the five largest
+`docs/vision/` files is now explicit and code-verified, with confirmed-
+current content relocated to `docs/reference/system/` and genuinely future
+or ambiguous content left in `vision/` with status notes; and (b)
+`docs/reference/` has a layered `system/` / `workflows/` / `runbooks/` /
+`modules/` navigation model in place of its former flat 15-file list, per
+T007's audited split plan rather than the originating audit's untested
+guess. T010's validation confirms the navigability goal holds up under a
+fresh-agent-style walkthrough (4/5 checks passed as-is; the 1 failure was a
+pre-existing, unrelated staleness in `CURRENT_STATUS.md`, fixed inline).
+
+Two items were deliberately left open, both by design rather than oversight:
+`docs/reference/system/DEPENDENCY_RULES.md` (needs newly-authored
+consolidated content, out of a move/split sprint's scope) and
+`docs/reference/modules/DATA_MODULE.md` (flagged by T007 as reading like
+vision-tier content — a maintainer decision, same family as T005/T006,
+not made here). See §7 for these and other follow-ups.
+
+Next step: open the sprint's final integration PR,
+`sprint/vision-and-reference-reclassification` → `main`, for maintainer
+review and merge.
 
 ## 7. Follow-ups (explicitly not this sprint)
 
@@ -423,3 +467,24 @@ TBD.
   predate it) — flag as a new ADR or problem-registry item, don't resolve
   inline.
 - Sprint-doc archival backlog (still deferred from Sprint 053).
+- `docs/reference/system/DEPENDENCY_RULES.md` — needs newly-authored
+  consolidated content from `AGENTS.md`/`.cursor/rules/ARCHITECTURE_CONTROL.md`;
+  T007 deferred it, T008 did not attempt it (a move/split task, not a
+  content-authoring one).
+- `docs/reference/modules/DATA_MODULE.md` — T007 flagged this as reading
+  largely like vision-tier target architecture rather than as-implemented
+  reference. Left in place pending a maintainer decision, same family as
+  the T005/T006 decision gates.
+- `docs/reference/modules/MARKET_ANALYSIS_MODULE.md` has a pre-existing
+  broken relative link (`../adr/README.md`, one `../` short of
+  `docs/adr/README.md`) dating to the original Sprint 003 vision/reference
+  split — unrelated to this sprint's moves, noted by T009 as a docs-hygiene
+  follow-up candidate.
+- `docs/reference/system/MODULE_MAP.md`'s `DATA_WORKFLOWS.md` cross-reference
+  points at a file that has never existed in this sprint's lifetime (or,
+  per T010, before it) — a candidate for either authoring that file or
+  removing the last remaining pointer to it.
+- Strategy Research's missing "family"/bounded-expansion research-space
+  machinery (the asymmetry T003b found relative to Signal Research's
+  `family_planning.py`) — a candidate problem-registry entry, not resolved
+  in this docs-only sprint.
