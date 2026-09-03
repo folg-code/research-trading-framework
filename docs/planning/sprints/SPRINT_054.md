@@ -6,8 +6,8 @@
 Sprint: 054
 Phase: Cross-cutting docs architecture — not part of the Phase 15 predictive
        research track (Sprint 052 / Phase 15B is unaffected).
-Status: PLANNED — requires maintainer approval before opening.
-Planned Start: TBD
+Status: IN PROGRESS — approved by maintainer, opened 2026-09-03.
+Planned Start: 2026-09-03
 Planned End: TBD
 Sprint Goal Owner: Project Maintainer
 Depends On: Sprint 053 (repo workflow & docs hygiene) — closed on `main`
@@ -108,7 +108,9 @@ answers:
 
 ## 5. Progress
 
-Not started — sprint is PLANNED, pending maintainer approval to open.
+- 2026-09-03: Sprint opened on `sprint/vision-and-reference-reclassification`
+  after maintainer approval. Starting with T001
+  (`ARCHITECTURE_FOUNDATIONS.md` classification), per D-S054-01 sequencing.
 
 ## 6. Outcome
 
