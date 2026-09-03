@@ -263,7 +263,7 @@ tests/integration/market_data/
 | Batch execution | `market_analysis/execution/` |
 | Analysis input data | `market_analysis/data/` |
 | Results and workspace | `market_analysis/storage/` |
-| Built-in components | `market_analysis/components/` (incl. `components/candle/wick.py` -- `candle.wick`, and `components/structure/level_distance.py` -- `structure.level_distance`, both Sprint 047 / ADR-0027; and `components/trend/ema_distance.py` -- `trend.ema_distance` (signed `distance_atr`, depends on `trend.ema` + `volatility.atr`), and `components/volatility/range_expansion.py` -- `volatility.range_expansion` (dimensionless `ratio`, depends on `volatility.true_range` + `volatility.atr`), both Sprint 048 / ADR-0028) |
+| Built-in components | `market_analysis/components/` (incl. `components/candle/wick.py` -- `candle.wick`, and `components/structure/level_distance.py` -- `structure.level_distance`, both Sprint 047 / ADR-0027; and `components/trend/ema_distance.py` -- `trend.ema_distance` (signed `distance_atr`, depends on `trend.ema` + `volatility.atr`), and `components/volatility/range_expansion.py` -- `volatility.range_expansion` (dimensionless `ratio`, depends on `volatility.true_range` + `volatility.atr`), both Sprint 048 / ADR-0028; and, Sprint 051 / Phase 15A (no new ADR): `components/momentum/rsi.py` -- `momentum.rsi` (Wilder RSI, `100.0`/`50.0` on degenerate windows), `components/momentum/macd.py` -- `momentum.macd` (`line`/`signal`/`histogram`, depends on two `trend.ema` outputs), `components/momentum/stochastic.py` -- `momentum.stochastic` (`k`/`d`, zero-range window yields `50.0`, a deliberate divergence from this catalog's usual `0.0` convention, D-S051-04); `components/volatility/relative_volatility.py` -- `volatility.relative_volatility` (`value`/`ratio`, ordinary `0.0` zero-baseline convention, D-S048-10); the new `components/statistics/` namespace package: `components/statistics/return_autocorrelation.py` -- `statistics.return_autocorrelation` and `components/statistics/return_distribution.py` -- `statistics.return_distribution` (`skew`/`excess_kurtosis`), both ordinary `0.0` zero-variance convention) |
 | Frame assembly and alignment | `market_analysis/assembly/` |
 | Workflow orchestration | `application/market_analysis/` |
 
@@ -314,7 +314,7 @@ tests/integration/market_analysis/
 | Expression tree and references | `model_expression/` |
 | Expression validation | `model_expression/` |
 | Expression evaluation | `model_expression/evaluation/` |
-| User-facing typed DSL | `model_authoring/` (incl. `references/candle.py` -- `candle.upper_wick_ratio`/`lower_wick_ratio`/`body_ratio`, and `references/structure.py`'s `distance_to_session_high`/`distance_to_session_low` -- both Sprint 047 / ADR-0027) |
+| User-facing typed DSL | `model_authoring/` (incl. `references/candle.py` -- `candle.upper_wick_ratio`/`lower_wick_ratio`/`body_ratio`, and `references/structure.py`'s `distance_to_session_high`/`distance_to_session_low` -- both Sprint 047 / ADR-0027; and, Sprint 051 / Phase 15A: `references/momentum.py` -- `momentum.rsi`/`macd_line`/`macd_signal`/`macd_histogram`/`stochastic_k`/`stochastic_d`, and `references/statistics.py` -- `statistics.return_autocorrelation`/`return_skew`/`return_excess_kurtosis` (the new `statistics.` namespace)) |
 | Market Model contracts | `market_model/` |
 | Signal Model contracts | `signal_model/` |
 | Shared model evaluation workflow | `application/model_evaluation/` |

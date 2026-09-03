@@ -22,7 +22,9 @@ def return_autocorrelation(
     population Pearson correlation between log returns and their own
     lag-``lag`` shift, computed within each ``period``-bar window, in
     ``[-1, 1]``, on the evaluation grid. A degenerate (zero-variance) window
-    yields ``0.0`` (D-S051-04/05)."""
+    yields ``0.0`` -- the project's ordinary zero-denominator convention
+    (D-S048-10), NOT ``momentum.stochastic``'s deliberate ``50.0`` divergence
+    (D-S051-04), which does not apply here."""
     component = ReturnAutocorrelationComponent()
     return Operand(
         ComponentOutputReference(
@@ -43,9 +45,11 @@ def return_skew(
 ) -> Operand:
     """``statistics.return_skew(period=60)`` -- rolling population
     Fisher-Pearson skewness of log returns over each ``period``-bar window,
-    on the evaluation grid. A zero-variance (flat) window yields ``0.0``
-    (D-S051-04/05). Short windows on 1m bars are outlier-dominated -- see
-    ``ReturnDistributionComponent``'s docstring."""
+    on the evaluation grid. A zero-variance (flat) window yields ``0.0`` --
+    the project's ordinary zero-denominator convention (D-S048-10), NOT
+    ``momentum.stochastic``'s deliberate ``50.0`` divergence (D-S051-04),
+    which does not apply here. Short windows on 1m bars are outlier-dominated
+    -- see ``ReturnDistributionComponent``'s docstring."""
     component = ReturnDistributionComponent()
     return Operand(
         ComponentOutputReference(
@@ -67,8 +71,10 @@ def return_excess_kurtosis(
     """``statistics.return_excess_kurtosis(period=60)`` -- rolling population
     Fisher-Pearson excess kurtosis of log returns over each ``period``-bar
     window, on the evaluation grid. A zero-variance (flat) window yields
-    ``0.0`` (D-S051-04/05). Short windows on 1m bars are outlier-dominated --
-    see ``ReturnDistributionComponent``'s docstring."""
+    ``0.0`` -- the project's ordinary zero-denominator convention
+    (D-S048-10), NOT ``momentum.stochastic``'s deliberate ``50.0`` divergence
+    (D-S051-04), which does not apply here. Short windows on 1m bars are
+    outlier-dominated -- see ``ReturnDistributionComponent``'s docstring."""
     component = ReturnDistributionComponent()
     return Operand(
         ComponentOutputReference(
