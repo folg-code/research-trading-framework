@@ -1,6 +1,10 @@
 # Module Map
 
-This document maps the architectural modules and workflows described in `ARCHITECTURE_AND_WORKFLOWS.md` to their implementation in the repository.
+> Moved from `docs/reference/MODULE_MAP.md` to
+> `docs/reference/system/MODULE_MAP.md` by Sprint 054 T008 (`docs/reference`
+> system/workflows/runbooks/modules split). Content unchanged.
+
+This document maps the architectural modules and workflows described in `SYSTEM_OVERVIEW.md` to their implementation in the repository.
 
 Its purpose is to show:
 
@@ -243,7 +247,7 @@ tests/integration/market_data/
 
 ### Deep references
 
-- `ARCHITECTURE_AND_WORKFLOWS.md`
+- `SYSTEM_OVERVIEW.md`
 - market-data module reference
 - storage ADRs
 
@@ -299,7 +303,7 @@ tests/integration/market_analysis/
 
 ### Deep references
 
-- `ARCHITECTURE_AND_WORKFLOWS.md`
+- `SYSTEM_OVERVIEW.md`
 - Market Analysis module reference
 - Market Analysis ADRs
 
@@ -358,8 +362,8 @@ tests/unit/application/model_evaluation/
 
 ### Deep references
 
-- `ARCHITECTURE_AND_WORKFLOWS.md`
-- [Model authoring DSL](modules/MODEL_AUTHORING.md)
+- `SYSTEM_OVERVIEW.md`
+- [Model authoring DSL](../modules/MODEL_AUTHORING.md)
 - model evaluation ADRs
 
 ---
@@ -564,7 +568,7 @@ Storage:
 **Promoted artifacts** (Phase 14A, Sprint 049) live in a separate,
 content-addressed store under
 `<workspace>/research/predictive_research/promoted/{artifact_fingerprint}/` —
-see `docs/reference/PREDICTIVE_PROMOTION.md` §3 for the exact two-file
+see `docs/reference/modules/PREDICTIVE_PROMOTION.md` §3 for the exact two-file
 layout, which is documented there only (not repeated here).
 
 CLIs:
@@ -594,9 +598,9 @@ tests/integration/research/
 
 ### Deep references
 
-- `RESEARCH_METHODOLOGIES.md`
-- `ARCHITECTURE_AND_WORKFLOWS.md`
-- `PREDICTIVE_PROMOTION.md` — promoted-artifact schema, store layout, both
+- `../workflows/RESEARCH_METHODOLOGIES.md`
+- `SYSTEM_OVERVIEW.md`
+- `../modules/PREDICTIVE_PROMOTION.md` — promoted-artifact schema, store layout, both
   guards, the family restriction, and the two parity comparisons (Phase 14A)
 - research ADRs (Predictive Research: ADR-0023; promotion: ADR-0029)
 
@@ -654,7 +658,7 @@ tests/integration/live_data/
 
 ### Deep references
 
-- `ARCHITECTURE_AND_WORKFLOWS.md`
+- `SYSTEM_OVERVIEW.md`
 - execution runbooks
 - execution ADRs
 
@@ -814,8 +818,8 @@ Use this document to locate implementation.
 Use the following documents for deeper context:
 
 - `README.md` — project overview,
-- `ARCHITECTURE_AND_WORKFLOWS.md` — architectural problems and workflow design,
-- `RESEARCH_METHODOLOGIES.md` — research methodology,
+- `SYSTEM_OVERVIEW.md` — architectural problems and workflow design,
+- `../workflows/RESEARCH_METHODOLOGIES.md` — research methodology,
 - module-specific reference documents,
 - Architecture Decision Records,
 - execution and deployment runbooks.

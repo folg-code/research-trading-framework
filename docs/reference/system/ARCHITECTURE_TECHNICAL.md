@@ -11,7 +11,7 @@
 >
 > The Event System (§8 of the source document), the suggested Module
 > Structure (§10.2–§10.12, §10.14 — the actual layout lives in
-> [`docs/reference/MODULE_MAP.md`](../MODULE_MAP.md)), the User Data
+> [`docs/reference/system/MODULE_MAP.md`](MODULE_MAP.md)), the User Data
 > Structure (§11 — actual layout also in `MODULE_MAP.md` §11), and several
 > other future-facing or ambiguous-status sections remain in
 > [`docs/vision/ARCHITECTURE_TECHNICAL.md`](../../vision/ARCHITECTURE_TECHNICAL.md).
@@ -1282,7 +1282,7 @@ It does not contain reusable domain algorithms.
 > As-built note: the actual package set matches `market_data`,
 > `signal_research`, `strategy_research` directly (`strategy_execution` is
 > named `execution/` in code); see
-> [`docs/reference/MODULE_MAP.md`](../MODULE_MAP.md) for the current,
+> [`docs/reference/system/MODULE_MAP.md`](MODULE_MAP.md) for the current,
 > authoritative package tree, which has several additional
 > workflow-orchestration packages not listed above
 > (`market_analysis/`, `model_evaluation/`, `predictive_research/`,

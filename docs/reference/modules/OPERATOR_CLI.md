@@ -1,5 +1,10 @@
 # Operator CLI (`trading-cli`)
 
+> Moved from `docs/reference/OPERATOR_CLI.md` to
+> `docs/reference/modules/OPERATOR_CLI.md` by Sprint 054 T008
+> (`docs/reference` system/workflows/runbooks/modules split). Content
+> unchanged.
+
 This is the operator-facing how-to-use-it guide for `trading-cli`
 (`apps/cli`, Phase 11). The design record — why `argparse`, why `apps/cli`,
 why the import boundary differs from `apps/dashboard`, the full YAML config
@@ -52,7 +57,7 @@ every invocation goes through `uv run trading-cli ...`.
 | Flag | Effect |
 |---|---|
 | `--config PATH` | Required. Path to the YAML config document (see §4). |
-| `--dry-run` | Validate and resolve the plan (workflow, arguments, output paths), print it, and stop. No file write, no dataset registration, no network call, no side effect of any kind **from the CLI itself**. **Narrowed exception (Sprint 047, ADR-0027 §4):** when `research.strategy.strategy_file` is set, resolving the plan imports and executes that file to prove it loads — the CLI performs no side effect, but the loaded module is your own code and executes at import time. See §5 `research run` and `docs/reference/STRATEGY_AUTHORING.md` §2. |
+| `--dry-run` | Validate and resolve the plan (workflow, arguments, output paths), print it, and stop. No file write, no dataset registration, no network call, no side effect of any kind **from the CLI itself**. **Narrowed exception (Sprint 047, ADR-0027 §4):** when `research.strategy.strategy_file` is set, resolving the plan imports and executes that file to prove it loads — the CLI performs no side effect, but the loaded module is your own code and executes at import time. See §5 `research run` and `docs/reference/modules/STRATEGY_AUTHORING.md` §2. |
 | `--json` | Print the plan (`--dry-run`) or the result as structured JSON instead of the human-readable text form — for scripting, not a different behaviour. |
 | `--verbose` | Additional diagnostics on stderr. Never prints a credential in any mode, including `--dry-run` and `--verbose` (D-S046-08). |
 
@@ -165,7 +170,7 @@ manifest's `strategy_model_id` is *that* strategy's, not the canonical
 example's. **Trust model: no sandbox, no import restriction** — loading a
 `strategy_file` has the same blast radius as `uv run python <that file>`.
 The full convention, error table, and worked examples are in
-`docs/reference/STRATEGY_AUTHORING.md`.
+`docs/reference/modules/STRATEGY_AUTHORING.md`.
 
 **Known limitation — SPRINT_046.md §4 finding 2 (binding, two of three thirds
 remain):** `research run strategy` still hardcodes the simulation
@@ -212,7 +217,7 @@ run's fitted joblib blob once, offline, to extract plain-number parameters
 installed on the machine you run it from. **Loading an already-promoted
 artifact needs no extra at all** — that asymmetry is deliberate (promotion is
 an offline operator act; inference is not). See
-`docs/reference/PREDICTIVE_PROMOTION.md` for the practical reference (schema,
+`docs/reference/modules/PREDICTIVE_PROMOTION.md` for the practical reference (schema,
 store layout, both guards, refusal messages) and
 `docs/adr/ADR-0029-promoted-predictive-artifact.md` for the full design
 record.
@@ -268,7 +273,7 @@ error naming the offending config key instead.
    finding 2). The *strategy model* third of this finding is closed as of
    Sprint 047: `research.strategy.strategy_file` selects your own strategy
    instead of the canonical example. See §5 above and
-   `docs/reference/STRATEGY_AUTHORING.md`.
+   `docs/reference/modules/STRATEGY_AUTHORING.md`.
 2. **`data fetch binance` only supports `interval: 1m`** (TD-023). See §5
    above; `docs/planning/TECHNICAL_DEBT.md` TD-023 has the full root cause
    and repayment trigger.
@@ -288,7 +293,7 @@ error naming the offending config key instead.
 - `docs/adr/ADR-0029-promoted-predictive-artifact.md` — design record for
   `research promote` (Sprint 049): the parameter format, the promotion store,
   both guards, and the narrow ADR-0023 §7 amendment.
-- `docs/reference/STRATEGY_AUTHORING.md` — the operator guide for writing
+- `docs/reference/modules/STRATEGY_AUTHORING.md` — the operator guide for writing
   and running your own strategy file.
 - `docs/planning/sprints/SPRINT_046.md` — sprint scope, thin-wrapper
   feasibility audit, task breakdown.
