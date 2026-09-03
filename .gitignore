@@ -65,6 +65,8 @@ artifacts/demo/**
 .idea/
 .agents/
 .codex/
+.claude/worktrees/
+.codex/worktrees/
 
 # Cursor local state, but keep project rules
 .cursor/*
