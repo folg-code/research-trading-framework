@@ -254,6 +254,58 @@ def rolling_lagged_pearson_correlation(returns: np.ndarray, period: int, lag: in
     return out
 
 
+def rolling_skew_and_kurtosis(returns: np.ndarray, period: int) -> tuple[np.ndarray, np.ndarray]:
+    """Causal rolling POPULATION Fisher-Pearson skewness and excess kurtosis of
+    ``returns`` (statistics.return_distribution, D-S051-03/05):
+
+        window = returns[i - period + 1 : i + 1]        # `period` values
+        mean   = window.mean()
+        m2     = ((window - mean) ** 2).mean()            # population variance
+        m3     = ((window - mean) ** 3).mean()
+        m4     = ((window - mean) ** 4).mean()
+        skew[i]            = m3 / m2 ** 1.5                if m2 != 0 else 0.0
+        excess_kurtosis[i] = m4 / m2 ** 2 - 3.0             if m2 != 0 else 0.0
+
+    Both outputs are computed from ONE shared set of central moments
+    (``mean``/``m2``/``m3``/``m4``) per window rather than two independent
+    passes, since they are the same statistical quantity (the standardized
+    third and fourth central moments) computed once. This is the standard
+    ("method of moments") Fisher-Pearson estimator using POPULATION moments
+    (``ddof=0``) throughout -- NOT any small-sample bias-corrected variant
+    (e.g. scipy's default ``bias=False`` adjustment for skewness/kurtosis).
+    One documented estimator, not tuned to match any particular library's
+    default, per D-S051-05.
+
+    Zero-variance convention -- when ``m2 == 0.0`` (a perfectly flat window,
+    every return in it identical), both ``skew`` and ``excess_kurtosis`` are
+    mathematically undefined (``0/0``). This follows the project's ORDINARY
+    zero-denominator convention (``candle.wick`` D-S047-10;
+    ``trend.ema_distance`` / ``volatility.range_expansion`` /
+    ``volatility.relative_volatility`` / ``statistics.return_autocorrelation``
+    D-S048-10), NOT ``momentum.stochastic``'s deliberate ``50.0`` divergence
+    (D-S051-04): ``0.0`` ("no defined shape") is the semantically correct
+    neutral reading here, not a fabricated signal.
+
+    The first ``period - 1`` bars have no full window and are ``NaN``.
+    """
+    skew_out = np.full(returns.shape, np.nan, dtype=np.float64)
+    kurtosis_out = np.full(returns.shape, np.nan, dtype=np.float64)
+    if returns.size < period or period < 2:
+        return skew_out, kurtosis_out
+    windows = np.lib.stride_tricks.sliding_window_view(returns, period)
+    mean = windows.mean(axis=1, keepdims=True)
+    deviations = windows - mean
+    m2 = (deviations**2).mean(axis=1)
+    m3 = (deviations**3).mean(axis=1)
+    m4 = (deviations**4).mean(axis=1)
+    with np.errstate(divide="ignore", invalid="ignore"):
+        skew = np.where(m2 == 0.0, 0.0, m3 / np.power(m2, 1.5))
+        excess_kurtosis = np.where(m2 == 0.0, 0.0, m4 / (m2**2) - 3.0)
+    skew_out[period - 1 :] = skew
+    kurtosis_out[period - 1 :] = excess_kurtosis
+    return skew_out, kurtosis_out
+
+
 def ols_slope(close: np.ndarray, period: int) -> np.ndarray:
     """Causal ordinary-least-squares slope of close versus bar index in ``period``."""
     out = np.full(close.shape, np.nan, dtype=np.float64)
