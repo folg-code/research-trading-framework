@@ -13,6 +13,9 @@ Index: [../README.md](../README.md). Vision docs: [../vision/README.md](../visio
 |------|---------|
 | [MODULE_MAP.md](MODULE_MAP.md) | Packages, status ✅/🟡/⬜, entry points |
 | [ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md](ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md) | Analysis workspace, result store, and frame materialization — authoritative on derived analytical data |
+| [system/ARCHITECTURE_FOUNDATIONS.md](system/ARCHITECTURE_FOUNDATIONS.md) | As-built architecture foundations (domains, capabilities, principles) — moved from `docs/vision/` by Sprint 054 T004; confirmed-current sections only |
+| [system/ARCHITECTURE_TECHNICAL.md](system/ARCHITECTURE_TECHNICAL.md) | As-built technical architecture (Time Model, Market Data, Market Analysis Engine, Configuration) — moved from `docs/vision/` by Sprint 054 T004; confirmed-current sections only |
+| [system/MULTITIMEFRAME_MARKET_MODEL.md](system/MULTITIMEFRAME_MARKET_MODEL.md) | As-built multitimeframe/Market Model architecture — moved from `docs/vision/` by Sprint 054 T004; confirmed-current sections only |
 | [DATA_WORKFLOWS.md](DATA_WORKFLOWS.md) | Data movement with diagrams; **§1.1** NQ half-year scale benchmarks *(file not in tree; research storage paths live in MODULE_MAP §11)* |
 | [RESEARCH_METHODOLOGIES.md](RESEARCH_METHODOLOGIES.md) | **All research workflows** — methodologies, scopes, CLIs, choosing a path (Signal, Model, Strategy, Robustness, Predictive) |
 | [DATA_REPRESENTATION_AUDIT.md](DATA_REPRESENTATION_AUDIT.md) | Representation inventory, transformation map, **canonical type policy** and the D-REP decision register |
