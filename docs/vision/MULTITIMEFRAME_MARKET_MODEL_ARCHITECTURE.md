@@ -497,7 +497,7 @@ document's own framing ("Start with a minimal structure... Evolve only
 when...") anticipates this drift, so this section is left here as
 illustrative context rather than an as-built contract. The authoritative
 current package tree is
-[`docs/reference/MODULE_MAP.md`](../reference/MODULE_MAP.md).)*
+[`docs/reference/MODULE_MAP.md`](../reference/system/MODULE_MAP.md).)*
 
 Start with a minimal structure:
 

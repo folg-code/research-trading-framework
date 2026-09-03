@@ -1,6 +1,6 @@
 # apps/cli (`trading-cli`)
 
-Responsibility: one operator-facing entry point (`trading-cli <group> <command> --config <path>`) over the existing application-layer research/data/execution workflows. See `docs/reference/MODULE_MAP.md` for the full component list and `docs/reference/OPERATOR_CLI.md` for the operator-facing how-to guide (config schema pointer, all four command groups, exit codes, known limitations). `docs/reference/STRATEGY_AUTHORING.md` is the operator guide for `research.strategy.strategy_file` specifically (Sprint 047, ADR-0027): the `build_strategy()` convention, the full error table, and two worked examples matching `apps/cli/examples/research_run_strategy_candle_wick.yaml` / `research_run_strategy_level_distance.yaml`.
+Responsibility: one operator-facing entry point (`trading-cli <group> <command> --config <path>`) over the existing application-layer research/data/execution workflows. See `docs/reference/system/MODULE_MAP.md` for the full component list and `docs/reference/modules/OPERATOR_CLI.md` for the operator-facing how-to guide (config schema pointer, all four command groups, exit codes, known limitations). `docs/reference/modules/STRATEGY_AUTHORING.md` is the operator guide for `research.strategy.strategy_file` specifically (Sprint 047, ADR-0027): the `build_strategy()` convention, the full error table, and two worked examples matching `apps/cli/examples/research_run_strategy_candle_wick.yaml` / `research_run_strategy_level_distance.yaml`.
 
 ## Conventions specific to this module
 

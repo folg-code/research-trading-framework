@@ -123,7 +123,8 @@ def build_parser() -> argparse.ArgumentParser:
             "running that file directly with 'uv run python <file>'. KNOWN "
             "LIMITATION: the simulation assumptions and session resolver remain "
             "hardcoded (same as scripts/strategy_research/run_strategy_research.py). "
-            "See docs/reference/OPERATOR_CLI.md (Sprint 047 adds a strategy-authoring guide)."
+            "See docs/reference/modules/OPERATOR_CLI.md (Sprint 047 adds a "
+            "strategy-authoring guide)."
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )

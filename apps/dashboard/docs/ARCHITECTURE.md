@@ -48,7 +48,7 @@ Exchange public feed
 ```
 
 Operators distinguish **process heartbeat** from **market-feed health** (`RUNNING` / `DEGRADED` /
-`STALE` / `STOPPED` / `FAILED`). See `docs/reference/AWS_BTC_FUTURES_DRY_RUN.md`.
+`STALE` / `STOPPED` / `FAILED`). See `docs/reference/runbooks/AWS_BTC_FUTURES_DRY_RUN.md`.
 
 ## Where to go next
 
@@ -57,4 +57,4 @@ Operators distinguish **process heartbeat** from **market-feed health** (`RUNNIN
 | Clone / install / modules | [GitHub README](https://github.com/folg-code/research-trading-framework) |
 | Architecture foundations | `docs/vision/ARCHITECTURE_FOUNDATIONS.md` |
 | Dashboard ops | `apps/dashboard/docs/RUNBOOK.md` |
-| Live dry-run ops | `docs/reference/AWS_BTC_FUTURES_DRY_RUN.md` |
+| Live dry-run ops | `docs/reference/runbooks/AWS_BTC_FUTURES_DRY_RUN.md` |

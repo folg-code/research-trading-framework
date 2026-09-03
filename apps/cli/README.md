@@ -32,7 +32,7 @@ apps/cli/
   tests/
 ```
 
-See `docs/reference/OPERATOR_CLI.md` for the full operator guide (config
+See `docs/reference/modules/OPERATOR_CLI.md` for the full operator guide (config
 schema, all four command groups, exit codes, known limitations) and
 `apps/cli/examples/` for a runnable `--config` starting point per group.
 

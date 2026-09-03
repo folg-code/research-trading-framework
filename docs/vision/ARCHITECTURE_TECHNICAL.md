@@ -11,7 +11,7 @@
 > "suggested" content has diverged structurally from the actual codebase
 > (notably the Module Structure and User Data Structure sections — the
 > authoritative as-built layout is
-> [`docs/reference/MODULE_MAP.md`](../reference/MODULE_MAP.md)). See the
+> [`docs/reference/MODULE_MAP.md`](../reference/system/MODULE_MAP.md)). See the
 > classification doc for the full section-by-section reasoning and evidence
 > before assuming anything below is or is not built.
 
@@ -323,7 +323,7 @@ Market prices must not be forward-filled by default.
 
 *(Classified MIXED by T002 — the actual, documented canonical layout is
 `user_data/market_data/{raw,metadata,normalized,continuous}/` per
-[`docs/reference/MODULE_MAP.md`](../reference/MODULE_MAP.md) §11, a
+[`docs/reference/MODULE_MAP.md`](../reference/system/MODULE_MAP.md) §11, a
 different and narrower set of directory names than the suggestion below.
 The concept — raw vs. normalized vs. derived data — is realized; the exact
 directory names are not.)*
@@ -939,7 +939,7 @@ minimal structure", "Possible later structure" — and the actual
 `src/trading_framework/` layout has diverged from them in a consistent,
 structural way. They are left here as historical/illustrative context, not
 an as-built description. The authoritative current package tree is
-[`docs/reference/MODULE_MAP.md`](../reference/MODULE_MAP.md). See
+[`docs/reference/MODULE_MAP.md`](../reference/system/MODULE_MAP.md). See
 `SPRINT_054_T002_ARCHITECTURE_TECHNICAL_CLASSIFICATION.md` §10 for the
 full per-subsection diff.)*
 
@@ -1196,7 +1196,7 @@ FastAPI may be one adapter, but the domain does not depend on FastAPI.
 
 *(Classified MIXED/FUTURE/AMBIGUOUS by T002 across every subsection — the
 actual, documented canonical `user_data/` layout is
-[`docs/reference/MODULE_MAP.md`](../reference/MODULE_MAP.md) §11:
+[`docs/reference/MODULE_MAP.md`](../reference/system/MODULE_MAP.md) §11:
 `user_data/{market_data,research,runtime,reports,config,components,models}/`,
 a materially flatter structure than every proposal below. Left here in
 full as historical/illustrative context rather than split subsection by

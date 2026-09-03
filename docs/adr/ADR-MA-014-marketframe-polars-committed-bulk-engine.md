@@ -72,7 +72,7 @@ Does **not** supersede:
 
 ## References
 
-- `docs/reference/DATA_REPRESENTATION_AUDIT.md` — D-REP-01, Stage 0 / Stage 4
+- `docs/reference/system/DATA_REPRESENTATION_AUDIT.md` — D-REP-01, Stage 0 / Stage 4
 - `docs/planning/TECHNICAL_DEBT.md` — TD-011, TD-015
 - `docs/adr/ADR-MA-004-analysis-data-view-and-data-ownership.md`
 - `docs/adr/ADR-MA-010-external-analytical-libraries.md`

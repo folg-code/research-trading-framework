@@ -29,7 +29,7 @@ Single index: **`docs/README.md`** (taxonomy, paths, folder layout).
 **Humans:** follow reading paths in `docs/README.md`.  
 **Agents:** required reading order below + deep references as needed.
 
-After each merged wave: update `docs/reference/MODULE_MAP.md` and `docs/reference/DATA_WORKFLOWS.md` if paths changed. After contract changes: update `docs/reference/` and `docs/vision/` as needed in the same PR.
+After each merged wave: update `docs/reference/system/MODULE_MAP.md` and `docs/reference/system/SYSTEM_OVERVIEW.md` if paths changed. After contract changes: update `docs/reference/` and `docs/vision/` as needed in the same PR.
 
 ## Architecture Rules
 
