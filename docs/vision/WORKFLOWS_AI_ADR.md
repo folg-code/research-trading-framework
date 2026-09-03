@@ -2,6 +2,25 @@
 
 # WORKFLOWS_AI_ADR.md
 
+> **Sprint 054 T006c note:** most of this document's §1–§5/§8 content was
+> classified CURRENT (already built, verified against
+> `src/trading_framework/`) by
+> `docs/planning/sprints/SPRINT_054_T003b_WORKFLOWS_AI_ADR_ARCHITECTURE_CLASSIFICATION.md`
+> and has moved to
+> [`docs/reference/system/WORKFLOWS_ARCHITECTURE.md`](../reference/system/WORKFLOWS_ARCHITECTURE.md).
+> What remains here is future-facing, ambiguous-status, or a section whose
+> "suggested" contract has diverged from what is actually built (notably
+> Strategy Families §4.14, Broker Abstraction §5.11, Reconciliation §5.12
+> and Recovery §5.13 — all confirmed FUTURE with zero code counterpart). See
+> the classification doc for the full section-by-section reasoning and
+> evidence before assuming anything below is or is not built.
+>
+> §6 "AI Agent Contract" was consolidated into `AGENTS.md` /
+> `.cursor/rules/ARCHITECTURE_CONTROL.md` by Sprint 054 T006b, and §7
+> "Architectural Decision Records" into `docs/adr/README.md` by Sprint 054
+> T006a — see those sections below for pointers to the current, authoritative
+> versions.
+
 ## 1. Purpose
 
 This document defines:
@@ -37,76 +56,16 @@ A workflow does not redefine domain ownership.
 
 # 2. Workflow Architecture
 
-## 2.1 Core Rule
-
-The framework must not be represented as:
-
-```text
-Signal Research
-        ↓
-Strategy Research
-        ↓
-Strategy Execution
-```
-
-This would incorrectly imply that every workflow requires the output of the previous workflow.
-
-The correct architecture is:
-
-```text
-                         Shared Domains
-                               │
-              ┌────────────────┼────────────────┐
-              │                │                │
-              ▼                ▼                ▼
-       Signal Research   Strategy Research   Strategy Execution
-```
-
-Shared domains include:
-
-- Market,
-- Market Analysis,
-- Strategy,
-- Research,
-- Execution,
-- Time,
-- Configuration,
-- Infrastructure contracts.
-
-Each workflow has:
-
-- its own purpose,
-- its own inputs,
-- its own orchestration,
-- its own outputs,
-- its own persistence model,
-- its own analytics or runtime state.
-
----
-
-## 2.2 Workflow Definitions
-
-A workflow definition is a validated configuration describing one use case.
-
-It may define:
-
-- datasets,
-- assets,
-- model definitions,
-- logical expressions,
-- parameter spaces,
-- execution assumptions,
-- output policies,
-- research scope,
-- alignment and timeframe rules.
-
-A workflow definition is not a domain model.
-
-It belongs to the application and configuration layers.
-
----
-
 ## 2.3 Workflow Execution
+
+*(Classified MIXED by T003b — see
+`SPRINT_054_T003b_WORKFLOWS_AI_ADR_ARCHITECTURE_CLASSIFICATION.md` §2.3. The
+pipeline shape and the "workflow layer coordinates, does not implement
+domain logic" rule both hold on the research side
+(`research/signal_research/family_planning.py` → `research/simulation/engine.py`
+→ `research/datasets/` → `research/analytics/`). On the execution/runtime
+side only the `DRY_RUN` path exists, so the "Persistent Results or
+Operational State" outcome is correspondingly narrower than described below.)*
 
 A workflow should follow:
 
@@ -140,29 +99,17 @@ It must not implement:
 
 ---
 
-## 2.4 Computation and Analytics
-
-Every research workflow separates:
-
-```text
-Research Computation
-```
-
-from:
-
-```text
-Research Analytics
-```
-
-Research Computation creates reusable factual datasets.
-
-Research Analytics interprets stored results.
-
-A new report, filter, ranking or family analysis must not automatically recalculate unchanged source results.
-
----
-
 ## 2.5 Workflow Identity
+
+*(Classified MIXED by T003b — see
+`SPRINT_054_T003b_WORKFLOWS_AI_ADR_ARCHITECTURE_CLASSIFICATION.md` §2.5.
+`run_id`-based identity/fingerprinting is pervasive, and
+`research/simulation/assumptions.py`'s `simulation_assumptions_fingerprint()`
+is a concrete, narrower instance of "execution_assumptions included in run
+identity." No single class implements the exact 18-field identity list
+below, and a literal `random_seed` component of workflow identity does not
+exist; the general principle — stable, input-derived run identity — is real,
+the literal field list is not.)*
 
 Every workflow run must have a stable identity derived from all material inputs.
 
@@ -196,375 +143,16 @@ A material change creates a new run identity.
 
 # 3. Signal Research
 
-## 3.1 Purpose
-
-Signal Research evaluates analytical hypotheses without requiring a complete Strategy Model.
-
-Supported research scopes are:
-
-```text
-Market Model only
-Signal Model only
-Market Model × Signal Model
-```
-
-Signal Research does not evaluate a complete trading system.
-
-It does not require:
-
-- Exit Model,
-- Risk Model,
-- position sizing,
-- account state,
-- broker simulation,
-- portfolio construction.
-
----
-
-## 3.2 Core Questions
-
-Signal Research may answer:
-
-```text
-How does a Market Model segment or describe future market behaviour?
-```
-
-```text
-How does a Signal Model behave without an additional market-context filter?
-```
-
-```text
-How does a Signal Model behave under a selected Market Model?
-```
-
-Examples:
-
-```text
-Bullish Trend Market Model
-```
-
-```text
-Bullish Liquidity Sweep Signal Model
-```
-
-```text
-Bullish Trend Market Model × Bullish Liquidity Sweep Signal Model
-```
-
----
-
-## 3.3 Research Scope
-
-Every Signal Research definition must explicitly declare one scope:
-
-```text
-MARKET_MODEL_ONLY
-SIGNAL_MODEL_ONLY
-MARKET_AND_SIGNAL
-```
-
-The workflow must not infer scope from missing fields.
-
-### MARKET_MODEL_ONLY
-
-Evaluates one or more Market Models independently.
-
-Example questions:
-
-- future return distribution by market context,
-- regime persistence,
-- transition behaviour,
-- conditional volatility,
-- MFE and MAE after entering a state.
-
-### SIGNAL_MODEL_ONLY
-
-Evaluates one or more Signal Models without an additional Market Model filter.
-
-Example questions:
-
-- forward-return distribution after a SignalOccurrence,
-- event frequency,
-- directional asymmetry,
-- time-of-day behaviour,
-- stability by period.
-
-### MARKET_AND_SIGNAL
-
-Evaluates Signal Models under one or more Market Models.
-
-Example questions:
-
-- marginal contribution of market context,
-- signal quality by regime,
-- context-specific sample size,
-- stability across Market Model variants.
-
----
-
-## 3.4 Inputs
-
-Signal Research may consume:
-
-- published Market Datasets,
-- Market Analysis outputs,
-- Market Models,
-- Signal Models,
-- controlled MarketFieldReferences,
-- logical expressions,
-- asset lists,
-- time ranges,
-- forward horizons,
-- bounded research spaces,
-- research configuration.
-
-It must not require a Strategy Model.
-
----
-
-## 3.5 Market Model and Signal Model Semantics
-
-Both Market Models and Signal Models are declarative compositions over Market Analysis outputs.
-
-```text
-Market Model:
-Which analytical conditions define the market context?
-```
-
-```text
-Signal Model:
-Which analytical events and conditions define a trading opportunity?
-```
-
-They may consume the same underlying:
-
-- Features,
-- Structures,
-- States,
-- controlled MarketFieldReferences.
-
-They must not:
-
-- calculate analytical dependencies internally,
-- resample data internally,
-- open storage,
-- instantiate providers,
-- access arbitrary DataFrames.
-
----
-
-## 3.6 Independent Experiment Expansion
-
-Independent alternatives create separate experiments.
-
-Example:
-
-```yaml
-signal_research:
-  scope: MARKET_AND_SIGNAL
-
-  assets:
-    - NQ
-    - ES
-
-  signal_models:
-    experiments:
-      - bullish_sweep
-      - breakout_reclaim
-
-  market_models:
-    experiments:
-      - bullish_trend
-      - ranging_market
-```
-
-This may create:
-
-```text
-NQ × Bullish Sweep × Bullish Trend
-NQ × Bullish Sweep × Ranging Market
-NQ × Breakout Reclaim × Bullish Trend
-NQ × Breakout Reclaim × Ranging Market
-ES × ...
-```
-
-Expansion must remain bounded and observable.
-
----
-
-## 3.7 Logical Composition
-
-Logical composition creates one model definition.
-
-Example Signal Model:
-
-```yaml
-signal_model:
-  id: sweep_or_reclaim
-
-  expression:
-    operator: OR
-    children:
-      - component: bullish_sweep
-      - component: bullish_reclaim
-```
-
-Equivalent:
-
-```text
-Bullish Sweep OR Bullish Reclaim
-```
-
-Example Market Model:
-
-```yaml
-market_model:
-  id: bullish_normal_or_high_volatility
-
-  expression:
-    operator: AND
-    children:
-      - component: bullish_trend
-      - operator: OR
-        children:
-          - component: normal_volatility
-          - component: high_volatility
-```
-
-The system must never confuse:
-
-```text
-list of independent experiments
-```
-
-with:
-
-```text
-logical OR
-```
-
----
-
-## 3.8 Single-Condition Models
-
-A single Market Analysis component may be researched through a one-condition model.
-
-Examples:
-
-```text
-Market Model:
-trend_state == bullish
-```
-
-```text
-Signal Model:
-liquidity_sweep exists
-```
-
-The workflow should not bypass model contracts merely because a hypothesis contains one condition.
-
-This preserves:
-
-- consistent lineage,
-- common expression evaluation,
-- reusable model identity,
-- consistent research methodology.
-
----
-
-## 3.9 SignalOccurrence
-
-A Signal Model produces a provider-independent:
-
-```text
-SignalOccurrence
-```
-
-`SignalOccurrence` belongs to the Strategy Domain.
-
-Suggested fields:
-
-```text
-signal_model_id
-signal_model_version or definition_hash
-instrument
-detected_at
-direction
-reference_price
-strength
-analytical_lineage
-```
-
-Research may wrap SignalOccurrence with research-specific metadata, but must not redefine its core meaning.
-
-SignalOccurrence datasets may be reused by:
-
-- different Market Models,
-- multiple forward horizons,
-- multiple analytics,
-- Strategy Research,
-- diagnostic reports.
-
-Reuse is optional and contract-based.
-
-It is not a mandatory dependency between workflows.
-
----
-
-## 3.10 Market Model Results
-
-Market Models may produce reusable context results such as:
-
-```text
-Boolean mask
-Categorical state
-Numeric score
-Multi-label context
-Typed context record
-```
-
-These results must preserve:
-
-- Market Model identity,
-- version or definition hash,
-- component lineage,
-- dataset identity,
-- timeframe semantics,
-- available_at semantics.
-
----
-
-## 3.11 Shared Dependency Plan
-
-Signal Research uses one shared dependency graph.
-
-Example:
-
-```text
-Bullish Trend Market Model
-├── Pivot Structure
-├── Slope Feature
-└── Volatility State
-
-Bullish Sweep Signal Model
-├── Liquidity Level
-├── Liquidity Sweep Structure
-└── Reclaim Feature
-```
-
-Each unique deterministic dependency is calculated once per computation identity.
-
-The engine must not recalculate shared Market Analysis components independently for every:
-
-- model,
-- asset,
-- horizon,
-- analytical report,
-- experiment variant.
-
----
-
 ## 3.12 Research Space Boundaries
+
+*(Classified MIXED by T003b — see
+`SPRINT_054_T003b_WORKFLOWS_AI_ADR_ARCHITECTURE_CLASSIFICATION.md` §3.12. The
+four-way conceptual distinction is real and implemented, and
+`FamilyExperimentPlan` exposes `candidates_generated`/`candidates_evaluated`/
+`candidates_skipped` — a subset of the telemetry fields suggested below. The
+literal fields `number_of_unique_dependencies`, `number_of_reused_nodes`,
+`number_of_new_nodes` and `estimated_output_size` do not exist in the
+planner.)*
 
 Signal Research must distinguish:
 
@@ -590,34 +178,14 @@ Unrestricted Cartesian-product expansion is not the default.
 
 ---
 
-## 3.13 Signal Research Computation Output
-
-The computation phase produces a persistent:
-
-```text
-Signal Research Dataset
-```
-
-Depending on scope, it may contain:
-
-- Market Model observations,
-- SignalOccurrences,
-- joined Market Model × Signal Model observations,
-- forward prices,
-- forward returns,
-- MFE,
-- MAE,
-- event metadata,
-- experiment dimensions,
-- analytical lineage,
-- sample membership,
-- model fingerprints.
-
-The dataset must remain queryable without loading implementation classes.
-
----
-
 ## 3.14 Signal Research Analytics
+
+*(Classified MIXED by T003b — see
+`SPRINT_054_T003b_WORKFLOWS_AI_ADR_ARCHITECTURE_CLASSIFICATION.md` §3.14.
+`research/analytics/{conditional,diagnostics,grouping,distribution,histograms,aggregates}.py`
+implement a substantial subset of the operations below (conditional
+analysis, distributions, grouping/aggregation). "Clustering" and general
+"insight generation" have no code counterpart.)*
 
 Analytics operate on stored Signal Research Datasets.
 
@@ -646,29 +214,14 @@ Analytics must not mutate the source research dataset.
 
 ---
 
-## 3.15 Reuse Rule
-
-If the following remain unchanged:
-
-```text
-Market Dataset
-Market Analysis definitions
-Market Model definitions
-Signal Model definitions
-parameters
-time assumptions
-forward horizon definitions
-```
-
-then the existing Signal Research Dataset should be reused.
-
-New analytics should query stored data.
-
-They should not automatically trigger recomputation.
-
----
-
 ## 3.16 Storage
+
+*(Classified AMBIGUOUS by T003b — as-built status unclear as of Sprint 054,
+see `SPRINT_054_T003b_WORKFLOWS_AI_ADR_ARCHITECTURE_CLASSIFICATION.md` §3.16.
+This describes a `user_data/` workspace on-disk convention, not a
+`src/trading_framework/` code contract; per ADR-0022 `user_data/` is a
+private workspace outside the framework repo's own tree, out of `src/`-grep
+scope.)*
 
 Suggested structure:
 
@@ -697,69 +250,17 @@ validation_summary
 
 ---
 
-## 3.17 Signal Research Rules
-
-1. Signal Research supports Market Model only, Signal Model only and combined scope.
-2. Exit and Risk Models are excluded.
-3. Market and Signal Models are declarative compositions.
-4. Independent expansion and logical composition are distinct.
-5. Single analytical hypotheses use one-condition models.
-6. Computation and analytics are separate.
-7. Shared dependencies are calculated once.
-8. SignalOccurrences are reusable Strategy Domain artifacts.
-9. Market Model outputs are reusable artifacts.
-10. Research datasets are persistent and versioned.
-11. Working components and models used in research require fingerprints.
-12. New analytics should not rerun unchanged computations.
-13. Signal Research does not depend on Strategy Research.
-14. Signal Research does not form a pipeline into Strategy Execution.
-
----
-
 # 4. Strategy Research
 
-## 4.1 Purpose
-
-Strategy Research evaluates complete Strategy Models.
-
-Its research vector is:
-
-```text
-Market Model
-×
-Signal Model
-×
-Exit Model
-×
-Risk Model
-```
-
-Strategy Research evaluates:
-
-- profitability,
-- stability,
-- robustness,
-- execution sensitivity,
-- component interactions,
-- capital and exposure behaviour.
-
----
-
-## 4.2 Core Question
-
-Strategy Research answers:
-
-```text
-How does a complete Strategy Model perform under explicit historical and execution assumptions?
-```
-
-It does not merely ask whether a signal contains predictive information.
-
-It evaluates how the complete composition behaves as a trading system.
-
----
-
 ## 4.3 Inputs
+
+*(Classified MIXED by T003b — see
+`SPRINT_054_T003b_WORKFLOWS_AI_ADR_ARCHITECTURE_CLASSIFICATION.md` §4.3.
+`SimulationAssumptions` confirms commission/slippage/fill-policy/capital
+assumptions exist as inputs; no `latency` field exists in
+`research/simulation/assumptions.py`, so latency assumptions specifically
+are not modeled. "May reuse Signal Research artifacts without requiring a
+run ID" was not independently verified.)*
 
 Strategy Research may consume:
 
@@ -785,41 +286,16 @@ It must not require a Signal Research run ID.
 
 ---
 
-## 4.4 Strategy Model
-
-A Strategy Model is composed from:
-
-```text
-Market Model
-×
-Signal Model
-×
-Exit Model
-×
-Risk Model
-```
-
-Position sizing belongs to the Risk Model in Version 1.
-
-A Strategy Model preserves:
-
-- component identities,
-- versions or definition hashes,
-- parameters,
-- dependency lineage,
-- composition identity.
-
-A Strategy Model is not a monolithic class that calculates:
-
-- Market Analysis,
-- entries,
-- exits,
-- position sizing,
-- broker interaction.
-
----
-
 ## 4.5 Strategy Research Space
+
+*(Classified MIXED by T003b — see
+`SPRINT_054_T003b_WORKFLOWS_AI_ADR_ARCHITECTURE_CLASSIFICATION.md` §4.5. No
+`research/strategy_research/` package equivalent to
+`research/signal_research/family_planning.py` was found; only
+`application/strategy_research/` exists, which orchestrates but does not
+implement family-style bounded multi-dimension expansion. The
+`experiments:` YAML example below is presented as already-working syntax
+but has no implementing module.)*
 
 A Strategy Research definition may declare bounded alternatives.
 
@@ -868,23 +344,15 @@ before expensive computation.
 
 ---
 
-## 4.6 Composition Rules
-
-Market Models and Signal Models may use explicit logical expression trees.
-
-Exit Models and Risk Models are contract-based components.
-
-They may use:
-
-- declarative conditions,
-- deterministic calculation logic,
-- controlled references to Strategy and Market Analysis state.
-
-Version 1 should normally select one Exit Model and one Risk Model per Strategy Model unless composite contracts are explicitly defined.
-
----
-
 ## 4.7 Computational Reuse
+
+*(Classified MIXED by T003b — see
+`SPRINT_054_T003b_WORKFLOWS_AI_ADR_ARCHITECTURE_CLASSIFICATION.md` §4.7. The
+underlying Market Analysis dependency-graph reuse mechanism is confirmed
+CURRENT; `execution/runtime/strategy_orders.py`/`decision_step.py` and
+`research/simulation/engine.py` consume already-resolved Market Analysis
+outputs. Whether "entry candidate datasets" specifically are cached/reused
+across multiple Strategy Models in one run was not independently verified.)*
 
 Strategy Research must reuse deterministic upstream results where valid.
 
@@ -901,36 +369,14 @@ The engine must not calculate the same Market Analysis dependency once per Strat
 
 ---
 
-## 4.8 Historical Strategy Simulation
-
-Batch or vectorized backtesting belongs to Research.
-
-It is optimized for:
-
-- large strategy spaces,
-- historical performance analysis,
-- explicit simulation assumptions,
-- reusable Strategy Research Datasets.
-
-It may simulate:
-
-- order generation,
-- fills,
-- commissions,
-- slippage,
-- latency,
-- position state,
-- cash state,
-- realized PnL,
-- unrealized PnL.
-
-Historical Strategy Simulation consumes Strategy Models.
-
-It does not define them.
-
----
-
 ## 4.9 Research Backtest vs Replay Execution
+
+*(Classified MIXED by T003b — see
+`SPRINT_054_T003b_WORKFLOWS_AI_ADR_ARCHITECTURE_CLASSIFICATION.md` §4.9. The
+Research Backtest side is fully built (`research/simulation/engine.py`).
+`Grep` for `ReplayClock`/`replay_clock`/`class Replay` returned zero matches
+anywhere in `src/` — Replay Execution has no code counterpart at all,
+consistent with `ExecutionMode` supporting only `DRY_RUN`.)*
 
 The following are different capabilities:
 
@@ -963,6 +409,15 @@ The framework must not collapse these into one ambiguous engine.
 
 ## 4.10 Execution Assumptions
 
+*(Classified MIXED by T003b — see
+`SPRINT_054_T003b_WORKFLOWS_AI_ADR_ARCHITECTURE_CLASSIFICATION.md` §4.10.
+`SimulationAssumptions` (`fill_policy_entry`, `fill_policy_exit`,
+`slippage_bps`, `commission_per_side`, `initial_capital`) is a concrete,
+fingerprinted, narrower instance of "material assumption changes run
+identity." `latency_model`, `position_netting_policy`,
+`contract_specification`, `roll_policy`, `currency_conversion_policy` and
+`simulation_engine_version` as named fields were not found.)*
+
 Every Strategy Research result records where relevant:
 
 ```text
@@ -982,64 +437,14 @@ Changing a material assumption creates a distinct result identity.
 
 ---
 
-## 4.11 Strategy Research Computation Output
-
-The computation phase produces a persistent:
-
-```text
-Strategy Research Dataset
-```
-
-It may contain:
-
-- Strategy Model identity,
-- component identities,
-- definition hashes,
-- individual simulated trades,
-- simulated orders,
-- simulated fills,
-- position history,
-- equity curve,
-- return series,
-- performance facts,
-- execution assumptions,
-- experiment dimensions,
-- failure states.
-
-Raw trade-level and time-series results should be preserved where practical.
-
-Aggregated metrics alone are insufficient for future analysis.
-
----
-
-## 4.12 Strategy Analytics
-
-Analytics may calculate:
-
-- total return,
-- CAGR where meaningful,
-- expectancy,
-- profit factor,
-- Sharpe ratio,
-- Sortino ratio,
-- maximum drawdown,
-- MAR ratio,
-- win rate,
-- payoff ratio,
-- exposure,
-- turnover,
-- tail loss,
-- stability by period,
-- parameter sensitivity,
-- asset sensitivity,
-- execution-cost sensitivity,
-- component contribution.
-
-No single metric determines strategy quality.
-
----
-
 ## 4.13 Rankings
+
+*(Classified AMBIGUOUS by T003b — as-built status unclear as of Sprint 054,
+see `SPRINT_054_T003b_WORKFLOWS_AI_ADR_ARCHITECTURE_CLASSIFICATION.md` §4.13.
+`Grep` for `ranking`/`Ranking` found matches only in `research/robustness/`
+(verdict/report formatting) and `research/predictive/leaderboard.py` (a
+different research track). No `strategy_research`-scoped ranking module
+with the six-field contract below was found; the search was not exhaustive.)*
 
 Strategy rankings are valid research outputs.
 
@@ -1061,6 +466,13 @@ A top-ranked strategy is not automatically validated.
 ---
 
 ## 4.14 Strategy Families
+
+*(Classified FUTURE by T003b — see
+`SPRINT_054_T003b_WORKFLOWS_AI_ADR_ARCHITECTURE_CLASSIFICATION.md` §4.14.
+Unlike Signal Research (`family_planning.py`, `signal_research_family.py` —
+confirmed CURRENT), there is no Strategy-Research-side "family" concept in
+code at all. The `families/` subfolder in §4.20's suggested storage layout
+is itself inconsistent with this finding.)*
 
 Related candidates should be grouped into Strategy Families.
 
@@ -1085,63 +497,17 @@ Family analysis evaluates:
 
 ---
 
-## 4.15 Walk Forward
-
-Walk-forward analysis is a Research validation tool.
-
-It records:
-
-- train windows,
-- validation windows,
-- test windows,
-- step size,
-- parameter selection rules,
-- retraining policy,
-- aggregation policy.
-
-It is not a Strategy Model component.
-
----
-
-## 4.16 Monte Carlo
-
-Monte Carlo analysis evaluates uncertainty and path dependence.
-
-Possible methods:
-
-- trade-order reshuffling,
-- bootstrap resampling,
-- block bootstrap,
-- execution-cost perturbation,
-- return perturbation,
-- missed-trade simulation.
-
-Every method must state its assumptions.
-
-Monte Carlo outputs are derived analytics, not replacements for raw results.
-
----
-
-## 4.17 Robustness
-
-Robustness analysis may include:
-
-- parameter perturbation,
-- neighbouring model variants,
-- subperiod analysis,
-- cross-asset analysis,
-- cost sensitivity,
-- delayed entry,
-- worse fills,
-- missing trades,
-- regime segmentation,
-- out-of-sample validation.
-
-A candidate must not be described as validated without explicit robustness criteria.
-
----
-
 ## 4.18 Multiple Testing
+
+*(Classified MIXED by T003b — see
+`SPRINT_054_T003b_WORKFLOWS_AI_ADR_ARCHITECTURE_CLASSIFICATION.md` §4.18.
+`candidates_generated`/`candidates_evaluated`/`candidates_skipped` are
+confirmed CURRENT for Signal Research families, and
+`research/predictive/splitting.py` confirms validation-split definitions
+exist for the Predictive Research track. For Strategy Research specifically,
+no equivalent candidate-count bookkeeping was found, consistent with §4.5/
+§4.14's finding that Strategy Research lacks a family/bounded-expansion
+mechanism analogous to Signal Research's.)*
 
 Large strategy spaces create false-discovery risk.
 
@@ -1160,27 +526,13 @@ A high score among millions of candidates is not automatically evidence of edge.
 
 ---
 
-## 4.19 Reuse Rule
-
-If the following remain unchanged:
-
-```text
-Market Dataset
-Market Analysis definitions
-Strategy component definitions
-execution assumptions
-simulation engine version
-configuration
-random seeds
-```
-
-then the existing Strategy Research Dataset should be reused.
-
-New rankings, filters and family analyses should not trigger a new backtest automatically.
-
----
-
 ## 4.20 Storage
+
+*(Classified AMBIGUOUS by T003b — same reasoning as §3.16: a `user_data/`
+workspace convention, out of `src/`-grep scope per ADR-0022. See
+`SPRINT_054_T003b_WORKFLOWS_AI_ADR_ARCHITECTURE_CLASSIFICATION.md` §4.20.
+Note the `families/` subfolder below is inconsistent with §4.14's confirmed
+finding that Strategy Families have no code counterpart today.)*
 
 Suggested structure:
 
@@ -1200,6 +552,14 @@ user_data/research/strategy_research/
 ---
 
 ## 4.21 Strategy Research Rules
+
+*(Classified MIXED by T003b, by inheritance — see
+`SPRINT_054_T003b_WORKFLOWS_AI_ADR_ARCHITECTURE_CLASSIFICATION.md` §4.21.
+Most of the 14 rules below restate §4.1–§4.20 content that is largely
+CURRENT (moved to
+[`docs/reference/system/WORKFLOWS_ARCHITECTURE.md`](../reference/system/WORKFLOWS_ARCHITECTURE.md)),
+but rules 6/7 restate the §4.9 Replay-vs-Backtest split (MIXED — Replay
+absent) and rule 11 restates §4.14 Strategy Families (FUTURE).)*
 
 1. Strategy Research evaluates complete Strategy Models.
 2. It is independent from Signal Research.
@@ -1222,6 +582,13 @@ user_data/research/strategy_research/
 
 ## 5.1 Purpose
 
+*(Classified MIXED by T003b — see
+`SPRINT_054_T003b_WORKFLOWS_AI_ADR_ARCHITECTURE_CLASSIFICATION.md` §5.1.
+Order lifecycle/fill processing/position state exist for the `DRY_RUN` mode;
+"independent from research workflows" is confirmed. No broker communication,
+reconciliation, or recovery code was found anywhere in `execution/` — see
+§5.11–§5.13 below.)*
+
 Strategy Execution applies a selected Strategy Model in a runtime environment.
 
 It owns:
@@ -1240,50 +607,15 @@ Strategy Execution is independent from research workflows.
 
 ---
 
-## 5.2 Core Question
-
-Strategy Execution answers:
-
-```text
-How should a selected Strategy Model interact with a runtime environment and broker safely and consistently?
-```
-
-It does not answer:
-
-- whether a signal has predictive information,
-- which Strategy Model ranks highest,
-- which strategy family is most robust.
-
----
-
-## 5.3 Inputs
-
-Strategy Execution may consume:
-
-- selected Strategy Model,
-- live or replay Market Data,
-- required Market Analysis outputs,
-- SignalOccurrences,
-- runtime account state,
-- execution configuration,
-- broker configuration,
-- instrument mapping,
-- operational risk limits.
-
-It must not require:
-
-- Signal Research Dataset,
-- Strategy Research Dataset,
-- research ranking,
-- research report,
-- research insight,
-- notebook state,
-- walk-forward output,
-- Monte Carlo output.
-
----
-
 ## 5.4 Execution Modes
+
+*(Classified MIXED by T003b — see
+`SPRINT_054_T003b_WORKFLOWS_AI_ADR_ARCHITECTURE_CLASSIFICATION.md` §5.4.
+`execution/modes.py` defines `SUPPORTED_EXECUTION_MODES = frozenset({ExecutionMode.DRY_RUN})`:
+only one mode is enabled today, named `DRY_RUN` rather than literally "Paper
+Execution" (though `PaperBroker` is functionally close to Paper Execution's
+"simulated broker interaction"). Replay Execution and Live Execution have
+zero code counterpart.)*
 
 Supported modes may include:
 
@@ -1315,43 +647,16 @@ The Strategy Model should not need to know which execution mode is active.
 
 ---
 
-## 5.5 Runtime Flow
-
-Conceptual flow:
-
-```text
-Market Data
-        ↓
-Market Analysis Updates
-        ↓
-Market Model Evaluation
-        ↓
-Signal Model Evaluation
-        ↓
-SignalOccurrence
-        ↓
-Exit Model / Risk Model Evaluation
-        ↓
-Strategy Decision
-        ↓
-Operational Risk Controls
-        ↓
-Order Command
-        ↓
-Broker Adapter
-        ↓
-Order / Fill Events
-        ↓
-Position Update
-```
-
-This is a Strategy Execution workflow.
-
-It does not define Signal Research or Strategy Research.
-
----
-
 ## 5.6 Event-Driven Runtime
+
+*(Classified MIXED by T003b — see
+`SPRINT_054_T003b_WORKFLOWS_AI_ADR_ARCHITECTURE_CLASSIFICATION.md` §5.6.
+`execution/models/events.py`'s `ExecutionEventType` overlaps conceptually
+but is not name-identical to the event list below (only one combined
+`SIMULATED_ORDER_FILLED`, no `MarketBarReceived`/`AnalysisStateUpdated`
+equivalents). `Grep` for `EventBus`/`class Event\b` returned zero matches —
+there is no generic pub/sub EventBus; the top-level `events/` package is an
+empty stub.)*
 
 Strategy Execution may use the Event System where reactive communication provides value.
 
@@ -1379,6 +684,14 @@ An EventBus must not hide:
 
 ## 5.7 Order Lifecycle
 
+*(Classified MIXED by T003b — see
+`SPRINT_054_T003b_WORKFLOWS_AI_ADR_ARCHITECTURE_CLASSIFICATION.md` §5.7.
+`execution/models/orders.py`'s `OrderStatus` has only `CREATED`,
+`SIMULATED_FILLED`, `SIMULATED_REJECTED` — a 3-state simplified lifecycle
+for the `DRY_RUN` case, not the full 8-state normalized lifecycle described
+below. "Broker-specific statuses normalized at the adapter boundary" has no
+code counterpart since no broker adapter exists — see §5.11.)*
+
 Suggested lifecycle:
 
 ```text
@@ -1400,6 +713,14 @@ Broker-specific statuses are normalized at the adapter boundary.
 
 ## 5.8 Fill Processing
 
+*(Classified MIXED by T003b — see
+`SPRINT_054_T003b_WORKFLOWS_AI_ADR_ARCHITECTURE_CLASSIFICATION.md` §5.8.
+`SimulatedFill` has `fill_id`, `order_id`, `quantity`, `price`, `liquidity`
+fields, consistent with "accepted fills are facts." No partial-fill support
+(one fill per simulated order), no commission/fee field on `SimulatedFill`
+itself, and no duplicate-fill detection or correction-event mechanism were
+found.)*
+
 Fill processing supports:
 
 - partial fills,
@@ -1417,57 +738,15 @@ Corrections require explicit correction events or reconciliation logic.
 
 ---
 
-## 5.9 Position Management
-
-Position state is derived from accepted execution facts.
-
-It includes where relevant:
-
-- quantity,
-- side,
-- average entry price,
-- realized PnL,
-- unrealized PnL,
-- exposure,
-- open orders,
-- lifecycle status.
-
-Internal state must be reconcilable with broker state.
-
----
-
-## 5.10 Strategy Risk vs Operational Risk
-
-The Strategy Domain Risk Model answers:
-
-```text
-How much exposure should the strategy request?
-```
-
-It includes position sizing in Version 1.
-
-Execution Risk Controls answer:
-
-```text
-Is the requested action operationally allowed?
-```
-
-Examples:
-
-- maximum daily loss,
-- maximum account drawdown,
-- maximum position size,
-- maximum number of open positions,
-- duplicate-order prevention,
-- stale-data protection,
-- connection health checks,
-- kill switch.
-
-These responsibilities must remain separate.
-
----
-
 ## 5.11 Broker Abstraction
+
+*(Classified FUTURE by T003b — see
+`SPRINT_054_T003b_WORKFLOWS_AI_ADR_ARCHITECTURE_CLASSIFICATION.md` §5.11.
+`Grep` for all nine named method signatures below in `execution/protocols.py`
+returned zero matches. `PaperBroker` is a single-symbol, single-process
+dataclass with no `connect`/`disconnect`/adapter-boundary methods — there is
+no broker abstraction layer, pluggable or otherwise, only one hardcoded
+simulated implementation.)*
 
 Strategy Execution depends on broker contracts.
 
@@ -1491,6 +770,12 @@ Broker SDK objects must not leak into domain models.
 
 ## 5.12 Reconciliation
 
+*(Classified FUTURE by T003b — see
+`SPRINT_054_T003b_WORKFLOWS_AI_ADR_ARCHITECTURE_CLASSIFICATION.md` §5.12. No
+reconciliation module, incident type, or mismatch-detection logic was found
+anywhere in `src/trading_framework/`. Consistent with §5.11 — reconciliation
+requires an external broker to reconcile against, which does not exist.)*
+
 The runtime compares internal state with broker state.
 
 It should detect:
@@ -1509,6 +794,11 @@ A mismatch creates an explicit incident or error state.
 
 ## 5.13 Recovery
 
+*(Classified FUTURE by T003b — see
+`SPRINT_054_T003b_WORKFLOWS_AI_ADR_ARCHITECTURE_CLASSIFICATION.md` §5.13. No
+recovery/restart module was located in `execution/`, and recovery depends on
+the reconciliation mechanism confirmed absent at §5.12.)*
+
 Strategy Execution supports recovery after:
 
 - process restart,
@@ -1522,27 +812,14 @@ In-memory state alone is insufficient.
 
 ---
 
-## 5.14 Persistence
-
-Persist where relevant:
-
-- commands,
-- orders,
-- acknowledgements,
-- fills,
-- positions,
-- operational risk decisions,
-- errors,
-- reconciliation results,
-- correlation identifiers.
-
-Execution records belong to operational storage.
-
-They are not Research Datasets.
-
----
-
 ## 5.15 Observability
+
+*(Classified MIXED by T003b — see
+`SPRINT_054_T003b_WORKFLOWS_AI_ADR_ARCHITECTURE_CLASSIFICATION.md` §5.15.
+`execution/runtime/health_policy.py` implements health-check logic, and
+`ExecutionEvent`'s `RUNTIME_FAILED`/`HEARTBEAT_RECORDED` event types provide
+a basis for audit trails and failure monitoring. No dedicated
+metrics/alerting module or latency-monitoring instrumentation was found.)*
 
 Strategy Execution requires:
 
@@ -1560,6 +837,12 @@ Operational failures must be visible.
 ---
 
 ## 5.16 Strategy Execution Rules
+
+*(Classified MIXED by T003b, by inheritance — see
+`SPRINT_054_T003b_WORKFLOWS_AI_ADR_ARCHITECTURE_CLASSIFICATION.md` §5.16.
+Most of the 12 rules below restate §5.1–§5.15 content (CURRENT/MIXED), but
+rule 8 ("Broker state is reconciled") and rule 10 ("Recovery is explicit")
+restate the confirmed-FUTURE §5.12/§5.13 content.)*
 
 1. Strategy Execution is independent from Research.
 2. It consumes selected Strategy Models.
@@ -1612,6 +895,13 @@ forward in `docs/adr/README.md`'s "ADR Backlog" section.
 ---
 
 # 8. Final Contract
+
+*(Classified MIXED by T003b — see
+`SPRINT_054_T003b_WORKFLOWS_AI_ADR_ARCHITECTURE_CLASSIFICATION.md` §8. Every
+substantive claim below is a restatement of content classified above; its
+MIXED status is inherited from §5.4's confirmed partial-execution-mode
+finding — "Strategy Execution runs selected Strategy Models in Replay,
+Paper or Live modes" only holds for one mode (`DRY_RUN`) today.)*
 
 The framework preserves three independent capabilities:
 
