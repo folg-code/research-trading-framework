@@ -14,7 +14,9 @@ from trading_framework.market_analysis.components.momentum import (
 )
 from trading_framework.market_analysis.components.statistics import (
     NumpyReturnAutocorrelationImplementation,
+    NumpyReturnDistributionImplementation,
     ReturnAutocorrelationComponent,
+    ReturnDistributionComponent,
 )
 from trading_framework.market_analysis.components.structure import (
     LevelDistanceComponent,
@@ -149,6 +151,15 @@ def register_statistics_return_autocorrelation_component(registry: ComponentRegi
     )
 
 
+def register_statistics_return_distribution_component(registry: ComponentRegistry) -> None:
+    """Register the Return Distribution statistics feature component."""
+    registry.register(
+        ReturnDistributionComponent(),
+        NumpyReturnDistributionImplementation(),
+        default=True,
+    )
+
+
 def register_mvp_components(registry: ComponentRegistry) -> None:
     """Register Sprint 003 MVP feature and state components."""
     register_volatility_components(registry)
@@ -165,6 +176,7 @@ def register_mvp_components(registry: ComponentRegistry) -> None:
     register_momentum_macd_component(registry)
     register_momentum_stochastic_component(registry)
     register_statistics_return_autocorrelation_component(registry)
+    register_statistics_return_distribution_component(registry)
 
 
 def default_mvp_registry() -> ComponentRegistry:
@@ -189,6 +201,7 @@ __all__ = [
     "register_session_range_component",
     "register_slope_component",
     "register_statistics_return_autocorrelation_component",
+    "register_statistics_return_distribution_component",
     "register_swing_structure_component",
     "register_volatility_components",
 ]
