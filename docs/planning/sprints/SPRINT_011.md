@@ -15,8 +15,8 @@ Task branch convention: sprint/historical-archive-import/<task-slug>
 Wave 0 decisions: docs/planning/sprints/S011_WAVE0_DECISIONS.md
 Architecture Sources:
   - docs/planning/ROADMAP.md (§6 Phase 2B–2C, §14, §15)
-  - docs/reference/modules/DATA_MODULE_UPDATED.md
-  - docs/agents/AGENTS_UPDATED.md
+  - docs/reference/modules/DATA_MODULE.md
+  - docs/agents/AGENTS.md
   - docs/adr/ADR-0007-dataset-lifecycle.md
   - docs/adr/ADR-0008-parquet-historical-storage.md
 Initial adapter: Databento DBN (trades schema)

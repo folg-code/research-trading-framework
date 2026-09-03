@@ -4,7 +4,7 @@
 > Index: [docs/README.md](../../README.md).
 
 **Status:** Sprint 004 complete on `main`; Sprint 005 complete on `sprint/market-analysis-components`.  
-Binding decisions (vision): [../../vision/MARKET_ANALYSIS_WITH_DECISIONS.md](../../vision/MARKET_ANALYSIS_WITH_DECISIONS.md), [../../vision/MULTITIMEFRAME_MARKET_MODEL_ARCHITECTURE_UPDATED.md](../../vision/MULTITIMEFRAME_MARKET_MODEL_ARCHITECTURE_UPDATED.md).  
+Binding decisions (vision): [../../vision/MARKET_ANALYSIS_WITH_DECISIONS.md](../../vision/MARKET_ANALYSIS_WITH_DECISIONS.md), [../../vision/MULTITIMEFRAME_MARKET_MODEL_ARCHITECTURE.md](../../vision/MULTITIMEFRAME_MARKET_MODEL_ARCHITECTURE.md).  
 Accepted ADRs: [../adr/README.md](../adr/README.md) (ADR-MA-001–013).
 
 ---

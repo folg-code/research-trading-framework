@@ -15,7 +15,7 @@ Task branch convention: sprint/signal-research-analytics--<task-slug>
 Direction: docs/planning/sprints/PHASE_4_5_SPRINT_DIRECTION.md
 Wave 0 decisions: docs/planning/sprints/S010_WAVE0_DECISIONS.md
 Architecture Sources:
-  - docs/vision/WORKFLOWS_AI_ADR_UPDATED.md (§3.14 Signal Research Analytics)
+  - docs/vision/WORKFLOWS_AI_ADR.md (§3.14 Signal Research Analytics)
   - docs/adr/ADR-0011-signal-research-outcomes-and-persistence.md
   - docs/adr/ADR-0012-combined-research-scopes-and-context-alignment.md
   - docs/planning/sprints/S008_WAVE0_DECISIONS.md (outcome semantics)

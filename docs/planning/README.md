@@ -20,7 +20,7 @@ Catalog of `docs/planning/`. For taxonomy and reading paths see **[../README.md]
 | [PROBLEM_REGISTRY.md](PROBLEM_REGISTRY.md) | Open problems and priorities |
 | [TECHNICAL_DEBT.md](TECHNICAL_DEBT.md) | Known debt items |
 | [IDEA_INBOX.md](IDEA_INBOX.md) | Unprocessed ideas |
-| [PROJECT_MANAGEMENT_UPDATED.md](PROJECT_MANAGEMENT_UPDATED.md) | Process reference (legacy) |
+| [PROJECT_MANAGEMENT.md](PROJECT_MANAGEMENT.md) | Process reference (legacy) |
 
 ---
 
@@ -76,6 +76,41 @@ Catalog of `docs/planning/`. For taxonomy and reading paths see **[../README.md]
 | [sprints/S013_WAVE0_DECISIONS.md](sprints/S013_WAVE0_DECISIONS.md) | Sprint 013 binding decisions (D-S013-01 … D-S013-16) |
 | [sprints/S004_MTF_SPIKE_AND_DECISIONS.md](sprints/S004_MTF_SPIKE_AND_DECISIONS.md) | Sprint 004 T001 spike outcomes |
 | [sprints/S003_WAVE0_*.md](sprints/) | Sprint 003 wave 0 artefacts |
+
+### Sprint document policy (new sprints only)
+
+Adopted in Sprint 053 (see `docs/historical/REPO_WORKFLOW_DOCS_AUDIT.md`, Phase E)
+after confirming genuine content duplication — not just naming overlap —
+between `SPRINT_XXX.md` and its companion `SXXX_WAVE0_DECISIONS.md` in at
+least 31 existing sprints.
+
+**1 sprint = 1 document, going forward.** New sprints use a single lifecycle
+template instead of a separate Wave 0 decisions file:
+
+```text
+Goal → Scope → Decisions → Tasks → Progress → Outcome → Follow-ups
+```
+
+The `Decisions` section absorbs what `SXXX_WAVE0_DECISIONS.md` used to hold,
+including per-decision rationale — that's the part with the most reuse
+value and must not be compressed away. `docs/planning/sprints/SPRINT_053.md`
+is written in this template and can be used as a live example.
+
+This is a **policy for new sprints only**. It does not apply retroactively:
+- The 97 existing sprint docs, and the 31 existing `SPRINT_XXX.md` +
+  `SXXX_WAVE0_DECISIONS.md` pairs, are left untouched. Merging any existing
+  pair mechanically risks silently dropping content and is a separate,
+  per-sprint reviewed task if ever undertaken — not a bulk rewrite.
+- A handful of sprints also carry a third artifact (e.g. `S037_GATE.md`,
+  `S049_AVAILABILITY_FINDING.md`, `S051_BTC_DATA_INVENTORY.md`) that is
+  **not** part of this duplication pattern and must not be merged away.
+
+**Archival tier (rule defined, not yet applied).** Sprint docs older than N
+sprints **and** fully superseded by a later sprint on the same topic should
+eventually move to `docs/historical/sprints/`, giving future agents a
+size/recency signal without reading all of them. No existing file has been
+migrated under this rule yet — the backlog of 97 sprint docs is a separate,
+reviewed follow-up once the rule has been used a few times on new sprints.
 
 ## Retrospectives
 

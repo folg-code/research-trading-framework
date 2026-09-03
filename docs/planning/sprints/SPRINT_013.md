@@ -15,8 +15,8 @@ Task branch convention: feat/ | fix/ | docs/ (separate prefix, not nested under 
 Wave 0 decisions: docs/planning/sprints/S013_WAVE0_DECISIONS.md
 Architecture Sources:
   - docs/planning/ROADMAP.md (§10 Strategy Research)
-  - docs/vision/ARCHITECTURE_TECHNICAL_UPDATED.md (§6.3, §7.2)
-  - docs/vision/WORKFLOWS_AI_ADR_UPDATED.md
+  - docs/vision/ARCHITECTURE_TECHNICAL.md (§6.3, §7.2)
+  - docs/vision/WORKFLOWS_AI_ADR.md
   - docs/planning/TECHNICAL_DEBT.md (TD-009)
   - docs/adr/ADR-0011, ADR-0012 (upstream research patterns)
 Track choice: Phase 6A selected over 2C.2 (quotes) and 4B (orderflow) — 2026-07-14

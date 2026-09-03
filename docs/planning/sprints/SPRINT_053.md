@@ -69,7 +69,7 @@ policy note for future sprints — nothing here changes runtime behavior.
 **Out of scope** (deferred to a separate, later sprint — see §7 Follow-ups):
 - `docs/reference/` restructuring into `system/`/`workflows/`/`modules/` (Phase 6a / 10a) — needs a full content audit of 12 files first.
 - Vision file current-vs-future reclassification (Phase 6b / 10a) — needs full reads of 3 files at 1,100–2,580 lines each.
-- Maintainer decision on `ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md` and `WORKFLOWS_AI_ADR_UPDATED.md` homes (Phase 6b).
+- Maintainer decision on `ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md` and `WORKFLOWS_AI_ADR.md` homes (Phase 6b).
 - Retroactive merge of the 31 existing `SPRINT_XXX.md` + `SXXX_WAVE0_DECISIONS.md` pairs (Phase E explicitly says do not do this — template applies to new sprints only).
 - Retroactive migration of any of the 97 existing sprint docs into a `docs/historical/sprints/` archival tier (Phase E — rule is defined here, applied going forward only).
 
@@ -87,27 +87,39 @@ Binding decisions for this sprint, to be confirmed with the maintainer before ta
 
 | ID | Task | Depends on | Status |
 |---|---|---|---|
-| T001 | `.gitignore`: add `.claude/worktrees/`, `.codex/worktrees/` | — | TODO |
-| T002 | Fix ADR-0020 status row in `docs/adr/README.md` | — | TODO |
-| T003 | Rename `AGENTS_MULTITIMEFRAME_MARKET_MODEL_UPDATED (1).md`, fix `AGENTS.md:62` | — | TODO |
-| T004 | Rename remaining 6 `_UPDATED` files, fix inbound refs | — | TODO |
-| T005 | Fix `DATA_MODULE.md` broken reference | T004 | TODO |
-| T006 | Trim `CURRENT_STATUS.md` (content-preservation-gated per D-S053-02) | — | TODO |
-| T007 | Add `docs/historical/` row to `docs/README.md` | Audit doc merged to `main` | TODO |
-| T008 | Trim `.cursor/rules/project-architecture.mdc` (Cursor-verified per D-S053-04) | — | TODO |
-| T009 | Document sprint archival rule + 1-sprint-1-doc template in `docs/planning/README.md` | — | TODO |
-| T010 | Phase F validation pass (4 fresh-context lookup checks) | T001–T009 | TODO |
+| T001 | `.gitignore`: add `.claude/worktrees/`, `.codex/worktrees/` | — | DONE (#411) |
+| T002 | Fix ADR-0020 status row in `docs/adr/README.md` | — | DONE (#412) |
+| T003 | Rename `AGENTS_MULTITIMEFRAME_MARKET_MODEL_UPDATED (1).md`, fix `AGENTS.md:62` | — | DONE (#412) |
+| T004 | Rename remaining 6 `_UPDATED` files, fix inbound refs | — | DONE (#412) |
+| T005 | Fix `DATA_MODULE.md` broken reference | T004 | DONE (#412) |
+| T006 | Trim `CURRENT_STATUS.md` (content-preservation-gated per D-S053-02) | — | DONE (#416) |
+| T007 | Add `docs/historical/` row to `docs/README.md` | Audit doc merged to `main` | DONE (#415, after audit doc merged via #414) |
+| T008 | Trim `.cursor/rules/project-architecture.mdc` (Cursor-verified per D-S053-04) | — | DEFERRED — needs a maintainer pass in Cursor itself, not done this sprint |
+| T009 | Document sprint archival rule + 1-sprint-1-doc template in `docs/planning/README.md` | — | DONE (#413) |
+| T010 | Phase F validation pass (4 fresh-context lookup checks) | T001–T009 | DONE — all 4 checks pass (see §6 Outcome) |
 
 ## 5. Progress
 
-Not started — sprint is PLANNED, pending maintainer approval to open.
+9 of 10 tasks complete on `sprint/repo-workflow-docs-hygiene`. T008 deferred by
+maintainer decision — needs Cursor-side verification the maintainer will do
+separately, not blocking sprint closure. Ready for final integration PR to
+`main`.
 
 ## 6. Outcome
 
-TBD.
+**T010 validation results** (audit Phase F, re-run against the sprint branch):
+1. "What's the current architecture for market data ingestion?" → resolves via `docs/reference/README.md` → `MODULE_MAP.md` / `DATA_WORKFLOWS.md` in 1-2 lookups. PASS.
+2. "Why does `apps/*` not import research/execution engines directly?" → resolves directly to ADR-0022 from `AGENTS.md:30`. PASS.
+3. "What's the current sprint?" → `docs/planning/CURRENT_STATUS.md` §2 alone states `Active Sprint: SPRINT_053`. PASS.
+4. `.claude/worktrees/` is now excluded via the committed `.gitignore`, not just local `.git/info/exclude` — confirmed in `.gitignore`. PASS.
+
+All near-term audit findings (Phases A-D) are closed except T008, which the
+maintainer explicitly deferred to a Cursor-side session. Branch/worktree
+cleanup (audit Phase A's other half) was completed directly in the same
+working session that opened this sprint, ahead of any task branch (see §2).
 
 ## 7. Follow-ups (explicitly not this sprint)
 
 - **Phase 10a — `docs/reference/` restructuring** (`system/` / `workflows/` / `modules/`): needs a full content audit of the 12 current files before any file is moved. Separate sprint.
-- **Phase 6b — Vision file reclassification**: full reads of `ARCHITECTURE_FOUNDATIONS_UPDATED.md`, `ARCHITECTURE_TECHNICAL_UPDATED.md`, `MULTITIMEFRAME_MARKET_MODEL_ARCHITECTURE_UPDATED.md` to mark current-vs-future sections. Separate sprint.
+- **Phase 6b — Vision file reclassification**: full reads of `ARCHITECTURE_FOUNDATIONS.md`, `ARCHITECTURE_TECHNICAL.md`, `MULTITIMEFRAME_MARKET_MODEL_ARCHITECTURE.md` to mark current-vs-future sections. Separate sprint.
 - **Sprint-doc backlog**: applying the archival rule defined in T009 to the existing 97 sprint docs, and any retroactive `SPRINT_XXX.md`/`SXXX_WAVE0_DECISIONS.md` merges — both explicitly deferred by the audit (Phase E) to per-file reviewed follow-ups, not a bulk pass.

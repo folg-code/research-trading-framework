@@ -51,7 +51,7 @@ SUPERSEDED
 | [ADR-0017](ADR-0017-strategy-research-inspection-boundary.md) | Strategy Research Inspection Boundary | ACCEPTED | Sprint 014 |
 | [ADR-0018](ADR-0018-continuous-futures-materialization.md) | Continuous Futures Materialization | ACCEPTED | Sprint 015 |
 | [ADR-0019](ADR-0019-robustness-research-mvp.md) | Robustness Research MVP | ACCEPTED | Sprint 016 |
-| [ADR-0020](ADR-0020-model-research-methodology-mvp.md) | Model Research Methodology MVP | PROPOSED | Sprint 017 |
+| [ADR-0020](ADR-0020-model-research-methodology-mvp.md) | Model Research Methodology MVP | ACCEPTED | Sprint 017 |
 | [ADR-0021](ADR-0021-live-dry-run-execution-demo.md) | Live Dry-Run Execution Demo | ACCEPTED | Sprint 018 |
 | [ADR-0022](ADR-0022-repository-top-level-layout.md) | Repository Top-Level Layout | ACCEPTED | Sprint 029 |
 | [ADR-0023](ADR-0023-predictive-research-boundary.md) | Predictive Research Domain Boundary | ACCEPTED (§7 amended by ADR-0029) | Sprint 039 |
@@ -98,7 +98,7 @@ Positive and negative outcomes of the decision.
 
 ## Related Documents
 
-- `docs/vision/ARCHITECTURE_FOUNDATIONS_UPDATED.md`
+- `docs/vision/ARCHITECTURE_FOUNDATIONS.md`
 - `docs/vision/MARKET_ANALYSIS_WITH_DECISIONS.md`
 - `docs/vision/ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md`
 - `docs/planning/PROBLEM_REGISTRY.md` — PRB-016

@@ -142,7 +142,7 @@ Depends on your focus — the README [Start here](../../README.md#start-here--pi
 
 | Focus | Read next |
 |-------|-----------|
-| **Data / pipelines** | [DATA_WORKFLOWS.md](../reference/DATA_WORKFLOWS.md) → [DATA_MODULE_UPDATED.md](../reference/modules/DATA_MODULE_UPDATED.md) |
+| **Data / pipelines** | [DATA_WORKFLOWS.md](../reference/DATA_WORKFLOWS.md) → [DATA_MODULE.md](../reference/modules/DATA_MODULE.md) |
 | **Code / architecture** | [MODULE_MAP.md](../reference/MODULE_MAP.md) → [adr/](../adr/README.md) |
 | **Research workflows** | [RESEARCH_METHODOLOGIES.md](../reference/RESEARCH_METHODOLOGIES.md) → [DATA_WORKFLOWS.md](../reference/DATA_WORKFLOWS.md) |
 | **Sprint context** | [CURRENT_STATUS.md](../planning/CURRENT_STATUS.md) → [ROADMAP.md](../planning/ROADMAP.md) |

@@ -58,7 +58,7 @@ Published DatasetRef → AnalysisDataView → Component DAG → AnalysisResultSt
 
 ## References
 
-- `docs/vision/ARCHITECTURE_FOUNDATIONS_UPDATED.md` §6.2
+- `docs/vision/ARCHITECTURE_FOUNDATIONS.md` §6.2
 - `docs/vision/MARKET_ANALYSIS_WITH_DECISIONS.md` — D-001–D-004
 - `docs/adr/ADR-MA-001-market-analysis-domain-boundaries.md`
 - `src/trading_framework/market_analysis/`

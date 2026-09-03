@@ -18,7 +18,8 @@ docs/
 │   └── modules/
 ├── planning/                 roadmap, status, sprints
 ├── adr/                      decision records (why)
-└── agents/                   AI agent module notes
+├── agents/                   AI agent module notes
+└── historical/               completed audits, closed investigations
 ```
 
 ---
@@ -42,7 +43,7 @@ Maintenance: `.cursor/rules/documentation.mdc`
 | Role | Path |
 |------|------|
 | **Recruiter / hiring manager** | [README § In 60 seconds](../README.md#in-60-seconds) → [Scale & performance](../README.md#scale--performance-reference-run) → [Portfolio demo](../README.md#portfolio-demo-try-it-in-the-browser) |
-| **Data engineer** | [README § For data engineers](../README.md#for-data-engineers) → [DATA_WORKFLOWS.md](reference/DATA_WORKFLOWS.md) §1.1 → [DATA_MODULE_UPDATED.md](reference/modules/DATA_MODULE_UPDATED.md) |
+| **Data engineer** | [README § For data engineers](../README.md#for-data-engineers) → [DATA_WORKFLOWS.md](reference/DATA_WORKFLOWS.md) §1.1 → [DATA_MODULE.md](reference/modules/DATA_MODULE.md) |
 | **Software engineer** | [README § For software engineers](../README.md#for-software-engineers) → [MODULE_MAP.md](reference/MODULE_MAP.md) → [adr/](adr/README.md) |
 | **New developer** | [Developer Guide](onboarding/DEVELOPER_GUIDE.md) → [DATA_WORKFLOWS.md](reference/DATA_WORKFLOWS.md) → [MODULE_MAP.md](reference/MODULE_MAP.md) |
 

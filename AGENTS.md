@@ -7,8 +7,8 @@ Read this file before modifying the repository.
 1. `AGENTS.md` (this file)
 2. `docs/planning/CURRENT_STATUS.md`
 3. `docs/planning/ROADMAP.md`
-4. `docs/vision/ARCHITECTURE_FOUNDATIONS_UPDATED.md`
-5. `docs/vision/ARCHITECTURE_TECHNICAL_UPDATED.md`
+4. `docs/vision/ARCHITECTURE_FOUNDATIONS.md`
+5. `docs/vision/ARCHITECTURE_TECHNICAL.md`
 6. relevant docs under `docs/reference/` and `docs/agents/`
 7. relevant ADRs under `docs/adr/`
 8. existing contracts and tests in `src/` and `tests/`
@@ -58,8 +58,8 @@ Report failed checks. Do not hide or disable them.
 
 ## Module-Specific Agent Docs
 
-- Market Data: `docs/agents/AGENTS_UPDATED.md`
-- Multitimeframe Market Model: `docs/agents/AGENTS_MULTITIMEFRAME_MARKET_MODEL_UPDATED (1).md`
+- Market Data: `docs/agents/AGENTS.md`
+- Multitimeframe Market Model: `docs/agents/AGENTS_MULTITIMEFRAME_MARKET_MODEL.md`
 
 ## Planning
 

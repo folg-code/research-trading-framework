@@ -64,7 +64,7 @@ Exit Model    — closes open positions (contract-based)
 Risk Model    — position sizing and exposure limits (contract-based)
 ```
 
-Position sizing remains part of the Risk Model in Version 1 (`ARCHITECTURE_TECHNICAL_UPDATED.md` §6.3).
+Position sizing remains part of the Risk Model in Version 1 (`ARCHITECTURE_TECHNICAL.md` §6.3).
 
 **Decision D-S013-03:** Sprint 013 introduces **Exit Model** and **Risk Model** as small, explicit
 contracts in `strategy/`. Market and Signal Models reuse Sprint 006 definitions unchanged.

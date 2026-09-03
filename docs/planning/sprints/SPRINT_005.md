@@ -13,8 +13,8 @@ Depends On: SPRINT_004 (COMPLETED, merged to main)
 Sprint Branch: sprint/market-analysis-components
 Direction: docs/planning/sprints/PHASE_4_5_SPRINT_DIRECTION.md
 Architecture Sources:
-  - docs/vision/ARCHITECTURE_FOUNDATIONS_UPDATED.md
-  - docs/vision/MULTITIMEFRAME_MARKET_MODEL_ARCHITECTURE_UPDATED.md
+  - docs/vision/ARCHITECTURE_FOUNDATIONS.md
+  - docs/vision/MULTITIMEFRAME_MARKET_MODEL_ARCHITECTURE.md
   - docs/adr/ADR-MA-012-batch-multitimeframe-computation-with-polars.md
 Prerequisite review: docs/planning/retrospectives/ARCHITECTURE_SIMPLIFICATION_REVIEW_S002_S003.md §5
 ```
