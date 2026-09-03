@@ -5,6 +5,8 @@ from trading_framework.market_analysis.components.candle import (
     NumpyCandleWickImplementation,
 )
 from trading_framework.market_analysis.components.momentum import (
+    MacdComponent,
+    NumpyMacdImplementation,
     NumpyRsiImplementation,
     RsiComponent,
 )
@@ -111,6 +113,11 @@ def register_momentum_rsi_component(registry: ComponentRegistry) -> None:
     registry.register(RsiComponent(), NumpyRsiImplementation(), default=True)
 
 
+def register_momentum_macd_component(registry: ComponentRegistry) -> None:
+    """Register the MACD momentum feature component."""
+    registry.register(MacdComponent(), NumpyMacdImplementation(), default=True)
+
+
 def register_mvp_components(registry: ComponentRegistry) -> None:
     """Register Sprint 003 MVP feature and state components."""
     register_volatility_components(registry)
@@ -123,6 +130,7 @@ def register_mvp_components(registry: ComponentRegistry) -> None:
     register_candle_wick_component(registry)
     register_level_distance_component(registry)
     register_momentum_rsi_component(registry)
+    register_momentum_macd_component(registry)
 
 
 def default_mvp_registry() -> ComponentRegistry:
@@ -138,6 +146,7 @@ __all__ = [
     "register_ema_component",
     "register_ema_distance_component",
     "register_level_distance_component",
+    "register_momentum_macd_component",
     "register_momentum_rsi_component",
     "register_mvp_components",
     "register_range_expansion_component",
