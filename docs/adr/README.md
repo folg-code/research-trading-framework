@@ -100,5 +100,5 @@ Positive and negative outcomes of the decision.
 
 - `docs/vision/ARCHITECTURE_FOUNDATIONS.md`
 - `docs/vision/MARKET_ANALYSIS_WITH_DECISIONS.md`
-- `docs/vision/ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md`
+- `docs/reference/ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md`
 - `docs/planning/PROBLEM_REGISTRY.md` — PRB-016

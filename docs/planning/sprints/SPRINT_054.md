@@ -99,7 +99,7 @@ answers:
 | T002 | Classify `ARCHITECTURE_TECHNICAL.md` sections | — | DONE |
 | T003 | Classify `MULTITIMEFRAME_MARKET_MODEL_ARCHITECTURE.md` sections | — | DONE |
 | T004 | Move confirmed-current sections to `docs/reference/system/` | T001, T002, T003 | TODO |
-| T005 | Maintainer decision + move: `ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md` | — | TODO |
+| T005 | Maintainer decision + move: `ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md` | — | DONE |
 | T006 | Maintainer decision + move: `WORKFLOWS_AI_ADR.md` | — | TODO |
 | T007 | Content audit of 12+3 `docs/reference/` files, produce split plan | — | TODO |
 | T008 | Execute `docs/reference/` → `system/`/`workflows/`/`modules/` split | T007 | TODO |
@@ -143,6 +143,22 @@ answers:
   `src/trading_framework/` tree (per `docs/reference/MODULE_MAP.md`), which
   T004 will need to reconcile rather than move verbatim. No content in
   `ARCHITECTURE_TECHNICAL.md` was moved or edited.
+
+- 2026-09-03: T005 complete. Maintainer decided
+  `docs/vision/ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md` moves wholesale (no
+  content rewrite) to `docs/reference/ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md`
+  via `git mv`, per D-S054-03. `docs/reference/system/` did not yet exist at
+  move time (T004/T008 not yet landed), so the file was placed directly
+  under `docs/reference/`. Updated `docs/vision/README.md` (removed from the
+  vision index, added a pointer to the new location) and
+  `docs/reference/README.md` (added to the navigation table). Updated
+  inbound references in `docs/vision/MARKET_ANALYSIS_WITH_DECISIONS.md`,
+  `docs/adr/README.md`, `docs/adr/ADR-MA-007-analysis-workspace-and-derived-data.md`,
+  and `.cursor/rules/documentation.mdc`. Left historical/closed-sprint
+  references (`SPRINT_003.md`, `S003_WAVE0_ARCHITECTURE_CLOSURE.md`,
+  `SPRINT_053.md`, `docs/historical/REPO_WORKFLOW_DOCS_AUDIT.md`) untouched
+  as point-in-time records. No section content was edited (out of scope per
+  this sprint).
 
 ## 6. Outcome
 
