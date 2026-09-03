@@ -4,14 +4,21 @@ Read this file before modifying the repository.
 
 ## Required Reading Order
 
+This is the single authoritative reading order for agents (supersedes any
+other list, including the one formerly in `docs/vision/WORKFLOWS_AI_ADR.md`
+§6.2).
+
 1. `AGENTS.md` (this file)
 2. `docs/planning/CURRENT_STATUS.md`
 3. `docs/planning/ROADMAP.md`
 4. `docs/vision/ARCHITECTURE_FOUNDATIONS.md`
 5. `docs/vision/ARCHITECTURE_TECHNICAL.md`
-6. relevant docs under `docs/reference/` and `docs/agents/`
-7. relevant ADRs under `docs/adr/`
-8. existing contracts and tests in `src/` and `tests/`
+6. `docs/vision/WORKFLOWS_AI_ADR.md` §1-5/§8 (workflow architecture: Signal
+   Research, Strategy Research, Strategy Execution, Final Contract) — when
+   the task touches those workflows
+7. relevant docs under `docs/reference/` and `docs/agents/`
+8. relevant ADRs under `docs/adr/`
+9. existing contracts and tests in `src/` and `tests/`
 
 Do not implement from an issue description alone when repository contracts already exist.
 
@@ -92,4 +99,6 @@ Every task PR must preserve domain ownership, dependency direction and the `src/
 
 - do not place credentials, datasets, research results or proprietary strategies in the repository,
 - do not import `user_data/` from `src/trading_framework/`,
-- do not add dependencies without a demonstrated need.
+- do not add dependencies without a demonstrated need,
+- do not delete or rewrite user data without explicit approval,
+- do not expose credentials in logs, output or examples.

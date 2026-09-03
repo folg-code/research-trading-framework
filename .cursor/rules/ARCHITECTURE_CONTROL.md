@@ -189,6 +189,60 @@ require an ADR and explicit approval.
 
 ---
 
+## 6a. Local Component Lifecycle (Promotion Gate)
+
+Applies to locally-developed Market Analysis components and model
+definitions (Market Models, Signal Models, Exit Models, Risk Models,
+Strategy Models) before they become part of the shared framework.
+
+```text
+user_data/development/market_analysis/   local, unvalidated
+        ↓
+user_data/candidates/market_analysis/    validated candidate
+        ↓
+src/trading_framework/market_analysis/   promoted, framework-owned
+```
+
+An agent must not promote a component automatically. Promotion requires the
+component to be stable, reusable, strategy-independent, tested, documented
+and ready for compatibility maintenance.
+
+This is the general lifecycle gate for any local component. Promoting a
+**trained ML model** to a Market Analysis State is a stricter, separate case
+governed by ADR-0024 (five additional conditions: artifact identity,
+inference-time leakage, feature lineage, offline/online parity, model
+registry) — consult ADR-0024 in addition to this section for that case.
+
+### Fingerprint requirements
+
+A mutable working component or local model definition used in Research must
+preserve, at minimum:
+
+```text
+component_id / definition_hash
+implementation_hash / dependency_hash
+resolved_parameters
+reproducibility_status = EXPERIMENTAL
+```
+
+A mutable local file path is not sufficient result identity by itself.
+
+---
+
+## 6b. Testing Rules by Level
+
+Every implementation includes tests appropriate to its level:
+
+| Level | Required for |
+|---|---|
+| Unit | domain models, Features, Structures, States, Market/Signal/Exit/Risk Models, `SignalOccurrence`, expression trees, dependency resolution, fingerprint generation |
+| Temporal | source/computation/evaluation timeframe, `LAST_CLOSED_BAR`, `available_at`, as-of alignment, session boundaries, DST transitions, incomplete-bar look-ahead |
+| Integration | providers, importers, brokers, storage, messaging, external calendars (external tests are opt-in) |
+| Regression | bug fixes, numerical changes, dataset transformations, temporal alignment changes, research metric changes |
+| Workflow | the three Signal Research scopes, no mandatory Research-to-Execution dependency, no mandatory Signal Research-to-Strategy Research dependency, backtest/replay separation, reuse of stored datasets |
+
+---
+
 ## 7. Pull Request Architecture Review
 
 Every task PR must include:
@@ -336,6 +390,13 @@ Before completing a task:
 [ ] Relevant documentation was updated
 [ ] ADR exists where required
 [ ] No unrelated architectural change was included
+[ ] Market Analysis terminology is used consistently
+[ ] Signal Research scope is explicit (Market Model only / Signal Model only / Market Model x Signal Model)
+[ ] Component and model fingerprints are preserved where required
+[ ] Time and availability rules are respected (UTC, Clock, LAST_CLOSED_BAR, available_at)
+[ ] Dataset lineage is preserved
+[ ] No hidden resampling exists
+[ ] Backtest and Replay Execution remain separate
 ```
 
 Before merging a sprint into `main`:
