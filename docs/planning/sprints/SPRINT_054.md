@@ -100,7 +100,7 @@ answers:
 | T003 | Classify `MULTITIMEFRAME_MARKET_MODEL_ARCHITECTURE.md` sections | — | DONE |
 | T004 | Move confirmed-current sections to `docs/reference/system/` | T001, T002, T003 | DONE |
 | T005 | Maintainer decision + move: `ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md` | — | DONE |
-| T006 | Maintainer decision + move: `WORKFLOWS_AI_ADR.md` | — | TODO |
+| T006 | Maintainer decision + move: `WORKFLOWS_AI_ADR.md` | — | RECOMMENDATION PRODUCED — awaiting maintainer decision |
 | T007 | Content audit of 12+3 `docs/reference/` files, produce split plan | — | DONE |
 | T008 | Execute `docs/reference/` → `system/`/`workflows/`/`modules/` split | T007 | TODO |
 | T009 | Update all inbound references | T004, T005, T006, T008 | TODO |
@@ -205,6 +205,22 @@ answers:
   rather than attempted as risky per-bullet rewrites. `docs/reference/README.md`
   now lists the three new `system/` files. `docs/adr/` untouched; T005-T009
   intentionally out of scope for this task.
+- 2026-09-03: T006 recommendation produced (not DONE — per D-S054-03 this
+  is a maintainer call). `docs/vision/WORKFLOWS_AI_ADR.md` was read in full
+  (2,584 lines). Output:
+  `docs/planning/sprints/SPRINT_054_T006_WORKFLOWS_AI_ADR_RECOMMENDATION.md`.
+  Nothing was moved, edited or rewritten. Headline: neither of the sprint
+  doc's two options fits — the file is ~63% target workflow architecture
+  (§1–§5, §8), not process, and is the most-cited architecture source in
+  the sprint record (8 sprint docs, all citing §3/§4, none citing §6/§7).
+  Recommendation is a three-way split: §1–§5/§8 join the T001–T004 vision-
+  reclassification track (proposed new classification task T003b), §6 (AI
+  Agent Contract) folds into `AGENTS.md`/`ARCHITECTURE_CONTROL.md`, §7
+  process sections fold into `docs/adr/README.md`; §7.6–7.8 are decision
+  content to reconcile against the ADR index, not process. Two live
+  contradictions found: agent required-reading-order (§6.2 vs `AGENTS.md`)
+  and ADR status model + template (§7.4/§7.5 vs `docs/adr/README.md`). T006
+  remains open pending maintainer decision on this recommendation.
 
 ## 6. Outcome
 
