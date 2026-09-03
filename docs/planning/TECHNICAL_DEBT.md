@@ -1620,6 +1620,82 @@ its starting shape.
 
 ---
 
+## TD-030 — Root `.gitignore` Does Not Cover Nested `<subdir>/user_data/` Directories
+
+```text
+Status: ACCEPTED
+Priority: LOW
+Domain: Repository Hygiene / Data Boundary (ADR-0002)
+Introduced: Sprint 051 (2026-09-03), discovered during S051-T002
+Target Review: Opportunistic — next time a nested user_data/ directory is
+  created under any workspace member (apps/cli, apps/dashboard, etc.)
+Owner: Unassigned
+```
+
+### Accepted Shortcut
+
+The root `.gitignore`'s `user_data/**` pattern is anchored to the repo root
+(git rewrites a mid-string-slash pattern as relative to the `.gitignore`
+file's own directory, per git's own documented semantics). It does **not**
+match a nested `<subdir>/user_data/**` path, such as `apps/cli/user_data/`.
+Confirmed live during S051-T002: running the Binance importer from `apps/cli`
+as the working directory (instead of the repo root) resolved
+`storage_root: user_data/workspace` to `apps/cli/user_data/workspace`, and
+`git status` showed those files as untracked, not ignored.
+
+### Reason
+
+ADR-0002 (separate `src` and `user_data`) establishes `user_data/` as the
+operator's local, non-committed workspace at the repo root. No workspace
+member (`apps/cli`, `apps/dashboard`, `scripts/`, etc.) is expected to have
+its own `user_data/` directory — the S051-T002 occurrence was an operator
+invocation mistake (wrong working directory), not a designed nested-workspace
+feature. Because the mistake is easy to make (any relative `storage_root`
+path resolves against process `cwd`, not repo root) and the consequence
+(accidentally committing real market data or credentials) is expensive, the
+gap is worth tracking even though no incident occurred this time — the
+misplaced directory was caught and deleted before anything was staged.
+
+### Consequences
+
+- A future operator or agent invoking any CLI command with a relative
+  `storage_root` from a non-repo-root working directory could produce a
+  nested `<subdir>/user_data/` directory that `git status` reports as
+  untracked rather than ignored, risking an accidental `git add -A` capture
+  of market data or, worse, a locally-configured credential.
+- No functional code is affected; this is a pure repository-hygiene gap.
+
+### Safe Operating Boundary
+
+Invoke CLI commands that accept a `storage_root` from the repository root, or
+pass an absolute `storage_root` path — both avoid the gap entirely without
+requiring the `.gitignore` fix. `apps/cli/CLAUDE.md` now documents this as an
+operator-facing gotcha (added in S051-T002, PR #400).
+
+### Repayment Trigger
+
+Opportunistic — no functional risk forces this. Repay whenever a nested
+`user_data/` directory is next created under any workspace member, or during
+a routine `.gitignore` audit.
+
+### Repayment Direction
+
+Add an additional pattern to the root `.gitignore` covering nested
+`user_data/` directories at any depth (e.g. `**/user_data/` in addition to
+the existing `user_data/**`), and add a regression check (a test or a
+pre-commit hook) asserting no `user_data/` directory anywhere in the tree is
+ever tracked, rather than relying on operators invoking commands from the
+correct working directory.
+
+### Related Tasks
+
+- `docs/planning/sprints/S051_BTC_DATA_INVENTORY.md` §5 — where this was
+  discovered and the false start it caused
+- `src/trading_framework/apps/cli/CLAUDE.md` — the operator-facing gotcha note
+- `.gitignore` (root)
+
+---
+
 # 6. Planned Debt Boundaries
 
 The following shortcuts may be accepted later but are not yet introduced:

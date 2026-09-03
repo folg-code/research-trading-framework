@@ -180,8 +180,8 @@ Neither false start touched any file under `src/`, and nothing from either
 attempt was committed. This is logged as a candidate module-context note for
 `apps/cli/CLAUDE.md` (a gotcha about `storage_root` resolving relative to
 invocation `cwd`, not repo root) — not a framework code change, and not part
-of this task's scope to fix the `.gitignore` pattern itself (flagged in the
-Review section below for a maintainer decision).
+of this task's scope to fix the `.gitignore` pattern itself. Tracked as
+`TD-030` in `docs/planning/TECHNICAL_DEBT.md`, repayable opportunistically.
 
 ---
 
