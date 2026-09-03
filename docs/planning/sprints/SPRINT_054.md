@@ -110,7 +110,7 @@ answers:
 | T005 | Maintainer decision + move: `ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md` | — | DONE |
 | T006 | Maintainer decision: `WORKFLOWS_AI_ADR.md` location | — | DECIDED — rescoped into T003b/T006a/T006b/T006c |
 | T006a | Reconcile `WORKFLOWS_AI_ADR.md` §7 into `docs/adr/README.md` | — | DONE |
-| T006b | Reconcile `WORKFLOWS_AI_ADR.md` §6 into `AGENTS.md`/`ARCHITECTURE_CONTROL.md` | — | TODO |
+| T006b | Reconcile `WORKFLOWS_AI_ADR.md` §6 into `AGENTS.md`/`ARCHITECTURE_CONTROL.md` | — | DONE |
 | T006c | Move confirmed-current §1-5/§8 sections to `docs/reference/` | T003b | TODO |
 | T007 | Content audit of 12+3 `docs/reference/` files, produce split plan | — | DONE |
 | T008 | Execute `docs/reference/` → `system/`/`workflows/`/`modules/` split | T007 | TODO |
@@ -294,6 +294,34 @@ answers:
   `docs/adr/README.md`; §1-§6 and §8 untouched (out of scope, per T003b/
   T006b/T006c). No file under `docs/adr/` (the ADR files themselves) was
   touched.
+- 2026-09-03: T006b complete. Read `docs/vision/WORKFLOWS_AI_ADR.md` §6 (AI
+  Agent Contract, ~589 lines), `AGENTS.md` and `.cursor/rules/ARCHITECTURE_CONTROL.md`
+  in full. §6.1, §6.3-§6.6, §6.9-§6.18, §6.20-§6.22 were pure duplication of
+  `ARCHITECTURE_CONTROL.md` §3-§11 (domain ownership, dependency direction,
+  workflow independence, prohibited behaviours) and `AGENTS.md`'s
+  Architecture Rules — deleted, not copied forward. Genuinely new material
+  was folded in: §6.7 (local component lifecycle / promotion gate) and §6.8
+  (fingerprint rules) into a new `ARCHITECTURE_CONTROL.md` §6a, noting that
+  ADR-0024 additionally governs the stricter ML-model-to-State promotion
+  case; §6.19 (test-level matrix) into a new `ARCHITECTURE_CONTROL.md` §6b;
+  §6.23 (completion checklist) merged into the existing §12 checklist there
+  (items not already present were appended, duplicates dropped). Resolved
+  the required-reading-order contradiction (§6.2's 7-step order, which
+  started with `ARCHITECTURE_FOUNDATIONS.md` and omitted `CURRENT_STATUS.md`/
+  `ROADMAP.md`, vs `AGENTS.md`'s 8-step order) in favor of `AGENTS.md` — it
+  is loaded on every agent session, so it is the practical source of truth —
+  and extended `AGENTS.md`'s list from 8 to 9 steps by adding
+  `WORKFLOWS_AI_ADR.md` §1-5/§8 (the workflow-architecture content T003b/T006c
+  still own) at step 6, since it was previously missing entirely despite
+  being the most-cited architecture source in the sprint record. Also added
+  two short `AGENTS.md` Boundaries bullets with no prior home ("do not delete
+  or rewrite user data without explicit approval", "do not expose
+  credentials in logs, output or examples") — both flagged in §6.22's
+  AI Agent Prohibitions and not covered elsewhere. `docs/vision/WORKFLOWS_AI_ADR.md`
+  §6 was replaced with a short pointer to `AGENTS.md` /
+  `.cursor/rules/ARCHITECTURE_CONTROL.md`; §1-5, §7, §8 were not touched
+  (owned by T003b/T006a/T006c). No production code, dependencies or
+  ADRs were touched.
 
 ## 6. Outcome
 
