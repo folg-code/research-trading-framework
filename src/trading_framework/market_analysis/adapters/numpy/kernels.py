@@ -205,6 +205,55 @@ def rolling_population_stdev(values: np.ndarray, period: int) -> np.ndarray:
     return out
 
 
+def rolling_lagged_pearson_correlation(returns: np.ndarray, period: int, lag: int) -> np.ndarray:
+    """Causal rolling Pearson correlation between a ``period``-bar window of
+    ``returns`` and its own lag-``lag`` shift, computed WITHIN that same
+    window (statistics.return_autocorrelation, D-S051-03/05):
+
+        window = returns[i - period + 1 : i + 1]      # `period` values
+        x = window[: period - lag]                     # unshifted
+        y = window[lag:]                                # lag-shifted
+        out[i] = cov(x, y) / (std(x) * std(y))          # population moments
+
+    Both ``x`` and ``y`` are drawn from the SAME fixed-size ``period``-bar
+    window -- ``lag`` only changes how that one window is split into an
+    unshifted/lag-shifted pair, it does not require any additional bars of
+    history beyond ``period``. Population statistics (``ddof=0``), per
+    D-S051-05.
+
+    Zero-variance convention -- if either ``x`` or ``y`` is a constant
+    sub-window (population stdev of ``0.0``), the correlation is
+    mathematically undefined (``0/0``). This follows the project's ORDINARY
+    zero-denominator convention (``candle.wick`` D-S047-10;
+    ``trend.ema_distance`` / ``volatility.range_expansion`` /
+    ``volatility.relative_volatility`` D-S048-10), not ``momentum.stochastic``'s
+    deliberate ``50.0`` divergence (D-S051-04) -- a correlation of ``0.0``
+    ("no defined relationship") is the semantically correct neutral value
+    here, not a fabricated signal.
+
+    The first ``period - 1`` bars have no full window and are ``NaN``. A
+    ``lag`` that leaves fewer than 2 points in ``x``/``y`` (``lag >= period -
+    1``) is rejected defensively by returning an all-``NaN`` array; callers
+    validate ``lag < period - 1`` explicitly before reaching this kernel.
+    """
+    out = np.full(returns.shape, np.nan, dtype=np.float64)
+    if returns.size < period or period < 2 or lag < 1 or lag >= period - 1:
+        return out
+    windows = np.lib.stride_tricks.sliding_window_view(returns, period)
+    x = windows[:, : period - lag]
+    y = windows[:, lag:]
+    x_mean = x.mean(axis=1, keepdims=True)
+    y_mean = y.mean(axis=1, keepdims=True)
+    covariance = ((x - x_mean) * (y - y_mean)).mean(axis=1)
+    x_std = x.std(axis=1, ddof=0)
+    y_std = y.std(axis=1, ddof=0)
+    denominator = x_std * y_std
+    with np.errstate(divide="ignore", invalid="ignore"):
+        correlation = np.where(denominator == 0.0, 0.0, covariance / denominator)
+    out[period - 1 :] = correlation
+    return out
+
+
 def ols_slope(close: np.ndarray, period: int) -> np.ndarray:
     """Causal ordinary-least-squares slope of close versus bar index in ``period``."""
     out = np.full(close.shape, np.nan, dtype=np.float64)
