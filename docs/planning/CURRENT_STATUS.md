@@ -26,7 +26,7 @@ Detailed task state belongs in `docs/planning/sprints/` and, once configured, Gi
 ## 2. Status Metadata
 
 ```text
-Status Date: 2026-09-02
+Status Date: 2026-09-03
 Current Phase: Phase 10 — Predictive (ML) Research — COMPLETE (Sprints 039-044);
   Phase 2F — Exchange REST Historical Import — COMPLETE (Sprint 045);
   Phase 11 — Universal Operator CLI — COMPLETE (Sprint 046);
@@ -39,39 +39,76 @@ Current Phase: Phase 10 — Predictive (ML) Research — COMPLETE (Sprints 039-0
   (Path A) built and passing. Increment 14B (Sprint 050) is NOT planned yet.
   **Phase 14 as a whole is NOT complete: no Market Analysis component, no
   State, no executor change, and no dry-run session exist yet.**
-Current Milestone: Sprint 049 (Phase 14A) complete on
-  `sprint/promotable-predictive-artifact` (15/15) — promoted-artifact
-  contracts, content-addressed store, pure-NumPy evaluator with load-time
-  guard, blob-extraction adapter with promotion-time guard,
-  `promote_predictive_run` workflow, `trading-cli research promote`, Path A
-  parity (measured maximum y_proba deviation: 0.0), determinism/refusal
-  suite, ADR-0024 condition-1/5 coverage, and this closure. Final integration
-  PR to `main` is the next step (not yet opened). Sprint 048 (Phase 13) is
-  merged to main via #383 (13/13), before Sprint 049 branched. Sprint 050 (Phase 14B) is not
-  scheduled by default.
+  Phase 15 — Predictive Research Catalog Expansion and Real-Data Study —
+  **PARTIALLY COMPLETE**. Increment 15A (Sprint 051) is COMPLETE (11/11, on
+  `sprint/momentum-and-regime-catalog`; integration PR to main pending) — six
+  new momentum/regime Market Analysis components (`momentum.rsi`,
+  `momentum.macd`, `momentum.stochastic`, `volatility.relative_volatility`,
+  `statistics.return_autocorrelation`, `statistics.return_distribution`),
+  both consumption paths proven (rule-based + predictive FeatureSpec), and
+  the `BTCUSDT.P` dataset acquired and measured (911 days, 1,311,840 rows,
+  zero gaps — `S051_BTC_DATA_INVENTORY.md`). Increment 15B (Sprint 052) is
+  PLANNED but NOT approved/opened (`SPRINT_052.md`, `Status: PLANNED`).
+  **Phase 15 as a whole is NOT complete: no real-data predictive study has
+  been run.**
+Current Milestone: Sprint 051 (Phase 15A) complete on
+  `sprint/momentum-and-regime-catalog` (11/11) — six new momentum/regime
+  Market Analysis components (`momentum.rsi`, `momentum.macd`,
+  `momentum.stochastic`, `volatility.relative_volatility`,
+  `statistics.return_autocorrelation`, `statistics.return_distribution`),
+  the new `statistics.` namespace package, both consumption paths proven
+  (rule-based `strategy_file` + predictive `FeatureSpec`), the `BTCUSDT.P`
+  dataset acquired and measured (911 days, 1,311,840 rows, zero gaps), and
+  this closure. Final integration PR to `main` is the next step (not yet
+  opened). Sprint 049 (Phase 14A) is complete on
+  `sprint/promotable-predictive-artifact` (15/15), integration PR to `main`
+  also pending. Sprint 052 (Phase 15B) is PLANNED but not approved/opened.
 Implementation Status: Sprints 001-047 on main (S044 merged via #348; S045 merged via
   #355; S046 merged via #361; S047 merged via #366); S048 COMPLETE (13/13, all four
   waves, #368-#381) merged to main via #383;
   S049 COMPLETE (15/15, #385-#393 plus this closure) on
-  sprint/promotable-predictive-artifact, integration PR to main pending
+  sprint/promotable-predictive-artifact, integration PR to main pending;
+  S051 COMPLETE (11/11, #397-#407 plus this closure) on
+  sprint/momentum-and-regime-catalog, integration PR to main pending
 Overall Status: STABLE
-Active Sprint: None in progress. SPRINT_049 (Promotable Predictive Artifact,
-  Phase 14A) is complete on its sprint branch (15/15) and awaits its final
-  integration PR to `main` — see "Last Completed Sprint" below. SPRINT_048
-  (Exit/Risk Model Expansion, Catalog Growth and New Strategies, Phase 13) is
-  separately complete on its own sprint branch (13/13), integration PR also
-  pending.
-Last Completed Sprint: SPRINT_049 (Promotable Predictive Artifact, Phase 14A)
-  — 15/15 tasks complete on `sprint/promotable-predictive-artifact`
-  (#385-#393, plus this closure PR); integration PR to `main` pending (Sprint
-  017/048 precedent: complete on branch, merge not yet performed). SPRINT_048
-  (Exit/Risk Model Expansion, Catalog Growth and New Strategies, Phase 13) is
-  the immediately preceding sprint, also complete on its own branch (13/13)
-  with its own integration PR pending — the two are independent, unmerged
-  sprint branches. SPRINT_047 (Custom Strategy Authoring, Phase 12) is the
-  most recent sprint merged to `main` (10/10, via #366).
-Capability Tracks: Foundation COMPLETE; Data COMPLETE (core); Research COMPLETE (core); Strategy 6A COMPLETE; Phase 8A dry-run + S024 on main; Dashboard / Live Paper / public demo COMPLETE; Phase 10 COMPLETE (S039-S044: Foundation, Tree-Based and Neural Predictive Models, dashboard page, ADR-0024 + IDEA-014 gate); Phase 2F COMPLETE (S045: Binance USD-M historical OHLCV import, ADR-0025, merged to main #355); Phase 11 COMPLETE (S046: Universal Operator CLI trading-cli, ADR-0026, merged to main #361); Phase 12 COMPLETE (S047: Custom Strategy Authoring, `strategy_file` loader + candle.wick + structure.level_distance, ADR-0027, merged to main #366; ADR-0028 declined for S047); Phase 13 COMPLETE (S048: resumed ADR-0028 with corrections, Status ACCEPTED — BracketExitModel, EquityPercentRiskModel, kernels/bracket.py, trend.ema_distance, volatility.range_expansion, three example strategies; 13/13, merged to main via #383); Phase 14A COMPLETE, Phase 14 overall NOT COMPLETE (S049: promoted-artifact parameter format and store, ADR-0029 ACCEPTED — pure-NumPy evaluator, blob-extraction adapter, promote_predictive_run + trading-cli research promote, Path A parity; 15/15 on sprint/promotable-predictive-artifact, integration PR to main pending; Phase 14B / Sprint 050 not started — no Market Analysis component, State, executor change, or dry-run session exists)
-Recent: S049 (Phase 14A) reached 15/15 on `sprint/promotable-predictive-artifact`
+Active Sprint: None in progress. SPRINT_051 (Momentum and Regime Component
+  Catalog, Phase 15A) is complete on its sprint branch (11/11) and awaits its
+  final integration PR to `main` — see "Last Completed Sprint" below.
+  SPRINT_049 (Promotable Predictive Artifact, Phase 14A) is separately
+  complete on its own sprint branch (15/15), integration PR also pending.
+  SPRINT_048 (Exit/Risk Model Expansion, Catalog Growth and New Strategies,
+  Phase 13) is separately complete on its own sprint branch (13/13),
+  integration PR also pending.
+Last Completed Sprint: SPRINT_051 (Momentum and Regime Component Catalog,
+  Phase 15A) — 11/11 tasks complete on `sprint/momentum-and-regime-catalog`;
+  integration PR to `main` pending (Sprint 017/048/049 precedent: complete on
+  branch, merge not yet performed). SPRINT_049 (Promotable Predictive
+  Artifact, Phase 14A) is the immediately preceding sprint, also complete on
+  its own branch (15/15) with its own integration PR pending — the two are
+  independent, unmerged sprint branches. SPRINT_048 (Exit/Risk Model
+  Expansion, Catalog Growth and New Strategies, Phase 13) is likewise
+  complete on its own branch (13/13) with its own integration PR pending.
+  SPRINT_047 (Custom Strategy Authoring, Phase 12) is the most recent sprint
+  merged to `main` (10/10, via #366).
+Capability Tracks: Foundation COMPLETE; Data COMPLETE (core); Research COMPLETE (core); Strategy 6A COMPLETE; Phase 8A dry-run + S024 on main; Dashboard / Live Paper / public demo COMPLETE; Phase 10 COMPLETE (S039-S044: Foundation, Tree-Based and Neural Predictive Models, dashboard page, ADR-0024 + IDEA-014 gate); Phase 2F COMPLETE (S045: Binance USD-M historical OHLCV import, ADR-0025, merged to main #355); Phase 11 COMPLETE (S046: Universal Operator CLI trading-cli, ADR-0026, merged to main #361); Phase 12 COMPLETE (S047: Custom Strategy Authoring, `strategy_file` loader + candle.wick + structure.level_distance, ADR-0027, merged to main #366; ADR-0028 declined for S047); Phase 13 COMPLETE (S048: resumed ADR-0028 with corrections, Status ACCEPTED — BracketExitModel, EquityPercentRiskModel, kernels/bracket.py, trend.ema_distance, volatility.range_expansion, three example strategies; 13/13, merged to main via #383); Phase 14A COMPLETE, Phase 14 overall NOT COMPLETE (S049: promoted-artifact parameter format and store, ADR-0029 ACCEPTED — pure-NumPy evaluator, blob-extraction adapter, promote_predictive_run + trading-cli research promote, Path A parity; 15/15 on sprint/promotable-predictive-artifact, integration PR to main pending; Phase 14B / Sprint 050 not started — no Market Analysis component, State, executor change, or dry-run session exists); Phase 15A COMPLETE, Phase 15 overall NOT COMPLETE (S051: six new momentum/regime components, both consumption paths proven, BTCUSDT.P dataset acquired and measured; 11/11 on sprint/momentum-and-regime-catalog, integration PR to main pending; Phase 15B / Sprint 052 not started — no real-data predictive study has been run)
+Recent: S051 (Phase 15A) reached 11/11 on `sprint/momentum-and-regime-catalog`:
+  `S051_WAVE0_DECISIONS.md` and the ROADMAP §13G splice, the BTCUSDT.P
+  Binance import (T002 — SUCCESS, measured: 911 days, 1,311,840 rows, zero
+  gaps, `S051_BTC_DATA_INVENTORY.md`), `momentum.rsi` / `momentum.macd`
+  (depends on two `trend.ema` outputs) / `momentum.stochastic` (zero-range
+  window yields `50.0`, the deliberate D-S051-04 divergence),
+  `volatility.relative_volatility`, the new `statistics.` namespace package
+  with `statistics.return_autocorrelation` / `statistics.return_distribution`
+  (all four following the ordinary `0.0` zero-denominator convention,
+  D-S048-10), both consumption paths proven (a rule-based worked example
+  through the unmodified `strategy_file` loader, and a predictive
+  `FeatureSpec` test against the synthetic CI fixture), and this closure
+  (`STRATEGY_AUTHORING.md` catalog rows, `MODULE_MAP.md` updated, ROADMAP
+  §13G's 15A line flipped to COMPLETE, two warm-up-text corrections in the
+  sprint document, one ADR-citation correction in
+  `references/statistics.py`). The final integration PR
+  `sprint/momentum-and-regime-catalog` -> `main` has not been opened yet.
+  S049 (Phase 14A) reached 15/15 on `sprint/promotable-predictive-artifact`
   (#385-#393): ADR-0029 landed (ACCEPTED), the availability-enforcement spike
   (S049-T001, verdict: the executor mechanism does not exist, ADR-0030
   needed), promoted-artifact manifest/fingerprint/repository, the pure-NumPy
@@ -531,24 +568,66 @@ Maintenance: `.cursor/rules/documentation.mdc`
 
 ## 6. Work in Progress
 
-**Active sprint:** None. Sprint 049 (Promotable Predictive Artifact, Phase
-14A) is complete (15/15, #385-#393) on
+**Active sprint:** None. Sprint 051 (Momentum and Regime Component Catalog,
+Phase 15A) is complete (11/11, #397-#407) on
+`sprint/momentum-and-regime-catalog`; its final integration PR to `main` has
+not been opened yet (see its "Closed" entry below). **Phase 15 overall is
+NOT complete** — Sprint 052 (Phase 15B, the real-data BTC predictive study)
+is PLANNED (`SPRINT_052.md`, `Status: PLANNED`) but not approved or opened;
+no real-data predictive study has been run. Sprint 049 (Promotable
+Predictive Artifact, Phase 14A) is separately complete (15/15, #385-#393) on
 `sprint/promotable-predictive-artifact`; its final integration PR to `main`
-has not been opened yet (see its "Closed" entry below). **Phase 14 overall
-is NOT complete** — Sprint 050 (Phase 14B, the model-backed Market Analysis
-State) is not planned or started. Sprint 048 (Exit/Risk Model Expansion,
-Catalog Growth and New Strategies, Phase 13) is separately complete (13/13,
-#368-#381) and merged to `main` via #383 (see its "Closed" entry below).
-Sprint 047 is merged to `main` (#366, 10/10) and closes Phase 12. Sprint 046 is
-merged to `main` (#361, 14/14) and closes Phase 11. Sprint 045 is merged to
-`main` (#355, 14/14) and closes Phase 2F. Sprint 044 is complete on `main`
-(#348, 18/18). Sprint 043 is complete on `main` (#342, 21/21).
+has not been opened yet either (see its "Closed" entry below). **Phase 14
+overall is NOT complete** — Sprint 050 (Phase 14B, the model-backed Market
+Analysis State) is not planned or started. Sprint 048 (Exit/Risk Model
+Expansion, Catalog Growth and New Strategies, Phase 13) is separately
+complete (13/13, #368-#381) and merged to `main` via #383 (see its "Closed"
+entry below). Sprint 047 is merged to `main` (#366, 10/10) and closes Phase
+12. Sprint 046 is merged to `main` (#361, 14/14) and closes Phase 11. Sprint
+045 is merged to `main` (#355, 14/14) and closes Phase 2F. Sprint 044 is
+complete on `main` (#348, 18/18). Sprint 043 is complete on `main` (#342,
+21/21).
 
 **Portfolio demo packaging** — `scripts/demo/run_portfolio_demo.py` generates offline HTML artifacts for showcase (workflows + dashboards).
 
 **Sprint 017 — Model Research Methodology MVP (Phase 5B)** — **complete** on `sprint/model-research-methodology-mvp` (Wave 6, 2026-07-15). Final integration PR to `main` pending.
 
 **Plan:** `docs/planning/sprints/SPRINT_017.md` · **Wave 0:** `S017_WAVE0_DECISIONS.md` · **ADR:** ADR-0020 (ACCEPTED) · **Branch:** `sprint/model-research-methodology-mvp`
+
+### Sprint 051 — Closed (Phase 15A opening increment; Phase 15 as a whole NOT complete)
+
+**Status:** COMPLETE (11/11), on `sprint/momentum-and-regime-catalog`;
+final integration PR to `main` pending (not yet opened)
+**Plan:** `docs/planning/sprints/SPRINT_051.md`
+**Wave 0:** `docs/planning/sprints/S051_WAVE0_DECISIONS.md`
+**ADR:** none — no new ADR was warranted (Finding 5); every element of this
+sprint has a merged precedent (`candle.wick` Sprint 047,
+`trend.ema_distance`/`volatility.range_expansion` Sprint 048)
+**Tasks:** 11 / 11 — Wave 0 complete (#397-#400); Wave 1 complete
+(#398-#402); Wave 2 complete (#403-#405); Wave 3 complete (#406-#407); this
+closure
+**Branch:** `sprint/momentum-and-regime-catalog` (cut from `main` after the
+Sprint 049 integration commit #396; not yet merged to `main`)
+**Scope:** six new causal feature components — `momentum.rsi` (Wilder RSI),
+`momentum.macd` (depends on two `trend.ema` outputs; signal line via the
+shared `ema` kernel), `momentum.stochastic` (`%K`/`%D`; zero-range window
+yields `50.0`, the deliberate D-S051-04 divergence from this catalog's usual
+`0.0` convention), `volatility.relative_volatility` (rolling realized vol +
+ratio to a baseline window), and the new `statistics.` namespace package's
+`statistics.return_autocorrelation` and `statistics.return_distribution`
+(skew/excess kurtosis) — all registered in `registry/builtins.py`
+(`default=True`) and reachable through `model_authoring` DSL references;
+both consumption paths proven end to end (a rule-based worked example
+through the unmodified `strategy_file` loader, and a predictive `FeatureSpec`
+test against the existing synthetic CI fixture, PRD success metric 1); the
+Binance `BTCUSDT.P` 1m historical import run to completion and measured
+(911 days, 1,311,840 rows, zero gaps — `S051_BTC_DATA_INVENTORY.md`), the
+long-lead prerequisite Sprint 052 needs; `STRATEGY_AUTHORING.md` /
+`MODULE_MAP.md` / ROADMAP §13G closure documentation, and two deferred
+corrections (warm-up text for T007/T008, an ADR-citation fix in
+`references/statistics.py`) resolved in this closure. **Ships no real-data
+predictive study result — Phase 15 as a whole is not complete; see
+SPRINT_051.md §13 Review.**
 
 ### Sprint 049 — Closed (Phase 14A opening and closing increment; Phase 14 as a whole NOT complete)
 
@@ -932,24 +1011,38 @@ main pending. ADR-0029 ACCEPTED. **Phase 14A is complete; Phase 14 as a
 whole is NOT** — ADR-0024 conditions 2, 3 and the online half of 4 remain
 open, ADR-0030 is needed and not yet written, and Sprint 050 (Phase 14B) is
 not planned (ROADMAP §13F).
+Sprint 051 Momentum and Regime Component Catalog (Phase 15A) COMPLETE
+(11/11) on sprint/momentum-and-regime-catalog (#397-#407); final
+integration PR to main pending. No new ADR (Finding 5). **Phase 15A is
+complete; Phase 15 as a whole is NOT** — no real-data predictive study has
+been run, and Sprint 052 (Phase 15B) is PLANNED but not approved/opened
+(ROADMAP §13G). Sprint 051 also delivered the measured `BTCUSDT.P` dataset
+(911 days, 1,311,840 rows, zero gaps) Sprint 052 needs to open.
 
-Active: none. Phase 10, Phase 2F, Phase 11, Phase 12, Phase 13 and Phase
-14A are all closed on their sprint branches (ROADMAP §13A-§13F); Sprint 048's
-and Sprint 049's final integration PRs to `main` are the remaining mechanical
-steps for those two, not scope gaps. **Phase 14 as a whole remains open** —
-Sprint 050 (Phase 14B: the model-backed Market Analysis State, executor
-availability enforcement via ADR-0030, and the 3-5 day BTC dry-run session)
-is not scheduled by default. No other next phase is scheduled by default
-either — see SPRINT_044.md §12, SPRINT_046.md §12, SPRINT_047.md §12,
-SPRINT_048.md §12 and SPRINT_049.md §12/§13 for unscheduled candidate
-follow-ons (Sprint 050 / Phase 14B itself, the deferred tree/neural joblib
-promotion path (TD-029), extracting promoted parameters at run time,
-cross-sectional predictive studies, SHAP, Binance `trades` mode,
-resume-after-failure imports, exposing the simulation assumptions / session
-resolver through the application layer, additional CLI command groups, shell
-completion, arithmetic in the model-expression IR, bracket-aware Robustness
-stress dimensions (TD-027), dynamic equity-curve-following sizing (TD-026),
-a bracket reference kernel (TD-028)).
+Active: none. Phase 10, Phase 2F, Phase 11, Phase 12, Phase 13, Phase 14A
+and Phase 15A are all closed on their sprint branches (ROADMAP
+§13A-§13G); Sprint 048's, Sprint 049's and Sprint 051's final integration PRs
+to `main` are the remaining mechanical steps for those three, not scope
+gaps. **Phase 14 as a whole remains open** — Sprint 050 (Phase 14B: the
+model-backed Market Analysis State, executor availability enforcement via
+ADR-0030, and the 3-5 day BTC dry-run session) is not scheduled by default.
+**Phase 15 as a whole remains open** — Sprint 052 (Phase 15B: the real-data
+BTC predictive study) is PLANNED (`SPRINT_052.md`) but not approved/opened;
+its data prerequisite is now satisfied and measured (S051_BTC_DATA_INVENTORY.md).
+No other next phase is scheduled by default either — see SPRINT_044.md §12,
+SPRINT_046.md §12, SPRINT_047.md §12, SPRINT_048.md §12, SPRINT_049.md
+§12/§13 and SPRINT_051.md §12/§13 for unscheduled candidate follow-ons
+(Sprint 050 / Phase 14B itself, Sprint 052 / Phase 15B itself, the deferred
+tree/neural joblib promotion path (TD-029), extracting promoted parameters
+at run time, cross-sectional predictive studies, SHAP, Binance `trades`
+mode, resume-after-failure imports, exposing the simulation assumptions /
+session resolver through the application layer, additional CLI command
+groups, shell completion, arithmetic in the model-expression IR,
+bracket-aware Robustness stress dimensions (TD-027), dynamic
+equity-curve-following sizing (TD-026), a bracket reference kernel
+(TD-028), MTF-capable `FeatureSpec` (needs a contract change in two
+packages), a volume-based regime component, and quantile-based (Bowley)
+skew as a fallback for `statistics.return_distribution`).
 
 Deferred relative to that track:
     Phase 4B — Orderflow Market Analysis
@@ -958,7 +1051,11 @@ Deferred relative to that track:
     PBO / CSCV / deflated Sharpe (ADR first)
     Residual docs / sample-data narrative
 
-Recently completed (dashboard / demo / dry-run / authoring infra / Phase 10A–10C, 2F, 11, 12, 13, 14A):
+Recently completed (dashboard / demo / dry-run / authoring infra / Phase 10A–10C, 2F, 11, 12, 13, 14A, 15A):
+    Sprint 051 — Momentum and Regime Component Catalog →
+        sprint/momentum-and-regime-catalog (#397-#407), 11/11;
+        integration PR to main pending — closes Phase 15A only (Phase 15
+        overall remains open; Sprint 052 / Phase 15B PLANNED, not approved)
     Sprint 049 — Promotable Predictive Artifact →
         sprint/promotable-predictive-artifact (#385-#393), 15/15;
         integration PR to main pending — closes Phase 14A only (Phase 14
@@ -1054,6 +1151,7 @@ See `docs/planning/sprints/SPRINT_044.md`, `S044_WAVE0_DECISIONS.md`, `SPRINT_04
 | 047 | Custom Strategy Authoring (Phase 12, `strategy_file` loader) | COMPLETED | 10 / 10 tasks; main #366; working PRs #363–#365 |
 | 048 | Exit/Risk Model Expansion, Catalog Growth and New Strategies (Phase 13) | COMPLETE | 13 / 13 tasks; all four waves (#368-#381); merged to main via #383 |
 | 049 | Promotable Predictive Artifact (Phase 14A) | COMPLETE | 15 / 15 tasks; all five waves (#385-#393, plus closure); branch sprint/promotable-predictive-artifact; integration PR to main pending; Phase 14A only — Phase 14 overall NOT complete (Sprint 050 / Phase 14B not started) |
+| 051 | Momentum and Regime Component Catalog (Phase 15A) | COMPLETE | 11 / 11 tasks; all four waves (#397-#407, plus closure); branch sprint/momentum-and-regime-catalog; integration PR to main pending; Phase 15A only — Phase 15 overall NOT complete (Sprint 052 / Phase 15B PLANNED, not approved/opened) |
 
 ---
 

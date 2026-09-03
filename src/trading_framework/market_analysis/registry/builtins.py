@@ -4,6 +4,20 @@ from trading_framework.market_analysis.components.candle import (
     CandleWickComponent,
     NumpyCandleWickImplementation,
 )
+from trading_framework.market_analysis.components.momentum import (
+    MacdComponent,
+    NumpyMacdImplementation,
+    NumpyRsiImplementation,
+    NumpyStochasticImplementation,
+    RsiComponent,
+    StochasticComponent,
+)
+from trading_framework.market_analysis.components.statistics import (
+    NumpyReturnAutocorrelationImplementation,
+    NumpyReturnDistributionImplementation,
+    ReturnAutocorrelationComponent,
+    ReturnDistributionComponent,
+)
 from trading_framework.market_analysis.components.structure import (
     LevelDistanceComponent,
     NumpyLevelDistanceImplementation,
@@ -24,9 +38,11 @@ from trading_framework.market_analysis.components.volatility import (
     AtrComponent,
     NumpyAtrImplementation,
     NumpyRangeExpansionImplementation,
+    NumpyRelativeVolatilityImplementation,
     NumpyTrueRangeImplementation,
     NumpyVolatilityStateImplementation,
     RangeExpansionComponent,
+    RelativeVolatilityComponent,
     TrueRangeComponent,
     VolatilityStateComponent,
 )
@@ -47,6 +63,15 @@ def register_range_expansion_component(registry: ComponentRegistry) -> None:
     registry.register(
         RangeExpansionComponent(),
         NumpyRangeExpansionImplementation(),
+        default=True,
+    )
+
+
+def register_relative_volatility_component(registry: ComponentRegistry) -> None:
+    """Register the Relative Volatility feature component."""
+    registry.register(
+        RelativeVolatilityComponent(),
+        NumpyRelativeVolatilityImplementation(),
         default=True,
     )
 
@@ -102,10 +127,44 @@ def register_level_distance_component(registry: ComponentRegistry) -> None:
     )
 
 
+def register_momentum_rsi_component(registry: ComponentRegistry) -> None:
+    """Register the Wilder RSI momentum feature component."""
+    registry.register(RsiComponent(), NumpyRsiImplementation(), default=True)
+
+
+def register_momentum_macd_component(registry: ComponentRegistry) -> None:
+    """Register the MACD momentum feature component."""
+    registry.register(MacdComponent(), NumpyMacdImplementation(), default=True)
+
+
+def register_momentum_stochastic_component(registry: ComponentRegistry) -> None:
+    """Register the Stochastic Oscillator momentum feature component."""
+    registry.register(StochasticComponent(), NumpyStochasticImplementation(), default=True)
+
+
+def register_statistics_return_autocorrelation_component(registry: ComponentRegistry) -> None:
+    """Register the Return Autocorrelation statistics feature component."""
+    registry.register(
+        ReturnAutocorrelationComponent(),
+        NumpyReturnAutocorrelationImplementation(),
+        default=True,
+    )
+
+
+def register_statistics_return_distribution_component(registry: ComponentRegistry) -> None:
+    """Register the Return Distribution statistics feature component."""
+    registry.register(
+        ReturnDistributionComponent(),
+        NumpyReturnDistributionImplementation(),
+        default=True,
+    )
+
+
 def register_mvp_components(registry: ComponentRegistry) -> None:
     """Register Sprint 003 MVP feature and state components."""
     register_volatility_components(registry)
     register_range_expansion_component(registry)
+    register_relative_volatility_component(registry)
     register_ema_component(registry)
     register_ema_distance_component(registry)
     register_slope_component(registry)
@@ -113,6 +172,11 @@ def register_mvp_components(registry: ComponentRegistry) -> None:
     register_session_range_component(registry)
     register_candle_wick_component(registry)
     register_level_distance_component(registry)
+    register_momentum_rsi_component(registry)
+    register_momentum_macd_component(registry)
+    register_momentum_stochastic_component(registry)
+    register_statistics_return_autocorrelation_component(registry)
+    register_statistics_return_distribution_component(registry)
 
 
 def default_mvp_registry() -> ComponentRegistry:
@@ -128,10 +192,16 @@ __all__ = [
     "register_ema_component",
     "register_ema_distance_component",
     "register_level_distance_component",
+    "register_momentum_macd_component",
+    "register_momentum_rsi_component",
+    "register_momentum_stochastic_component",
     "register_mvp_components",
     "register_range_expansion_component",
+    "register_relative_volatility_component",
     "register_session_range_component",
     "register_slope_component",
+    "register_statistics_return_autocorrelation_component",
+    "register_statistics_return_distribution_component",
     "register_swing_structure_component",
     "register_volatility_components",
 ]
