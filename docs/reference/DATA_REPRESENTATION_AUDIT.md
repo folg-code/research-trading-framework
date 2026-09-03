@@ -670,7 +670,7 @@ H2, H3, H4 and H6 into one structural fix rather than four local patches.
 **Risk.** ADR-MA-004 froze a backend-neutral view and ADR-MA-010 states that domain protocols do not
 import adapter libraries. A `LazyFrame`-typed contract makes Polars part of the public domain contract.
 That is a genuine architectural reversal, not a detail. It also touches every component implementation
-and its tests. `CURRENT_STATUS.md` §10 lists "Polars boundary creep" as a known risk precisely here.
+and its tests. `ADR-MA-014`'s Consequences section names this "Polars boundary creep" risk precisely here.
 
 **Recommendation.** Accept, but only with an explicit superseding ADR that states Polars is now a
 committed engine rather than an optional backend, and with `AnalysisDataView` retained as a thin
