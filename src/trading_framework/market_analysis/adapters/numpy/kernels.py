@@ -173,6 +173,38 @@ def stochastic_percent_k(
     return out
 
 
+def log_returns(close: np.ndarray) -> np.ndarray:
+    """Bar-over-bar log returns of ``close`` (D-S051-03: ``r_t = ln(close_t / close_{t-1})``).
+
+    Loses one bar relative to ``close``: index 0 has no prior close and is
+    ``NaN``; ``out[i] = log(close[i] / close[i - 1])`` for ``i >= 1``.
+    """
+    out = np.full(close.shape, np.nan, dtype=np.float64)
+    if close.size < 2:
+        return out
+    with np.errstate(divide="ignore", invalid="ignore"):
+        out[1:] = np.log(close[1:] / close[:-1])
+    return out
+
+
+def rolling_population_stdev(values: np.ndarray, period: int) -> np.ndarray:
+    """Causal rolling POPULATION standard deviation (``ddof=0``) of ``values``.
+
+    ``out[i] = population_stdev(values[i - period + 1 : i + 1])``. Population
+    (not sample) moments throughout this catalog, per D-S051-05 -- one
+    documented estimator, not tuned to any particular library's default
+    (``numpy``'s ``ddof=0`` default is used explicitly, not implicitly).
+    Assumes no ``NaN``s within the window it is applied to (callers slice off
+    their own warm-up first, matching ``sma``'s usage convention).
+    """
+    out = np.full(values.shape, np.nan, dtype=np.float64)
+    if values.size < period or period < 1:
+        return out
+    windows = np.lib.stride_tricks.sliding_window_view(values, period)
+    out[period - 1 :] = windows.std(axis=1, ddof=0)
+    return out
+
+
 def ols_slope(close: np.ndarray, period: int) -> np.ndarray:
     """Causal ordinary-least-squares slope of close versus bar index in ``period``."""
     out = np.full(close.shape, np.nan, dtype=np.float64)

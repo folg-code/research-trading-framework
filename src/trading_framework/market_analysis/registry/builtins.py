@@ -32,9 +32,11 @@ from trading_framework.market_analysis.components.volatility import (
     AtrComponent,
     NumpyAtrImplementation,
     NumpyRangeExpansionImplementation,
+    NumpyRelativeVolatilityImplementation,
     NumpyTrueRangeImplementation,
     NumpyVolatilityStateImplementation,
     RangeExpansionComponent,
+    RelativeVolatilityComponent,
     TrueRangeComponent,
     VolatilityStateComponent,
 )
@@ -55,6 +57,15 @@ def register_range_expansion_component(registry: ComponentRegistry) -> None:
     registry.register(
         RangeExpansionComponent(),
         NumpyRangeExpansionImplementation(),
+        default=True,
+    )
+
+
+def register_relative_volatility_component(registry: ComponentRegistry) -> None:
+    """Register the Relative Volatility feature component."""
+    registry.register(
+        RelativeVolatilityComponent(),
+        NumpyRelativeVolatilityImplementation(),
         default=True,
     )
 
@@ -129,6 +140,7 @@ def register_mvp_components(registry: ComponentRegistry) -> None:
     """Register Sprint 003 MVP feature and state components."""
     register_volatility_components(registry)
     register_range_expansion_component(registry)
+    register_relative_volatility_component(registry)
     register_ema_component(registry)
     register_ema_distance_component(registry)
     register_slope_component(registry)
@@ -159,6 +171,7 @@ __all__ = [
     "register_momentum_stochastic_component",
     "register_mvp_components",
     "register_range_expansion_component",
+    "register_relative_volatility_component",
     "register_session_range_component",
     "register_slope_component",
     "register_swing_structure_component",
