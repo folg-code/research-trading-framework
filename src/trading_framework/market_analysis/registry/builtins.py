@@ -8,7 +8,9 @@ from trading_framework.market_analysis.components.momentum import (
     MacdComponent,
     NumpyMacdImplementation,
     NumpyRsiImplementation,
+    NumpyStochasticImplementation,
     RsiComponent,
+    StochasticComponent,
 )
 from trading_framework.market_analysis.components.structure import (
     LevelDistanceComponent,
@@ -118,6 +120,11 @@ def register_momentum_macd_component(registry: ComponentRegistry) -> None:
     registry.register(MacdComponent(), NumpyMacdImplementation(), default=True)
 
 
+def register_momentum_stochastic_component(registry: ComponentRegistry) -> None:
+    """Register the Stochastic Oscillator momentum feature component."""
+    registry.register(StochasticComponent(), NumpyStochasticImplementation(), default=True)
+
+
 def register_mvp_components(registry: ComponentRegistry) -> None:
     """Register Sprint 003 MVP feature and state components."""
     register_volatility_components(registry)
@@ -131,6 +138,7 @@ def register_mvp_components(registry: ComponentRegistry) -> None:
     register_level_distance_component(registry)
     register_momentum_rsi_component(registry)
     register_momentum_macd_component(registry)
+    register_momentum_stochastic_component(registry)
 
 
 def default_mvp_registry() -> ComponentRegistry:
@@ -148,6 +156,7 @@ __all__ = [
     "register_level_distance_component",
     "register_momentum_macd_component",
     "register_momentum_rsi_component",
+    "register_momentum_stochastic_component",
     "register_mvp_components",
     "register_range_expansion_component",
     "register_session_range_component",
