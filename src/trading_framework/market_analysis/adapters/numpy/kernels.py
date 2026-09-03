@@ -88,6 +88,91 @@ def rsi_wilder(close: np.ndarray, period: int) -> np.ndarray:
     return out
 
 
+def rolling_min(values: np.ndarray, period: int) -> np.ndarray:
+    """Causal rolling minimum over the trailing ``period`` bars (inclusive).
+
+    ``out[i] = min(values[i - period + 1 : i + 1])``; the first ``period - 1``
+    bars have no full window and are ``NaN``.
+    """
+    out = np.full(values.shape, np.nan, dtype=np.float64)
+    if values.size < period or period < 1:
+        return out
+    windows = np.lib.stride_tricks.sliding_window_view(values, period)
+    out[period - 1 :] = windows.min(axis=1)
+    return out
+
+
+def rolling_max(values: np.ndarray, period: int) -> np.ndarray:
+    """Causal rolling maximum over the trailing ``period`` bars (inclusive).
+
+    ``out[i] = max(values[i - period + 1 : i + 1])``; the first ``period - 1``
+    bars have no full window and are ``NaN``.
+    """
+    out = np.full(values.shape, np.nan, dtype=np.float64)
+    if values.size < period or period < 1:
+        return out
+    windows = np.lib.stride_tricks.sliding_window_view(values, period)
+    out[period - 1 :] = windows.max(axis=1)
+    return out
+
+
+def sma(values: np.ndarray, period: int) -> np.ndarray:
+    """Simple moving average of ``values`` over the trailing ``period`` bars.
+
+    Generic causal SMA kernel, reused wherever a plain trailing average is
+    needed (e.g. ``momentum.stochastic``'s ``%D``); assumes no ``NaN``s
+    within the window it is applied to (callers slice off their own warm-up
+    first, matching the ``ema`` kernel's usage convention in ``momentum.macd``).
+    """
+    out = np.full(values.shape, np.nan, dtype=np.float64)
+    if values.size < period or period < 1:
+        return out
+    kernel = np.ones(period, dtype=np.float64) / period
+    valid = np.convolve(values, kernel, mode="valid")
+    out[period - 1 :] = valid
+    return out
+
+
+def stochastic_percent_k(
+    high: np.ndarray,
+    low: np.ndarray,
+    close: np.ndarray,
+    period: int,
+) -> np.ndarray:
+    """Causal Stochastic %K over a rolling ``period``-bar high/low range.
+
+        %K[i] = (close[i] - min(low[i-period+1:i+1]))
+                / (max(high[i-period+1:i+1]) - min(low[i-period+1:i+1])) * 100
+
+    Zero-range window convention -- a DELIBERATE DIVERGENCE from this
+    project's usual 0.0-on-zero-denominator convention (``candle.wick``
+    D-S047-10; ``trend.ema_distance`` / ``volatility.range_expansion``
+    D-S048-10). When a window is genuinely flat
+    (``max(high window) == min(low window)``), %K is defined as ``50.0``
+    (the neutral midpoint), NOT ``0.0``. Reason (D-S051-04): %K == 0.0
+    already means "close sits at the window's low" -- a real, actionable
+    signal. Emitting ``0.0`` for a flat window would fabricate that same
+    false "close is at the low" signal rather than merely avoid an
+    ``inf``/``NaN`` from IEEE-754 division. **Do not "fix" this back to
+    0.0 as an apparent inconsistency** -- see D-S051-04 in
+    ``S051_WAVE0_DECISIONS.md``.
+    """
+    out = np.full(close.shape, np.nan, dtype=np.float64)
+    if close.size < period or period < 1:
+        return out
+    lowest = rolling_min(low, period)
+    highest = rolling_max(high, period)
+    denominator = highest - lowest
+    with np.errstate(divide="ignore", invalid="ignore"):
+        k = np.where(
+            denominator == 0.0,
+            50.0,
+            (close - lowest) / denominator * 100.0,
+        )
+    out[period - 1 :] = k[period - 1 :]
+    return out
+
+
 def ols_slope(close: np.ndarray, period: int) -> np.ndarray:
     """Causal ordinary-least-squares slope of close versus bar index in ``period``."""
     out = np.full(close.shape, np.nan, dtype=np.float64)
