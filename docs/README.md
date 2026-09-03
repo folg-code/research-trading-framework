@@ -18,7 +18,8 @@ docs/
 │   └── modules/
 ├── planning/                 roadmap, status, sprints
 ├── adr/                      decision records (why)
-└── agents/                   AI agent module notes
+├── agents/                   AI agent module notes
+└── historical/               completed audits, closed investigations
 ```
 
 ---
