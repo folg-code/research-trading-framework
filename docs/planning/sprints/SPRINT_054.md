@@ -105,7 +105,7 @@ answers:
 | T001 | Classify `ARCHITECTURE_FOUNDATIONS.md` sections | — | DONE |
 | T002 | Classify `ARCHITECTURE_TECHNICAL.md` sections | — | DONE |
 | T003 | Classify `MULTITIMEFRAME_MARKET_MODEL_ARCHITECTURE.md` sections | — | DONE |
-| T003b | Classify `WORKFLOWS_AI_ADR.md` §1-5/§8 sections | — | TODO |
+| T003b | Classify `WORKFLOWS_AI_ADR.md` §1-5/§8 sections | — | DONE |
 | T004 | Move confirmed-current sections to `docs/reference/system/` | T001, T002, T003 | DONE |
 | T005 | Maintainer decision + move: `ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md` | — | DONE |
 | T006 | Maintainer decision: `WORKFLOWS_AI_ADR.md` location | — | DECIDED — rescoped into T003b/T006a/T006b/T006c |
@@ -239,6 +239,27 @@ answers:
   `AGENTS.md`/`ARCHITECTURE_CONTROL.md`), and T006c (move §1-5/§8's
   confirmed-current sections per T003b, depends on T003b). T003b/T006a/T006b
   are independent of each other and of T004; T006c depends on T003b.
+- 2026-09-03: T003b complete (read-only). Full read + code-verified
+  classification of `docs/vision/WORKFLOWS_AI_ADR.md` §1-5 and §8 (lines
+  1-1577, 2542-2584; §6 AI Agent Contract and §7 ADR process explicitly out
+  of scope, handled by T006b/T006a) produced at
+  `docs/planning/sprints/SPRINT_054_T003b_WORKFLOWS_AI_ADR_ARCHITECTURE_CLASSIFICATION.md`
+  (~34 CURRENT / 4 FUTURE / 19 MIXED / 3 AMBIGUOUS / 5 N/A-meta). Confirms
+  the T006 recommendation's headline claim: Signal Research (§3) is
+  essentially fully built (14 of 17 subsections CURRENT, several
+  near-verbatim against `research/scope.py`'s `ResearchScope` enum and
+  `strategy/signal_occurrence.py`). Strategy Execution (§5) is the most
+  FUTURE-heavy part of the file — Broker Abstraction (§5.11), Reconciliation
+  (§5.12) and Recovery (§5.13) have zero code counterpart, consistent with
+  T001/T002's independent finding that only `ExecutionMode.DRY_RUN` is
+  supported; the Order Lifecycle (§5.7) exists only as a narrower 3-state
+  dry-run version of the vision doc's 8-state machine. Strategy Research
+  (§4) has an asymmetry not previously documented: the "family"/bounded
+  multi-dimension research-space machinery that is CURRENT for Signal
+  Research (`family_planning.py`) has no counterpart for Strategy Research
+  (§4.5, §4.14, §4.18 all independently found this gap). No content in
+  `WORKFLOWS_AI_ADR.md` was moved or edited; T006c (the actual move) is
+  gated on this classification being reviewed, per D-S054-01.
 
 ## 6. Outcome
 
