@@ -98,7 +98,7 @@ answers:
 | T001 | Classify `ARCHITECTURE_FOUNDATIONS.md` sections | — | DONE |
 | T002 | Classify `ARCHITECTURE_TECHNICAL.md` sections | — | DONE |
 | T003 | Classify `MULTITIMEFRAME_MARKET_MODEL_ARCHITECTURE.md` sections | — | DONE |
-| T004 | Move confirmed-current sections to `docs/reference/system/` | T001, T002, T003 | TODO |
+| T004 | Move confirmed-current sections to `docs/reference/system/` | T001, T002, T003 | DONE |
 | T005 | Maintainer decision + move: `ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md` | — | DONE |
 | T006 | Maintainer decision + move: `WORKFLOWS_AI_ADR.md` | — | TODO |
 | T007 | Content audit of 12+3 `docs/reference/` files, produce split plan | — | DONE |
@@ -187,6 +187,24 @@ answers:
   `SPRINT_053.md`, `docs/historical/REPO_WORKFLOW_DOCS_AUDIT.md`) untouched
   as point-in-time records. No section content was edited (out of scope per
   this sprint).
+- 2026-09-03: T004 complete. Created `docs/reference/system/` with three new
+  files (`ARCHITECTURE_FOUNDATIONS.md`, `ARCHITECTURE_TECHNICAL.md`,
+  `MULTITIMEFRAME_MARKET_MODEL.md`) holding the content classified CURRENT
+  by T001-T003, reproduced verbatim with a top-of-file pointer back to the
+  source vision doc and classification artifact. FUTURE sections were left
+  untouched in `docs/vision/`. AMBIGUOUS sections were left in `docs/vision/`
+  with a one-line as-built-status note per D-S054-02. MIXED sections were
+  split at the sub-section grain the classification docs already flagged as
+  clean (e.g. §4.12 promotion lifecycle, §6.5/§7.3 Runtime Modes, the whole
+  Event System in `ARCHITECTURE_TECHNICAL.md` §8, §14.4-§14.6 in the
+  multitimeframe doc); MIXED sections without a clean flagged split (notably
+  `ARCHITECTURE_TECHNICAL.md`'s suggested Module Structure §10 and User Data
+  Structure §11, which have diverged structurally from the actual
+  `src/trading_framework/` tree) were left whole in `docs/vision/` with a
+  pointer to `docs/reference/MODULE_MAP.md` for the authoritative layout,
+  rather than attempted as risky per-bullet rewrites. `docs/reference/README.md`
+  now lists the three new `system/` files. `docs/adr/` untouched; T005-T009
+  intentionally out of scope for this task.
 
 ## 6. Outcome
 
