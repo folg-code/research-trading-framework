@@ -111,7 +111,7 @@ answers:
 | T006 | Maintainer decision: `WORKFLOWS_AI_ADR.md` location | — | DECIDED — rescoped into T003b/T006a/T006b/T006c |
 | T006a | Reconcile `WORKFLOWS_AI_ADR.md` §7 into `docs/adr/README.md` | — | DONE |
 | T006b | Reconcile `WORKFLOWS_AI_ADR.md` §6 into `AGENTS.md`/`ARCHITECTURE_CONTROL.md` | — | DONE |
-| T006c | Move confirmed-current §1-5/§8 sections to `docs/reference/` | T003b | TODO |
+| T006c | Move confirmed-current §1-5/§8 sections to `docs/reference/` | T003b | DONE |
 | T007 | Content audit of 12+3 `docs/reference/` files, produce split plan | — | DONE |
 | T008 | Execute `docs/reference/` → `system/`/`workflows/`/`modules/` split | T007 | TODO |
 | T009 | Update all inbound references | T004, T005, T006a-c, T008 | TODO |
@@ -322,6 +322,29 @@ answers:
   `.cursor/rules/ARCHITECTURE_CONTROL.md`; §1-5, §7, §8 were not touched
   (owned by T003b/T006a/T006c). No production code, dependencies or
   ADRs were touched.
+- 2026-09-03: T006c complete. Read `docs/vision/WORKFLOWS_AI_ADR.md` §1-5/§8
+  in full (post T006a/T006b — §6/§7 already replaced with pointers) alongside
+  T003b's classification. Created
+  `docs/reference/system/WORKFLOWS_ARCHITECTURE.md` holding the ~34
+  CURRENT-classified subsections (§2.1/2.2/2.4 Workflow Architecture; §3.1-11,
+  3.13, 3.15, 3.17 Signal Research; §4.1/4.2/4.4/4.6/4.8/4.11/4.12/4.15-17/4.19
+  Strategy Research; §5.2/5.3/5.5/5.9/5.10/5.14 Strategy Execution),
+  reproduced verbatim with headers demoted/de-numbered one level (matching
+  T004's `ARCHITECTURE_TECHNICAL.md` convention) and a top-of-file pointer
+  back to `WORKFLOWS_AI_ADR.md` and the T003b classification doc. Chose a new
+  file over folding into `RESEARCH_METHODOLOGIES.md` — that document is a
+  usage/CLI-facing methodology guide, not an architectural must/must-not
+  contract, so merging would have diluted both. The 19 MIXED, 3 AMBIGUOUS and
+  4 FUTURE subsections (§2.3/2.5, §3.12/3.14/3.16, §4.3/4.5/4.7/4.9/4.10/4.13/
+  4.14/4.18/4.20/4.21, §5.1/5.4/5.6-5.8/5.11-5.13/5.15/5.16, §8) were left
+  whole in `docs/vision/WORKFLOWS_AI_ADR.md` with an inline one-line
+  classification note each (T003b's classification table is already at the
+  finest sub-section grain — no further clean current/future split point
+  existed within any single MIXED subsection, so none were split further).
+  `docs/reference/README.md` now lists the new file. This completes the
+  content-relocation half of the original T006 scope (T003b classify, T006a
+  §7→adr, T006b §6→AGENTS.md/ARCHITECTURE_CONTROL.md, T006c this task); only
+  T009 (inbound-reference sweep) and T010 (validation) remain sprint-wide.
 
 ## 6. Outcome
 
