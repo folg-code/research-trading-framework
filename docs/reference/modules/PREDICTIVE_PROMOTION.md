@@ -1,5 +1,10 @@
 # Predictive Model Promotion (Phase 14A, Sprint 049)
 
+> Moved from `docs/reference/PREDICTIVE_PROMOTION.md` to
+> `docs/reference/modules/PREDICTIVE_PROMOTION.md` by Sprint 054 T008
+> (`docs/reference` system/workflows/runbooks/modules split). Content
+> unchanged.
+
 Practical reference for `promote_predictive_run` / `trading-cli research
 promote` and the pure-NumPy evaluator that loads their output. This is the
 "what is this and how do I use it" document. The "why was it designed this
@@ -114,7 +119,7 @@ elsewhere.
 ## 3. Store layout
 
 This is the **only** place this tree appears in the documentation set — do
-not duplicate it. `docs/reference/MODULE_MAP.md`'s Predictive Research
+not duplicate it. `docs/reference/system/MODULE_MAP.md`'s Predictive Research
 section links here instead of repeating it.
 
 ```text
@@ -329,7 +334,7 @@ research:
 Prints `artifact_fingerprint` and the absolute `directory` on success.
 Promotion needs the `ml` extra (`uv sync --extra ml`) — it reads a joblib
 blob once. **Loading an already-promoted artifact needs no extra at all.**
-See `docs/reference/OPERATOR_CLI.md` for the full command reference and
+See `docs/reference/modules/OPERATOR_CLI.md` for the full command reference and
 refusal list.
 
 ---
@@ -344,9 +349,9 @@ refusal list.
   condition 4's offline half).
 - `docs/planning/sprints/SPRINT_049.md`, `S049_AVAILABILITY_FINDING.md` —
   the sprint plan and the condition-2 spike.
-- `docs/reference/OPERATOR_CLI.md` — the `research promote` command
+- `docs/reference/modules/OPERATOR_CLI.md` — the `research promote` command
   reference.
-- `docs/reference/MODULE_MAP.md` — package responsibilities and workflow
+- `docs/reference/system/MODULE_MAP.md` — package responsibilities and workflow
   diagram.
 - `docs/planning/TECHNICAL_DEBT.md` — TD-021 (no model registry), TD-022
   (fitted-artifact portability), TD-029 (deferred tree/neural joblib path).

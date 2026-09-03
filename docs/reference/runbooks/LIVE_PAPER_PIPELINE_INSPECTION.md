@@ -1,5 +1,10 @@
 # Live Paper / AWS Dry-Run Pipeline Inspection
 
+> Moved from `docs/reference/LIVE_PAPER_PIPELINE_INSPECTION.md` to
+> `docs/reference/runbooks/LIVE_PAPER_PIPELINE_INSPECTION.md` by Sprint 054
+> T008 (`docs/reference` system/workflows/runbooks/modules split). Content
+> unchanged.
+
 Sprint 031 + Sprint 032 notes. Confirms execution vs read-only boundaries and
 Strategy Model evaluation for paper trading visible in `apps/dashboard`.
 
@@ -22,7 +27,7 @@ Binance REST bootstrap (warmup bars)
 
 ## Code path (worker)
 
-1. [`scripts/execution/run_aws_btc_futures_worker.py`](../../scripts/execution/run_aws_btc_futures_worker.py)
+1. [`scripts/execution/run_aws_btc_futures_worker.py`](../../../scripts/execution/run_aws_btc_futures_worker.py)
 2. `run_aws_btc_futures_dry_run_sync` → `run_local_btc_futures_binance_dry_run`
 3. Bootstrap: `fetch_closed_klines` sized to `required_closed_bars_for_strategy`
 4. Per closed 1m bar: append to rolling buffer → `run_local_btc_futures_closed_bar_step`

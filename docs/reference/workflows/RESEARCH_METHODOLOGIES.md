@@ -1,5 +1,11 @@
 # Research Methodologies
 
+> Moved from `docs/reference/RESEARCH_METHODOLOGIES.md` to
+> `docs/reference/workflows/RESEARCH_METHODOLOGIES.md` by Sprint 054 T008
+> (`docs/reference` system/workflows/runbooks/modules split). Content
+> unchanged — kept as one document, not split per methodology (see
+> `docs/planning/sprints/SPRINT_054_T007_REFERENCE_FOLDER_AUDIT.md` §4.1).
+
 This document describes the research methodologies supported by the framework, the questions they answer, and how to choose between them.
 
 Research workflows are independent capabilities. They share datasets, analytical components and declarative models, but they do not form one mandatory pipeline.
@@ -772,8 +778,8 @@ Core rules:
 Use the following documents for deeper context:
 
 - `README.md` — project overview,
-- `ARCHITECTURE_AND_WORKFLOWS.md` — architectural modules and workflows,
-- `MODULE_MAP.md` — mapping from workflows to source-code packages,
+- `../system/SYSTEM_OVERVIEW.md` — architectural modules and workflows,
+- `../system/MODULE_MAP.md` — mapping from workflows to source-code packages,
 - Architecture Decision Records (Predictive Research: ADR-0023; ML State
   promotion gate: ADR-0024),
 - module-specific reference documents,
@@ -783,7 +789,7 @@ Use the following documents for deeper context:
 
 Standalone HTML reports are **generated demos**, not committed documentation
 artifacts (ADR-0022). Produce them under `artifacts/demo/output/` via
-[`scripts/demo/`](../../scripts/demo/README.md) (for example
+[`scripts/demo/`](../../../scripts/demo/README.md) (for example
 `uv run python scripts/demo/run_portfolio_demo.py --full`).
 
 | Methodology             | Typical demo output (after generation)                         | Purpose |

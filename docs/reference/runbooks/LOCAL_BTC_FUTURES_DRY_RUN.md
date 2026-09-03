@@ -1,5 +1,10 @@
 # Local BTC Futures Dry-Run
 
+> Moved from `docs/reference/LOCAL_BTC_FUTURES_DRY_RUN.md` to
+> `docs/reference/runbooks/LOCAL_BTC_FUTURES_DRY_RUN.md` by Sprint 054 T008
+> (`docs/reference` system/workflows/runbooks/modules split). Content
+> unchanged.
+
 As-implemented operator notes for the local BTCUSDT USD-M futures dry-run demo.
 
 This workflow uses live public Binance market data and simulated execution only. It does not read

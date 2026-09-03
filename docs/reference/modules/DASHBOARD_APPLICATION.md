@@ -1,5 +1,10 @@
 # Research Dashboard Application (Sprint 028)
 
+> Moved from `docs/reference/DASHBOARD_APPLICATION.md` to
+> `docs/reference/modules/DASHBOARD_APPLICATION.md` by Sprint 054 T008
+> (`docs/reference` system/workflows/runbooks/modules split). Content
+> unchanged.
+
 Read-only Streamlit + DuckDB consumer of persisted research artifacts.
 
 ## Boundary
@@ -34,7 +39,7 @@ Page: `pages/5_Live_Paper.py` with helpers in `dashboard_app.views.live_paper`.
 - Configure `DASHBOARD_STATUS_URL` or the sidebar (falls back to `DEFAULT_LIVE_PAPER_STATUS_URL`).
 - Shows simulated banner, stale-heartbeat warning, candlestick from `recent_bars`, fill markers.
 - Dashboard only GETs the status API — never starts the worker or submits orders.
-- See `docs/reference/LIVE_PAPER_PIPELINE_INSPECTION.md` and `apps/dashboard/docs/RUNBOOK.md`.
+- See `docs/reference/runbooks/LIVE_PAPER_PIPELINE_INSPECTION.md` and `apps/dashboard/docs/RUNBOOK.md`.
 
 ## Predictive Research (Sprint 044)
 
@@ -43,7 +48,7 @@ Page: `pages/6_Predictive_Research.py` with helpers in
 
 - Catalog scan reads `research/predictive_research/datasets/{dataset_id}/` and
   `research/predictive_research/runs/{run_id}/` — the same directory tree
-  `scripts/predictive_research/*` writes (`docs/reference/RESEARCH_METHODOLOGIES.md` §8).
+  `scripts/predictive_research/*` writes (`docs/reference/workflows/RESEARCH_METHODOLOGIES.md` §8).
 - Study picker → leaderboard (sorted by baseline delta, not the raw metric) →
   run detail (per-fold metrics, stability, buckets, calibration) → provenance
   (dataset fingerprint, estimator spec, seeds, library versions) → link to the

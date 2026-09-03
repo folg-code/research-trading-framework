@@ -1,5 +1,10 @@
 # AWS BTC Futures Dry-Run Worker
 
+> Moved from `docs/reference/AWS_BTC_FUTURES_DRY_RUN.md` to
+> `docs/reference/runbooks/AWS_BTC_FUTURES_DRY_RUN.md` by Sprint 054 T008
+> (`docs/reference` system/workflows/runbooks/modules split). Content
+> unchanged.
+
 This reference describes the Sprint 022 AWS worker packaging slice for the BTCUSDT futures dry-run
 demo.
 
