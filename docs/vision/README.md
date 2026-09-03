@@ -47,4 +47,4 @@ not a vision/future document).
 - Resolving “what should we build?” questions
 - Before changing public contracts (check binding decisions here, then verify as-is in `reference/`)
 
-Do not use vision docs alone to determine implementation status — check [MODULE_MAP.md](../reference/MODULE_MAP.md) and tests.
+Do not use vision docs alone to determine implementation status — check [MODULE_MAP.md](../reference/system/MODULE_MAP.md) and tests.

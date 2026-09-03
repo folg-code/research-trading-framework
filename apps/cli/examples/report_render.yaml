@@ -4,7 +4,7 @@
 # `kind: strategy` and use a strategy run_id instead -- the two kinds are
 # mutually exclusive, this file shows the predictive shape). `output` is
 # optional; when unset it defaults to the workflow's own path convention
-# (documented in docs/reference/OPERATOR_CLI.md).
+# (documented in docs/reference/modules/OPERATOR_CLI.md).
 #
 # Safe to try with --dry-run first: prints the resolved plan and touches
 # nothing (it does not require run_id to exist yet).

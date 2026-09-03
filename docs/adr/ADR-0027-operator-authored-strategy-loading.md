@@ -92,7 +92,7 @@ Loading a strategy file is equivalent, in blast radius, to `uv run python <that 
 
 Sandboxing is a PRD non-goal and is arguably incoherent with a design whose
 whole premise is "this is the operator's own code". What is **not** acceptable
-is leaving that implicit: the operator guide, `docs/reference/STRATEGY_AUTHORING.md`
+is leaving that implicit: the operator guide, `docs/reference/modules/STRATEGY_AUTHORING.md`
 and `trading-cli research run strategy --help` must state it in one plain
 sentence.
 

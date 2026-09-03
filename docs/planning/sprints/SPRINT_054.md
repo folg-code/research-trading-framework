@@ -114,7 +114,7 @@ answers:
 | T006c | Move confirmed-current §1-5/§8 sections to `docs/reference/` | T003b | DONE |
 | T007 | Content audit of 12+3 `docs/reference/` files, produce split plan | — | DONE |
 | T008 | Execute `docs/reference/` → `system/`/`workflows/`/`modules/`/`runbooks/` split | T007 | DONE |
-| T009 | Update all inbound references | T004, T005, T006a-c, T008 | TODO |
+| T009 | Update all inbound references | T004, T005, T006a-c, T008 | DONE |
 | T010 | Phase F validation re-run (5 checks) | T001-T009 | TODO |
 
 ## 5. Progress
@@ -367,6 +367,50 @@ answers:
   maintainer decision, per T007's explicit deferral. Did not touch inbound
   references from files outside `docs/reference/` (`AGENTS.md`, ADRs, other
   sprint docs) — that is T009's scope.
+
+- 2026-09-03: T009 complete. Grepped the entire repo (not just `docs/`) for
+  every old path touched by T004/T005/T006a-c/T008 and fixed every live
+  reference found: root `README.md` and `AGENTS.md` (`MODULE_MAP.md`/
+  `ARCHITECTURE_AND_WORKFLOWS.md`/`RESEARCH_METHODOLOGIES.md` pointers),
+  `docs/vision/README.md` and `docs/vision/ARCHITECTURE_TECHNICAL.md`/
+  `MULTITIMEFRAME_MARKET_MODEL_ARCHITECTURE.md` (stale `MODULE_MAP.md` link
+  targets — display text left as the old bare filename, since it is only a
+  label, but the `href` now points at `../reference/system/MODULE_MAP.md`),
+  5 ADRs (`ADR-0022`, `ADR-0027`, `ADR-MA-005`, `ADR-MA-009`, `ADR-MA-014` —
+  path-only fixes in their References sections, no decision content
+  touched), `docs/planning/TECHNICAL_DEBT.md` (6 occurrences across
+  `DATA_REPRESENTATION_AUDIT.md`/`PREDICTIVE_PROMOTION.md`/
+  `STRATEGY_AUTHORING.md` pointers), `apps/dashboard/README.md` and
+  `apps/dashboard/docs/ARCHITECTURE.md` (`DASHBOARD_APPLICATION.md`/
+  `AWS_BTC_FUTURES_DRY_RUN.md`), `apps/cli/README.md`, `apps/cli/CLAUDE.md`,
+  `apps/cli/src/trading_cli/cli.py` (a `--help` string), `apps/cli/examples/README.md`,
+  and 8 `apps/cli/examples/*.yaml` config-comment pointers to
+  `OPERATOR_CLI.md`/`STRATEGY_AUTHORING.md`, and
+  `src/trading_framework/research/predictive/CLAUDE.md` /
+  `src/trading_framework/infrastructure/ml/CLAUDE.md` (`PREDICTIVE_PROMOTION.md`).
+  Also found and fixed one broken link that predates T009 but was newly
+  exposed by T005's move: `docs/reference/ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md`
+  linked to `MARKET_ANALYSIS_WITH_DECISIONS.md` as a same-directory sibling,
+  but that file lives in `docs/vision/` — corrected to `../vision/MARKET_ANALYSIS_WITH_DECISIONS.md`.
+  Verified `docs/reference/README.md` and `docs/vision/README.md` each list
+  exactly the files present on disk (19 files under `docs/reference/`, 6
+  under `docs/vision/` counting `README.md` itself) — no entries missing or
+  stale. Deliberately left untouched, per the T005 precedent (point-in-time
+  records, not live documentation): all closed/historical sprint docs
+  (`SPRINT_003` through `SPRINT_052`, their `S0xx_WAVE0_DECISIONS.md`/`_GATE.md`
+  companions) and `docs/historical/REPO_WORKFLOW_DOCS_AUDIT.md`. Also left
+  alone: references to `docs/vision/WORKFLOWS_AI_ADR.md` and
+  `docs/vision/ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md`'s historical-sprint
+  citations, since those files were not renamed/relocated (the former still
+  lives at the same path; the latter's remaining hits are all inside closed
+  sprint docs). Noted but not fixed (pre-existing, unrelated to this
+  sprint's moves): `docs/reference/modules/MARKET_ANALYSIS_MODULE.md` links
+  to `../adr/README.md`, which is one `../` short of the real
+  `docs/adr/README.md` — this file was never touched by T004/T005/T006/T008,
+  the bug predates Sprint 054 (introduced in the original Sprint 003
+  vision/reference split), and is flagged here as a candidate for a
+  follow-up docs-hygiene fix rather than fixed inline, to keep this task's
+  diff scoped to Sprint 054's own moves.
 
 ## 6. Outcome
 

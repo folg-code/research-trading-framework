@@ -56,4 +56,4 @@ the column is optional.
 
 - `docs/vision/MARKET_ANALYSIS_WITH_DECISIONS.md` — D-020–D-022
 - `src/trading_framework/market_analysis/execution/warmup.py`
-- `docs/reference/DATA_REPRESENTATION_AUDIT.md` — D-REP-05
+- `docs/reference/system/DATA_REPRESENTATION_AUDIT.md` — D-REP-05

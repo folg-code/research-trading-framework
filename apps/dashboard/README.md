@@ -47,4 +47,4 @@ apps/dashboard/
 
 See `docs/RUNBOOK.md` for Compose + read-only storage mount,
 `docs/ARCHITECTURE.md` for the public architecture one-pager, and
-`docs/reference/DASHBOARD_APPLICATION.md` for architecture notes.
+`docs/reference/modules/DASHBOARD_APPLICATION.md` for architecture notes.
