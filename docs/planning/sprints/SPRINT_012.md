@@ -18,7 +18,7 @@ Architecture Sources:
   - docs/adr/ADR-0014-historical-archive-import-and-market-trade-storage.md
   - docs/adr/ADR-0007-dataset-lifecycle-and-publication.md
   - docs/adr/ADR-0008-parquet-historical-storage.md
-  - docs/reference/modules/DATA_MODULE_UPDATED.md (derived layer)
+  - docs/reference/modules/DATA_MODULE.md (derived layer)
 Pivot note: Databento DBN OHLCV direct import (2B.2) deferred — vendor path is trades-only.
 ```
 

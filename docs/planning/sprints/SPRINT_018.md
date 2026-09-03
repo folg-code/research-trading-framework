@@ -15,8 +15,8 @@ Task branch convention: feat/ | fix/ | docs/ | test/ (separate prefix, not neste
 Wave 0 decisions: docs/planning/sprints/S018_WAVE0_DECISIONS.md
 Architecture Sources:
   - docs/planning/ROADMAP.md (Phase 8 - Replay and Paper Execution)
-  - docs/vision/ARCHITECTURE_FOUNDATIONS_UPDATED.md (Execution domain)
-  - docs/vision/ARCHITECTURE_TECHNICAL_UPDATED.md (Replay, Event System, Execution config)
+  - docs/vision/ARCHITECTURE_FOUNDATIONS.md (Execution domain)
+  - docs/vision/ARCHITECTURE_TECHNICAL.md (Replay, Event System, Execution config)
   - docs/planning/PROBLEM_REGISTRY.md (PRB-013 research/runtime parity)
   - docs/planning/TECHNICAL_DEBT.md (TD-005 in-memory event bus, TD-009 limited fills)
 External Sources:

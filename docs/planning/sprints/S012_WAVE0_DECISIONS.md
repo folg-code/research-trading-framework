@@ -28,7 +28,7 @@ Sprint 012 delivers the operational bar path:
 Published trades → aggregate → MarketBar → bars.parquet → query_historical
 ```
 
-This aligns with `ROADMAP.md` §14 (Tick Trades as primary source) and `DATA_MODULE_UPDATED.md` (bars may be aggregated from trades).
+This aligns with `ROADMAP.md` §14 (Tick Trades as primary source) and `DATA_MODULE.md` (bars may be aggregated from trades).
 
 ---
 
@@ -100,7 +100,7 @@ Normalization version string: `trades-to-bars-v1`.
 
 Do **not** use day partitions for derived bar datasets. Trade day partitions remain trades-only (ADR-0014).
 
-Logical storage layer: **derived** (see `DATA_MODULE_UPDATED.md` §18.2).
+Logical storage layer: **derived** (see `DATA_MODULE.md` §18.2).
 
 ---
 

@@ -292,4 +292,4 @@ live / paper execution gates (Phase 8)
 - `docs/adr/ADR-0019-robustness-research-mvp.md`
 - `docs/adr/ADR-0016-ohlcv-strategy-research-mvp.md`
 - `docs/adr/ADR-0013-signal-research-analytics-boundary.md`
-- `docs/vision/WORKFLOWS_AI_ADR_UPDATED.md` §4.20–4.21
+- `docs/vision/WORKFLOWS_AI_ADR.md` §4.20–4.21

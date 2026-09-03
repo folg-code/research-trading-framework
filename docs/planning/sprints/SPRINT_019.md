@@ -14,7 +14,7 @@ Sprint Branch: sprint/btc-futures-dry-run-execution
 Task branch convention: feat/ | fix/ | docs/ | test/
 Architecture Sources:
   - SPRINT_018.md
-  - docs/vision/ARCHITECTURE_TECHNICAL_UPDATED.md (provider schemas normalize at boundaries)
+  - docs/vision/ARCHITECTURE_TECHNICAL.md (provider schemas normalize at boundaries)
   - docs/reference/DATA_WORKFLOWS.md (Market Data boundary patterns)
 External Sources:
   - Binance USD-M Futures public WebSocket market streams

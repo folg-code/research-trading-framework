@@ -15,8 +15,8 @@ Task branch convention: sprint/signal-research-mvp--<task-slug>
 Direction: docs/planning/sprints/PHASE_4_5_SPRINT_DIRECTION.md
 Wave 0: docs/planning/sprints/S008_WAVE0_DECISIONS.md
 Architecture Sources:
-  - docs/vision/WORKFLOWS_AI_ADR_UPDATED.md (SignalOccurrence, research datasets)
-  - docs/vision/ARCHITECTURE_FOUNDATIONS_UPDATED.md
+  - docs/vision/WORKFLOWS_AI_ADR.md (SignalOccurrence, research datasets)
+  - docs/vision/ARCHITECTURE_FOUNDATIONS.md
 Prerequisite: Sprint 007 skipped — minimum component set satisfied on main
 ```
 

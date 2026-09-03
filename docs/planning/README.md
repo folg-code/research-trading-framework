@@ -20,7 +20,7 @@ Catalog of `docs/planning/`. For taxonomy and reading paths see **[../README.md]
 | [PROBLEM_REGISTRY.md](PROBLEM_REGISTRY.md) | Open problems and priorities |
 | [TECHNICAL_DEBT.md](TECHNICAL_DEBT.md) | Known debt items |
 | [IDEA_INBOX.md](IDEA_INBOX.md) | Unprocessed ideas |
-| [PROJECT_MANAGEMENT_UPDATED.md](PROJECT_MANAGEMENT_UPDATED.md) | Process reference (legacy) |
+| [PROJECT_MANAGEMENT.md](PROJECT_MANAGEMENT.md) | Process reference (legacy) |
 
 ---
 

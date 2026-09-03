@@ -155,8 +155,8 @@ Out of scope:
 Sprint 002 — published DatasetRef, query_historical, MarketBar (complete)
 docs/vision/MARKET_ANALYSIS_WITH_DECISIONS.md
 docs/vision/ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md
-docs/vision/MULTITIMEFRAME_MARKET_MODEL_ARCHITECTURE_UPDATED.md (directional)
-docs/agents/AGENTS_MULTITIMEFRAME_MARKET_MODEL_UPDATED (1).md
+docs/vision/MULTITIMEFRAME_MARKET_MODEL_ARCHITECTURE.md (directional)
+docs/agents/AGENTS_MULTITIMEFRAME_MARKET_MODEL.md
 ```
 
 New runtime dependencies expected:

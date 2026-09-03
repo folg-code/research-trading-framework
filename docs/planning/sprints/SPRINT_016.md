@@ -15,7 +15,7 @@ Task branch convention: feat/ | fix/ | docs/ (separate prefix, not nested under 
 Wave 0 decisions: docs/planning/sprints/S016_WAVE0_DECISIONS.md
 Architecture Sources:
   - docs/planning/ROADMAP.md (§11 Phase 7)
-  - docs/vision/WORKFLOWS_AI_ADR_UPDATED.md (§4.20–4.21)
+  - docs/vision/WORKFLOWS_AI_ADR.md (§4.20–4.21)
   - docs/adr/ADR-0016-ohlcv-strategy-research-mvp.md
   - docs/adr/ADR-0013-signal-research-analytics-boundary.md
 Track choice: Phase 7 Robustness selected over Phase 4B orderflow / Phase 6B multi-data — 2026-07-15

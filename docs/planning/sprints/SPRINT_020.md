@@ -13,8 +13,8 @@ Depends On: SPRINT_018, SPRINT_019
 Sprint Branch: sprint/local-btc-futures-dry-run-runtime
 Task branch convention: feat/ | fix/ | docs/ | test/
 Architecture Sources:
-  - docs/vision/ARCHITECTURE_FOUNDATIONS_UPDATED.md (Execution owns runtime state)
-  - docs/vision/ARCHITECTURE_TECHNICAL_UPDATED.md (Clock, Event System, Execution modes)
+  - docs/vision/ARCHITECTURE_FOUNDATIONS.md (Execution owns runtime state)
+  - docs/vision/ARCHITECTURE_TECHNICAL.md (Clock, Event System, Execution modes)
   - docs/planning/TECHNICAL_DEBT.md (TD-005, TD-009)
 ```
 
