@@ -282,7 +282,7 @@ package scaffolding.
 | S051-T010 | **Predictive consumption (PRD metric 1, half two).** A test that builds a `PredictiveStudySpec` declaring ≥ 3 new components as `FeatureSpec` entries **against the existing synthetic CI fixture** (D-S039-CI-dataset) and runs `build_predictive_dataset` to a labelled matrix with fold roles | the dataset builds and the declared aliases resolve to the new components' lineage; the matrix's `available_at <= detected_at` invariant holds for every new feature (the leakage guard, ADR-0023 §4, applied to the new components specifically); **no real data and no network are involved** — ADR-0023 §8 is untouched, asserted by the test living in the standard suite | T005, T008 | TODO |
 | S051-T011 | Documentation and closure: `STRATEGY_AUTHORING.md` catalog rows for all six components (parameters, outputs, conventions, the stochastic divergence), `MODULE_MAP.md`, ROADMAP §13G's 15A line, `CURRENT_STATUS.md` §2/§6/§11, and the sprint Review — including whether S051-T002 succeeded and what Sprint 052 may therefore assume | every new component appears exactly once in the catalog documentation with its zero-denominator convention stated; the Review states the **measured** BTC dataset range or, if T002 did not complete, says so plainly and records that Sprint 052 cannot open on substitute data (D-S051-07a); `CURRENT_STATUS.md` never claims Phase 15 is complete | T009, T010, T002 | TODO |
 
-**Progress:** 3 / 11
+**Progress:** 4 / 11
 
 **Descope order if the sprint overruns:** T008 first (return-distribution is the
 PRD's most negotiable component), then T005. **T002, T009 and T010 are never
