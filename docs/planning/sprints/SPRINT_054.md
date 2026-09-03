@@ -113,7 +113,7 @@ answers:
 | T006b | Reconcile `WORKFLOWS_AI_ADR.md` §6 into `AGENTS.md`/`ARCHITECTURE_CONTROL.md` | — | DONE |
 | T006c | Move confirmed-current §1-5/§8 sections to `docs/reference/` | T003b | DONE |
 | T007 | Content audit of 12+3 `docs/reference/` files, produce split plan | — | DONE |
-| T008 | Execute `docs/reference/` → `system/`/`workflows/`/`modules/` split | T007 | TODO |
+| T008 | Execute `docs/reference/` → `system/`/`workflows/`/`modules/`/`runbooks/` split | T007 | DONE |
 | T009 | Update all inbound references | T004, T005, T006a-c, T008 | TODO |
 | T010 | Phase F validation re-run (5 checks) | T001-T009 | TODO |
 
@@ -345,6 +345,28 @@ answers:
   content-relocation half of the original T006 scope (T003b classify, T006a
   §7→adr, T006b §6→AGENTS.md/ARCHITECTURE_CONTROL.md, T006c this task); only
   T009 (inbound-reference sweep) and T010 (validation) remain sprint-wide.
+- 2026-09-03: T008 complete. Executed T007's split plan with `git mv` (no
+  content rewrites): `ARCHITECTURE_AND_WORKFLOWS.md`→`system/SYSTEM_OVERVIEW.md`,
+  `MODULE_MAP.md`→`system/MODULE_MAP.md`,
+  `DATA_REPRESENTATION_AUDIT.md`→`system/DATA_REPRESENTATION_AUDIT.md`,
+  `RESEARCH_METHODOLOGIES.md`→`workflows/RESEARCH_METHODOLOGIES.md`
+  (wholesale, not split per methodology — T007 §4.1), the three
+  operational-runbook docs (`AWS_BTC_FUTURES_DRY_RUN.md`,
+  `LOCAL_BTC_FUTURES_DRY_RUN.md`, `LIVE_PAPER_PIPELINE_INSPECTION.md`) into
+  a new `runbooks/` tier (T007 §4.2), and `DASHBOARD_APPLICATION.md`,
+  `OPERATOR_CLI.md`, `PREDICTIVE_PROMOTION.md`, `STRATEGY_AUTHORING.md`
+  into `modules/` (all pre-existing files, no new content authored).
+  Updated every moved file's own internal cross-reference broken by the new
+  location (relative links to `scripts/`, `docs/adr/`, `docs/planning/`,
+  and to other `docs/reference/` files), and added a one-line "moved from"
+  note per file per the `system/` convention T004 established. Rewrote
+  `docs/reference/README.md` into a `system/`/`workflows/`/`runbooks/`/
+  `modules/` navigation index. Left `system/DEPENDENCY_RULES.md` (requires
+  authoring new consolidated content — T007 §4.1) and `modules/DATA_MODULE.md`
+  (flagged vision-tier content — T007 §3) untouched, both pending a
+  maintainer decision, per T007's explicit deferral. Did not touch inbound
+  references from files outside `docs/reference/` (`AGENTS.md`, ADRs, other
+  sprint docs) — that is T009's scope.
 
 ## 6. Outcome
 
