@@ -602,6 +602,100 @@ reason here, unlike `ema_reversion_bracket.py` above).
 
 ---
 
+### Worked example — Sprint 051 (momentum/regime catalog, both consumption paths)
+
+One example strategy composing two of Sprint 051's six new components
+(`momentum.rsi`, `volatility.relative_volatility`), reusing Sprint 048's
+`BracketExitModel` / `EquityPercentRiskModel` unchanged, per
+`S051_WAVE0_DECISIONS.md` D-S051-08. Like the examples above, it is
+**gitignored** (`user_data/` -- ADR-0002); recreate it verbatim before
+pointing a config at it. Config:
+`apps/cli/examples/research_run_strategy_rsi_relative_volatility.yaml`.
+
+#### `rsi_relative_volatility_regime.py` -- oversold RSI gated by a volatility regime
+
+`user_data/components/strategies/rsi_relative_volatility_regime.py`
+(config: `apps/cli/examples/research_run_strategy_rsi_relative_volatility.yaml`):
+
+```python
+"""Strategy S051-T009 -- RSI oversold entry, gated by a relative-volatility
+regime filter.
+
+Market Model : ``volatility.relative_volatility_ratio(period=20,
+               baseline_period=100) > 1.0`` -- only trade while the current
+               20-bar realized volatility exceeds its 100-bar baseline (the
+               "relative" half of the PRD's regime bullet: only take the
+               signal when the volatility regime supports it).
+Signal Model : ``momentum.rsi(period=14) < 30.0``, fired ``ON_TRUE_EDGE`` --
+               an oversold RSI crossing, gated by the Market Model's regime
+               filter above.
+Exit Model   : ``BracketExitModel`` -- 20 bps stop, 20 bps target, 20-bar
+               timeout (Sprint 048, reused unchanged).
+Risk Model   : ``EquityPercentRiskModel`` -- risk 1% of a $100,000 account
+               against a 2-point stop distance (Sprint 048, reused
+               unchanged; v1 does not cross-validate the bps/points
+               distance pairing, D-S048-05 -- same operator-owned caveat as
+               the Sprint 048 examples above).
+"""
+
+from decimal import Decimal
+
+from trading_framework.model_authoring import (
+    LONG,
+    ON_TRUE_EDGE,
+    market_model,
+    momentum,
+    signal_model,
+    volatility,
+)
+from trading_framework.strategy import (
+    BracketExitModel,
+    EquityPercentRiskModel,
+    StrategyModelDefinition,
+)
+
+
+def build_strategy() -> StrategyModelDefinition:
+    market = market_model(
+        "rsi_relative_volatility_regime_market",
+        when=(volatility.relative_volatility_ratio(period=20, baseline_period=100) > 1.0),
+    ).definition
+
+    signal = signal_model(
+        "rsi_relative_volatility_regime_signal",
+        direction=LONG,
+        when=(momentum.rsi(period=14) < 30.0),
+        firing=ON_TRUE_EDGE,
+    ).definition
+
+    return StrategyModelDefinition(
+        strategy_model_id="rsi_relative_volatility_regime",
+        market_model=market,
+        signal_model=signal,
+        exit_model=BracketExitModel(
+            stop_loss_bps=20.0,
+            take_profit_bps=20.0,
+            max_bars=20,
+        ),
+        risk_model=EquityPercentRiskModel(
+            account_equity=Decimal(100_000),
+            risk_percent=Decimal("0.01"),
+            stop_distance=Decimal("2"),
+        ),
+    )
+```
+
+The framework-side committed stand-in for this example is
+`apps/cli/tests/fixtures/strategies/uses_rsi_relative_volatility.py`
+(behaviourally identical, `strategy_model_id` prefixed `fixture_`), which
+backs `apps/cli/tests/test_authored_strategy_examples.py`'s end-to-end test
+that: the run's `strategy_model_id` is the loaded strategy's, not the
+Sprint 013 canonical example's; and both `momentum.rsi` and
+`volatility.relative_volatility` genuinely appear in the run's analysis
+lineage (`AnalysisResult.computation_identity`), not merely in the loaded
+expression tree -- the acceptance criterion PRD success metric 1 requires
+(D-S051-08).
+
 ## 6. The advisory import convention (not enforced)
 
 Your strategy file can import anything your own Python environment can
