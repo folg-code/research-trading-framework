@@ -303,10 +303,17 @@ def test_rsi_component_is_causal_when_truncated_after_bar_n() -> None:
             assert truncated[index] == pytest.approx(full[index])
 
 
-def test_rsi_component_short_warmup_would_fail_this_test() -> None:
-    # Guards against an off-by-one warm-up: if valid_from_index were
-    # period - 1, this bar would incorrectly be treated as valid even though
-    # the recursion has not yet consumed enough diffs to seed the averages.
+def test_rsi_component_output_values_have_exact_nan_boundary_at_period() -> None:
+    # Guards the kernel's own output boundary as surfaced through the full
+    # component/executor pipeline: bar `period - 1` has not yet consumed
+    # enough diffs to seed the Wilder averages (still NaN), bar `period` has
+    # (first valid value). This is a property of `rsi_wilder`'s recursion
+    # over `period`, independent of the component's declared
+    # `history_requirement().bars_before` -- a regression in `bars_before`
+    # itself (the planner's look-back contract) is NOT caught here; it is
+    # caught by `test_rsi_component_valid_from_index_equals_period`, because
+    # `NumpyRsiImplementation.compute()` derives `warmup_bars` directly from
+    # `history_requirement().bars_before` rather than recomputing it.
     closes = [100.0, 102.0, 101.0, 103.0, 102.0, 105.0, 107.0, 106.0]
     period = 3
 

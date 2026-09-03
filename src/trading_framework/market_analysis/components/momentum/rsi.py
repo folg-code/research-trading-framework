@@ -94,7 +94,11 @@ class NumpyRsiImplementation:
         bar_count = len(workspace.market)
         close = np.asarray(workspace.market.close.values, dtype=np.float64)
         values = rsi_wilder(close, period)
-        warmup_bars = period
+        # Derived from the component's own declared history_requirement,
+        # not re-computed from `period` independently -- so a regression in
+        # bars_before (the planner's look-back contract) shows up here too,
+        # instead of silently diverging from what was actually requested.
+        warmup_bars = RsiComponent().history_requirement(parameters).bars_before
         return build_analysis_result(
             context=context,
             component_id=_COMPONENT_ID,
