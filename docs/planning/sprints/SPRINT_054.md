@@ -95,7 +95,7 @@ answers:
 
 | ID | Task | Depends on | Status |
 |---|---|---|---|
-| T001 | Classify `ARCHITECTURE_FOUNDATIONS.md` sections | — | TODO |
+| T001 | Classify `ARCHITECTURE_FOUNDATIONS.md` sections | — | DONE |
 | T002 | Classify `ARCHITECTURE_TECHNICAL.md` sections | — | TODO |
 | T003 | Classify `MULTITIMEFRAME_MARKET_MODEL_ARCHITECTURE.md` sections | — | TODO |
 | T004 | Move confirmed-current sections to `docs/reference/system/` | T001, T002, T003 | TODO |
@@ -111,6 +111,17 @@ answers:
 - 2026-09-03: Sprint opened on `sprint/vision-and-reference-reclassification`
   after maintainer approval. Starting with T001
   (`ARCHITECTURE_FOUNDATIONS.md` classification), per D-S054-01 sequencing.
+- 2026-09-03: T001 complete (read-only). Produced
+  `docs/planning/sprints/SPRINT_054_T001_ARCHITECTURE_FOUNDATIONS_CLASSIFICATION.md`
+  — 27 CURRENT, 6 MIXED, 1 AMBIGUOUS, 0 pure FUTURE, 6 N/A (meta) sections/
+  subsections. No section of `ARCHITECTURE_FOUNDATIONS.md` was moved or
+  edited. Most consequential MIXED finding: §6.5 Execution Domain / §9 item 4
+  — only `DRY_RUN` is a supported `ExecutionMode` in code today; Replay and
+  Live Execution are named in the vision text but not yet implemented.
+  §4.12's component-promotion lifecycle (`reproducibility_status`,
+  five-stage promotion) has no code counterpart despite the underlying
+  identity/versioning primitives being pervasive. PR: pending review before
+  T004 (move) may start, per D-S054-01.
 
 ## 6. Outcome
 
