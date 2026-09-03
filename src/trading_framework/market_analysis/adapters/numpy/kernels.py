@@ -38,6 +38,56 @@ def ema(close: np.ndarray, period: int) -> np.ndarray:
     return out
 
 
+def _rsi_from_wilder_averages(avg_gain: float, avg_loss: float) -> float:
+    """Wilder RSI from a pair of smoothed averages, per D-S051-04.
+
+    Two degenerate cases are handled explicitly, not as a side effect of
+    IEEE-754 division: a flat window (``avg_gain == avg_loss == 0.0``) is
+    genuinely undefined for ``rs = avg_gain / avg_loss`` and is defined as the
+    neutral midpoint ``50.0``; a window with gains but no losses is defined as
+    ``100.0`` rather than dividing by zero.
+    """
+    if avg_gain == 0.0 and avg_loss == 0.0:
+        return 50.0
+    if avg_loss == 0.0:
+        return 100.0
+    rs = avg_gain / avg_loss
+    return 100.0 - (100.0 / (1.0 + rs))
+
+
+def rsi_wilder(close: np.ndarray, period: int) -> np.ndarray:
+    """Wilder-smoothed RSI (0..100) of ``close``, per D-S051-05.
+
+    ``avg_gain``/``avg_loss`` are seeded as the simple average of the first
+    ``period`` bar-over-bar gains/losses, then recursively smoothed with
+    Wilder's ``alpha = 1/period``:
+
+        avg_gain[i] = (avg_gain[i-1] * (period - 1) + gains[i]) / period
+        avg_loss[i] = (avg_loss[i-1] * (period - 1) + losses[i]) / period
+        rsi = 100 - (100 / (1 + avg_gain / avg_loss))
+
+    The first ``period`` bars are ``NaN`` (there is no diff before bar 0, and
+    ``period`` diffs are needed to seed the averages) -- the first valid value
+    is at index ``period``. This is the textbook Wilder method with no
+    library-matching (D-S051-05): a single documented estimator, not tuned to
+    any particular library's rounding.
+    """
+    out = np.full(close.shape, np.nan, dtype=np.float64)
+    if close.size <= period or period < 2:
+        return out
+    diffs = np.diff(close)
+    gains = np.where(diffs > 0.0, diffs, 0.0)
+    losses = np.where(diffs < 0.0, -diffs, 0.0)
+    avg_gain = float(np.mean(gains[:period]))
+    avg_loss = float(np.mean(losses[:period]))
+    out[period] = _rsi_from_wilder_averages(avg_gain, avg_loss)
+    for index in range(period, diffs.size):
+        avg_gain = (avg_gain * (period - 1) + gains[index]) / period
+        avg_loss = (avg_loss * (period - 1) + losses[index]) / period
+        out[index + 1] = _rsi_from_wilder_averages(avg_gain, avg_loss)
+    return out
+
+
 def ols_slope(close: np.ndarray, period: int) -> np.ndarray:
     """Causal ordinary-least-squares slope of close versus bar index in ``period``."""
     out = np.full(close.shape, np.nan, dtype=np.float64)
