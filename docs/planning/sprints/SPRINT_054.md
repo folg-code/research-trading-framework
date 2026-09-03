@@ -97,7 +97,7 @@ answers:
 |---|---|---|---|
 | T001 | Classify `ARCHITECTURE_FOUNDATIONS.md` sections | — | DONE |
 | T002 | Classify `ARCHITECTURE_TECHNICAL.md` sections | — | TODO |
-| T003 | Classify `MULTITIMEFRAME_MARKET_MODEL_ARCHITECTURE.md` sections | — | TODO |
+| T003 | Classify `MULTITIMEFRAME_MARKET_MODEL_ARCHITECTURE.md` sections | — | DONE |
 | T004 | Move confirmed-current sections to `docs/reference/system/` | T001, T002, T003 | TODO |
 | T005 | Maintainer decision + move: `ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md` | — | TODO |
 | T006 | Maintainer decision + move: `WORKFLOWS_AI_ADR.md` | — | TODO |
@@ -122,6 +122,15 @@ answers:
   five-stage promotion) has no code counterpart despite the underlying
   identity/versioning primitives being pervasive. PR: pending review before
   T004 (move) may start, per D-S054-01.
+- 2026-09-03: T003 complete — full read + code-verified classification of
+  `docs/vision/MULTITIMEFRAME_MARKET_MODEL_ARCHITECTURE.md` produced at
+  `docs/planning/sprints/SPRINT_054_T003_MULTITIMEFRAME_MARKET_MODEL_CLASSIFICATION.md`.
+  Confirms and extends the audit's line-1308 finding: the vision index's
+  "(future)" label for this file is not accurate — §2–§10 are substantially
+  CURRENT, while §14.4–§14.6 (sensitivity surfaces, Pareto/multi-objective
+  scoring, complexity-penalty formula) are genuinely FUTURE with no code
+  counterpart. No content moved (read-only per T003 scope); T004 gated on
+  this classification being reviewed alongside T001/T002.
 
 ## 6. Outcome
 
