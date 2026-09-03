@@ -48,9 +48,13 @@ reorder — step 4 depends on steps 1-3 settling content ownership first):
 | T001 | Full read + current-vs-future section classification of `docs/vision/ARCHITECTURE_FOUNDATIONS.md` (1,557 lines). Produces a section-by-section table (current/future/mixed) as this sprint's Decisions output — no file is moved yet. | Phase 6b | Large (read-only) |
 | T002 | Same for `docs/vision/ARCHITECTURE_TECHNICAL.md` (2,459 lines) | Phase 6b | Large (read-only) |
 | T003 | Same for `docs/vision/MULTITIMEFRAME_MARKET_MODEL_ARCHITECTURE.md` (1,332 lines) — already known to contain at least one shipped-behavior section inside a file the vision index calls entirely future (line ~1308 per the audit) | Phase 6b | Large (read-only) |
+| T003b | Classify `docs/vision/WORKFLOWS_AI_ADR.md` §1-5/§8 (~1,620 lines of workflow architecture) current-vs-future, same method as T001-T003. Added per the accepted T006 recommendation — this content turned out to be architecture, not process. | Phase 6b | Large (read-only) |
 | T004 | Move each file's confirmed-current sections (per T001-T003) to `docs/reference/system/` (new); leave confirmed-future sections in `docs/vision/`; leave genuinely ambiguous sections in `docs/vision/` with a one-line "as-built status unclear, see ADR-XXXX" note rather than guessing | Phase 6b | Medium — depends on T001-T003 |
 | T005 | Maintainer decision: does `docs/vision/ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md` (1,102 lines, self-describes as "authoritative" — a reference-tier claim) move to `docs/reference/` wholesale? | Phase 6b | Decision + move if yes |
-| T006 | Maintainer decision: where does `docs/vision/WORKFLOWS_AI_ADR.md` (2,583 lines, process/workflow content, not target architecture) belong — stays in `vision/`, or folds into `docs/README.md`/`AGENTS.md`'s process layer? | Phase 6b | Decision + move if relocating |
+| T006 | ~~Maintainer decision: where does `docs/vision/WORKFLOWS_AI_ADR.md` belong~~ — **RESCOPED**: maintainer accepted the T006 recommendation's three-way split (see `SPRINT_054_T006_WORKFLOWS_AI_ADR_RECOMMENDATION.md`) instead of either original option. Split into T006a/T006b/T006c below. | Phase 6b | Decision made — see T006a-c |
+| T006a | Reconcile `WORKFLOWS_AI_ADR.md` §7.1-7.5, §7.9, §7.10 (ADR process, statuses, template) and §7.6-7.8 (decision register) into `docs/adr/README.md`; resolve the status-model/template/reading-order contradictions the recommendation identified; drop the "suggested location" fossil. | Phase 6b | Medium — independent of T001-T004/T003b |
+| T006b | Reconcile `WORKFLOWS_AI_ADR.md` §6 (AI Agent Contract, ~589 lines) into `AGENTS.md` / `.cursor/rules/ARCHITECTURE_CONTROL.md`, selectively (per the recommendation: most of §6.4-6.17 is duplication to delete, not copy; §6.7/§6.8/§6.19/§6.23 look like genuinely new material) | Phase 6b | Medium — independent of T001-T004/T003b |
+| T006c | Move confirmed-current sections of §1-5/§8 (per T003b's classification) to `docs/reference/`, alongside T004's output; leave future/ambiguous parts in `vision/` per D-S054-02 | Phase 6b | Medium — depends on T003b |
 | T007 | Content audit of all 12 current `docs/reference/` files (+ 3 in `modules/`): tag each file/section as system-level, workflow-level, module-level, or operational-runbook-level. Produces the actual split plan — not assumed from filenames. | Phase 6a | Large (read-only) |
 | T008 | Execute the `docs/reference/` split into `system/` (`SYSTEM_OVERVIEW.md` new, `MODULE_MAP.md` moved, `DEPENDENCY_RULES.md` consolidated from `AGENTS.md`/`ARCHITECTURE_CONTROL.md`/`ARCHITECTURE_AND_WORKFLOWS.md` pointers), `workflows/` (`SIGNAL_RESEARCH.md`, `STRATEGY_RESEARCH.md`, `STRATEGY_EXECUTION.md`, `MARKET_DATA.md` — extracted per T007's plan, not the audit's untested guess), and `modules/` (existing 3 files plus any new ones T007 identifies as missing) | Phase 6a | Large — depends on T007 |
 | T009 | Update every inbound reference to a moved/renamed file (`AGENTS.md`, `docs/README.md`, ADRs, sprint docs as applicable) | Phase 6a, 6b | Medium — mechanical once T004/T008 land |
@@ -83,7 +87,10 @@ answers:
   audit explicitly declined to reclassify `ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md`
   or relocate `WORKFLOWS_AI_ADR.md` unilaterally. This sprint does the same
   — these two tasks produce a recommendation, then wait for sign-off before
-  moving anything.
+  moving anything. **Resolved for T006 on 2026-09-03**: maintainer accepted
+  the recommendation's three-way split (see
+  `SPRINT_054_T006_WORKFLOWS_AI_ADR_RECOMMENDATION.md`); T006 is rescoped
+  into T003b/T006a/T006b/T006c per §2 above.
 - **D-S054-04 — This sprint is large; expect multiple waves.** Combined
   vision-file line count is ~9,000 lines across 5 files; `docs/reference/`
   is 15 files. Task branches should follow normal PR-size discipline (one
@@ -98,12 +105,16 @@ answers:
 | T001 | Classify `ARCHITECTURE_FOUNDATIONS.md` sections | — | DONE |
 | T002 | Classify `ARCHITECTURE_TECHNICAL.md` sections | — | DONE |
 | T003 | Classify `MULTITIMEFRAME_MARKET_MODEL_ARCHITECTURE.md` sections | — | DONE |
+| T003b | Classify `WORKFLOWS_AI_ADR.md` §1-5/§8 sections | — | TODO |
 | T004 | Move confirmed-current sections to `docs/reference/system/` | T001, T002, T003 | DONE |
 | T005 | Maintainer decision + move: `ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md` | — | DONE |
-| T006 | Maintainer decision + move: `WORKFLOWS_AI_ADR.md` | — | RECOMMENDATION PRODUCED — awaiting maintainer decision |
+| T006 | Maintainer decision: `WORKFLOWS_AI_ADR.md` location | — | DECIDED — rescoped into T003b/T006a/T006b/T006c |
+| T006a | Reconcile `WORKFLOWS_AI_ADR.md` §7 into `docs/adr/README.md` | — | TODO |
+| T006b | Reconcile `WORKFLOWS_AI_ADR.md` §6 into `AGENTS.md`/`ARCHITECTURE_CONTROL.md` | — | TODO |
+| T006c | Move confirmed-current §1-5/§8 sections to `docs/reference/` | T003b | TODO |
 | T007 | Content audit of 12+3 `docs/reference/` files, produce split plan | — | DONE |
 | T008 | Execute `docs/reference/` → `system/`/`workflows/`/`modules/` split | T007 | TODO |
-| T009 | Update all inbound references | T004, T005, T006, T008 | TODO |
+| T009 | Update all inbound references | T004, T005, T006a-c, T008 | TODO |
 | T010 | Phase F validation re-run (5 checks) | T001-T009 | TODO |
 
 ## 5. Progress
@@ -221,6 +232,13 @@ answers:
   contradictions found: agent required-reading-order (§6.2 vs `AGENTS.md`)
   and ADR status model + template (§7.4/§7.5 vs `docs/adr/README.md`). T006
   remains open pending maintainer decision on this recommendation.
+- 2026-09-03: Maintainer accepted the T006 recommendation's three-way
+  split. `SPRINT_054.md` §2/§4 rescoped: T006 marked DECIDED and split
+  into T003b (classify `WORKFLOWS_AI_ADR.md` §1-5/§8), T006a (reconcile §7
+  into `docs/adr/README.md`), T006b (reconcile §6 into
+  `AGENTS.md`/`ARCHITECTURE_CONTROL.md`), and T006c (move §1-5/§8's
+  confirmed-current sections per T003b, depends on T003b). T003b/T006a/T006b
+  are independent of each other and of T004; T006c depends on T003b.
 
 ## 6. Outcome
 
