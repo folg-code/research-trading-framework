@@ -48,7 +48,7 @@ Do not duplicate in `DEVELOPER_GUIDE.md` or sprint files.
 - **Should be?** `vision/`, `planning/`, ADRs.
 - **Why?** ADRs + binding decision docs in `vision/`.
 
-`vision/ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md` wins on MA derived-data conflicts.
+`reference/ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md` wins on MA derived-data conflicts.
 
 ## Mandatory Updates
 

@@ -12,6 +12,7 @@ Index: [../README.md](../README.md). Vision docs: [../vision/README.md](../visio
 | File | Purpose |
 |------|---------|
 | [MODULE_MAP.md](MODULE_MAP.md) | Packages, status ✅/🟡/⬜, entry points |
+| [ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md](ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md) | Analysis workspace, result store, and frame materialization — authoritative on derived analytical data |
 | [DATA_WORKFLOWS.md](DATA_WORKFLOWS.md) | Data movement with diagrams; **§1.1** NQ half-year scale benchmarks *(file not in tree; research storage paths live in MODULE_MAP §11)* |
 | [RESEARCH_METHODOLOGIES.md](RESEARCH_METHODOLOGIES.md) | **All research workflows** — methodologies, scopes, CLIs, choosing a path (Signal, Model, Strategy, Robustness, Predictive) |
 | [DATA_REPRESENTATION_AUDIT.md](DATA_REPRESENTATION_AUDIT.md) | Representation inventory, transformation map, **canonical type policy** and the D-REP decision register |

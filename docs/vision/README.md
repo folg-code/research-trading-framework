@@ -23,8 +23,13 @@ Index: [../README.md](../README.md).
 | File | Purpose |
 |------|---------|
 | [MARKET_ANALYSIS_WITH_DECISIONS.md](MARKET_ANALYSIS_WITH_DECISIONS.md) | Market Analysis decisions D-001–D-036 |
-| [ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md](ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md) | Workspace, result store, frames — authoritative on derived data |
 | [MULTITIMEFRAME_MARKET_MODEL_ARCHITECTURE.md](MULTITIMEFRAME_MARKET_MODEL_ARCHITECTURE.md) | Multitimeframe market model (future) |
+
+Workspace, result store, and frame architecture — authoritative on derived
+data — moved to
+[../reference/ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md](../reference/ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md)
+(Sprint 054 T005: it self-describes as authoritative, a reference-tier claim,
+not a vision/future document).
 
 ---
 

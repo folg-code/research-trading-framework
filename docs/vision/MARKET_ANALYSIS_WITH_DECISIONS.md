@@ -3,7 +3,7 @@
 # SPRINT 003 — Market Analysis Architecture and MVP Planning Note
 
 > **Related:** For derived analytical data, workspace, result store, consumer views, and
-> `AnalysisFrame` assembly see [`ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md`](ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md).
+> `AnalysisFrame` assembly see [`ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md`](../reference/ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md).
 > Where the two documents conflict on workspace or derived-data topics, the workspace
 > document takes precedence (it is the newer specification).
 
