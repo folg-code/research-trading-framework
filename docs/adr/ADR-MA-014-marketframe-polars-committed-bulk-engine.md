@@ -50,8 +50,8 @@ the live runtime (N=1, object semantics). Stage 4 must not start without this su
 
 ### Negative
 
-- Polars becomes part of the bulk domain contract (the “boundary creep” risk in
-  `CURRENT_STATUS.md` §10 is accepted, not ignored),
+- Polars becomes part of the bulk domain contract (the “boundary creep” risk
+  stated here is accepted, not ignored),
 - every bulk component and its tests must eventually move behind `MarketFrame`,
 - until Stage 4 ships, code still uses `AnalysisDataView` as the executed contract.
 
