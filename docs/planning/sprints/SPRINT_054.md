@@ -101,7 +101,7 @@ answers:
 | T004 | Move confirmed-current sections to `docs/reference/system/` | T001, T002, T003 | TODO |
 | T005 | Maintainer decision + move: `ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md` | — | DONE |
 | T006 | Maintainer decision + move: `WORKFLOWS_AI_ADR.md` | — | TODO |
-| T007 | Content audit of 12+3 `docs/reference/` files, produce split plan | — | TODO |
+| T007 | Content audit of 12+3 `docs/reference/` files, produce split plan | — | DONE |
 | T008 | Execute `docs/reference/` → `system/`/`workflows/`/`modules/` split | T007 | TODO |
 | T009 | Update all inbound references | T004, T005, T006, T008 | TODO |
 | T010 | Phase F validation re-run (5 checks) | T001-T009 | TODO |
@@ -143,6 +143,34 @@ answers:
   `src/trading_framework/` tree (per `docs/reference/MODULE_MAP.md`), which
   T004 will need to reconcile rather than move verbatim. No content in
   `ARCHITECTURE_TECHNICAL.md` was moved or edited.
+- 2026-09-03: T007 complete (read-only). Full-text audit of all 15
+  `docs/reference/` files (12 flat + 3 in `modules/`) produced
+  `docs/planning/sprints/SPRINT_054_T007_REFERENCE_FOLDER_AUDIT.md` — a
+  file-by-file tag table (system/workflow/module/operational-runbook) and a
+  concrete split plan for T008. Confirms two of the audit's three guessed
+  `system/` files (`SYSTEM_OVERVIEW.md` ← `ARCHITECTURE_AND_WORKFLOWS.md`,
+  `MODULE_MAP.md` unchanged) and adds a fourth system file not in the
+  original guess (`DATA_REPRESENTATION_AUDIT.md`, cross-cutting canonical
+  type policy). Rejects the guessed `workflows/SIGNAL_RESEARCH.md` /
+  `STRATEGY_RESEARCH.md` split — `RESEARCH_METHODOLOGIES.md` is one
+  deliberately comparative document and moves wholesale instead. Rejects
+  fabricating `workflows/MARKET_DATA.md` and `workflows/STRATEGY_EXECUTION.md`
+  from existing content (no source text supports either as a standalone
+  narrative without new prose, which is out of scope); proposes a new
+  `docs/reference/runbooks/` tier for the three genuinely
+  operational-runbook files (AWS/local BTC dry-run, live-paper pipeline
+  inspection) instead. Identifies 4 more module-level files to add to
+  `modules/` (`DASHBOARD_APPLICATION.md`, `OPERATOR_CLI.md`,
+  `PREDICTIVE_PROMOTION.md`, `STRATEGY_AUTHORING.md`). Flags
+  `modules/DATA_MODULE.md` as content-mismatched with its tier (reads as
+  vision-tier target architecture, not as-implemented reference) — a
+  maintainer decision candidate in the same family as T005/T006, left
+  unmoved pending that decision. `system/DEPENDENCY_RULES.md` from the
+  audit's guess is deferred entirely — it requires authoring new
+  consolidated content from `AGENTS.md`/`ARCHITECTURE_CONTROL.md`, not a
+  move of existing `docs/reference/` content, so it is out of T007/T008's
+  scope. No `docs/reference/` file was moved, split, or edited. T008 may
+  start once this plan is reviewed, per D-S054-01.
 
 - 2026-09-03: T005 complete. Maintainer decided
   `docs/vision/ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md` moves wholesale (no
