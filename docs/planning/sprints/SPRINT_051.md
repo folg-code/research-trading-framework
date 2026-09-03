@@ -6,8 +6,12 @@
 Sprint: 051
 Phase: Phase 15 — Predictive Research Catalog Expansion and Real-Data Study;
        increment 15A (opening increment; NOT closing — Sprint 052 closes the phase)
-Status: APPROVED (2026-09-02) — Wave 0 Checklist D-S051-12 in
-        S051_WAVE0_DECISIONS.md signed off in full by the maintainer.
+Status: COMPLETE (2026-09-03) — 11/11 tasks on `sprint/momentum-and-regime-catalog`;
+        final integration PR to `main` pending. Phase 15A (this sprint) is
+        complete; Phase 15 as a whole is NOT — Sprint 052 / Phase 15B is
+        PLANNED but not approved/opened. See §13 Review. Wave 0 Checklist
+        D-S051-12 in S051_WAVE0_DECISIONS.md was signed off in full by the
+        maintainer.
 Planned Start: 2026-09-02
 Planned End: TBD
 Sprint Goal Owner: Project Maintainer
@@ -268,8 +272,8 @@ Depends on: Wave 0 (T001 only). No extra required; all default CI.
 | Task | Description | Acceptance | Deps | Status |
 |------|-------------|-----------|------|--------|
 | S051-T006 | `volatility.relative_volatility` — component + rolling log-return stdev kernel + `references/volatility.py` `relative_volatility()` + registry entry. Params: `period` (20), `baseline_period` (100), validated `period < baseline_period`. Outputs: `value` (rolling realized vol) and `ratio` (`value / baseline`) | `value` matches an independently computed population stdev of `log(close_t / close_{t-1})` over `period`; `ratio` uses the same estimator over `baseline_period`; **a zero baseline yields `0.0`** per the existing convention (D-S048-10) with a test; warm-up is `baseline_period` (returns lose one bar) and is asserted; `period >= baseline_period` raises naming both | T001 | DONE |
-| S051-T007 | `statistics.return_autocorrelation` — new `statistics.` namespace package + component + kernel + `references/statistics.py` `return_autocorrelation()` + registry entry. Params: `period` (60, min 8), `lag` (1, min 1), validated `lag < period - 1`. Output: `value` (−1..1) | matches an independently computed rolling Pearson correlation between the return series and its lag-`k` shift within each window; a constant-return window (zero variance) yields `0.0` per convention, tested; a perfectly alternating synthetic series yields a value near −1 as a semantic sanity check; warm-up `period + lag` asserted; causality test | T001 | DONE |
-| S051-T008 | `statistics.return_distribution` — component + kernel + `references/statistics.py` `return_skew()` / `return_excess_kurtosis()` + registry entry. Params: `period` (60, min 8). Outputs: `skew`, `excess_kurtosis` | Fisher–Pearson **population** moments (no small-sample bias correction — determinism and a single documented estimator beat matching any particular library, D-S051-05), verified against values the test computes from first principles; a zero-variance window yields `0.0` for both; excess kurtosis of a synthetic normal-ish sample is near 0 as a sanity check; warm-up `period + 1` asserted; the docstring states the estimator explicitly and warns that short windows on 1m bars are outlier-dominated (Sprint 052 Wave 0 consumes this warning) | T007 | DONE |
+| S051-T007 | `statistics.return_autocorrelation` — new `statistics.` namespace package + component + kernel + `references/statistics.py` `return_autocorrelation()` + registry entry. Params: `period` (60, min 8), `lag` (1, min 1), validated `lag < period - 1`. Output: `value` (−1..1) | matches an independently computed rolling Pearson correlation between the return series and its lag-`k` shift within each window; a constant-return window (zero variance) yields `0.0` per convention, tested; a perfectly alternating synthetic series yields a value near −1 as a semantic sanity check; warm-up **`bars_before = period`** asserted (corrected at closure, T011 — NOT `period + lag`: the correlation window already contains exactly `period` return values in total, and `lag` only determines how that one fixed-size window is split into its unshifted/lag-shifted halves; it needs no additional bars of history beyond `period`. Confirmed independently by `tester` and `reviewer` with worked arithmetic during T007's own review and recorded in `ReturnAutocorrelationComponent`'s docstring); causality test | T001 | DONE |
+| S051-T008 | `statistics.return_distribution` — component + kernel + `references/statistics.py` `return_skew()` / `return_excess_kurtosis()` + registry entry. Params: `period` (60, min 8). Outputs: `skew`, `excess_kurtosis` | Fisher–Pearson **population** moments (no small-sample bias correction — determinism and a single documented estimator beat matching any particular library, D-S051-05), verified against values the test computes from first principles; a zero-variance window yields `0.0` for both; excess kurtosis of a synthetic normal-ish sample is near 0 as a sanity check; warm-up **`bars_before = period`** asserted (corrected at closure, T011 — NOT `period + 1`: `log_returns` loses one bar to differencing, the rolling statistic over `period` return values is first valid at return-index `period - 1`, and mapping that back through the `value[1:] = ...` assignment lands the first valid output bar at close-index `period` exactly, the same warm-up shape as T006/T007. Confirmed by the engineer's own T008 report and by `tester`/`reviewer` and recorded in `ReturnDistributionComponent`'s docstring); the docstring states the estimator explicitly and warns that short windows on 1m bars are outlier-dominated (Sprint 052 Wave 0 consumes this warning) | T007 | DONE |
 
 Depends on: Wave 0. T008 depends on T007 only for the shared `statistics/`
 package scaffolding.
@@ -280,9 +284,9 @@ package scaffolding.
 |------|-------------|-----------|------|--------|
 | S051-T009 | **Rule-based consumption (PRD metric 1, half one).** One worked example strategy under `user_data/components/strategies/` **documented in `STRATEGY_AUTHORING.md`** plus its `apps/cli/examples/research_run_strategy_*.yaml`, composing ≥ 2 new components (suggested: `momentum.rsi` oversold gated by `volatility.relative_volatility` regime), reusing Sprint 048's Exit/Risk models unchanged; plus the framework-side end-to-end test following Sprint 047's `uses_candle_wick.py` fixture pattern | the strategy loads through the unmodified `strategy_file` loader and produces a run whose `strategy_model_id` is the loaded strategy's; the test asserts the new components actually appear in the run's analysis lineage (not merely that the run succeeded); no Exit/Risk or loader file is modified | T003, T006 | DONE |
 | S051-T010 | **Predictive consumption (PRD metric 1, half two).** A test that builds a `PredictiveStudySpec` declaring ≥ 3 new components as `FeatureSpec` entries **against the existing synthetic CI fixture** (D-S039-CI-dataset) and runs `build_predictive_dataset` to a labelled matrix with fold roles | the dataset builds and the declared aliases resolve to the new components' lineage; the matrix's `available_at <= detected_at` invariant holds for every new feature (the leakage guard, ADR-0023 §4, applied to the new components specifically); **no real data and no network are involved** — ADR-0023 §8 is untouched, asserted by the test living in the standard suite | T005, T008 | DONE |
-| S051-T011 | Documentation and closure: `STRATEGY_AUTHORING.md` catalog rows for all six components (parameters, outputs, conventions, the stochastic divergence), `MODULE_MAP.md`, ROADMAP §13G's 15A line, `CURRENT_STATUS.md` §2/§6/§11, and the sprint Review — including whether S051-T002 succeeded and what Sprint 052 may therefore assume | every new component appears exactly once in the catalog documentation with its zero-denominator convention stated; the Review states the **measured** BTC dataset range or, if T002 did not complete, says so plainly and records that Sprint 052 cannot open on substitute data (D-S051-07a); `CURRENT_STATUS.md` never claims Phase 15 is complete | T009, T010, T002 | TODO |
+| S051-T011 | Documentation and closure: `STRATEGY_AUTHORING.md` catalog rows for all six components (parameters, outputs, conventions, the stochastic divergence), `MODULE_MAP.md`, ROADMAP §13G's 15A line, `CURRENT_STATUS.md` §2/§6/§11, and the sprint Review — including whether S051-T002 succeeded and what Sprint 052 may therefore assume | every new component appears exactly once in the catalog documentation with its zero-denominator convention stated; the Review states the **measured** BTC dataset range or, if T002 did not complete, says so plainly and records that Sprint 052 cannot open on substitute data (D-S051-07a); `CURRENT_STATUS.md` never claims Phase 15 is complete | T009, T010, T002 | DONE |
 
-**Progress:** 10 / 11
+**Progress:** 11 / 11
 
 **Descope order if the sprint overruns:** T008 first (return-distribution is the
 PRD's most negotiable component), then T005. **T002, T009 and T010 are never
@@ -403,4 +407,195 @@ Sprint 052.
 
 ## 13. Review
 
-_(to be written at closure by `tech-writer`)_
+Closed 2026-09-03 on `sprint/momentum-and-regime-catalog`, 11/11 tasks. This
+section records outcome; it does not rewrite the plan. **Sprint 051 (Phase
+15A) is COMPLETE on its sprint branch. Phase 15 as a whole is NOT complete**
+— no real-data predictive study has been run; Sprint 052 (Phase 15B) is
+PLANNED (`SPRINT_052.md`, `Status: PLANNED`) but not approved or opened. The
+final integration PR `sprint/momentum-and-regime-catalog` -> `main` has not
+been opened yet — see "Not Completed" below.
+
+### The single most important fact for Sprint 052
+
+**S051-T002 SUCCEEDED — the BTCUSDT.P dataset now exists, measured, and is
+sufficient for Sprint 052's fold design.** Per
+`S051_BTC_DATA_INVENTORY.md`: published `DatasetRef`
+`BTCUSDT.P|ohlcv|1m|binance|binance-usdm-klines-v1@1`, range
+`2024-01-01T00:00:00+00:00 -> 2026-06-29T23:59:00+00:00` (911 days, ~30
+months), `row_count: 1,311,840`, **zero gaps**, `api_key_used: false`, ~8m36s
+wall-clock, zero retries/backoff. The document states plainly that this range
+is sufficient for at least 5 walk-forward folds at a reasonable horizon (at a
+30-day fold width it supports roughly 30 non-overlapping windows). D-S051-07a
+(the hard-stop-on-impracticability / no-substitute-instrument rule) was
+**never triggered** — the import succeeded on its first properly-invoked
+attempt (see "Problems Discovered" for the two false starts that preceded
+it, both harmless). Per `S051_BTC_DATA_INVENTORY.md` §8's own hand-off note:
+**Sprint 052 may proceed to plan its fold design against these measured
+facts** — this is not a hope or a plan, it is a recorded, registry-read fact.
+
+### Completed
+
+- Wave 0 (T001–T002) — `S051_WAVE0_DECISIONS.md` and the ROADMAP §13G splice
+  landed; the Binance import for `BTCUSDT.P` over the maintainer-fixed range
+  ran to completion and `S051_BTC_DATA_INVENTORY.md` was produced (measured
+  facts above).
+- Wave 1 (T003–T005) — `momentum.rsi` (Wilder RSI, `100.0`/`50.0` on
+  degenerate windows), `momentum.macd` (depends on two `trend.ema` outputs
+  per Finding 4, signal line via the shared `ema` kernel), `momentum.stochastic`
+  (`%K`/`%D`, zero-range window yields `50.0` — the deliberate D-S051-04
+  divergence from this catalog's usual `0.0` convention, stated in the
+  component docstring, the test name, and now `STRATEGY_AUTHORING.md`).
+- Wave 2 (T006–T008) — `volatility.relative_volatility` (rolling realized
+  vol + ratio to a baseline window, ordinary `0.0` zero-baseline convention,
+  D-S048-10), the new `statistics.` namespace package,
+  `statistics.return_autocorrelation` (rolling lag-`k` Pearson correlation,
+  ordinary `0.0` zero-variance convention), and `statistics.return_distribution`
+  (rolling population Fisher–Pearson skew/excess kurtosis, ordinary `0.0`
+  zero-variance convention, outlier-dominated-short-window warning for
+  Sprint 052).
+- Wave 3 (T009–T010) — PRD success metric 1 ("one catalog, two consumers")
+  proven both ways: `rsi_relative_volatility_regime.py` (rule-based,
+  `momentum.rsi` gated by `volatility.relative_volatility_ratio`) loads
+  through the unmodified `strategy_file` loader and both components appear
+  in the run's analysis lineage
+  (`apps/cli/tests/test_authored_strategy_examples.py`); a predictive-path
+  test declares ≥3 new components as `FeatureSpec` entries against the
+  existing synthetic CI fixture, builds a labelled matrix, and asserts the
+  `available_at <= detected_at` leakage guard holds for the new features
+  specifically (`test_build_predictive_dataset_catalog_features.py`).
+- T011 (this entry) — `STRATEGY_AUTHORING.md` §4 gained a Sprint 051 catalog
+  subsection (parameters, outputs, warm-up, zero-denominator convention for
+  all six components, stated once); `MODULE_MAP.md` §6/§7 gained rows for
+  the new `momentum.`/`statistics.` component packages and
+  `references/momentum.py` / `references/statistics.py`; ROADMAP §13G's 15A
+  status line flipped from "IN PROGRESS" to "COMPLETE" (15B/Sprint 052
+  explicitly still NOT planned); `CURRENT_STATUS.md` §2/§6/§11/§12 updated,
+  stating plainly that Phase 15 as a whole is not complete; this Review; and
+  the two deferred corrections below.
+
+### Not Completed
+
+- **The final integration PR `sprint/momentum-and-regime-catalog` -> `main`
+  has not been opened.** All 11 tasks are done on the sprint branch; opening
+  and merging the final integration PR is a human/maintainer action outside
+  this closure task's guardrails (mirrors the Sprint 017/048/049 precedent).
+- No sprint-scoped task was dropped or descoped. The stated descope order
+  (T008 first, then T005) was never invoked — the sprint did not overrun,
+  and T002/T009/T010 (the tasks explicitly never dropped) all completed.
+- Sprint 052 (Phase 15B, the real-data study) is not opened, not approved,
+  and not started — by design (§0). `SPRINT_052.md` and
+  `S052_WAVE0_DECISIONS.md` already exist as **drafted plans**
+  (`Status: PLANNED`, drafted alongside this sprint per PR #397) but carry
+  no maintainer approval; opening Sprint 052 remains a separate governance
+  step, not performed by this closure task.
+
+### Demonstrated Capability
+
+A strategy author composes `momentum.rsi(period=14) < 30.0` gated by
+`volatility.relative_volatility_ratio(period=20, baseline_period=100) > 1.0`
+in an ordinary `strategy_file`, and it runs end to end through
+`trading-cli research run strategy` unchanged, using Sprint 048's
+`BracketExitModel` / `EquityPercentRiskModel` unmodified. The identical
+component IDs — `momentum.rsi`, `volatility.relative_volatility`, plus
+`momentum.macd`, `momentum.stochastic`, and both `statistics.` components —
+are also declarable as `FeatureSpec` entries in a `PredictiveStudySpec` and
+build a labelled, leakage-checked matrix through the unmodified Phase 10
+pipeline. One catalog, two consumers, proven by a test on each path — PRD
+success metric 1 is executable, not merely asserted. Separately, and
+independently of the catalog work, the BTCUSDT.P dataset that Sprint 052
+needs to run an actual study now exists, published and gap-free.
+
+### Problems Discovered
+
+- **Two imprecise warm-up descriptions in this sprint document's own task
+  table (T007, T008), corrected in this PR.** Both said `period + lag` /
+  `period + 1` respectively; the actual, merged, tested implementation is
+  `bars_before = period` for both — confirmed independently by `tester` and
+  `reviewer` with worked arithmetic during each task's own review, and
+  recorded in each component's docstring (`ReturnAutocorrelationComponent`,
+  `ReturnDistributionComponent`). This was a task-table shorthand error, not
+  a code defect — the shipped, tested code was always correct; only the
+  sprint document's prose lagged it, flagged for this closure pass at T008's
+  own review time rather than silently fixed mid-sprint.
+- **An imprecise ADR citation in three `model_authoring/references/statistics.py`
+  docstrings, corrected in this PR (doc-only, no behavior change).**
+  `return_autocorrelation`, `return_skew`, and `return_excess_kurtosis` cited
+  `(D-S051-04/05)` for their zero-variance-yields-`0.0` convention.
+  `D-S051-04` is specifically `momentum.stochastic`'s deliberate `50.0`
+  exception and does not generalize to these three components, which follow
+  the project's *ordinary* zero-denominator convention, `D-S048-10`. This was
+  pre-existing since T007/T008 landed (not a regression introduced by this
+  PR) and was explicitly flagged during T008's review for correction at
+  closure.
+- **TD-030** (LOW, ACCEPTED) — the root `.gitignore`'s `user_data/**` pattern
+  does not cover a nested `<subdir>/user_data/` directory (e.g.
+  `apps/cli/user_data/`), discovered during S051-T002's first, mis-invoked
+  import attempt. No incident occurred (the misplaced directory was deleted
+  before anything was staged); tracked for opportunistic repayment, no
+  human decision required at this priority.
+- No new CRITICAL/HIGH problem was logged for this sprint in
+  `PROBLEM_REGISTRY.md` — none exists to require a human decision before
+  this closure, so nothing blocks opening the final integration PR on that
+  governance check.
+
+### Decisions Required
+
+None blocking this closure. **Opening Sprint 052 (Phase 15B) is the natural
+next step, given T002's measured success, but it is explicitly NOT opened by
+this PR** — per this project's governance, opening a sprint requires a
+separate maintainer approval step (the Wave 0 Checklist sign-off), which
+`SPRINT_052.md` (`Status: PLANNED`) has not yet received.
+
+### Technical Debt Added
+
+None new in this closure PR. TD-030 (above) was already logged during
+S051-T002 and remains ACCEPTED/LOW; this Review restates it, it is not a new
+entry.
+
+### Lessons Learned
+
+- **A task-table's prose "acceptance" shorthand and a component's own
+  docstring can drift even within the same sprint, and the docstring is the
+  more trustworthy source when they disagree** — both T007 and T008 caught
+  their own warm-up formula inaccuracy during their own review cycle and
+  recorded the correct value and reasoning directly in the component's
+  docstring rather than silently editing the sprint document mid-sprint,
+  explicitly deferring the document correction to this closure task. That
+  discipline (fix the source of truth immediately, fix the narrative
+  document at closure, and say so plainly) is what made this Review's
+  "Problems Discovered" section possible to write accurately without
+  re-deriving the warm-up arithmetic from scratch.
+- **A decision ID citation needs the same review scrutiny as the value it
+  labels.** `D-S051-04/05` was pasted into three DSL docstrings as a
+  catch-all, when only `D-S051-05` (the estimator-choice decision) was ever
+  actually relevant to two of them, and neither applies to the
+  zero-denominator convention those docstrings were actually describing
+  (`D-S048-10` does). A decision ID is a pointer a future reader will
+  follow; an imprecise one sends them to the wrong reasoning.
+- **Running a long-lead data-acquisition task first and in parallel (T002,
+  Wave 0) — exactly as this sprint's own §0 designed it — meant the sprint's
+  riskiest, least-controllable step (network-bound, weight-limited,
+  measured in wall-clock hours per the sprint's own risk table) was resolved
+  before most of the component work even started**, instead of becoming a
+  closure-blocking surprise. The two false starts recorded in
+  `S051_BTC_DATA_INVENTORY.md` §5 (wrong working directory,
+  a discarded smoke-range fetch) were cheap precisely because they happened
+  early and in isolation from the rest of the sprint.
+
+### Follow-up
+
+- Open the final integration PR `sprint/momentum-and-regime-catalog` ->
+  `main` (human/maintainer action; not performed by this closure task).
+- **Sprint 052 (Phase 15B, the real-data BTC predictive study) is ready to be
+  planned/opened next** — its data prerequisite (T002) is satisfied and
+  measured, and `SPRINT_052.md` / `S052_WAVE0_DECISIONS.md` already exist as
+  drafted plans awaiting the maintainer's Wave 0 sign-off. This is a
+  recommendation, not an action taken by this PR.
+- TD-030's opportunistic repayment (the `.gitignore` nested `user_data/`
+  gap) — unscheduled, next time a nested `user_data/` directory is created
+  under any workspace member.
+- Unscheduled candidates already named in §12 above: MTF-capable
+  `FeatureSpec` (needs a contract change in two packages), a volume-based
+  regime component, and quantile-based (Bowley) skew as a robust alternative
+  to `statistics.return_distribution`'s moment estimator if Sprint 052 finds
+  it too noisy in practice.

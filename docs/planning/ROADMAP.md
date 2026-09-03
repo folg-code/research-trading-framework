@@ -1969,9 +1969,14 @@ Phase 13's Exit/Risk work (ADR-0028) is CONSUMED, never modified
 # 13G. Phase 15 — Predictive Research Catalog Expansion and Real-Data Study (APPROVED)
 
 **Status:** **APPROVED** (maintainer, 2026-09-02). Sprint 051 (increment 15A)
-is IN PROGRESS — Wave 0 approved in full. Sprint 052 (increment 15B) is NOT
-planned yet; it depends on Sprint 051's delivered facts (the actual imported
-`BTCUSDT.P` date range and row count).
+is **COMPLETE** (11/11, on `sprint/momentum-and-regime-catalog`; final
+integration PR to `main` pending) — see `SPRINT_051.md` §13 Review. Sprint 052
+(increment 15B) is **PLANNED but NOT approved/opened** (`SPRINT_052.md`,
+`Status: PLANNED`); it now has its delivered prerequisite fact from Sprint
+051 (`BTCUSDT.P`, 1m, `2024-01-01 -> 2026-06-29`, 911 days, 1,311,840 rows,
+zero gaps — `S051_BTC_DATA_INVENTORY.md`), but opening it remains a separate
+maintainer approval step. **Phase 15 as a whole is NOT complete** — no
+real-data predictive study has been run.
 **Product source:** `docs/product/PRD-predictive-research-catalog-expansion.md`
 — the maintainer's grill-me discovery record; authoritative on scope,
 non-goals and success metrics.
@@ -1998,15 +2003,17 @@ be closed with an OHLCV-only catalog at this instrument and horizon. Both
 outcomes are deliverable results.
 
 ```text
-15A — Momentum and Regime Component Catalog        Sprint 051 (IN PROGRESS)
+15A — Momentum and Regime Component Catalog        Sprint 051 (COMPLETE)
       momentum.rsi / momentum.macd / momentum.stochastic;
       volatility.relative_volatility, statistics.return_autocorrelation,
       statistics.return_distribution.
       SHARED catalog: consumable by rule-based Signal Models AND declarable
       as predictive FeatureSpec entries — one catalog, two consumers, exactly
       like every existing component. No ML-only component concept is created.
-      Also carries the LONG-LEAD BTC data-acquisition task.
-      Ships NO study result and NO change to the Phase 10 pipeline.
+      Also carried the LONG-LEAD BTC data-acquisition task — SUCCEEDED,
+      measured (BTCUSDT.P, 1m, 2024-01-01 -> 2026-06-29, 911 days,
+      1,311,840 rows, zero gaps; S051_BTC_DATA_INVENTORY.md).
+      Shipped NO study result and NO change to the Phase 10 pipeline.
 
 15B — Real-Data BTC Predictive Study               Sprint 052 (NOT planned)
       One study on the imported BTCUSDT.P bars, through the UNMODIFIED
@@ -2050,19 +2057,23 @@ Sprint 050 / Phase 14B is not planned, resized or pre-empted by this phase;
 ## Dependencies
 
 - Phase 10 complete (Sprints 039–044) — **satisfied** (#348),
-- Phase 2F's Binance USD-M importer (Sprint 045, ADR-0025) — **the code is
-  satisfied; the data is NOT.** Verified 2026-09-02: no `BTCUSDT.P` dataset
-  has ever been imported. Range fixed by the maintainer: `BTCUSDT.P`, 1m,
-  **2024-01-01 → 2026-06-30** (~1.31M bars), wall-clock cost under Binance
-  weight limits accepted as a known, priced cost (ADR-0025 "Consequences"),
+- Phase 2F's Binance USD-M importer (Sprint 045, ADR-0025) — **the code was
+  satisfied first; the data is now satisfied too.** Verified 2026-09-02: no
+  `BTCUSDT.P` dataset had ever been imported at that point. Sprint 051 ran
+  the import over the maintainer-fixed range and it **succeeded**:
+  `BTCUSDT.P`, 1m, `2024-01-01 -> 2026-06-29` (911 days, 1,311,840 rows,
+  zero gaps — measured, `S051_BTC_DATA_INVENTORY.md`), well within the
+  wall-clock cost accepted as a known, priced cost (ADR-0025
+  "Consequences") — the actual run took ~8m36s with zero rate-limit
+  backoff,
 - Phase 12/13's catalog and authoring work — consumed as precedent, unmodified.
 
 ## Main risks
 
-- **The data does not exist yet** — acquisition sits in Sprint 051, not
-  gating Sprint 052's opening. Slowness is priced in; genuine
-  impracticability triggers the hard stop above, never a substitute
-  instrument.
+- **The data acquisition risk is RESOLVED** — Sprint 051's import succeeded
+  (measured: 911 days, 1,311,840 rows, zero gaps,
+  `S051_BTC_DATA_INVENTORY.md`); the hard-stop-on-impracticability path
+  (D-S051-07a) was never triggered.
 - **The riskiest assumption:** the new components may add noise dimensions
   to overfit rather than signal — mitigated by the existing purge/embargo/
   permutation discipline and by treating a negative result as reportable.
