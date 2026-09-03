@@ -109,7 +109,7 @@ answers:
 | T004 | Move confirmed-current sections to `docs/reference/system/` | T001, T002, T003 | DONE |
 | T005 | Maintainer decision + move: `ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md` | — | DONE |
 | T006 | Maintainer decision: `WORKFLOWS_AI_ADR.md` location | — | DECIDED — rescoped into T003b/T006a/T006b/T006c |
-| T006a | Reconcile `WORKFLOWS_AI_ADR.md` §7 into `docs/adr/README.md` | — | TODO |
+| T006a | Reconcile `WORKFLOWS_AI_ADR.md` §7 into `docs/adr/README.md` | — | DONE |
 | T006b | Reconcile `WORKFLOWS_AI_ADR.md` §6 into `AGENTS.md`/`ARCHITECTURE_CONTROL.md` | — | TODO |
 | T006c | Move confirmed-current §1-5/§8 sections to `docs/reference/` | T003b | TODO |
 | T007 | Content audit of 12+3 `docs/reference/` files, produce split plan | — | DONE |
@@ -260,6 +260,40 @@ answers:
   (§4.5, §4.14, §4.18 all independently found this gap). No content in
   `WORKFLOWS_AI_ADR.md` was moved or edited; T006c (the actual move) is
   gated on this classification being reviewed, per D-S054-01.
+- 2026-09-03: T006a complete. Sampled ADR-0026/0028/0029 to verify actual
+  ADR practice before choosing between the two competing status
+  vocabularies/templates (per the recommendation's open question 3): all
+  sampled ADRs use the uppercase `PROPOSED/ACCEPTED/DEPRECATED/SUPERSEDED`
+  vocabulary already in `docs/adr/README.md` (never the mixed-case
+  `Proposed/Accepted/Rejected/Deferred/Superseded/Deprecated` from
+  `WORKFLOWS_AI_ADR.md` §7.4), and the lean `Status/Context/Decision/
+  Consequences/References` template extended with two informally-recurring
+  optional sections (`Alternatives Considered`, `Follow-up`) — never the
+  richer 9-section §7.5 template. `docs/adr/README.md` now has a
+  consolidated "Process" section (when an ADR is required, numbering/
+  location, review, ownership — from §7.1-7.5/7.9/7.10), an updated Status
+  Model that adds `PLANNED` as a fifth status (already used by ADR-0004/
+  0009/0010/0030 in the index but previously undocumented), an updated
+  Template section documenting the two optional sections, and a new "ADR
+  Backlog" section carrying forward every §7.6-7.8 decision/deferred-item/
+  trigger that has no `ACCEPTED` ADR yet (nothing dropped silently).
+  Cross-referenced all 21 §7.6 "Accepted Decisions" against the ADR index:
+  Modular Monolith, Market Analysis Domain, Market Analysis Taxonomy,
+  Declarative Models, Signal Research Scope, SignalOccurrence Ownership,
+  Market Analysis Engine, Dataset Lifecycle, Framework and User Space, UTC
+  Policy and Historical Storage already have matching `ACCEPTED` ADRs
+  (0001, 0005, 0006, 0012, 0011, ADR-MA-006, 0007, 0002, 0003, 0008) and
+  were dropped as duplicates; Independent Capabilities and Research/
+  Execution Separation map to already-`PLANNED` ADR-0004/0009; Working
+  Fingerprints maps to already-`PLANNED` ADR-0010; the remaining six
+  (Strategy Composition, Position Sizing, MarketFieldReference, Persistent
+  Research Datasets, Hybrid Communication, Configuration Boundaries) plus
+  all of §7.7's deferred items and §7.8's reconsideration triggers have no
+  ADR number yet and were moved verbatim into the new ADR Backlog section.
+  `WORKFLOWS_AI_ADR.md` §7.1-7.10 replaced with a short pointer note to
+  `docs/adr/README.md`; §1-§6 and §8 untouched (out of scope, per T003b/
+  T006b/T006c). No file under `docs/adr/` (the ADR files themselves) was
+  touched.
 
 ## 6. Outcome
 
