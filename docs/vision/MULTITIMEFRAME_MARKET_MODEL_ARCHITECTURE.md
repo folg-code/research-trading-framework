@@ -2,6 +2,17 @@
 
 # Multitimeframe and Market Model Architecture
 
+> **Sprint 054 T004 note:** the vision index previously labeled this whole
+> document "(future)". `docs/planning/sprints/SPRINT_054_T003_MULTITIMEFRAME_MARKET_MODEL_CLASSIFICATION.md`
+> found that label inaccurate — most of this document (§2–§10, most of
+> §12/§16) describes already-built behavior and has moved to
+> [`docs/reference/system/MULTITIMEFRAME_MARKET_MODEL.md`](../reference/system/MULTITIMEFRAME_MARKET_MODEL.md).
+> What remains here is genuinely future-facing (sensitivity surfaces,
+> multi-objective/Pareto scoring, the complexity-penalty formula), of
+> ambiguous as-built status, or the still-future portion of a mixed
+> section. See the classification doc for the full section-by-section
+> reasoning and evidence before assuming anything below is or is not built.
+
 ## 1. Purpose
 
 This document records the architectural decisions concerning:
@@ -31,114 +42,18 @@ This document complements:
 
 ---
 
-# 2. Core Decision
+## 3. Market Analysis Responsibilities
 
-A Market Model is not an analytical feature.
+### 3.5 States
 
-A Market Model is a named, versioned and declarative composition of analytical outputs produced by the Market Analysis domain.
-
-The architecture is:
-
-```text
-Market Data
-    ↓
-Market Analysis Components
-    ├── Features
-    ├── Structures
-    └── States
-            ↓
-    ┌───────┴────────┐
-    ↓                ↓
-Market Model     Signal Model
-```
-
-The Market Analysis domain calculates reusable descriptions of the market.
-
-The Market Model selects and combines those descriptions into a specific market-context hypothesis.
-
----
-
-# 3. Market Analysis Responsibilities
-
-## 3.1 Market Analysis Question
-
-Market Analysis answers:
-
-```text
-What analytical information can be derived from market data?
-```
-
-It owns reusable calculations and classifications that can be consumed independently by:
-
-- Market Models,
-- Signal Models,
-- Signal Research,
-- Strategy Research,
-- live execution.
-
-Market Analysis does not decide whether a trade should be entered, exited or sized.
-
----
-
-## 3.2 Market Analysis Categories
-
-The Market Analysis domain exposes three semantic output categories:
-
-```text
-Market Analysis Components
-├── Features
-├── Structures
-└── States
-```
-
-All categories may use the same Market Analysis Engine, dependency graph, cache and execution contracts.
-
-The categories express meaning and result shape. They do not require separate computation engines.
-
----
-
-## 3.3 Features
-
-Features produce scalar, categorical, vector or time-series outputs.
-
-Examples:
-
-- ATR,
-- rolling volatility,
-- RSI,
-- VWAP,
-- slope,
-- momentum,
-- volume delta,
-- distance to session high,
-- distance to VWAP.
-
-A Feature may be an input to another Feature, Structure or State component.
-
----
-
-## 3.4 Structures
-
-Structures represent richer market objects or detected events.
-
-Examples:
-
-- swing structure,
-- session range,
-- fair value gap,
-- liquidity sweep,
-- order block,
-- liquidity pool,
-- higher high,
-- lower low.
-
-Structures should use typed schemas or structured datasets.
-
-They should not default to untyped dictionaries.
-
----
-
-## 3.5 States
+*(Classified MIXED by T003 — as-built status is nuanced, see
+`SPRINT_054_T003_MULTITIMEFRAME_MARKET_MODEL_CLASSIFICATION.md` §3.5. The
+Feature/Structure/State taxonomy is real and implemented for at least
+volatility (`market_analysis/components/volatility/state.py`, registered as
+`component_id = "volatility.state"`), but none of the specific named State
+types below — `TrendState`, `VolatilityRegime`, `MomentumState`,
+`LiquidityState`, `StructuralState`, `MarketPhase` — exist under those
+names anywhere in `src/`.)*
 
 States classify reusable market conditions from Features, Structures and Market Data.
 
@@ -187,284 +102,16 @@ It may depend on:
 
 ---
 
-# 4. Boundary Between Market Analysis and Strategy
-
-The boundary is:
-
-```text
-Market Analysis:
-What reusable analytical information can be derived?
-
-Market Model:
-Which analytical conditions define the market context?
-
-Signal Model:
-Which analytical events and conditions define a trading opportunity?
-
-Strategy Model:
-How are Market, Signal, Exit and Risk Models composed?
-```
-
-Examples that belong to Market Analysis:
-
-```text
-trend = bullish
-volatility = normal
-market structure = continuation
-price is above VWAP
-liquidity state = compressed
-```
-
-Examples that do not belong to Market Analysis:
-
-```text
-good environment for London Sweep
-avoid long entries
-breakout entry allowed
-preferred strategy context
-```
-
-These are strategy-specific interpretations and should be expressed through Market Model composition or higher-level strategy definitions.
-
----
-
-# 5. Market Model Definition
-
-## 5.1 Market Model Question
-
-A Market Model answers:
-
-```text
-Which combination of analytical market conditions defines the context under study?
-```
-
-It does not calculate ATR, trend, volatility regime or market structure internally.
-
-It consumes their previously calculated outputs.
-
----
-
-## 5.2 Market Model as Expression Tree
-
-A Market Model is an explicit logical expression over Market Analysis outputs.
-
-A Signal Model follows the same technical pattern. The distinction is semantic, not computational.
-
-Example:
-
-```text
-Bullish Expansion Model
-=
-Trend State 4h == bullish
-AND
-Volatility Regime 1h == expanding
-AND
-Structural State 30m == bullish continuation
-AND
-Price Above VWAP 1m == true
-```
-
-Conceptual definition:
-
-```python
-@dataclass(frozen=True, slots=True)
-class MarketModelDefinition:
-    id: str
-    version: int
-    expression: MarketExpression
-```
-
-A leaf condition may reference a Market Analysis request:
-
-```python
-@dataclass(frozen=True, slots=True)
-class ComponentCondition:
-    component_request: ComponentRequest
-    operator: ComparisonOperator
-    expected_value: object
-```
-
----
-
-## 5.3 Market Model Ownership
-
-The Market Model Definition remains in the Strategy domain because it expresses a strategy-relevant market context.
-
-The analytical algorithms used by the Market Model remain in Market Analysis.
-
-Therefore:
-
-```text
-Market Analysis owns Features, Structures and States.
-Strategy owns Market Model and Signal Model composition.
-```
-
-This prevents Market Analysis from becoming coupled to specific trading ideas.
-
----
-
-## 5.4 Market and Signal Models Must Remain Lightweight
-
-A Market Model or Signal Model Model must not:
-
-- fetch data,
-- resample data,
-- calculate indicators,
-- calculate Structures,
-- calculate Market Analysis states,
-- access provider SDKs,
-- open Parquet files,
-- implement Signal logic,
-- implement Exit logic,
-- implement Risk logic.
-
-It should only:
-
-- identify required analytical outputs,
-- define logical conditions,
-- preserve component lineage,
-- evaluate a logical expression over aligned results.
-
----
-
-# 6. Multitimeframe Architecture
-
-## 6.1 Core Principle
-
-Multitimeframe is not a special strategy type and not a special Market Model type.
-
-It is a natural property of analytical component requests.
-
-Each Market Analysis component may be instantiated on a selected timeframe.
-
-Example:
-
-```text
-Trend State 4h
-Volatility Regime 1h
-Structural State 30m
-Price Above VWAP 1m
-```
-
-Market and Signal Models may compose these outputs without requiring separate multitimeframe logic.
-
----
-
-## 6.2 Timeframe Is Part of Component Identity
-
-A single implementation should support multiple timeframe-specific instances.
-
-Correct:
-
-```text
-ATR(period=14, timeframe=30m)
-ATR(period=14, timeframe=1h)
-ATR(period=14, timeframe=4h)
-```
-
-Incorrect:
-
-```text
-ATR30m
-ATR1h
-ATR4h
-```
-
-The full identity of a calculated analytical node should include all material temporal inputs.
-
-Suggested dimensions:
-
-```text
-component_id
-component_version
-parameters
-instrument
-source_dataset
-source_timeframe
-computation_timeframe
-evaluation_timeframe
-resampling_policy
-alignment_policy
-calendar_version
-```
-
----
-
-## 6.3 Source, Computation and Evaluation Timeframe
-
-The framework must distinguish three concepts.
-
-### Source Timeframe
-
-The granularity of the source dataset.
-
-Example:
-
-```text
-NQ 1m bars
-```
-
-### Computation Timeframe
-
-The granularity on which an analytical component is calculated.
-
-Examples:
-
-```text
-Volatility Regime on 30m
-Trend State on 1h
-Market Phase on 4h
-```
-
-### Evaluation Timeframe
-
-The granularity on which the Market Model or Signal Model is evaluated.
-
-Example:
-
-```text
-Signal evaluated every 1m
-```
-
-Example configuration:
-
-```text
-source timeframe:       1m
-signal evaluation:      1m
-volatility computation: 30m
-trend computation:      1h
-market phase:            4h
-```
-
-These concepts must not be conflated.
-
----
-
-# 7. Resampling
-
-## 7.1 Resampling Is a Shared Dependency
-
-Resampling must be represented as an explicit node in the dependency graph.
-
-Example:
-
-```text
-NQ 1m Bars
-   ├── Resample to 30m
-   │      └── Volatility Regime 30m
-   ├── Resample to 1h
-   │      └── Trend State 1h
-   └── Resample to 4h
-          └── Market Phase 4h
-```
-
-The same resampled dataset should be reused by all components requiring it.
-
-A component must not privately resample source data inside its own calculation method.
-
----
-
-## 7.2 Derived Datasets
+## 7. Resampling
+
+### 7.2 Derived Datasets
+
+*(Classified AMBIGUOUS by T003 — as-built status unclear as of Sprint 054,
+see `SPRINT_054_T003_MULTITIMEFRAME_MARKET_MODEL_CLASSIFICATION.md` §7.2.
+This describes a user-workspace storage convention rather than a
+`src/trading_framework/` code contract; verifying the actual on-disk
+`user_data/data/derived/` layout and its lineage metadata was out of scope
+for the grep-level verification pass.)*
 
 Resampled datasets belong to the derived data layer.
 
@@ -487,124 +134,14 @@ A derived dataset should preserve:
 
 ---
 
-## 7.3 Resampling Contract
+## 8. Temporal Alignment and Look-Ahead Protection
 
-Conceptual model:
+### 8.5 Intrabar Exception
 
-```python
-@dataclass(frozen=True, slots=True)
-class ResampleRequest:
-    source_timeframe: Timeframe
-    target_timeframe: Timeframe
-    calendar_id: str
-    boundary_policy: BoundaryPolicy
-```
-
-The resampling implementation should be reusable by:
-
-- Market Analysis Engine,
-- dataset generation workflows,
-- research workflows,
-- replay and execution preparation.
-
----
-
-# 8. Temporal Alignment and Look-Ahead Protection
-
-## 8.1 Main Risk
-
-The main multitimeframe risk is not resampling itself.
-
-It is making higher-timeframe information available before that information was known.
-
-Example:
-
-```text
-Decision time: 10:37
-Higher timeframe: 1h
-Current 1h interval: 10:00–11:00
-```
-
-At 10:37, the final high, low, close, volume, ATR and regime of the 10:00–11:00 bar are not available.
-
-The framework must not expose their final values to a 1m decision at 10:37.
-
----
-
-## 8.2 Default Alignment Policy
-
-The default policy is:
-
-```text
-LAST_CLOSED_BAR
-```
-
-A higher-timeframe result becomes available only after the underlying higher-timeframe interval is closed and the result is calculated.
-
-Example:
-
-```text
-4h interval:   08:00–12:00
-available_at:  12:00
-```
-
-The value may then be used by lower-timeframe observations occurring at or after `available_at`.
-
----
-
-## 8.3 As-Of Alignment
-
-Higher-timeframe outputs should normally be aligned to lower-timeframe observations using backward as-of semantics.
-
-Conceptually:
-
-```text
-For each lower-timeframe timestamp,
-use the most recent higher-timeframe result
-whose available_at <= evaluation timestamp.
-```
-
-A normal equality join is insufficient.
-
-A blind forward-fill is unsafe unless it is based on explicit `available_at` semantics.
-
----
-
-## 8.4 Observed Time and Available Time
-
-Analytical results should preserve two temporal concepts:
-
-```text
-observed_at
-available_at
-```
-
-`observed_at` describes the source market interval.
-
-`available_at` describes when the result may legally be consumed.
-
-Conceptual model:
-
-```python
-@dataclass(frozen=True, slots=True)
-class TemporalAnalysisResult:
-    component_key: ComponentKey
-    timeframe: Timeframe
-    observed_at: TimestampRange
-    available_at: datetime
-    payload: AnalysisPayload
-```
-
-This distinction supports:
-
-- automatic look-ahead validation,
-- replay consistency,
-- research/execution parity,
-- correct multitimeframe joins.
-
----
-
-## 8.5 Intrabar Exception
+*(Classified AMBIGUOUS by T003 — as-built status unclear as of Sprint 054,
+see `SPRINT_054_T003_MULTITIMEFRAME_MARKET_MODEL_CLASSIFICATION.md` §8.5.
+No explicit "intrabar" flag, declaration mechanism, or component metadata
+field for this exception was found.)*
 
 Incomplete higher-timeframe data may be used only when the model explicitly studies intrabar state.
 
@@ -620,7 +157,14 @@ Intrabar behaviour must never be the accidental result of ordinary resampling.
 
 ---
 
-# 9. Component Request
+## 9. Component Request
+
+*(Classified MIXED by T003. The actual `market_analysis/models/request.py`
+`ComponentRequest` has only three fields (`component_id`, `parameters`,
+`computation_timeframe`) — materially smaller than the 7-field version
+below. The core idea (an explicit, non-hidden request object driving the
+planner) is implemented; the specific contract shape below is not. See
+`SPRINT_054_T003_MULTITIMEFRAME_MARKET_MODEL_CLASSIFICATION.md` §9.)*
 
 A timeframe-aware analytical component request may be represented as:
 
@@ -651,98 +195,13 @@ The framework contract must remain explicit and serializable.
 
 ---
 
-# 10. MarketFieldReference
+## 12. Research-Space Growth
 
-Model expressions must not access arbitrary DataFrames, Parquet files or storage objects.
+### 11.1 The Problem
 
-Simple source-data conditions may use a controlled:
-
-```text
-MarketFieldReference
-```
-
-A reference must preserve:
-
-```text
-dataset lineage
-field identity
-source timeframe
-evaluation timeframe
-available_at semantics
-```
-
-It participates in dependency resolution and temporal validation.
-
----
-
-# 11. Market and Signal Model Examples
-
-
-```yaml
-market_model:
-  id: bullish_expansion
-  version: 1
-
-  expression:
-    operator: AND
-    children:
-      - component: trend_state
-        timeframe: 4h
-        condition:
-          equals: bullish
-
-      - component: volatility_regime
-        timeframe: 1h
-        condition:
-          equals: expanding
-
-      - component: structural_state
-        timeframe: 30m
-        condition:
-          equals: bullish_continuation
-
-      - component: price_above_vwap
-        timeframe: 1m
-        condition:
-          equals: true
-```
-
-The Market Analysis Engine resolves and calculates the Market Analysis dependencies.
-
-The Market Model evaluator only applies the expression to aligned outputs.
-
-
-Signal Model example:
-
-```yaml
-signal_model:
-  id: bullish_sweep
-  version: 1
-
-  expression:
-    operator: AND
-    children:
-      - component: liquidity_sweep
-        computation_timeframe: 1m
-        condition:
-          field: direction
-          equals: bullish
-
-      - component: price_reclaim
-        computation_timeframe: 1m
-        condition:
-          equals: true
-```
-
-The Market Analysis Engine resolves shared dependencies for both model types.
-The model evaluator applies the expression only to resolved and legally available outputs.
-
----
-
-
-# 12. Research-Space Growth
-
-## 11.1 The Problem
+*(Note: this section is numbered `# 12` but its subsections are labeled
+`## 11.1`/`## 11.2` in the source file — a pre-existing numbering
+inconsistency, left as-is per T003's read-only scope.)*
 
 Multitimeframe analysis expands the number of possible component combinations.
 
@@ -769,7 +228,7 @@ It may only produce overfitted results faster.
 
 ---
 
-## 11.2 No Implicit Full Cartesian Product
+### 11.2 No Implicit Full Cartesian Product
 
 The framework must not interpret every list of timeframe or parameter values as a mandatory full Cartesian product.
 
@@ -784,44 +243,19 @@ logical composition
 
 These have different meanings.
 
----
+*(§11.3 Fixed Selection and §11.4 Independent Alternatives were classified
+CURRENT and moved to
+[`docs/reference/system/MULTITIMEFRAME_MARKET_MODEL.md`](../reference/system/MULTITIMEFRAME_MARKET_MODEL.md#independent-alternatives-research-space-growth).)*
 
-## 11.3 Fixed Selection
+### 11.5 Search Constraints
 
-One explicit model:
-
-```yaml
-trend_state:
-  timeframe: 4h
-
-volatility_regime:
-  timeframe: 1h
-```
-
-This creates one Market Model definition.
-
----
-
-## 11.4 Independent Alternatives
-
-A focused comparison:
-
-```yaml
-trend_state:
-  timeframe:
-    experiments:
-      - 30m
-      - 1h
-      - 4h
-```
-
-This creates three comparable variants.
-
-It does not imply that all other dimensions must expand simultaneously.
-
----
-
-## 11.5 Search Constraints
+*(Classified MIXED by T003. `candidate_bounds.max_candidates` — a
+bound-and-prune mechanism — is confirmed implemented
+(`research/signal_research/family_planning.py`). The specific named
+constraint fields below (`max_distinct_timeframes`,
+`require_context_timeframe_gte_signal_timeframe`,
+`forbid_duplicate_analysis_category`) returned zero matches in `src/` as of
+this sprint.)*
 
 A bounded research space may declare constraints such as:
 
@@ -847,11 +281,19 @@ The planner should reject or prune invalid combinations before computation.
 
 ---
 
-# 13. Hierarchical Research Methodology
+## 13. Hierarchical Research Methodology
+
+*(Classified AMBIGUOUS by T003 — as-built status unclear as of Sprint 054,
+see `SPRINT_054_T003_MULTITIMEFRAME_MARKET_MODEL_CLASSIFICATION.md` §13.
+This describes a research process/methodology for humans/agents to follow
+rather than a system behavior with a code artifact to check. The
+underlying validation techniques for Stage 5 (`research/robustness/`) do
+exist as tools; whether researchers actually follow this staged
+progression is a process question, not verifiable via code search.)*
 
 The framework should encourage progressive research rather than immediate full-grid Strategy Research.
 
-## Stage 1: Individual Components
+### Stage 1: Individual Components
 
 Test one market property at a time.
 
@@ -874,7 +316,7 @@ Questions:
 
 ---
 
-## Stage 2: Pairwise Interactions
+### Stage 2: Pairwise Interactions
 
 Test only promising pairs.
 
@@ -888,7 +330,7 @@ Market Phase 4h × Volatility Regime 30m
 
 ---
 
-## Stage 3: Small Model Compositions
+### Stage 3: Small Model Compositions
 
 Build compact Market Models and Signal Models from validated components.
 
@@ -902,7 +344,7 @@ A larger model requires stronger evidence and explicit complexity justification.
 
 ---
 
-## Stage 4: Complete Strategy Research
+### Stage 4: Complete Strategy Research
 
 Only selected Market Models and Signal Models are combined with:
 
@@ -915,7 +357,7 @@ This produces complete Strategy Model candidates.
 
 ---
 
-## Stage 5: Validation
+### Stage 5: Validation
 
 Selected candidates should undergo:
 
@@ -929,125 +371,21 @@ Selected candidates should undergo:
 
 ---
 
-# 14. Research Result Architecture
-
-## 13.1 Do Not Create One Giant Experiment Matrix
-
-The framework should not create a separate wide DataFrame column for every complete experiment combination.
-
-Avoid:
-
-```text
-rows = every market timestamp
-columns = every Market Model × Signal Model × timeframe combination
-```
-
-This creates poor memory characteristics and difficult lineage.
-
----
-
-## 13.2 Separate Data Layers
-
-Recommended layers:
-
-```text
-Derived Market Datasets
-        ↓
-Market Analysis Cache
-        ↓
-Market Analysis Results
-        ↓
-Market Model Results / SignalOccurrences
-        ↓
-Signal Research Dataset
-        ↓
-Strategy Research Dataset
-        ↓
-Analytics and Reports
-```
-
-Each layer has a separate identity and persistence policy.
-
----
-
-## 13.3 Market Analysis Cache
-
-Feature outputs may use a wide, computation-friendly representation.
-
-Example:
-
-```text
-timestamp
-atr_14__30m
-atr_14__1h
-trend_state__1h
-trend_state__4h
-```
-
-These are reusable analytical outputs, not complete experiment results.
-
----
-
-## 13.4 Market Model Results
-
-Boolean Market Model states may be represented as:
-
-- boolean masks,
-- bitsets,
-- categorical arrays,
-- integer state codes,
-- sparse event tables where appropriate.
-
-An experiment should reference reusable state identities rather than copy the entire time series.
-
----
-
-## 13.5 Research Results
-
-Research results should use queryable fact tables and explicit lineage.
-
-Example result fields:
-
-```text
-run_id
-experiment_id
-instrument
-signal_id
-market_model_id
-forward_horizon
-sample_size
-mean_return
-median_return
-hit_rate
-mfe
-mae
-stability_score
-oos_score
-```
-
-Component lineage may be stored separately:
-
-```text
-experiment_id
-component_id
-component_version
-component_kind
-timeframe
-parameter_set_id
-role
-```
-
-This avoids duplicating component metadata in every row.
-
----
-
-# 15. Automated Analysis of Large Result Spaces
+## 15. Automated Analysis of Large Result Spaces
 
 Manual inspection must not be the primary method of analysing large research spaces.
 
 The Research domain should support automated analytical passes.
 
-## 14.1 Screening
+### 14.1 Screening
+
+*(Classified AMBIGUOUS by T003 — as-built status unclear as of Sprint 054,
+see `SPRINT_054_T003_MULTITIMEFRAME_MARKET_MODEL_CLASSIFICATION.md` §14.1.
+`research/predictive/selection.py` is a model-selection module for the
+Predictive Research track, not a generalized experiment-screening
+mechanism matching the criteria below; `family_planning.py`'s cap-and-skip
+logic is evidence of *some* automated pruning, but not specifically of
+these named screening criteria.)*
 
 Automatically reject or flag experiments with:
 
@@ -1062,7 +400,12 @@ Automatically reject or flag experiments with:
 
 ---
 
-## 14.2 Marginal Contribution
+### 14.2 Marginal Contribution
+
+*(Classified AMBIGUOUS by T003 — as-built status unclear as of Sprint 054,
+see `SPRINT_054_T003_MULTITIMEFRAME_MARKET_MODEL_CLASSIFICATION.md` §14.2.
+No nested-model-comparison utility or metric was found via targeted search
+in `research/analytics/` or `research/robustness/`.)*
 
 The framework should compare nested models.
 
@@ -1078,31 +421,11 @@ This measures whether an added condition creates real incremental value.
 
 ---
 
-## 14.3 Family Analysis
+### 14.4 Sensitivity Surfaces
 
-Nearby variants should be grouped into Market Model or Strategy families.
-
-Example family:
-
-```text
-Trend State 30m
-Trend State 1h
-Trend State 4h
-Trend State 1h + Volatility Regime 30m
-Trend State 4h + Volatility Regime 1h
-```
-
-Family analysis should evaluate:
-
-- stability across nearby timeframes,
-- stability across nearby parameters,
-- component contribution,
-- whether performance depends on one isolated optimum,
-- cross-asset consistency.
-
----
-
-## 14.4 Sensitivity Surfaces
+*(Classified FUTURE by T003. `Grep` for `sensitivity_surface` returned
+zero matches in `src/`; no matrix/surface-shaped analytics output was
+found.)*
 
 Timeframe and parameter combinations should be summarised through matrices or surfaces.
 
@@ -1116,7 +439,11 @@ The purpose is to identify stable regions rather than one maximum point.
 
 ---
 
-## 14.5 Multi-Objective Evaluation
+### 14.5 Multi-Objective Evaluation
+
+*(Classified FUTURE by T003. `Grep` for `Pareto` returned zero matches in
+`src/`. Individual metrics exist elsewhere, but no multi-objective
+combination/ranking mechanism ties them together as described below.)*
 
 A candidate should not be selected by one metric alone.
 
@@ -1137,7 +464,11 @@ The framework may use Pareto-frontier analysis or an explicit composite score.
 
 ---
 
-## 14.6 Complexity Penalty
+### 14.6 Complexity Penalty
+
+*(Classified FUTURE by T003. `Grep` for `complexity_penalty`/
+`multiple_testing` returned zero matches in `src/`. No adjusted-score
+formula of this shape was found in `research/analytics/`.)*
 
 More complex models should require materially better and more stable evidence.
 
@@ -1156,28 +487,17 @@ The exact formula belongs to Research Analytics configuration and should not be 
 
 ---
 
-# 16. Multiple Testing
+## 17. Proposed Module Structure
 
-Multitimeframe and parameter expansion increase false-discovery risk.
-
-Every research run should preserve:
-
-- number of generated candidates,
-- number of evaluated candidates,
-- number of rejected candidates,
-- pruning rules,
-- selection history,
-- validation split definitions,
-- family membership,
-- ranking objective.
-
-A top result among millions of tested combinations is not automatically evidence of an edge.
-
-The framework must make the size of the search space visible.
-
----
-
-# 17. Proposed Module Structure
+*(Classified AMBIGUOUS by T003 — the actual `market_analysis/` and
+`strategy/` layouts differ from both proposals below under different
+directory names (see
+`SPRINT_054_T003_MULTITIMEFRAME_MARKET_MODEL_CLASSIFICATION.md` §17). The
+document's own framing ("Start with a minimal structure... Evolve only
+when...") anticipates this drift, so this section is left here as
+illustrative context rather than an as-built contract. The authoritative
+current package tree is
+[`docs/reference/MODULE_MAP.md`](../reference/system/MODULE_MAP.md).)*
 
 Start with a minimal structure:
 
@@ -1223,7 +543,15 @@ The conceptual taxonomy is stable even if the directory structure evolves.
 
 ---
 
-# 18. User Data Structure
+## 18. User Data Structure
+
+*(Classified MIXED by T003. `component_id`/`resolved_parameters`-shaped
+identity concepts are pervasively implemented elsewhere and documented as
+CURRENT in `docs/reference/system/ARCHITECTURE_FOUNDATIONS.md`. The
+`reproducibility_status`/`implementation_hash` fields below returned zero
+matches anywhere in `src/` as of this sprint. The on-disk `user_data/`
+folder layout itself is a private workspace per ADR-0022, not part of the
+framework repo's own tree, and was not independently verified here.)*
 
 ```text
 user_data/
@@ -1260,73 +588,15 @@ reproducibility_status = EXPERIMENTAL
 
 ---
 
-# 19. Architectural Rules
+## 19. Architectural Rules (remaining future-facing items)
 
-1. Market Analysis owns reusable Features, Structures and States.
-2. Market Models and Signal Models are declarative Strategy Domain compositions.
-3. Both model types may consume the same Market Analysis outputs.
-4. Models do not calculate analytical dependencies internally.
-5. Models do not access arbitrary DataFrames or storage.
-6. Controlled MarketFieldReferences are allowed.
-7. Timeframe is part of analytical request and cache identity.
-8. Source, computation and evaluation timeframe are distinct.
-9. Resampling is explicit and reusable.
-10. Higher-timeframe values use `available_at` semantics.
-11. `LAST_CLOSED_BAR` is the default alignment policy.
-12. Intrabar behaviour requires an explicit contract.
-13. Multitimeframe is not a special model type.
-14. Research supports Market Model only, Signal Model only and combined scope.
-15. Single analytical hypotheses use one-condition models.
-16. Lists do not imply logical `OR` or unrestricted Cartesian expansion.
-17. Research spaces are bounded and observable.
-18. Research progresses from small hypotheses to complete Strategy Models.
-19. Market Analysis caches and Research Datasets are separate layers.
-20. Large spaces require automated screening and multiple-testing metadata.
-21. Working components and models used in research require fingerprints.
-22. Batch/vectorized backtesting belongs to Research.
-23. Replay, Paper and Live belong to Strategy Execution.
-24. Every result preserves component, model, timeframe, parameter and dataset lineage.
+*(Rules 1–16, 19, 22 and 24 were classified CURRENT and moved to
+[`docs/reference/system/MULTITIMEFRAME_MARKET_MODEL.md`](../reference/system/MULTITIMEFRAME_MARKET_MODEL.md#architectural-rules-current-behavior-portion).
+The rules below remain here because they inherit MIXED/FUTURE findings
+from the sections above.)*
 
----
-
-# 20. Final Architectural Statement
-
-The framework uses Market Analysis as a reusable language for describing market behaviour.
-
-```text
-Features describe measurable properties.
-
-Structures describe market objects, levels, patterns and events.
-
-States classify market conditions.
-
-Market Models compose these outputs into market-context hypotheses.
-
-Signal Models compose these outputs into trading-opportunity hypotheses.
-```
-
-Multitimeframe support is implemented through timeframe-aware analytical requests, explicit resampling dependencies and safe temporal alignment.
-
-The framework must not rely on hidden informative-data decorators, monolithic Market Models or uncontrolled full-grid experimentation.
-
-The intended flow is:
-
-```text
-Canonical Market Dataset
-        ↓
-Explicit Resampling DAG
-        ↓
-Market Analysis Outputs per Timeframe
-        ↓
-Safe Temporal Alignment
-        ↓
-Market Model / Signal Model Expression Trees
-        ↓
-Signal Research
-        ↓
-Automated Screening and Family Analysis
-        ↓
-Selected Strategy Research Space
-```
-
-This architecture preserves composability, computational reuse, research correctness and manageable analytical complexity.
+17. Research spaces are bounded and observable. *(Partially built — see §11.5 above.)*
+18. Research progresses from small hypotheses to complete Strategy Models. *(See §13 above — process claim, AMBIGUOUS.)*
+20. Large spaces require automated screening and multiple-testing metadata. *(Screening is AMBIGUOUS — see §14.1 above; multiple-testing metadata is CURRENT for the Signal Research family case only, see the reference copy of §16.)*
+21. Working components and models used in research require fingerprints. *(FUTURE — see §18 above.)*
+23. Replay, Paper and Live belong to Strategy Execution. *(FUTURE — `execution/modes.py` supports only `DRY_RUN` as of this sprint; see `docs/vision/ARCHITECTURE_FOUNDATIONS.md` §6.5 and `docs/vision/ARCHITECTURE_TECHNICAL.md` §7.3.)*

@@ -1,5 +1,10 @@
 # Custom Strategy Authoring (`strategy_file`)
 
+> Moved from `docs/reference/STRATEGY_AUTHORING.md` to
+> `docs/reference/modules/STRATEGY_AUTHORING.md` by Sprint 054 T008
+> (`docs/reference` system/workflows/runbooks/modules split). Content
+> unchanged.
+
 This is the operator-facing how-to guide for writing your own Strategy Model
 and running it through `trading-cli research run strategy` (Phase 12,
 Sprint 047). The design record — why one config key, why no sandbox, the
@@ -67,7 +72,7 @@ arbitrary operator-supplied Python file is a stated non-goal of the PRD, and
 arguably incoherent with the premise that this is *your own code*: an
 unrestricted interpreter is one line away regardless of what the loader
 restricts. What is not acceptable is leaving this implicit — which is why it
-is stated here, in `--help`, and in `docs/reference/OPERATOR_CLI.md`.
+is stated here, in `--help`, and in `docs/reference/modules/OPERATOR_CLI.md`.
 
 Practically:
 
@@ -812,7 +817,7 @@ an oversight.
 - `docs/adr/ADR-0028-bracket-exit-and-equity-relative-sizing.md` — the
   Exit/Risk expansion: declined for Sprint 047, resumed and accepted for
   Sprint 048 (`BracketExitModel`, `EquityPercentRiskModel`).
-- `docs/reference/OPERATOR_CLI.md` — the full CLI operator guide.
+- `docs/reference/modules/OPERATOR_CLI.md` — the full CLI operator guide.
 - `apps/cli/CLAUDE.md` — module context for anyone editing `apps/cli`.
 - `docs/planning/sprints/SPRINT_048.md`, `S048_WAVE0_DECISIONS.md` — the
   sprint that shipped the three worked examples in §5's second block.

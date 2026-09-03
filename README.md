@@ -225,9 +225,9 @@ uv run pytest
 
 | Document | Purpose |
 |---|---|
-| [`docs/reference/MODULE_MAP.md`](docs/reference/MODULE_MAP.md) | Module ownership, dependencies and public entry points |
-| [`docs/reference/DATA_WORKFLOWS.md`](docs/reference/ARCHITECTURE_AND_WORKFLOWS.md) | Data lifecycle, storage, research and execution flows |
-| [`docs/reference/RESEARCH_METHODOLOGIES.md`](docs/reference/RESEARCH_METHODOLOGIES.md) | Research workflows and methodology |
+| [`docs/reference/system/MODULE_MAP.md`](docs/reference/system/MODULE_MAP.md) | Module ownership, dependencies and public entry points |
+| [`docs/reference/system/SYSTEM_OVERVIEW.md`](docs/reference/system/SYSTEM_OVERVIEW.md) | Data lifecycle, storage, research and execution flows |
+| [`docs/reference/workflows/RESEARCH_METHODOLOGIES.md`](docs/reference/workflows/RESEARCH_METHODOLOGIES.md) | Research workflows and methodology |
 
 
 ---

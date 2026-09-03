@@ -2,6 +2,19 @@
 
 # ARCHITECTURE_TECHNICAL.md
 
+> **Sprint 054 T004 note:** most of this document's sections were classified
+> CURRENT (already built, verified against `src/trading_framework/`) by
+> `docs/planning/sprints/SPRINT_054_T002_ARCHITECTURE_TECHNICAL_CLASSIFICATION.md`
+> and have moved to
+> [`docs/reference/system/ARCHITECTURE_TECHNICAL.md`](../reference/system/ARCHITECTURE_TECHNICAL.md).
+> What remains here is future-facing, ambiguous-status, or a section whose
+> "suggested" content has diverged structurally from the actual codebase
+> (notably the Module Structure and User Data Structure sections — the
+> authoritative as-built layout is
+> [`docs/reference/MODULE_MAP.md`](../reference/system/MODULE_MAP.md)). See the
+> classification doc for the full section-by-section reasoning and evidence
+> before assuming anything below is or is not built.
+
 ## 1. Purpose
 
 This document defines the technical architecture of the Trading Research Framework.
@@ -85,57 +98,13 @@ No module may introduce an independent timezone convention.
 
 ---
 
-## 2.2 Timestamp Policy
-
-All internal timestamps must be timezone-aware.
-
-The canonical internal representation is:
-
-```text
-UTC
-```
-
-Correct:
-
-```python
-datetime(..., tzinfo=timezone.utc)
-```
-
-Incorrect:
-
-```python
-datetime(...)
-```
-
-Every timestamp entering the framework must be normalized before it reaches domain logic.
-
----
-
-## 2.3 Timezone Policy
-
-The framework follows:
-
-```text
-UTC internally
-Local or exchange time only at boundaries
-```
-
-Boundaries include:
-
-- provider adapters,
-- broker adapters,
-- user interfaces,
-- reports,
-- exchange calendar definitions,
-- configuration files.
-
-Provider-specific timestamps must be converted to UTC during normalization.
-
-The original timezone and conversion assumptions should be retained in metadata where relevant.
-
----
-
 ## 2.4 Trading Sessions
+
+*(Classified MIXED by T002 — as-built status is nuanced, see
+`SPRINT_054_T002_ARCHITECTURE_TECHNICAL_CLASSIFICATION.md` §2.4. A session
+protocol/contract exists (`time/sessions/protocol.py`), but only one
+concrete session resolver is implemented (CME ES RTH); the other named
+sessions below have no matching implementation.)*
 
 A Trading Session is a configuration-driven time abstraction.
 
@@ -191,6 +160,12 @@ Hard-coded session-hour checks inside analytical components are prohibited.
 
 ## 2.5 Trading Calendars
 
+*(Classified AMBIGUOUS by T002 — as-built status unclear as of Sprint 054,
+see `SPRINT_054_T002_ARCHITECTURE_TECHNICAL_CLASSIFICATION.md` §2.5. No
+dedicated `Calendar` class or `time/calendars/` directory was found; the
+one session resolver that exists is timezone/session-boundary focused, not
+a separate generic calendar abstraction.)*
+
 A Trading Calendar defines when a market is open.
 
 Responsibilities include:
@@ -223,6 +198,10 @@ Domain and application code depend on framework contracts.
 
 ## 2.6 Holidays
 
+*(Classified AMBIGUOUS by T002 — as-built status unclear as of Sprint 054,
+see `SPRINT_054_T002_ARCHITECTURE_TECHNICAL_CLASSIFICATION.md` §2.6. No
+dedicated holiday-rule module or `holiday_policy` field was located.)*
+
 Holiday rules must be explicit and versionable.
 
 They affect:
@@ -241,163 +220,23 @@ Holiday logic belongs to the calendar layer, not to analytical feature code.
 
 ---
 
-## 2.7 Futures Contract Rolls
+## 2.10 Time Model Rules (see also the current-behavior portion in `docs/reference/system/ARCHITECTURE_TECHNICAL.md`)
 
-The framework distinguishes:
-
-```text
-Contract Dataset
-```
-
-from:
-
-```text
-Continuous Futures Dataset
-```
-
-Examples:
-
-```text
-NQM26
-NQU26
-NQ Continuous
-```
-
-Contract-roll metadata should include:
-
-```text
-source_contract
-destination_contract
-roll_timestamp
-roll_policy
-roll_trigger
-adjustment_method
-adjustment_value
-construction_version
-```
-
-Roll logic must not be hidden inside provider adapters.
-
-Continuous futures are explicit derived datasets.
-
----
-
-## 2.8 Clock Abstraction
-
-Time-dependent application and Strategy Execution logic depend on a `Clock` contract.
-
-Conceptual example:
-
-```python
-class Clock(Protocol):
-    def now(self) -> datetime:
-        ...
-```
-
-Possible implementations:
-
-```text
-SystemClock
-FixedClock
-ResearchClock
-ReplayClock
-```
-
-Direct use of `datetime.now()` inside domain and application logic is forbidden.
-
----
-
-## 2.9 Observed Time and Available Time
-
-Temporal analytical outputs must preserve or allow derivation of:
-
-```text
-observed_at
-available_at
-```
-
-`observed_at` identifies the market interval or event being described.
-
-`available_at` identifies when the output may legally be consumed.
-
-This distinction is mandatory for:
-
-- multitimeframe alignment,
-- look-ahead prevention,
-- replay consistency,
-- research/runtime parity.
-
----
-
-## 2.10 Time Model Rules
-
-1. UTC is the canonical internal timezone.
-2. Naive datetimes are forbidden.
-3. Provider and broker time is normalized at boundaries.
-4. Sessions are configuration-driven.
-5. Calendars own market-open and holiday logic.
-6. Market Analysis consumes session definitions but does not define global time policy.
-7. Futures contract rolls are explicit and versioned.
-8. Time-dependent logic uses a Clock abstraction.
-9. Dataset and analytical metadata preserve time assumptions.
-10. Temporal outputs preserve legal availability semantics.
-11. Higher-timeframe final values must not be visible before bar close.
-12. Time semantics must be reproducible across Research and Strategy Execution.
+*(This numbered rule list also appears, unchanged, in the reference copy —
+duplicated here only as the anchor for the calendar/holiday/session caveats
+above. Do not treat this as a second independent version of the rules.)*
 
 ---
 
 # 3. Market Data Architecture
 
-## 3.1 Purpose
-
-The Market Data Architecture defines how market facts are:
-
-- acquired,
-- imported,
-- normalized,
-- validated,
-- stored,
-- versioned,
-- published,
-- accessed,
-- replayed,
-- reused.
-
-The Market Domain owns trusted, provider-independent market facts and dataset contracts.
-
-Infrastructure implements concrete providers, importers and storage adapters.
-
----
-
-## 3.2 Supported Data Sources
-
-Possible sources include:
-
-- exchange APIs,
-- broker APIs,
-- market data vendors,
-- local files,
-- databases,
-- historical archives,
-- live streams.
-
-Examples:
-
-```text
-Binance
-Rithmic
-MetaTrader 5
-Databento
-CSV
-Parquet
-DuckDB
-```
-
-Provider-specific schemas must not leak into domain, Market Analysis, Strategy or Research logic.
-
----
-
 ## 3.3 Provider and Importer Contracts
+
+*(Classified AMBIGUOUS by T002 — as-built status unclear as of Sprint 054,
+see `SPRINT_054_T002_ARCHITECTURE_TECHNICAL_CLASSIFICATION.md` §3.3. The
+underlying capability (provider/importer separation) is CURRENT via
+`market/importers/` and `infrastructure/providers/`; the specific named
+contract protocols below were not found under these names.)*
 
 Provider contracts may include:
 
@@ -422,47 +261,11 @@ They may reuse normalization logic but must not be represented by one ambiguous 
 
 ---
 
-## 3.4 Data Normalization
-
-Normalization converts provider-specific representations into canonical Market Domain models.
-
-Examples:
-
-```text
-Provider Bar
-    ↓
-MarketBar
-```
-
-```text
-Provider Trade
-    ↓
-MarketTrade
-```
-
-```text
-Provider Quote
-    ↓
-MarketQuote
-```
-
-Normalization includes:
-
-- field mapping,
-- symbol mapping,
-- timestamp conversion,
-- timezone normalization,
-- numeric normalization,
-- precision normalization,
-- volume normalization,
-- side mapping,
-- missing-field policy.
-
-Normalization occurs before data reaches Market Analysis, Strategy, Research or Execution logic.
-
----
-
 ## 3.5 Instrument Mapping
+
+*(Classified AMBIGUOUS by T002 — as-built status unclear as of Sprint 054,
+see `SPRINT_054_T002_ARCHITECTURE_TECHNICAL_CLASSIFICATION.md` §3.5. No
+dedicated instrument-mapping module or config schema was located.)*
 
 Research instruments and execution instruments may differ.
 
@@ -481,51 +284,12 @@ Mappings belong to user-owned configuration or metadata.
 
 ---
 
-## 3.6 Data Validation
-
-Validation categories include:
-
-### Schema Validation
-
-- required fields,
-- types,
-- nullability,
-- ranges,
-- precision.
-
-### Temporal Validation
-
-- timestamp ordering,
-- duplicates,
-- gaps,
-- timezone correctness,
-- session consistency.
-
-### Market Validation
-
-- OHLC invariants,
-- non-negative volume,
-- valid bid/ask relationship,
-- valid instrument identity.
-
-### Dataset Validation
-
-- requested coverage,
-- expected sessions,
-- holidays,
-- contract lifecycle,
-- missing partitions,
-- metadata consistency,
-- checksums,
-- row counts.
-
-Invalid data must not silently enter canonical datasets.
-
-Validation summaries should be persisted.
-
----
-
 ## 3.7 Missing Data
+
+*(Classified AMBIGUOUS by T002 — as-built status unclear as of Sprint 054,
+see `SPRINT_054_T002_ARCHITECTURE_TECHNICAL_CLASSIFICATION.md` §3.7. The
+named policy enum below was not located verbatim; gap-detection tests exist
+in spirit.)*
 
 Missing-data handling must distinguish:
 
@@ -555,38 +319,14 @@ Market prices must not be forward-filled by default.
 
 ---
 
-## 3.8 Historical Storage
-
-Primary historical analytical storage:
-
-```text
-Apache Parquet
-```
-
-Reasons:
-
-- columnar format,
-- compression,
-- partitioning,
-- projection pushdown,
-- predicate pushdown,
-- Polars compatibility,
-- DuckDB compatibility,
-- low operational complexity.
-
-PostgreSQL may store:
-
-- metadata,
-- dataset registry records,
-- research run metadata,
-- execution records,
-- configuration metadata.
-
-It is not the default primary store for large historical market datasets.
-
----
-
 ## 3.9 Storage Layers
+
+*(Classified MIXED by T002 — the actual, documented canonical layout is
+`user_data/market_data/{raw,metadata,normalized,continuous}/` per
+[`docs/reference/MODULE_MAP.md`](../reference/system/MODULE_MAP.md) §11, a
+different and narrower set of directory names than the suggestion below.
+The concept — raw vs. normalized vs. derived data — is realized; the exact
+directory names are not.)*
 
 Suggested logical layout:
 
@@ -633,6 +373,11 @@ Dataset manifests, validation results, checksums and lineage.
 
 ## 3.10 Partitioning
 
+*(Classified AMBIGUOUS by T002 — as-built status unclear as of Sprint 054,
+see `SPRINT_054_T002_ARCHITECTURE_TECHNICAL_CLASSIFICATION.md` §3.10. The
+specific defaults table below was not verified against actual
+partition-writer code.)*
+
 Partitioning depends on data volume, update pattern and query pattern.
 
 Suggested defaults:
@@ -653,138 +398,11 @@ Compaction converts working batches into stable partitions.
 
 ---
 
-## 3.11 Dataset Identity
-
-A Dataset is not a file path.
-
-Its identity should include where relevant:
-
-```text
-dataset_id
-version
-provider
-source_id
-instrument
-contract_id
-data_type
-timeframe
-time_range
-timezone
-calendar
-schema_version
-normalization_version
-validation_status
-lifecycle_status
-checksum
-lineage
-```
-
-A material semantic change creates a new dataset version.
-
----
-
-## 3.12 Dataset Lifecycle
-
-Supported lifecycle states:
-
-```text
-WORKING
-FINALIZED
-PUBLISHED
-INVALID
-SUPERSEDED
-```
-
-Transitions are explicit:
-
-```text
-WORKING → FINALIZED → PUBLISHED
-```
-
-`finalize()` and `publish()` are separate responsibilities.
-
-### FINALIZED
-
-The dataset or partition has been:
-
-- ordered,
-- deduplicated,
-- validated,
-- checksummed,
-- closed for normal writes.
-
-### PUBLISHED
-
-The dataset version is stable and available for Research or Replay Execution.
-
-A combined workflow such as:
-
-```text
-finalize_and_publish()
-```
-
-may exist, but it must record both transitions explicitly.
-
-A published dataset version is immutable.
-
----
-
-## 3.13 Dataset Access
-
-Consumers access market data through framework contracts.
-
-Suggested contracts:
-
-```text
-MarketDataRepository
-DatasetRepository
-HistoricalDataFeed
-LiveDataFeed
-DatasetRegistry
-```
-
-Research, Strategy and Market Analysis components must not open Parquet files directly.
-
-This preserves:
-
-- storage independence,
-- testability,
-- lineage,
-- caching,
-- validation,
-- version control.
-
----
-
-## 3.14 Research Data Rule
-
-Research consumes an explicit published reference:
-
-```text
-DatasetRef(dataset_id, version)
-```
-
-Research must not silently:
-
-- download missing data,
-- refresh remote data,
-- mutate a dataset,
-- substitute a newer dataset version,
-- access working data as reproducible input.
-
-Preferred flow:
-
-```text
-Data Preparation
-      ↓
-Published DatasetRef
-      ↓
-Research Run
-```
-
----
-
 ## 3.15 Live Ingestion
+
+*(Classified FUTURE by T002. `execution/modes.py` supports only
+`ExecutionMode.DRY_RUN`; the live-runtime consumer side of this pipeline is
+not built end-to-end.)*
 
 Live ingestion flow:
 
@@ -813,6 +431,12 @@ Slow storage must not block the primary runtime path.
 
 ## 3.16 Replay
 
+*(Classified FUTURE by T002. `execution/modes.py` supports only
+`ExecutionMode.DRY_RUN`; no `ReplayClock` implementation exists. Batch
+backtesting, the other half of this section's contrast, is independently
+CURRENT via `research/simulation/` and documented in
+`docs/reference/system/ARCHITECTURE_TECHNICAL.md`.)*
+
 Replay exposes published historical data through runtime-compatible event contracts.
 
 ```text
@@ -839,107 +463,16 @@ Replay / Paper / Live
 
 ---
 
-## 3.17 Market Data Architecture Rules
-
-1. Provider schemas never leak into domain logic.
-2. Provider API access and file import are separate use cases.
-3. Bars may be provider-supplied or derived.
-4. Historical storage uses Parquet by default.
-5. Dataset identity is independent from storage path.
-6. Dataset lifecycle is explicit.
-7. Finalization and publication are separate.
-8. Published dataset versions are immutable.
-9. Research uses explicit published DatasetRefs.
-10. Research does not trigger hidden downloads or mutations.
-11. Calendars are used for gap detection.
-12. Raw retention is policy-driven.
-13. Futures contract identity is preserved.
-14. Continuous futures are derived and lineage-aware.
-15. Live storage does not block runtime processing.
-
----
-
 # 4. Market Analysis Architecture
 
-## 4.1 Purpose
-
-The Market Analysis Domain provides reusable, strategy-independent descriptions of market behaviour.
-
-Its semantic taxonomy is:
-
-```text
-Market Analysis Components
-├── Features
-├── Structures
-└── States
-```
-
-It replaces the previous `Technical Analysis` naming.
-
----
-
-## 4.2 Feature
-
-A Feature represents a measurable or time-aligned analytical property.
-
-Possible outputs:
-
-```text
-numeric value
-boolean value
-categorical value
-series
-vector-like result
-```
-
-Examples:
-
-```text
-ATR
-VWAP
-rolling volatility
-slope
-wick ratio
-distance to session high
-distance to VWAP
-volume delta
-```
-
-A metric is one type of Feature.
-
-A separate top-level `Metrics` category is not required.
-
----
-
-## 4.3 Structure
-
-A Structure represents an identified market object, level, pattern or event.
-
-Examples:
-
-```text
-Pivot
-Swing High
-Swing Low
-Higher High
-Higher Low
-Lower High
-Lower Low
-Session Range
-Liquidity Level
-Liquidity Sweep
-Fair Value Gap
-Break of Structure
-Order Block
-```
-
-Structures should use explicit typed schemas or typed structured datasets.
-
-Unstructured dictionaries are not the default output type.
-
----
-
 ## 4.4 State
+
+*(Classified MIXED by T002 — as-built status is nuanced, see
+`SPRINT_054_T002_ARCHITECTURE_TECHNICAL_CLASSIFICATION.md` §4.4. Features
+and Structures are clearly built; no distinct "State" output type or
+`states/` directory was found beyond a single generically-named
+`volatility.state` component. The State leg of the Feature/Structure/State
+taxonomy is the least built of the three.)*
 
 A State represents a market classification at a given time.
 
@@ -975,342 +508,13 @@ Trend / Range State
 
 ---
 
-## 4.5 Detectors, Classifiers and Transformations
-
-`Detector` and `Classifier` describe implementation behaviour.
-
-They are not top-level domain categories.
-
-Examples:
-
-```text
-PivotDetector
-    → Pivot Structure
-
-LiquiditySweepDetector
-    → LiquiditySweep Structure
-
-TrendClassifier
-    → Trend State
-```
-
-`Transformation` is also not a default top-level category.
-
-Different transformations belong to different responsibilities:
-
-```text
-Provider normalization
-    → Market Data
-
-Resampling
-    → explicit shared dependency or derived dataset
-
-Returns calculation
-    → Feature
-
-Temporal alignment
-    → Market Analysis Engine
-```
-
-A generic `transformations/` directory should not be introduced without a coherent responsibility.
-
----
-
-## 4.6 Component Contract
-
-Every Market Analysis component declares:
-
-```text
-id
-version or implementation fingerprint
-parameters
-dependencies
-input requirements
-output schema
-timeframe requirements
-alignment policy
-cache policy
-determinism assumptions
-compute contract
-```
-
-Conceptual example:
-
-```python
-class AnalysisComponent(Protocol):
-    @property
-    def key(self) -> ComponentKey:
-        ...
-
-    @property
-    def dependencies(self) -> tuple[ComponentRequest, ...]:
-        ...
-
-    def compute(
-        self,
-        context: AnalysisContext,
-    ) -> AnalysisResult:
-        ...
-```
-
-The exact API may evolve.
-
-Explicit dependencies and output declarations are mandatory.
-
----
-
-## 4.7 Component Request
-
-A timeframe-aware request may be represented as:
-
-```python
-@dataclass(frozen=True, slots=True)
-class ComponentRequest:
-    component_key: ComponentKey
-    parameters: ParameterSet
-    source_timeframe: Timeframe
-    computation_timeframe: Timeframe
-    evaluation_timeframe: Timeframe
-    resampling_policy: ResamplingPolicy
-    alignment_policy: AlignmentPolicy
-```
-
-A simplified request may omit fields only when their semantics are unambiguous and preserved internally.
-
-A decorator may provide syntax sugar but must resolve to explicit, inspectable and serializable metadata.
-
----
-
-## 4.8 MarketFieldReference
-
-Model expressions must not access arbitrary raw DataFrames or storage objects.
-
-Simple source-data conditions may use:
-
-```text
-MarketFieldReference
-```
-
-Example fields:
-
-```text
-open
-high
-low
-close
-volume
-bid
-ask
-```
-
-A controlled `MarketFieldReference` must preserve:
-
-```text
-dataset lineage
-field identity
-source timeframe
-evaluation timeframe
-available_at semantics
-```
-
-It participates in dependency resolution and temporal validation.
-
-It must not become a bypass around repository or lineage rules.
-
----
-
 # 5. Market Analysis Engine
 
-## 5.1 Purpose
-
-The Market Analysis Engine calculates reusable analytical components efficiently.
-
-It supports:
-
-- Features,
-- Structures,
-- States,
-- dependency resolution,
-- lazy execution,
-- shared computation,
-- caching,
-- temporal alignment,
-- deterministic reuse.
-
-It is shared by:
-
-- Signal Research,
-- Strategy Research,
-- Strategy Execution.
-
-It does not own:
-
-- Market Model definitions,
-- Signal Model definitions,
-- Strategy Model definitions,
-- research interpretation.
-
----
-
-## 5.2 Engine Components
-
-Suggested internal capabilities:
-
-```text
-Component Registry
-Dependency Graph
-Component Executor
-Component Cache
-Temporal Alignment
-Result Materialization
-```
-
-These may initially live in a small module and be separated only when implementation scale justifies it.
-
----
-
-## 5.3 Component Registry
-
-The registry maps:
-
-```text
-Component Key
-    ↓
-Component Factory or Implementation
-```
-
-Responsibilities:
-
-- discovery,
-- unique naming,
-- version selection,
-- parameter validation,
-- dependency lookup,
-- duplicate prevention,
-- framework/user component loading.
-
-Framework components may live in `src/`.
-
-User components live in `user_data/`.
-
-`src/` must never import concrete user modules directly.
-
----
-
-## 5.4 Dependency Graph
-
-The engine builds a directed acyclic graph.
-
-Example:
-
-```text
-MarketBar
-   ├── ATR
-   │    └── Volatility State
-   │
-   ├── Pivot Structure
-   │    └── Trend State
-   │
-   └── Session Range
-        └── Liquidity Sweep
-```
-
-The graph must:
-
-- detect cycles,
-- deduplicate equivalent nodes,
-- resolve execution order,
-- expose lineage,
-- identify reusable outputs.
-
-Hidden component calls inside `compute()` are prohibited.
-
----
-
-## 5.5 Lazy Execution
-
-The engine calculates only requested outputs and their transitive dependencies.
-
-Unrelated components are not calculated.
-
-Lazy execution is mandatory for large research spaces.
-
----
-
-## 5.6 Shared Computation
-
-A unique deterministic node is calculated once per computation identity.
-
-Example:
-
-```text
-ATR(
-    dataset=NQ_1m_v3,
-    period=14,
-    computation_timeframe=1h,
-    evaluation_timeframe=1m,
-    alignment_policy=LAST_CLOSED_BAR,
-)
-```
-
-This result may be reused by:
-
-- Market Models,
-- Signal Models,
-- Exit Models,
-- Signal Research,
-- Strategy Research,
-- Strategy Execution.
-
----
-
-## 5.7 Cache Identity
-
-The cache key includes all material inputs.
-
-Suggested dimensions:
-
-```text
-component_id
-component_version or implementation_hash
-parameters
-dataset_id
-dataset_version
-instrument
-time_range
-source_timeframe
-computation_timeframe
-evaluation_timeframe
-resampling_policy
-alignment_policy
-calendar_version
-dependency_versions or hashes
-framework_version
-```
-
-A cached result must not be reused when any material input differs.
-
----
-
-## 5.8 Temporal Alignment
-
-The default higher-timeframe policy is:
-
-```text
-LAST_CLOSED_BAR
-```
-
-Higher-timeframe results are aligned using backward as-of semantics or an equivalent correct mechanism:
-
-```text
-use the latest result whose available_at <= evaluation timestamp
-```
-
-Blind forward-fill without availability semantics is prohibited.
-
----
-
 ## 5.9 Intrabar Components
+
+*(Classified AMBIGUOUS by T002 — as-built status unclear as of Sprint 054,
+see `SPRINT_054_T002_ARCHITECTURE_TECHNICAL_CLASSIFICATION.md` §5.9. No
+dedicated "intrabar" contract or module was located.)*
 
 Partial higher-timeframe data is allowed only through an explicit intrabar contract.
 
@@ -1329,61 +533,12 @@ Intrabar behaviour must never arise accidentally from ordinary resampling.
 
 ---
 
-## 5.10 Output Forms
-
-Outputs should preserve their natural structure.
-
-Features may use:
-
-```text
-Series
-DataFrame columns
-typed categorical arrays
-```
-
-Structures may use:
-
-```text
-typed records
-event tables
-structured datasets
-```
-
-States may use:
-
-```text
-categorical arrays
-boolean masks
-typed state records
-```
-
-A common metadata wrapper may be used without forcing every payload into one scalar column.
-
----
-
-## 5.11 Execution Context
-
-An `AnalysisContext` provides controlled access to:
-
-- source dataset,
-- resolved dependencies,
-- MarketFieldReferences,
-- time model,
-- calendar,
-- parameters,
-- execution metadata.
-
-Components must not:
-
-- access global state,
-- open arbitrary files,
-- instantiate providers,
-- access brokers,
-- trigger hidden resampling.
-
----
-
 ## 5.12 Local Development and Promotion
+
+*(Classified FUTURE by T002. `Grep` for `reproducibility_status`/
+`EXPERIMENTAL` across `src/trading_framework/` returned zero matches; the
+actual `user_data/` canonical layout has no `development/` or `candidates/`
+directories.)*
 
 Local working components may live under:
 
@@ -1417,103 +572,13 @@ Formal versioning begins when a component becomes part of the maintained framewo
 
 ---
 
-## 5.13 Market Analysis Engine Rules
-
-1. Features, Structures and States are the semantic output categories.
-2. Every component declares dependencies.
-3. The graph is acyclic.
-4. Execution is lazy.
-5. Equivalent nodes are deduplicated.
-6. Cache identity includes all material temporal inputs.
-7. Resampling is explicit and reusable.
-8. Higher-timeframe alignment uses legal availability semantics.
-9. Complex outputs use typed schemas.
-10. Components do not own strategy decisions.
-11. User components are loaded through controlled discovery.
-12. Working components used in research require fingerprints.
-
----
-
 # 6. Model Composition Architecture
 
-## 6.1 Market Model
-
-A Market Model is a declarative expression over Market Analysis outputs.
-
-It may reference:
-
-- Features,
-- Structures,
-- States,
-- controlled MarketFieldReferences,
-- logical operators,
-- comparison operators.
-
-It must not:
-
-- load data,
-- calculate components internally,
-- resample data,
-- access storage,
-- access providers,
-- generate orders.
-
----
-
-## 6.2 Signal Model
-
-A Signal Model follows the same implementation pattern.
-
-It is a declarative expression over Market Analysis outputs.
-
-It produces a provider-independent:
-
-```text
-SignalOccurrence
-```
-
-The Strategy Domain owns the SignalOccurrence model.
-
-Suggested fields:
-
-```text
-signal_model_id
-signal_model_version or definition_hash
-instrument
-detected_at
-direction
-reference_price
-strength
-analytical_lineage
-```
-
-Research and Execution may add workflow metadata but must not redefine the core semantics.
-
----
-
-## 6.3 Strategy Model
-
-A Strategy Model composes:
-
-```text
-Market Model
-×
-Signal Model
-×
-Exit Model
-×
-Risk Model
-```
-
-Position sizing remains part of the Risk Model in Version 1.
-
-Exit and Risk Models are contract-based components.
-
-They may use declarative conditions and deterministic calculation logic where appropriate.
-
----
-
 ## 6.4 Local Model Fingerprints
+
+*(Classified FUTURE by T002 — the model-layer counterpart of §5.12's
+unbuilt promotion/fingerprint lifecycle. Same
+`reproducibility_status`/`EXPERIMENTAL` search returned zero matches.)*
 
 Mutable local model definitions used in research require identity even before formal versioning.
 
@@ -1540,39 +605,12 @@ Released definitions use formal version identity.
 
 # 7. Research and Strategy Execution Boundaries
 
-## 7.1 Signal Research Scopes
-
-Signal Research supports three explicit scopes:
-
-```text
-Market Model only
-Signal Model only
-Market Model × Signal Model
-```
-
-A research definition must state which scope is being evaluated.
-
-Single analytical events should normally be studied through one-condition Market or Signal Models rather than by bypassing model contracts.
-
----
-
-## 7.2 Strategy Research
-
-Strategy Research evaluates complete Strategy Models.
-
-It owns:
-
-- batch or vectorized backtesting,
-- trade simulation datasets,
-- execution assumptions,
-- reusable Strategy Research Datasets,
-- walk-forward analysis,
-- Monte Carlo analysis,
-- robustness analytics.
-
----
-
 ## 7.3 Strategy Execution Modes
+
+*(Classified FUTURE by T002. `execution/modes.py`:
+`SUPPORTED_EXECUTION_MODES = frozenset({ExecutionMode.DRY_RUN})` — only
+`DRY_RUN` is supported "in the current increment". `execution/broker_sim/`
+exists but the three named runtime modes are not available end-to-end.)*
 
 Strategy Execution may support:
 
@@ -1603,6 +641,13 @@ These modes are distinct from batch or vectorized Research backtesting.
 ---
 
 # 8. Event System
+
+*(Classified FUTURE by T002 in full — the single largest fully-unbuilt
+block found across T001–T003. `src/trading_framework/events/__init__.py`
+contains only a one-line docstring; no `Event`, `EventBus`, handler, or
+command implementation exists anywhere in `src/trading_framework/`. See
+`SPRINT_054_T002_ARCHITECTURE_TECHNICAL_CLASSIFICATION.md` §8 for the full
+evidence, including the negative-result greps for every named type below.)*
 
 ## 8.1 Purpose
 
@@ -1761,6 +806,11 @@ Supported configuration areas include:
 
 ## 9.2 Configuration Principles
 
+*(Classified MIXED by T002. "Explicit" and "validated" are confirmed via
+Pydantic-backed config (`config/loader.py`); "versionable"/"reproducible"
+in the sense of persisted resolved-configuration-per-run was not found as a
+general framework capability — see §9.10 below.)*
+
 Configuration must be:
 
 - explicit,
@@ -1774,20 +824,11 @@ Arbitrary executable Python code is forbidden in configuration files.
 
 ---
 
-## 9.3 Configuration Technology
-
-Pydantic is preferred for:
-
-- configuration models,
-- external DTOs,
-- validation boundaries,
-- serialization schemas.
-
-Pydantic is not the automatic implementation of every domain object.
-
----
-
 ## 9.4 Configuration Layers
+
+*(Classified FUTURE by T002. `config/loader.py` implements a single-file
+TOML loader with no layered precedence/merge logic; no
+environment-variable overlay or run-override merge step was found.)*
 
 Suggested precedence:
 
@@ -1805,39 +846,12 @@ Resolved configuration is persisted with each run.
 
 ---
 
-## 9.5 Market Analysis Configuration
-
-A Market Analysis component configuration selects:
-
-```text
-component type
-component id
-parameters
-timeframe semantics
-alignment policy
-cache policy where configurable
-```
-
-Example:
-
-```yaml
-market_analysis:
-  atr_14_1h:
-    component: atr
-    parameters:
-      period: 14
-    computation_timeframe: 1h
-    evaluation_timeframe: 1m
-    alignment_policy: LAST_CLOSED_BAR
-```
-
-Dependencies should normally be declared by the component contract.
-
-Configuration may select aliases and parameter values.
-
----
-
 ## 9.6 Model Configuration
+
+*(Classified MIXED by T002. `model_expression/` and `model_authoring/`
+implement expression-tree-based model definitions, consistent with "no
+arbitrary executable logic"; a literal YAML-file model-config loader
+matching this exact example schema was not independently located.)*
 
 Market and Signal Model configuration uses explicit expression trees.
 
@@ -1867,47 +881,14 @@ Model configuration must not embed arbitrary executable logic.
 
 ---
 
-## 9.7 Research Configuration
-
-Research configuration defines a bounded research space.
-
-It must distinguish:
-
-```text
-fixed selection
-independent alternatives
-logical composition
-bounded search space
-```
-
-It must not interpret every list as a logical OR or unrestricted Cartesian product.
-
-Signal Research configuration must explicitly declare one of:
-
-```text
-MARKET_MODEL_ONLY
-SIGNAL_MODEL_ONLY
-MARKET_AND_SIGNAL
-```
-
----
-
-## 9.8 Strategy Configuration
-
-A Strategy Model configuration selects:
-
-```text
-Market Model
-Signal Model
-Exit Model
-Risk Model
-```
-
-Position sizing is configured through the Risk Model in Version 1.
-
----
-
 ## 9.9 Strategy Execution Configuration
+
+*(Classified AMBIGUOUS by T002 — as-built status unclear as of Sprint 054,
+see `SPRINT_054_T002_ARCHITECTURE_TECHNICAL_CLASSIFICATION.md` §9.9.
+`execution/safety.py` and `execution/repositories/` plausibly implement
+part of this, but since only `DRY_RUN` execution mode is supported (§7.3),
+most of the broker/account/reconnect-policy configuration below has no
+live counterpart to configure yet.)*
 
 Defines:
 
@@ -1927,6 +908,12 @@ Secrets are loaded from environment variables or external secret storage.
 
 ## 9.10 Configuration Versioning
 
+*(Classified FUTURE by T002 at the general-rule level. Dataset-level and
+predictive-run-level fingerprinting is confirmed CURRENT elsewhere (e.g.
+Predictive Research's dataset/run envelopes), but a generic, framework-wide
+"every persisted run records resolved configuration + framework version"
+guarantee applying uniformly across all workflows was not found.)*
+
 Every persisted run records:
 
 ```text
@@ -1944,28 +931,17 @@ A material change creates a new run identity.
 
 # 10. Module Structure
 
-## 10.1 High-Level Layout
-
-```text
-trading-research-framework/
-├── src/trading_framework/   # modular monolith (ADR-0001)
-├── apps/                    # deployable consumers (e.g. apps/dashboard)
-├── scripts/                 # thin CLIs over application use cases
-├── deploy/                  # containers / infra-as-code / local AWS runbook
-├── tests/                   # framework tests
-├── docs/                    # vision, reference, planning, adr, agents, onboarding
-├── artifacts/demo/          # generated demo HTML (not source-of-truth docs)
-├── scratch/                 # local-only logs/probes (gitignored)
-├── user_data/               # user-owned content (ADR-0002; gitignored)
-├── pyproject.toml           # root package + uv workspace root
-└── README.md
-```
-
-Binding layout rules: **ADR-0022**. Apps must not import research/execution
-engines or provider/importer adapters. Dashboard deploy stays co-located under
-`apps/dashboard/deploy/`. Prefer `scratch/` for ephemeral logs (not root `.tmp_*`).
-
----
+*(§10.1 High-Level Layout and §10.13 Application Module were classified
+CURRENT and moved to
+[`docs/reference/system/ARCHITECTURE_TECHNICAL.md`](../reference/system/ARCHITECTURE_TECHNICAL.md#module-structure).
+The remaining subsections below are written as suggestions — "Initial
+minimal structure", "Possible later structure" — and the actual
+`src/trading_framework/` layout has diverged from them in a consistent,
+structural way. They are left here as historical/illustrative context, not
+an as-built description. The authoritative current package tree is
+[`docs/reference/MODULE_MAP.md`](../reference/system/MODULE_MAP.md). See
+`SPRINT_054_T002_ARCHITECTURE_TECHNICAL_CLASSIFICATION.md` §10 for the
+full per-subsection diff.)*
 
 ## 10.2 Source Package
 
@@ -2139,6 +1115,10 @@ Concrete broker adapters belong to Infrastructure.
 
 ## 10.10 Events Module
 
+*(Classified FUTURE by T002. `events/` contains only `__init__.py` with a
+one-line docstring; none of the subdirectories below exist. Same finding as
+§8.)*
+
 ```text
 src/trading_framework/events/
 ├── models/
@@ -2191,31 +1171,12 @@ Domain modules do not depend on infrastructure implementations.
 
 ---
 
-## 10.13 Application Module
-
-```text
-src/trading_framework/application/
-├── market_data/
-├── signal_research/
-├── strategy_research/
-├── strategy_execution/
-└── services/
-```
-
-Responsibilities:
-
-- use-case orchestration,
-- component loading,
-- transaction boundaries,
-- workflow entry points.
-
-Application code coordinates domains.
-
-It does not contain reusable domain algorithms.
-
----
-
 ## 10.14 API Module
+
+*(Classified FUTURE by T002. No `src/trading_framework/api/` package
+exists at all. `apps/dashboard/` and `apps/cli/` are the actual current-day
+consumer surfaces, neither of which is the REST/WebSocket API described
+below.)*
 
 ```text
 src/trading_framework/api/
@@ -2232,6 +1193,16 @@ FastAPI may be one adapter, but the domain does not depend on FastAPI.
 ---
 
 # 11. User Data Structure
+
+*(Classified MIXED/FUTURE/AMBIGUOUS by T002 across every subsection — the
+actual, documented canonical `user_data/` layout is
+[`docs/reference/MODULE_MAP.md`](../reference/system/MODULE_MAP.md) §11:
+`user_data/{market_data,research,runtime,reports,config,components,models}/`,
+a materially flatter structure than every proposal below. Left here in
+full as historical/illustrative context rather than split subsection by
+subsection — see
+`SPRINT_054_T002_ARCHITECTURE_TECHNICAL_CLASSIFICATION.md` §11 for the
+per-subsection diff.)*
 
 ## 11.1 Purpose
 
@@ -2366,94 +1337,3 @@ user_data/secrets/
 This directory is not committed.
 
 Environment variables or external secret storage are preferred.
-
----
-
-# 12. Tests Structure
-
-Suggested structure:
-
-```text
-tests/
-├── unit/
-│   ├── core/
-│   ├── time/
-│   ├── market/
-│   ├── market_analysis/
-│   ├── strategy/
-│   ├── research/
-│   ├── execution/
-│   └── events/
-├── integration/
-│   ├── providers/
-│   ├── importers/
-│   ├── brokers/
-│   ├── storage/
-│   └── messaging/
-├── end_to_end/
-└── fixtures/
-```
-
-User-owned components may have tests under:
-
-```text
-user_data/tests/
-```
-
-Required test areas include:
-
-- dataset lifecycle,
-- component identity,
-- dependency graph,
-- cache identity,
-- multitimeframe alignment,
-- `available_at`,
-- MarketFieldReference,
-- Market Model expression evaluation,
-- Signal Model expression evaluation,
-- SignalOccurrence semantics,
-- Research workflow scope,
-- backtest/replay separation.
-
-Unit tests must not require live external systems.
-
-Integration tests are opt-in when external systems are required.
-
----
-
-# 13. Final Technical Architecture Rules
-
-1. UTC is used internally.
-2. Naive datetimes are forbidden.
-3. Provider schemas are normalized at boundaries.
-4. Market data is accessed through contracts.
-5. Historical data uses Parquet by default.
-6. Dataset identity and lifecycle are explicit.
-7. Finalization and publication are separate.
-8. Research consumes published DatasetRefs.
-9. Research does not trigger hidden downloads or mutation.
-10. The analytical domain is named Market Analysis.
-11. Market Analysis outputs are Features, Structures and States.
-12. Detector and Classifier are implementation patterns.
-13. The shared runtime is named Market Analysis Engine.
-14. Dependencies are explicit and DAG-based.
-15. Equivalent deterministic nodes are calculated once.
-16. Cache identity includes source, computation and evaluation timeframe.
-17. Resampling is explicit and reusable.
-18. Higher-timeframe alignment uses legal `available_at` semantics.
-19. Market and Signal Models are declarative compositions.
-20. Models do not access arbitrary DataFrames.
-21. Controlled MarketFieldReferences are allowed.
-22. SignalOccurrence belongs to the Strategy Domain.
-23. Position sizing belongs to the Risk Model in Version 1.
-24. Batch/vectorized backtesting belongs to Research.
-25. Replay, Paper and Live modes belong to Strategy Execution.
-26. Working components and models used in research require fingerprints.
-27. Framework code lives in `src/`.
-28. Proprietary know-how lives in `user_data/`.
-29. `src/` never imports concrete user components directly.
-30. Infrastructure depends on framework contracts.
-31. Domain logic does not depend on infrastructure.
-32. Signal Research, Strategy Research and Strategy Execution remain independent.
-33. Stored research datasets are reusable.
-34. Technical complexity is introduced only when justified.

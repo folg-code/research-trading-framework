@@ -1,5 +1,13 @@
 # Architecture and Workflows
 
+> Moved from `docs/reference/ARCHITECTURE_AND_WORKFLOWS.md` to
+> `docs/reference/system/SYSTEM_OVERVIEW.md` by Sprint 054 T008
+> (`docs/reference` system/workflows/runbooks/modules split). Content
+> reproduced verbatim — this move does not rewrite any architectural
+> decision. See
+> `docs/planning/sprints/SPRINT_054_T007_REFERENCE_FOLDER_AUDIT.md` for the
+> split rationale.
+
 This document explains the main architectural modules of the Trading Research Framework, the problems they solve, how they interact, and how data moves through the system.
 
 It focuses on stable architectural concepts, module responsibilities, workflow boundaries and future development directions. Implementation history, sprint status and low-level API details are documented separately.
@@ -567,7 +575,7 @@ fixed-bars kernel's next-bar-open convention, and the stop always wins a
 same-bar tie. The two kernels are independent files with their own result
 types and materializers; the fixed-bars path is provably untouched by the
 bracket kernel's existence (a golden-run regression asserts byte-identical
-output). See `docs/reference/STRATEGY_AUTHORING.md` for the operator-facing
+output). See `docs/reference/modules/STRATEGY_AUTHORING.md` for the operator-facing
 explanation and `docs/adr/ADR-0028-bracket-exit-and-equity-relative-sizing.md`
 for the design record.
 
@@ -810,7 +818,7 @@ v1 limitation below: `research run strategy` now accepts an optional
 file with a zero-argument `build_strategy() -> StrategyModelDefinition`
 entry point, loaded during plan resolution (before any side effect) with no
 sandbox and no import restriction — the same trust level as running any
-local script. See `docs/reference/STRATEGY_AUTHORING.md` and
+local script. See `docs/reference/modules/STRATEGY_AUTHORING.md` and
 `docs/adr/ADR-0027-operator-authored-strategy-loading.md`. The simulation
 assumptions and session resolver remain hardcoded — the other two thirds of
 the limitation, unchanged this phase.
@@ -921,7 +929,7 @@ Domain contracts should remain stable.
 Detailed implementation documentation remains in:
 
 - `MODULE_MAP.md`
-- `RESEARCH_METHODOLOGIES.md`
+- `../workflows/RESEARCH_METHODOLOGIES.md`
 - module-specific references,
 - Architecture Decision Records,
 - execution runbooks.

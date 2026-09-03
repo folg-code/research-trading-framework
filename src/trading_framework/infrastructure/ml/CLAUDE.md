@@ -56,7 +56,7 @@ Responsibility: optional-extra estimator adapters and the family-id registry.
   fitted preprocessing statistics as plain numbers — no library object
   leaves this module. Sklearn and joblib are imported lazily inside function
   bodies only. Practical reference (both guards, the family restriction, the
-  store layout): `docs/reference/PREDICTIVE_PROMOTION.md`.
+  store layout): `docs/reference/modules/PREDICTIVE_PROMOTION.md`.
 - Application constructs estimators only through `resolve_estimator(spec,
   preprocessing=...)`. Do not import `infrastructure.ml.sklearn`,
   `infrastructure.ml.trees`, or `infrastructure.ml.torch` from application.

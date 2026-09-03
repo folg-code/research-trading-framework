@@ -11,7 +11,7 @@
 # strategy_file points at
 # user_data/components/strategies/rsi_relative_volatility_regime.py.
 # That file is gitignored (ADR-0002) and does NOT ship with the repository --
-# recreate it from docs/reference/STRATEGY_AUTHORING.md ("Worked examples --
+# recreate it from docs/reference/modules/STRATEGY_AUTHORING.md ("Worked examples --
 # Sprint 051"), which reproduces it verbatim, before running this config for
 # real.
 #

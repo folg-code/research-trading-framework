@@ -75,5 +75,5 @@ trading-research-framework/
 - `docs/adr/ADR-0002-separate-src-and-user-data.md`
 - `docs/planning/sprints/SPRINT_029.md`
 - `docs/planning/sprints/S029_WAVE0_DECISIONS.md`
-- `docs/reference/MODULE_MAP.md`
+- `docs/reference/system/MODULE_MAP.md`
 - `docs/vision/ARCHITECTURE_TECHNICAL.md` §10.1

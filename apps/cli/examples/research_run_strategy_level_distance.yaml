@@ -9,7 +9,7 @@
 #
 # strategy_file points at user_data/components/strategies/level_distance_pullback.py.
 # That file is gitignored (ADR-0002) and does NOT ship with the repository --
-# recreate it from docs/reference/STRATEGY_AUTHORING.md ("Worked examples"),
+# recreate it from docs/reference/modules/STRATEGY_AUTHORING.md ("Worked examples"),
 # which reproduces it verbatim, before running this config for real.
 #
 # TRUST MODEL (ADR-0027 Sec2, D-S047-09): strategy_file names a Python file

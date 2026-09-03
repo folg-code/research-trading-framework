@@ -85,7 +85,7 @@ library-free predictive metrics (`metrics.py`).
   structural `PromotedManifestLike` Protocol instead of the concrete
   `PromotedArtifactManifest` class for that reason. Practical reference (schema,
   store layout, both guards, the family restriction, the two parity
-  comparisons): `docs/reference/PREDICTIVE_PROMOTION.md`. A promoted artifact
+  comparisons): `docs/reference/modules/PREDICTIVE_PROMOTION.md`. A promoted artifact
   is not a tradeable verdict and this package ships no Market Analysis
   component — see that document §1 and §9.
 

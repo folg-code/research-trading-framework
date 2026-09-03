@@ -1,5 +1,10 @@
 # Data Representation Audit and Target Policy
 
+> Moved from `docs/reference/DATA_REPRESENTATION_AUDIT.md` to
+> `docs/reference/system/DATA_REPRESENTATION_AUDIT.md` by Sprint 054 T008
+> (`docs/reference` system/workflows/runbooks/modules split). Content
+> unchanged.
+
 ```text
 Status:        ACCEPTED (policy) — D-REP-06, D-REP-08, D-REP-09 remain PROPOSED
 Audit Date:    2026-08-25
@@ -75,7 +80,7 @@ float                       presentation    apps/dashboard TradeView
 
 Two of these are **both persistence schemas for the same layer**, bridged at runtime by a hand-written
 Polars expression (`_price_nanos_to_string_expr`). This was consciously accepted as
-[D-S027-08](../planning/sprints/S027_WAVE0_DECISIONS.md) and remains the single largest
+[D-S027-08](../../planning/sprints/S027_WAVE0_DECISIONS.md) and remains the single largest
 representation split in the system.
 
 **Timestamp** is second, with four carriers: UTC-aware `datetime` (domain), naive `timestamp("us")`
@@ -681,7 +686,7 @@ behind the adapter; do not big-bang.
 redundant conversions but leaves H3 permanently in place.
 
 **Outcome.** Accepted with the recommended shape. Recorded as
-[ADR-MA-014](../adr/ADR-MA-014-marketframe-polars-committed-bulk-engine.md): Polars is a committed
+[ADR-MA-014](../../adr/ADR-MA-014-marketframe-polars-committed-bulk-engine.md): Polars is a committed
 engine; `AnalysisDataView` is retained as a thin adapter for the live runtime. Incremental
 component migration behind the adapter; no big-bang rewrite. Stage 4 code still requires its own
 PRs.
@@ -897,7 +902,7 @@ measurement. Sizes follow the 100–400 LOC target from the sprint git workflow.
 | Item | Output | Status |
 |---|---|---|
 | Maintainer approves or rejects each D-REP entry | this document moves DRAFT → ACCEPTED | DONE 2026-08-25 |
-| Superseding ADR for D-REP-01 (Polars as committed engine; MA-004 / MA-010) | [ADR-MA-014](../adr/ADR-MA-014-marketframe-polars-committed-bulk-engine.md) | DONE 2026-08-25 — blocks Stage 4 until implementation PRs |
+| Superseding ADR for D-REP-01 (Polars as committed engine; MA-004 / MA-010) | [ADR-MA-014](../../adr/ADR-MA-014-marketframe-polars-committed-bulk-engine.md) | DONE 2026-08-25 — blocks Stage 4 until implementation PRs |
 | ADR note for D-REP-05 / D-REP-10 (availability + lineage addressability) | ADR-MA-009 / ADR-MA-005 amendments | DONE 2026-08-25 — blocks Stage 3 until implementation PRs |
 | Baseline measurement captured | `bench_authoring_analysis_evaluate.py --json` recorded in §6.1 | DONE 2026-08-25 — S036-T004 |
 
@@ -976,7 +981,7 @@ Acceptance: parity test proving reconstructed and carried `available_at` agree o
 
 | PR | Outcome | Files | Risk |
 |---|---|---|---|
-| `docs/adr-marketframe-representation` | **DONE** — [ADR-MA-014](../adr/ADR-MA-014-marketframe-polars-committed-bulk-engine.md) | `docs/adr/` | — |
+| `docs/adr-marketframe-representation` | **DONE** — [ADR-MA-014](../../adr/ADR-MA-014-marketframe-polars-committed-bulk-engine.md) | `docs/adr/` | — |
 | `feat/marketframe-contract` | `MarketFrame(pl.LazyFrame, metadata)` + adapter from `AnalysisDataView` | `market_analysis/data/` | HIGH |
 | `feat/marketframe-component-migration-1` | migrate `ema`, `true_range` behind the adapter | `market_analysis/components/` | HIGH |
 | `feat/marketframe-component-migration-2` | migrate `atr`, `state`, `swing` | `market_analysis/components/` | HIGH |
@@ -1066,4 +1071,4 @@ Stage 4 remains conditional on its ADR; Stage 5 remains a separate sprint.
 - `docs/adr/ADR-MA-012-batch-multitimeframe-computation-with-polars.md`
 - `docs/adr/ADR-0008-parquet-historical-storage.md`
 - `docs/adr/ADR-0018-continuous-futures-materialization.md`
-- `docs/reference/MODULE_MAP.md`
+- `docs/reference/system/MODULE_MAP.md`
