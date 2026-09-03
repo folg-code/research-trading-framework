@@ -13,8 +13,8 @@ Index: [../README.md](../README.md).
 
 | File | Purpose |
 |------|---------|
-| [ARCHITECTURE_FOUNDATIONS_UPDATED.md](ARCHITECTURE_FOUNDATIONS_UPDATED.md) | Domain principles, module boundaries, long-term model |
-| [ARCHITECTURE_TECHNICAL_UPDATED.md](ARCHITECTURE_TECHNICAL_UPDATED.md) | Cross-cutting target technical architecture |
+| [ARCHITECTURE_FOUNDATIONS.md](ARCHITECTURE_FOUNDATIONS.md) | Domain principles, module boundaries, long-term model |
+| [ARCHITECTURE_TECHNICAL.md](ARCHITECTURE_TECHNICAL.md) | Cross-cutting target technical architecture |
 
 ---
 
@@ -24,7 +24,7 @@ Index: [../README.md](../README.md).
 |------|---------|
 | [MARKET_ANALYSIS_WITH_DECISIONS.md](MARKET_ANALYSIS_WITH_DECISIONS.md) | Market Analysis decisions D-001–D-036 |
 | [ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md](ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md) | Workspace, result store, frames — authoritative on derived data |
-| [MULTITIMEFRAME_MARKET_MODEL_ARCHITECTURE_UPDATED.md](MULTITIMEFRAME_MARKET_MODEL_ARCHITECTURE_UPDATED.md) | Multitimeframe market model (future) |
+| [MULTITIMEFRAME_MARKET_MODEL_ARCHITECTURE.md](MULTITIMEFRAME_MARKET_MODEL_ARCHITECTURE.md) | Multitimeframe market model (future) |
 
 ---
 
@@ -32,7 +32,7 @@ Index: [../README.md](../README.md).
 
 | File | Purpose |
 |------|---------|
-| [WORKFLOWS_AI_ADR_UPDATED.md](WORKFLOWS_AI_ADR_UPDATED.md) | Workflow, AI usage and ADR process |
+| [WORKFLOWS_AI_ADR.md](WORKFLOWS_AI_ADR.md) | Workflow, AI usage and ADR process |
 
 ---
 

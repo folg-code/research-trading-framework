@@ -14,7 +14,7 @@ Sprint Branch: sprint/btc-futures-dry-run-execution
 Task branch convention: feat/ | fix/ | docs/ | test/
 Architecture Sources:
   - SPRINT_021.md
-  - docs/vision/ARCHITECTURE_TECHNICAL_UPDATED.md (Strategy Execution, operational state)
+  - docs/vision/ARCHITECTURE_TECHNICAL.md (Strategy Execution, operational state)
   - docs/planning/ROADMAP.md (Phase 8)
 ```
 

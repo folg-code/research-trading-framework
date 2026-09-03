@@ -15,7 +15,7 @@ Task branch convention: feat/ | fix/ | docs/ (separate prefix, not nested under 
 Wave 0 decisions: docs/planning/sprints/S015_WAVE0_DECISIONS.md
 Architecture Sources:
   - docs/planning/ROADMAP.md (§6 Phase 2C, §14 Research Data Strategy)
-  - docs/vision/ARCHITECTURE_FOUNDATIONS_UPDATED.md (§4.13 continuous as derived)
+  - docs/vision/ARCHITECTURE_FOUNDATIONS.md (§4.13 continuous as derived)
   - docs/adr/ADR-0014-historical-archive-import-and-market-trade-storage.md
   - docs/adr/ADR-0015-derived-ohlcv-from-trades.md
   - docs/adr/ADR-0007-dataset-lifecycle-and-publication.md

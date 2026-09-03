@@ -76,4 +76,4 @@ trading-research-framework/
 - `docs/planning/sprints/SPRINT_029.md`
 - `docs/planning/sprints/S029_WAVE0_DECISIONS.md`
 - `docs/reference/MODULE_MAP.md`
-- `docs/vision/ARCHITECTURE_TECHNICAL_UPDATED.md` §10.1
+- `docs/vision/ARCHITECTURE_TECHNICAL.md` §10.1

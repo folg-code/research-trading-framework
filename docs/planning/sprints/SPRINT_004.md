@@ -12,7 +12,7 @@ Sprint Goal Owner: Project Maintainer
 Depends On: SPRINT_003 (COMPLETED, merged to main)
 Sprint Branch: sprint/market-analysis-mtf
 Architecture Sources:
-  - docs/vision/MULTITIMEFRAME_MARKET_MODEL_ARCHITECTURE_UPDATED.md (§6–§9, §19)
+  - docs/vision/MULTITIMEFRAME_MARKET_MODEL_ARCHITECTURE.md (§6–§9, §19)
   - docs/vision/MARKET_ANALYSIS_WITH_DECISIONS.md (identity, DAG, cache)
   - docs/planning/sprints/SPRINT_004.md — Design Principles (this file, § Anti-Overengineering)
 Precedence: MTF vision doc defines semantics; this sprint applies a minimal implementation slice.

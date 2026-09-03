@@ -13,7 +13,7 @@ Depends On: SPRINT_020
 Sprint Branch: sprint/execution-persistence-read-model
 Task branch convention: feat/ | fix/ | docs/ | test/
 Architecture Sources:
-  - docs/vision/ARCHITECTURE_TECHNICAL_UPDATED.md (Execution persistence, Event System)
+  - docs/vision/ARCHITECTURE_TECHNICAL.md (Execution persistence, Event System)
   - docs/planning/TECHNICAL_DEBT.md (TD-005 in-memory event bus)
 ```
 

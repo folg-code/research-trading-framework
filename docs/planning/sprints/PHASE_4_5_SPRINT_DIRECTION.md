@@ -191,7 +191,7 @@ Full TD-011 / TD-015 columnar migration
 
 - Sprint 004 ADR: `docs/adr/ADR-MA-012-batch-multitimeframe-computation-with-polars.md`
 - Architecture simplification: `docs/planning/retrospectives/ARCHITECTURE_SIMPLIFICATION_REVIEW_S002_S003.md`
-- Vision: `docs/vision/ARCHITECTURE_FOUNDATIONS_UPDATED.md`, `docs/vision/MARKET_ANALYSIS_WITH_DECISIONS.md`
+- Vision: `docs/vision/ARCHITECTURE_FOUNDATIONS.md`, `docs/vision/MARKET_ANALYSIS_WITH_DECISIONS.md`
 - Roadmap Phase 4–5: `docs/planning/ROADMAP.md` §8–9
 
 ---

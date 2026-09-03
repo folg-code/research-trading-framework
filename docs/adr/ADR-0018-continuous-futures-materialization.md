@@ -204,4 +204,4 @@ deferred for consumer `query_trades` / `query_historical` list contracts.
 - `docs/adr/ADR-0014-historical-archive-import-and-market-trade-storage.md`
 - `docs/adr/ADR-0015-derived-ohlcv-from-trades.md`
 - `docs/adr/ADR-0007-dataset-lifecycle-and-publication.md`
-- `docs/vision/ARCHITECTURE_FOUNDATIONS_UPDATED.md` (§4.13)
+- `docs/vision/ARCHITECTURE_FOUNDATIONS.md` (§4.13)

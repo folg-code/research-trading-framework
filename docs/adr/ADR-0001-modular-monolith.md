@@ -35,5 +35,5 @@ Distribution into separate services is deferred until demonstrated needs justify
 
 ## References
 
-- `docs/vision/ARCHITECTURE_FOUNDATIONS_UPDATED.md`
+- `docs/vision/ARCHITECTURE_FOUNDATIONS.md`
 - `docs/planning/ROADMAP.md`

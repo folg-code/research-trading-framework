@@ -16,7 +16,7 @@ Direction: docs/planning/sprints/PHASE_4_5_SPRINT_DIRECTION.md
 Wave 0 decisions: docs/planning/sprints/S009_WAVE0_DECISIONS.md
 Prerequisite: Sprint 007 skipped — existing components sufficient (same gate as 008)
 Architecture Sources:
-  - docs/vision/WORKFLOWS_AI_ADR_UPDATED.md (§3.3 Research Scope)
+  - docs/vision/WORKFLOWS_AI_ADR.md (§3.3 Research Scope)
   - docs/adr/ADR-0011-signal-research-outcomes-and-persistence.md
   - docs/planning/sprints/S008_WAVE0_DECISIONS.md (outcome semantics carry forward)
 ```

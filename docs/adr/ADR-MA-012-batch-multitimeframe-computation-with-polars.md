@@ -180,7 +180,7 @@ introduced in this sprint.
 - `docs/planning/sprints/S004_MTF_SPIKE_AND_DECISIONS.md` — spike evidence and binding decisions
 - `docs/planning/sprints/SPRINT_004.md` — sprint scope and design principles
 - `docs/planning/PROBLEM_REGISTRY.md` — PRB-007 (deferred)
-- `docs/vision/MULTITIMEFRAME_MARKET_MODEL_ARCHITECTURE_UPDATED.md` — long-term MTF vision
+- `docs/vision/MULTITIMEFRAME_MARKET_MODEL_ARCHITECTURE.md` — long-term MTF vision
 - `docs/adr/ADR-MA-008-cache-identity-and-cache-scope.md` — computation cache baseline
 - `docs/adr/ADR-MA-009-warmup-causality-and-availability.md` — availability semantics
 - `src/trading_framework/market_analysis/planning/resolution.py`

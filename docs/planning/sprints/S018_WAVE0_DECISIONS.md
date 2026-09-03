@@ -233,7 +233,7 @@ research ranking or robustness consumption
 - `docs/planning/sprints/SPRINT_018.md`
 - `docs/adr/ADR-0021-live-dry-run-execution-demo.md`
 - `docs/planning/ROADMAP.md`
-- `docs/vision/ARCHITECTURE_FOUNDATIONS_UPDATED.md`
-- `docs/vision/ARCHITECTURE_TECHNICAL_UPDATED.md`
+- `docs/vision/ARCHITECTURE_FOUNDATIONS.md`
+- `docs/vision/ARCHITECTURE_TECHNICAL.md`
 - `docs/planning/PROBLEM_REGISTRY.md` - PRB-013
 - `docs/planning/TECHNICAL_DEBT.md` - TD-005, TD-009
