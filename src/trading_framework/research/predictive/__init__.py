@@ -1,9 +1,12 @@
 """Predictive Research specification contracts, labelled matrix, and fold planner."""
 
 from trading_framework.research.predictive.errors import (
+    IncompatibleSampleTaskError,
     PredictiveExtraError,
     PredictiveMatrixError,
     PredictiveSpecError,
+    ReservedPredictiveTaskError,
+    ReservedSampleKindError,
 )
 from trading_framework.research.predictive.estimators import (
     EstimatorDescription,
@@ -68,6 +71,16 @@ from trading_framework.research.predictive.preprocessing import (
     default_preprocessing_spec,
     require_train_only_fit_roles,
 )
+from trading_framework.research.predictive.sample import (
+    DEFAULT_SAMPLE_SPEC,
+    PredictiveTask,
+    SampleDirection,
+    SampleKind,
+    SampleSpec,
+    parse_predictive_task,
+    parse_sample_kind,
+    validate_sample_task_compatibility,
+)
 from trading_framework.research.predictive.selection import (
     DEFAULT_INNER_VALIDATION_FRACTION,
     DEFAULT_MAX_CANDIDATES,
@@ -116,6 +129,7 @@ __all__ = [
     "DEFAULT_INNER_VALIDATION_FRACTION",
     "DEFAULT_MAX_CANDIDATES",
     "DEFAULT_PERMUTATION_REPEATS",
+    "DEFAULT_SAMPLE_SPEC",
     "LEARNING_CURVES_FILENAME",
     "MAX_CANDIDATES_CAP",
     "MAX_LOOKBACK_BARS",
@@ -139,6 +153,7 @@ __all__ = [
     "FoldRole",
     "FoldSelectionTrace",
     "ImportanceTrace",
+    "IncompatibleSampleTaskError",
     "LabelKind",
     "LabelSpec",
     "LabelledFeatureMatrix",
@@ -158,11 +173,17 @@ __all__ = [
     "PredictiveMetricsReport",
     "PredictiveSpecError",
     "PredictiveStudySpec",
+    "PredictiveTask",
     "PreprocessingSpec",
     "PreprocessingStep",
     "PurgedWalkForwardSplitMode",
     "PurgedWalkForwardSplitSpec",
+    "ReservedPredictiveTaskError",
+    "ReservedSampleKindError",
     "RoleWindowAccounting",
+    "SampleDirection",
+    "SampleKind",
+    "SampleSpec",
     "SelectionMetric",
     "SelectionTrace",
     "SequenceWindowSpec",
@@ -185,6 +206,8 @@ __all__ = [
     "fold_train_targets",
     "load_predictive_study_spec",
     "load_predictive_study_spec_from_dict",
+    "parse_predictive_task",
+    "parse_sample_kind",
     "permutation_feature_importance",
     "primary_gap",
     "primary_metric_for_task",
@@ -195,6 +218,7 @@ __all__ = [
     "require_train_only_fit_roles",
     "select_winning_index",
     "split_inner_train_validation",
+    "validate_sample_task_compatibility",
     "write_learning_curves",
     "write_window_accounting",
 ]
