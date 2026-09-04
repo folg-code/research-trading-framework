@@ -224,8 +224,10 @@ Changing a material assumption creates a distinct result identity.
 
 *(Merged from: `WORKFLOWS_AI_ADR.md` §4.21, now dissolved. Classified MIXED
 by Sprint 054 T003b, by inheritance — most of the 14 rules below restate
-content that is largely CURRENT (moved to
-[`docs/reference/system/WORKFLOWS_ARCHITECTURE.md`](../reference/system/WORKFLOWS_ARCHITECTURE.md)),
+content that is largely CURRENT (moved into the former
+`docs/reference/system/WORKFLOWS_ARCHITECTURE.md`, which Sprint 055 T007
+split into [`docs/reference/workflows/STRATEGY_RESEARCH.md`](../reference/workflows/STRATEGY_RESEARCH.md)
+and [`docs/reference/workflows/STRATEGY_EXECUTION.md`](../reference/workflows/STRATEGY_EXECUTION.md)),
 but rules 6/7 restate the Research-Backtest-vs-Replay-Execution split
 (MIXED — Replay absent, see `EXECUTION_RUNTIME_FUTURE.md`) and rule 11
 restates Strategy Families (FUTURE, see

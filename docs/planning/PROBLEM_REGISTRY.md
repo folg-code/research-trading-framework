@@ -917,7 +917,9 @@ Discovered: 2026-09-03 (Sprint 054, T003b classification)
 
 ### Description
 
-`docs/vision/WORKFLOWS_AI_ADR.md` describes both Signal Research and
+`docs/vision/RESEARCH_SPACE_AND_ANALYTICS.md` (formerly
+`docs/vision/WORKFLOWS_AI_ADR.md`, dissolved by Sprint 055 T008) describes
+both Signal Research and
 Strategy Research as supporting bounded, observable expansion of research
 space via `experiments:` YAML lists — independent alternatives across
 assets/models/parameters are meant to become separate, bounded, tracked
@@ -934,7 +936,8 @@ hits.
 
 ### Evidence
 
-- `docs/vision/WORKFLOWS_AI_ADR.md` §4.5 "Strategy Research Space" presents
+- `docs/vision/RESEARCH_SPACE_AND_ANALYTICS.md` (former `WORKFLOWS_AI_ADR.md`
+  §4.5) "Strategy Research Space" presents
   an `experiments:` YAML example as already-working syntax with no
   implementing module found in `src/`.
 - §4.14 "Strategy Families" describes grouping related Strategy Model

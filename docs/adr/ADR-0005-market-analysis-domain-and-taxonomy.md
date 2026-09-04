@@ -11,7 +11,8 @@ Market Analysis must have a stable semantic taxonomy so components, dependencies
 strategy-independent and composable.
 
 Sprint 003 implemented the first engine slice over published `DatasetRef` inputs. Binding decisions
-D-001–D-004 in `docs/vision/MARKET_ANALYSIS_WITH_DECISIONS.md` define domain boundaries and
+D-001–D-004 in `docs/vision/MARKET_ANALYSIS_DECISIONS.md` (formerly
+`MARKET_ANALYSIS_WITH_DECISIONS.md`) define domain boundaries and
 component categories.
 
 ## Decision
@@ -58,7 +59,9 @@ Published DatasetRef → AnalysisDataView → Component DAG → AnalysisResultSt
 
 ## References
 
-- `docs/vision/ARCHITECTURE_FOUNDATIONS.md` §6.2
-- `docs/vision/MARKET_ANALYSIS_WITH_DECISIONS.md` — D-001–D-004
+- `docs/vision/PRODUCT_DIRECTION.md` (formerly `ARCHITECTURE_FOUNDATIONS.md` §6.2,
+  dissolved by Sprint 055 T008 — that specific subsection was not found
+  verbatim in the re-cut tree; treat as a general pointer, not a section-exact one)
+- `docs/vision/MARKET_ANALYSIS_DECISIONS.md` (formerly `MARKET_ANALYSIS_WITH_DECISIONS.md`) — D-001–D-004
 - `docs/adr/ADR-MA-001-market-analysis-domain-boundaries.md`
 - `src/trading_framework/market_analysis/`

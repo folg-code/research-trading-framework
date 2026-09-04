@@ -35,5 +35,5 @@ Distribution into separate services is deferred until demonstrated needs justify
 
 ## References
 
-- `docs/vision/ARCHITECTURE_FOUNDATIONS.md`
+- `docs/vision/PRODUCT_DIRECTION.md` (formerly `ARCHITECTURE_FOUNDATIONS.md`, dissolved by Sprint 055 T008)
 - `docs/planning/ROADMAP.md`

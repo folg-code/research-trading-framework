@@ -25,9 +25,12 @@
 > Future-facing, ambiguous-status, and not-yet-built content (the promotion
 > lifecycle in former §4.12, the "Composition Over Inheritance" style rule in
 > former §5.5, and the Replay/Live Execution runtime modes in former §6.5)
-> remains in
-> [`docs/vision/ARCHITECTURE_FOUNDATIONS.md`](../../vision/ARCHITECTURE_FOUNDATIONS.md)
-> (per Sprint 055 T008, may be renamed/relocated to `PRODUCT_DIRECTION.md`).
+> was dissolved by Sprint 055 T008 into
+> [`docs/vision/COMPONENT_PROMOTION_LIFECYCLE.md`](../../vision/COMPONENT_PROMOTION_LIFECYCLE.md)
+> (promotion lifecycle), `docs/historical/SUPERSEDED_LAYOUT_PROPOSALS.md`
+> (Composition Over Inheritance, pending a Cursor-side move), and
+> [`docs/vision/EXECUTION_RUNTIME_FUTURE.md`](../../vision/EXECUTION_RUNTIME_FUTURE.md)
+> (runtime modes).
 
 ---
 
@@ -411,7 +414,8 @@ How is a selected Strategy Model executed safely in a runtime environment?
 > Execution / Paper Execution / Live Execution) is classified MIXED — as of
 > this sprint, `execution/modes.py` supports only the `DRY_RUN` execution
 > mode; Replay and Live Execution are not yet implemented end-to-end. See
-> `docs/vision/ARCHITECTURE_FOUNDATIONS.md` §6.5 "Runtime Modes" and
+> `docs/vision/EXECUTION_RUNTIME_FUTURE.md` (merged from former
+> `ARCHITECTURE_FOUNDATIONS.md` §6.5 "Runtime Modes" by Sprint 055 T008) and
 > `SPRINT_054_T001_ARCHITECTURE_FOUNDATIONS_CLASSIFICATION.md`.
 
 #### Important Rule

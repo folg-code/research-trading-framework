@@ -4,10 +4,10 @@
 
 Before modifying the Market Data Module, read:
 
-1. `ARCHITECTURE_FOUNDATIONS.md`
-2. `ARCHITECTURE_TECHNICAL.md`
-3. `WORKFLOWS_AI_ADR.md`
-4. `DATA_MODULE.md`
+1. `docs/vision/PRODUCT_DIRECTION.md`
+2. `docs/vision/MARKET_DATA_FUTURE.md`
+3. `docs/reference/workflows/SIGNAL_RESEARCH.md`
+4. `docs/reference/workflows/MARKET_DATA.md`
 5. relevant contracts and tests
 6. relevant ADRs
 
@@ -94,7 +94,7 @@ Domain and application code must not import provider SDKs or concrete storage ad
 19. Continuous futures must be separate derived datasets.
 20. Continuous futures must preserve roll and adjustment lineage.
 21. Add or update tests for every material change.
-22. Update `DATA_MODULE.md` or an ADR when architecture changes.
+22. Update `docs/reference/workflows/MARKET_DATA.md` or an ADR when architecture changes.
 
 ---
 

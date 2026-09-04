@@ -458,7 +458,8 @@ The engine's default higher-timeframe policy is `LAST_CLOSED_BAR`, applied via b
 
 > As-built note: Feature and Structure output forms are confirmed. State
 > output forms inherit the caveat that the State category is the least
-> built of the three (see `docs/vision/ARCHITECTURE_TECHNICAL.md` §4.4).
+> built of the three (see `docs/vision/MARKET_ANALYSIS_FUTURE.md`, merged
+> from former `ARCHITECTURE_TECHNICAL.md` §4.4 by Sprint 055 T008).
 
 Outputs should preserve their natural structure.
 
@@ -512,8 +513,9 @@ Components must not:
 
 > As-built note: rule 12 ("Working components used in research require
 > fingerprints") inherits the FUTURE status of
-> `docs/vision/ARCHITECTURE_TECHNICAL.md` §5.12 "Local Development and
-> Promotion" — the fingerprint fields it requires do not exist in `src/`.
+> `docs/vision/COMPONENT_PROMOTION_LIFECYCLE.md` (merged from former
+> `ARCHITECTURE_TECHNICAL.md` §5.12 "Local Development and Promotion" by
+> Sprint 055 T008) — the fingerprint fields it requires do not exist in `src/`.
 >
 > **G-04 (added Sprint 055 T007, newly-authored per D-S055-04):** rule 8
 > below ("Higher-timeframe alignment uses legal availability semantics")

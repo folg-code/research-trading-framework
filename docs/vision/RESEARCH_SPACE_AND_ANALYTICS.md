@@ -100,9 +100,14 @@ It may only produce overfitted results faster.
 
 *(Merged from: `MULTITIMEFRAME_MARKET_MODEL_ARCHITECTURE.md` §11.2, now
 dissolved. §11.3 Fixed Selection and §11.4 Independent Alternatives were
-classified CURRENT by Sprint 054 T003 and moved to
-[`docs/reference/system/MULTITIMEFRAME_MARKET_MODEL.md`](../reference/system/MULTITIMEFRAME_MARKET_MODEL.md#independent-alternatives-research-space-growth)
-— not duplicated here.)*
+classified CURRENT by Sprint 054 T003 and moved into the former
+`docs/reference/system/MULTITIMEFRAME_MARKET_MODEL.md`, which Sprint 055
+T007 merged into
+[`docs/reference/system/TIME_AND_ALIGNMENT.md`](../reference/system/TIME_AND_ALIGNMENT.md)
+and [`docs/reference/workflows/SIGNAL_RESEARCH.md`](../reference/workflows/SIGNAL_RESEARCH.md#independent-experiment-expansion)
+— T007 notes this specific verbatim section was not individually re-verified
+against those targets, so treat the exact wording as unconfirmed pending a
+follow-up spot-check; not duplicated here.)*
 
 The framework must not interpret every list of timeframe or parameter values as a mandatory full Cartesian product.
 
@@ -529,10 +534,14 @@ A high score among millions of candidates is not automatically evidence of edge.
 
 *(Merged from: `MULTITIMEFRAME_MARKET_MODEL_ARCHITECTURE.md` §19 rules
 17/18/20, now dissolved. Rules 1-16, 19, 22, 24 were classified CURRENT and
-moved to
-[`docs/reference/system/MULTITIMEFRAME_MARKET_MODEL.md`](../reference/system/MULTITIMEFRAME_MARKET_MODEL.md#architectural-rules-current-behavior-portion).
-Rule 21 (fingerprints) lives in `COMPONENT_PROMOTION_LIFECYCLE.md`; rule 23
-(execution runtime modes) lives in `EXECUTION_RUNTIME_FUTURE.md`.)*
+moved into the former `docs/reference/system/MULTITIMEFRAME_MARKET_MODEL.md`,
+which Sprint 055 T007 merged into
+[`docs/reference/system/TIME_AND_ALIGNMENT.md`](../reference/system/TIME_AND_ALIGNMENT.md)
+(rules 13/16 explicitly retained there; the rest were judged duplicative of
+`DOMAIN_MODEL.md`/`MODULE_MAP.md`/`SYSTEM_OVERVIEW.md` per T007's own notes
+and not individually re-verified — treat as unconfirmed pending a follow-up
+spot-check). Rule 21 (fingerprints) lives in `COMPONENT_PROMOTION_LIFECYCLE.md`;
+rule 23 (execution runtime modes) lives in `EXECUTION_RUNTIME_FUTURE.md`.)*
 
 17. Research spaces are bounded and observable. *(Partially built — see "Search Constraints" above.)*
 18. Research progresses from small hypotheses to complete Strategy Models. *(See "Hierarchical Research Methodology" above — process claim, AMBIGUOUS.)*

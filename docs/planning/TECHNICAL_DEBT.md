@@ -553,7 +553,9 @@ Add columnar batch return type (`MarketDataBatch` / `pl.LazyFrame` with metadata
 
 - Sprint 004 T001 spike
 - `docs/planning/retrospectives/ARCHITECTURE_SIMPLIFICATION_REVIEW_S002_S003.md` §5.1
-- `docs/reference/system/DATA_REPRESENTATION_AUDIT.md` — D-REP-01 and D-REP-03 (accepted 2026-08-25)
+- `docs/planning/sprints/SPRINT_036_DATA_REPRESENTATION_AUDIT.md` (formerly
+  `docs/reference/system/DATA_REPRESENTATION_AUDIT.md`, split by Sprint 055
+  T007) — D-REP-01 and D-REP-03 (accepted 2026-08-25)
   define the repayment shape; H4 in §6.2 tracks the remaining object-materialization sites
 
 ### Post-Sprint 025 Review Notes
@@ -630,7 +632,9 @@ Analytical OHLCV as float64 or scaled integer at storage boundary; reserve Decim
 ### Related Tasks
 
 - Architecture Simplification Review §2.2, §3.2
-- `docs/reference/system/DATA_REPRESENTATION_AUDIT.md` — D-REP-04a accepted 2026-08-25 (simulation PnL as
+- `docs/planning/sprints/SPRINT_036_DATA_REPRESENTATION_AUDIT.md` (formerly
+  `docs/reference/system/DATA_REPRESENTATION_AUDIT.md`, split by Sprint 055
+  T007) — D-REP-04a accepted 2026-08-25 (simulation PnL as
   `int64` minor units); D-REP-04b (unified Parquet `price_nanos`) deferred to a dedicated sprint,
   D-S027-08 remains binding until then
 
@@ -755,7 +759,9 @@ Introduce `MarketFrame(pl.LazyFrame, metadata)` for batch paths; migrate compone
 
 - Sprint 004 Design Principles
 - ADR-MA-012 (planned)
-- `docs/reference/system/DATA_REPRESENTATION_AUDIT.md` — D-REP-01 accepted 2026-08-25; `MarketFrame`
+- `docs/planning/sprints/SPRINT_036_DATA_REPRESENTATION_AUDIT.md` (formerly
+  `docs/reference/system/DATA_REPRESENTATION_AUDIT.md`, split by Sprint 055
+  T007) — D-REP-01 accepted 2026-08-25; `MarketFrame`
   becomes the canonical bulk contract, `AnalysisDataView` is retained as a live-runtime adapter.
   Blocked on a superseding ADR for ADR-MA-004 / ADR-MA-010.
 

@@ -125,7 +125,9 @@ Continuous futures are explicit derived datasets.
 > implemented (`time/clocks/{protocol,system,fixed}.py`,
 > `tests/unit/test_clocks.py`). `ResearchClock` and `ReplayClock` have no
 > matching implementation, consistent with Replay Execution itself being
-> unbuilt (see `docs/vision/ARCHITECTURE_TECHNICAL.md` §3.16/§7.3).
+> unbuilt (see `docs/vision/MARKET_DATA_FUTURE.md` §3.16 and
+> `docs/vision/EXECUTION_RUNTIME_FUTURE.md` §7.3, both merged from former
+> `ARCHITECTURE_TECHNICAL.md` by Sprint 055 T008).
 
 Time-dependent application and Strategy Execution logic depend on a `Clock` contract.
 
@@ -458,7 +460,7 @@ executor-level guarantee, until ADR-0030 lands.
 > calendars/holidays (5) and full Clock coverage (8) inherit the
 > MIXED/AMBIGUOUS status of the Trading Calendars, Holidays, and Clock
 > Abstraction sections that remain in
-> `docs/vision/ARCHITECTURE_TECHNICAL.md`. Rule 10 ("Temporal outputs
+> `docs/vision/TIME_MODEL_FUTURE.md`. Rule 10 ("Temporal outputs
 > preserve legal availability semantics") is an alignment-time guarantee
 > only — see the G-04 note above for the inference-time gap.
 

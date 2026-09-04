@@ -247,5 +247,5 @@ Reconsideration triggers (write an ADR when one of these fires):
 
 - `docs/vision/ARCHITECTURE_FOUNDATIONS.md`
 - `docs/vision/MARKET_ANALYSIS_WITH_DECISIONS.md`
-- `docs/reference/ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md`
+- `docs/reference/system/ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md`
 - `docs/planning/PROBLEM_REGISTRY.md` — PRB-016
