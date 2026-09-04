@@ -135,7 +135,7 @@ understanding (same discipline as Sprint 054's D-S054-01):
 | T004 | Maintainer review gate — approve combined target IA | T001, T002, T003 | DONE |
 | T005 | Add context-map indexes to `docs/reference/` subfolders | T004 | TODO |
 | T006 | Add context-map index to `docs/vision/` | T004 | TODO |
-| T007 | Execute `docs/reference/` target IA | T004 | TODO |
+| T007 | Execute `docs/reference/` target IA | T004 | DONE |
 | T008 | Execute `docs/vision/` target IA | T004 | DONE |
 | T009 | Update inbound references | T007, T008 | TODO |
 | T010 | Validation re-run (6 checks) | T001-T009 | TODO |
@@ -273,6 +273,49 @@ understanding (same discipline as Sprint 054's D-S054-01):
   finalized in T008. The remaining 14 T003 gaps (G-05 through G-13,
   G-15 through G-23) are explicitly deferred past this sprint. T005-T008
   are now unblocked per D-S055-03.
+- 2026-09-04: T007 complete (executed across a resumed session after an
+  earlier rate-limit checkpoint). `docs/reference/` now matches the
+  approved target tree: `system/` re-cut into 9 subject-based files
+  (`DOMAIN_MODEL.md`, `ARCHITECTURE_PRINCIPLES.md` from the former
+  `ARCHITECTURE_FOUNDATIONS.md`; `MARKET_ANALYSIS_ARCHITECTURE.md`,
+  `TIME_AND_ALIGNMENT.md` merged from the former `ARCHITECTURE_TECHNICAL.md`
+  + `MULTITIMEFRAME_MARKET_MODEL.md`, both retired; `DATA_REPRESENTATION_POLICY.md`
+  split from the former `DATA_REPRESENTATION_AUDIT.md` §4/§5.2/§5.3, whose
+  point-in-time audit half now lives at
+  `docs/planning/sprints/SPRINT_036_DATA_REPRESENTATION_AUDIT.md`;
+  `ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md` moved up from the `docs/reference/`
+  root). `workflows/` gained `SIGNAL_RESEARCH.md`, `STRATEGY_RESEARCH.md`,
+  `STRATEGY_EXECUTION.md` (extracted from the retired
+  `system/WORKFLOWS_ARCHITECTURE.md`) and `MARKET_DATA.md` (extracted from
+  the retired `modules/DATA_MODULE.md` plus `SYSTEM_OVERVIEW.md` §3's Import
+  Paths table). `modules/` gained `ANALYSIS_COMPONENT_CATALOG.md` and
+  `STRATEGY_EXAMPLES.md` (both extracted/merged from `STRATEGY_AUTHORING.md`,
+  now trimmed to ~200 lines). Fixed G-04 (new note in
+  `MARKET_ANALYSIS_ARCHITECTURE.md`/`TIME_AND_ALIGNMENT.md` on the
+  executor's inference-time `available_at` gap, citing ADR-0030 and
+  `ROADMAP.md` §13F) and G-03 (qualified the two residual "family"
+  references in `workflows/STRATEGY_RESEARCH.md`/`STRATEGY_EXECUTION.md`
+  with PRB-020 citations). Opportunistically fixed `MARKET_ANALYSIS_MODULE.md`'s
+  broken `../adr/` links and stale MVP Components table (T001 §6). Left
+  explicit TODO markers (not guesses) on the two tier-inversion citations
+  into `docs/vision/MARKET_ANALYSIS_WITH_DECISIONS.md`
+  (`system/ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md`,
+  `modules/MARKET_ANALYSIS_MODULE.md`) pending T008's parallel `docs/vision/`
+  reorg. `docs/reference/README.md` rewritten for the final tree. One
+  judgment call flagged for review: several sections of the two retired
+  `system/` provenance files (`ARCHITECTURE_TECHNICAL.md`'s "Market Data
+  Architecture", "Model Composition Architecture", "Research and Strategy
+  Execution Boundaries", "Configuration Architecture", "Module Structure",
+  "Tests Structure", "Final Technical Architecture Rules";
+  `MULTITIMEFRAME_MARKET_MODEL.md`'s "Core Decision", "Boundary Between
+  Market Analysis and Strategy", "Market Model Definition", "Family
+  Analysis", "Multiple Testing", "Research Result Architecture") were not
+  individually re-homed — they were judged, consistent with T001 §2.2's own
+  finding that these two files uniquely own only 4 subjects, to duplicate
+  content already present in `DOMAIN_MODEL.md`, `MODULE_MAP.md`,
+  `SYSTEM_OVERVIEW.md`, or the new `workflows/SIGNAL_RESEARCH.md`. Not
+  independently re-verified section-by-section against every claim; worth a
+  spot-check by the `tester`/`reviewer` pass.
 
 - 2026-09-04: T008 complete on the `docs/execute-vision-target-ia` working
   branch (branched from `sprint/documentation-architecture-rebuild`). Executed
