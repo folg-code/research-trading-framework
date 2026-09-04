@@ -7,9 +7,14 @@ from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from pathlib import Path
 
+import pytest
+
 from trading_framework.application.predictive_research import (
     BuildPredictiveDatasetRequest,
     build_predictive_dataset,
+)
+from trading_framework.application.predictive_research.build_predictive_dataset import (
+    PredictiveDatasetError,
 )
 from trading_framework.core.types import Price, Volume
 from trading_framework.market.datasets import DatasetRef
@@ -18,7 +23,10 @@ from trading_framework.market_analysis.identity.component import ComponentId
 from trading_framework.market_analysis.models.outputs import OutputId
 from trading_framework.market_analysis.models.parameters import CanonicalParameters
 from trading_framework.market_analysis.models.time_range import TimeRange
-from trading_framework.research.datasets.predictive import PredictiveDatasetRepository
+from trading_framework.research.datasets.predictive import (
+    PREDICTIVE_DATASET_SCHEMA_V2,
+    PredictiveDatasetRepository,
+)
 from trading_framework.research.predictive import (
     FeatureMatrixSpec,
     FeatureSpec,
@@ -26,8 +34,11 @@ from trading_framework.research.predictive import (
     LabelKind,
     LabelSpec,
     PredictiveStudySpec,
+    PredictiveTask,
     PurgedWalkForwardSplitMode,
     PurgedWalkForwardSplitSpec,
+    SampleKind,
+    SampleSpec,
 )
 from trading_framework.time.clocks.fixed import FixedClock
 from trading_framework.time.models.timeframe import Timeframe
@@ -63,8 +74,10 @@ def _synthetic_bars(*, close_start: float = 100.0) -> tuple[MarketBar, ...]:
     return tuple(bars)
 
 
-def _study(*, fold_count: int = 2) -> PredictiveStudySpec:
+def _study(*, fold_count: int = 2, sample: SampleSpec | None = None) -> PredictiveStudySpec:
     timestamps = _timestamps()
+    resolved_sample = sample if sample is not None else SampleSpec(kind=SampleKind.EVERY_BAR)
+    task = PredictiveTask.SIGNAL_QUALITY if sample is not None else PredictiveTask.FORWARD_RETURN
     return PredictiveStudySpec(
         study_id="atr_forward_return",
         dataset_ref=_dataset_ref(),
@@ -87,6 +100,8 @@ def _study(*, fold_count: int = 2) -> PredictiveStudySpec:
             embargo_span=Timeframe("5m"),
             min_train_rows=5,
         ),
+        sample=resolved_sample,
+        task=task,
     )
 
 
@@ -133,6 +148,19 @@ def test_build_predictive_dataset_persists_envelope_with_fold_roles(tmp_path: Pa
     assert role_counts[FoldRole.TEST.value] > 0
     assert role_counts[FoldRole.PURGED.value] > 0
     assert role_counts[FoldRole.EMBARGOED.value] > 0
+    assert loaded.manifest.schema_version == PREDICTIVE_DATASET_SCHEMA_V2
+    provenance = result.envelope.manifest.sample_provenance
+    assert provenance is not None
+    assert provenance.kind is SampleKind.EVERY_BAR
+    assert provenance.task is PredictiveTask.FORWARD_RETURN
+    # "The whole grid was used" is a read (equal counts, no drops), not an
+    # inference from a missing key (Finding 5, SPRINT_056.md).
+    assert provenance.universe_row_count == provenance.resolved_row_count
+    assert (
+        provenance.universe_row_count == result.envelope.manifest.exclusion_counts["candidate_rows"]
+    )
+    assert provenance.drop_counts == {}
+    assert loaded.manifest.sample_provenance == provenance
 
 
 def test_rebuild_from_same_spec_yields_identical_fingerprint(tmp_path: Path) -> None:
@@ -236,3 +264,32 @@ def test_application_workflow_uses_run_analysis_and_existing_builders() -> None:
         for name in imported
         for root in ("sklearn", "xgboost", "lightgbm", "catboost", "torch")
     )
+
+
+def test_signal_occurrences_sample_is_refused_before_resolution_exists(tmp_path: Path) -> None:
+    """S056-T003: refuse rather than silently build every_bar under a mislabelled manifest.
+
+    ``signal_occurrences`` resolution (evaluate_models -> materialize_signal_
+    occurrences -> filter-late row selection) is S056-T004, not yet
+    implemented. Building the whole grid anyway while the manifest claimed a
+    resolved sample would be exactly the silent-inference failure Finding 5
+    warns against.
+    """
+    storage_root = tmp_path / "workspace"
+    spec = _study(
+        sample=SampleSpec(
+            kind=SampleKind.SIGNAL_OCCURRENCES,
+            signal_model_file="models/breakout.yaml",
+            signal_model_id="breakout_v1",
+        )
+    )
+
+    with pytest.raises(PredictiveDatasetError, match="not yet resolvable"):
+        build_predictive_dataset(
+            BuildPredictiveDatasetRequest(
+                spec=spec,
+                storage_root=storage_root,
+                persist=False,
+                preloaded_bars=_synthetic_bars(),
+            )
+        )

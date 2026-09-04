@@ -22,7 +22,7 @@ from trading_framework.market_analysis.data.view import AnalysisDataView
 from trading_framework.market_analysis.models.output_ref import OutputRef
 from trading_framework.market_analysis.models.request import ComponentRequest
 from trading_framework.research.datasets.predictive import (
-    PREDICTIVE_DATASET_SCHEMA_VERSION,
+    PREDICTIVE_DATASET_SCHEMA_V2,
     PredictiveDatasetEnvelope,
     PredictiveDatasetManifest,
     PredictiveDatasetRef,
@@ -35,6 +35,7 @@ from trading_framework.research.datasets.predictive import (
 )
 from trading_framework.research.predictive.features import FeatureMatrixSpec, FeatureSpec
 from trading_framework.research.predictive.matrix import build_labelled_feature_matrix
+from trading_framework.research.predictive.sample import SampleKind, SampleProvenance
 from trading_framework.research.predictive.spec import PredictiveStudySpec
 from trading_framework.research.predictive.splitting import assign_purged_walk_forward_folds
 from trading_framework.time.clocks.protocol import Clock
@@ -84,6 +85,16 @@ def build_predictive_dataset(
     if definition_hash is None:
         msg = "study spec is missing definition_hash"
         raise PredictiveDatasetError(msg)
+    if spec.sample.kind is not SampleKind.EVERY_BAR:
+        # signal_occurrences resolution (evaluate_models -> materialize_signal_occurrences
+        # -> filter-late row selection) is S056-T004, not yet implemented. Refusing here
+        # avoids silently building the whole grid while the manifest claims a sample was
+        # resolved (Finding 5, ADR-0031 Decision 6).
+        msg = (
+            f"sample kind {spec.sample.kind.value!r} is declared but not yet resolvable: "
+            "signal_occurrences resolution lands in S056-T004"
+        )
+        raise PredictiveDatasetError(msg)
 
     analysis = run_analysis(
         RunAnalysisRequest(
@@ -125,9 +136,21 @@ def build_predictive_dataset(
     )
     dataset_id = derive_dataset_id(fingerprint)
     clock = request.clock or SystemClock()
+    # every_bar is the only resolvable kind today (the guard above refuses any
+    # other declared kind), so the sample universe IS the candidate grid: no
+    # row is added or dropped by the sample step. Recording that explicitly
+    # (drop_counts={}) is what states "the whole grid was used" rather than
+    # leaving a reader to infer it (Finding 5, ADR-0031 Decision 6).
+    sample_provenance = SampleProvenance(
+        kind=spec.sample.kind,
+        task=spec.task,
+        universe_row_count=labelled.exclusions.candidate_rows,
+        resolved_row_count=labelled.exclusions.candidate_rows,
+        drop_counts={},
+    )
     envelope = PredictiveDatasetEnvelope(
         manifest=PredictiveDatasetManifest(
-            schema_version=PREDICTIVE_DATASET_SCHEMA_VERSION,
+            schema_version=PREDICTIVE_DATASET_SCHEMA_V2,
             dataset_id=dataset_id,
             study_spec=spec.to_dict(),
             definition_hash=definition_hash,
@@ -139,6 +162,7 @@ def build_predictive_dataset(
             fold_summary=fold_summary_from_features(assigned),
             framework_version=framework_version,
             created_at_utc=clock.now(),
+            sample_provenance=sample_provenance,
         ),
         features=assigned,
         folds=resolve_fold_boundaries(assigned),
