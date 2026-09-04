@@ -5,6 +5,20 @@
 > (`docs/reference` system/workflows/runbooks/modules split). Content
 > unchanged — kept as one document, not split per methodology (see
 > `docs/planning/sprints/SPRINT_054_T007_REFERENCE_FOLDER_AUDIT.md` §4.1).
+>
+> **This document answers "which methodology should I choose, and what
+> question does it answer".** For "what are a workflow's scopes, contracts
+> and persisted outputs", see
+> [`SIGNAL_RESEARCH.md`](SIGNAL_RESEARCH.md) / [`STRATEGY_RESEARCH.md`](STRATEGY_RESEARCH.md) /
+> [`STRATEGY_EXECUTION.md`](STRATEGY_EXECUTION.md) / [`MARKET_DATA.md`](MARKET_DATA.md) —
+> added by Sprint 055 T007, per
+> `docs/planning/sprints/SPRINT_055_T004_DECISIONS.md` §1 (RESEARCH_METHODOLOGIES /
+> SIGNAL_RESEARCH adjacency, option (a)). The two kinds of document are
+> deliberately not merged.
+
+> The shared "Workflow Architecture" preamble (the three-workflows-are-not-a-pipeline
+> rule) that Sprint 055 T007 temporarily parked here now lives in
+> [`README.md`](README.md) — this folder's Sprint 055 T005 context map.
 
 This document describes the research methodologies supported by the framework, the questions they answer, and how to choose between them.
 

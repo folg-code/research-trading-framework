@@ -36,8 +36,8 @@ Folder READMEs are **catalogs only** — not second indexes.
 
 | File | Owns |
 |------|------|
-| `reference/MODULE_MAP.md` | Packages, status |
-| `reference/DATA_WORKFLOWS.md` | Data movement, diagrams |
+| `reference/system/MODULE_MAP.md` | Packages, status |
+| `reference/workflows/MARKET_DATA.md` | Data movement, diagrams |
 | `reference/modules/*.md` | Per-module implemented detail |
 
 Do not duplicate in `DEVELOPER_GUIDE.md` or sprint files.
@@ -48,11 +48,11 @@ Do not duplicate in `DEVELOPER_GUIDE.md` or sprint files.
 - **Should be?** `vision/`, `planning/`, ADRs.
 - **Why?** ADRs + binding decision docs in `vision/`.
 
-`reference/ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md` wins on MA derived-data conflicts.
+`reference/system/ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md` wins on MA derived-data conflicts.
 
 ## Mandatory Updates
 
-**After merged wave:** `MODULE_MAP.md`; `DATA_WORKFLOWS.md` if paths changed.
+**After merged wave:** `MODULE_MAP.md`; `MARKET_DATA.md` if paths changed.
 
 **Contract change:** `reference/modules/*`, vision if binding decision changed, tests, ADR if durable.
 
@@ -61,7 +61,7 @@ Do not duplicate in `DEVELOPER_GUIDE.md` or sprint files.
 ## What Not to Do
 
 - No implementation status from vision docs alone.
-- No flow diagrams in `DEVELOPER_GUIDE.md` — use `DATA_WORKFLOWS.md`.
+- No flow diagrams in `DEVELOPER_GUIDE.md` — use `reference/workflows/MARKET_DATA.md`.
 - No duplicate indexes in folder READMEs.
 
 ## Reading Order

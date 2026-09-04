@@ -39,5 +39,5 @@ Cache identity includes dataset ref, timeframe, parameters, implementation ident
 
 ## References
 
-- `docs/vision/MARKET_ANALYSIS_WITH_DECISIONS.md` — D-018, D-024
+- `docs/vision/MARKET_ANALYSIS_DECISIONS.md` (formerly `MARKET_ANALYSIS_WITH_DECISIONS.md`) — D-018, D-024
 - `src/trading_framework/market_analysis/execution/executor.py`

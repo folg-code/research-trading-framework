@@ -240,7 +240,7 @@ Standard CI stays network-free (Sprint 019 rule).
   mapping, validator behaviour on gaps, and the exact manifest fields.
 - `trades` mode, Binance spot, and resume-after-failure are deliberately
   deferred; each needs its own increment.
-- `docs/reference/DATA_WORKFLOWS.md` and `MODULE_MAP.md` gain the new path
+- `docs/reference/workflows/MARKET_DATA.md` and `docs/reference/system/MODULE_MAP.md` gain the new path
   during Sprint 045.
 
 ## Related

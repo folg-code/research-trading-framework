@@ -7,7 +7,9 @@
 This document defines how the framework manages derived analytical data produced from canonical market data.
 
 > **Related:** For engine contracts, component identity, DAG planning, cache scope, and warm-up
-> semantics see [`MARKET_ANALYSIS_WITH_DECISIONS.md`](../vision/MARKET_ANALYSIS_WITH_DECISIONS.md).
+> semantics see the binding decision register (D-001–D-036) at
+> [`MARKET_ANALYSIS_DECISIONS.md`](../../vision/MARKET_ANALYSIS_DECISIONS.md)
+> — moved there from `docs/vision/MARKET_ANALYSIS_WITH_DECISIONS.md` by Sprint 055 T008.
 > Where the two documents conflict on workspace or derived-data topics, **this document**
 > takes precedence.
 

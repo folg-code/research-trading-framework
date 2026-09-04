@@ -17,10 +17,10 @@ This file defines mandatory rules for AI coding agents working on:
 
 The agent must read this file together with:
 
-1. `ARCHITECTURE_FOUNDATIONS.md`
-2. `ARCHITECTURE_TECHNICAL.md`
-3. `WORKFLOWS_AI_ADR.md`
-4. `MULTITIMEFRAME_MARKET_MODEL_ARCHITECTURE.md`
+1. `docs/vision/PRODUCT_DIRECTION.md`
+2. `docs/vision/MARKET_ANALYSIS_FUTURE.md`
+3. `docs/reference/workflows/SIGNAL_RESEARCH.md`
+4. `docs/reference/system/TIME_AND_ALIGNMENT.md`
 5. relevant contracts, tests and ADRs
 
 This contract overrides implementation convenience.

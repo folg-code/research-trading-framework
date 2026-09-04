@@ -39,5 +39,5 @@ inside `compute()`.
 
 ## References
 
-- `docs/vision/MARKET_ANALYSIS_WITH_DECISIONS.md` — D-008, D-009, D-016, D-017
+- `docs/vision/MARKET_ANALYSIS_DECISIONS.md` (formerly `MARKET_ANALYSIS_WITH_DECISIONS.md`) — D-008, D-009, D-016, D-017
 - `src/trading_framework/market_analysis/planning/`

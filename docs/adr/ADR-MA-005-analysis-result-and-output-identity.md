@@ -54,7 +54,7 @@ lineage-as-columns unless a later research-reproducibility requirement demands i
 
 ## References
 
-- `docs/vision/MARKET_ANALYSIS_WITH_DECISIONS.md` — D-014, D-015, D-025
+- `docs/vision/MARKET_ANALYSIS_DECISIONS.md` (formerly `MARKET_ANALYSIS_WITH_DECISIONS.md`) — D-014, D-015, D-025
 - `docs/planning/PROBLEM_REGISTRY.md` — PRB-005 (MVP resolution note)
 - `src/trading_framework/market_analysis/models/result.py`
-- `docs/reference/system/DATA_REPRESENTATION_AUDIT.md` — D-REP-10
+- `docs/planning/sprints/SPRINT_036_DATA_REPRESENTATION_AUDIT.md` (formerly `docs/reference/system/DATA_REPRESENTATION_AUDIT.md`) — D-REP-10

@@ -135,7 +135,7 @@ below).
 | ADR-0030 | Inference-Time Availability Enforcement | PLANNED (conditional on the S049-T001 finding) | TBD |
 
 Market Analysis binding decisions D-001–D-036 remain authoritative in
-`docs/vision/MARKET_ANALYSIS_WITH_DECISIONS.md`. Sprint 003 materialized the engine subset above as
+`docs/vision/MARKET_ANALYSIS_DECISIONS.md` (formerly `MARKET_ANALYSIS_WITH_DECISIONS.md`, dissolved by Sprint 055 T008). Sprint 003 materialized the engine subset above as
 accepted ADRs.
 
 ## Template
@@ -245,7 +245,7 @@ Reconsideration triggers (write an ADR when one of these fires):
 
 ## Related Documents
 
-- `docs/vision/ARCHITECTURE_FOUNDATIONS.md`
-- `docs/vision/MARKET_ANALYSIS_WITH_DECISIONS.md`
-- `docs/reference/ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md`
+- `docs/vision/PRODUCT_DIRECTION.md` (formerly `ARCHITECTURE_FOUNDATIONS.md`)
+- `docs/vision/MARKET_ANALYSIS_DECISIONS.md` (formerly `MARKET_ANALYSIS_WITH_DECISIONS.md`)
+- `docs/reference/system/ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md`
 - `docs/planning/PROBLEM_REGISTRY.md` — PRB-016

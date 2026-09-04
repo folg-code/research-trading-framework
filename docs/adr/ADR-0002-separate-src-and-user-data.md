@@ -41,4 +41,4 @@ Rules:
 
 - `user_data/README.md`
 - `tests/unit/test_architecture_boundaries.py`
-- `docs/vision/ARCHITECTURE_FOUNDATIONS.md`
+- `docs/vision/PRODUCT_DIRECTION.md` (formerly `ARCHITECTURE_FOUNDATIONS.md`, dissolved by Sprint 055 T008)

@@ -178,7 +178,8 @@ research-to-execution promotion policy
 - `docs/planning/sprints/SPRINT_018.md`
 - `docs/planning/sprints/S018_WAVE0_DECISIONS.md`
 - `docs/planning/ROADMAP.md`
-- `docs/vision/ARCHITECTURE_FOUNDATIONS.md`
-- `docs/vision/ARCHITECTURE_TECHNICAL.md`
+- `docs/vision/PRODUCT_DIRECTION.md` (formerly `ARCHITECTURE_FOUNDATIONS.md`)
+- `docs/vision/EXECUTION_RUNTIME_FUTURE.md` (formerly `ARCHITECTURE_TECHNICAL.md`,
+  both dissolved by Sprint 055 T008)
 - `docs/planning/PROBLEM_REGISTRY.md` - PRB-013
 - `docs/planning/TECHNICAL_DEBT.md` - TD-005, TD-009

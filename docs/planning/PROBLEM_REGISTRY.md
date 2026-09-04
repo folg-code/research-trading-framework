@@ -158,9 +158,9 @@ An incorrect definition may cause:
 
 ### Related Documents
 
-- `ARCHITECTURE_FOUNDATIONS.md`
-- `ARCHITECTURE_TECHNICAL.md`
-- `DATA_MODULE.md`
+- `docs/vision/PRODUCT_DIRECTION.md` (formerly `ARCHITECTURE_FOUNDATIONS.md`)
+- `docs/vision/MARKET_DATA_FUTURE.md` (formerly `ARCHITECTURE_TECHNICAL.md`)
+- `docs/reference/workflows/MARKET_DATA.md` (formerly `DATA_MODULE.md`)
 
 ---
 
@@ -917,7 +917,9 @@ Discovered: 2026-09-03 (Sprint 054, T003b classification)
 
 ### Description
 
-`docs/vision/WORKFLOWS_AI_ADR.md` describes both Signal Research and
+`docs/vision/RESEARCH_SPACE_AND_ANALYTICS.md` (formerly
+`docs/vision/WORKFLOWS_AI_ADR.md`, dissolved by Sprint 055 T008) describes
+both Signal Research and
 Strategy Research as supporting bounded, observable expansion of research
 space via `experiments:` YAML lists — independent alternatives across
 assets/models/parameters are meant to become separate, bounded, tracked
@@ -934,7 +936,8 @@ hits.
 
 ### Evidence
 
-- `docs/vision/WORKFLOWS_AI_ADR.md` §4.5 "Strategy Research Space" presents
+- `docs/vision/RESEARCH_SPACE_AND_ANALYTICS.md` (former `WORKFLOWS_AI_ADR.md`
+  §4.5) "Strategy Research Space" presents
   an `experiments:` YAML example as already-working syntax with no
   implementing module found in `src/`.
 - §4.14 "Strategy Families" describes grouping related Strategy Model
@@ -972,7 +975,8 @@ scratch rather than mirror an established, working Signal Research pattern.
   parameter sweeps), design a Strategy-Research-specific bounded-expansion
   contract rather than a direct port — worth an explicit design pass before
   implementation.
-- At minimum, correct `docs/vision/WORKFLOWS_AI_ADR.md` §4.5's `experiments:`
+- At minimum, correct `docs/vision/RESEARCH_SPACE_AND_ANALYTICS.md` (former
+  `WORKFLOWS_AI_ADR.md`) §4.5's `experiments:`
   example to stop presenting unbuilt syntax as already-working, independent
   of whichever implementation direction is chosen.
 
@@ -987,7 +991,7 @@ scratch rather than mirror an established, working Signal Research pattern.
 
 ### Related Documents
 
-- `docs/vision/WORKFLOWS_AI_ADR.md` §4.5, §4.14, §4.18
+- `docs/vision/RESEARCH_SPACE_AND_ANALYTICS.md` (formerly `WORKFLOWS_AI_ADR.md`) §4.5, §4.14, §4.18
 - `docs/planning/sprints/SPRINT_054_T003b_WORKFLOWS_AI_ADR_ARCHITECTURE_CLASSIFICATION.md`
 - `research/signal_research/family_planning.py` (the existing pattern to mirror or diverge from)
 

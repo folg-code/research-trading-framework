@@ -142,9 +142,9 @@ Depends on your focus — the README [Start here](../../README.md#start-here--pi
 
 | Focus | Read next |
 |-------|-----------|
-| **Data / pipelines** | [DATA_WORKFLOWS.md](../reference/DATA_WORKFLOWS.md) → [DATA_MODULE.md](../reference/modules/DATA_MODULE.md) |
-| **Code / architecture** | [MODULE_MAP.md](../reference/MODULE_MAP.md) → [adr/](../adr/README.md) |
-| **Research workflows** | [RESEARCH_METHODOLOGIES.md](../reference/RESEARCH_METHODOLOGIES.md) → [DATA_WORKFLOWS.md](../reference/DATA_WORKFLOWS.md) |
+| **Data / pipelines** | [MARKET_DATA.md](../reference/workflows/MARKET_DATA.md) |
+| **Code / architecture** | [MODULE_MAP.md](../reference/system/MODULE_MAP.md) → [adr/](../adr/README.md) |
+| **Research workflows** | [RESEARCH_METHODOLOGIES.md](../reference/workflows/RESEARCH_METHODOLOGIES.md) → [MARKET_DATA.md](../reference/workflows/MARKET_DATA.md) |
 | **Sprint context** | [CURRENT_STATUS.md](../planning/CURRENT_STATUS.md) → [ROADMAP.md](../planning/ROADMAP.md) |
 | **Design decisions** | [Vision catalog](../vision/README.md) → [Reference catalog](../reference/README.md) |
 

@@ -54,6 +54,6 @@ the column is optional.
 
 ## References
 
-- `docs/vision/MARKET_ANALYSIS_WITH_DECISIONS.md` — D-020–D-022
+- `docs/vision/MARKET_ANALYSIS_DECISIONS.md` (formerly `MARKET_ANALYSIS_WITH_DECISIONS.md`) — D-020–D-022
 - `src/trading_framework/market_analysis/execution/warmup.py`
-- `docs/reference/system/DATA_REPRESENTATION_AUDIT.md` — D-REP-05
+- `docs/planning/sprints/SPRINT_036_DATA_REPRESENTATION_AUDIT.md` (formerly `docs/reference/system/DATA_REPRESENTATION_AUDIT.md`) — D-REP-05

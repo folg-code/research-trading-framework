@@ -1,17 +1,28 @@
 # Trading Research Framework
 
-# DATA_MODULE_FUTURE.md
+# MARKET_DATA_FUTURE.md
 
-> **Target architecture / not-yet-built content.** This file was split out
+> **Target architecture / not-yet-built content.** This file (renamed from
+> `DATA_MODULE_FUTURE.md` by Sprint 055 T008 — the name now states the
+> subject rather than the file it was split from) was originally split out
 > of `docs/reference/modules/DATA_MODULE.md` (Sprint-002-era, 674 lines) by
 > the follow-up to Sprint 054 T007. It contains every section/subsection of
 > that document classified FUTURE, MIXED, or AMBIGUOUS — i.e. content that
 > reads as normative/target architecture rather than as-implemented
 > behavior, or that could not be confidently verified against the codebase.
-> See `docs/planning/DATA_MODULE_CLASSIFICATION.md` for the full
+> Sprint 055 T008 additionally merged in `docs/vision/ARCHITECTURE_TECHNICAL.md`
+> §3.3, §3.5, §3.7, §3.9, §3.10, §3.15 and §3.16 (now dissolved), which
+> described the same unbuilt market-data pipeline at a different level of
+> verification rigour (see T002 finding F6). See
+> `docs/planning/DATA_MODULE_CLASSIFICATION.md` for the full
 > section-by-section classification and evidence. Content below is
-> preserved verbatim from the original file; only classification headers
-> and staleness annotations (clearly marked as such) were added.
+> preserved verbatim from the original files; only classification headers,
+> staleness annotations, and this merge header are newly authored/added.
+>
+> Former §26 (Suggested Module Structure) and §29 (Initial Implementation
+> Scope) were evicted to `docs/historical/SUPERSEDED_LAYOUT_PROPOSALS.md`
+> per Sprint 055 T004 — they describe a layout/increment plan that is
+> neither current nor intended, not future architecture.
 
 ---
 
@@ -85,6 +96,63 @@ Phase 2E — Live Market Data                       GATED
 Phase 2A delivered CSV/Parquet OHLCV import only. Archive import, tick facts, options snapshots and live adapters are separate increments. Canonical trade/quote models are **`MarketTrade`** and **`MarketQuote`** — avoid a single ambiguous `Tick` type (**ROADMAP.md** §6 Phase 2C). Derived indicators (footprint, delta, GEX) belong in Market Analysis, not primary storage (**ROADMAP.md** §14).
 
 Test data tiers (small fixtures, integration datasets, full research datasets): **ROADMAP.md** §15.1. Gap tracked as **PRB-017**.
+
+---
+
+## 3. Provider and Importer Contracts
+
+*(Merged from: `ARCHITECTURE_TECHNICAL.md` §3.3, now dissolved. Classified
+AMBIGUOUS by Sprint 054 T002 — as-built status unclear as of Sprint 054, see
+`docs/planning/sprints/SPRINT_054_T002_ARCHITECTURE_TECHNICAL_CLASSIFICATION.md`
+§3.3. The underlying capability (provider/importer separation) is CURRENT
+via `market/importers/` and `infrastructure/providers/`; the specific named
+contract protocols below were not found under these names. See §24 below
+for the fuller, independently-verified public-contracts picture.)*
+
+Provider contracts may include:
+
+```text
+HistoricalDataProvider
+LiveDataProvider
+InstrumentProvider
+MetadataProvider
+```
+
+Importer contracts may include:
+
+```text
+DatasetImporter
+ImportInspector
+SourceReader
+```
+
+Provider API access and external file import are separate use cases.
+
+They may reuse normalization logic but must not be represented by one ambiguous contract.
+
+---
+
+## 4. Instrument Mapping
+
+*(Merged from: `ARCHITECTURE_TECHNICAL.md` §3.5, now dissolved. Classified
+AMBIGUOUS by Sprint 054 T002 — as-built status unclear as of Sprint 054, see
+`docs/planning/sprints/SPRINT_054_T002_ARCHITECTURE_TECHNICAL_CLASSIFICATION.md`
+§3.5. No dedicated instrument-mapping module or config schema was located.)*
+
+Research instruments and execution instruments may differ.
+
+Examples:
+
+```text
+NQ → NAS100
+ES → US500
+```
+
+Instrument mapping must be explicit.
+
+It must not be inferred from similar symbol strings.
+
+Mappings belong to user-owned configuration or metadata.
 
 ---
 
@@ -279,6 +347,42 @@ For futures, the calculator must not request data outside the valid lifecycle of
 
 ---
 
+## 10.1 Missing Data Classification
+
+*(Merged from: `ARCHITECTURE_TECHNICAL.md` §3.7, now dissolved. Classified
+AMBIGUOUS by Sprint 054 T002 — as-built status unclear as of Sprint 054, see
+`docs/planning/sprints/SPRINT_054_T002_ARCHITECTURE_TECHNICAL_CLASSIFICATION.md`
+§3.7. The named policy enum below was not located verbatim; gap-detection
+tests exist in spirit.)*
+
+Missing-data handling must distinguish:
+
+```text
+Unexpected Gap
+```
+
+from:
+
+```text
+Expected Market Closure
+```
+
+Trading Calendars are required for gap evaluation.
+
+Supported policies may include:
+
+```text
+FAIL
+WARN
+MARK_INCOMPLETE
+FETCH_MISSING
+ACCEPT_KNOWN_CLOSURE
+```
+
+Market prices must not be forward-filled by default.
+
+---
+
 ## 13. Live Data Ingestion
 
 ### 13.1 Purpose
@@ -314,6 +418,15 @@ Normalized Market Event Stream
 - Reconnect and replay behaviour must be explicit.
 - Data loss must be observable.
 - Backpressure policy must be explicit.
+
+> **Merged from: `ARCHITECTURE_TECHNICAL.md` §3.15, now dissolved.** That
+> section (classified FUTURE by Sprint 054 T002 — `execution/modes.py`
+> supports only `ExecutionMode.DRY_RUN`; the live-runtime consumer side of
+> this pipeline is not built end-to-end) restated this same workflow
+> near-identically, adding only: "Storage is an independent consumer" and
+> "Slow storage must not block the primary runtime path" — both already
+> covered by the Rules above. No unique material to carry forward beyond
+> this provenance note.
 
 ---
 
@@ -401,6 +514,17 @@ are separate execution modes.
 
 The framework should support both without forcing one implementation model onto the other.
 
+> **Merged from: `ARCHITECTURE_TECHNICAL.md` §3.16, now dissolved.** That
+> section (classified FUTURE by Sprint 054 T002 — `execution/modes.py`
+> supports only `ExecutionMode.DRY_RUN`; no `ReplayClock` implementation
+> exists) restated this same workflow near-identically under the heading
+> "Replay", adding a contrast table (batch/vectorized backtest belongs to
+> Research; Replay/Paper/Live belong to Execution) — that contrast is
+> preserved in full in `EXECUTION_RUNTIME_FUTURE.md`, so it is not
+> duplicated here.
+
+The framework should support both without forcing one implementation model onto the other.
+
 ---
 
 ## 18.2 Storage Layers (not-yet-built layout)
@@ -446,6 +570,18 @@ Dataset manifests, checksums, validation results and lineage.
 > `raw/metadata/normalized/continuous/` — there is no `source/`/`working/`/
 > `derived/` tier as described above. See
 > `docs/reference/modules/DATA_MODULE.md` §18.3.
+
+**Merged from: `ARCHITECTURE_TECHNICAL.md` §3.9, now dissolved.** That
+section (classified MIXED by Sprint 054 T002 — the actual, documented
+canonical layout is `user_data/market_data/{raw,metadata,normalized,continuous}/`
+per `docs/reference/MODULE_MAP.md` §11, a different and narrower set of
+directory names than the suggestion above) proposed the same five layers
+under a slightly different root (`user_data/data/`) plus one unique layer
+not listed above:
+
+#### cache (unique to the merged copy)
+
+Reusable computational artifacts where appropriate.
 
 ---
 
@@ -504,13 +640,33 @@ Quarterly partitions may be used as a compaction policy for stable historical da
 
 The default remains monthly for continuous intraday bars because the difference between 28 and 84 files over seven years is operationally negligible, while monthly updates are more flexible.
 
-> **Verified divergence from implementation.** The actual partition key is
-> `session_date=<date>` (one partition per exchange session day) for both
-> OHLCV bars and trades — no `year=`/`month=` partitioning exists anywhere
-> in `src/trading_framework/`. See
-> `docs/planning/DATA_MODULE_CLASSIFICATION.md` for details. This is
-> flagged as worth a maintainer decision on whether to update this default
-> or treat the divergence as a gap.
+> **Sprint 055 T008 correction (per Sprint 055 T003 G-01):** the
+> month-vs-day/session_date partitioning question is not an open divergence
+> awaiting a maintainer decision — it is a **settled decision**, recorded in
+> two ACCEPTED ADRs: **ADR-0014** (Sprint 011, day-partitioned Parquet layout,
+> `partitions/day=YYYY-MM-DD/trades.parquet`) and **ADR-0018** (Sprint 015,
+> `partitions/session_date=*/bars.parquet`, which itself already records the
+> divergence from Sprint 011's `day=` layout in its own Consequences
+> section). `ROADMAP.md` §6 states the resulting rule: day partitioning for
+> legacy single-contract import, `session_date` partitioning for
+> contract-layer datasets (Sprint 015 onward). Verified in code
+> (`infrastructure/storage/paths.py`): **three** coexisting physical
+> layouts, none month-based — an unpartitioned `bars.parquet` path (Phase
+> 2A/2F Binance imports), `session_date=<date>/bars.parquet` OHLCV
+> partitions, `day=<date>` legacy trade partitions, and `session_date=`
+> contract/continuous trade partitions. The month-based defaults suggested
+> above are this document's forward-looking target-architecture proposal,
+> not an unresolved question; see ADR-0008, ADR-0014 and ADR-0018 for the
+> as-decided partitioning history.
+
+> **Merged from: `ARCHITECTURE_TECHNICAL.md` §3.10, now dissolved.** That
+> section (classified AMBIGUOUS by Sprint 054 T002 — the specific defaults
+> table was not verified against actual partition-writer code) carried a
+> near-identical version of the table above with an "AMBIGUOUS / not
+> verified" caveat instead of the verified divergence finding now
+> incorporated above — a concrete instance of Sprint 055 T002 finding F6
+> (the same content diverged in confidence level between the two copies).
+> No unique material to carry forward beyond this provenance note.
 
 ---
 
@@ -620,6 +776,19 @@ derived/futures/NQ/continuous/volume_roll_backward_ratio/bars/1m/
 > (`VolumeRthCloseRollPolicy`, volume-based) and no adjustment methods
 > today — the lineage concept is real but narrower than described above.
 > See `docs/planning/DATA_MODULE_CLASSIFICATION.md` §21.
+
+> **Sprint 055 T008 correction (per Sprint 055 T003 G-02):** the narrower
+> as-built scope above is not an untracked gap — it is a **deliberate MVP
+> scope decision** recorded in **ADR-0018** (ACCEPTED, Sprint 015):
+> `price_adjustment = none`; "Trade and orderflow facts used for simulation
+> and execution research are not back-adjusted"; "Back-adjusted analytical
+> series are a separate future artifact with distinct `source_id`";
+> Consequences: "MVP limited to NQ trades / volume roll / no back-adjust."
+> Back-adjustment specifically is "decided out of v1 scope, with an
+> expansion path defined" by ADR-0018; the other roll policies in §21.1
+> above (calendar-based, open-interest-based, explicit user schedule) are
+> "never evaluated" rather than deliberately deferred. See ADR-0018 for the
+> as-decided rationale and the sanctioned expansion path.
 
 ---
 
@@ -830,147 +999,9 @@ Secrets must not be stored in committed configuration.
 
 ---
 
-## 26. Suggested Module Structure
-
-```text
-src/trading_framework/market/
-├── models/
-│   ├── instrument.py
-│   ├── bar.py
-│   ├── trade.py
-│   ├── quote.py
-│   └── event.py
-├── datasets/
-│   ├── identity.py
-│   ├── metadata.py
-│   ├── manifest.py
-│   ├── lifecycle.py
-│   └── lineage.py
-├── requests/
-│   ├── historical.py
-│   ├── import_request.py
-│   ├── query.py
-│   └── subscription.py
-├── providers/
-│   └── protocols.py
-├── importers/
-│   └── protocols.py
-├── repositories/
-│   └── protocols.py
-├── normalization/
-│   └── protocols.py
-├── validation/
-│   └── protocols.py
-└── services/
-    ├── missing_ranges.py
-    └── dataset_resolution.py
-```
-
-```text
-src/trading_framework/application/market_data/
-├── synchronize_historical.py
-├── import_external_dataset.py
-├── query_historical.py
-├── ingest_live.py
-├── record_live.py
-├── finalize_partition.py
-├── publish_dataset.py
-└── replay_dataset.py
-```
-
-```text
-src/trading_framework/infrastructure/
-├── providers/
-│   ├── databento/
-│   ├── rithmic/
-│   ├── binance/
-│   └── mt5/
-├── importers/
-│   ├── databento_dbn/
-│   ├── csv/
-│   └── parquet/
-└── storage/
-    ├── parquet/
-    ├── duckdb/
-    └── metadata/
-```
-
-> Note: the real package structure is documented (and kept current) in
-> `docs/reference/system/MODULE_MAP.md` §5. This suggested tree is
-> partially superseded — e.g. `market/continuous/`, `market/contracts/`,
-> `market/derivation/` exist and aren't anticipated here, while
-> `infrastructure/storage/duckdb/`, `infrastructure/providers/{rithmic,mt5}/`
-> don't exist.
-
----
-
-## 29. Initial Implementation Scope
-
-> **Partially stale, verified as of this reclassification.** Of the "Next
-> increments" listed below, Partition Finalization, Dataset Publication,
-> Futures Contract Datasets, and Continuous Futures Builder (narrower than
-> described — see §21 above) are already built. Missing Range Calculator,
-> Historical Provider Synchronization (in the local-first/policy sense),
-> Live Stream Contract, Live Recorder, and Historical Replay remain
-> unbuilt. See `docs/planning/DATA_MODULE_CLASSIFICATION.md` §29.
-
-The first Market Data vertical slice should remain limited.
-
-Recommended initial scope:
-
-```text
-Instrument
-Timeframe
-MarketBar
-DatasetId
-DatasetRef
-DatasetMetadata
-DatasetLifecycle
-DatasetPublication
-CSV or Parquet Importer
-UTC Normalizer
-OHLCV Validator
-Parquet Writer
-Parquet Repository
-Dataset Registry
-Historical Query
-```
-
-The first complete flow should be:
-
-```text
-External File
-    ↓
-Inspect
-    ↓
-Normalize
-    ↓
-Validate
-    ↓
-Store in Parquet
-    ↓
-Register Dataset Version
-    ↓
-Query Through Repository
-```
-
-Next increments:
-
-```text
-Missing Range Calculator
-Historical Provider Synchronization
-Live Stream Contract
-Live Recorder
-Partition Finalization
-Dataset Publication
-Historical Replay
-Futures Contract Datasets
-Continuous Futures Builder
-```
-
-Databento DBN should be implemented after the generic importer contracts and canonical storage rules are stable.
-
----
+> **Former §26 (Suggested Module Structure) and §29 (Initial Implementation
+> Scope) evicted** to `docs/historical/SUPERSEDED_LAYOUT_PROPOSALS.md` per
+> Sprint 055 T004 — see that file for the full content.
 
 ## 30. Final Contract
 

@@ -6,9 +6,8 @@ This document defines mandatory controls for preserving architecture, module bou
 
 It complements:
 
-- `ARCHITECTURE_FOUNDATIONS.md`
-- `ARCHITECTURE_TECHNICAL.md`
-- `WORKFLOWS_AI_ADR.md`
+- `docs/vision/PRODUCT_DIRECTION.md`
+- `docs/reference/workflows/SIGNAL_RESEARCH.md`, `docs/reference/workflows/STRATEGY_RESEARCH.md`, `docs/reference/workflows/STRATEGY_EXECUTION.md`
 - module-level `AGENTS.md` files
 - sprint and task definitions
 
