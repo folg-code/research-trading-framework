@@ -175,32 +175,10 @@ flowchart LR
 
 ### Import Paths
 
-The framework has more than one way to originate a published dataset. Each
-import path answers "where does the raw data come from," not "what the data
-looks like once published" — every path converges on the same OHLCV or
-trades dataset contract (ADR-0007 / ADR-0008), so downstream research never
-needs to know which one ran.
-
-| Source | Shape | Entry point | Adapter layer |
-|---|---|---|---|
-| CSV file | file, provider-neutral | `application/market_data/import_external_dataset.py` | `infrastructure/importers/csv/` |
-| Databento DBN archive | file, trades | `application/market_data/import_databento_trades_archive.py` → `derive_ohlcv_from_trades.py` | `infrastructure/importers/databento/` |
-| Binance USD-M REST (historical) | network, paginated, OHLCV | `application/market_data/import_binance_futures_ohlcv.py` (CLI: `scripts/market_data/import_binance_ohlcv.py`) | `infrastructure/providers/binance/futures_klines_history.py` |
-
-A reader picks the entry point that matches where the source data lives: a
-local vendor file goes through an `infrastructure/importers/` adapter that
-reads a file already on disk; a network source goes through an
-`infrastructure/providers/` adapter that pages a REST endpoint directly into
-`MarketBar` objects — there is no intermediate archive file. Both shapes
-converge on the same validate → write bars → register `WORKING` → finalize →
-publish sequence; the Binance path additionally applies weight-aware rate
-limiting and bounded, jittered backoff before validation, and records any
-gap in `import_manifest.json` instead of filling it (ADR-0025).
-
-The Binance **live** adapter (`futures_rest.fetch_closed_klines`,
-`futures_websocket.py`) is a separate, unrelated path: it feeds the Sprint
-019/020 live dry-run runtime directly, not the dataset registry, and the
-historical import path does not modify or wrap it (ADR-0025).
+> Moved to [`../workflows/MARKET_DATA.md`](../workflows/MARKET_DATA.md)
+> ("Import Paths" section) by Sprint 055 T007, alongside that file's other
+> Market Data workflow content. See that document for the entry-point table
+> and adapter layers.
 
 ### Data Volume and Processing Strategy
 
