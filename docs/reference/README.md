@@ -24,7 +24,7 @@ rationale behind this split.
 | [system/ARCHITECTURE_TECHNICAL.md](system/ARCHITECTURE_TECHNICAL.md) | As-built technical architecture (Time Model, Market Data, Market Analysis Engine, Configuration) — moved from `docs/vision/` by Sprint 054 T004; confirmed-current sections only |
 | [system/MULTITIMEFRAME_MARKET_MODEL.md](system/MULTITIMEFRAME_MARKET_MODEL.md) | As-built multitimeframe/Market Model architecture — moved from `docs/vision/` by Sprint 054 T004; confirmed-current sections only |
 | [system/WORKFLOWS_ARCHITECTURE.md](system/WORKFLOWS_ARCHITECTURE.md) | As-built Signal Research / Strategy Research / Strategy Execution workflow architecture — moved from `docs/vision/WORKFLOWS_AI_ADR.md` §1-5/§8 by Sprint 054 T006c; confirmed-current sections only |
-| `system/DEPENDENCY_RULES.md` | **Not yet created** — deferred pending authoring of consolidated content from `AGENTS.md`/`ARCHITECTURE_CONTROL.md` (see Sprint 054 T007 §4.1) |
+| [system/DEPENDENCY_RULES.md](system/DEPENDENCY_RULES.md) | Allowed dependency direction, which boundaries are test-enforced vs. only documented, and one known unenforced exception — consolidated from `AGENTS.md`/`ARCHITECTURE_CONTROL.md`, deferred by Sprint 054 T007 §4.1 |
 
 ## Workflows (end-to-end, conceptual)
 
