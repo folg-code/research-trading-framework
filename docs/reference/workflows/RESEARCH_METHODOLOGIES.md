@@ -16,50 +16,9 @@
 > SIGNAL_RESEARCH adjacency, option (a)). The two kinds of document are
 > deliberately not merged.
 
-> **Workflow Architecture preamble (carried here from the retired
-> `docs/reference/system/WORKFLOWS_ARCHITECTURE.md`'s opening section by
-> Sprint 055 T007, pending a proper `workflows/README.md` folder index from
-> Sprint 055 T005):**
->
-> The framework's three primary workflows — Signal Research, Strategy
-> Research, Strategy Execution — must not be represented as a mandatory
-> pipeline:
->
-> ```text
-> Signal Research
->         ↓
-> Strategy Research
->         ↓
-> Strategy Execution
-> ```
->
-> This would incorrectly imply that every workflow requires the output of
-> the previous workflow. The correct architecture is:
->
-> ```text
->                          Shared Domains
->                                │
->               ┌────────────────┼────────────────┐
->               │                │                │
->               ▼                ▼                ▼
->        Signal Research   Strategy Research   Strategy Execution
-> ```
->
-> Shared domains include: Market, Market Analysis, Strategy, Research,
-> Execution, Time, Configuration, Infrastructure contracts. Each workflow
-> has its own purpose, inputs, orchestration, outputs, persistence model,
-> and analytics or runtime state.
->
-> A **workflow definition** is a validated configuration describing one use
-> case (datasets, assets, model definitions, logical expressions, parameter
-> spaces, execution assumptions, output policies, research scope, alignment
-> and timeframe rules) — it belongs to the application and configuration
-> layers, not the domain model.
->
-> Every research workflow separates **Research Computation** (creates
-> reusable factual datasets) from **Research Analytics** (interprets stored
-> results). A new report, filter, ranking or family analysis must not
-> automatically recalculate unchanged source results.
+> The shared "Workflow Architecture" preamble (the three-workflows-are-not-a-pipeline
+> rule) that Sprint 055 T007 temporarily parked here now lives in
+> [`README.md`](README.md) — this folder's Sprint 055 T005 context map.
 
 This document describes the research methodologies supported by the framework, the questions they answer, and how to choose between them.
 
