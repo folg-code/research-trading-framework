@@ -124,7 +124,7 @@ understanding (same discipline as Sprint 054's D-S054-01):
 | ID | Task | Depends on | Status |
 |---|---|---|---|
 | T001 | Audit `docs/reference/`, propose target IA | — | DONE |
-| T002 | Audit `docs/vision/`, propose target IA | — | TODO |
+| T002 | Audit `docs/vision/`, propose target IA | — | DONE |
 | T003 | Targeted gap cross-check against planning docs | — | TODO |
 | T004 | Maintainer review gate — approve combined target IA | T001, T002, T003 | TODO |
 | T005 | Add context-map indexes to `docs/reference/` subfolders | T004 | TODO |
@@ -176,6 +176,35 @@ understanding (same discipline as Sprint 054's D-S054-01):
   relative links, tier-inversion cross-references into `docs/vision/`).
   No `docs/reference/` file was moved, renamed, merged, split, or edited;
   `docs/vision/` untouched (owned by T002).
+- 2026-09-04: T002 complete (read-only). Full read of all 7 current
+  `docs/vision/` files produced
+  `docs/planning/sprints/SPRINT_055_T002_VISION_TARGET_IA.md`. **Recommends
+  topic-based reorganization** over the current per-source-file boundaries:
+  after Sprint 054 removed each monolith's CURRENT spine, the remaining
+  files have ancestries rather than subjects, and four topics are each split
+  across 3-4 files (execution runtime modes ×4, component promotion +
+  fingerprints ×4, research-space bounding/planner observability ×3-4,
+  superseded module/user_data layouts ×4). Proposed target tree: 10 flat
+  topic files + a rewritten README (`PRODUCT_DIRECTION`, `TIME_MODEL_FUTURE`,
+  `MARKET_DATA_FUTURE` ← renamed `DATA_MODULE_FUTURE`,
+  `MARKET_ANALYSIS_FUTURE`, `MARKET_ANALYSIS_DECISIONS`,
+  `RESEARCH_SPACE_AND_ANALYTICS`, `EXECUTION_RUNTIME_FUTURE`,
+  `EVENT_SYSTEM_FUTURE`, `COMPONENT_PROMOTION_LIFECYCLE`,
+  `RUN_IDENTITY_AND_CONFIGURATION`); all five monoliths dissolve. Also
+  proposes evicting ~1,500 lines from the vision tier entirely (superseded
+  module/user_data layout proposals, a closed Sprint-003 planning note, two
+  tombstone sections). Ten new staleness findings (F1-F10), the most
+  consequential being: `MARKET_ANALYSIS_WITH_DECISIONS.md` is ~70% a closed
+  Sprint-003 planning note written in Polish with duplicated section
+  numbering, its §17 "ADR required before implementation" gate closed ~50
+  sprints ago, and its D-018/D-028/D-029 may be superseded by accepted
+  ADR-MA-012/ADR-MA-014 despite `docs/adr/README.md` declaring the register
+  authoritative (flagged as needing verification, not asserted). Six open
+  questions raised for T004, including whether dissolving
+  `docs/vision/ARCHITECTURE_FOUNDATIONS.md` is acceptable given it is a
+  `product-architecture` pipeline-convention path. No `docs/vision/` file
+  was moved, renamed, merged, split, or edited; `docs/reference/` untouched
+  (owned by T001).
 
 ## 6. Outcome
 
@@ -192,3 +221,6 @@ TBD.
   policy, continuous-futures roll/adjustment gap) — documentation-gap
   notes only here; the underlying code/decision work is tracked
   separately.
+- Translating `docs/vision/`'s Market Analysis decision register
+  (D-001–D-036) from Polish to English — new prose, out of Sprint 055's
+  scope per D-S055-04 (raised by T002 finding F4).
