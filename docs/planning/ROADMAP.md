@@ -2,6 +2,10 @@
 
 # ROADMAP.md
 
+```text
+Status: ACCEPTED
+```
+
 ## 1. Purpose
 
 This document defines the strategic development roadmap of the Trading Research Framework.
