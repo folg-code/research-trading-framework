@@ -70,6 +70,14 @@ reclassification and `docs/reference/` layering) from
 Phase 15B) — gated on the Sprint 051 BTC dataset inventory, which exists
 (`S051_BTC_DATA_INVENTORY.md`); requires maintainer approval to open.
 
+**Next planned capability (APPROVED, no sprint opened):** Phase 16 — Quant
+Research Workbench (increments 16A–16G), approved by the maintainer
+2026-09-04. Canonical description: `ROADMAP.md` §13H. **No sprint is opened,
+planned or numbered for any increment**; 16A and everything after it are
+gated on Sprint 052 having run, with 16B permitted to start in parallel.
+Sprint 052 is not re-scoped or absorbed by it and remains separately gated
+on its own approval.
+
 ---
 
 ## 4. Blocked Work

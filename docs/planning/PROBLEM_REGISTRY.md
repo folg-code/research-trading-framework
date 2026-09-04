@@ -631,6 +631,32 @@ Users may accidentally generate excessive combinations.
 - planner tests,
 - no silent pruning.
 
+**Planned closure route (2026-09-04):** ROADMAP §13H increment **16E —
+Strategy Families** takes PRB-012's resolution criteria as part of its own
+completion criteria: the bounded candidate generation 16E builds is the
+first planner in the framework that needs default candidate-count and
+complexity limits, so 16E defines them rather than re-deriving the question.
+Concretely, 16E must ship initial conservative defaults, an explicit
+override mechanism, planner tests for both, and **no silent pruning** —
+a candidate set that would exceed a limit is refused or reported, never
+quietly truncated.
+
+**Scope of that closure (maintainer, 2026-09-04, §13H.12 Q8):** PRB-012
+closes for the **new Strategy Research planner only**. The same defaults are
+deliberately **not** retrofitted to Signal Research's existing
+`research/signal_research/family_planning.py`. This is a decision, not an
+oversight: Signal Research's planner has run without a reported runaway
+incident, and retrofitting would change existing working configs' behaviour
+with no demonstrated trigger (ROADMAP §2.7, "do not introduce infrastructure
+for hypothetical scale"). The resulting asymmetry is accepted explicitly and
+is revisited if a concrete incident or need arises. Phase 16 is APPROVED but
+16E is not planned; PRB-012 stays OPEN until that increment ships.
+
+### Related Documents
+
+- `ROADMAP.md` §13H.5 (Phase 16 increment 16E) — planned closure route;
+  phase APPROVED, increment not planned; co-scoped with `PRB-020`.
+
 ---
 
 ## PRB-013 — Research/Runtime Parity Is Not Yet Measurable
@@ -663,6 +689,28 @@ A Strategy Model may behave differently in batch backtest, replay and paper exec
 - formal parity test suite,
 - accepted tolerances,
 - documented differences where unavoidable.
+
+**Planned closure route (2026-09-04):** ROADMAP §13H increment **16G —
+Promotion Candidate Gate** takes PRB-013's resolution criteria as part of
+its own completion criteria. 16G's promotion flow already contains an
+"offline/online parity test" step; PRB-013 is the definition of what that
+step means. 16G must therefore deliver the formal parity test suite, the
+accepted tolerances, and the documented list of unavoidable differences —
+a promotion candidate cannot pass its gate against an undefined parity bar.
+
+**The numeric tolerances are explicitly NOT set by Phase 16's approval**
+(maintainer, 2026-09-04, §13H.12 Q7). They are deferred to 16G's own Wave 0,
+once real parity-suite data exists to set numbers against; a tolerance is a
+risk acceptance requiring maintainer sign-off, not an implementation detail
+an architect picks. Phase 16 is APPROVED but 16G is not planned; PRB-013
+stays OPEN until that increment ships.
+
+### Related Documents
+
+- `ROADMAP.md` §13H.7 (Phase 16 increment 16G) — planned closure route;
+  phase APPROVED, increment not planned. Note the ordering constraint: 16G
+  cannot be planned as a gate with parity deferred out of it, because parity
+  *is* the gate's evidence.
 
 ---
 
@@ -989,6 +1037,19 @@ scratch rather than mirror an established, working Signal Research pattern.
   produce bounded, observable candidate sets with the same kind of
   generated/evaluated/skipped bookkeeping Signal Research already has.
 
+**Planned closure route (2026-09-04):** ROADMAP §13H increment **16E —
+Strategy Families** is the increment that will close PRB-020. Phase 16 is
+APPROVED, but 16E is directional and no sprint is open for it. The
+maintainer decision this entry asks for has a **recorded default direction**
+(§13H.12 Q4, resolved 2026-09-04): port
+`research/signal_research/family_planning.py`'s pattern to a new
+`research/strategy_research/family_planning.py`, mirroring the Signal
+Research design — **unless** 16E's own design work finds Strategy
+Research's combinatorics genuinely differ (multi-model composition vs.
+single-model parameter sweeps), in which case that finding is surfaced at
+16E's Wave 0 and decided there. It is a default, not an unconditional
+mandate, and an architect may not silently depart from it mid-implementation.
+
 ### Related Documents
 
 - `docs/vision/RESEARCH_SPACE_AND_ANALYTICS.md` (formerly `WORKFLOWS_AI_ADR.md`) §4.5, §4.14, §4.18
@@ -1003,6 +1064,10 @@ scratch rather than mirror an established, working Signal Research pattern.
 
 - None yet — flagged as a follow-up from Sprint 054, not resolved inline
   (a docs-reclassification sprint, not a feature sprint).
+- `ROADMAP.md` §13H.5 (Phase 16 increment 16E) — planned closure route;
+  phase APPROVED, increment not planned. Co-scoped with `PRB-012`, which
+  16E must close in the same increment (bounded expansion is meaningless
+  without default limits).
 
 ---
 

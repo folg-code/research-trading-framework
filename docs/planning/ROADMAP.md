@@ -1,4 +1,4 @@
-# Trading Research Framework
+﻿# Trading Research Framework
 
 # ROADMAP.md
 
@@ -31,6 +31,16 @@ It is not:
 
 Detailed planning should cover only the current and next phase.
 
+Detail for phases that are **entirely COMPLETE** (§4, §5, §7, §9, §11, §13A–§13E) has been
+moved to `docs/planning/ROADMAP_COMPLETED_PHASES.md`, so this document stays a working
+plan rather than an append-only history. Those sections remain here as short stubs under
+their original numbers — a reference to "ROADMAP.md §13A" still resolves — and each links
+to its full text, which is filed under the **same** section number in the archive.
+Large **ACTIVE** phases (§6, §8, §13F, §13G, §13H) are extracted the same way, to
+`docs/planning/roadmap/*.md` — but unlike the archive those files are LIVE and keep
+changing, so phase detail is edited there, never by re-inflating the stub here. **§3's
+Phase Index is the authoritative map of where every phase's detail lives.**
+
 ---
 
 ## 2. Roadmap Principles
@@ -51,6 +61,7 @@ The roadmap follows these rules:
 9. Keep later phases directional rather than over-specified.
 10. Treat rejected or deferred ideas as valid learning outcomes.
 11. **Do not retroactively rewrite completed sprint scope.** Clarify actual delivery; add new increments for future work (see **§3**).
+12. **Keep this file an index, not an archive.** Once a phase's roadmap text exceeds roughly 100–150 lines, or the next sprint will demonstrably keep revising it, extract it (completed phases to `ROADMAP_COMPLETED_PHASES.md`, active phases to `docs/planning/roadmap/`) and leave a numbered stub plus a §3 Phase Index row.
 
 ---
 
@@ -63,6 +74,53 @@ Market Data → Market Analysis → Signal Research → Strategy Research → Ex
 ```
 
 Research can progress on **currently available** data types. Market Data expansion is justified by concrete research or execution need, not by collecting everything upfront.
+
+### Phase Index — status and where each phase's detail lives
+
+This table is the **single place** to find where any phase's detail actually lives. "this
+file" means the section is still inline below; the other two locations are the frozen
+completed-phase archive and the live per-phase files under `docs/planning/roadmap/`.
+
+| Phase # | Name | Status | Location |
+|---|---|---|---|
+| 0 | Project Governance | COMPLETE | `ROADMAP_COMPLETED_PHASES.md` §4 |
+| 1 | Repository Foundation | COMPLETE | `ROADMAP_COMPLETED_PHASES.md` §5 |
+| 2A | OHLCV Market Data MVP | COMPLETE | `roadmap/PHASE_02_MARKET_DATA.md` §6 |
+| 2B | Historical Archive Import Foundation | PLANNED | `roadmap/PHASE_02_MARKET_DATA.md` §6 |
+| 2C.1 | MarketTrade datasets | COMPLETE | `roadmap/PHASE_02_MARKET_DATA.md` §6 |
+| 2C.2 | MarketQuote datasets | PLANNED | `roadmap/PHASE_02_MARKET_DATA.md` §6 |
+| 2C.3 | Order-book data (MBO/MBP) | PLANNED | `roadmap/PHASE_02_MARKET_DATA.md` §6 |
+| 2C.4 | Continuous Futures Materialization | COMPLETE (Sprint 015) | `roadmap/PHASE_02_MARKET_DATA.md` §6 |
+| 2D | Options Snapshot Data | PLANNED | `roadmap/PHASE_02_MARKET_DATA.md` §6 |
+| 2E | Live Market Data | GATED (§15.2) | `roadmap/PHASE_02_MARKET_DATA.md` §6 |
+| 2F | Exchange REST Historical Import | COMPLETE | `ROADMAP_COMPLETED_PHASES.md` §13B |
+| 3 | Market Analysis Engine MVP | COMPLETE | `ROADMAP_COMPLETED_PHASES.md` §7 |
+| 4A | Bar-Based and Multitimeframe Foundation | COMPLETE | `roadmap/PHASE_04_MARKET_ANALYSIS.md` §8 |
+| 4B | Orderflow Market Analysis | PLANNED | `roadmap/PHASE_04_MARKET_ANALYSIS.md` §8 |
+| 4C | Options-Derived Market Analysis | PLANNED | `roadmap/PHASE_04_MARKET_ANALYSIS.md` §8 |
+| 5 | Signal Research MVP | COMPLETE | `ROADMAP_COMPLETED_PHASES.md` §9 |
+| 6A | OHLCV Strategy Research MVP | COMPLETE | this file, §10 |
+| 6B | Multi-Data Strategy Research | PLANNED | this file, §10 |
+| 7 | Robustness Research | COMPLETE | `ROADMAP_COMPLETED_PHASES.md` §11 |
+| 8 | Replay and Paper Execution | PLANNED | this file, §12 |
+| 9 | Live and Multi-Account | PLANNED | this file, §13 |
+| 10A | Predictive Research Foundation | COMPLETE | `ROADMAP_COMPLETED_PHASES.md` §13A |
+| 10B | Tree-Based Predictive Models | COMPLETE | `ROADMAP_COMPLETED_PHASES.md` §13A |
+| 10C | Neural Predictive Models | COMPLETE | `ROADMAP_COMPLETED_PHASES.md` §13A |
+| 11 | Universal Operator CLI | COMPLETE | `ROADMAP_COMPLETED_PHASES.md` §13C |
+| 12 | Custom Strategy Authoring | COMPLETE | `ROADMAP_COMPLETED_PHASES.md` §13D |
+| 13 | Exit/Risk Model Expansion and Catalog Growth | COMPLETE | `ROADMAP_COMPLETED_PHASES.md` §13E |
+| 14A | Promotable Predictive Artifact | COMPLETE (Sprint 049) | `roadmap/PHASE_14_PREDICTIVE_PROMOTION.md` §13F |
+| 14B | Model-Backed Market Analysis State | NOT PLANNED | `roadmap/PHASE_14_PREDICTIVE_PROMOTION.md` §13F |
+| 15A | Momentum and Regime Component Catalog | COMPLETE (Sprint 051) | `roadmap/PHASE_15_PREDICTIVE_CATALOG.md` §13G |
+| 15B | Real-Data BTC Predictive Study | PLANNED, not opened | `roadmap/PHASE_15_PREDICTIVE_CATALOG.md` §13G |
+| 16A | Analyst Verdict Artifact | APPROVED, no sprint (gated on 15B) | `roadmap/PHASE_16_QUANT_WORKBENCH.md` §13H |
+| 16B | SampleSpec Foundation | APPROVED, no sprint (may run parallel to 15B) | `roadmap/PHASE_16_QUANT_WORKBENCH.md` §13H |
+| 16C | Signal Quality Scoring | APPROVED, no sprint | `roadmap/PHASE_16_QUANT_WORKBENCH.md` §13H |
+| 16D | Quant Lab Dashboard | DIRECTIONAL | `roadmap/PHASE_16_QUANT_WORKBENCH.md` §13H |
+| 16E | Strategy Families | DIRECTIONAL | `roadmap/PHASE_16_QUANT_WORKBENCH.md` §13H |
+| 16F | Trade Outcome and No-Trade Models | DIRECTIONAL | `roadmap/PHASE_16_QUANT_WORKBENCH.md` §13H |
+| 16G | Promotion Candidate Gate | DIRECTIONAL | `roadmap/PHASE_16_QUANT_WORKBENCH.md` §13H |
 
 ### Parallel tracks
 
@@ -93,6 +151,7 @@ Research Capability Track
   Phase 10C — Neural Predictive Models            COMPLETE  (Sprints 043–044)
   Phase 14 — Predictive Model Promotion           APPROVED  (Sprints 049 + 050; 049 COMPLETE, 14A only — 050 NOT planned)
   Phase 15 — Predictive Catalog Expansion + Real-Data Study   APPROVED  (Sprints 051 + 052; 051 IN PROGRESS, 052 NOT planned)
+  Phase 16 — Quant Research Workbench (16A–16G)   APPROVED  (§13H; no sprint opened)
 
 Execution Capability Track
   Phase 8 — Replay and Paper Execution            PLANNED
@@ -171,710 +230,146 @@ default: Phase 4B/6B, Phase 8 Replay, PBO/CSCV ADR. Stage 3 (`available_at`
 column / lineage sidecar) and Stage 4 (`MarketFrame`) remain independently
 sequenced.
 
+**Phase 16 (§13H) is APPROVED** (maintainer, 2026-09-04): a seven-increment
+capability track turning the existing runners into one quant research
+workbench over a single neutral Market Analysis component catalog. Approval
+of the phase is **not** approval to open a sprint — 16A–16C are the
+committed direction, 16D–16G stay directional (§2.9). Its increment 16A
+does **not** re-plan Phase 15B — Sprint 052 remains the real-data study and
+is Phase 16's entry condition, not one of its increments (§13H.0); the one
+carve-out is 16B, which may start in parallel with Sprint 052. Phase 16 is
+also the planned repayment route for six standing registry entries —
+`PRB-012`, `PRB-013`, `PRB-020`, `TD-021`/`TD-022`/`TD-029` — see §13H.13.
+
 ---
 
 # 4. Phase 0 — Project Governance
 
-## Purpose
+**Status:** COMPLETE. Delivered by Sprint 001 (planning-system bootstrap).
 
-Create the minimum project-management system required for iterative development.
+Purpose: create the minimum project-management system required for iterative development —
+roadmap, current status, problem registry, idea inbox, technical-debt register, sprint
+plans and retrospectives, issue/PR conventions, ADR process.
 
-## Expected Capabilities
+Binding outcomes still in force:
 
-- strategic roadmap,
-- concise current-status reporting,
-- problem registry,
-- idea inbox,
-- technical-debt register,
-- sprint planning and retrospectives,
-- issue and PR conventions,
-- ADR process,
-- GitHub Project status model.
+- architectural decisions are separated from tasks and ideas (`docs/adr/`),
+- GitHub Issues and Projects are the operational source of truth for task state; planning
+  Markdown holds context, decisions and summaries, not a second task board,
+- Definition of Ready and Definition of Done are defined (`PROJECT_MANAGEMENT.md`).
 
-## Expected Outputs
-
-```text
-PROJECT_MANAGEMENT.md
-ROADMAP.md
-CURRENT_STATUS.md
-PROBLEM_REGISTRY.md
-IDEA_INBOX.md
-TECHNICAL_DEBT.md
-docs/planning/sprints/
-docs/adr/
-```
-
-## Completion Criteria
-
-- planning documents exist and have clear ownership,
-- work statuses are defined,
-- Definition of Ready and Definition of Done are defined,
-- current and next phases can be planned without duplicating task state,
-- GitHub Issues and Projects can become the operational source of truth,
-- architectural decisions are separated from tasks and ideas.
-
-**Progress (2026-06-19):** planning documents and Sprint 001 are in place. Remaining items: GitHub Project configuration, issue templates, and individual ADR files (started via `docs/adr/README.md`).
-
-## Dependencies
-
-None.
-
-## Main Risks
-
-- over-engineering project governance,
-- duplicating status between Markdown and GitHub,
-- creating detailed plans for distant phases,
-- allowing planning files to become stale.
-
-## Out of Scope
-
-- detailed issues for every future phase,
-- fixed dates for the full roadmap,
-- productivity metrics based on lines of code or commit count.
+Full detail: `docs/planning/ROADMAP_COMPLETED_PHASES.md` §4.
 
 ---
 
 # 5. Phase 1 — Repository Foundation
 
-## Purpose
+**Status:** COMPLETE. Delivered by Sprint 001 (`SPRINT_001.md`).
 
-Create the implementation foundation shared by every domain.
+Purpose: create the implementation foundation shared by every domain — package structure,
+`src/` vs `user_data/` separation, unit/integration/e2e test structure, Ruff, mypy, pytest,
+CI, core identifiers and errors, Timeframe/timestamp primitives, Clock, configuration
+loading, logging.
 
-## Expected Capabilities
+Binding outcomes still in force:
 
-- Python package structure,
-- `src/` and `user_data/` separation,
-- unit, integration and end-to-end test structure,
-- Ruff formatting and linting,
-- mypy type checking,
-- pytest configuration,
-- CI pipeline,
-- core identifiers and errors,
-- Timeframe and timestamp primitives,
-- Clock contract,
-- configuration loading,
-- logging foundation,
-- architecture-document references for AI agents.
-
-## Primary Vertical Slice
-
-```text
-Repository
-    ↓
-Installable package
-    ↓
-Static checks
-    ↓
-Unit tests
-    ↓
-CI validation
-```
-
-## Completion Criteria
-
-- project can be installed reproducibly,
-- CI runs linting, formatting checks, typing and tests,
-- domain packages exist without speculative implementation,
 - `src/` does not import concrete `user_data/` modules,
 - naive timestamps are rejected in core time models,
-- one minimal configuration can be loaded and validated,
-- framework tests do not require external systems.
+- framework tests do not require external systems,
+- CI runs linting, formatting checks, typing and tests on every change.
 
-## Dependencies
-
-- Phase 0 planning conventions.
-
-## Active Sprint
-
-Sprint 001 implements this phase:
-
-```text
-docs/planning/sprints/SPRINT_001.md
-```
-
-## Main Risks
-
-- creating empty abstractions for distant requirements,
-- turning `core/` into a utilities dumping ground,
-- adding web, database or distributed infrastructure prematurely,
-- coupling configuration to implementation details.
-
-## Out of Scope
-
-- provider integrations,
-- full Market Data workflows,
-- Market Analysis Engine,
-- research workflows,
-- broker execution.
+Full detail: `docs/planning/ROADMAP_COMPLETED_PHASES.md` §5.
 
 ---
 
 # 6. Market Data Capability — Phase 2 Family
 
-## Historical label
-
-Roadmap sections historically titled **Phase 2 — Market Data MVP** refer to **Phase 2A** below. Sprint 002 scope is unchanged. Completion of Phase 2A does **not** close the Data Capability Track.
-
----
-
-## Phase 2A — OHLCV Market Data MVP (COMPLETE)
-
-**Delivered:** Sprint 002 on `main`.
-
-### Purpose
-
-Deliver the first complete, reproducible **OHLCV-only** Market Data vertical slice.
-
-### Primary Flow
-
-```text
-External OHLCV File
-        ↓
-Inspect
-        ↓
-Normalize to UTC
-        ↓
-Validate
-        ↓
-Persist in Parquet
-        ↓
-Register Dataset Version
-        ↓
-Finalize
-        ↓
-Publish
-        ↓
-Query Through Repository
-```
-
-## Expected Capabilities
-
-- `Instrument`,
-- `Timeframe`,
-- `MarketBar`,
-- `DatasetId`,
-- `DatasetRef`,
-- `DatasetMetadata`,
-- dataset lifecycle,
-- external file inspection,
-- CSV or Parquet import,
-- timestamp normalization,
-- OHLCV validation,
-- Parquet writer and repository,
-- dataset registry,
-- finalization,
-- publication,
-- historical query.
-
-## Completion Criteria
-
-- one OHLCV dataset can be imported end to end,
-- provider-specific schema is normalized at the boundary,
-- all timestamps are timezone-aware UTC,
-- invalid OHLCV data produces explicit validation results,
-- dataset identity is independent from file path,
-- `WORKING → FINALIZED → PUBLISHED` is explicit,
-- published versions are immutable,
-- consumers query by `DatasetRef`,
-- direct Parquet access from Research and Strategy is unnecessary,
-- integration tests cover storage and publication.
-
-## Dependencies
-
-- repository foundation,
-- core time models,
-- configuration loading.
-
-## Active Sprint
-
-Sprint 002 implemented the MVP vertical slice:
-
-```text
-docs/planning/sprints/SPRINT_002.md
-```
-
-**Status:** COMPLETED on `main` (Sprint 002).
-
-## Beyond Phase 2A
-
-Phase 2A delivered the OHLCV import and publication pipeline only. Further source datasets and archive import are **Phase 2B–2E** and **§14 Research Data Strategy**. Sprint 002 history is not revised.
-
-## Main Risks
-
-- ambiguous dataset identity,
-- mixing storage paths with domain identity,
-- hidden mutation of published datasets,
-- incorrect gap assumptions,
-- excessive small files,
-- premature support for every provider and data type.
-
-## Out of Scope (Phase 2A / Sprint 002)
-
-The following were out of scope for the OHLCV vertical slice. They are **not rejected**; see Phase 2B–2E and **§14**:
-
-- live ingestion and provider synchronization,
-- continuous futures construction,
-- tick trades, quotes, DOM and options data,
-- automatic missing-range fetching during Research.
-
----
-
-## Phase 2B — Historical Archive Import Foundation (PLANNED)
-
-**Initial adapter:** Databento DBN. **Architectural outcome:** provider-independent archive import workflow (not a one-off script).
-
-### Target flow
-
-```text
-Vendor archive
-    ↓
-Import inspection
-    ↓
-Source decoding
-    ↓
-Provider-specific schema mapping
-    ↓
-Canonical market facts
-    ↓
-Validation
-    ↓
-Partitioned persistence
-    ↓
-Dataset lifecycle
-    ↓
-Published DatasetRef
-```
-
-### Capability scope
-
-- archive inspection and import manifest,
-- schema and instrument mapping, futures contract identity,
-- timestamp normalization, validation summary,
-- chunked decoding; resumable import where practical,
-- partitioned Parquet, publication as `DatasetRef`,
-- domain logic in `src/`; thin CLI under `scripts/databento/`.
-
-### First vertical slice (recommended Sprint 011)
-
-```text
-Databento DBN OHLCV archive
-    ↓
-inspection → decoding → canonical MarketBar
-    ↓
-validation → partitioned Parquet → published DatasetRef
-```
-
-Do **not** combine in one sprint: trades, quotes, options, orderflow, continuous futures, full resumability, or live adapters.
-
-### Dependencies
-
-- Phase 2A lifecycle and repository contracts.
-
----
-
-## Phase 2C — Trades and Quotes (PLANNED)
-
-Do **not** use a single ambiguous `Tick` model. Canonical types:
-
-```text
-MarketTrade
-MarketQuote
-OrderBookUpdate   (only when justified)
-```
-
-Suggested increments:
-
-```text
-Phase 2C.1 — MarketTrade datasets
-Phase 2C.2 — MarketQuote datasets
-Phase 2C.3 — Order-book data (MBO/MBP only when justified)
-Phase 2C.4 — Continuous futures materialization (Sprint 015)
-```
-
-Example `MarketTrade` fields: instrument, `event_at`, price, size, aggressor/side semantics, trade_id, sequence, flags, source metadata.
-
-Default partitioning: by day (trades, quotes) for legacy single-contract import; **by `session_date` for contract-layer datasets** (Sprint 015).
-
-### Phase 2C.4 — Continuous Futures Materialization (COMPLETE — Sprint 015)
-
-Materialize versioned continuous datasets from normalized contract trades:
-
-```text
-Raw DBN → contract datasets → roll schedule → continuous trades → derived continuous OHLCV
-```
-
-Consumers (`run_strategy_research`, `run_signal_research`) read published continuous `DatasetRef`
-values only — no runtime roll construction.
-
-ADR: ADR-0018 (ACCEPTED). See `SPRINT_015.md`, `S015_WAVE0_DECISIONS.md`. Delivered on `main` (PR #123).
-
-MBO/MBP are **not** in the first trades sprint scope.
-
-### Dependencies
-
-- Phase 2B archive import patterns (recommended).
-
----
-
-## Phase 2D — Options Snapshot Data (PLANNED)
-
-Store vendor-provided option facts; do not assume every provider supplies Greeks, OI, volume, or quotes in every dataset.
-
-Example models:
-
-```text
-OptionContractMetadata
-OptionContractQuote
-OptionsSnapshot
-```
-
-Fields may include: underlying, option symbol, expiration, strike, option type, snapshot time, bid/ask/last, volume, open interest, IV, Greeks (when available), source fields, quality flags.
-
-Preferred source: chain snapshots (~1m), not raw option tick streams (**§14**).
-
-Initial provider direction: Intrinio (**§14**).
-
----
-
-## Phase 2E — Live Market Data (GATED)
-
-Concrete paid live CME adapters are deferred until **§15.2 Live Market Data Entry Gate** conditions are met.
-
-Until then: historical research via archives; replay via published datasets; live **contracts** may exist without expensive adapter implementation.
+**Status:** ACTIVE — 2A COMPLETE (Sprint 002); 2C.1 and 2C.4 COMPLETE (Sprint 015).
+**2B, 2C.2, 2C.3 and 2D remain PLANNED; 2E remains GATED** on §15.2. Phase 2F is a
+separate, COMPLETE section (§13B).
+
+Purpose: the Market Data capability track — OHLCV import and publication (2A), vendor
+archive import (2B), trades / quotes / order-book and continuous futures (2C), options
+snapshots (2D), live adapters (2E).
+
+Key open items: 2B (Databento DBN archive import foundation), 2C.2 quotes, 2C.3 order-book
+(MBO/MBP, only when justified), 2D options snapshots, 2E live adapters — none scheduled.
+Roadmap sections historically titled "Phase 2 — Market Data MVP" mean **Phase 2A**, and 2A's
+completion does **not** close this track.
+
+**Full detail (maintained here, not in ROADMAP.md):**
+`docs/planning/roadmap/PHASE_02_MARKET_DATA.md` §6.
+
+This phase is ACTIVE: edit the linked file, not this stub. Market Data policy (facts not
+indicators, vendor independence) stays in §14; the live-data entry gate stays in §15.2.
 
 ---
 
 # 7. Phase 3 — Market Analysis Engine MVP
 
-**Status:** COMPLETED in Sprint 003 (2026-07-12). Integration branch: `sprint/market-analysis-mvp`.  
-ADRs: `docs/adr/ADR-0005-market-analysis-domain-and-taxonomy.md`, ADR-MA-001–011.
+**Status:** COMPLETE — Sprint 003 (2026-07-12), branch `sprint/market-analysis-mvp`.
+**ADRs:** `docs/adr/ADR-0005-market-analysis-domain-and-taxonomy.md`, ADR-MA-001–011.
 
-## Purpose
+Purpose: calculate reusable analytical components through explicit dependency contracts —
+component contract, Component Registry, `ComponentRequest`, dependency DAG, cycle
+detection, lazy execution, shared-node deduplication, fingerprinting, cache identity.
 
-Calculate reusable analytical components through explicit dependency contracts.
+Binding outcomes still in force:
 
-## Expected Capabilities
+- a component declares all dependencies before execution; hidden component calls inside
+  `compute()` are rejected by convention and by tests,
+- equivalent deterministic nodes are calculated once,
+- cache identity includes dataset **and** implementation identity,
+- the engine remains independent from Market Model and Signal Model semantics.
 
-- generic Market Analysis component contract,
-- Component Registry,
-- `ComponentRequest`,
-- dependency DAG,
-- cycle detection,
-- lazy execution,
-- shared-node deduplication,
-- component fingerprinting,
-- cache identity,
-- typed analytical results,
-- one complete component vertical slice.
+Two completion criteria are recorded as **not met** and remain tracked, not closed:
+loading working components from controlled user space (deferred — no `user_data/` loader in
+the MVP), and storing an implementation fingerprint for research use of a working component
+(partial — parameter identity only; PRB-002 remainder).
 
-## Recommended First Components
-
-```text
-Feature:
-ATR
-
-Structure:
-Pivot or Session Range
-
-State:
-simple volatility or trend state
-```
-
-Only one complete vertical slice is required initially.
-
-## Primary Flow
-
-```text
-Published DatasetRef
-        ↓
-ComponentRequest
-        ↓
-Dependency Resolution
-        ↓
-Execution Plan
-        ↓
-Component Result
-        ↓
-Lineage and Cache Identity
-```
-
-## Completion Criteria
-
-Sprint 003 assessment (2026-07-12):
-
-- [x] a component declares all dependencies before execution,
-- [x] equivalent deterministic nodes are calculated once,
-- [x] hidden component calls inside `compute()` are rejected by convention and tests,
-- [x] cache identity includes dataset and implementation identity,
-- [ ] working components can be loaded from controlled user space (deferred — no `user_data/` loader in MVP),
-- [ ] research use of a working component stores an implementation fingerprint (partial — parameter identity only; PRB-002 remainder),
-- [x] the engine remains independent from Market Model and Signal Model semantics.
-
-## Dependencies
-
-- published Market Dataset access,
-- stable time primitives,
-- configuration contracts.
-
-## Main Risks
-
-- overbuilding graph infrastructure,
-- forcing all payloads into one scalar representation,
-- hidden data access from components,
-- premature permanent directory taxonomy,
-- cache reuse with incomplete identity.
-
-## Out of Scope
-
-- broad indicator library,
-- advanced multitimeframe alignment,
-- Signal Research,
-- model ranking,
-- distributed calculation.
+Full detail: `docs/planning/ROADMAP_COMPLETED_PHASES.md` §7.
 
 ---
 
 # 8. Market Analysis Capability — Phase 4 Family
 
-## Purpose
+**Status:** ACTIVE — 4A COMPLETE (Sprints 004–006); **4B and 4C remain PLANNED**, neither
+scheduled.
 
-Support timeframe-aware Market Analysis safely and reproducibly.
+Purpose: timeframe-aware Market Analysis, delivered as a family of increments — bar-based
+and multitimeframe foundation (4A), orderflow analysis (4B), options-derived analysis (4C).
 
-Phase 4 is a **family of increments**, not a single delivery:
+Key open items: 4B is gated on Phase 2C (`MarketTrade` minimum); 4C is gated on Phase 2D
+(options snapshots). Both are deferred by default (§3). 4A's binding outcome still in
+force: Market and Signal Models stay declarative and cannot access arbitrary DataFrames.
 
-```text
-Phase 4A — Bar-Based and Multitimeframe Foundation     COMPLETE
-Phase 4B — Orderflow Market Analysis                   PLANNED
-Phase 4C — Options-Derived Market Analysis             PLANNED
-```
+**Full detail (maintained here, not in ROADMAP.md):**
+`docs/planning/roadmap/PHASE_04_MARKET_ANALYSIS.md` §8.
 
-Sprints 004–006 delivered Phase 4A. Sprints 007–010 belong to other phases (007 optional catalog; 008–010 Signal Research / Phase 5). Historical sprint files are not rewritten.
-
----
-
-## Phase 4A — Bar-Based and Multitimeframe Foundation (COMPLETE)
-
-### Sprint increments (historical)
-
-| Sprint | Increment | Focus |
-|--------|-----------|-------|
-| 004 | Multitimeframe Foundation MVP | DONE — `SPRINT_004.md` |
-| 005 | Calendar + Pivot + visual inspection | DONE — `SPRINT_005.md` |
-| 006 | Declarative models | DONE — `SPRINT_006.md` |
-| 007 | Research-enabling catalog (conditional) | SKIPPED — scope gate — `SPRINT_007.md` |
-
-**Direction (binding for 004–006):** `docs/planning/sprints/PHASE_4_5_SPRINT_DIRECTION.md`
-
-### Delivered capabilities
-
-- source, computation and evaluation timeframe distinction,
-- explicit resampling nodes,
-- derived dataset lineage,
-- `observed_at`,
-- `available_at`,
-- `LAST_CLOSED_BAR`,
-- backward as-of alignment,
-- intrabar component contract,
-- Trading Session integration,
-- Trading Calendar integration,
-- controlled `MarketFieldReference`,
-- Market Model expression evaluation,
-- Signal Model expression evaluation,
-- initial reusable Features, Structures and States.
-
-## Suggested Initial Analytical Set
-
-```text
-Features:
-- ATR
-- slope
-- wick ratio
-- distance to level
-
-Structures:
-- Pivot
-- HH / HL / LH / LL
-- Session Range
-- Liquidity Sweep
-
-States:
-- trend / range
-- volatility state
-- active session state
-```
-
-This is an initial research-enabling set, not a permanent mandatory taxonomy.
-
-## Completion Criteria
-
-- higher-timeframe final values are unavailable before bar close,
-- resampling is explicit and reused,
-- temporal alignment is covered by regression tests,
-- DST and session boundaries are tested,
-- Market Models and Signal Models remain declarative,
-- models cannot access arbitrary DataFrames,
-- one-condition Market and Signal Models are supported,
-- framework and local components use the same public contracts.
-
-## Dependencies
-
-- Market Data MVP,
-- Market Analysis Engine MVP,
-- Time Model and calendars.
-
-## Main Risks
-
-- look-ahead bias,
-- timestamp-boundary ambiguity,
-- incorrect session semantics,
-- mixing implementation patterns with output categories,
-- excessive early taxonomy,
-- divergence between Research and runtime semantics.
-
-## Out of Scope (Phase 4A)
-
-- unrestricted component grid searches,
-- complete Strategy Research,
-- live broker execution,
-- orderflow and options-derived analysis (Phase 4B/4C).
-
----
-
-## Phase 4B — Orderflow Market Analysis (PLANNED)
-
-Orderflow belongs in **Market Analysis**, not Market Data storage of derived indicators.
-
-```text
-MarketTrade / MarketQuote (Phase 2C)
-    ↓
-Market Data normalization
-    ↓
-Market Analysis components
-    ↓
-orderflow Features / Structures / States
-```
-
-**Features (examples):** traded volume, buy/sell volume, delta, CVD, imbalance, execution intensity, large-trade concentration, absorption ratio.
-
-**Structures (examples):** footprint bar, imbalance cluster, absorption event, aggressive sweep, volume node.
-
-**States (examples):** buying/selling pressure, balanced flow, aggressive expansion, absorption, liquidity exhaustion.
-
-Not one monolithic indicator or one giant DataFrame.
-
-### Dependencies
-
-- Phase 2C (`MarketTrade` minimum).
-
----
-
-## Phase 4C — Options-Derived Market Analysis (PLANNED)
-
-Interpretation of options context belongs in Market Analysis.
-
-```text
-OptionsSnapshot (Phase 2D)
-    ↓
-Options-derived Features
-    ↓
-Options Structures / States
-    ↓
-Market Model inputs
-```
-
-**Examples:** net gamma proxy, gamma concentration by strike, zero-gamma estimate, call/put wall, IV regime, expiration concentration, positioning state.
-
-Market Models compose finished outputs (e.g. `negative_gamma_state AND price_below_zero_gamma`). Market Models do **not** compute GEX internally.
-
-### Dependencies
-
-- Phase 2D (options snapshots).
+This phase is ACTIVE: edit the linked file, not this stub.
 
 ---
 
 # 9. Phase 5 — Signal Research MVP
 
-## Purpose
+**Status:** COMPLETE — Sprints 008–010.
 
-Evaluate Market Models and Signal Models independently or together without requiring a complete Strategy Model.
+Purpose: evaluate Market Models and Signal Models independently or together, without
+requiring a complete Strategy Model. Supported scopes: `MARKET_MODEL_ONLY`,
+`SIGNAL_MODEL_ONLY`, `MARKET_AND_SIGNAL`.
 
-## Supported Scopes
+Binding outcomes still in force:
 
-```text
-MARKET_MODEL_ONLY
-SIGNAL_MODEL_ONLY
-MARKET_AND_SIGNAL
-```
-
-## Expected Capabilities
-
-- explicit Signal Research configuration,
-- bounded experiment expansion,
-- Market Model result materialization,
-- `SignalOccurrence`,
-- forward-return calculation,
-- MFE and MAE,
-- event frequency,
-- persistent Signal Research Dataset,
-- reusable analytics,
-- sample-size filters,
-- timeframe and period comparisons,
-- computation/analytics separation.
-
-## Primary Flows
-
-```text
-Market Model only
-        ↓
-Future Market Behaviour
-```
-
-```text
-Signal Model only
-        ↓
-SignalOccurrence
-        ↓
-Forward Behaviour
-```
-
-```text
-Market Model × Signal Model
-        ↓
-Conditional Signal Behaviour
-```
-
-## Completion Criteria
-
-- all three scopes work explicitly,
 - Signal Research does not require Exit or Risk Models,
-- new analytics do not rerun unchanged computation,
-- stored datasets remain queryable without loading implementation classes,
 - independent experiment alternatives are not confused with logical `OR`,
-- shared analytical dependencies are reused,
+- new analytics do not rerun unchanged computation; shared analytical dependencies are reused,
+- stored datasets remain queryable without loading implementation classes,
 - run identity includes datasets, models, fingerprints and time semantics.
 
-## Dependencies
+Out of scope for this phase and still so: complete strategy PnL, position sizing, broker
+fill simulation, deployment decisions, automatic strategy promotion.
 
-- model expression evaluation,
-- Market Analysis results,
-- published datasets,
-- persistent Research Dataset contracts.
-
-## Main Risks
-
-- accidental Cartesian-product growth,
-- weak lineage,
-- multiple-testing blindness,
-- recomputing results for every report,
-- treating one good result as validated edge.
-
-## Out of Scope
-
-- complete strategy PnL,
-- position sizing,
-- broker fill simulation,
-- deployment decisions,
-- automatic strategy promotion.
+Full detail: `docs/planning/ROADMAP_COMPLETED_PHASES.md` §9.
 
 ---
 
@@ -958,114 +453,35 @@ Detailed design deferred until Phase 6A and data increments justify it.
 
 # 11. Phase 7 — Robustness Research
 
-## Purpose
+**Status:** COMPLETE — Sprint 016. **Wave 0:** `S016_WAVE0_DECISIONS.md`. **ADR:** ADR-0019.
 
-Assess whether a candidate Strategy Model is **stable enough** to justify paper execution or deeper
-validation — not merely which parameter set ranked highest in-sample.
+Purpose: assess whether a candidate Strategy Model is **stable enough** to justify paper
+execution or deeper validation — not merely which parameter set ranked highest in-sample.
 
-**Sprint plan:** `SPRINT_016.md` · **Wave 0:** `S016_WAVE0_DECISIONS.md` · **ADR:** ADR-0019
+Delivered in the MVP: declarative experiment specification with a config generator, batch
+execution and a resumable experiment registry; parameter sweep with ranking, neighbor
+stability and isolated-optimum detection; rolling and expanding walk-forward with train-only
+selection and a stitched OOS curve; stress testing (costs, entry/exit delay, top-trade and
+top-day removal); statistical diagnostics (temporal stability, PnL concentration, bootstrap,
+block bootstrap, IS/OOS degradation); trade-level Monte Carlo; and one offline-HTML
+Robustness Report carrying an explicit PASS / CONDITIONAL / FAIL verdict.
 
-## MVP Scope (Sprint 016)
-
-### Experiment Infrastructure
-
-- declarative experiment specification,
-- configuration generator (grids, folds, scenarios),
-- batch execution via `run_strategy_research`,
-- experiment registry and resume after interrupt,
-- comparison of multiple experiments.
-
-### Parameter Robustness
-
-- parameter grid sweep,
-- configuration ranking,
-- neighbor-parameter stability,
-- heatmaps,
-- isolated-optimum detection.
-
-### Walk-Forward
-
-- rolling and expanding windows,
-- train-only parameter selection,
-- out-of-sample evaluation per fold,
-- stitched OOS equity curve.
-
-### Stress Testing
-
-- commission and slippage scenarios,
-- entry and exit delay,
-- remove top trades and top days by PnL.
-
-### Statistical Diagnostics
-
-- temporal stability,
-- PnL concentration,
-- trade bootstrap,
-- block bootstrap,
-- IS/OOS degradation (walk-forward linked).
-
-### Monte Carlo (trade-level, MVP)
-
-- trade-sequence shuffle (permutation without replacement),
-- trade PnL bootstrap (with replacement),
-- block bootstrap (session-day blocks),
-- equity path envelope (percentile bands, tail probabilities).
-
-Monte Carlo operates on **persisted simulated trades** — not synthetic price paths or order-book
-simulation.
-
-### Deliverable
-
-One **Robustness Report** (offline HTML) plus explicit **verdict**: PASS / CONDITIONAL / FAIL with
-documented strengths and weaknesses.
-
-## Outside MVP (deferred)
-
-- full order-book simulation, market impact models,
-- portfolio-level and cross-asset robustness,
-- distributed experiment execution,
-- Bayesian and genetic optimization,
-- Probability of Backtest Overfitting, CSCV, Deflated Sharpe Ratio, White's Reality Check,
-  Hansen's SPA.
-
-## Completion Criteria
-
-Phase 7 MVP is complete when the system can:
-
-- define a reproducible robustness experiment,
-- generate and run a parameter sweep with ranking and neighbor stability,
-- run rolling and expanding walk-forward with train-only selection and stitched OOS equity,
-- execute stress scenarios (costs, delays, trade/day removal),
-- run trade shuffle, bootstrap, block bootstrap, and Monte Carlo equity envelopes,
-- assess temporal stability, PnL concentration, and IS/OOS degradation,
-- emit one coherent Robustness Report with an explicit verdict.
-
-Binding principles (unchanged):
+Binding principles still in force:
 
 - robustness methods record their assumptions,
 - top ranking is **not** treated as validation,
 - validation outputs are stored separately from base Strategy Research runs,
-- no train/OOS leakage in walk-forward.
+- no train/OOS leakage in walk-forward,
+- Monte Carlo operates on **persisted simulated trades** — not synthetic price paths and
+  not order-book simulation.
 
-## Dependencies
+Still deferred (unchanged): full order-book simulation and market impact, portfolio-level
+and cross-asset robustness, distributed experiment execution, Bayesian/genetic optimization,
+and the PBO / CSCV / Deflated Sharpe / White's Reality Check / Hansen's SPA family. Also out
+of scope: automatic live deployment and a universal hard-coded candidate score. Note that the
+delay stress still rejects bracket exits (TD-027, see §13E).
 
-- persistent Strategy Research envelopes (ADR-0016),
-- stable strategy metrics and simulation assumptions fingerprint,
-- published OHLCV datasets (including continuous NQ, ADR-0018).
-
-## Main Risks
-
-- false confidence from sophisticated statistics,
-- misuse of Monte Carlo (mitigated: trade-level only, verdict gates),
-- data leakage between train and test periods,
-- uncontrolled grid size / runtime explosion,
-- robustness analytics coupled to one strategy type only in first slice.
-
-## Out of Scope (phase family)
-
-- automatic live deployment,
-- universal hard-coded candidate score,
-- distributed research infrastructure without evidence.
+Full detail: `docs/planning/ROADMAP_COMPLETED_PHASES.md` §11.
 
 ---
 
@@ -1189,71 +605,17 @@ Minimum future requirements include:
 
 # 13A. Phase 10 — Predictive (ML) Research
 
-**Status:** COMPLETE. Phase 10A COMPLETE on `main`; Phase 10B COMPLETE (Sprint 042, #335,
-22/22); Phase 10C COMPLETE — Sprint 043 (#342, 21/21) and Sprint 044 (predictive dashboard
-page + ADR-0024 + IDEA-014 gate, 18/18) both merged. Numbered `13A` to avoid renumbering
-sections cited elsewhere.
+**Status:** COMPLETE. 10A — Sprints 039–041; 10B — Sprint 042 (#335, 22/22); 10C —
+Sprints 043 (#342, 21/21) and 044 (18/18). Numbered `13A` to avoid renumbering sections
+cited elsewhere.
+**ADRs:** ADR-0023 (predictive research boundary), ADR-0024 (promotion conditions).
+**Gate:** IDEA-014.
 
-Sprint 039 (dataset foundation: labelled matrix, purged walk-forward folds, persisted envelope,
-leakage suite, ADR-0023), Sprint 040 (estimator seam, sklearn baselines, run envelope, metrics,
-CLIs), and Sprint 041 (offline HTML report) are on `main`. Phase 10A is complete. Sprint 042
-(tree-based models, bounded selection, importance, leaderboard, report panels) is on `main`
-(#335). Sprint 043 (sequence windows, extra `dl`, feedforward + LSTM/GRU, learning curves,
-synthetic comparison) is complete on `main` (#342). Sprint 044 (Predictive Research dashboard
-page, ADR-0024 promotion conditions, IDEA-014 gate document, boundary test and Phase 10
-closure docs) closes the phase.
+Purpose: learn a relationship between Market Analysis outputs and forward market behaviour,
+and measure honestly whether that relationship survives out of sample. Phase 10 is a
+**research methodology**, not a trading capability.
 
-**Sprint plans:** `SPRINT_039.md` … `SPRINT_044.md`
-
-## Purpose
-
-Learn a relationship between Market Analysis outputs and forward market behaviour, and measure
-honestly whether that relationship survives out of sample.
-
-Phase 10 is a **research methodology**, not a trading capability. It answers *is there predictable
-structure in these features?* — not *should we trade this?*
-
-## Phase family
-
-```text
-Phase 10A — Predictive Research Foundation   Sprints 039–041
-Phase 10B — Tree-Based Predictive Models     Sprint 042
-Phase 10C — Neural Predictive Models         Sprints 043–044
-```
-
-## Primary flow
-
-```text
-Market Analysis outputs (Phase 4A + S037/S038 catalog)
-        ↓
-Feature matrix (declared columns + lineage)
-        ↓
-Labels from forward outcomes (Phase 5)
-        ↓
-Purged + embargoed walk-forward split
-        ↓
-Estimator training per fold (statistical / tree / neural)
-        ↓
-Out-of-sample predictions + metrics
-        ↓
-Predictive Research Report (offline HTML)
-```
-
-## Expected capabilities
-
-- declarative feature matrix specification with component lineage,
-- regression and classification label definitions derived from forward outcomes,
-- purged and embargoed walk-forward splitting as a first-class domain object,
-- estimator protocol in the domain, ML libraries behind infrastructure adapters,
-- statistical metrics (RMSE, R², rank IC, AUC, log loss, Brier) and finance-aware metrics
-  (mean forward return per prediction bucket, hit rate),
-- persistent Predictive Research Dataset and run envelope with full run identity,
-- offline HTML report with fold timeline, stability, calibration, bucket, importance, leaderboard and selection-trace panels,
-- tree-based estimators (XGBoost, LightGBM, CatBoost) with deterministic configuration,
-- feedforward and recurrent (LSTM / GRU) sequence estimators,
-- a documented gate for promoting a trained model to a Market Analysis State component.
-
-## Binding rules
+Binding rules still in force:
 
 ```text
 Domain code must not import scikit-learn, XGBoost, LightGBM, CatBoost or torch
@@ -1264,89 +626,24 @@ Predictive runs are persisted separately from Signal and Strategy Research runs
 A trained model is never promoted to a tradable signal inside Phase 10
 ```
 
-## Completion criteria
+Promotion of a trained model is Phase 14 (§13F), gated by IDEA-014 and ADR-0024 — not part
+of this phase.
 
-Phase 10 is complete when the framework can:
-
-- build a reproducible feature matrix with labels and prove absence of temporal leakage in tests,
-- split it into purged, embargoed walk-forward folds,
-- train and evaluate statistical, tree-based and neural estimators through one shared protocol,
-- persist predictions, metrics and run identity for every fold,
-- render one report that makes overfitting and fold instability visible,
-- compare estimator families on an identical dataset fingerprint,
-- state explicit conditions for promoting a model to Market Analysis (IDEA-014).
-
-## Dependencies
-
-- Phase 4A Market Analysis outputs and `AnalysisFrame` column lineage,
-- Phase 5 forward outcome calculation (`forward_return`, `mfe`, `mae`, outcome status),
-- S037 component libraries and S038 `structure.session_range` — the catalog bounds feature quality;
-  further catalog PRs (wick, distance-to-level) widen it without blocking Phase 10 entry.
-
-## Main risks
-
-- leakage through feature availability, label horizon overlap or preprocessing fitted on all data,
-- overfitting presented as discovery because only aggregate metrics are reported,
-- heavy dependencies leaking into the default install or standard CI,
-- non-reproducible results from unseeded or thread-nondeterministic estimators,
-- silent drift into strategy generation without robustness validation.
-
-## Out of scope (phase family)
-
-- automatic promotion of predictions into Signal Models or Strategy Research,
-- online / incremental learning and live inference,
-- distributed or GPU training infrastructure,
-- a general model registry product,
-- reinforcement learning and generative approaches,
-- automated feature engineering search.
+Full detail: `docs/planning/ROADMAP_COMPLETED_PHASES.md` §13A.
 
 ---
 
 # 13B. Phase 2F — Exchange REST Historical Import (COMPLETE)
 
 **Status:** COMPLETE — Sprint 045 (14/14 tasks, `sprint/binance-historical-ohlcv`).
-**ADR:** ADR-0025 (ACCEPTED).
-**First provider:** Binance USD-M futures.
+**ADR:** ADR-0025 (ACCEPTED). **First provider:** Binance USD-M futures.
 
-## Purpose
+Purpose: obtain historical bars from an exchange **REST API over a date range**, not only
+from a local vendor archive (Phase 2B) or a CSV file (Phase 2A). Downstream layers were
+already provider-agnostic; this closed the gap at the acquisition boundary with no change to
+any research code.
 
-Obtain historical bars from an exchange **REST API over a date range**, not only
-from a local vendor archive (Phase 2B) or a CSV file (Phase 2A).
-
-The framework's downstream layers are already provider-agnostic; the gap is
-purely at the acquisition boundary. Closing it makes crypto data available to
-Signal, Strategy, Robustness and Predictive Research with **no change to any
-research code**.
-
-## Primary flow
-
-```text
-Binance USD-M REST /fapi/v1/klines
-        ↓
-paginated fetch over [start, end) with weight-aware backoff
-        ↓
-map_kline_payload → canonical MarketBar   (shared with the live path)
-        ↓
-OHLCV validation
-        ↓
-bars.parquet + import_manifest.json       (ADR-0008 layout, unchanged)
-        ↓
-register WORKING → finalize → publish
-        ↓
-published DatasetRef, provider = "binance"
-```
-
-## Expected capabilities
-
-- paginated historical klines fetch over an arbitrary UTC date range,
-- open-bar exclusion and idempotent re-import (same range → same checksum),
-- weight-aware rate limiting with bounded, jittered backoff (no busy-loop retry),
-- optional API key raising public market-data limits, environment-variable only,
-- gap recording (never gap filling) in an import manifest,
-- a mode selector reserving a future `trades` mode without building it,
-- a thin CLI under `scripts/market_data/`.
-
-## Binding rules
+Binding rules still in force:
 
 ```text
 Downstream research must not branch on provider == "binance"
@@ -1356,33 +653,10 @@ A partially fetched range never produces a PUBLISHED version
 Standard CI stays network-free (Tier 1 fake transport; Tier 2 opt-in marker)
 ```
 
-## Completion criteria
+Still out of scope: Binance spot/options and any authenticated endpoint, `trades` mode
+(reserved, not built), resume-after-failure and incremental top-ups, and a second exchange.
 
-- a multi-month Binance USD-M range publishes a queryable `DatasetRef`,
-- `query_historical` returns those bars with no provider-specific handling,
-- Strategy or Predictive Research runs on the result unmodified,
-- rate-limit backoff is proven against 429 / 418 / 5xx without real sleeping,
-- a boundary test proves no credential is required by any committed file,
-- the live dry-run reconnect path (`fetch_closed_klines`) is unchanged.
-
-## Dependencies
-
-- Phase 2A lifecycle and repository contracts (ADR-0007 / ADR-0008),
-- the Sprint 019 Binance mapper and symbol normalization.
-
-## Main risks
-
-- vendor-revisable history undermining reproducibility (mitigated by publishing versions),
-- long wall-clock imports under weight limits with no resume in v1,
-- validator behaviour on legitimate market gaps,
-- credential convention drift if a second storage location is ever introduced.
-
-## Out of scope
-
-- Binance spot, options, or any authenticated endpoint,
-- `trades` mode (reserved, not built),
-- resume-after-failure and incremental "top-up" imports,
-- a second exchange (the workflow generalizes only when a second one is needed).
+Full detail: `docs/planning/ROADMAP_COMPLETED_PHASES.md` §13B.
 
 ---
 
@@ -1391,39 +665,12 @@ Standard CI stays network-free (Tier 1 fake transport; Tier 2 opt-in marker)
 **Status:** COMPLETE — Sprint 046 (14/14 tasks, `sprint/operator-cli`).
 **ADR:** ADR-0026 (ACCEPTED).
 
-## Purpose
+Purpose: give the operator one entry point and one input contract for the working loop.
+An **interface** phase — no research, data or execution capability, and it deliberately does
+not replace `scripts/`. Command groups (v1): `data fetch`, `research run`, `dry-run start`,
+`report render`, all driven by one YAML config.
 
-Give the operator one entry point and one input contract for the working loop.
-Today that loop is a remembered sequence of `uv run python scripts/.../foo.py`
-invocations across 45 scripts with 45 flag sets.
-
-This is an **interface** phase. It adds no research, data or execution
-capability, and it deliberately does not replace `scripts/`.
-
-## Primary flow
-
-```text
-one YAML config
-        ↓
-trading-cli <group> <command> --config <path>
-        ↓
-validate + resolve the plan (--dry-run stops here)
-        ↓
-call an existing application-layer workflow
-        ↓
-typed result → human or --json output
-```
-
-## Command groups (v1)
-
-```text
-data fetch     Binance (Phase 2F) and Databento historical import
-research run   Predictive Research and Strategy Research
-dry-run start  the existing BTC futures dry-run runtime (Sprints 018–024)
-report render  offline HTML reports for the above
-```
-
-## Binding rules
+Binding rules still in force:
 
 ```text
 apps/cli may import trading_framework.application.* — and nothing deeper
@@ -1433,101 +680,30 @@ Existing scripts, their flags and their tests remain valid
 No credentials in any config file
 ```
 
-## Completion criteria
+Still out of scope: replacing `scripts/`; ops/demo/robustness/signal-research groups; any
+change to execution or order routing; interactive/TUI modes and shell completion; a job
+scheduler, queue or run history — the CLI is stateless.
 
-- the four commands run end to end from a YAML config,
-- an invalid config fails before any side effect, with a clear message,
-- `--dry-run` prints the resolved plan without executing,
-- an import-boundary test proves the CLI touches only the application layer,
-- CI is green for the new workspace member,
-- the operator guide documents one config schema, once.
+SPRINT_046.md §4 Finding 2 (hardcoded strategy model, `SimulationAssumptions`, session
+resolver) is a Phase 11 limitation: its strategy-model third was closed by Phase 12 (§13D).
 
-## Dependencies
-
-- Sprint 045 / ADR-0025 for the `data fetch binance` command only,
-- existing application workflows for the other three groups.
-
-## Main risks
-
-- the CLI drifting from script behaviour (two front doors, one can rot),
-- scope creep toward wrapping all 45 scripts,
-- config schema growing a fat "common" section that couples unrelated commands,
-- hardcoded choices inside scripts (canonical strategy model, session resolver)
-  being mistaken for CLI limitations rather than upstream ones.
-
-## Out of scope
-
-- replacing `scripts/`; ops, demo, robustness and signal-research groups,
-- any change to execution or order-routing logic,
-- interactive/TUI modes, shell completion, packaging for global install,
-- a job scheduler, queue, or run history — the CLI is stateless.
+Full detail: `docs/planning/ROADMAP_COMPLETED_PHASES.md` §13C.
 
 ---
 
 # 13D. Phase 12 — Custom Strategy Authoring (COMPLETE)
 
 **Status:** COMPLETE — Sprint 047 (10/10 tasks, `sprint/strategy-authoring`).
-**ADRs:** ADR-0027 (strategy loading) — ACCEPTED. ADR-0028 (bracket exit /
-equity sizing) — PROPOSED, **declined for this sprint** (2026-09-01); its
-Exit/Risk expansion is deferred to a possible future sprint with its own
-engine-focused ADR, not part of Phase 12's Sprint 047 delivery.
+**ADRs:** ADR-0027 (strategy loading) — ACCEPTED. ADR-0028 — PROPOSED and **declined for
+this sprint** (2026-09-01); its Exit/Risk expansion was later delivered by Phase 13 (§13E).
 **PRD:** `docs/product/PRD-strategy-authoring.md` (confirmed).
 
-## Purpose
+Purpose: make the framework's own strategy vocabulary usable **by the operator, from the
+CLI** — one config key, `research.strategy.strategy_file`, naming a Python file with a
+zero-argument `build_strategy()` entry point, plus the catalog components `candle.wick` and
+`structure.level_distance`.
 
-Make the framework's own strategy vocabulary usable **by the operator, from the
-CLI**, rather than only by an engineer editing Python inside the repository.
-
-Phase 11 gave the operator one front door. Behind that door,
-`research run strategy` still always evaluates the Sprint 013 canonical example
-(SPRINT_046.md §4 Finding 2). Phase 12 opens it — and closes the two structural
-gaps that made the limitation more than a CLI oversight: a thin component
-catalog, and Exit/Risk models that were placeholders rather than
-strategy-construction primitives.
-
-This is a **capability** phase, unlike Phase 11's interface-only scope: it adds
-Market Analysis components. Exit/Risk model expansion was scoped (ADR-0028)
-but declined for Sprint 047 — see Out of scope.
-
-## Primary flow
-
-```text
-operator writes user_data/.../my_strategy.py
-        def build_strategy() -> StrategyModelDefinition
-        ↓
-research:
-  strategy:
-    strategy_file: user_data/.../my_strategy.py
-        ↓
-trading-cli research run strategy --config <path>
-        ↓
-resolve_plan: import the file, call build_strategy(), validate the definition
-        (--dry-run stops here and prints the resolved strategy_model_id)
-        ↓
-run_strategy_research(strategy_model=<the loaded definition>)
-        ↓
-run manifest strategy_model_id == the operator's strategy
-```
-
-## Expected capabilities
-
-- one config key, `research.strategy.strategy_file`, naming a Python file; a
-  fixed zero-argument `build_strategy()` entry-point convention (ADR-0027),
-- a pre-flight error taxonomy covering missing file, import failure, missing or
-  non-callable entry point, wrong return type, and invalid definition — every
-  one an exit-2 config error naming the key, before any side effect,
-- an explicitly documented trust model: the loaded file is operator code and is
-  not sandboxed or import-restricted (ADR-0027 §2, §6),
-- Market Analysis catalog: `candle.wick` and `structure.level_distance`, the
-  two items D-S037-08 / D-S038-03 named as the next catalog increments,
-- working example strategies composing the new catalog components, runnable
-  through the CLI.
-- *(Exit/Risk expansion — `BracketExitModel`, `EquityPercentRiskModel`, and
-  the simulation kernel dispatch that would make them runnable — was scoped
-  in ADR-0028 and declined for this sprint on 2026-09-01. Deferred, not
-  delivered by Phase 12's Sprint 047.)*
-
-## Binding rules
+Binding rules still in force:
 
 ```text
 The loaded strategy file is the operator's own trusted code — no sandbox, no
@@ -1536,130 +712,44 @@ apps/cli's own ADR-0026 Amendment 1 allow-list is NOT widened by this phase
 strategy_file is optional; its absence keeps the canonical example (additive)
 No declarative YAML strategy schema is introduced — Python loading only
 Existing FixedBars strategies produce byte-identical runs (no engine change)
-kernels/fixed_bars.py, ExitModel/RiskModel protocols, and BarSequentialSimulator
-    are untouched this sprint (ADR-0028 declined; not merely unedited by luck)
 ```
 
-## Completion criteria
+Note: the final Sprint 047 binding rule ("kernels/fixed_bars.py, ExitModel/RiskModel
+protocols, and BarSequentialSimulator are untouched this sprint") was scoped to that sprint;
+Phase 13 (§13E) deliberately narrowed it with ADR-0028 ACCEPTED.
 
-- `trading-cli research run strategy --config <path>` runs a user-authored
-  strategy and the run manifest's `strategy_model_id` is that strategy's,
-- every loader failure mode fails pre-flight with an exit-2 message naming
-  `research.strategy.strategy_file` and the resolved absolute path,
-- at least one new Market Analysis component is exercised by a passing
-  example composed through the loader (the Exit/Risk half of this criterion
-  is deferred with ADR-0028),
-- the canonical example still runs unchanged with no `strategy_file` key, and
-  every Sprint 046 example config still works,
-- the fixed-bars simulation path, the simulator, and both Exit/Risk protocols
-  are unchanged — trivially true this sprint since the engine was not touched,
-- the trust model is stated in the operator guide and in `--help`, not implied.
+Still out of scope: a declarative strategy format; sandboxing or static analysis of loaded
+files; a strategy registry or catalog UI; exposing `SimulationAssumptions` or the session
+resolver through config; any change to live trading, order routing or the dry-run runtime.
 
-## Dependencies
+Accepted risk, still current: **arbitrary code execution by config** — the same trust level
+as running any script in this repository; and `--dry-run` promises only that *the CLI*
+touches nothing, since a loaded module executes at import (ADR-0027 §4).
 
-- Phase 11 / ADR-0026 (the CLI, its config contract and its error taxonomy),
-- Phase 6A / ADR-0016 (Strategy Model, Exit/Risk contracts, the simulator),
-- Sprint 037/038 (`model_authoring` DSL and the component reference pattern),
-- session metadata on the component compute view (Sprint 038) for
-  `structure.level_distance`.
-
-## Main risks
-
-- **Arbitrary code execution by config.** Accepted deliberately and documented;
-  it is the same trust level as running any script in this repository.
-- **`--dry-run`'s promise narrows** from "touches nothing" to "the CLI touches
-  nothing" — a loaded module executes at import (ADR-0027 §4).
-- Catalog scope creep — exactly two components, no more.
-
-## Out of scope
-
-- a declarative (YAML/JSON) strategy specification format,
-- sandboxing, import restriction, or static analysis of loaded strategy files,
-- a strategy registry, catalog UI, or any discovery mechanism,
-- exposing `SimulationAssumptions` or the session resolver through config (the
-  other two thirds of SPRINT_046.md §4 Finding 2),
-- **`BracketExitModel`, `EquityPercentRiskModel`, and any change to
-  `BarSequentialSimulator` or its kernels** — ADR-0028's requested non-goal
-  narrowing was declined by the maintainer (2026-09-01); deferred to a
-  possible future sprint with its own engine-focused ADR,
-- dynamic, equity-curve-following position sizing (TD-026, deferred with the above),
-- Robustness Research stress dimensions over bracket parameters (deferred with the above),
-- any change to live trading, order routing, or the dry-run runtime,
-- deleting or rewriting `user_data/run_example_strategies.py`.
+Full detail: `docs/planning/ROADMAP_COMPLETED_PHASES.md` §13D.
 
 ---
 
 # 13E. Phase 13 — Exit/Risk Model Expansion and Catalog Growth (COMPLETE)
 
-**Status:** COMPLETE — Sprint 048 (13/13 tasks, `sprint/exit-risk-and-catalog`).
-Approved by the maintainer on 2026-09-01. Numbered `13E` to continue the
-§13A-§13D pattern without renumbering earlier phases.
-**ADRs:** ADR-0028 (bracket exits + equity-relative sizing) — **ACCEPTED**
-(declined for Sprint 047, resumed with corrections for Sprint 048; Status
-flipped in place, dated decline record preserved under "History").
+**Status:** COMPLETE — Sprint 048 (13/13 tasks, `sprint/exit-risk-and-catalog`), approved by
+the maintainer 2026-09-01. Numbered `13E` to continue the §13A–§13D pattern.
+**ADR:** ADR-0028 (bracket exits + equity-relative sizing) — **ACCEPTED** (declined for
+Sprint 047, resumed with corrections for Sprint 048).
 **PRD:** `docs/product/PRD-exit-risk-and-catalog-expansion.md` (confirmed).
 
-## Purpose
+Purpose: turn Exit and Risk models from placeholders into strategy-construction primitives.
+Delivered `BracketExitModel` (bps stop-loss / take-profit plus a mandatory `max_bars`
+timeout), `EquityPercentRiskModel` (**static**, authoring-time sizing), `kernels/bracket.py`,
+five bounded engine changes across three files, a golden-run regression, the catalog
+components `trend.ema_distance` and `volatility.range_expansion`, and three worked examples.
 
-Turn Exit and Risk models from placeholders into strategy-construction
-primitives — the third piece Phase 12 scoped, designed and deliberately did
-not ship.
-
-Phase 12 made a strategy authorable. But every authorable strategy still exits
-`N` bars after entry and sizes at a hand-computed constant, because
-`ExitModel`'s whole contract is a function of one integer and three separate
-`isinstance` gates refuse anything but the two Sprint 013 placeholders. A
-framework whose backtests cannot express a stop-loss cannot honestly evaluate
-risk.
-
-This is a **capability** phase that deliberately narrows a Phase 12 non-goal:
-it changes `BarSequentialSimulator`.
-
-## Primary flow
-
-```text
-BracketExitModel(stop_loss_bps=50, take_profit_bps=120, max_bars=40)
-EquityPercentRiskModel(account_equity=100_000, risk_percent=0.01, stop_distance=...)
-        ↓
-build_strategy() in an operator file        (Phase 12 loader, UNCHANGED)
-        ↓
-validate_strategy_model_definition  -> supported-combination check
-run_strategy_research               -> structural check
-BarSequentialSimulator              -> dispatch on PriceBracketExit
-        ↓
-kernels/bracket.py  (@njit over open/high/low)     kernels/fixed_bars.py untouched
-        ↓
-trades table with per-trade exit_reason:
-    stop_loss | take_profit | max_bars
-```
-
-## Expected capabilities
-
-- `BracketExitModel`: stop-loss and take-profit as **basis-point** offsets from
-  the entry fill, plus a mandatory `max_bars` timeout so no position can be held
-  to the end of the dataset; satisfies `ExitModel` unchanged plus an additive
-  `PriceBracketExit` protocol,
-- `EquityPercentRiskModel`: **static, authoring-time** sizing
-  (`equity x risk_percent / stop_distance`, resolved once at construction) —
-  explicitly not equity-curve-following,
-- five bounded engine changes across three files plus one new `@njit` kernel,
-  with `kernels/fixed_bars.py`, `compile.py`, `input.py` and both Protocol
-  definitions untouched,
-- a **golden-run regression** as the binding safety net: the canonical Sprint 013
-  strategy produces byte-identical trades, equity and `run_id`,
-- Market Analysis catalog: `trend.ema_distance` and
-  `volatility.range_expansion` — both chosen because the authoring DSL has no
-  arithmetic, so a ratio or a signed difference must be a component,
-- three worked example strategies covering bracket-only, bracket + equity
-  sizing, and equity sizing on the unchanged fixed-bars path.
-
-## Binding rules
+Binding rules still in force:
 
 ```text
 kernels/fixed_bars.py is NOT edited — not one character
 research/simulation/compile.py and input.py are NOT edited (high/low already compiled)
 ExitModel and RiskModel Protocol definitions are NOT modified
-apps/cli is NOT modified — the Phase 12 loader already returns any definition
 The fixed-bars path's fill, accounting AND RUN-IDENTITY semantics are unchanged
 A sixth engine change is a STOP-and-ask with a fresh ADR amendment, never a
     quiet widening
@@ -1667,441 +757,112 @@ Same-bar stop/target ambiguity resolves to the STOP. Always. No configuration fl
 Equity-percent sizing is STATIC and must never be described as compounding
 ```
 
-## Completion criteria
+Standing deferrals recorded by this phase, cited elsewhere:
 
-- a strategy using `BracketExitModel` runs end to end through
-  `trading-cli research run strategy` and produces trades distinguishable by
-  `exit_reason` (more than one distinct reason in one run),
-- the golden run passes: byte-identical trades, equity, `run_id` and
-  deterministic manifest fields for the canonical strategy,
-- the three ADR-0016-era `isinstance` MVP gates no longer block Exit/Risk models
-  by class, while still rejecting genuinely unsupported models clearly,
-- both new catalog components are registered, causal, warmup-correct and
-  reachable from the DSL,
-- three example strategies run through the CLI with no loader change,
-- TD-026, TD-027 and TD-028 are logged with named repayment triggers.
+- **TD-026** — dynamic, equity-curve-following position sizing,
+- **TD-027** — the Robustness delay stress still **rejects** bracket exits, loudly and for a
+  stated reason; bracket-aware stress dimensions are not available (see §11, and
+  SPRINT_049.md §4 Finding 8 for the Sprint 050 planning consequence),
+- **TD-028** — no reference (non-njit) implementation of the bracket kernel.
 
-## Dependencies
+Also out of scope: any change to the `ExitModel` / `RiskModel` Protocol definitions, a
+declarative strategy format, arithmetic in the model-expression IR, cross-validating
+`stop_distance` against `stop_loss_bps` (the operator owns that in v1), and any third catalog
+component or fourth example strategy.
 
-- Phase 12 / ADR-0027 (the loader and the two Sprint 047 components),
-- Phase 6A / ADR-0016 (the Strategy Model, Exit/Risk contracts, the simulator
-  and the MVP gates this widens),
-- Phase 11 / ADR-0026 (the CLI this runs through, unchanged),
-- **ADR-0028 ACCEPTED (resumed)** — no fallback: there is no useful subset of
-  this phase that leaves the engine alone, which is exactly what Sprint 047
-  established.
-
-## Main risks
-
-- **It narrows a non-goal that was previously declined**, and by a wider margin
-  than the version declined on 2026-09-01 (five changes, not four, plus a
-  run-identity signature change). The golden run bounds the risk; it does not
-  eliminate it.
-- **Run identity.** `derive_strategy_run_id` hashes a FixedBars-only field; a
-  careless generalization silently re-identifies every persisted run.
-- Two fill conventions inside one strategy (trigger-price for stop/target,
-  next-bar-open for the timeout) is a real cognitive cost.
-- A second `@njit` kernel with no reference counterpart (TD-028).
-
-## Out of scope
-
-- dynamic, equity-curve-following position sizing (TD-026),
-- any change to the `ExitModel` / `RiskModel` Protocol definitions,
-- bracket-aware Robustness stress dimensions; the delay stress keeps rejecting
-  bracket exits, loudly and for a stated reason (TD-027),
-- a reference (non-njit) implementation of the bracket kernel (TD-028),
-- a declarative (YAML/JSON) strategy specification format,
-- arithmetic in the model-expression IR,
-- cross-validating `stop_distance` against `stop_loss_bps` — the operator owns
-  that consistency in v1,
-- any third catalog component, any fourth example strategy.
+Full detail: `docs/planning/ROADMAP_COMPLETED_PHASES.md` §13E.
 
 ---
 
 # 13F. Phase 14 — Predictive Model Promotion (APPROVED)
 
-**Status:** **APPROVED** (maintainer, 2026-09-02). **Sprint 049 (increment
-14A) is COMPLETE** (15/15, on `sprint/promotable-predictive-artifact`; final
-integration PR to `main` pending) — ADR-0024 conditions 1 and 5 closed,
-condition 4's offline half (Path A) built and passing at its locked bars
-(measured maximum `y_proba` deviation: `0.0`). **Sprint 050 (increment 14B)
-is NOT planned yet.** Phase 14 as a whole is **NOT complete** — 14A ships no
-Market Analysis component, no State, no executor change, and no dry-run
-session; see `docs/planning/sprints/SPRINT_049.md` §13 Review.
-**Product source:** `docs/product/PRD-ml-signal-promotion.md` — the maintainer's
-discovery record; authoritative on scope, format, fold selection and the parity
-bar.
-**ADRs:** ADR-0024 (promotion conditions) — ACCEPTED, the binding input.
-**ADR-0029** (promoted artifact parameter format, promotion store, parity bars,
-and the narrow ADR-0023 §7 amendment) — **ACCEPTED 2026-09-02**. ADR-0030
-(inference-time availability enforcement) — the S049-T001 finding concluded
-the mechanism ADR-0024 condition 2 presupposes does not exist in the executor
-today; ADR-0030 is needed and sizes Sprint 050.
-**Gate:** `docs/planning/sprints/S044_GATE.md` — entry criteria and the parity
-test design sketch (§4).
+**Status:** **APPROVED** (maintainer, 2026-09-02). **14A is COMPLETE** — Sprint 049 (15/15,
+`sprint/promotable-predictive-artifact`), ADR-0024 conditions 1 and 5 closed and condition
+4's offline half (Path A) passing at its locked bars. **14B / Sprint 050 is NOT planned.**
+Phase 14 as a whole is NOT complete — 14A ships no Market Analysis component, no State, no
+executor change and no dry-run session.
 
-## Purpose
+Purpose: make a trained predictive model produce a Market Analysis State consumed by a
+Signal Model exactly like a rule-based component, all the way into the BTC futures dry-run
+runtime, under ADR-0024's five conditions with none waived. v1 is linear/logistic only, on a
+framework-owned NumPy parameter format with zero ML dependency in the runtime image.
 
-Close the gap Phase 10 deliberately left open: a trained predictive model can be
-evaluated offline, but nothing trained is reachable from a strategy. Phase 14
-makes a trained model produce a Market Analysis **State**, consumed by a Signal
-Model exactly like a rule-based component, all the way into the **BTC futures
-dry-run runtime** (the existing Phase 8A infrastructure, Sprints 019–024) — under
-ADR-0024's five conditions, none of them waived.
+Key open items for 14B: **ADR-0030** (inference-time `available_at` enforcement — the
+S049-T001 finding proved the executor mechanism ADR-0024 condition 2 presupposes does not
+exist today), a real non-synthetic BTC candidate model (actively pursued by Phase 15, §13G),
+and a named downstream robustness plan (S044_GATE §1.5). The binding rules — ADR-0024's five
+inherited conditions, the exact-equality parity bar, and condition 5's no-registry negative
+constraint — are **not restated here**; see the linked file.
 
-This is the phase ADR-0024 was written to gate. Its own Consequences section
-says it "will not be small."
+**Full detail (maintained here, not in ROADMAP.md):**
+`docs/planning/roadmap/PHASE_14_PREDICTIVE_PROMOTION.md` §13F.
 
-## v1 scope, locked by the PRD and ADR-0029
-
-```text
-IN    one instrument (BTC futures), one horizon
-IN    LINEAR AND LOGISTIC model families only
-IN    a framework-owned NumPy parameter format — ZERO ML dependency in the
-      dry-run/live runtime image
-IN    exact offline/online parity as a RELEASE GATE, not a follow-up
-IN    dry-run only, composed via strategy_file (ADR-0027) with Phase 13's
-      BracketExitModel / EquityPercentRiskModel (ADR-0028)
-
-OUT   real-money trading; multi-instrument / cross-asset; auto-retraining or
-      online learning; a model registry or promotion UI; tree (xgboost /
-      lightgbm / catboost) and neural (torch) families; ONNX or any
-      cross-library exchange format
-```
-
-Tree/neural promotion is **deferred, not rejected** — it needs the
-version-pinned joblib path that v1 declines to build. It becomes a candidate
-follow-on track once this mechanism is proven end to end.
-
-## Two increments, deliberately sequenced
-
-```text
-14A — Promotable Predictive Artifact          Sprint 049 (COMPLETE, 15/15)
-      ADR-0024 conditions 1 and 5 closed; condition 4's OFFLINE half (Path A)
-      built and passing (measured maximum y_proba deviation: 0.0). Touches
-      the research pipeline and storage only. Ships NO Market Analysis
-      component, NO executor change, NO State.
-
-14B — Model-Backed Market Analysis State      Sprint 050 (NOT planned yet)
-      ADR-0024 conditions 2, 3 and condition 4's RUNTIME half (Path B) closed.
-      The model component, the registry-injection seam in the dry-run runtime,
-      and the parity harness as a RELEASE GATE. Touches market_analysis/
-      execution and execution/runtime. Ends in a 3-5 day BTC dry-run session.
-```
-
-Sprint 050 is **not** planned in the same pass as Sprint 049. The reasoning was
-re-checked after the PRD narrowed v1, and one original reason is now spent:
-
-- ~~its design depends on the serialization format, which is unknown~~ —
-  **closed** by ADR-0029; Sprint 050's deployment footprint is now known to be
-  *zero extras*.
-- ~~its design depends on the S049-T001 finding — whether the executor
-  mechanism ADR-0024 condition 2 presupposes actually exists~~ — **closed**:
-  S049-T001 concluded the mechanism does not exist, and ADR-0030 will be
-  needed. Sprint 050 must include writing and getting that ADR approved.
-- **still standing:** whether Path A holds at its locked bars is not yet known
-  (Sprint 049 Wave 3 work).
-- **added:** conditions 2 and 3 and the online half of condition 4 are
-  executor/runtime work whose cost is **independent of the serialization
-  format**. The format choice shrank Sprint 050's deployment concerns to
-  nothing; it did not shrink its executor concerns at all. That is the structural
-  reason the split survives the narrower scope.
-
-## Primary flow (the phase's end state, reached only after 14B)
-
-```text
-PredictiveRunEnvelope (Phase 10), LAST walk-forward fold
-        ↓  promote_predictive_run  (one-time blob read, ml extra)     [14A]
-research/predictive_research/promoted/{artifact_fingerprint}/
-        manifest.json  +  artifact.json  (weights + intercept + fitted
-        preprocessing statistics, as PLAIN NUMBERS, as one unit)
-        ↓  load, format/family-guarded, evaluated by PURE NUMPY       [14A]
-Path A: re-predict the run's TEST rows vs predictions.parquet         [14A]
-        exact for linear; y_proba for logistic within atol=1e-15
-        ↓
-Market Analysis STATE component; artifact_fingerprint as a STR        [14B]
-        parameter → CanonicalParameters → Lineage → cache identity
-        ↓  features read through AnalysisDataView, available_at enforced
-Path B: dry-run runtime State values == research values, EXACTLY      [14B]
-        ↓
-Signal Model consumes the State exactly like a rule-based one,        [14B]
-        composed via strategy_file with a Bracket exit and equity sizing
-        ↓
-Phase 7 robustness on the resulting strategy — MANDATORY, never skipped
-        (must account for TD-027: delay stress rejects bracket exits)
-```
-
-## Expected capabilities
-
-- a `promote_predictive_run` workflow turning a Phase 10 run's **last fold** into
-  a single, content-addressed, deterministically loadable **parameter file**
-  whose **fitted preprocessing statistics travel inside it** as one unit with the
-  estimator parameters,
-- a pure-NumPy evaluator for that file, living in the domain layer and requiring
-  **no optional extra** — so the dry-run/live image is unchanged,
-- a load-time format and model-family guard with no bypass, plus a
-  promotion-time library-version guard for the one blob read,
-- a Market Analysis State component backed by that artifact, identified in
-  `Lineage` by the artifact fingerprint and declaring its features as
-  `OutputRef` values like any rule-based component,
-- executor-enforced inference-time feature availability for model components
-  (per ADR-0030, needed per the S049-T001 finding),
-- a parity harness proving batch research and the dry-run runtime produce
-  **identical** State values from the same artifact — running in **default CI**,
-  because there is no ML dependency to gate it behind.
-
-## Binding rules
-
-```text
-ADR-0024's five conditions are inherited whole; none is waived by this phase
-Condition 5 is a NEGATIVE constraint: no model registry, no lifecycle state, no
-    serving API. A plan that starts building one has misread the ADR.
-Condition 4's bar is EXACT EQUALITY for the offline/online comparison (the
-    release gate). The single ulp-bounded tolerance ADR-0029 §6 permits applies
-    ONLY to the Sprint 049 sklearn cross-check's y_proba column, and is NOT
-    inherited by the release gate.
-ADR-0023 §4 (purge, embargo, dataset fingerprint) is NOT reopened
-ADR-0023 §7 is amended NARROWLY by ADR-0029 — one workflow, one read, one
-    purpose; research-run blobs stay non-reloadable by everything else
-Strong Phase 10 metrics are a PRECONDITION for promotion, never a verdict that
-    the model should trade (ADR-0024, "What is not sufficient for promotion")
-ml / ml-trees / dl remain out of the default install and default CI — and, per
-    ADR-0029, out of the RUNTIME IMAGE entirely. Promotion needs `ml`;
-    inference needs nothing.
-No new dependency of any kind: the parameter format needs only NumPy, already
-    a default-install dependency
-Phase 13's Exit/Risk work (ADR-0028) is CONSUMED, never modified
-```
-
-## Completion criteria
-
-- a trained **linear or logistic** model, promoted through a content-addressed
-  artifact store with no registry, produces a Market Analysis State consumed by a
-  Signal Model,
-- the artifact fingerprint appears on every `AnalysisResult.Lineage` the model
-  component emits (condition 1),
-- a leakage counter-fixture proves the **executor** — not a code-review
-  convention — rejects a model component reading a feature before its
-  `available_at` (condition 2),
-- the model component declares its features as `OutputRef` values, covered by
-  the existing DAG/lineage tests plus one model-component fixture (condition 3),
-- the **parity harness passes as a release gate**: batch research and the
-  dry-run runtime produce **exactly identical** State values for identical
-  inputs, from the same promoted artifact including its fitted preprocessing
-  (condition 4, PRD success metric 1),
-- a **BTC futures dry-run session runs 3–5 consecutive days** on a promoted
-  model with no divergence from an offline re-run over the same recorded window
-  (PRD success metric 2),
-- a named downstream Signal Model has a Phase 7 robustness plan and it is
-  executed, not skipped (S044_GATE §1.5, PRD success metric 3),
-- no registry, lifecycle state, or serving API exists anywhere in the delivery
-  (condition 5).
-
-## Dependencies
-
-- Phase 10 complete (Sprints 039–044) — **satisfied**,
-- ADR-0024 and `S044_GATE.md` on `main` — **satisfied** (#348),
-- ADR-0029 — **ACCEPTED** (2026-09-02); on the sprint branch,
-- Phase 12's `strategy_file` loader (ADR-0027) and Phase 13's Exit/Risk models
-  (ADR-0028) — **satisfied** (merged #366, #368–#383); consumed by 14B's dry-run
-  composition, not modified,
-- **a real (non-synthetic) trained candidate model showing genuine out-of-sample
-  structure on BTC data** — **does not exist**; Phase 10's validated results are
-  on synthetic known-signal fixtures (ADR-0023 §8). Tracked as a prerequisite
-  **outside** Sprint 049 (no 14A task depends on it); it gates 14B and the PRD's
-  success metrics 2 and 3. **Now being actively pursued by Phase 15 (§13G,
-  Sprints 051+052)** — closes this dependency only on a positive result,
-- **a named downstream robustness plan** (S044_GATE §1.5) — **does not exist**;
-  same status: prerequisite outside Sprint 049, gates 14B,
-- **ADR-0030** (inference-time availability enforcement) — needed per
-  S049-T001's finding; must be written and approved before 14B implementation.
-
-## Main risks
-
-- **Exact parity may not survive contact with two implementations.** The release
-  gate (offline NumPy == online NumPy) is structurally exact — same code, same
-  artifact. But Sprint 049's Path A compares the NumPy evaluator against
-  **sklearn's** own recorded predictions, and sklearn's logistic `predict_proba`
-  uses `scipy.special.expit` rather than a NumPy sigmoid. The maintainer chose to
-  keep both families with a bounded `atol=1e-15` on that one column rather than
-  drop logistic (ADR-0029 §6, Q7). This is the maintainer's named riskiest
-  assumption meeting its first real test, deliberately in 14A rather than 14B.
-- **Condition 2 is larger than ADR-0024 priced it — confirmed, not just risked.**
-  S049-T001 verified line-by-line that the executor does not enforce
-  inference-time `available_at` rejection today (`executor.py`, `planner.py`,
-  `assembler.py` all checked; no such mechanism exists). ADR-0030 is required
-  before 14B can close condition 2.
-- **The framework now owns a `predict` implementation** that must stay in step
-  with scikit-learn's; only the Path A cross-check detects drift.
-- **The linear/logistic restriction may bind sooner than expected** — the first
-  real BTC candidate model that shows structure may well be a tree model, in
-  which case the operator hits a refusal and the deferred joblib path becomes the
-  next increment rather than a distant one.
-- **TD-027 constrains 14B's robustness plan:** the Robustness delay stress still
-  rejects bracket exits (§13E). If the promoted-model strategy uses
-  `BracketExitModel`, not every stress dimension is available, and the S044_GATE
-  §1.5 plan must say so rather than assume a full stress suite.
-- **Promotion drifting into a registry by accretion** — an index file, then a
-  `latest` pointer, then a status field. Guarded as an acceptance criterion with
-  a test, not as a principle in prose.
-- **A synthetic-fixture model mistaken for a tradeable one.** If 14B promotes one
-  as plumbing, that must be stated loudly, not left implicit.
-
-## Out of scope
-
-- real-money trading; multi-instrument or cross-asset portfolios; auto-retraining,
-  online learning, drift detection, or any automatic re-promotion (PRD Non-goals),
-- tree and neural model families, and the version-pinned joblib format they
-  require — **deferred to a later increment**, not rejected,
-- ONNX or any cross-library exchange format — rejected for v1 because a second
-  numerical implementation threatens the exact-match bar,
-- a model registry, model lifecycle states, a promotion workflow product, or a
-  serving API (ADR-0024 condition 5; TD-021 restated, not repaid),
-- IDEA-003 (a dedicated feature/model store) — stays deferred,
-- **any change to Phase 13's Exit/Risk models, the bracket kernel, or the
-  simulator** — this phase consumes them,
-- new estimator families, new predictive features, cross-sectional studies, or
-  SHAP — extending Predictive Research itself is a separate track, sequenced
-  **after** this phase at the maintainer's stated direction (PRD preamble:
-  research expansion is the explicit next priority; report expansion is third),
-- report/dashboard extensions for promoted models — likewise a later track,
-- any claim that a promoted State is a validated trading edge — that is Phase 7
-  robustness's answer, and it is never substituted by Phase 10 metrics.
+This phase is ACTIVE: edit the linked file, not this stub.
 
 ---
 
 # 13G. Phase 15 — Predictive Research Catalog Expansion and Real-Data Study (APPROVED)
 
-**Status:** **APPROVED** (maintainer, 2026-09-02). Sprint 051 (increment 15A)
-is **COMPLETE** (11/11, on `sprint/momentum-and-regime-catalog`; final
-integration PR to `main` pending) — see `SPRINT_051.md` §13 Review. Sprint 052
-(increment 15B) is **PLANNED but NOT approved/opened** (`SPRINT_052.md`,
-`Status: PLANNED`); it now has its delivered prerequisite fact from Sprint
-051 (`BTCUSDT.P`, 1m, `2024-01-01 -> 2026-06-29`, 911 days, 1,311,840 rows,
-zero gaps — `S051_BTC_DATA_INVENTORY.md`), but opening it remains a separate
-maintainer approval step. **Phase 15 as a whole is NOT complete** — no
-real-data predictive study has been run.
-**Product source:** `docs/product/PRD-predictive-research-catalog-expansion.md`
-— the maintainer's grill-me discovery record; authoritative on scope,
-non-goals and success metrics.
-**Sprints:** Sprint 051 (increment 15A — catalog) and Sprint 052 (increment
-15B — the real-data study).
-**ADRs:** **none proposed.** The components follow the existing
-`model_authoring` DSL / registry / NumPy-implementation pattern exactly
-(precedent: `candle.wick` Sprint 047, `trend.ema_distance` and
-`volatility.range_expansion` Sprint 048 — none needed its own ADR), and the
-study runs the Phase 10 pipeline unmodified. If Sprint 052 finds the pipeline
-must change to run a real-data study, that is a STOP-and-report finding that
-would earn an ADR then — not now.
+**Status:** **APPROVED** (maintainer, 2026-09-02). **15A is COMPLETE** — Sprint 051 (11/11,
+`sprint/momentum-and-regime-catalog`), including the BTC import (`BTCUSDT.P`, 1m,
+`2024-01-01 -> 2026-06-29`, 911 days, 1,311,840 rows, zero gaps). **15B / Sprint 052 is
+PLANNED but NOT approved or opened.** Phase 15 as a whole is NOT complete — no real-data
+predictive study has been run.
 
-## Purpose
+Purpose: close §13F's Q5 gap — Phase 10's methodology was validated on synthetic fixtures
+only — by running one real-data BTC predictive study through the unmodified Phase 10
+pipeline, or reporting with the same rigour that it cannot be closed on an OHLCV-only
+catalog.
 
-Phase 10 validated its whole methodology — leakage guards, purged/embargoed
-walk-forward, estimator families — against **synthetic known-signal fixtures
-only** (ADR-0023 §8, D-S039-CI-dataset). No real candidate model exists. §13F
-records that gap as "Q5", a named prerequisite gating Phase 14B and the
-ML-promotion PRD's success metrics 2 and 3.
+Key open items: opening Sprint 052 is a separate maintainer approval step. Two binding
+rules a reader needs without following the link: **non-BTC data is a HARD STOP, not a
+fallback**, and **a negative result is a legitimate, reportable outcome** — never repaired
+by adding features until something sticks. The remaining binding rules are in the linked
+file. Phase 15B is Phase 16's entry condition (§13H) and is neither re-scoped nor absorbed
+by it.
 
-This phase closes that gap — or reports, with the same rigour, that it cannot
-be closed with an OHLCV-only catalog at this instrument and horizon. Both
-outcomes are deliverable results.
+**Full detail (maintained here, not in ROADMAP.md):**
+`docs/planning/roadmap/PHASE_15_PREDICTIVE_CATALOG.md` §13G.
 
-```text
-15A — Momentum and Regime Component Catalog        Sprint 051 (COMPLETE)
-      momentum.rsi / momentum.macd / momentum.stochastic;
-      volatility.relative_volatility, statistics.return_autocorrelation,
-      statistics.return_distribution.
-      SHARED catalog: consumable by rule-based Signal Models AND declarable
-      as predictive FeatureSpec entries — one catalog, two consumers, exactly
-      like every existing component. No ML-only component concept is created.
-      Also carried the LONG-LEAD BTC data-acquisition task — SUCCEEDED,
-      measured (BTCUSDT.P, 1m, 2024-01-01 -> 2026-06-29, 911 days,
-      1,311,840 rows, zero gaps; S051_BTC_DATA_INVENTORY.md).
-      Shipped NO study result and NO change to the Phase 10 pipeline.
+This phase is ACTIVE: edit the linked file, not this stub.
 
-15B — Real-Data BTC Predictive Study               Sprint 052 (NOT planned)
-      One study on the imported BTCUSDT.P bars, through the UNMODIFIED
-      build_predictive_dataset -> run_predictive_research ->
-      analyze_predictive_run pipeline, reported against RANDOM_PERMUTATION
-      per fold and pooled. Positive or negative, the result is written down.
-      Ships NO new component and NO promotion work.
-```
+---
 
-**Why two sprints, not one:** Sprint 051's acceptance is deterministic and
-unit-testable; Sprint 052's acceptance is a reported comparison whose outcome
-is unknown at planning time. Sprint 052 also has a hard external prerequisite
-(real BTC data, network, maintainer wall-clock) not satisfied today —
-bundling would let a data-acquisition stall block already-finished component
-work from merging. Sprint 051 delivers standalone value even if Sprint 052 is
-never opened.
+# 13H. Phase 16 — Quant Research Workbench (APPROVED)
 
-## Binding rules
+**Status:** **APPROVED** (maintainer, 2026-09-04). **No sprint is opened, planned or
+numbered for any increment.** 16A–16C are the committed direction; **16D–16G are
+directional** and will be re-specified from evidence before any of them is planned (§2.9).
+
+Purpose: turn the existing independently-reached runners (Signal, Strategy, Robustness and
+Predictive Research plus the dashboard) into one quant research workbench over a single
+neutral Market Analysis component catalog — one catalog, many consumers, no "ML-only
+feature" concept.
 
 ```text
-OHLCV only. No orderflow, no options-derived, no cross-asset features
-One instrument — BTCUSDT.P — and one horizon, consistent with ADR-0023 §9.
-    NON-BTC DATA IS A HARD STOP, NOT A FALLBACK (maintainer, 2026-09-02):
-    if the BTC import proves impractical, the work stops and returns to the
-    maintainer. Substituting NQ.c.0 or any other instrument is forbidden —
-    it would not satisfy this section's Q5 wording and would present a
-    prerequisite as closed when it is not
-ADR-0023 §8 is NOT reopened: CI fixtures stay synthetic-only, standard CI
-    stays network-free. The real-data study is a maintainer-triggered
-    research run, never a CI fixture and never a CI dependency
-The Phase 10 pipeline is CONSUMED, never modified
-NO estimator-family restriction is invented. §13F's linear/logistic limit is
-    specific to ADR-0029's parity mechanism and is NOT inherited here
-Sprint 049's artifact format, promotion store and evaluator are untouched
-A negative result is a legitimate, reportable outcome — never repaired by
-    adding features until something sticks
-Sprint 050 / Phase 14B is not planned, resized or pre-empted by this phase;
-    the only interface is supplying (or failing to supply) its Q5 input
+16A — Analyst Verdict Artifact     16B — SampleSpec Foundation
+16C — Signal Quality Scoring       16D — Quant Lab Dashboard
+16E — Strategy Families            16F — Trade Outcome and No-Trade Models
+16G — Promotion Candidate Gate
 ```
 
-## Dependencies
+Key open items and gates: **Phase 15B / Sprint 052 must have RUN** before 16A or anything
+after it opens — the single carve-out is 16B, which may start in parallel (Q3). All eight
+maintainer questions (Q1–Q8) are RESOLVED; Q5 (sequencing vs. Phase 14B), Q7 (parity
+tolerances) and Q8 (no PRB-012 retrofit) were resolved as deliberate deferrals or refusals.
+Five ADRs are anticipated, none written. Planned closure route for `PRB-012`, `PRB-013`,
+`PRB-020`, `TD-021`, `TD-022`, `TD-029` — all still OPEN/ACCEPTED until their increment ships.
 
-- Phase 10 complete (Sprints 039–044) — **satisfied** (#348),
-- Phase 2F's Binance USD-M importer (Sprint 045, ADR-0025) — **the code was
-  satisfied first; the data is now satisfied too.** Verified 2026-09-02: no
-  `BTCUSDT.P` dataset had ever been imported at that point. Sprint 051 ran
-  the import over the maintainer-fixed range and it **succeeded**:
-  `BTCUSDT.P`, 1m, `2024-01-01 -> 2026-06-29` (911 days, 1,311,840 rows,
-  zero gaps — measured, `S051_BTC_DATA_INVENTORY.md`), well within the
-  wall-clock cost accepted as a known, priced cost (ADR-0025
-  "Consequences") — the actual run took ~8m36s with zero rate-limit
-  backoff,
-- Phase 12/13's catalog and authoring work — consumed as precedent, unmodified.
+The phase's binding-rules list is long and is deliberately **not** reproduced here — see the
+binding rules in the linked file (§13H.8). The one that governs this stub: **approving this
+phase is not opening a sprint**, and no increment constitutes trading approval of anything.
 
-## Main risks
+**Full detail (maintained here, not in ROADMAP.md):**
+`docs/planning/roadmap/PHASE_16_QUANT_WORKBENCH.md` §13H.
 
-- **The data acquisition risk is RESOLVED** — Sprint 051's import succeeded
-  (measured: 911 days, 1,311,840 rows, zero gaps,
-  `S051_BTC_DATA_INVENTORY.md`); the hard-stop-on-impracticability path
-  (D-S051-07a) was never triggered.
-- **The riskiest assumption:** the new components may add noise dimensions
-  to overfit rather than signal — mitigated by the existing purge/embargo/
-  permutation discipline and by treating a negative result as reportable.
-- **MTF features are not expressible in a `PredictiveStudySpec` today** —
-  verified in code (`FeatureSpec`, `AnalysisFrameColumnSpec` carry no
-  computation timeframe). Single-timeframe-first is a structural fact, not a
-  stylistic preference.
-- **A negative result leaves this section's Q5 open**, and Sprint 050 then
-  inherits S049 Wave 0's recorded option (b): promote a synthetic artifact
-  as plumbing, loudly labelled — a maintainer decision, never a silent
-  fallback.
-
-## Out of scope
-
-- orderflow / options-derived / cross-asset features,
-- **any instrument other than `BTCUSDT.P`** — a study elsewhere would be
-  separate, separately-approved work and would not close this section's Q5,
-- any change to the promotion mechanism (Sprint 049) or Phase 14B's plan,
-- MTF variants of the new components and the `FeatureSpec` contract change
-  they would require,
-- report/dashboard expansion for predictive results — the maintainer's
-  stated third priority,
-- promoting whatever this phase's study produces — that is Sprint 049's
-  merged mechanism and the maintainer's separate act.
+This phase is ACTIVE: edit the linked file, not this stub. Its substance was negotiated with
+the maintainer (Q1–Q8, 2026-09-04); wording changes go through that process, not through a
+roadmap edit.
 
 ---
 

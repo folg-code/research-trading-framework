@@ -1069,6 +1069,26 @@ repayment on its original terms.
 
 - IDEA-014 (promotion gate).
 
+### Planned repayment route (2026-09-04)
+
+ROADMAP §13H increment **16C — Signal Quality Scoring** (phase APPROVED,
+increment not planned, no sprint open) is the first genuine consumer that
+must reference a fitted predictive model from a *Strategy Research* config.
+That is the "demonstrated need" this entry's repayment trigger names. 16C's
+completion criteria therefore include an explicit answer to "how is the
+scorer this strategy uses identified, and is a content-addressed
+promoted-artifact directory (ADR-0024 condition 5, ADR-0029 §2) still
+sufficient once a *strategy config* — not a human — has to name one?"
+
+The expected answer is **yes, still sufficient**: ADR-0024's negative
+constraint stands, and 16C is expected to reference an artifact
+fingerprint, not introduce an index, a `latest` pointer or a lifecycle
+field. TD-021 is repaid by that being *confirmed against a real consumer
+and written down*, not by a registry appearing. If 16C's design work shows
+a fingerprint reference is genuinely unusable from a config, that is an
+ADR-0024 revisit and a maintainer decision — not something 16C may do
+inline.
+
 ---
 
 ## TD-022 — Fitted Predictive Artifacts Are Opaque and Not Portable
@@ -1141,6 +1161,24 @@ only for artifacts that have gone through `promote_predictive_run`.
 - `docs/adr/ADR-0029-promoted-predictive-artifact.md` — the partial
   repayment mechanism (Sprint 049)
 - `docs/reference/modules/PREDICTIVE_PROMOTION.md`
+
+### Planned repayment route (2026-09-04)
+
+ROADMAP §13H increment **16C — Signal Quality Scoring** (phase APPROVED,
+increment not planned, no sprint open) is the demonstrated need behind this
+entry's second repayment branch. 16C makes a fitted scorer something a
+Strategy Research config refers to and a simulation depends on, which is
+exactly the situation in which "the framework makes no promise that a blob
+can be loaded" stops being a harmless research-time property.
+
+16C's completion criteria therefore require that the score path 16C
+defines depends **only** on artifacts with a stated durability guarantee —
+either the ADR-0029 portable parameter format, or a materialized score
+column persisted with its own provenance. No part of 16C may depend on
+reloading `models/fold_{n}.bin`; the Sprint 049 disposition's boundary
+("research-run blobs are completely unchanged") is preserved, not widened.
+TD-022's residual — opacity of *never-promoted* research-run blobs —
+remains open after 16C and is not claimed as repaid.
 
 ---
 
@@ -1623,6 +1661,41 @@ its starting shape.
   Considered ("Version-pinned joblib blob for v1")
 - `docs/reference/modules/PREDICTIVE_PROMOTION.md` §6
 - `src/trading_framework/infrastructure/ml/promotion.py`
+
+### Planned repayment route (2026-09-04)
+
+ROADMAP §13H increment **16C — Signal Quality Scoring** (phase APPROVED,
+increment not planned) collides with this entry directly. 16C's premise is
+training and comparing estimator families — including the tree and neural
+families Sprints 042/043 already ship — and using the winner's score to gate
+a strategy. Under today's allow-list, only `sklearn.ridge`,
+`sklearn.elastic_net` and `sklearn.logistic` can ever reach a promoted
+artifact, so a tree scorer could win 16C's comparison and still be unusable
+downstream. This entry's repayment trigger ("a real candidate model with
+genuine BTC structure turns out to be a tree model") is therefore reachable
+*inside* 16C.
+
+**Maintainer decision (2026-09-04, ROADMAP §13H.12 Q6): 16C's scope stays
+narrow.** 16C's v1 estimator comparison is explicitly restricted to
+promotable families; tree and neural scorers are **research-only** and are
+refused **at config load time, with a named error**, if used as a strategy
+gate. **TD-029's repayment moves to increment 16G**, where it is restated
+and owned. TD-029 stays ACCEPTED longer, but its safe operating boundary is
+unchanged and its named refusal in
+`infrastructure/ml/promotion.py::require_supported_model_family` stays in
+place until an ADR replaces it.
+
+The rejected alternative is recorded for history: growing 16C to also design
+the version-pinned joblib/ONNX-style promotion path (repaying TD-029 in 16C)
+was **considered and not chosen**, because it lands a
+runtime-deployment-footprint change inside the phase's central vertical
+slice. It is not a live option; reopening it requires a new maintainer
+decision.
+
+When 16G does repay this entry, the design must still reuse
+`infrastructure/ml/promotion.py::require_supported_model_family`'s guard
+ordering, as this entry's Repayment Direction already prescribes, and must
+go through its own ADR.
 
 ---
 
