@@ -5,10 +5,9 @@
 ```text
 Sprint: 056
 Phase: Phase 16 — Quant Research Workbench; increment 16B (SampleSpec Foundation)
-Status: PLANNED — requires maintainer approval to open. No branch is cut, no
-        code is written, and no Wave 0 box is checked until that approval
-        exists. `engineer` must refuse to start while
-        S056_WAVE0_DECISIONS.md's checklist has an unchecked box.
+Status: APPROVED (2026-09-04) — Wave 0 Checklist signed off, ADR-0031
+        ACCEPTED. `engineer` may start S056-T001. Branch
+        sprint/sample-spec-foundation not yet cut.
 Planned Start: TBD
 Planned End: TBD
 Sprint Goal Owner: Project Maintainer
@@ -245,7 +244,7 @@ the sample kind.
 
 | Task | Description | Acceptance | Deps | Status |
 |------|-------------|-----------|------|--------|
-| S056-T001 | Carry **ADR-0031** (`SampleSpec` contract shape + `PredictiveTask` taxonomy) through maintainer review to `ACCEPTED`, apply any corrections it attracts, and land the corresponding corrections in `S056_WAVE0_DECISIONS.md` | ADR-0031's status is `ACCEPTED` by an explicit maintainer statement (no agent flips it); `docs/adr/README.md`'s index row matches; every decision in `S056_WAVE0_DECISIONS.md` that the review changed is amended, and D-S056-01..09 are individually confirmed; no code is touched by this task | maintainer approval to open the sprint | TODO |
+| S056-T001 | Carry **ADR-0031** (`SampleSpec` contract shape + `PredictiveTask` taxonomy) through maintainer review to `ACCEPTED`, apply any corrections it attracts, and land the corresponding corrections in `S056_WAVE0_DECISIONS.md` | ADR-0031's status is `ACCEPTED` by an explicit maintainer statement (no agent flips it); `docs/adr/README.md`'s index row matches; every decision in `S056_WAVE0_DECISIONS.md` that the review changed is amended, and D-S056-01..09 are individually confirmed; no code is touched by this task | maintainer approval to open the sprint | **DONE** — 2026-09-04, maintainer reviewed the full plan and stated explicit approval in conversation ("Zgadzam się"); ADR-0031 accepted with no corrections; index row and Wave 0 checklist updated to match |
 
 Wave 0 is DONE when the maintainer has checked off the Wave 0 Checklist
 (`S056_WAVE0_DECISIONS.md` D-S056-10) **and** ADR-0031 is `ACCEPTED`.
@@ -271,7 +270,8 @@ Wave 0 is DONE when the maintainer has checked off the Wave 0 Checklist
 | S056-T006 | One committed **synthetic** example: `apps/cli/examples/predictive/signal_occurrences_sample_example.yaml` plus a network-free, extra-free parse test; update `research/predictive/CLAUDE.md` conventions and the predictive reference page with the sample contract, the kind x task matrix, and the filter-late rule | the example loads through `load_predictive_study_spec` with no code change and its `definition_hash` appears in a header comment; the parse test runs in default CI without the `ml` extra and without network; **no `btc_*.yaml` and not `research_run_predictive.yaml` is touched** (D-S056-02, reviewable as a diff); the documentation states plainly that `strategy_trades` / `labelled_setups` are declared-and-refused and names 16F | T004 | TODO |
 | S056-T007 | Sprint closure: the Review section, `CURRENT_STATUS.md` §2/§3/§6, and the 16B status flip in `docs/planning/roadmap/PHASE_16_QUANT_WORKBENCH.md` (append, never rewrite) | every task above is `DONE` or explicitly recorded as not done with a reason; the closure states which of 16B's completion criteria (§13H.2) were met and names any that were not; it restates that **no verdict, no scorer and no study** was produced, so a reader cannot mistake 16B for 16A or 16C; any new problem or debt is logged in its own registry by its own owner, not summarized here | T005, T006 | TODO |
 
-**Progress:** 0 / 7 — not started; sprint not approved.
+**Progress:** 1 / 7 — T001 done (ADR-0031 accepted, Wave 0 signed off);
+Wave 1 (T002) may now start.
 
 **Descope order:** T006's example may shrink to the parse test alone. **T005 is
 never dropped** — without it this sprint ships a new way to build a dataset with

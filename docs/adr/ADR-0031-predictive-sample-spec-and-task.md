@@ -2,11 +2,12 @@
 
 ## Status
 
-PROPOSED
+ACCEPTED (2026-09-04)
 
 Drafted for Sprint 056 (Phase 16, increment 16B — SampleSpec Foundation),
-2026-09-04. Requires explicit maintainer acceptance; no agent may mark it
-`ACCEPTED`. `SPRINT_056.md` Wave 1 does not start until it is.
+2026-09-04, and accepted by the maintainer the same day alongside the full
+Wave 0 Checklist (`S056_WAVE0_DECISIONS.md` D-S056-10). `SPRINT_056.md`
+Wave 1 may start.
 
 ## Context
 

@@ -4,15 +4,11 @@ Binding decisions for the SampleSpec Foundation (Phase 16, increment 16B).
 Date: 2026-09-04.
 
 ```text
-Status: PROPOSED — requires the maintainer's Wave 0 Checklist sign-off
-        (D-S056-10). `engineer` must refuse to start while any box is
-        unchecked. No agent may check a box.
+Status: APPROVED (2026-09-04) — Wave 0 Checklist (D-S056-10) signed off by the
+        maintainer; ADR-0031 ACCEPTED. `engineer` may start S056-T001.
 
-ADDITIONALLY GATED: D-S056-04 (the SampleSpec contract shape) and D-S056-09
-        (the PredictiveTask taxonomy) are the substance of ADR-0031, which is
-        drafted but `PROPOSED`. Wave 1 does not start until that ADR is
-        `ACCEPTED`. If review changes the contract, this document is amended by
-        S056-T001 and the checklist is re-signed.
+RESOLVED: D-S056-04 (the SampleSpec contract shape) and D-S056-09 (the
+        PredictiveTask taxonomy) are the substance of ADR-0031, now `ACCEPTED`.
 
 Basis:  docs/planning/roadmap/PHASE_16_QUANT_WORKBENCH.md §13H.0, §13H.2,
                 §13H.8, §13H.9 row 1, §13H.11, §13H.12 Q3 — AUTHORITATIVE
@@ -327,21 +323,23 @@ LOCKED  Adding a task to the SHIPPED set later requires a shipped sample/label
 Nothing below may be checked off by an agent. `engineer` must refuse to start
 while any box is unchecked.
 
-- [ ] **Opening Sprint 056 is approved**, in parallel with Sprint 052, on the basis of §13H.0's Q3 carve-out — and this approval is **not** an approval of Sprint 052's own opening, which remains a separate, unmade decision.
-- [ ] **Sprint number 056 confirmed** (051-055 taken, 050 reserved for Phase 14B and untouched).
-- [ ] **ADR-0031 reviewed** — `SampleSpec` contract shape and `PredictiveTask` taxonomy — and either `ACCEPTED` or returned with corrections. Wave 1 does not start before it is `ACCEPTED`.
-- [ ] **D-S056-02 confirmed** — both halves of the Sprint 052 boundary: byte-identical default behaviour, and the file-level reverse-FORBIDDEN list.
-- [ ] **D-S056-03 confirmed** — merge ordering to `main` relative to Sprint 052 is the maintainer's call, not an agent's.
-- [ ] **D-S056-04 confirmed** — the contract shape, and specifically **default elision** in `to_dict()` (an explicit `every_bar` hashes identically to an omitted one), plus the declaration/resolution layering split.
-- [ ] **D-S056-05 confirmed — this one needs a deliberate read.** The implementation filters **late** (labels and `label_end_at` on the full grid first), which is the **opposite order** to §13H.2's prose flow. The outcome is identical; the ordering is not. Accepting this is accepting a documented deviation from the approved phase text.
-- [ ] **D-S056-06 confirmed** — occurrence direction passed through, `entity_id` becomes `occurrence_id` for the new kind.
-- [ ] **D-S056-07 confirmed** — an under-powered sparse sample raises an error and is a stop-and-report; **16A's `REJECTED_LOW_SAMPLE` may not be cited as a mitigation because it does not exist yet.**
-- [ ] **D-S056-08 confirmed** — row-count identity asserted as an equality against `candidate_rows`, on a synthetic fixture, using the same occurrence functions Signal Research uses.
-- [ ] **D-S056-09 confirmed** — the shipped/reserved split and the compatibility matrix; reserved names are refused with named errors, never silently accepted.
-- [ ] **Sprint 056 scope approved as 7 tasks, 4 waves**, shipping **no** study, **no** verdict, **no** scorer, **no** promotion and **no** new dependency.
-- [ ] **Branch `sprint/sample-spec-foundation` approved**, to be cut from `main` at its then-current head.
+- [x] **Opening Sprint 056 is approved**, in parallel with Sprint 052, on the basis of §13H.0's Q3 carve-out — and this approval is **not** an approval of Sprint 052's own opening, which remains a separate, unmade decision.
+- [x] **Sprint number 056 confirmed** (051-055 taken, 050 reserved for Phase 14B and untouched).
+- [x] **ADR-0031 reviewed** — `SampleSpec` contract shape and `PredictiveTask` taxonomy — `ACCEPTED` (2026-09-04). Wave 1 may start.
+- [x] **D-S056-02 confirmed** — both halves of the Sprint 052 boundary: byte-identical default behaviour, and the file-level reverse-FORBIDDEN list.
+- [x] **D-S056-03 confirmed** — merge ordering to `main` relative to Sprint 052 is the maintainer's call, not an agent's.
+- [x] **D-S056-04 confirmed** — the contract shape, and specifically **default elision** in `to_dict()` (an explicit `every_bar` hashes identically to an omitted one), plus the declaration/resolution layering split.
+- [x] **D-S056-05 confirmed — this one needs a deliberate read.** The implementation filters **late** (labels and `label_end_at` on the full grid first), which is the **opposite order** to §13H.2's prose flow. The outcome is identical; the ordering is not. Accepting this is accepting a documented deviation from the approved phase text.
+- [x] **D-S056-06 confirmed** — occurrence direction passed through, `entity_id` becomes `occurrence_id` for the new kind.
+- [x] **D-S056-07 confirmed** — an under-powered sparse sample raises an error and is a stop-and-report; **16A's `REJECTED_LOW_SAMPLE` may not be cited as a mitigation because it does not exist yet.**
+- [x] **D-S056-08 confirmed** — row-count identity asserted as an equality against `candidate_rows`, on a synthetic fixture, using the same occurrence functions Signal Research uses.
+- [x] **D-S056-09 confirmed** — the shipped/reserved split and the compatibility matrix; reserved names are refused with named errors, never silently accepted.
+- [x] **Sprint 056 scope approved as 7 tasks, 4 waves**, shipping **no** study, **no** verdict, **no** scorer, **no** promotion and **no** new dependency.
+- [x] **Branch `sprint/sample-spec-foundation` approved**, to be cut from `main` at its then-current head.
 
-Approved-by: _(pending — no agent may fill this in.)_
+Approved-by: Project Maintainer, 2026-09-04 (conversational approval: summary of all
+Wave 0 decisions and the 5 headline sign-off points presented, then confirmed
+with explicit "Zgadzam się" / "tak").
 
 Once every box is checked and ADR-0031 is `ACCEPTED`, the first task for
 `engineer` is **S056-T001** (ADR acceptance follow-through and Wave 0
