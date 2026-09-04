@@ -37,11 +37,11 @@ Current Phase: Phase 15 — Predictive Research Catalog Expansion and
   planned or started — Phase 14 as a whole is NOT complete (no Market
   Analysis component, State, executor change, or dry-run session exists).
   All phases through Phase 13 (Sprint 048, #383) are COMPLETE on `main`.
-Active Sprint: SPRINT_054 (Vision Reclassification and Reference Layering,
-  Phase 6b + 10a) — cross-cutting docs architecture, not part of the Phase 15
-  research track. In progress on `sprint/vision-and-reference-reclassification`.
-Last Completed Sprint (cross-cutting): SPRINT_053 (Repository Workflow &
-  Documentation Hygiene, Phase A-D) — merged to `main` via #418.
+Active Sprint: SPRINT_055 (Documentation Architecture Rebuild, high-level to
+  low-level) — cross-cutting docs architecture, not part of the Phase 15
+  research track. In progress on `sprint/documentation-architecture-rebuild`.
+Last Completed Sprint (cross-cutting): SPRINT_054 (Vision Reclassification
+  and Reference Layering, Phase 6b + 10a) — merged to `main` via #434.
 Last Completed Sprint (research track): SPRINT_051 (Momentum and Regime
   Component Catalog, Phase 15A) — 11/11 tasks, merged to `main` via #409.
 Overall Status: STABLE
@@ -53,21 +53,18 @@ Full sprint-by-sprint history: §12 below (compact index) and each sprint's
 
 ## 3. Work in Progress
 
-**Active:** SPRINT_054 (Vision Reclassification and Reference Layering) on
-`sprint/vision-and-reference-reclassification` — closing the two items
-Sprint 053 deliberately deferred (Phase 6b vision-file reclassification and
-Phase 10a `docs/reference/` layering) from
+**Active:** SPRINT_055 (Documentation Architecture Rebuild) on
+`sprint/documentation-architecture-rebuild` — rebuilding `docs/reference/`
+and `docs/vision/`'s information architecture high-level to low-level,
+with a per-folder context-map index in each subfolder. See
+`docs/planning/sprints/SPRINT_055.md` for task-level status.
+
+**Previously active:** SPRINT_054 (Vision Reclassification and Reference
+Layering, Phase 6b + 10a) closed and merged to `main` via #434 — closed
+the two items Sprint 053 deliberately deferred (vision-file
+reclassification and `docs/reference/` layering) from
 `docs/historical/REPO_WORKFLOW_DOCS_AUDIT.md`. See
 `docs/planning/sprints/SPRINT_054.md` for task-level status.
-
-**Previously active:** SPRINT_053 (Repository Workflow & Documentation
-Hygiene) closed and merged to `main` via #418 — closed the near-term
-findings from `docs/historical/REPO_WORKFLOW_DOCS_AUDIT.md` (Phases A-D):
-`.gitignore` hardening, stale-filename/broken-reference cleanup, this trim,
-`docs/historical/` navigation, `.cursor/rules/project-architecture.mdc`
-de-duplication, and the new sprint-doc archival policy. See
-`docs/planning/sprints/SPRINT_053.md` for
-task-level status.
 
 **Planned, not yet opened:** SPRINT_052 (Real-Data BTC Predictive Study,
 Phase 15B) — gated on the Sprint 051 BTC dataset inventory, which exists

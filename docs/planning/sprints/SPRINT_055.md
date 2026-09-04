@@ -6,9 +6,11 @@
 Sprint: 055
 Phase: Cross-cutting docs architecture — not part of the Phase 15 predictive
        research track.
-Status: IN PROGRESS — approved by maintainer, opened 2026-09-04.
+Status: TASKS COMPLETE — all T001-T010 done on
+  `sprint/documentation-architecture-rebuild`; awaiting maintainer review
+  and the final integration PR into `main`.
 Planned Start: 2026-09-04
-Planned End: TBD
+Planned End: 2026-09-04
 Sprint Goal Owner: Project Maintainer
 Depends On: Sprint 054 (Vision Reclassification and Reference Layering,
             #434) — closed on `main`. This sprint builds on Sprint 054's
@@ -138,7 +140,7 @@ understanding (same discipline as Sprint 054's D-S054-01):
 | T007 | Execute `docs/reference/` target IA | T004 | DONE |
 | T008 | Execute `docs/vision/` target IA | T004 | DONE |
 | T009 | Update inbound references | T007, T008 | DONE |
-| T010 | Validation re-run (6 checks) | T001-T009 | TODO |
+| T010 | Validation re-run (6 checks) | T001-T009 | DONE |
 
 ## 5. Progress
 
@@ -362,35 +364,6 @@ understanding (same discipline as Sprint 054's D-S054-01):
   evictions (`ARCHITECTURE_FOUNDATIONS.md` former §5.5/§5.14) so they
   aren't forgotten. Top-level `docs/reference/README.md` updated with
   pointers to all four new subfolder indexes.
-
-## 6. Outcome
-
-T001-T009 complete. T010 remains open.
-
-## 7. Follow-ups (explicitly not this sprint)
-
-- Full sprint-doc archival backlog (still deferred from Sprint 053 Phase
-  E) — this sprint mines sprint docs only where T003 finds a specific gap,
-  it does not execute the archival policy against the existing 106 files.
-  **T003 note:** several sprint-scoped artifacts
-  (`SPRINT_054_T003b_...`, `DATA_MODULE_CLASSIFICATION.md`,
-  `S049_AVAILABILITY_FINDING.md`, `S051_BTC_DATA_INVENTORY.md`) are cited
-  from `docs/reference/`/`docs/vision/`/`ROADMAP.md` as sources of truth;
-  archiving them would break those citations.
-- `.cursor/rules/project-architecture.mdc` trim (Sprint 053 T008, deferred
-  to a Cursor-side maintainer session).
-- Engineering fixes for the two `DATA_MODULE.md` findings (partitioning
-  policy, continuous-futures roll/adjustment gap) — documentation-gap
-  notes only here; the underlying code/decision work is tracked
-  separately. **T003 correction:** per G-01/G-02 both are already settled
-  by ACCEPTED ADRs, so no engineering fix is outstanding — what remains is
-  a doc-citation correction (T007/T008) plus an optional
-  `TECHNICAL_DEBT.md` entry for the continuous-futures scope limit, which
-  is a maintainer decision.
-- Translating `docs/vision/`'s Market Analysis decision register
-  (D-001–D-036) from Polish to English — new prose, out of Sprint 055's
-  scope per D-S055-04 (raised by T002 finding F4).
-
 - 2026-09-04: T009 complete on `docs/sweep-inbound-references-post-rebuild`
   (branched from `sprint/documentation-architecture-rebuild`). Repo-wide
   grep for every filename dissolved/renamed by T007/T008
@@ -457,3 +430,85 @@ T001-T009 complete. T010 remains open.
   resolve. `docs/vision/README.md` and `docs/reference/README.md` were
   re-read against the actual current file listings and found already fully
   consistent (no fix needed there beyond what T006/T007 already produced).
+- 2026-09-04: T010 complete. Re-ran the 5 checks Sprint 054 T010 validated
+  plus a new 6th check for this sprint's navigability goal — full record
+  in `docs/planning/sprints/SPRINT_055_T010_VALIDATION.md`. 5/6 passed as
+  written (check 1: market-data-ingestion path is now even shorter via the
+  new `system/README.md`/`workflows/README.md` indexes; check 5:
+  strategy-execution now resolves to a single-subject
+  `workflows/STRATEGY_EXECUTION.md` instead of one section inside a
+  multi-subject file). Check 3 (current sprint via `CURRENT_STATUS.md`
+  alone) failed again — the same root cause Sprint 054 T010 already hit
+  once — and was fixed inline: Active Sprint is now `SPRINT_055`
+  (`sprint/documentation-architecture-rebuild`), Sprint 054 recorded as
+  the last completed cross-cutting sprint. The new check 6 (blind
+  folder-context-map navigation) was sampled against 4 representative
+  questions across all four `docs/reference/` subfolder indexes plus
+  `docs/vision/README.md` — all 4 resolved in 1-2 lookups; the component
+  catalog question is the clearest concrete before/after improvement
+  (a 3-way-split answer collapsed into one lookup via
+  `modules/README.md` -> `ANALYSIS_COMPONENT_CATALOG.md`).
+
+## 6. Outcome
+
+All ten tasks (T001-T010) are complete. Both of Sprint 055's goals are
+met: `docs/reference/` was re-cut from provenance-based files (organized
+by which Sprint 054 vision document they came from) into subject-based
+ones, eliminating the 13-concept triplication T001 found; `docs/vision/`
+was dissolved from 5 leftover monolith remnants into 10 topic-grouped
+files. Every folder in both trees now has a context-map index answering
+"which file for which question" in 1-2 lookups, validated by T010's new
+check 6. Two of Sprint 054 T007's prior rejections (`SIGNAL_RESEARCH.md`,
+`STRATEGY_RESEARCH.md`, `STRATEGY_EXECUTION.md`, `MARKET_DATA.md`) were
+reversed once newer content made them genuine extractions rather than
+fabrication. T003's cross-check surfaced and resolved a real content gap
+(G-04: the executor doesn't enforce inference-time `available_at`
+rejection, now documented) and corrected two vision-doc sections that
+mis-framed settled ADR decisions as open questions (G-01/G-02).
+
+Left open by design, not oversight: `system/DEPENDENCY_RULES.md`'s
+enforcement-gap items are unrelated to this sprint; the Polish-language
+Market Analysis decision register translation is out of scope
+(D-S055-04); F5's partial finding (D-018/D-028 not confirmed superseded)
+stands as recorded, not resolved further; and 14 of T003's 23 gaps are
+explicitly deferred (see §7).
+
+Next step: open the sprint's final integration PR,
+`sprint/documentation-architecture-rebuild` -> `main`, for maintainer
+review and merge.
+
+## 7. Follow-ups (explicitly not this sprint)
+
+- Full sprint-doc archival backlog (still deferred from Sprint 053 Phase
+  E) — this sprint mines sprint docs only where T003 finds a specific gap,
+  it does not execute the archival policy against the existing 106 files.
+  **T003 note:** several sprint-scoped artifacts
+  (`SPRINT_054_T003b_...`, `DATA_MODULE_CLASSIFICATION.md`,
+  `S049_AVAILABILITY_FINDING.md`, `S051_BTC_DATA_INVENTORY.md`) are cited
+  from `docs/reference/`/`docs/vision/`/`ROADMAP.md` as sources of truth;
+  archiving them would break those citations.
+- `.cursor/rules/project-architecture.mdc` trim (Sprint 053 T008, deferred
+  to a Cursor-side maintainer session).
+- Engineering fixes for the two `DATA_MODULE.md` findings (partitioning
+  policy, continuous-futures roll/adjustment gap) — documentation-gap
+  notes only here; the underlying code/decision work is tracked
+  separately. **T003 correction:** per G-01/G-02 both are already settled
+  by ACCEPTED ADRs, so no engineering fix is outstanding — what remains is
+  a doc-citation correction (T007/T008) plus an optional
+  `TECHNICAL_DEBT.md` entry for the continuous-futures scope limit, which
+  is a maintainer decision.
+- Translating `docs/vision/`'s Market Analysis decision register
+  (D-001–D-036) from Polish to English — new prose, out of Sprint 055's
+  scope per D-S055-04 (raised by T002 finding F4).
+- Three provenance-note anchors in `docs/vision/RESEARCH_SPACE_AND_ANALYTICS.md`
+  and `docs/vision/COMPONENT_PROMOTION_LIFECYCLE.md`, and two stale ADR
+  section citations (`ADR-0005` §6.2, `ADR-0018` §4.13), repointed to a
+  best-match successor by T009 with an explicit "unconfirmed" note rather
+  than a fabricated exact anchor — worth a `tester`/`reviewer` spot-check
+  pass, and possibly a `TECHNICAL_DEBT.md` entry if the maintainer wants
+  the pre-existing stale-citation class tracked.
+- `CURRENT_STATUS.md`'s Active Sprint field going stale between sprints has
+  now happened twice in a row (Sprint 054 T010 and this sprint's T010 both
+  had to fix it) — worth adding "update `CURRENT_STATUS.md`" to whatever
+  checklist governs opening a new sprint, so validation stops catching it
+  reactively.
