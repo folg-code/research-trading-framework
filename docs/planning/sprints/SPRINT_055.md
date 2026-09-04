@@ -136,7 +136,7 @@ understanding (same discipline as Sprint 054's D-S054-01):
 | T005 | Add context-map indexes to `docs/reference/` subfolders | T004 | TODO |
 | T006 | Add context-map index to `docs/vision/` | T004 | TODO |
 | T007 | Execute `docs/reference/` target IA | T004 | TODO |
-| T008 | Execute `docs/vision/` target IA | T004 | TODO |
+| T008 | Execute `docs/vision/` target IA | T004 | DONE |
 | T009 | Update inbound references | T007, T008 | TODO |
 | T010 | Validation re-run (6 checks) | T001-T009 | TODO |
 
@@ -274,9 +274,42 @@ understanding (same discipline as Sprint 054's D-S054-01):
   G-15 through G-23) are explicitly deferred past this sprint. T005-T008
   are now unblocked per D-S055-03.
 
+- 2026-09-04: T008 complete on the `docs/execute-vision-target-ia` working
+  branch (branched from `sprint/documentation-architecture-rebuild`). Executed
+  the T004-approved `docs/vision/` target IA: `PRODUCT_DIRECTION.md`,
+  `TIME_MODEL_FUTURE.md`, and the `DATA_MODULE_FUTURE.md` →
+  `MARKET_DATA_FUTURE.md` rename + `ARCHITECTURE_TECHNICAL.md` §3.x merge
+  (all three from an earlier checkpoint commit); then, in this pass, created
+  the remaining 7 topic files (`MARKET_ANALYSIS_FUTURE.md`,
+  `MARKET_ANALYSIS_DECISIONS.md`, `RESEARCH_SPACE_AND_ANALYTICS.md`,
+  `EXECUTION_RUNTIME_FUTURE.md`, `EVENT_SYSTEM_FUTURE.md`,
+  `COMPONENT_PROMOTION_LIFECYCLE.md`, `RUN_IDENTITY_AND_CONFIGURATION.md`)
+  by verbatim section moves plus provenance headers, evicted ~600 lines of
+  superseded module/`user_data/` layout proposals (+ two Cursor/ADR-pending
+  sections) to `docs/historical/SUPERSEDED_LAYOUT_PROPOSALS.md`, and deleted
+  the 5 emptied monoliths after verifying every section was accounted for.
+  **F5 verified**: read `ADR-MA-012` and `ADR-MA-014` in full — D-029 (no
+  multitimeframe in Sprint 003) is confirmed superseded by `ADR-MA-012`
+  (annotated in `MARKET_ANALYSIS_DECISIONS.md`, flagged as new prose per
+  D-S055-04); D-018 and D-028 are **not** confirmed superseded (additional
+  cache layers and a future-authorized-but-unimplemented bulk engine do not
+  contradict their in-memory/sequential claims) — no annotation added, per
+  T004's "only if confirmed" instruction. G-01/G-02 citation fixes
+  (partitioning and continuous-futures framing → ADR-0008/0014/0018) were
+  already present in `MARKET_DATA_FUTURE.md` from the earlier checkpoint.
+  The closed Sprint-003 planning-note body was **not** duplicated into a new
+  `docs/planning/sprints/` file — `SPRINT_003.md` and
+  `S003_WAVE0_ARCHITECTURE_CLOSURE.md` already cover the same goal/scope/
+  waves/DoR/DoD content in English, near-identically. `docs/vision/README.md`
+  was replaced with a minimal working index (updated links + a redirects
+  table) rather than left broken, deferring the full topic-grouped context
+  map with maturity markers to T006. `docs/reference/` untouched (owned by
+  T007, running in parallel). No PR opened yet — per the task instructions,
+  work was pushed directly to `docs/execute-vision-target-ia` for review.
+
 ## 6. Outcome
 
-TBD.
+T001-T004, T008 complete. T005, T006, T007, T009, T010 remain open.
 
 ## 7. Follow-ups (explicitly not this sprint)
 
