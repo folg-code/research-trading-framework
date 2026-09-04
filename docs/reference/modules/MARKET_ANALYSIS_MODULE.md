@@ -4,8 +4,7 @@
 > Index: [docs/README.md](../../README.md).
 
 **Status:** Sprint 004 complete on `main`; Sprint 005 complete on `sprint/market-analysis-components`.  
-Binding decisions (vision): [../../vision/MARKET_ANALYSIS_WITH_DECISIONS.md](../../vision/MARKET_ANALYSIS_WITH_DECISIONS.md), [../../vision/MULTITIMEFRAME_MARKET_MODEL_ARCHITECTURE.md](../../vision/MULTITIMEFRAME_MARKET_MODEL_ARCHITECTURE.md).
-<!-- TODO: update to point at docs/vision/MARKET_ANALYSIS_DECISIONS.md once Sprint 055 T008 lands, currently docs/vision/MARKET_ANALYSIS_WITH_DECISIONS.md (T008 is reorganizing docs/vision/ in parallel on a different branch; target path not confirmed as of Sprint 055 T007). -->
+Binding decisions (vision): [../../vision/MARKET_ANALYSIS_DECISIONS.md](../../vision/MARKET_ANALYSIS_DECISIONS.md) (D-001–D-036, moved from `MARKET_ANALYSIS_WITH_DECISIONS.md` by Sprint 055 T008), future architecture: [../../vision/MARKET_ANALYSIS_FUTURE.md](../../vision/MARKET_ANALYSIS_FUTURE.md), [../../vision/RESEARCH_SPACE_AND_ANALYTICS.md](../../vision/RESEARCH_SPACE_AND_ANALYTICS.md) (moved from `MULTITIMEFRAME_MARKET_MODEL_ARCHITECTURE.md`).
 Accepted ADRs: [../../adr/README.md](../../adr/README.md) (ADR-MA-001–013).
 
 ---

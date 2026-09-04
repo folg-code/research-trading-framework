@@ -540,3 +540,55 @@ Components must not:
 10. Components do not own strategy decisions.
 11. User components are loaded through controlled discovery.
 12. Working components used in research require fingerprints.
+
+---
+
+## Configuration
+
+> Recovered verbatim from the former `ARCHITECTURE_TECHNICAL.md`'s
+> "Configuration Architecture" section during Sprint 055 T007 review — this
+> content had no other home in the re-cut `system/` tree (the Research/
+> Strategy configuration subsections that originally sat alongside it are
+> dropped here as genuine duplicates of the scope/composition rules already
+> stated in `DOMAIN_MODEL.md`).
+
+### Configuration Technology
+
+Pydantic is preferred for:
+
+- configuration models,
+- external DTOs,
+- validation boundaries,
+- serialization schemas.
+
+Pydantic is not the automatic implementation of every domain object.
+
+### Market Analysis Configuration
+
+A Market Analysis component configuration selects:
+
+```text
+component type
+component id
+parameters
+timeframe semantics
+alignment policy
+cache policy where configurable
+```
+
+Example:
+
+```yaml
+market_analysis:
+  atr_14_1h:
+    component: atr
+    parameters:
+      period: 14
+    computation_timeframe: 1h
+    evaluation_timeframe: 1m
+    alignment_policy: LAST_CLOSED_BAR
+```
+
+Dependencies should normally be declared by the component contract.
+
+Configuration may select aliases and parameter values.
