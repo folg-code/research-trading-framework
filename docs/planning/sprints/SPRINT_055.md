@@ -132,7 +132,7 @@ understanding (same discipline as Sprint 054's D-S054-01):
 | T001 | Audit `docs/reference/`, propose target IA | — | DONE |
 | T002 | Audit `docs/vision/`, propose target IA | — | DONE |
 | T003 | Targeted gap cross-check against planning docs | — | DONE |
-| T004 | Maintainer review gate — approve combined target IA | T001, T002, T003 | TODO |
+| T004 | Maintainer review gate — approve combined target IA | T001, T002, T003 | DONE |
 | T005 | Add context-map indexes to `docs/reference/` subfolders | T004 | TODO |
 | T006 | Add context-map index to `docs/vision/` | T004 | TODO |
 | T007 | Execute `docs/reference/` target IA | T004 | TODO |
@@ -255,6 +255,24 @@ understanding (same discipline as Sprint 054's D-S054-01):
   new finding: **G-04** — the executor does not enforce inference-time
   `available_at` rejection (verified in Sprint 049, ADR-0030 PLANNED),
   but the Market Analysis reference docs read as though it does.
+- 2026-09-04: T004 complete. Maintainer decided directly (not agent-inferred)
+  on all T001-T003 proposals — full record in
+  `docs/planning/sprints/SPRINT_055_T004_DECISIONS.md`. Headline: the
+  9-file `system/` re-cut, all 4 reversed `workflows/` extractions, the
+  `DATA_REPRESENTATION_AUDIT.md` split, and the 10-file `vision/` topic
+  reorganization are all **APPROVED**. Evictions go to `docs/historical/`,
+  not deletion. `PRODUCT_DIRECTION.md` accepted as the vision-tier name
+  (diverging from the `product-architecture` skill's `ARCHITECTURE_FOUNDATIONS.md`
+  convention, since the as-built half already owns that name in
+  `docs/reference/`). G-14 (`ROADMAP.md` missing a document-level
+  `Status:` field) resolved directly in this commit —
+  `docs/planning/ROADMAP.md` now states `Status: ACCEPTED`. G-04, G-01/G-02,
+  and G-03 are assigned to T007/T008 as flagged, verbatim-discipline fixes
+  (not rewrites); F5 (possible D-018/D-028/D-029 vs ADR-MA-012/014
+  contradiction) must be verified before `MARKET_ANALYSIS_DECISIONS.md` is
+  finalized in T008. The remaining 14 T003 gaps (G-05 through G-13,
+  G-15 through G-23) are explicitly deferred past this sprint. T005-T008
+  are now unblocked per D-S055-03.
 
 ## 6. Outcome
 
