@@ -44,7 +44,7 @@ rationale behind this split.
 
 | File | Purpose |
 |------|---------|
-| [modules/DATA_MODULE.md](modules/DATA_MODULE.md) | Market Data module — Sprint 002 implementation detail. **Flagged (Sprint 054 T007 §3):** reads largely as target-architecture/vision content rather than as-implemented reference; left in place pending a maintainer decision |
+| [modules/DATA_MODULE.md](modules/DATA_MODULE.md) | Market Data module — as-implemented reference. Reclassified from the Sprint-002-era mixed document (Sprint 054 T007 §3 open item): target-architecture/not-yet-built sections moved to [../vision/DATA_MODULE_FUTURE.md](../vision/DATA_MODULE_FUTURE.md); see `docs/planning/DATA_MODULE_CLASSIFICATION.md` |
 | [modules/MARKET_ANALYSIS_MODULE.md](modules/MARKET_ANALYSIS_MODULE.md) | Market Analysis — thin guide (expand after Sprint 003) |
 | [modules/MODEL_AUTHORING.md](modules/MODEL_AUTHORING.md) | Authoring DSL — one copy-pasteable market + signal model |
 | [modules/DASHBOARD_APPLICATION.md](modules/DASHBOARD_APPLICATION.md) | Research Dashboard (`apps/dashboard`) — boundary, contracts, pages, publishing runbook |
