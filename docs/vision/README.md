@@ -24,6 +24,7 @@ Index: [../README.md](../README.md).
 |------|---------|
 | [MARKET_ANALYSIS_WITH_DECISIONS.md](MARKET_ANALYSIS_WITH_DECISIONS.md) | Market Analysis decisions D-001–D-036 |
 | [MULTITIMEFRAME_MARKET_MODEL_ARCHITECTURE.md](MULTITIMEFRAME_MARKET_MODEL_ARCHITECTURE.md) | Multitimeframe market model (future) |
+| [DATA_MODULE_FUTURE.md](DATA_MODULE_FUTURE.md) | Market Data module target architecture — not-yet-built sections (local-first resolution policy, missing-range detection, live ingestion/recording, historical replay, raw retention policy, full continuous-futures roll/adjustment matrix, and other FUTURE/MIXED/AMBIGUOUS content) split from `docs/reference/modules/DATA_MODULE.md` by the follow-up to Sprint 054 T007; see `docs/planning/DATA_MODULE_CLASSIFICATION.md` |
 
 Workspace, result store, and frame architecture — authoritative on derived
 data — moved to

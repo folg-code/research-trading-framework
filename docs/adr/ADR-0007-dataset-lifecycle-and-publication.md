@@ -62,5 +62,6 @@ MVP version allocation policy:
 
 - `src/trading_framework/market/datasets/`
 - `src/trading_framework/application/market_data/`
-- `docs/reference/modules/DATA_MODULE.md` §7, §17
+- `docs/reference/modules/DATA_MODULE.md` §7, §8, §15, §16
+- `docs/vision/DATA_MODULE_FUTURE.md` §17 (Historical Replay — not yet implemented)
 - `docs/planning/PROBLEM_REGISTRY.md` — PRB-001
