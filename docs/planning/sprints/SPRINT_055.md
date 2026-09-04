@@ -123,7 +123,7 @@ understanding (same discipline as Sprint 054's D-S054-01):
 
 | ID | Task | Depends on | Status |
 |---|---|---|---|
-| T001 | Audit `docs/reference/`, propose target IA | — | TODO |
+| T001 | Audit `docs/reference/`, propose target IA | — | DONE |
 | T002 | Audit `docs/vision/`, propose target IA | — | TODO |
 | T003 | Targeted gap cross-check against planning docs | — | TODO |
 | T004 | Maintainer review gate — approve combined target IA | T001, T002, T003 | TODO |
@@ -139,6 +139,43 @@ understanding (same discipline as Sprint 054's D-S054-01):
 - 2026-09-04: Sprint opened on `sprint/documentation-architecture-rebuild`
   after maintainer approval. Starting T001 and T002 in parallel (both
   read-only audits, independent of each other).
+- 2026-09-04: T001 complete (read-only). Full read of all 20 current
+  `docs/reference/` files produced
+  `docs/planning/sprints/SPRINT_055_T001_REFERENCE_TARGET_IA.md`. Central
+  finding: 4 of `system/`'s 8 files (`ARCHITECTURE_FOUNDATIONS`,
+  `ARCHITECTURE_TECHNICAL`, `MULTITIMEFRAME_MARKET_MODEL`,
+  `WORKFLOWS_ARCHITECTURE`) are organized by which Sprint-054 vision
+  document they came from, not by subject — 13 named concepts are each
+  restated in 2-4 of them (Features/Structures/States taxonomy,
+  `observed_at`/`available_at`, `LAST_CLOSED_BAR`, `MarketFieldReference`,
+  `SignalOccurrence`, dependency direction, dataset lifecycle, the
+  `user_data/` tree verbatim-duplicated in two files, etc.). Proposes a
+  9-file subject-based `system/` re-cut (`SYSTEM_OVERVIEW`, `DOMAIN_MODEL`,
+  `ARCHITECTURE_PRINCIPLES`, `MODULE_MAP`, `DEPENDENCY_RULES`,
+  `MARKET_ANALYSIS_ARCHITECTURE`, `TIME_AND_ALIGNMENT`,
+  `ANALYSIS_WORKSPACE_AND_DERIVED_DATA` moved up from the root,
+  `DATA_REPRESENTATION_POLICY` split out of `DATA_REPRESENTATION_AUDIT`).
+  **Reverses two of Sprint 054 T007's rejections**: `system/WORKFLOWS_ARCHITECTURE.md`
+  (imported by T006c, after T007 ran) is already structured as three
+  standalone workflow narratives, so `workflows/SIGNAL_RESEARCH.md`,
+  `STRATEGY_RESEARCH.md`, and `STRATEGY_EXECUTION.md` now have real source
+  content requiring pure extraction, not authoring; similarly
+  `modules/DATA_MODULE.md` post-reclassification is a workflow narrative,
+  not a module reference, supporting `workflows/MARKET_DATA.md`.
+  `workflows/RESEARCH_METHODOLOGIES.md` and the `runbooks/` tier both stay
+  as T007 found them. Rejects the example's `modules/{SIGNALS,STRATEGY,
+  EXECUTION,DATA}.md` as unsupported by any source content. One proposal
+  crosses out of `docs/reference/` entirely and needs explicit T004
+  approval: splitting `DATA_REPRESENTATION_AUDIT.md`'s point-in-time
+  Sprint-036 audit + decision register (Parts B/C) out to
+  `docs/planning/sprints/`, keeping only the durable policy (Part A) as
+  `DATA_REPRESENTATION_POLICY.md`. Flags a `DOMAIN_MODEL.md` naming
+  coordination need with T002 (both may want the name — T002's proposal
+  uses `PRODUCT_DIRECTION.md` for vision, so no actual collision). Six
+  content defects logged for T003/T004 (stale component lists, broken
+  relative links, tier-inversion cross-references into `docs/vision/`).
+  No `docs/reference/` file was moved, renamed, merged, split, or edited;
+  `docs/vision/` untouched (owned by T002).
 
 ## 6. Outcome
 
