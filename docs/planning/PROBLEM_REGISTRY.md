@@ -905,6 +905,103 @@ mypy invocations so `apps/*` workspace members are never scanned by a bare
 
 ---
 
+## PRB-020 — Strategy Research Lacks Signal Research's Family/Bounded-Expansion Machinery
+
+```text
+Status: OPEN
+Severity: MEDIUM
+Domain: Strategy Research / Research Space Growth
+Owner: Unassigned
+Discovered: 2026-09-03 (Sprint 054, T003b classification)
+```
+
+### Description
+
+`docs/vision/WORKFLOWS_AI_ADR.md` describes both Signal Research and
+Strategy Research as supporting bounded, observable expansion of research
+space via `experiments:` YAML lists — independent alternatives across
+assets/models/parameters are meant to become separate, bounded, tracked
+experiments (candidates generated/evaluated/skipped) rather than a single
+undifferentiated sweep. For Signal Research this is fully built:
+`research/signal_research/family_planning.py` and
+`research/datasets/signal_research_family.py` implement `FamilyExperimentPlan`
+with concrete bookkeeping fields. For Strategy Research, no equivalent
+exists: `Glob` for `**/strategy_research/**` under `research/` found only
+`application/strategy_research/` (workflow orchestration, not a family/
+bounded-expansion implementation), and `Glob`/`Grep` for `family`/`Family`
+under `research/robustness/` and `research/simulation/` returned no genuine
+hits.
+
+### Evidence
+
+- `docs/vision/WORKFLOWS_AI_ADR.md` §4.5 "Strategy Research Space" presents
+  an `experiments:` YAML example as already-working syntax with no
+  implementing module found in `src/`.
+- §4.14 "Strategy Families" describes grouping related Strategy Model
+  candidates (component contribution, stability, parameter/timeframe
+  sensitivity, cross-asset behaviour, isolated-optimum risk, overfitting
+  risk) — classified FUTURE with a negative-result search, not AMBIGUOUS,
+  because Signal Research's precedent shows this is a concept the codebase
+  names explicitly when built, and it simply isn't here.
+- §4.18 "Multiple Testing" expects every run to preserve
+  generated/evaluated/rejected candidate counts, pruning rules, selection
+  history and family grouping; only the Signal-Research-side bookkeeping
+  exists (`candidates_generated`/`candidates_evaluated`/`candidates_skipped`
+  on `FamilyExperimentPlan`) — no Strategy-Research-side counterpart.
+- Full analysis: `docs/planning/sprints/SPRINT_054_T003b_WORKFLOWS_AI_ADR_ARCHITECTURE_CLASSIFICATION.md`,
+  entries for §4.5/§4.14/§4.18.
+
+### Impact
+
+A Strategy Research config that declares `experiments:`-style alternatives
+today has no bounded-expansion machinery to honor that intent, and no
+family-level analytics (stability, sensitivity, cross-asset comparison) to
+interpret multiple related Strategy Model candidates once they exist. This
+is a documented architectural asymmetry between two workflows the vision
+doc treats as structurally parallel — anyone extending Strategy Research
+toward multi-candidate exploration would currently have to invent this from
+scratch rather than mirror an established, working Signal Research pattern.
+
+### Possible Directions
+
+- Port `family_planning.py`'s bounded-expansion/bookkeeping pattern to a new
+  `research/strategy_research/family_planning.py`, mirroring the Signal
+  Research design.
+- Alternatively, if Strategy Research's combinatorics differ meaningfully
+  from Signal Research's (e.g. multi-model composition vs. single-model
+  parameter sweeps), design a Strategy-Research-specific bounded-expansion
+  contract rather than a direct port — worth an explicit design pass before
+  implementation.
+- At minimum, correct `docs/vision/WORKFLOWS_AI_ADR.md` §4.5's `experiments:`
+  example to stop presenting unbuilt syntax as already-working, independent
+  of whichever implementation direction is chosen.
+
+### Decision or Resolution Criteria
+
+- A maintainer decision on whether Strategy Research should get Signal
+  Research's exact family pattern, a bespoke equivalent, or neither (with
+  the vision doc corrected to stop implying otherwise).
+- If implemented: Strategy Research configs with `experiments:` alternatives
+  produce bounded, observable candidate sets with the same kind of
+  generated/evaluated/skipped bookkeeping Signal Research already has.
+
+### Related Documents
+
+- `docs/vision/WORKFLOWS_AI_ADR.md` §4.5, §4.14, §4.18
+- `docs/planning/sprints/SPRINT_054_T003b_WORKFLOWS_AI_ADR_ARCHITECTURE_CLASSIFICATION.md`
+- `research/signal_research/family_planning.py` (the existing pattern to mirror or diverge from)
+
+### Related ADRs
+
+- None yet.
+
+### Related Tasks
+
+- None yet — flagged as a follow-up from Sprint 054, not resolved inline
+  (a docs-reclassification sprint, not a feature sprint).
+
+---
+
 # 6. Resolved Problems
 
 No problems have yet been formally moved to `RESOLVED`.
