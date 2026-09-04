@@ -19,6 +19,8 @@ plus the four new `workflows/` files).
 
 ## System (cross-cutting architecture)
 
+Folder context-map (Sprint 055 T005): [system/README.md](system/README.md).
+
 | File | Purpose |
 |------|---------|
 | [system/SYSTEM_OVERVIEW.md](system/SYSTEM_OVERVIEW.md) | Architectural modules, problems solved, workflow boundaries, future directions |
@@ -38,6 +40,9 @@ live at
 
 ## Workflows (end-to-end, conceptual)
 
+Folder context-map (Sprint 055 T005), including the shared "not a
+pipeline" preamble: [workflows/README.md](workflows/README.md).
+
 | File | Purpose |
 |------|---------|
 | [workflows/RESEARCH_METHODOLOGIES.md](workflows/RESEARCH_METHODOLOGIES.md) | **Which methodology should I choose** — all research workflows, the questions they answer, choosing a path (Signal, Model, Strategy, Robustness, Predictive) |
@@ -53,6 +58,8 @@ pointers at the top of each file).
 
 ## Runbooks (operator how-to-run/deploy)
 
+Folder context-map (Sprint 055 T005): [runbooks/README.md](runbooks/README.md).
+
 | File | Purpose |
 |------|---------|
 | [runbooks/LOCAL_BTC_FUTURES_DRY_RUN.md](runbooks/LOCAL_BTC_FUTURES_DRY_RUN.md) | Local BTCUSDT live-data, simulated-execution operator notes |
@@ -65,6 +72,8 @@ credentials, no real orders). There are no research-workflow runbooks —
 see `modules/OPERATOR_CLI.md` for the research-side CLI surface.
 
 ## Modules (per-package/per-app reference)
+
+Folder context-map (Sprint 055 T005): [modules/README.md](modules/README.md).
 
 Implementation references:
 

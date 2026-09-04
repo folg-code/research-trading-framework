@@ -133,8 +133,8 @@ understanding (same discipline as Sprint 054's D-S054-01):
 | T002 | Audit `docs/vision/`, propose target IA | — | DONE |
 | T003 | Targeted gap cross-check against planning docs | — | DONE |
 | T004 | Maintainer review gate — approve combined target IA | T001, T002, T003 | DONE |
-| T005 | Add context-map indexes to `docs/reference/` subfolders | T004 | TODO |
-| T006 | Add context-map index to `docs/vision/` | T004 | TODO |
+| T005 | Add context-map indexes to `docs/reference/` subfolders | T004 | DONE |
+| T006 | Add context-map index to `docs/vision/` | T004 | DONE |
 | T007 | Execute `docs/reference/` target IA | T004 | DONE |
 | T008 | Execute `docs/vision/` target IA | T004 | DONE |
 | T009 | Update inbound references | T007, T008 | TODO |
@@ -349,6 +349,19 @@ understanding (same discipline as Sprint 054's D-S054-01):
   map with maturity markers to T006. `docs/reference/` untouched (owned by
   T007, running in parallel). No PR opened yet — per the task instructions,
   work was pushed directly to `docs/execute-vision-target-ia` for review.
+- 2026-09-04: T005 and T006 complete. Added a context-map `README.md` to
+  each of `docs/reference/system/`, `workflows/`, `runbooks/`, and
+  `modules/` (question-to-file tables, naming-collision notes,
+  known-gap notes), plus moved `workflows/WORKFLOWS_ARCHITECTURE.md`'s
+  shared "not a pipeline" preamble (which T007 had temporarily parked in
+  `RESEARCH_METHODOLOGIES.md`) into the new `workflows/README.md`. Enhanced
+  `docs/vision/README.md` (T008's minimal placeholder) into the full
+  topic-grouped context map T002 §7 specified: per-file maturity markers
+  (FUTURE/MIXED/BINDING DECISIONS) and "verified as of" sprint, plus a new
+  "pending moves" section documenting the two Cursor/ADR-deferred
+  evictions (`ARCHITECTURE_FOUNDATIONS.md` former §5.5/§5.14) so they
+  aren't forgotten. Top-level `docs/reference/README.md` updated with
+  pointers to all four new subfolder indexes.
 
 ## 6. Outcome
 
