@@ -137,7 +137,7 @@ understanding (same discipline as Sprint 054's D-S054-01):
 | T006 | Add context-map index to `docs/vision/` | T004 | DONE |
 | T007 | Execute `docs/reference/` target IA | T004 | DONE |
 | T008 | Execute `docs/vision/` target IA | T004 | DONE |
-| T009 | Update inbound references | T007, T008 | TODO |
+| T009 | Update inbound references | T007, T008 | DONE |
 | T010 | Validation re-run (6 checks) | T001-T009 | TODO |
 
 ## 5. Progress
@@ -365,7 +365,7 @@ understanding (same discipline as Sprint 054's D-S054-01):
 
 ## 6. Outcome
 
-T001-T004, T008 complete. T005, T006, T007, T009, T010 remain open.
+T001-T009 complete. T010 remains open.
 
 ## 7. Follow-ups (explicitly not this sprint)
 
@@ -390,3 +390,70 @@ T001-T004, T008 complete. T005, T006, T007, T009, T010 remain open.
 - Translating `docs/vision/`'s Market Analysis decision register
   (D-001–D-036) from Polish to English — new prose, out of Sprint 055's
   scope per D-S055-04 (raised by T002 finding F4).
+
+- 2026-09-04: T009 complete on `docs/sweep-inbound-references-post-rebuild`
+  (branched from `sprint/documentation-architecture-rebuild`). Repo-wide
+  grep for every filename dissolved/renamed by T007/T008
+  (`ARCHITECTURE_FOUNDATIONS.md`, `ARCHITECTURE_TECHNICAL.md`,
+  `MULTITIMEFRAME_MARKET_MODEL(_ARCHITECTURE).md`, `WORKFLOWS_AI_ADR.md`,
+  `WORKFLOWS_ARCHITECTURE.md`, `MARKET_ANALYSIS_WITH_DECISIONS.md`,
+  `DATA_MODULE_FUTURE.md`, `DATA_REPRESENTATION_AUDIT.md`,
+  `modules/DATA_MODULE.md`, the old top-level
+  `docs/reference/ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md` path) found and
+  fixed ~55 inbound references across 39 files: `AGENTS.md`, `docs/README.md`,
+  `docs/planning/README.md`, `docs/planning/PROBLEM_REGISTRY.md`,
+  `docs/planning/TECHNICAL_DEBT.md`, `docs/planning/PROJECT_MANAGEMENT.md`,
+  `docs/onboarding/DEVELOPER_GUIDE.md`, `docs/agents/AGENTS.md`,
+  `docs/agents/AGENTS_MULTITIMEFRAME_MARKET_MODEL.md`,
+  `apps/dashboard/docs/ARCHITECTURE.md`, `.cursor/rules/documentation.mdc`,
+  `.cursor/rules/ARCHITECTURE_CONTROL.md`, all 23 ADR files with a stale
+  citation, and — beyond the T009 brief's explicit list — several
+  still-broken **internal** cross-references inside the freshly rebuilt
+  `docs/reference/system/` and `docs/vision/` files themselves (e.g.
+  `EXECUTION_RUNTIME_FUTURE.md` pointing at the retired
+  `docs/reference/system/ARCHITECTURE_FOUNDATIONS.md` instead of the new
+  `DOMAIN_MODEL.md`; `TIME_AND_ALIGNMENT.md` and `MARKET_ANALYSIS_ARCHITECTURE.md`
+  citing the retired `docs/vision/ARCHITECTURE_TECHNICAL.md` instead of its
+  T008 successors). `docs/README.md` and `.cursor/rules/documentation.mdc`
+  also had pre-Sprint-054 dead links (`reference/DATA_WORKFLOWS.md`,
+  `reference/MODULE_MAP.md`, `reference/modules/DATA_MODULE.md`) predating
+  this sprint entirely, fixed while in the file since they were plainly
+  broken and the files are living, actively-read documents.
+
+  **Left deliberately unchanged**, per the task brief: content inside closed
+  historical sprint docs (`SPRINT_001.md`–`SPRINT_054.md` and companions,
+  `docs/planning/DATA_MODULE_CLASSIFICATION.md`,
+  `docs/historical/REPO_WORKFLOW_DOCS_AUDIT.md`, the `SPRINT_055_T00*`
+  audit/decision artifacts) — these are point-in-time records citing
+  filenames as they existed at classification time, not navigation aids.
+  Also left as accurate-by-design: every "formerly `X.md`, now
+  dissolved"/"merged from" **provenance note** inside the ten new
+  `docs/vision/` topic files and the re-cut `docs/reference/system/` files —
+  those intentionally name the retired source file as a historical fact,
+  not as a live link.
+
+  **Flagged, not silently resolved:** three provenance notes in
+  `docs/vision/RESEARCH_SPACE_AND_ANALYTICS.md` and
+  `docs/vision/COMPONENT_PROMOTION_LIFECYCLE.md` pointed at anchors/sections
+  (`MULTITIMEFRAME_MARKET_MODEL.md#independent-alternatives-research-space-growth`,
+  `#architectural-rules-current-behavior-portion`) whose underlying content
+  was not found verbatim anywhere in the rebuilt `docs/reference/` tree —
+  consistent with T007's own progress-log admission that several retired
+  `system/` sections "were not individually re-homed" and were judged
+  duplicative without a section-by-section re-verification. These links now
+  point to the best subject-matched successor file
+  (`TIME_AND_ALIGNMENT.md` / `workflows/SIGNAL_RESEARCH.md`) with an explicit
+  "treat as unconfirmed pending a follow-up spot-check" note rather than a
+  fabricated anchor — worth the `tester`/`reviewer` pass T007 itself asked
+  for. Two ADR citations (`ADR-0005` §6.2, `ADR-0018` §4.13) pointed at
+  `ARCHITECTURE_FOUNDATIONS.md` subsections that no longer existed even in
+  that file's pre-deletion state (stale before this sprint); repointed to
+  the general `PRODUCT_DIRECTION.md` successor with a note that the
+  section-exact mapping is unconfirmed.
+
+  Spot-checked 15 fixed link targets by file existence (all resolved) plus
+  all links inside the four Sprint 055 T005 subfolder READMEs
+  (`system/`, `workflows/`, `runbooks/`, `modules/`) programmatically — all
+  resolve. `docs/vision/README.md` and `docs/reference/README.md` were
+  re-read against the actual current file listings and found already fully
+  consistent (no fix needed there beyond what T006/T007 already produced).

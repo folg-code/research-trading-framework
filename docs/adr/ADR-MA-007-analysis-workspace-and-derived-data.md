@@ -51,6 +51,6 @@ Rejected alternative: one shared mutable DataFrame as execution and domain model
 ## References
 
 - `docs/reference/system/ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md` §33
-- `docs/vision/MARKET_ANALYSIS_WITH_DECISIONS.md` — workspace invariants
+- `docs/vision/MARKET_ANALYSIS_DECISIONS.md` (formerly `MARKET_ANALYSIS_WITH_DECISIONS.md`) — workspace invariants
 - `src/trading_framework/market_analysis/storage/`
 - `src/trading_framework/market_analysis/assembly/`

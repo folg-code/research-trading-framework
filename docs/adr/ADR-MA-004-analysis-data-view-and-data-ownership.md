@@ -48,7 +48,7 @@ Rejected alternative: passing a shared mutable pandas DataFrame as the primary d
 
 ## References
 
-- `docs/vision/MARKET_ANALYSIS_WITH_DECISIONS.md` — D-011–D-013, D-036
+- `docs/vision/MARKET_ANALYSIS_DECISIONS.md` (formerly `MARKET_ANALYSIS_WITH_DECISIONS.md`) — D-011–D-013, D-036
 - `docs/planning/sprints/S003_WAVE0_SPIKE_REPORT.md`
 - `src/trading_framework/market_analysis/data/view.py`
 - `docs/adr/ADR-MA-014-marketframe-polars-committed-bulk-engine.md`

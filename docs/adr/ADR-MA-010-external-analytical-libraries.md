@@ -48,6 +48,6 @@ TA-Lib remains optional. Shared contract tests (D-033 / D-034) still bind adapte
 
 ## References
 
-- `docs/vision/MARKET_ANALYSIS_WITH_DECISIONS.md` — D-012, D-033, D-034
+- `docs/vision/MARKET_ANALYSIS_DECISIONS.md` (formerly `MARKET_ANALYSIS_WITH_DECISIONS.md`) — D-012, D-033, D-034
 - `tests/unit/market_analysis/adapters/`
 - `docs/adr/ADR-MA-014-marketframe-polars-committed-bulk-engine.md`

@@ -34,6 +34,6 @@ dependency hashing remain **out of Sprint 003 MVP scope** (PRB-002 partially res
 
 ## References
 
-- `docs/vision/MARKET_ANALYSIS_WITH_DECISIONS.md` — D-007, D-009
+- `docs/vision/MARKET_ANALYSIS_DECISIONS.md` (formerly `MARKET_ANALYSIS_WITH_DECISIONS.md`) — D-007, D-009
 - `docs/planning/PROBLEM_REGISTRY.md` — PRB-002 (MVP resolution note)
 - `src/trading_framework/market_analysis/models/parameters.py`
