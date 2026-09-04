@@ -267,7 +267,7 @@ tests/integration/market_data/
 | Batch execution | `market_analysis/execution/` |
 | Analysis input data | `market_analysis/data/` |
 | Results and workspace | `market_analysis/storage/` |
-| Built-in components | `market_analysis/components/` (incl. `components/candle/wick.py` -- `candle.wick`, and `components/structure/level_distance.py` -- `structure.level_distance`, both Sprint 047 / ADR-0027; and `components/trend/ema_distance.py` -- `trend.ema_distance` (signed `distance_atr`, depends on `trend.ema` + `volatility.atr`), and `components/volatility/range_expansion.py` -- `volatility.range_expansion` (dimensionless `ratio`, depends on `volatility.true_range` + `volatility.atr`), both Sprint 048 / ADR-0028; and, Sprint 051 / Phase 15A (no new ADR): `components/momentum/rsi.py` -- `momentum.rsi` (Wilder RSI, `100.0`/`50.0` on degenerate windows), `components/momentum/macd.py` -- `momentum.macd` (`line`/`signal`/`histogram`, depends on two `trend.ema` outputs), `components/momentum/stochastic.py` -- `momentum.stochastic` (`k`/`d`, zero-range window yields `50.0`, a deliberate divergence from this catalog's usual `0.0` convention, D-S051-04); `components/volatility/relative_volatility.py` -- `volatility.relative_volatility` (`value`/`ratio`, ordinary `0.0` zero-baseline convention, D-S048-10); the new `components/statistics/` namespace package: `components/statistics/return_autocorrelation.py` -- `statistics.return_autocorrelation` and `components/statistics/return_distribution.py` -- `statistics.return_distribution` (`skew`/`excess_kurtosis`), both ordinary `0.0` zero-variance convention) |
+| Built-in components | `market_analysis/components/` — for the full catalog of built-in components (per-component semantics, warm-up, output fields, zero-denominator conventions), see [`../modules/ANALYSIS_COMPONENT_CATALOG.md`](../modules/ANALYSIS_COMPONENT_CATALOG.md) |
 | Frame assembly and alignment | `market_analysis/assembly/` |
 | Workflow orchestration | `application/market_analysis/` |
 
@@ -753,39 +753,10 @@ Users should not need to modify framework internals to:
 
 ## 12. Dependency Rules
 
-```text
-domain packages
-    do not depend on infrastructure
-
-application
-    orchestrates domain packages and infrastructure
-
-infrastructure
-    implements domain ports and external boundaries
-
-user_data
-    depends on public framework APIs
-
-src/trading_framework
-    never imports user_data
-```
-
-Simplified dependency map:
-
-```mermaid
-flowchart LR
-    USER[user_data]
-    PUBLIC[Public Framework APIs]
-    APP[application]
-    DOMAIN[Domain Packages]
-    INFRA[infrastructure]
-
-    USER --> PUBLIC
-    PUBLIC --> APP
-    APP --> DOMAIN
-    APP --> INFRA
-    INFRA --> DOMAIN
-```
+See [`DEPENDENCY_RULES.md`](DEPENDENCY_RULES.md) for the full allowed
+dependency direction (domain-to-domain and layer-to-layer), what is
+enforced by an automated test today versus spot-checked only, and the one
+known unenforced exception.
 
 ---
 

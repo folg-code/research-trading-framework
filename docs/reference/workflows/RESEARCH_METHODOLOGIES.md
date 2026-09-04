@@ -5,6 +5,61 @@
 > (`docs/reference` system/workflows/runbooks/modules split). Content
 > unchanged — kept as one document, not split per methodology (see
 > `docs/planning/sprints/SPRINT_054_T007_REFERENCE_FOLDER_AUDIT.md` §4.1).
+>
+> **This document answers "which methodology should I choose, and what
+> question does it answer".** For "what are a workflow's scopes, contracts
+> and persisted outputs", see
+> [`SIGNAL_RESEARCH.md`](SIGNAL_RESEARCH.md) / [`STRATEGY_RESEARCH.md`](STRATEGY_RESEARCH.md) /
+> [`STRATEGY_EXECUTION.md`](STRATEGY_EXECUTION.md) / [`MARKET_DATA.md`](MARKET_DATA.md) —
+> added by Sprint 055 T007, per
+> `docs/planning/sprints/SPRINT_055_T004_DECISIONS.md` §1 (RESEARCH_METHODOLOGIES /
+> SIGNAL_RESEARCH adjacency, option (a)). The two kinds of document are
+> deliberately not merged.
+
+> **Workflow Architecture preamble (carried here from the retired
+> `docs/reference/system/WORKFLOWS_ARCHITECTURE.md`'s opening section by
+> Sprint 055 T007, pending a proper `workflows/README.md` folder index from
+> Sprint 055 T005):**
+>
+> The framework's three primary workflows — Signal Research, Strategy
+> Research, Strategy Execution — must not be represented as a mandatory
+> pipeline:
+>
+> ```text
+> Signal Research
+>         ↓
+> Strategy Research
+>         ↓
+> Strategy Execution
+> ```
+>
+> This would incorrectly imply that every workflow requires the output of
+> the previous workflow. The correct architecture is:
+>
+> ```text
+>                          Shared Domains
+>                                │
+>               ┌────────────────┼────────────────┐
+>               │                │                │
+>               ▼                ▼                ▼
+>        Signal Research   Strategy Research   Strategy Execution
+> ```
+>
+> Shared domains include: Market, Market Analysis, Strategy, Research,
+> Execution, Time, Configuration, Infrastructure contracts. Each workflow
+> has its own purpose, inputs, orchestration, outputs, persistence model,
+> and analytics or runtime state.
+>
+> A **workflow definition** is a validated configuration describing one use
+> case (datasets, assets, model definitions, logical expressions, parameter
+> spaces, execution assumptions, output policies, research scope, alignment
+> and timeframe rules) — it belongs to the application and configuration
+> layers, not the domain model.
+>
+> Every research workflow separates **Research Computation** (creates
+> reusable factual datasets) from **Research Analytics** (interprets stored
+> results). A new report, filter, ranking or family analysis must not
+> automatically recalculate unchanged source results.
 
 This document describes the research methodologies supported by the framework, the questions they answer, and how to choose between them.
 
