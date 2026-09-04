@@ -74,6 +74,29 @@ library-free predictive metrics (`metrics.py`).
   embargo whose `label_end_at` also reaches fold *n+1*'s TEST stays
   `EMBARGOED` so later reports can count each guard (D-S039-09).
 
+- `sample.py` (Sprint 056, ADR-0031) declares `SampleSpec` / `SampleKind` /
+  `PredictiveTask` as pure data — DECLARATION only, no row resolution. Two
+  kinds are SHIPPED: `every_bar` (default) and `signal_occurrences` (declared
+  by `signal_model_file` + `signal_model_id`, never a run id or persisted
+  occurrence artifact). `strategy_trades` and `labelled_setups` are declared,
+  refused, and owned by **16F**; `sessions_or_windows` and the remaining
+  reserved `PredictiveTask` names are refused as **later, unassigned**.
+  Reserved names are deliberately **not members** of `SampleKind` /
+  `PredictiveTask` — they only exist in `_RESERVED_SAMPLE_KIND_OWNERS` /
+  `_RESERVED_PREDICTIVE_TASK_OWNERS`, so a reserved value can never be
+  represented in memory; refusal always raises a named error
+  (`ReservedSampleKindError` / `ReservedPredictiveTaskError`), never
+  `PredictiveSpecError` generically. `PredictiveStudySpec.to_dict()` **elides**
+  `sample` when the kind is `every_bar` and `task` when it is
+  `FORWARD_RETURN` — this is what keeps every existing spec's
+  `definition_hash` unchanged; do not make this serialization unconditional
+  without a fresh ADR (it would churn every persisted hash and manifest).
+  Resolving `signal_occurrences` into real rows (`evaluate_models` ->
+  `materialize_signal_occurrences`) is `application/predictive_research/`'s
+  job (S056-T004), not this package's — `research/predictive/` accepts an
+  already-resolved row selection and must gain no import of `signal_model`,
+  `strategy`, or `application` to do it.
+
 - `promotion/` (Sprint 049, ADR-0029) is the pure-NumPy promoted-artifact
   evaluator: `PromotedArtifactParameters` (the parameter-file payload schema),
   `load_promoted_artifact` (the load-time format/family guard, no bypass), and

@@ -11,6 +11,34 @@ class PredictiveMatrixError(PredictiveSpecError):
     """Raised when a labelled feature matrix or fold assignment cannot be built."""
 
 
+class ReservedSampleKindError(PredictiveSpecError):
+    """Raised when a ``SampleSpec.kind`` names a reserved, not-yet-implemented kind.
+
+    Covers ``strategy_trades``, ``labelled_setups`` and ``sessions_or_windows``
+    (ADR-0031 §1, D-S056-04). The message names the increment that owns the
+    kind (``16F`` or ``later, unassigned``). Never a silently-accepted no-op.
+    """
+
+
+class ReservedPredictiveTaskError(PredictiveSpecError):
+    """Raised when a ``PredictiveTask`` names a reserved, not-yet-implemented task.
+
+    Covers ``TRADE_OUTCOME``, ``NO_TRADE_FILTER``, ``REGIME_CLASSIFICATION``,
+    ``VOLATILITY_FORECAST`` and ``DISCRETIONARY_SETUP_CLASSIFICATION``
+    (ADR-0031 §5, D-S056-09). The message names the owning increment. Never a
+    silently-accepted no-op.
+    """
+
+
+class IncompatibleSampleTaskError(PredictiveSpecError):
+    """Raised when a ``SampleSpec.kind`` / ``PredictiveTask`` pairing is refused.
+
+    ADR-0031 §5's compatibility matrix accepts exactly three pairings; anything
+    else — most notably ``every_bar`` + ``SIGNAL_QUALITY``, where there is no
+    signal whose quality could be judged — is refused here.
+    """
+
+
 class PredictiveExtraError(ValidationError):
     """Raised when a requested estimator family requires an uninstalled extra.
 

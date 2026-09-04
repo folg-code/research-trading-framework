@@ -17,17 +17,30 @@ from trading_framework.research.predictive import (
     FeatureMatrixSpec,
     FeatureSpec,
     FeatureTransform,
+    IncompatibleSampleTaskError,
     LabelKind,
     LabelSpec,
     PredictiveSpecError,
     PredictiveStudySpec,
+    PredictiveTask,
     PurgedWalkForwardSplitMode,
     PurgedWalkForwardSplitSpec,
+    ReservedPredictiveTaskError,
+    ReservedSampleKindError,
+    SampleDirection,
+    SampleKind,
+    SampleSpec,
     compute_definition_hash,
     load_predictive_study_spec,
     load_predictive_study_spec_from_dict,
 )
 from trading_framework.time.models.timeframe import Timeframe
+
+# Recorded on `main` @ a004e8d, before S056-T002 introduced `sample`/`task`
+# (SPRINT_056.md acceptance criterion 1: asserted against a recorded value,
+# never recomputed on both sides). This is `compute_definition_hash(_study())`
+# as it existed prior to this change.
+_PRE_SPRINT_056_DEFINITION_HASH = "105b0ca2d31aa1c6a1d6b2c79f4093dd1f8119ac22aa3e341f259eb437f5a903"
 
 _YAML_STUDY = """
 study:
@@ -366,3 +379,144 @@ def test_yaml_study_must_be_a_mapping(tmp_path: Path) -> None:
 
     with pytest.raises(PredictiveSpecError, match="must deserialize to a mapping"):
         load_predictive_study_spec(path)
+
+
+# --- S056-T002: SampleSpec / PredictiveTask wiring, default elision, refusals ---
+
+
+def test_definition_hash_is_byte_identical_to_the_recorded_pre_sprint_value() -> None:
+    """Acceptance criterion 1 (SPRINT_056.md): asserted against a value recorded
+    before this sprint's change, not recomputed with the new code on both sides.
+    """
+    assert _study().definition_hash == _PRE_SPRINT_056_DEFINITION_HASH
+
+
+def test_default_sample_and_task_are_omitted_from_to_dict() -> None:
+    payload = _study().to_dict()
+
+    assert "sample" not in payload
+    assert "task" not in payload
+
+
+def test_explicit_every_bar_forward_return_hashes_identically_to_omitted() -> None:
+    omitted = _study()
+    explicit = PredictiveStudySpec(
+        study_id="atr_forward_return",
+        dataset_ref=_dataset_ref(),
+        time_range=_time_range(),
+        features=FeatureMatrixSpec(features=(_feature(),)),
+        label=LabelSpec(kind=LabelKind.REGRESSION, horizon=Timeframe("15m")),
+        split=_split(),
+        sample=SampleSpec(kind=SampleKind.EVERY_BAR),
+        task=PredictiveTask.FORWARD_RETURN,
+    )
+
+    assert explicit.definition_hash == omitted.definition_hash
+    assert explicit.to_dict() == omitted.to_dict()
+
+
+def test_signal_occurrences_sample_is_present_in_to_dict() -> None:
+    spec = PredictiveStudySpec(
+        study_id="signal_quality_study",
+        dataset_ref=_dataset_ref(),
+        time_range=_time_range(),
+        features=FeatureMatrixSpec(features=(_feature(),)),
+        label=LabelSpec(kind=LabelKind.REGRESSION, horizon=Timeframe("15m")),
+        split=_split(),
+        sample=SampleSpec(
+            kind=SampleKind.SIGNAL_OCCURRENCES,
+            signal_model_file="models/breakout.yaml",
+            signal_model_id="breakout_v1",
+        ),
+        task=PredictiveTask.SIGNAL_QUALITY,
+    )
+    payload = spec.to_dict()
+
+    assert payload["sample"] == {
+        "kind": "signal_occurrences",
+        "signal_model_file": "models/breakout.yaml",
+        "signal_model_id": "breakout_v1",
+    }
+    assert payload["task"] == "SIGNAL_QUALITY"
+    assert spec.definition_hash != _study().definition_hash
+
+
+def test_sample_and_task_round_trip_through_dict() -> None:
+    original = PredictiveStudySpec(
+        study_id="signal_quality_study",
+        dataset_ref=_dataset_ref(),
+        time_range=_time_range(),
+        features=FeatureMatrixSpec(features=(_feature(),)),
+        label=LabelSpec(kind=LabelKind.REGRESSION, horizon=Timeframe("15m")),
+        split=_split(),
+        sample=SampleSpec(
+            kind=SampleKind.SIGNAL_OCCURRENCES,
+            signal_model_file="models/breakout.yaml",
+            signal_model_id="breakout_v1",
+            direction=SampleDirection.SHORT,
+        ),
+        task=PredictiveTask.SIGNAL_QUALITY,
+    )
+
+    restored = PredictiveStudySpec.from_dict(original.to_dict())
+
+    assert restored.sample == original.sample
+    assert restored.task is original.task
+    assert restored.definition_hash == original.definition_hash
+
+
+def test_every_bar_signal_quality_is_refused_when_wiring_the_study_spec() -> None:
+    with pytest.raises(IncompatibleSampleTaskError, match="not compatible"):
+        PredictiveStudySpec(
+            study_id="incoherent_study",
+            dataset_ref=_dataset_ref(),
+            time_range=_time_range(),
+            features=FeatureMatrixSpec(features=(_feature(),)),
+            label=LabelSpec(kind=LabelKind.REGRESSION, horizon=Timeframe("15m")),
+            split=_split(),
+            task=PredictiveTask.SIGNAL_QUALITY,
+        )
+
+
+@pytest.mark.parametrize(
+    ("sample_kind", "owner"),
+    [
+        ("strategy_trades", "16F"),
+        ("labelled_setups", "16F"),
+        ("sessions_or_windows", "later, unassigned"),
+    ],
+)
+def test_reserved_sample_kind_is_refused_when_loading_a_study(sample_kind: str, owner: str) -> None:
+    payload = _study().to_dict()
+    payload["sample"] = {"kind": sample_kind}
+
+    with pytest.raises(ReservedSampleKindError, match=owner):
+        PredictiveStudySpec.from_dict(payload)
+
+
+@pytest.mark.parametrize(
+    ("task_name", "owner"),
+    [
+        ("TRADE_OUTCOME", "16F"),
+        ("NO_TRADE_FILTER", "16F"),
+        ("REGIME_CLASSIFICATION", "later, unassigned"),
+        ("VOLATILITY_FORECAST", "later, unassigned"),
+        ("DISCRETIONARY_SETUP_CLASSIFICATION", "later, unassigned"),
+    ],
+)
+def test_reserved_predictive_task_is_refused_when_loading_a_study(
+    task_name: str, owner: str
+) -> None:
+    payload = _study().to_dict()
+    payload["task"] = task_name
+
+    with pytest.raises(ReservedPredictiveTaskError, match=owner):
+        PredictiveStudySpec.from_dict(payload)
+
+
+def test_sample_payload_must_be_a_mapping() -> None:
+    payload = _study().to_dict()
+    payload["sample"] = "every_bar"
+
+    with pytest.raises(PredictiveSpecError, match="sample must be a mapping"):
+        PredictiveStudySpec.from_dict(payload)
