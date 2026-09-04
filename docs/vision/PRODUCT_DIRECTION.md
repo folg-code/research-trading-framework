@@ -190,9 +190,13 @@ Every future workflow, implementation and architectural decision must remain con
   it is parked in `docs/historical/SUPERSEDED_LAYOUT_PROPOSALS.md` pending
   that move so it is not lost.
 - **Controlled Technology Adoption** (`ARCHITECTURE_FOUNDATIONS.md` former
-  §5.14, a governance rule about when an ADR is required) was folded into
-  `docs/adr/README.md`'s "When an ADR is required" section per Sprint 055
-  T004/T008.
+  §5.14, a governance rule about when an ADR is required) is **pending a
+  move** to `docs/adr/README.md`'s process section per Sprint 055 T004.
+  Editing `docs/adr/*.md` is out of Sprint 055 T008's scope (a
+  documentation-only ADR-process edit needs its own pass, not a
+  side-effect of a vision reorganization); the content itself was not
+  deleted — it is parked in `docs/historical/SUPERSEDED_LAYOUT_PROPOSALS.md`
+  §9.2 pending that move.
 - The AI Agent Contract (`WORKFLOWS_AI_ADR.md` former §6) and the ADR
   process (`WORKFLOWS_AI_ADR.md` former §7) were already consolidated into
   `AGENTS.md` / `.cursor/rules/ARCHITECTURE_CONTROL.md` and
