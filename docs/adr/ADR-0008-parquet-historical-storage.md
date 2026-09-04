@@ -60,5 +60,5 @@ The path segments come from `DatasetId` fields and version; identity remains ind
 
 - `src/trading_framework/infrastructure/storage/parquet/`
 - `src/trading_framework/infrastructure/storage/paths.py`
-- `docs/reference/modules/DATA_MODULE.md` §18
+- `docs/reference/workflows/MARKET_DATA.md` (formerly `docs/reference/modules/DATA_MODULE.md` §18)
 - `docs/vision/ARCHITECTURE_TECHNICAL.md` §3.8–3.9

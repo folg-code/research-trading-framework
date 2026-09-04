@@ -42,5 +42,5 @@ Components receive a read-only `AnalysisDataView`; the application layer loads d
 
 ## References
 
-- `docs/vision/MARKET_ANALYSIS_WITH_DECISIONS.md` — D-001, D-011, D-013
+- `docs/vision/MARKET_ANALYSIS_DECISIONS.md` (formerly `MARKET_ANALYSIS_WITH_DECISIONS.md`) — D-001, D-011, D-013
 - ADR-0005, ADR-MA-004

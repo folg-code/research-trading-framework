@@ -342,7 +342,7 @@ moving prose verbatim.)*
 | `AnalysisDataView` and data ownership (D-011, D-012, D-013) | `ADR-MA-004` | ACCEPTED |
 | `AnalysisResult` and output identity (D-014, D-015) | `ADR-MA-005` | ACCEPTED |
 | Dependency DAG and execution planning (D-016, D-017) | `ADR-MA-006` | ACCEPTED |
-| Analysis workspace and derived-data materialization | `ADR-MA-007` | ACCEPTED (see `docs/reference/ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md`) |
+| Analysis workspace and derived-data materialization | `ADR-MA-007` | ACCEPTED (see `docs/reference/system/ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md`) |
 | Cache identity and cache scope (D-018) | `ADR-MA-008` | ACCEPTED |
 | Warm-up, causality and availability (D-020, D-021, D-022) | `ADR-MA-009` | ACCEPTED |
 | External analytical libraries (D-005) | `ADR-MA-010` | ACCEPTED |

@@ -469,8 +469,8 @@ What must not be implemented.
 
 ## Architecture References
 
-- ARCHITECTURE_FOUNDATIONS.md
-- ARCHITECTURE_TECHNICAL.md
+- docs/vision/PRODUCT_DIRECTION.md
+- relevant docs/reference/system/ and docs/reference/workflows/ files
 - relevant module documentation
 - relevant ADRs
 

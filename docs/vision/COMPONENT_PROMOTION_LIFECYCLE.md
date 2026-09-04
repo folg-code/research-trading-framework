@@ -22,7 +22,7 @@ now dissolved. Classified MIXED by Sprint 054 T001 — as-built status
 unclear/partial. The underlying identity primitives (`component_id`,
 `definition_hash`, `resolved_parameters`) are pervasively implemented
 elsewhere and already documented as CURRENT in
-`docs/reference/system/ARCHITECTURE_FOUNDATIONS.md`. The five-stage
+`docs/reference/system/DOMAIN_MODEL.md`. The five-stage
 promotion lifecycle and the `reproducibility_status`/`implementation_hash`
 fields described below have zero code counterpart.)*
 
@@ -143,9 +143,10 @@ Released definitions use formal version identity.
 ## Architectural Rule (fingerprint portion)
 
 *(Merged from: `MULTITIMEFRAME_MARKET_MODEL_ARCHITECTURE.md` §19 rule 21,
-now dissolved. Rules 1-16, 19, 22, 24 were classified CURRENT and moved to
-`docs/reference/system/MULTITIMEFRAME_MARKET_MODEL.md`; rules 17/18/20 live
-in `RESEARCH_SPACE_AND_ANALYTICS.md`; rule 23 lives in
+now dissolved. Rules 1-16, 19, 22, 24 were classified CURRENT and moved into
+the former `docs/reference/system/MULTITIMEFRAME_MARKET_MODEL.md`, which
+Sprint 055 T007 merged into `docs/reference/system/TIME_AND_ALIGNMENT.md`;
+rules 17/18/20 live in `RESEARCH_SPACE_AND_ANALYTICS.md`; rule 23 lives in
 `EXECUTION_RUNTIME_FUTURE.md`.)*
 
 21. Working components and models used in research require fingerprints. *(FUTURE - see the sections above.)*

@@ -40,5 +40,5 @@ Rejected alternative: encoding parameters only in column aliases or a single str
 
 ## References
 
-- `docs/vision/MARKET_ANALYSIS_WITH_DECISIONS.md` — D-005, D-006, D-016
+- `docs/vision/MARKET_ANALYSIS_DECISIONS.md` (formerly `MARKET_ANALYSIS_WITH_DECISIONS.md`) — D-005, D-006, D-016
 - `src/trading_framework/market_analysis/identity/`

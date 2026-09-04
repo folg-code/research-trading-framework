@@ -59,7 +59,7 @@ The Strategy Model should not need to know which execution mode is active.
 > **Merged from: `ARCHITECTURE_FOUNDATIONS.md` §6.5 "Execution Domain —
 > Runtime Modes", now dissolved.** That section (classified MIXED by
 > Sprint 054 T001 — domain ownership is CURRENT and moved to
-> [`docs/reference/system/ARCHITECTURE_FOUNDATIONS.md`](../reference/system/ARCHITECTURE_FOUNDATIONS.md#execution-domain);
+> [`docs/reference/system/DOMAIN_MODEL.md`](../reference/system/DOMAIN_MODEL.md#execution-domain);
 > the Runtime Modes themselves remain only partially built) restated the
 > same three modes near-identically, adding one framing detail not present
 > above: "These modes are distinct from batch or vectorized backtesting

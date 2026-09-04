@@ -118,4 +118,4 @@ reviewed follow-up once the rule has been used a few times on new sprints.
 |------|---------|
 | [retrospectives/ARCHITECTURE_SIMPLIFICATION_REVIEW_S002_S003.md](retrospectives/ARCHITECTURE_SIMPLIFICATION_REVIEW_S002_S003.md) | Overengineering review; forward Polars-first direction; Sprint 004 gate |
 
-Sprint files define **intent and tasks**. Implementation status: [../reference/MODULE_MAP.md](../reference/MODULE_MAP.md).
+Sprint files define **intent and tasks**. Implementation status: [../reference/system/MODULE_MAP.md](../reference/system/MODULE_MAP.md).

@@ -6,16 +6,19 @@ Read this file before modifying the repository.
 
 This is the single authoritative reading order for agents (supersedes any
 other list, including the one formerly in `docs/vision/WORKFLOWS_AI_ADR.md`
-§6.2).
+§6.2, now dissolved — see `docs/vision/README.md`).
 
 1. `AGENTS.md` (this file)
 2. `docs/planning/CURRENT_STATUS.md`
 3. `docs/planning/ROADMAP.md`
-4. `docs/vision/ARCHITECTURE_FOUNDATIONS.md`
-5. `docs/vision/ARCHITECTURE_TECHNICAL.md`
-6. `docs/vision/WORKFLOWS_AI_ADR.md` §1-5/§8 (workflow architecture: Signal
-   Research, Strategy Research, Strategy Execution, Final Contract) — when
-   the task touches those workflows
+4. `docs/vision/PRODUCT_DIRECTION.md`
+5. `docs/vision/MARKET_ANALYSIS_FUTURE.md`, `docs/vision/MARKET_DATA_FUTURE.md`,
+   `docs/vision/TIME_MODEL_FUTURE.md` (target architecture, as relevant to the task)
+6. `docs/reference/workflows/SIGNAL_RESEARCH.md`,
+   `docs/reference/workflows/STRATEGY_RESEARCH.md`,
+   `docs/reference/workflows/STRATEGY_EXECUTION.md` (workflow architecture:
+   Signal Research, Strategy Research, Strategy Execution) — when the task
+   touches those workflows
 7. relevant docs under `docs/reference/` and `docs/agents/`
 8. relevant ADRs under `docs/adr/`
 9. existing contracts and tests in `src/` and `tests/`

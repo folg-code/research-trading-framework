@@ -38,5 +38,5 @@ Deferred explicitly:
 
 ## References
 
-- `docs/vision/MARKET_ANALYSIS_WITH_DECISIONS.md` — D-023
+- `docs/vision/MARKET_ANALYSIS_DECISIONS.md` (formerly `MARKET_ANALYSIS_WITH_DECISIONS.md`) — D-023
 - `src/trading_framework/market_analysis/protocols/batch_component.py`

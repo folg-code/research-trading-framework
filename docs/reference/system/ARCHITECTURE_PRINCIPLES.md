@@ -477,8 +477,9 @@ For the full time/multitimeframe/alignment model, see
 > staircase are realized today through Robustness Research's bounded
 > experiment/variant model. The planner-observability metadata (candidate
 > count, applied constraints, estimated output size) named later in the
-> vision section has **no code counterpart** and remains in
-> `docs/vision/ARCHITECTURE_FOUNDATIONS.md` §4.10.
+> vision section has **no code counterpart** and now lives in
+> `docs/vision/RESEARCH_SPACE_AND_ANALYTICS.md` (merged from former
+> `ARCHITECTURE_FOUNDATIONS.md` §4.10 by Sprint 055 T008).
 
 The framework must distinguish:
 

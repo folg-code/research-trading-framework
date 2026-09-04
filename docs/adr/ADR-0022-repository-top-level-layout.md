@@ -76,4 +76,6 @@ trading-research-framework/
 - `docs/planning/sprints/SPRINT_029.md`
 - `docs/planning/sprints/S029_WAVE0_DECISIONS.md`
 - `docs/reference/system/MODULE_MAP.md`
-- `docs/vision/ARCHITECTURE_TECHNICAL.md` §10.1
+- `docs/historical/SUPERSEDED_LAYOUT_PROPOSALS.md` §1 (formerly
+  `docs/vision/ARCHITECTURE_TECHNICAL.md` §10.1, evicted as a superseded
+  layout proposal by Sprint 055 T008)

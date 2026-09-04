@@ -204,4 +204,6 @@ deferred for consumer `query_trades` / `query_historical` list contracts.
 - `docs/adr/ADR-0014-historical-archive-import-and-market-trade-storage.md`
 - `docs/adr/ADR-0015-derived-ohlcv-from-trades.md`
 - `docs/adr/ADR-0007-dataset-lifecycle-and-publication.md`
-- `docs/vision/ARCHITECTURE_FOUNDATIONS.md` (§4.13)
+- `docs/vision/PRODUCT_DIRECTION.md` (formerly `ARCHITECTURE_FOUNDATIONS.md` §4.13,
+  dissolved by Sprint 055 T008 — that specific subsection was not found
+  verbatim in the re-cut tree; treat as a general pointer, not a section-exact one)
