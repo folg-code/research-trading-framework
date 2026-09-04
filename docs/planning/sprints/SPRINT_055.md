@@ -84,6 +84,12 @@ understanding (same discipline as Sprint 054's D-S054-01):
   as engineering work — T003 only checks whether the *documentation* about
   them needs a gap-note; fixing the underlying inconsistency is separate
   engineering work, tracked in `PROBLEM_REGISTRY.md`/`TECHNICAL_DEBT.md`.
+  **Correction (T003, see G-03b):** neither finding is in fact tracked in
+  either register today; T003 found the partitioning question already
+  settled by ACCEPTED ADR-0014/ADR-0018 (no entry needed) and flagged that
+  the continuous-futures scope limit would justify a `TECHNICAL_DEBT.md`
+  entry that does not exist. Both are maintainer referrals, not work items
+  for this sprint.
 - `.cursor/rules/project-architecture.mdc` (Sprint 053's deferred T008,
   still needs a Cursor-side maintainer pass) — unrelated to this sprint.
 
@@ -125,7 +131,7 @@ understanding (same discipline as Sprint 054's D-S054-01):
 |---|---|---|---|
 | T001 | Audit `docs/reference/`, propose target IA | — | DONE |
 | T002 | Audit `docs/vision/`, propose target IA | — | DONE |
-| T003 | Targeted gap cross-check against planning docs | — | TODO |
+| T003 | Targeted gap cross-check against planning docs | — | DONE |
 | T004 | Maintainer review gate — approve combined target IA | T001, T002, T003 | TODO |
 | T005 | Add context-map indexes to `docs/reference/` subfolders | T004 | TODO |
 | T006 | Add context-map index to `docs/vision/` | T004 | TODO |
@@ -205,6 +211,50 @@ understanding (same discipline as Sprint 054's D-S054-01):
   `product-architecture` pipeline-convention path. No `docs/vision/` file
   was moved, renamed, merged, split, or edited; `docs/reference/` untouched
   (owned by T001).
+- 2026-09-04: T003 complete (read-only). Targeted cross-check of
+  `docs/reference/` + `docs/vision/` content against `PROBLEM_REGISTRY.md`,
+  `TECHNICAL_DEBT.md`, `ROADMAP.md` (all three in full) and
+  `docs/adr/README.md`'s index produced
+  `docs/planning/sprints/SPRINT_055_T003_PLANNING_CROSS_CHECK.md`. **23
+  gaps (G-01..G-23): 5 HIGH, 11 MEDIUM, 7 LOW.** D-S055-02 honoured — no
+  exhaustive sprint-doc mining; three ADR files (0008, 0014, 0018) and
+  `DATA_MODULE_CLASSIFICATION.md` were opened because named gaps pointed
+  at them, and the output recommends against exhaustive mining.
+
+  Resolution of the three named follow-ups:
+  - **Partitioning policy (G-01, HIGH)** — not an open divergence.
+    ADR-0014 (day partitions) and ADR-0018 (`session_date` partitions,
+    which itself records the divergence from Sprint 011's `day=` layout)
+    are both ACCEPTED, and `ROADMAP.md` §6 already states the rule.
+    `DATA_MODULE_FUTURE.md` §19.4's note mis-frames a settled decision as
+    awaiting a maintainer call, and under-describes the real picture:
+    `paths.py` has **three** coexisting layouts (unpartitioned
+    `bars.parquet`, `session_date=`, legacy `day=`), none month-based.
+  - **Continuous-futures roll/adjustment (G-02, HIGH)** — a deliberate
+    ADR-0018 MVP scope (`price_adjustment = none`; "MVP limited to NQ
+    trades / volume roll / no back-adjust"; back-adjusted series named as
+    a separate future artifact), not an untracked gap.
+    `DATA_MODULE_FUTURE.md` §21.3's note cites the Sprint 054
+    classification doc but **not ADR-0018**, the actual decision source.
+  - **PRB-020 (G-03, MEDIUM)** — `docs/vision/WORKFLOWS_AI_ADR.md` is
+    correct: §4.5, §4.14 and §3.12 all carry Sprint 054 classification
+    notes and do **not** present the gap as solved. Two residual issues:
+    neither doc tree cites `PRB-020` by ID (zero grep hits), and
+    `docs/reference/system/WORKFLOWS_ARCHITECTURE.md` lines 816 and 834
+    still reference Strategy-Research "family analyses"/"strategy family"
+    unqualified. The `experiments:` YAML at lines 284-301 is under
+    *Signal* Research and is correctly backed by `FamilyExperimentPlan` —
+    it must not be "fixed".
+
+  Also surfaced for the maintainer, outside this sprint's scope: **G-14 —
+  `ROADMAP.md` carries no document-level `Status:` field** (only §14 is
+  marked ACCEPTED), which the `governance` skill treats as a precondition
+  for opening a sprint and therefore bears on T004 itself; and G-15 —
+  `ROADMAP.md` labels Phase 2B both COMPLETE (§3) and PLANNED (§6), so
+  T001/T002 must not use §6 as the authority for build status. Highest
+  new finding: **G-04** — the executor does not enforce inference-time
+  `available_at` rejection (verified in Sprint 049, ADR-0030 PLANNED),
+  but the Market Analysis reference docs read as though it does.
 
 ## 6. Outcome
 
@@ -215,12 +265,21 @@ TBD.
 - Full sprint-doc archival backlog (still deferred from Sprint 053 Phase
   E) — this sprint mines sprint docs only where T003 finds a specific gap,
   it does not execute the archival policy against the existing 106 files.
+  **T003 note:** several sprint-scoped artifacts
+  (`SPRINT_054_T003b_...`, `DATA_MODULE_CLASSIFICATION.md`,
+  `S049_AVAILABILITY_FINDING.md`, `S051_BTC_DATA_INVENTORY.md`) are cited
+  from `docs/reference/`/`docs/vision/`/`ROADMAP.md` as sources of truth;
+  archiving them would break those citations.
 - `.cursor/rules/project-architecture.mdc` trim (Sprint 053 T008, deferred
   to a Cursor-side maintainer session).
 - Engineering fixes for the two `DATA_MODULE.md` findings (partitioning
   policy, continuous-futures roll/adjustment gap) — documentation-gap
   notes only here; the underlying code/decision work is tracked
-  separately.
+  separately. **T003 correction:** per G-01/G-02 both are already settled
+  by ACCEPTED ADRs, so no engineering fix is outstanding — what remains is
+  a doc-citation correction (T007/T008) plus an optional
+  `TECHNICAL_DEBT.md` entry for the continuous-futures scope limit, which
+  is a maintainer decision.
 - Translating `docs/vision/`'s Market Analysis decision register
   (D-001–D-036) from Polish to English — new prose, out of Sprint 055's
   scope per D-S055-04 (raised by T002 finding F4).
