@@ -137,3 +137,15 @@ Released definitions use formal version identity.
 > wording. Its `user_data/` directory-layout portion is evicted to
 > `docs/historical/SUPERSEDED_LAYOUT_PROPOSALS.md` §4, since it is a
 > superseded layout proposal rather than promotion-lifecycle content.
+
+---
+
+## Architectural Rule (fingerprint portion)
+
+*(Merged from: `MULTITIMEFRAME_MARKET_MODEL_ARCHITECTURE.md` §19 rule 21,
+now dissolved. Rules 1-16, 19, 22, 24 were classified CURRENT and moved to
+`docs/reference/system/MULTITIMEFRAME_MARKET_MODEL.md`; rules 17/18/20 live
+in `RESEARCH_SPACE_AND_ANALYTICS.md`; rule 23 lives in
+`EXECUTION_RUNTIME_FUTURE.md`.)*
+
+21. Working components and models used in research require fingerprints. *(FUTURE - see the sections above.)*
