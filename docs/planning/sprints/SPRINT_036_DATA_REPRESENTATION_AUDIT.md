@@ -1,9 +1,17 @@
-# Data Representation Audit and Target Policy
+# Sprint 036 — Data Representation Audit (Point-in-Time Record)
 
 > Moved from `docs/reference/DATA_REPRESENTATION_AUDIT.md` to
 > `docs/reference/system/DATA_REPRESENTATION_AUDIT.md` by Sprint 054 T008
-> (`docs/reference` system/workflows/runbooks/modules split). Content
-> unchanged.
+> (`docs/reference` system/workflows/runbooks/modules split), then moved
+> to `docs/planning/sprints/SPRINT_036_DATA_REPRESENTATION_AUDIT.md` by
+> Sprint 055 T007, per the maintainer-approved split in
+> `docs/planning/sprints/SPRINT_055_T004_DECISIONS.md` §1: the durable
+> binding policy (former §4, §5.2, §5.3) stays in the reference tier as
+> [`docs/reference/system/DATA_REPRESENTATION_POLICY.md`](../../reference/system/DATA_REPRESENTATION_POLICY.md);
+> this file keeps the Sprint 036 point-in-time measurement record and
+> decision register/PR board, which is a planning artifact (commit-pinned
+> benchmarks, PR numbers, stage/task status), not as-implemented reference.
+> Content otherwise unchanged from the prior `docs/reference/` version.
 
 ```text
 Status:        ACCEPTED (policy) — D-REP-06, D-REP-08, D-REP-09 remain PROPOSED
@@ -39,10 +47,11 @@ This document answers three questions:
 2. **What is canonical** — which type is the correct carrier for each kind of work (§4–§5).
 3. **What to eliminate** — which conversions are redundant and in what order to remove them (§7–§8).
 
-Sections §1–§3, §5.1 and §6 are **descriptive** (established facts about current code).
-Sections §4, §5.2 and §7–§8 are **prescriptive** and carry decisions marked `PROPOSED`.
-No `PROPOSED` item may be implemented before it is accepted by the maintainer and, where noted,
-materialized as an ADR amendment.
+Sections §1–§3, §5.1 and §6 (kept here) are **descriptive** (established facts about current code
+as of the Sprint 036 baseline). Former §4 and §5.2 (now in `DATA_REPRESENTATION_POLICY.md`) and
+§7–§8 (kept here) are **prescriptive** and carry decisions, some marked `PROPOSED`. No `PROPOSED`
+item may be implemented before it is accepted by the maintainer and, where noted, materialized as
+an ADR amendment.
 
 ---
 
@@ -404,55 +413,13 @@ Every material representation crossing, grouped by pipeline stage.
 
 ---
 
-## 4. Target Representation Policy
-
-> All rules in this section are `PROPOSED`. They become binding only after §7 approval.
-
-### 4.1 Canonical carrier per kind of work
-
-| Kind of work | Canonical type | Rationale |
-|---|---|---|
-| Persistence and storage boundary | `pa.Table` + explicit `pa.schema` → Parquet | already established; keeps schema versioning explicit |
-| Bulk historical read | `MarketFrame(pl.LazyFrame, metadata)` | pushdown, no object-per-row cost; TD-011/TD-015 repayment direction |
-| Tabular transforms (resample, align, join, group, aggregate) | Polars **lazy**, `collect()` only at the materialization point | one engine, one optimizer |
-| Numeric kernels (indicators, simulation) | `np.ndarray` with explicit dtype | Numba and vectorized math require contiguous typed buffers |
-| Columnar ingest buffers | `np.ndarray` structure-of-arrays | already the case after TD-019 |
-| Single domain facts at live/event boundaries | frozen dataclass (`MarketBar`, `MarketTrade`) | semantics and invariants matter more than throughput at N=1 |
-| Money in accounting and execution | `Decimal` via `Price` | exactness is a correctness requirement |
-| Money in storage | `int64` fixed-point (minor units / nanos) | exact, sortable, aggregable, compact |
-| Numbers in analysis and research | `float64` | D-027; matches Polars and NumPy natively |
-| Identity and cache keys | canonical sorted-key JSON `str` | already consistent inside `market_analysis` |
-| Configuration | frozen dataclass + explicit parsers | one mechanism for TOML and env |
-| Metadata and manifests | frozen dataclass ⇄ JSON via `to_dict`/`from_dict` | already consistent; `Decimal` as `str` |
-| Presentation DTOs | frozen dataclass with `float`/`str` | deliberate decoupling, already the case in `apps/` |
-
-### 4.2 Directional rules
-
-1. **Representations may narrow, never oscillate.** A value moves
-   `storage → frame → array → result` in one direction per pipeline. Any path that returns to an
-   earlier representation is a defect unless it crosses a process boundary.
-2. **One conversion per boundary.** `Decimal → float64` happens exactly once, at the storage-to-analysis
-   boundary. `float64 → Decimal` happens exactly once, at the kernel-to-facts boundary.
-3. **`Decimal(str(x))` where `x` is already a float is forbidden.** It restores the type but not the
-   precision and is therefore misleading. Use `float64` explicitly or carry `int64` fixed-point.
-4. **Validation follows the representation.** Validators must exist for the representation being
-   validated. Decoding a table into dataclasses purely to validate it is not acceptable on bulk paths.
-5. **Metadata travels with data or with a stable key, never by position.** `available_at` and lineage
-   must be addressable, not reconstructed by convention.
-6. **Lazy by default at I/O.** `scan_parquet` over `read_parquet`; `collect()` at the point where a
-   materialized result is genuinely required.
-
-### 4.3 Explicit non-goals
-
-- No migration to pandas anywhere.
-- No `pl.Decimal` adoption while it remains marked unstable in Polars.
-- No removal of `MarketBar` / `MarketTrade`; they stay as boundary and live-runtime objects (TD-011
-  post-S025 note).
-- No new DSL surface (owned by Sprint 037).
-- No distributed storage or query engine (TD-006 boundary unchanged).
-- No change to research **methodology** or fact semantics — only to their carriers.
-
----
+> **§4 "Target Representation Policy" has moved.** Sprint 055 T007 split this
+> document (per `docs/planning/sprints/SPRINT_055_T004_DECISIONS.md` §1): the
+> durable binding policy (former §4, plus former §5.2/§5.3 below) now lives in
+> [`docs/reference/system/DATA_REPRESENTATION_POLICY.md`](../../reference/system/DATA_REPRESENTATION_POLICY.md).
+> This document keeps the point-in-time Sprint 036 audit and decision
+> register — the measurement record and staged PR board, which decay and are
+> not durable policy.
 
 ## 5. Canonical Primitive Types
 
@@ -468,28 +435,9 @@ Every material representation crossing, grouped by pipeline stage.
 | Identity | `Identifier(str)`, plain `str`, canonical JSON `str`, SHA-256 hex | 4 |
 | Null / missing | Polars null, `NaN` sentinel, `None`, `_STATUS_OMIT` row removal, `MISSING_TS_RECV_NS = 0` | 5 |
 
-### 5.2 Target primitives
-
-| Concept | Canonical primitive | Permitted encodings | Forbidden |
-|---|---|---|---|
-| Price — accounting | `Price(Decimal)` | — | `float` in order/fill/position paths |
-| Price — storage | `int64` fixed-point, scale documented in the schema | — | `pa.string()` in new schemas |
-| Price — analysis | `float64` | — | `Decimal` inside kernels or Polars expressions |
-| Volume / size | `int64` | `float64` only inside a numeric kernel | silent truncation without `ROUND_FLOOR` |
-| Money / PnL — persisted | `int64` minor units | `str` in JSON | `pl.Float64` for money columns |
-| Timestamp — domain | UTC-aware `datetime` | — | naive datetimes anywhere in domain code |
-| Timestamp — storage | `pa.timestamp("us", tz="UTC")` | `int64` ns for tick-scale contract data | naive `timestamp("us")` + `.replace(tzinfo=UTC)` |
-| Timestamp — kernel | `int64` epoch ns | — | — |
-| Session date | `datetime.date` / `pa.date32()` | — | string dates |
-| Identity | `Identifier` or canonical sorted-key JSON `str` | SHA-256 hex where a fixed-width id is needed | pipe-joined ad-hoc strings |
-| Missing value | Polars null / `None` | `NaN` only inside a float kernel, documented | dropping rows to signal absence |
-
-### 5.3 Null semantics
-
-`OutputSeries` has no null representation and uses `NaN`; Polars uses real nulls. The reconciliation
-currently lives in `align.py:118-123`. Under D-REP-01 this disappears, because the carrier gains
-native null support. Until then, the NaN sentinel must be documented at every boundary that
-produces or consumes `OutputSeries`.
+> Former §5.2 "Target primitives" and §5.3 "Null semantics" moved to
+> [`docs/reference/system/DATA_REPRESENTATION_POLICY.md`](../../reference/system/DATA_REPRESENTATION_POLICY.md)
+> alongside §4 (see the note above).
 
 ---
 
