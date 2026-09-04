@@ -4,7 +4,8 @@
 > Index: [docs/README.md](../../README.md).
 
 **Status:** Sprint 004 complete on `main`; Sprint 005 complete on `sprint/market-analysis-components`.  
-Binding decisions (vision): [../../vision/MARKET_ANALYSIS_WITH_DECISIONS.md](../../vision/MARKET_ANALYSIS_WITH_DECISIONS.md), [../../vision/MULTITIMEFRAME_MARKET_MODEL_ARCHITECTURE.md](../../vision/MULTITIMEFRAME_MARKET_MODEL_ARCHITECTURE.md).  
+Binding decisions (vision): [../../vision/MARKET_ANALYSIS_WITH_DECISIONS.md](../../vision/MARKET_ANALYSIS_WITH_DECISIONS.md), [../../vision/MULTITIMEFRAME_MARKET_MODEL_ARCHITECTURE.md](../../vision/MULTITIMEFRAME_MARKET_MODEL_ARCHITECTURE.md).
+<!-- TODO: update to point at docs/vision/MARKET_ANALYSIS_DECISIONS.md once Sprint 055 T008 lands, currently docs/vision/MARKET_ANALYSIS_WITH_DECISIONS.md (T008 is reorganizing docs/vision/ in parallel on a different branch; target path not confirmed as of Sprint 055 T007). -->
 Accepted ADRs: [../../adr/README.md](../../adr/README.md) (ADR-MA-001–013).
 
 ---
@@ -82,17 +83,14 @@ See ADR-MA-013 and `S005_SWING_STRUCTURE_CONTRACT.md`.
 
 ---
 
-## MVP Components
+## Components
 
-| ComponentId | Implementation | Notes |
-|-------------|----------------|-------|
-| `volatility.true_range` | `numpy.true_range` | OHLC data deps; DSL: `volatility.true_range()` |
-| `volatility.atr` | `numpy.atr` | depends on TR output; DSL: `volatility.atr(period=14)` |
-| `volatility.state` | `numpy.volatility_state` | ATR + threshold; diagnostic `distance_to_threshold` |
-| `trend.ema` | `numpy.ema` | close column; DSL: `trend.ema(period=20)` |
-| `trend.slope` | `numpy.ols_slope` | causal OLS of close over `period`; DSL: `trend.slope(period=20)` |
-| `structure.swing` | `numpy.swing` | right-window confirmation; DSL: HH/HL/LH/LL events and `latest_*_level` |
-| `structure.session_range` | `numpy.session_range` | running ES RTH OHLC/range; DSL: `structure.session_high()` / `session_completed()` |
+> Replaced by Sprint 055 T007: this section's stale "MVP Components" table
+> (stopped at Sprint 005, 7 components) is superseded by the full,
+> maintained catalog — at least 8 more components were added in Sprints
+> 047/048/051. See [`ANALYSIS_COMPONENT_CATALOG.md`](ANALYSIS_COMPONENT_CATALOG.md)
+> for the complete, current list with per-component semantics, warm-up and
+> zero-denominator conventions.
 
 All components accept optional `computation_timeframe` on `ComponentRequest`.
 
@@ -169,6 +167,6 @@ Application: `load_analysis_data_view`, `run_analysis` (`RunAnalysisRequest.eval
 
 1. Source: `src/trading_framework/market_analysis/`
 2. Session resolver: `src/trading_framework/time/sessions/`
-3. ADR: [../adr/ADR-MA-012-batch-multitimeframe-computation-with-polars.md](../adr/ADR-MA-012-batch-multitimeframe-computation-with-polars.md), [../adr/ADR-MA-013-cme-es-rth-session-and-swing-structure-mtf-projection.md](../adr/ADR-MA-013-cme-es-rth-session-and-swing-structure-mtf-projection.md)
+3. ADR: [../../adr/ADR-MA-012-batch-multitimeframe-computation-with-polars.md](../../adr/ADR-MA-012-batch-multitimeframe-computation-with-polars.md), [../../adr/ADR-MA-013-cme-es-rth-session-and-swing-structure-mtf-projection.md](../../adr/ADR-MA-013-cme-es-rth-session-and-swing-structure-mtf-projection.md)
 4. Sprint plans: `docs/planning/sprints/SPRINT_004.md`, `docs/planning/sprints/SPRINT_005.md`
 5. Contracts: `docs/planning/sprints/S005_SWING_STRUCTURE_CONTRACT.md`
