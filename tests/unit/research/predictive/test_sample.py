@@ -13,6 +13,7 @@ from trading_framework.research.predictive import (
     ReservedSampleKindError,
     SampleDirection,
     SampleKind,
+    SampleProvenance,
     SampleSpec,
     parse_predictive_task,
     parse_sample_kind,
@@ -156,3 +157,103 @@ def test_signal_occurrences_signal_quality_is_accepted() -> None:
 def test_every_bar_signal_quality_is_refused() -> None:
     with pytest.raises(IncompatibleSampleTaskError, match="not compatible"):
         validate_sample_task_compatibility(DEFAULT_SAMPLE_SPEC, PredictiveTask.SIGNAL_QUALITY)
+
+
+# --- SampleProvenance (S056-T003, ADR-0031 Decision 6) ----------------------
+#
+# `signal_occurrences` *resolution* (evaluate_models -> materialize_signal_
+# occurrences -> a filtered row selection) is S056-T004, not this task, and
+# does not exist yet. These tests therefore cover the every_bar path through
+# the real manifest-writing code (tests/unit/research/datasets/
+# test_predictive_repository.py and test_build_predictive_dataset.py), and
+# cover the signal_occurrences *shape/contract* here with a manually
+# constructed SampleProvenance — exactly the fixture-level coverage this
+# task can honestly provide without T004's resolver.
+
+
+def test_every_bar_provenance_records_the_whole_grid_explicitly() -> None:
+    """An every_bar provenance states "whole grid used" via equal counts."""
+    provenance = SampleProvenance(
+        kind=SampleKind.EVERY_BAR,
+        task=PredictiveTask.FORWARD_RETURN,
+        universe_row_count=500,
+        resolved_row_count=500,
+        drop_counts={},
+    )
+
+    assert provenance.universe_row_count == provenance.resolved_row_count
+    assert provenance.drop_counts == {}
+    assert provenance.to_dict() == {
+        "kind": "every_bar",
+        "task": "FORWARD_RETURN",
+        "universe_row_count": 500,
+        "resolved_row_count": 500,
+        "drop_counts": {},
+    }
+
+
+def test_signal_occurrences_provenance_round_trips_with_drop_reasons() -> None:
+    """Contract-level coverage of the signal_occurrences shape (T004 resolves rows)."""
+    provenance = SampleProvenance(
+        kind=SampleKind.SIGNAL_OCCURRENCES,
+        task=PredictiveTask.SIGNAL_QUALITY,
+        universe_row_count=120,
+        resolved_row_count=95,
+        drop_counts={"incomplete_horizon": 17, "insufficient_data": 8},
+    )
+
+    payload = provenance.to_dict()
+    restored = SampleProvenance.from_dict(payload)
+
+    assert restored == provenance
+    assert payload == {
+        "kind": "signal_occurrences",
+        "task": "SIGNAL_QUALITY",
+        "universe_row_count": 120,
+        "resolved_row_count": 95,
+        "drop_counts": {"incomplete_horizon": 17, "insufficient_data": 8},
+    }
+
+
+def test_provenance_rejects_resolved_row_count_above_universe() -> None:
+    with pytest.raises(PredictiveSpecError, match="cannot exceed universe_row_count"):
+        SampleProvenance(
+            kind=SampleKind.EVERY_BAR,
+            task=PredictiveTask.FORWARD_RETURN,
+            universe_row_count=10,
+            resolved_row_count=11,
+            drop_counts={},
+        )
+
+
+def test_provenance_rejects_drop_counts_that_do_not_sum_to_the_gap() -> None:
+    with pytest.raises(PredictiveSpecError, match="drop_counts must sum to"):
+        SampleProvenance(
+            kind=SampleKind.SIGNAL_OCCURRENCES,
+            task=PredictiveTask.FORWARD_RETURN,
+            universe_row_count=100,
+            resolved_row_count=80,
+            drop_counts={"incomplete_horizon": 5},
+        )
+
+
+def test_provenance_rejects_negative_universe_row_count() -> None:
+    with pytest.raises(PredictiveSpecError, match="non-negative"):
+        SampleProvenance(
+            kind=SampleKind.EVERY_BAR,
+            task=PredictiveTask.FORWARD_RETURN,
+            universe_row_count=-1,
+            resolved_row_count=0,
+            drop_counts={},
+        )
+
+
+def test_provenance_rejects_negative_drop_count() -> None:
+    with pytest.raises(PredictiveSpecError, match="drop count for 'incomplete_horizon'"):
+        SampleProvenance(
+            kind=SampleKind.SIGNAL_OCCURRENCES,
+            task=PredictiveTask.FORWARD_RETURN,
+            universe_row_count=10,
+            resolved_row_count=5,
+            drop_counts={"incomplete_horizon": -5},
+        )

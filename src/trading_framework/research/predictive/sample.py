@@ -7,7 +7,9 @@ enforced by ``tests/unit/test_architecture_boundaries.py``). ``SampleSpec`` and
 ``application/predictive_research/`` RESOLVES a declared ``signal_occurrences``
 sample into real rows (ADR-0031 Decision 3, D-S056-04). Resolution — calling
 ``evaluate_models`` / ``materialize_signal_occurrences`` — is out of scope here
-(S056-T004).
+(S056-T004). ``SampleProvenance`` (S056-T003) is likewise pure data: it
+records a *resolved* sample's shape for the dataset manifest but never
+resolves rows itself.
 """
 
 from __future__ import annotations
@@ -183,3 +185,76 @@ class SampleSpec:
 
 
 DEFAULT_SAMPLE_SPEC = SampleSpec(kind=SampleKind.EVERY_BAR)
+
+
+@dataclass(frozen=True, slots=True)
+class SampleProvenance:
+    """Persisted record of a resolved sample universe (ADR-0031 Decision 6).
+
+    Written to the Predictive Research dataset manifest for **both** sample
+    kinds (Finding 5, SPRINT_056.md): "the whole grid" is itself a sample
+    choice and a reader must not have to infer it from an absent key. For an
+    ``every_bar`` build, ``universe_row_count`` and ``resolved_row_count`` are
+    equal and ``drop_counts`` is an explicit empty mapping — that equality,
+    stated plainly, is what records "the whole grid was used" rather than
+    leaving the reader to guess. For a ``signal_occurrences`` build (resolved
+    in ``application/predictive_research/``, S056-T004), ``universe_row_count``
+    is the declared Signal Model's occurrence count and ``drop_counts`` names
+    each reason an occurrence did not become a labelled row.
+
+    Pure data: this type never resolves rows and carries no reference to a
+    Signal Model artifact. It does **not** enter the dataset fingerprint
+    (``compute_dataset_fingerprint`` never receives it) — ADR-0031 Decision 6.
+    """
+
+    kind: SampleKind
+    task: PredictiveTask
+    universe_row_count: int
+    resolved_row_count: int
+    drop_counts: dict[str, int]
+
+    def __post_init__(self) -> None:
+        if self.universe_row_count < 0:
+            msg = "sample provenance universe_row_count must be non-negative"
+            raise PredictiveSpecError(msg)
+        if self.resolved_row_count < 0:
+            msg = "sample provenance resolved_row_count must be non-negative"
+            raise PredictiveSpecError(msg)
+        if self.resolved_row_count > self.universe_row_count:
+            msg = "sample provenance resolved_row_count cannot exceed universe_row_count"
+            raise PredictiveSpecError(msg)
+        for reason, count in self.drop_counts.items():
+            if count < 0:
+                msg = f"sample provenance drop count for {reason!r} must be non-negative"
+                raise PredictiveSpecError(msg)
+        dropped = self.universe_row_count - self.resolved_row_count
+        if sum(self.drop_counts.values()) != dropped:
+            msg = (
+                "sample provenance drop_counts must sum to "
+                "universe_row_count - resolved_row_count "
+                f"({sum(self.drop_counts.values())} != {dropped})"
+            )
+            raise PredictiveSpecError(msg)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "kind": self.kind.value,
+            "task": self.task.value,
+            "universe_row_count": self.universe_row_count,
+            "resolved_row_count": self.resolved_row_count,
+            "drop_counts": dict(self.drop_counts),
+        }
+
+    @classmethod
+    def from_dict(cls, payload: dict[str, Any]) -> SampleProvenance:
+        drop_counts_raw = payload.get("drop_counts", {})
+        if not isinstance(drop_counts_raw, dict):
+            msg = "sample provenance drop_counts must be a mapping"
+            raise PredictiveSpecError(msg)
+        return cls(
+            kind=parse_sample_kind(str(payload["kind"])),
+            task=parse_predictive_task(str(payload["task"])),
+            universe_row_count=int(payload["universe_row_count"]),
+            resolved_row_count=int(payload["resolved_row_count"]),
+            drop_counts={str(key): int(value) for key, value in drop_counts_raw.items()},
+        )

@@ -21,6 +21,8 @@ from trading_framework.market_analysis.models.parameters import CanonicalParamet
 from trading_framework.market_analysis.models.time_range import TimeRange
 from trading_framework.research.datasets.predictive import (
     DATASET_ID_HEX_LENGTH,
+    PREDICTIVE_DATASET_SCHEMA_V2,
+    PredictiveDatasetManifest,
     compute_dataset_fingerprint,
     derive_dataset_id,
 )
@@ -30,8 +32,11 @@ from trading_framework.research.predictive import (
     LabelKind,
     LabelSpec,
     PredictiveStudySpec,
+    PredictiveTask,
     PurgedWalkForwardSplitMode,
     PurgedWalkForwardSplitSpec,
+    SampleKind,
+    SampleProvenance,
     compute_definition_hash,
 )
 from trading_framework.time.models.timeframe import Timeframe
@@ -220,3 +225,69 @@ def test_fingerprint_hashes_spec_lineage_ref_and_range_not_frame_bytes() -> None
     assert fingerprint == hashlib.sha256(canonical.encode("utf-8")).hexdigest()
     assert set(decoded) == {"definition_hash", "feature_lineage", "dataset_ref", "time_range"}
     assert decoded["feature_lineage"] == {"atr_14": lineage["atr_14"].canonical_key()}
+
+
+def test_dataset_fingerprint_unaffected_by_sample_provenance() -> None:
+    """S056-T003 / ADR-0031 Decision 6: sample_provenance never enters the fingerprint.
+
+    ``compute_dataset_fingerprint`` takes no ``sample_provenance`` argument at
+    all, so this asserts the property at both levels: the pure function's
+    inputs, and the persisted manifest built from two different provenance
+    payloads over the same fingerprint inputs.
+    """
+    spec = _study()
+    lineage = {"atr_14": _output_ref()}
+    definition_hash = spec.definition_hash or compute_definition_hash(spec)
+    fingerprint = compute_dataset_fingerprint(
+        definition_hash=definition_hash,
+        feature_lineage=lineage,
+        dataset_ref=spec.dataset_ref,
+        time_range=spec.time_range,
+    )
+
+    def _manifest(sample_provenance: SampleProvenance) -> PredictiveDatasetManifest:
+        return PredictiveDatasetManifest(
+            schema_version=PREDICTIVE_DATASET_SCHEMA_V2,
+            dataset_id=derive_dataset_id(fingerprint),
+            study_spec=spec.to_dict(),
+            definition_hash=definition_hash,
+            dataset_fingerprint=fingerprint,
+            source_dataset_ref=str(spec.dataset_ref),
+            time_range_start=spec.time_range.start,
+            time_range_end=spec.time_range.end,
+            exclusion_counts={
+                "candidate_rows": 100,
+                "labelled_rows": 100,
+                "incomplete_horizon": 0,
+                "insufficient_data": 0,
+                "null_features": 0,
+            },
+            fold_summary={"fold_count": 1, "role_counts": {}, "per_fold": []},
+            framework_version="test",
+            created_at_utc=datetime(2024, 6, 1, tzinfo=UTC),
+            sample_provenance=sample_provenance,
+        )
+
+    manifest_every_bar = _manifest(
+        SampleProvenance(
+            kind=SampleKind.EVERY_BAR,
+            task=PredictiveTask.FORWARD_RETURN,
+            universe_row_count=100,
+            resolved_row_count=100,
+            drop_counts={},
+        )
+    )
+    manifest_signal_occurrences = _manifest(
+        SampleProvenance(
+            kind=SampleKind.SIGNAL_OCCURRENCES,
+            task=PredictiveTask.SIGNAL_QUALITY,
+            universe_row_count=100,
+            resolved_row_count=41,
+            drop_counts={"incomplete_horizon": 59},
+        )
+    )
+
+    assert manifest_every_bar.dataset_fingerprint == fingerprint
+    assert manifest_signal_occurrences.dataset_fingerprint == fingerprint
+    assert manifest_every_bar.dataset_fingerprint == manifest_signal_occurrences.dataset_fingerprint
+    assert manifest_every_bar.sample_provenance != manifest_signal_occurrences.sample_provenance

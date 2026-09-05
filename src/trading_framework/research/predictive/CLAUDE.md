@@ -96,6 +96,21 @@ library-free predictive metrics (`metrics.py`).
   job (S056-T004), not this package's — `research/predictive/` accepts an
   already-resolved row selection and must gain no import of `signal_model`,
   `strategy`, or `application` to do it.
+- `SampleProvenance` (S056-T003, ADR-0031 Decision 6, `sample.py`) is the
+  manifest-persisted record of a resolved sample: kind, task,
+  `universe_row_count`, `resolved_row_count`, and `drop_counts` (per-reason,
+  must sum to `universe_row_count - resolved_row_count`). It is written for
+  **both** sample kinds — an `every_bar` build records `universe_row_count ==
+  resolved_row_count` and `drop_counts == {}` explicitly, so "the whole grid
+  was used" is a read, not an inference (Finding 5). `build_predictive_dataset`
+  currently refuses any `spec.sample.kind` other than `every_bar` with a named
+  `PredictiveDatasetError`, because `signal_occurrences` resolution does not
+  exist yet (S056-T004) and building the grid anyway while the manifest
+  implied a resolved sample would be silently wrong. `SampleProvenance` never
+  enters `compute_dataset_fingerprint`'s inputs (`research/datasets/predictive.py`
+  — `PREDICTIVE_DATASET_SCHEMA_V2` is additive over v1: a v1 manifest still
+  loads with `sample_provenance is None`; only v2 requires it, enforced at
+  `PredictiveDatasetRepository.write`).
 
 - `promotion/` (Sprint 049, ADR-0029) is the pure-NumPy promoted-artifact
   evaluator: `PromotedArtifactParameters` (the parameter-file payload schema),
