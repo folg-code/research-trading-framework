@@ -15,7 +15,19 @@ library-free predictive metrics (`metrics.py`).
 - Estimator family adapters live in `infrastructure/ml/`. This package must
   not import `infrastructure.ml`.
 - To reuse `compute_forward_outcomes_for_horizons`, synthesize occurrence rows
-  with `direction="long"` as a string. Do not import `signal_model`.
+  with `direction="long"` as a string. Do not import `signal_model`. This is
+  the `every_bar` path only: `signal_occurrences` recomputes `forward_return`
+  with the occurrence's own real direction, but that recomputation happens in
+  `application/predictive_research/resolve_signal_occurrences.py` (S056-T004),
+  never here.
+- `build_labelled_feature_matrix`'s `LabelledFeatureMatrix.candidates` is the
+  full-grid frame *before* the completeness filter (one row per bar, always
+  long-direction, with a `features_finite` flag) — it exists so a sample
+  resolver can attribute a dropped row to its exact reason and read
+  `label_end_at` for one bar without re-deriving it from a filtered sequence
+  (D-S056-05). `label_expr` (public, was `_label_expr`) is reused the same
+  way: a resolver maps its own recomputed `forward_return` to `label` with
+  the exact rule `every_bar` uses, never a second implementation of it.
 - Feature values come from an already-built `AnalysisFrame`. Do not call
   `run_analysis` from this package.
 - Matrix `available_at` must not be later than `detected_at` (ADR-0023 §4 /
@@ -92,21 +104,34 @@ library-free predictive metrics (`metrics.py`).
   `definition_hash` unchanged; do not make this serialization unconditional
   without a fresh ADR (it would churn every persisted hash and manifest).
   Resolving `signal_occurrences` into real rows (`evaluate_models` ->
-  `materialize_signal_occurrences`) is `application/predictive_research/`'s
-  job (S056-T004), not this package's — `research/predictive/` accepts an
+  `materialize_signal_occurrences` -> filter-late row selection) is
+  `application/predictive_research/resolve_signal_occurrences.py`'s job
+  (S056-T004), not this package's — `research/predictive/` accepts an
   already-resolved row selection and must gain no import of `signal_model`,
-  `strategy`, or `application` to do it.
+  `strategy`, or `application` to do it. That module is a deliberate,
+  narrowly-scoped exception to the wave4 architecture test
+  (`tests/unit/test_architecture_boundaries.py`): it alone may import
+  `trading_framework.strategy` / `trading_framework.signal_model`, per
+  ADR-0031 Decision 3; `research.simulation` and `execution` stay forbidden
+  for it too, enforced by that test's own narrower predicate.
 - `SampleProvenance` (S056-T003, ADR-0031 Decision 6, `sample.py`) is the
   manifest-persisted record of a resolved sample: kind, task,
   `universe_row_count`, `resolved_row_count`, and `drop_counts` (per-reason,
   must sum to `universe_row_count - resolved_row_count`). It is written for
   **both** sample kinds — an `every_bar` build records `universe_row_count ==
   resolved_row_count` and `drop_counts == {}` explicitly, so "the whole grid
-  was used" is a read, not an inference (Finding 5). `build_predictive_dataset`
-  currently refuses any `spec.sample.kind` other than `every_bar` with a named
-  `PredictiveDatasetError`, because `signal_occurrences` resolution does not
-  exist yet (S056-T004) and building the grid anyway while the manifest
-  implied a resolved sample would be silently wrong. `SampleProvenance` never
+  was used" is a read, not an inference (Finding 5). A `signal_occurrences`
+  build's provenance means something different by design: `universe_row_count`
+  is the resolved occurrence count (`candidate_rows`, asserted equal to
+  `occurrences.height`, D-S056-08), `resolved_row_count` is how many became a
+  labelled row, and `drop_counts` names each of the same three reasons
+  `every_bar` already uses (`incomplete_horizon`, `insufficient_data`,
+  `null_features`) — `build_predictive_dataset` requires
+  `request.signal_model` when the sample kind is `signal_occurrences` and
+  raises a named `PredictiveDatasetError` if it is missing (no on-disk loader
+  for `signal_model_file` exists anywhere in the framework yet; the caller
+  supplies the already-constructed `SignalModelDefinition` directly, the same
+  seam `preloaded_bars`/`preloaded_view` already use). `SampleProvenance` never
   enters `compute_dataset_fingerprint`'s inputs (`research/datasets/predictive.py`
   — `PREDICTIVE_DATASET_SCHEMA_V2` is additive over v1: a v1 manifest still
   loads with `sample_provenance is None`; only v2 requires it, enforced at

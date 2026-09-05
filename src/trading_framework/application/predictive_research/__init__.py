@@ -29,6 +29,11 @@ from trading_framework.application.predictive_research.render_report import (
     RenderPredictiveReportResult,
     render_predictive_research_report,
 )
+from trading_framework.application.predictive_research.resolve_signal_occurrences import (
+    ResolvedSignalOccurrenceSample,
+    SignalOccurrenceResolutionError,
+    resolve_signal_occurrences_sample,
+)
 from trading_framework.application.predictive_research.run_predictive_research import (
     PredictiveRunError,
     RunPredictiveResearchRequest,
@@ -52,12 +57,15 @@ __all__ = [
     "RenderPredictiveReportError",
     "RenderPredictiveReportRequest",
     "RenderPredictiveReportResult",
+    "ResolvedSignalOccurrenceSample",
     "RunPredictiveResearchRequest",
     "RunPredictiveResearchResult",
+    "SignalOccurrenceResolutionError",
     "analyze_predictive_run",
     "build_predictive_dataset",
     "compare_predictive_runs",
     "promote_predictive_run",
     "render_predictive_research_report",
+    "resolve_signal_occurrences_sample",
     "run_predictive_research",
 ]

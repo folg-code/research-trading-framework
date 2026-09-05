@@ -50,6 +50,7 @@ from trading_framework.research.predictive.learning_curves import (
 from trading_framework.research.predictive.matrix import (
     LabelledFeatureMatrix,
     build_labelled_feature_matrix,
+    label_expr,
 )
 from trading_framework.research.predictive.metrics import (
     CLASSIFICATION_DECISION_THRESHOLD,
@@ -206,6 +207,7 @@ __all__ = [
     "default_preprocessing_spec",
     "fold_learning_curve_from_resolved_params",
     "fold_train_targets",
+    "label_expr",
     "load_predictive_study_spec",
     "load_predictive_study_spec_from_dict",
     "parse_predictive_task",
