@@ -33,10 +33,21 @@ _REQUIRED_OHLCV = ("high", "low", "close")
 
 @dataclass(frozen=True, slots=True)
 class LabelledFeatureMatrix:
-    """Complete labelled rows plus exclusion counts. No fold-role columns."""
+    """Complete labelled rows plus exclusion counts. No fold-role columns.
+
+    ``candidates`` is the full evaluation-grid frame *before* the completeness
+    filter (one row per bar, long-direction outcome): ``entity_id``,
+    ``label_end_at``, feature columns, ``outcome_status`` and
+    ``features_finite`` are all present for every bar, labelled or not. It
+    exists so a sample resolver (``application/predictive_research/``,
+    S056-T004) can attribute a resolved-but-dropped row to the exact reason it
+    was excluded, and so it can read ``label_end_at`` for a specific bar
+    without re-deriving it from a filtered sequence (D-S056-05: filter-late).
+    """
 
     rows: pl.DataFrame
     exclusions: MatrixExclusionCounts
+    candidates: pl.DataFrame
 
 
 def build_labelled_feature_matrix(
@@ -73,6 +84,7 @@ def build_labelled_feature_matrix(
                 insufficient_data=0,
                 null_features=0,
             ),
+            candidates=pl.DataFrame(schema=_candidate_schema(aliases)),
         )
 
     materialized_ohlcv = _require_aligned_ohlcv(ohlcv, bar_count=bar_count)
@@ -121,6 +133,14 @@ def _labelled_schema(aliases: tuple[str, ...]) -> dict[str, pl.DataType]:
     schema["label"] = pl.Float64()
     schema["forward_return"] = pl.Float64()
     schema["outcome_status"] = pl.String()
+    return schema
+
+
+def _candidate_schema(aliases: tuple[str, ...]) -> dict[str, pl.DataType]:
+    """Schema of the full-grid ``candidates`` frame: no ``label``, plus a finiteness flag."""
+    schema = _labelled_schema(aliases)
+    del schema["label"]
+    schema["features_finite"] = pl.Boolean()
     return schema
 
 
@@ -325,13 +345,17 @@ def _select_labelled_rows(
         null_features=candidates.filter(complete & feature_finite.not_()).height,
     )
     labelled = candidates.filter(complete & feature_finite).with_columns(
-        _label_expr(label).alias("label")
+        label_expr(label).alias("label")
     )
     rows = pl.DataFrame(schema=schema) if labelled.height == 0 else labelled.select(list(schema))
-    return LabelledFeatureMatrix(rows=rows, exclusions=exclusions)
+    annotated_candidates = candidates.with_columns(feature_finite.alias("features_finite"))
+    return LabelledFeatureMatrix(rows=rows, exclusions=exclusions, candidates=annotated_candidates)
 
 
-def _label_expr(spec: LabelSpec) -> pl.Expr:
+def label_expr(spec: LabelSpec) -> pl.Expr:
+    """Label expression from a ``forward_return`` column (public: reused by S056-T004's
+    signal_occurrences resolver so a recomputed, direction-adjusted ``forward_return``
+    is mapped to ``label`` with the exact same rule ``every_bar`` uses)."""
     forward_return = pl.col("forward_return")
     if spec.kind is LabelKind.REGRESSION:
         return forward_return

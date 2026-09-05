@@ -4,11 +4,17 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
+from typing import assert_never
+
+import polars as pl
 
 from trading_framework import __version__ as framework_version
 from trading_framework.application.market_analysis.run_analysis import (
     RunAnalysisRequest,
     run_analysis,
+)
+from trading_framework.application.predictive_research.resolve_signal_occurrences import (
+    resolve_signal_occurrences_sample,
 )
 from trading_framework.core.exceptions import ValidationError
 from trading_framework.market.models import MarketBar
@@ -33,11 +39,16 @@ from trading_framework.research.datasets.predictive import (
     fold_summary_from_features,
     resolve_fold_boundaries,
 )
+from trading_framework.research.predictive.exclusions import MatrixExclusionCounts
 from trading_framework.research.predictive.features import FeatureMatrixSpec, FeatureSpec
-from trading_framework.research.predictive.matrix import build_labelled_feature_matrix
+from trading_framework.research.predictive.matrix import (
+    LabelledFeatureMatrix,
+    build_labelled_feature_matrix,
+)
 from trading_framework.research.predictive.sample import SampleKind, SampleProvenance
 from trading_framework.research.predictive.spec import PredictiveStudySpec
 from trading_framework.research.predictive.splitting import assign_purged_walk_forward_folds
+from trading_framework.signal_model.definitions import SignalModelDefinition
 from trading_framework.time.clocks.protocol import Clock
 from trading_framework.time.clocks.system import SystemClock
 from trading_framework.time.sessions.protocol import TradingSessionResolver
@@ -63,6 +74,16 @@ class BuildPredictiveDatasetRequest:
     preloaded_view: AnalysisDataView | None = None
     clock: Clock | None = None
     repository: PredictiveDatasetRepository | None = None
+    # Required when spec.sample.kind is SIGNAL_OCCURRENCES (S056-T004). The
+    # SampleSpec DECLARES the Signal Model by signal_model_file/signal_model_id
+    # (ADR-0031 sec1); this module has no loader that turns that declaration
+    # into a SignalModelDefinition (no such loader exists anywhere in the
+    # framework today -- Signal Models are authored as Python DSL calls, see
+    # model_authoring/signal_model.py), so the caller supplies the already-
+    # constructed definition directly, the same seam preloaded_bars/
+    # preloaded_view already use for their own externally-supplied inputs.
+    # Its signal_model_id must match spec.sample.signal_model_id.
+    signal_model: SignalModelDefinition | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -85,14 +106,10 @@ def build_predictive_dataset(
     if definition_hash is None:
         msg = "study spec is missing definition_hash"
         raise PredictiveDatasetError(msg)
-    if spec.sample.kind is not SampleKind.EVERY_BAR:
-        # signal_occurrences resolution (evaluate_models -> materialize_signal_occurrences
-        # -> filter-late row selection) is S056-T004, not yet implemented. Refusing here
-        # avoids silently building the whole grid while the manifest claims a sample was
-        # resolved (Finding 5, ADR-0031 Decision 6).
+    if spec.sample.kind is SampleKind.SIGNAL_OCCURRENCES and request.signal_model is None:
         msg = (
-            f"sample kind {spec.sample.kind.value!r} is declared but not yet resolvable: "
-            "signal_occurrences resolution lands in S056-T004"
+            "signal_occurrences sample requires request.signal_model "
+            f"(declared signal_model_id={spec.sample.signal_model_id!r})"
         )
         raise PredictiveDatasetError(msg)
 
@@ -119,15 +136,30 @@ def build_predictive_dataset(
         raise PredictiveDatasetError(msg)
 
     frame = analysis.frame
+    ohlcv = _ohlcv_from_frame(frame)
     lineage = _declared_feature_lineage(frame, spec.features)
-    labelled = build_labelled_feature_matrix(
+    horizon_bars = spec.label_horizon_bars()
+    # Labels and label_end_at are always computed over the FULL evaluation
+    # grid first (D-S056-05): this call never changes with the sample kind,
+    # and a signal_occurrences sample is resolved by selecting FROM this
+    # already-labelled frame afterwards (resolve_signal_occurrences_sample),
+    # never by pre-filtering the frame this call reads.
+    full_grid = build_labelled_feature_matrix(
         frame=frame,
-        ohlcv=_ohlcv_from_frame(frame),
+        ohlcv=ohlcv,
         features=spec.features,
         label=spec.label,
-        horizon_bars=spec.label_horizon_bars(),
+        horizon_bars=horizon_bars,
     )
-    assigned = assign_purged_walk_forward_folds(labelled.rows, spec.split)
+    rows, exclusion_counts = _resolve_sample(
+        request=request,
+        spec=spec,
+        frame=frame,
+        ohlcv=ohlcv,
+        horizon_bars=horizon_bars,
+        full_grid=full_grid,
+    )
+    assigned = assign_purged_walk_forward_folds(rows, spec.split)
     fingerprint = compute_dataset_fingerprint(
         definition_hash=definition_hash,
         feature_lineage=lineage,
@@ -136,18 +168,7 @@ def build_predictive_dataset(
     )
     dataset_id = derive_dataset_id(fingerprint)
     clock = request.clock or SystemClock()
-    # every_bar is the only resolvable kind today (the guard above refuses any
-    # other declared kind), so the sample universe IS the candidate grid: no
-    # row is added or dropped by the sample step. Recording that explicitly
-    # (drop_counts={}) is what states "the whole grid was used" rather than
-    # leaving a reader to infer it (Finding 5, ADR-0031 Decision 6).
-    sample_provenance = SampleProvenance(
-        kind=spec.sample.kind,
-        task=spec.task,
-        universe_row_count=labelled.exclusions.candidate_rows,
-        resolved_row_count=labelled.exclusions.candidate_rows,
-        drop_counts={},
-    )
+    sample_provenance = _sample_provenance(spec, exclusion_counts)
     envelope = PredictiveDatasetEnvelope(
         manifest=PredictiveDatasetManifest(
             schema_version=PREDICTIVE_DATASET_SCHEMA_V2,
@@ -158,7 +179,7 @@ def build_predictive_dataset(
             source_dataset_ref=str(spec.dataset_ref),
             time_range_start=spec.time_range.start,
             time_range_end=spec.time_range.end,
-            exclusion_counts=exclusion_counts_to_dict(labelled.exclusions),
+            exclusion_counts=exclusion_counts_to_dict(exclusion_counts),
             fold_summary=fold_summary_from_features(assigned),
             framework_version=framework_version,
             created_at_utc=clock.now(),
@@ -180,6 +201,93 @@ def build_predictive_dataset(
         envelope=envelope,
         persisted=persisted,
     )
+
+
+def _resolve_sample(
+    *,
+    request: BuildPredictiveDatasetRequest,
+    spec: PredictiveStudySpec,
+    frame: AnalysisFrame,
+    ohlcv: dict[str, tuple[float, ...]],
+    horizon_bars: int,
+    full_grid: LabelledFeatureMatrix,
+) -> tuple[pl.DataFrame, MatrixExclusionCounts]:
+    """Return the rows to fold-assign and the manifest's ``exclusion_counts``.
+
+    ``every_bar`` returns ``full_grid`` unchanged -- today's behaviour, byte
+    for byte. ``signal_occurrences`` selects FROM ``full_grid`` (already
+    labelled over the complete evaluation grid) via
+    ``resolve_signal_occurrences_sample`` -- filter-late, D-S056-05.
+    """
+    if spec.sample.kind is SampleKind.EVERY_BAR:
+        return full_grid.rows, full_grid.exclusions
+    if spec.sample.kind is SampleKind.SIGNAL_OCCURRENCES:
+        signal_model = request.signal_model
+        if signal_model is None:  # pragma: no cover - guarded earlier, defensive
+            msg = "signal_occurrences sample requires request.signal_model"
+            raise PredictiveDatasetError(msg)
+        resolved = resolve_signal_occurrences_sample(
+            sample=spec.sample,
+            signal_model=signal_model,
+            dataset_ref=spec.dataset_ref,
+            timeframe=spec.dataset_ref.dataset_id.timeframe,
+            requested_range=spec.time_range,
+            evaluation_timeframe=spec.evaluation_timeframe,
+            storage_root=request.storage_root,
+            horizon_bars=horizon_bars,
+            label=spec.label,
+            frame=frame,
+            ohlcv=ohlcv,
+            full_grid=full_grid,
+            session_resolver=request.session_resolver,
+            preloaded_bars=request.preloaded_bars,
+            preloaded_column_batch=request.preloaded_column_batch,
+            preloaded_view=request.preloaded_view,
+        )
+        return resolved.rows, resolved.exclusion_counts
+    assert_never(spec.sample.kind)
+
+
+def _sample_provenance(
+    spec: PredictiveStudySpec,
+    exclusion_counts: MatrixExclusionCounts,
+) -> SampleProvenance:
+    """Build the persisted ``SampleProvenance`` (Finding 5: a read, never an inference).
+
+    ``every_bar``'s sample IS the candidate grid, regardless of how many of
+    those candidates went on to be labelled -- ``resolved_row_count`` equals
+    ``universe_row_count`` and there is nothing for the SAMPLE step itself to
+    have dropped. ``signal_occurrences``'s sample IS the resolved occurrence
+    table, and every occurrence that did not become a labelled row is named by
+    exactly one of the same three reasons ``every_bar`` already uses for its
+    own (unrelated) labelling exclusions.
+    """
+    if spec.sample.kind is SampleKind.EVERY_BAR:
+        return SampleProvenance(
+            kind=spec.sample.kind,
+            task=spec.task,
+            universe_row_count=exclusion_counts.candidate_rows,
+            resolved_row_count=exclusion_counts.candidate_rows,
+            drop_counts={},
+        )
+    if spec.sample.kind is SampleKind.SIGNAL_OCCURRENCES:
+        return SampleProvenance(
+            kind=spec.sample.kind,
+            task=spec.task,
+            universe_row_count=exclusion_counts.candidate_rows,
+            resolved_row_count=exclusion_counts.labelled_rows,
+            drop_counts=_drop_counts(exclusion_counts),
+        )
+    assert_never(spec.sample.kind)
+
+
+def _drop_counts(exclusion_counts: MatrixExclusionCounts) -> dict[str, int]:
+    reasons = {
+        "incomplete_horizon": exclusion_counts.incomplete_horizon,
+        "insufficient_data": exclusion_counts.insufficient_data,
+        "null_features": exclusion_counts.null_features,
+    }
+    return {reason: count for reason, count in reasons.items() if count > 0}
 
 
 def _frame_column_specs(features: FeatureMatrixSpec) -> tuple[AnalysisFrameColumnSpec, ...]:
