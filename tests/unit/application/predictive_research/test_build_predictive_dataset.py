@@ -21,6 +21,11 @@ from trading_framework.application.predictive_research import (
 )
 from trading_framework.application.predictive_research.build_predictive_dataset import (
     PredictiveDatasetError,
+    _component_requests,
+    _frame_column_specs,
+)
+from trading_framework.application.predictive_research.resolve_signal_occurrences import (
+    _resolve_from_occurrences,  # S056-T005: unit-test the insufficient_data classification path
 )
 from trading_framework.core.types import Price, Volume
 from trading_framework.market.datasets import DatasetRef
@@ -48,6 +53,7 @@ from trading_framework.research.predictive import (
     FoldRole,
     LabelKind,
     LabelSpec,
+    PredictiveMatrixError,
     PredictiveStudySpec,
     PredictiveTask,
     PurgedWalkForwardSplitMode,
@@ -56,6 +62,7 @@ from trading_framework.research.predictive import (
     SampleKind,
     SampleSpec,
 )
+from trading_framework.research.predictive.matrix import build_labelled_feature_matrix
 from trading_framework.signal_model.definitions import (
     SignalDirection,
     SignalFiringPolicy,
@@ -344,7 +351,11 @@ def _breakout_signal_model(
     )
 
 
-def _signal_occurrences_study(*, direction: SignalDirection) -> PredictiveStudySpec:
+def _signal_occurrences_study(
+    *,
+    direction: SignalDirection,
+    split: PurgedWalkForwardSplitSpec | None = None,
+) -> PredictiveStudySpec:
     """A study over the same fixture as ``_study()``, sized for the sparse occurrence run.
 
     Threshold 108.0 against ``_synthetic_bars()``'s ramp (close = 100 + idx*0.05)
@@ -369,7 +380,9 @@ def _signal_occurrences_study(*, direction: SignalDirection) -> PredictiveStudyS
             )
         ),
         label=LabelSpec(kind=LabelKind.REGRESSION, horizon=Timeframe("5m")),
-        split=PurgedWalkForwardSplitSpec(
+        split=split
+        if split is not None
+        else PurgedWalkForwardSplitSpec(
             mode=PurgedWalkForwardSplitMode.EXPANDING,
             fold_count=1,
             test_span=Timeframe("3m"),
@@ -579,3 +592,273 @@ def test_signal_occurrences_label_end_at_matches_every_bar_build(tmp_path: Path)
         shared += 1
         assert row["label_end_at"] == every_bar_end_by_detected_at[detected_at]
     assert shared > 0
+
+
+# --- S056-T005: leakage under irregular spacing -----------------------------
+#
+# Everything above fires on a *contiguous* run of bars (idx 161..179): rows
+# one minute apart, just fewer of them than the full grid. That is sparse but
+# not irregular. The fixtures below fire at genuinely non-uniform gaps (10,
+# 29, 50, 58, 25, 1, 29 minutes) so a bar-position-based split policy and a
+# `timedelta`-based one would disagree -- direct evidence for SPRINT_056.md
+# S056-T005's acceptance criteria, not a re-run of the T004 fixture.
+
+_SPARSE_BAR_COUNT = 220
+_SPARSE_SPIKE_INDICES = (10, 11, 40, 90, 91, 92, 150, 175, 176, 205)
+_SPARSE_BASELINE_CLOSE = 100.0
+_SPARSE_SPIKE_CLOSE = 130.0
+_SPARSE_HORIZON_MINUTES = 3
+
+
+def _sparse_timestamps() -> tuple[datetime, ...]:
+    start = datetime(2024, 1, 2, 14, 0, tzinfo=UTC)
+    return tuple(start + timedelta(minutes=index) for index in range(_SPARSE_BAR_COUNT))
+
+
+def _sparse_irregular_bars() -> tuple[MarketBar, ...]:
+    """Flat baseline close with spikes at ``_SPARSE_SPIKE_INDICES`` only.
+
+    The gaps between spike indices are deliberately uneven (10, 29, 50, 1, 58,
+    25, 1, 29 minutes) -- unlike ``_synthetic_bars()``'s monotonic ramp, which
+    only ever produces a contiguous run of firings above a threshold.
+    """
+    bars: list[MarketBar] = []
+    for index, observed_at in enumerate(_sparse_timestamps()):
+        close = _SPARSE_SPIKE_CLOSE if index in _SPARSE_SPIKE_INDICES else _SPARSE_BASELINE_CLOSE
+        bars.append(
+            MarketBar(
+                open=Price(Decimal(str(close))),
+                high=Price(Decimal(str(round(close + 0.4, 4)))),
+                low=Price(Decimal(str(round(close - 0.4, 4)))),
+                close=Price(Decimal(str(close))),
+                volume=Volume(1_000),
+                observed_at=observed_at,
+                available_at=observed_at + timedelta(minutes=1),
+            )
+        )
+    return tuple(bars)
+
+
+def _sparse_irregular_signal_model() -> SignalModelDefinition:
+    return SignalModelDefinition(
+        signal_model_id="sparse_spike_v1",
+        expression=CompareExpression(
+            operand=MarketFieldReference(field=MarketField.CLOSE),
+            operator=ComparisonOperator.GT,
+            value=120.0,
+        ),
+        direction=SignalDirection.LONG,
+        firing_policy=SignalFiringPolicy.ON_EVENT,
+    )
+
+
+def _sparse_irregular_study(*, split: PurgedWalkForwardSplitSpec) -> PredictiveStudySpec:
+    timestamps = _sparse_timestamps()
+    return PredictiveStudySpec(
+        study_id="sparse_spike_signal_quality",
+        dataset_ref=_dataset_ref(),
+        time_range=TimeRange(start=timestamps[0], end=timestamps[-1]),
+        features=FeatureMatrixSpec(
+            features=(
+                FeatureSpec(
+                    component_id=ComponentId("volatility.atr"),
+                    parameters=CanonicalParameters.from_mapping({"period": _ATR_PERIOD}),
+                    output_id=OutputId("value"),
+                    alias="atr",
+                ),
+            )
+        ),
+        label=LabelSpec(
+            kind=LabelKind.REGRESSION, horizon=Timeframe(f"{_SPARSE_HORIZON_MINUTES}m")
+        ),
+        split=split,
+        sample=SampleSpec(
+            kind=SampleKind.SIGNAL_OCCURRENCES,
+            signal_model_file="models/sparse_spike.yaml",
+            signal_model_id="sparse_spike_v1",
+        ),
+        task=PredictiveTask.SIGNAL_QUALITY,
+    )
+
+
+def test_signal_occurrences_fold_roles_correct_for_sparse_irregular_timestamps(
+    tmp_path: Path,
+) -> None:
+    """Fold roles for a genuinely sparse, irregularly-spaced signal_occurrences
+    sample are derived from available_at/label_end_at datetime arithmetic
+    (Finding 1) -- the same mechanism every_bar rows already use, proven here
+    end to end through resolve_signal_occurrences_sample + fold assignment,
+    not asserted only at the splitting.py unit level."""
+    storage_root = tmp_path / "workspace"
+    bars = _sparse_irregular_bars()
+    signal_model = _sparse_irregular_signal_model()
+    split = PurgedWalkForwardSplitSpec(
+        mode=PurgedWalkForwardSplitMode.EXPANDING,
+        fold_count=2,
+        test_span=Timeframe("23m"),
+        embargo_span=Timeframe("7m"),
+        min_train_rows=1,
+    )
+    spec = _sparse_irregular_study(split=split)
+
+    result = build_predictive_dataset(
+        BuildPredictiveDatasetRequest(
+            spec=spec,
+            storage_root=storage_root,
+            persist=False,
+            preloaded_bars=bars,
+            signal_model=signal_model,
+        )
+    )
+
+    role_counts = result.envelope.manifest.fold_summary["role_counts"]
+    assert role_counts[FoldRole.TRAIN.value] > 0
+    assert role_counts[FoldRole.TEST.value] > 0
+    assert role_counts[FoldRole.PURGED.value] > 0
+    assert role_counts[FoldRole.EMBARGOED.value] > 0
+
+    start = bars[0].observed_at
+    by_offset_and_fold: dict[tuple[datetime, int], str] = {
+        (row["detected_at"], row["fold_id"]): row["fold_role"]
+        for row in result.envelope.features.iter_rows(named=True)
+    }
+
+    def _role(offset_minutes: int, fold_id: int) -> str:
+        return by_offset_and_fold[(start + timedelta(minutes=offset_minutes), fold_id)]
+
+    # These specific roles depend on elapsed wall-clock time between rows 90
+    # apart (150 -> 175) and 1 apart (175 -> 176): a bar-position-based
+    # implementation would place window boundaries by row count, not by
+    # timedelta, and would not reproduce this exact assignment.
+    assert _role(150, 0) == FoldRole.PURGED.value
+    assert _role(175, 0) == FoldRole.TEST.value
+    assert _role(176, 0) == FoldRole.EMBARGOED.value
+    assert _role(176, 1) == FoldRole.EMBARGOED.value
+    assert _role(205, 1) == FoldRole.TEST.value
+
+
+def test_signal_occurrences_under_powered_sample_raises_min_train_rows_guard(
+    tmp_path: Path,
+) -> None:
+    """D-S056-07: an under-powered sparse sample is a stop-and-report, never an
+    auto-relaxed guard. min_train_rows stays an error for signal_occurrences,
+    exactly as it already is for every_bar."""
+    storage_root = tmp_path / "workspace"
+    bars = _sparse_irregular_bars()
+    signal_model = _sparse_irregular_signal_model()
+    strict_split = PurgedWalkForwardSplitSpec(
+        mode=PurgedWalkForwardSplitMode.EXPANDING,
+        fold_count=2,
+        test_span=Timeframe("23m"),
+        embargo_span=Timeframe("7m"),
+        min_train_rows=100,
+    )
+    spec = _sparse_irregular_study(split=strict_split)
+
+    with pytest.raises(PredictiveMatrixError, match="min_train_rows is 100"):
+        build_predictive_dataset(
+            BuildPredictiveDatasetRequest(
+                spec=spec,
+                storage_root=storage_root,
+                persist=False,
+                preloaded_bars=bars,
+                signal_model=signal_model,
+            )
+        )
+
+
+def test_signal_occurrences_under_powered_sample_raises_zero_test_rows_guard(
+    tmp_path: Path,
+) -> None:
+    """D-S056-07: the same stop applies when a selective, sparse signal leaves
+    a fold with no rows at all in its test window -- not a reason to shrink
+    test_span, embargo_span or fold_count to make the sample fit."""
+    storage_root = tmp_path / "workspace"
+    bars = _sparse_irregular_bars()
+    signal_model = _sparse_irregular_signal_model()
+    strict_split = PurgedWalkForwardSplitSpec(
+        mode=PurgedWalkForwardSplitMode.EXPANDING,
+        fold_count=2,
+        test_span=Timeframe("4m"),
+        embargo_span=Timeframe("1m"),
+        min_train_rows=1,
+    )
+    spec = _sparse_irregular_study(split=strict_split)
+
+    with pytest.raises(PredictiveMatrixError, match="has no TEST rows"):
+        build_predictive_dataset(
+            BuildPredictiveDatasetRequest(
+                spec=spec,
+                storage_root=storage_root,
+                persist=False,
+                preloaded_bars=bars,
+                signal_model=signal_model,
+            )
+        )
+
+
+def test_insufficient_data_reason_for_occurrence_missing_from_full_grid(tmp_path: Path) -> None:
+    """Reviewer follow-up from PR #450: T004 exercised incomplete_horizon and
+    the fully-kept case but never insufficient_data -- the reason
+    _classify_row names an occurrence whose detected_at is absent from the
+    full evaluation grid. Exercised here via the real resolution function,
+    not a reimplementation of its classification logic."""
+    bars = _synthetic_bars()
+    spec = _signal_occurrences_study(direction=SignalDirection.LONG)
+    occurrences = _occurrences_for(direction=SignalDirection.LONG, bars=bars)
+    assert occurrences.height == 19
+
+    analysis = run_analysis(
+        RunAnalysisRequest(
+            dataset_ref=spec.dataset_ref,
+            timeframe=spec.dataset_ref.dataset_id.timeframe,
+            requested_range=spec.time_range,
+            storage_root=Path("unused"),
+            component_requests=_component_requests(spec.features),
+            frame_request=AnalysisFrameRequest(
+                market_fields=("open", "high", "low", "close", "volume"),
+                analysis_columns=_frame_column_specs(spec.features),
+            ),
+            evaluation_timeframe=spec.evaluation_timeframe,
+            preloaded_bars=bars,
+        )
+    )
+    frame = analysis.frame
+    assert frame is not None
+    ohlcv = {name: frame.columns[name] for name in ("high", "low", "close")}
+    full_grid = build_labelled_feature_matrix(
+        frame=frame,
+        ohlcv=ohlcv,
+        features=spec.features,
+        label=spec.label,
+        horizon_bars=spec.label_horizon_bars(),
+    )
+
+    # Corrupt one occurrence's detected_at so it matches no bar on the full
+    # grid at all -- the exact condition _classify_row names insufficient_data
+    # for (status is None after the left join finds nothing to attach).
+    foreign_timestamp = datetime(2099, 1, 1, tzinfo=UTC)
+    corrupted = occurrences.with_columns(
+        pl.when(pl.int_range(pl.len()) == 0)
+        .then(pl.lit(foreign_timestamp))
+        .otherwise(pl.col("detected_at"))
+        .alias("detected_at")
+    )
+
+    resolved = _resolve_from_occurrences(
+        corrupted,
+        horizon_bars=spec.label_horizon_bars(),
+        label=spec.label,
+        frame=frame,
+        ohlcv=ohlcv,
+        full_grid=full_grid,
+    )
+
+    assert resolved.exclusion_counts.insufficient_data == 1
+    accounted = (
+        resolved.exclusion_counts.labelled_rows
+        + resolved.exclusion_counts.incomplete_horizon
+        + resolved.exclusion_counts.insufficient_data
+        + resolved.exclusion_counts.null_features
+    )
+    assert accounted == occurrences.height
