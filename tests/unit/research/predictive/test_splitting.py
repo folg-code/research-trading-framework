@@ -582,3 +582,148 @@ def test_series_too_short_for_declared_folds_raises() -> None:
             _labelled_rows(count=3, horizon_minutes=1),
             _planner_spec(),
         )
+
+
+# --- S056-T005: irregular (non-uniform) spacing ------------------------------
+#
+# Everything above uses rows one bar apart. A `signal_occurrences` sample
+# produces rows at whatever irregular cadence a signal fires -- these tests
+# prove the same fold-role planner, unmodified, is still correct when
+# `available_at` gaps between rows vary wildly (Finding 1: the planner is
+# already `timedelta`-based, never bar-counting; these fixtures are the
+# evidence for that claim, not an assumption of it).
+
+
+def _irregular_labelled_rows(*, gaps_minutes: list[int], horizon_minutes: int) -> pl.DataFrame:
+    """Rows at deliberately non-uniform `available_at` spacing.
+
+    `gaps_minutes` are successive deltas (in minutes) from the first row --
+    some 1 minute apart, some tens of minutes apart, by design. A bar-count
+    based split policy (e.g. "the last N rows are TEST") would place a
+    window boundary using row position; a `timedelta`-based one places it
+    using elapsed wall-clock time. These fixtures make the two disagree, so a
+    regression to bar-counting would be caught here, not silently pass.
+    """
+    start = datetime(2024, 1, 1, tzinfo=UTC)
+    offsets = [0]
+    for gap in gaps_minutes:
+        offsets.append(offsets[-1] + gap)
+    available = [start + timedelta(minutes=offset) for offset in offsets]
+    count = len(available)
+    return pl.DataFrame(
+        {
+            "entity_id": [timestamp.isoformat() for timestamp in available],
+            "horizon_bars": [horizon_minutes] * count,
+            "detected_at": available,
+            "available_at": available,
+            "label_end_at": [
+                timestamp + timedelta(minutes=horizon_minutes) for timestamp in available
+            ],
+            "label": [0.0] * count,
+        },
+        schema={
+            "entity_id": pl.String(),
+            "horizon_bars": pl.Int64(),
+            "detected_at": _UTC,
+            "available_at": _UTC,
+            "label_end_at": _UTC,
+            "label": pl.Float64(),
+        },
+    )
+
+
+def test_irregular_spacing_uses_datetime_arithmetic_not_row_position() -> None:
+    """Two widely-separated clusters: a row-position based window would blend
+    them; `timedelta` arithmetic over `available_at` must keep them apart."""
+    rows = _irregular_labelled_rows(
+        gaps_minutes=[1, 1, 1, 1, 56, 1, 1, 1, 1, 1, 1],
+        horizon_minutes=2,
+    )
+    first_cluster = set(rows.head(5).get_column("entity_id").to_list())
+    second_cluster = set(rows.tail(7).get_column("entity_id").to_list())
+    spec = _planner_spec(fold_count=1, test_span="10m", embargo_span="0m", min_train_rows=1)
+
+    assigned = assign_purged_walk_forward_folds(rows, spec)
+
+    train_ids = set(
+        assigned.filter(pl.col("fold_role") == FoldRole.TRAIN.value)
+        .get_column("entity_id")
+        .to_list()
+    )
+    test_ids = set(
+        assigned.filter(pl.col("fold_role") == FoldRole.TEST.value)
+        .get_column("entity_id")
+        .to_list()
+    )
+
+    assert train_ids == first_cluster
+    assert test_ids == second_cluster
+
+
+def test_irregular_spacing_purge_and_embargo_precedence_hold() -> None:
+    """The same invariants `test_splitting.py` already proves for evenly-spaced
+    rows -- no train label leaks into TEST, embargo is never reused as TRAIN,
+    embargo is preferred over purge when both apply -- reproduced on a
+    genuinely irregular row set, not re-run on the evenly-spaced fixture."""
+    rows = _irregular_labelled_rows(
+        gaps_minutes=[1, 1, 9, 1, 1, 1, 14, 1, 1, 1, 1, 18, 3, 1, 1, 1, 1, 1, 6, 1, 1],
+        horizon_minutes=3,
+    )
+    spec = _planner_spec(fold_count=2, test_span="6m", embargo_span="3m", min_train_rows=1)
+
+    assigned = assign_purged_walk_forward_folds(rows, spec)
+    roles = set(assigned.get_column("fold_role").unique().to_list())
+
+    assert roles == {
+        FoldRole.TRAIN.value,
+        FoldRole.TEST.value,
+        FoldRole.PURGED.value,
+        FoldRole.EMBARGOED.value,
+    }
+    assert not _train_label_overlaps_test(assigned, spec)
+    assert not _embargo_reused_as_train(assigned, spec)
+    assert not _test_windows_overlap(assigned)
+
+    # Sensitivity check (mirrors test_train_label_end_never_falls_inside_same_
+    # fold_test_window / test_expanding_embargo_holds_out_span_after_test):
+    # relabelling PURGED as TRAIN, or EMBARGOED as TRAIN, must make the
+    # invariant checks fail -- otherwise the checks above would be vacuous.
+    purge_relabelled = assigned.with_columns(
+        pl.when(pl.col("fold_role") == FoldRole.PURGED.value)
+        .then(pl.lit(FoldRole.TRAIN.value))
+        .otherwise(pl.col("fold_role"))
+        .alias("fold_role")
+    )
+    assert _train_label_overlaps_test(purge_relabelled, spec)
+
+    embargo_relabelled = assigned.with_columns(
+        pl.when(pl.col("fold_role") == FoldRole.EMBARGOED.value)
+        .then(pl.lit(FoldRole.TRAIN.value))
+        .otherwise(pl.col("fold_role"))
+        .alias("fold_role")
+    )
+    assert _embargo_reused_as_train(embargo_relabelled, spec)
+
+
+def test_irregular_sparse_sample_still_raises_zero_test_rows_guard() -> None:
+    """D-S056-07: an under-powered sparse sample is a stop, not an
+    accommodation. A selective signal_occurrences-style sample can leave a
+    fold with no rows at all in its test window; that must still raise."""
+    rows = _irregular_labelled_rows(gaps_minutes=[2, 3, 90, 1, 2], horizon_minutes=1)
+    spec = _planner_spec(fold_count=2, test_span="5m", embargo_span="0m", min_train_rows=1)
+
+    with pytest.raises(PredictiveMatrixError, match="has no TEST rows"):
+        assign_purged_walk_forward_folds(rows, spec)
+
+
+def test_irregular_sparse_sample_still_raises_min_train_rows_guard() -> None:
+    """D-S056-07: min_train_rows stays an error for a sparse irregular sample,
+    never auto-relaxed to fit the fold that a selective signal produces."""
+    rows = _irregular_labelled_rows(
+        gaps_minutes=[1, 1, 30, 1, 1, 1],
+        horizon_minutes=1,
+    )
+    spec = _planner_spec(fold_count=1, test_span="4m", embargo_span="0m", min_train_rows=50)
+
+    with pytest.raises(PredictiveMatrixError, match="min_train_rows is 50"):
+        assign_purged_walk_forward_folds(rows, spec)
