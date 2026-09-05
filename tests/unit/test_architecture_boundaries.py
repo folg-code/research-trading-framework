@@ -89,6 +89,28 @@ def _is_forbidden_predictive_import(module_name: str) -> bool:
     )
 
 
+# application/predictive_research/ is a wave4 predictive path (below), but
+# ADR-0031 Decision 3 / SPRINT_056.md S056_WAVE0_DECISIONS.md D-S056-04
+# (ACCEPTED 2026-09-04) explicitly authorizes it -- and only it -- to import
+# trading_framework.strategy/trading_framework.signal_model (evaluate_models,
+# materialize_signal_occurrences: the same functions Signal Research calls,
+# reused to resolve a signal_occurrences sample, S056-T004). It still may not
+# import research.simulation or execution, which this narrower prefix list
+# preserves; the wave4 trading-capabilities test below excludes this one path
+# and this check covers it instead.
+_PREDICTIVE_RESOLUTION_FORBIDDEN_PREFIXES = (
+    "trading_framework.research.simulation",
+    "trading_framework.execution",
+)
+
+
+def _is_forbidden_for_predictive_resolution(module_name: str) -> bool:
+    return any(
+        module_name == prefix or module_name.startswith(f"{prefix}.")
+        for prefix in _PREDICTIVE_RESOLUTION_FORBIDDEN_PREFIXES
+    )
+
+
 def _import_offenders(
     package_root: Path,
     *,
@@ -126,6 +148,19 @@ def _wave4_predictive_paths() -> tuple[Path, ...]:
         framework_root / "application" / "predictive_research",
         repo_root / "scripts" / "predictive_research",
     )
+
+
+def _wave4_predictive_paths_excluding_resolution_layer() -> tuple[Path, ...]:
+    """``_wave4_predictive_paths()`` minus ``application/predictive_research/``.
+
+    That one path is checked separately, against the narrower
+    ``_is_forbidden_for_predictive_resolution`` (see the comment above it):
+    ADR-0031 authorizes it to import ``trading_framework.strategy`` /
+    ``trading_framework.signal_model``, unlike every other wave4 path here.
+    """
+    framework_root = Path(trading_framework.__file__).resolve().parent
+    excluded = framework_root / "application" / "predictive_research"
+    return tuple(path for path in _wave4_predictive_paths() if path != excluded)
 
 
 def _import_offenders_from_roots(
@@ -300,10 +335,30 @@ def test_predictive_report_package_does_not_import_ml_infrastructure() -> None:
 
 
 def test_predictive_research_wave4_packages_do_not_import_trading_capabilities() -> None:
+    """Every wave4 predictive path EXCEPT the resolution layer (below)."""
     assert (
         _import_offenders_from_roots(
-            _wave4_predictive_paths(),
+            _wave4_predictive_paths_excluding_resolution_layer(),
             predicate=_is_forbidden_predictive_import,
+        )
+        == []
+    )
+
+
+def test_predictive_research_application_layer_imports_no_simulation_or_execution() -> None:
+    """S056-T004 / ADR-0031 Decision 3: application/predictive_research/ may import
+    trading_framework.strategy / trading_framework.signal_model (it resolves a
+    signal_occurrences sample via evaluate_models / materialize_signal_occurrences),
+    but research.simulation and execution stay off-limits, same as every other
+    wave4 predictive path.
+    """
+    framework_root = Path(trading_framework.__file__).resolve().parent
+    package_root = framework_root / "application" / "predictive_research"
+
+    assert (
+        _import_offenders_from_roots(
+            (package_root,),
+            predicate=_is_forbidden_for_predictive_resolution,
         )
         == []
     )
