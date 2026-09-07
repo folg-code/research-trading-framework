@@ -23,9 +23,9 @@ flowchart LR
 LIVE_WORKFLOW_MERMAID = """
 flowchart LR
   exchange[Exchange provider live feed]
-  subgraph aws [AWS]
+  subgraph runtimeHost [Runtime host]
     runtime[Framework runtime]
-    strategy[Live strategy instance]
+    strategy[Paper strategy instance]
     runtime --> strategy
   end
   statusApi[Read-only status API]
@@ -54,7 +54,8 @@ def render_origin_of_results() -> None:
     st.markdown(
         "This dashboard is a **read-only analytics layer**. It does not run research "
         "engines or submit orders. It loads artifacts that the framework already "
-        "produced and stored, plus a live paper status snapshot from AWS."
+        "produced and stored, plus a live paper status snapshot when the runtime "
+        "endpoint is available."
     )
     st.caption(
         "The diagrams below are a **simplified** view of the end-to-end workflow. "
@@ -74,7 +75,8 @@ def render_origin_of_results() -> None:
 
     st.markdown("##### Live paper workflow")
     st.caption(
-        "On AWS the framework runtime and live strategy instance run together. "
+        "The framework runtime and paper strategy instance run together on the "
+        "current runtime host. "
         "The runtime listens to **real market data** from the exchange provider; "
         "the strategy (same model contract as research, not the same instance) "
         "runs paper simulation only. This dashboard consumes a read-only status "
@@ -126,8 +128,14 @@ def render_module_cards() -> None:
         st.page_link("pages/4_Robustness_Analysis.py", label="Open Robustness Analysis")
     with col4:
         st.subheader("Live Paper Trading")
-        st.write("Current state of the AWS paper-trading instance.")
+        st.write("Paper-runtime observability. The status endpoint is being migrated to VPS.")
         st.page_link("pages/5_Live_Paper_Trading.py", label="Open Live Paper Trading")
+
+    col5, _ = st.columns(2)
+    with col5:
+        st.subheader("Predictive Research")
+        st.write("ML research diagnostics. Public artifacts are being rebuilt by 2026-09-11.")
+        st.page_link("pages/6_Predictive_Research.py", label="Open Predictive Research")
 
     st.divider()
     st.page_link("pages/1_Research_Catalog.py", label="Browse Research Catalog")

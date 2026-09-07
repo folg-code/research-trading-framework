@@ -1,7 +1,7 @@
 # Dashboard deploy runbook
 
 Read-only Streamlit dashboard over a mounted research workspace, plus optional
-Live Paper status from the AWS dry-run status API.
+Live Paper status from the dry-run status API.
 
 **Primary UI:** `apps/dashboard` (Streamlit).  
 **Legacy:** HTML demo artifacts under `artifacts/demo/` and
@@ -14,7 +14,6 @@ From `apps/dashboard`:
 ```powershell
 $env:DASHBOARD_STORAGE_HOST_PATH = (Resolve-Path ..\..\user_data).Path
 $env:DASHBOARD_HTTP_PORT = "8080"
-$env:DASHBOARD_STATUS_URL = "https://279rmuo95c.execute-api.eu-north-1.amazonaws.com/status"
 docker compose -f deploy/docker-compose.yml up --build
 ```
 
@@ -22,18 +21,12 @@ Open `http://localhost:8080`.
 
 Storage is mounted **read-only** at `/data` (`DASHBOARD_STORAGE_ROOT=/data`).
 `DASHBOARD_STATUS_URL` is passed into the container for Live Paper (optional;
-the app also has a built-in default).
+when configured).
 
 ## Live Paper status URL
 
-Default (built into `dashboard_app.config.DEFAULT_LIVE_PAPER_STATUS_URL`):
-
-```text
-https://279rmuo95c.execute-api.eu-north-1.amazonaws.com/status
-```
-
-Override with env or the Streamlit sidebar. The dashboard **never** writes to
-DynamoDB or starts the ECS worker.
+Configure with env or the Streamlit sidebar once the runtime status endpoint is
+available. The dashboard **never** writes to execution storage or starts the worker.
 
 Operator check: `GET` the URL in a browser — expect JSON with `"simulated": true`
 and a fresh `last_heartbeat_at` when the worker is running.
@@ -53,7 +46,6 @@ and a fresh `last_heartbeat_at` when the worker is running.
 ```bash
 export DASHBOARD_STORAGE_HOST_PATH=/var/lib/trading-dashboard/user_data
 export DASHBOARD_HTTP_PORT=8080
-export DASHBOARD_STATUS_URL=https://279rmuo95c.execute-api.eu-north-1.amazonaws.com/status
 docker compose -f deploy/docker-compose.yml up --build -d
 ```
 
@@ -63,7 +55,7 @@ docker compose -f deploy/docker-compose.yml up --build -d
 5. Do **not** mount writable research output into the dashboard container.
 6. After new research runs, refresh the browser; Overview cache keys use a storage
    fingerprint and invalidate when top-level `research/` / `market_data/` mtimes change.
-7. Live Paper stale heartbeat: fix the **AWS worker**, not the dashboard.
+7. Live Paper stale heartbeat: fix the **runtime worker**, not the dashboard.
 
 ### Public hostname (ops)
 

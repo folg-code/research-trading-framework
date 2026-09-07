@@ -22,7 +22,7 @@ def test_load_settings_from_explicit_path(tmp_path: Path) -> None:
     settings = load_settings(storage_root=tmp_path)
 
     assert settings.storage_root == tmp_path.resolve()
-    assert settings.status_url == DEFAULT_LIVE_PAPER_STATUS_URL
+    assert settings.status_url is DEFAULT_LIVE_PAPER_STATUS_URL
     assert storage_root_status(settings) == {
         "storage_root_exists": True,
         "market_data_exists": True,
@@ -43,7 +43,7 @@ def test_load_settings_from_env(tmp_path: Path, monkeypatch: pytest.MonkeyPatch)
     monkeypatch.delenv("DASHBOARD_STATUS_URL", raising=False)
     settings = load_settings()
     assert settings.storage_root == tmp_path.resolve()
-    assert settings.status_url == DEFAULT_LIVE_PAPER_STATUS_URL
+    assert settings.status_url is DEFAULT_LIVE_PAPER_STATUS_URL
 
 
 def test_load_settings_reads_status_url(
