@@ -18,7 +18,8 @@ st.title("Trading Research Framework")
 st.markdown(
     """
 Modular Python framework for market-data processing, declarative market and signal
-models, strategy backtesting, robustness analysis, and live paper execution on AWS.
+models, strategy backtesting, robustness analysis, predictive research, and
+paper-runtime observability.
 
 This public dashboard is a **read-only** view of persisted research artifacts and
 live paper status. The workflow diagrams below are simplified; see the

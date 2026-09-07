@@ -26,9 +26,9 @@ Optional shared presentation DTOs live inside `dashboard_app.contracts`.
 | `ChartWindow` | Bounded OHLCV request |
 | `TradeView` | Strategy trade markers/table |
 | `HistoricalRunDataSource` | Historical Parquet source protocol |
-| `AwsDryRunDataSource` | Protocol for live paper status |
-| `HttpAwsDryRunDataSource` | GET-only client (`DASHBOARD_STATUS_URL`) |
-| `UnimplementedAwsDryRunDataSource` | Raises until a status URL is configured |
+| `LivePaperStatusDataSource` | Protocol for live paper status |
+| `HttpLivePaperStatusDataSource` | GET-only client (`DASHBOARD_STATUS_URL`) |
+| `UnimplementedLivePaperStatusDataSource` | Raises until a status URL is configured |
 
 Schema version: `dashboard.presentation.v1`.
 

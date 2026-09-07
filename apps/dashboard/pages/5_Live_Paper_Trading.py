@@ -1,4 +1,4 @@
-"""Live Paper Trading — read-only AWS dry-run status visualization."""
+"""Live Paper Trading — read-only dry-run status visualization."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ from dashboard_app.charts.lightweight import (
     markers_for_fills,
     render_lightweight_candlestick,
 )
-from dashboard_app.datasources import HttpAwsDryRunDataSource
+from dashboard_app.datasources import HttpLivePaperStatusDataSource
 from dashboard_app.formatting import format_kpi
 from dashboard_app.ui import configure_page, render_app_chrome
 from dashboard_app.views.live_paper import (
@@ -53,7 +53,7 @@ def _render_snapshot(snapshot: dict[str, object]) -> None:
             f"Status is stale (heartbeat older than {health.stale_after} or worker reported stale)."
         )
     elif health.badge == "Failed":
-        st.error("Worker reported FAILED. Check AWS logs / runbook.")
+        st.error("Worker reported FAILED. Check runtime logs / runbook.")
 
     metrics = st.columns(4)
     metrics[0].metric("Symbol", str(snapshot.get("symbol") or "—"))
@@ -146,8 +146,13 @@ def main() -> None:
 
     st.title("Live Paper Trading")
     st.caption(
-        "Read-only view of the AWS paper-trading status API. "
-        "The ECS worker owns execution; this page never submits orders."
+        "Read-only view of paper-runtime status. Execution remains owned by the "
+        "runtime worker; this page never submits orders."
+    )
+    st.info(
+        "Live Paper telemetry is currently being migrated from the previous cloud "
+        "runtime to a new VPS deployment. During the migration this page is a status "
+        "notice rather than a live telemetry console."
     )
 
     if settings is None:
@@ -156,9 +161,24 @@ def main() -> None:
         )
         return
     if not settings.status_url:
-        st.info(
-            "Set `DASHBOARD_STATUS_URL` (or System diagnostics when running locally) "
-            "to load live paper state."
+        st.subheader("Migration status")
+        st.write(
+            "The dashboard application remains online and read-only. The historical "
+            "Live Paper status endpoint has been intentionally detached while the "
+            "runtime is moved to the VPS environment."
+        )
+        st.write(
+            {
+                "runtime": "migration in progress",
+                "dashboard": "available",
+                "status endpoint": "temporarily unavailable",
+                "execution mode": "paper / simulated only",
+            }
+        )
+        st.caption(
+            "Once the VPS status endpoint is published, `DASHBOARD_STATUS_URL` will "
+            "be configured again and this page will resume showing heartbeat, market "
+            "feed, signal, order, fill and position snapshots."
         )
         return
 
@@ -170,7 +190,7 @@ def main() -> None:
 
     if refresh or "live_paper_snapshot" not in st.session_state:
         try:
-            source = HttpAwsDryRunDataSource(status_url=settings.status_url)
+            source = HttpLivePaperStatusDataSource(status_url=settings.status_url)
             snapshot = source.fetch_session_snapshot("")
             st.session_state["live_paper_snapshot"] = snapshot
             st.session_state["live_paper_error"] = None
@@ -183,7 +203,7 @@ def main() -> None:
     if error:
         st.error(error)
         st.info(
-            "If the worker is down, start/check ECS; the dashboard cannot recover "
+            "If the worker is down, start/check the runtime host; the dashboard cannot recover "
             "execution state by itself."
         )
     elif isinstance(snapshot, dict):

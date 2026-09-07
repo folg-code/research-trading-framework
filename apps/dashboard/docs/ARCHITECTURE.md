@@ -6,7 +6,8 @@ Short map of the Trading Research Framework for dashboard visitors. Deeper contr
 ## What this system is
 
 A modular Python platform for **market-data processing**, **declarative market/signal models**,
-**strategy backtesting**, **robustness analysis**, and **live paper execution** on AWS.
+**strategy backtesting**, **robustness analysis**, **predictive research**, and **paper-runtime
+observability**.
 
 This Streamlit app is a **read-only analytics surface**. It does not run research engines and does
 not submit exchange orders.
@@ -37,18 +38,18 @@ not submit exchange orders.
 | Time | UTC internally; no naive datetimes in domain logic |
 | Secrets | Public demo uses public market data only — no exchange API keys for dry-run |
 
-## Live paper path (AWS)
+## Live paper path
 
 ```text
 Exchange public feed
-  → ECS dry-run worker (framework runtime + paper strategy)
-  → DynamoDB execution STATE (bounded read model, TTL)
+  → dry-run worker (framework runtime + paper strategy)
+  → execution state store (bounded read model)
   → read-only status API
   → Live Paper page (RuntimeHealth + feed fields)
 ```
 
 Operators distinguish **process heartbeat** from **market-feed health** (`RUNNING` / `DEGRADED` /
-`STALE` / `STOPPED` / `FAILED`). See `docs/reference/runbooks/AWS_BTC_FUTURES_DRY_RUN.md`.
+`STALE` / `STOPPED` / `FAILED`). The public status endpoint is being migrated to the VPS runtime.
 
 ## Where to go next
 
@@ -57,4 +58,4 @@ Operators distinguish **process heartbeat** from **market-feed health** (`RUNNIN
 | Clone / install / modules | [GitHub README](https://github.com/folg-code/research-trading-framework) |
 | Architecture foundations | `docs/vision/PRODUCT_DIRECTION.md` |
 | Dashboard ops | `apps/dashboard/docs/RUNBOOK.md` |
-| Live dry-run ops | `docs/reference/runbooks/AWS_BTC_FUTURES_DRY_RUN.md` |
+| Live dry-run ops | `docs/reference/runbooks/` |

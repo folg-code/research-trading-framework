@@ -13,7 +13,7 @@ from dashboard_app.caching import cache_key_parts, compute_storage_fingerprint
 from dashboard_app.contracts import PRESENTATION_SCHEMA_VERSION, ChartWindow
 from dashboard_app.datasources import (
     ParquetHistoricalRunDataSource,
-    UnimplementedAwsDryRunDataSource,
+    UnimplementedLivePaperStatusDataSource,
 )
 from dashboard_app.query import DashboardQueryService, DatasetLocator
 
@@ -29,8 +29,8 @@ def test_storage_fingerprint_changes_when_child_appears(tmp_path: Path) -> None:
     assert second.token in parts
 
 
-def test_aws_dry_run_datasource_stub_requires_status_url() -> None:
-    source = UnimplementedAwsDryRunDataSource()
+def test_live_paper_status_datasource_stub_requires_status_url() -> None:
+    source = UnimplementedLivePaperStatusDataSource()
     with pytest.raises(NotImplementedError, match="DASHBOARD_STATUS_URL"):
         source.list_live_sessions()
     with pytest.raises(NotImplementedError, match="DASHBOARD_STATUS_URL"):
