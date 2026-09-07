@@ -43,6 +43,11 @@ st.caption(
     "Browse persisted predictive-study datasets and runs. Read-only: numbers come from "
     "`metrics.json` and its sidecars, never recomputed here."
 )
+st.info(
+    "Predictive Research is currently being rebuilt and republished. The public "
+    "refresh target is 2026-09-11. Existing artifacts may still appear below when "
+    "available, but this page should be treated as a release-in-progress preview."
+)
 
 if settings is None:
     st.warning("Storage is not configured. Set `DASHBOARD_STORAGE_ROOT` or use System diagnostics.")
@@ -52,7 +57,20 @@ fingerprint = storage_fingerprint(settings.storage_root)
 catalog = cached_list_predictive_catalog(str(settings.storage_root), fingerprint.token)
 
 if not catalog.datasets:
-    st.info("No predictive studies found under this storage root.")
+    st.subheader("Release status")
+    st.write(
+        "The Predictive Research surface is being updated with refreshed studies, "
+        "diagnostics and public-facing artifacts. No completed predictive study is "
+        "currently published under this storage root."
+    )
+    st.write(
+        {
+            "status": "rebuild in progress",
+            "target public refresh": "2026-09-11",
+            "dashboard": "available",
+            "research artifacts": "pending publication",
+        }
+    )
     if catalog.issues:
         with st.expander(f"Catalog issues ({len(catalog.issues)})"):
             for issue in catalog.issues:

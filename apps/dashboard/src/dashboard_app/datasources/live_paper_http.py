@@ -1,4 +1,4 @@
-"""HTTP GET client for the read-only AWS dry-run status API."""
+"""HTTP GET client for the read-only Live Paper status API."""
 
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ from typing import Any, final
 from urllib.parse import urlparse
 
 from dashboard_app.contracts import PRESENTATION_SCHEMA_VERSION, RunSummary, WorkflowKind
-from dashboard_app.datasources.aws_stub import AwsDryRunDataSource
+from dashboard_app.datasources.live_paper_stub import LivePaperStatusDataSource
 
 DEFAULT_STATUS_TIMEOUT_SECONDS = 10.0
 _Urlopener = Callable[[urllib.request.Request, float | None], Any]
@@ -20,8 +20,8 @@ _Urlopener = Callable[[urllib.request.Request, float | None], Any]
 
 @final
 @dataclass(frozen=True, slots=True)
-class HttpAwsDryRunDataSource:
-    """Read-only AWS status API client (GET only — never mutates remote state)."""
+class HttpLivePaperStatusDataSource:
+    """Read-only Live Paper status API client (GET only — never mutates remote state)."""
 
     status_url: str
     timeout_seconds: float = DEFAULT_STATUS_TIMEOUT_SECONDS
@@ -49,8 +49,8 @@ class HttpAwsDryRunDataSource:
     def fetch_session_snapshot(self, session_id: str) -> dict[str, object]:
         """GET the status URL and return the JSON object body.
 
-        ``session_id`` is ignored: the status Lambda serves one configured
-        runtime. The parameter remains for :class:`AwsDryRunDataSource` parity.
+        ``session_id`` is ignored: the status endpoint serves one configured
+        runtime. The parameter remains for :class:`LivePaperStatusDataSource` parity.
         """
         del session_id
         payload = self._get_json()
@@ -105,7 +105,7 @@ def _summary_from_snapshot(snapshot: dict[str, object]) -> RunSummary:
         run_id=runtime_id,
         created_at_utc=created_at,
         title=" · ".join(title_parts),
-        storage_path=str(snapshot.get("mode") or "aws-status-api"),
+        storage_path=str(snapshot.get("mode") or "status-api"),
         source_dataset_ref=str(symbol) if isinstance(symbol, str) else None,
         evaluation_timeframe="1m",
         research_scope="live_paper",
@@ -125,6 +125,8 @@ def _parse_optional_datetime(value: object) -> datetime | None:
     return parsed.astimezone(UTC)
 
 
-def assert_implements_protocol(source: HttpAwsDryRunDataSource) -> AwsDryRunDataSource:
+def assert_implements_protocol(
+    source: HttpLivePaperStatusDataSource,
+) -> LivePaperStatusDataSource:
     """Type helper for tests — ensures structural Protocol match."""
     return source

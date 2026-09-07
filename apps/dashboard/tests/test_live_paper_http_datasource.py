@@ -1,4 +1,4 @@
-"""Tests for HttpAwsDryRunDataSource (GET-only status client)."""
+"""Tests for HttpLivePaperStatusDataSource (GET-only status client)."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ from urllib.request import Request
 import pytest
 
 from dashboard_app.contracts import WorkflowKind
-from dashboard_app.datasources import HttpAwsDryRunDataSource
+from dashboard_app.datasources import HttpLivePaperStatusDataSource
 
 
 class _FakeResponse:
@@ -31,12 +31,12 @@ class _FakeResponse:
 
 def test_http_source_rejects_non_http_url() -> None:
     with pytest.raises(ValueError, match="http"):
-        HttpAwsDryRunDataSource(status_url="ftp://example.test/status")
+        HttpLivePaperStatusDataSource(status_url="ftp://example.test/status")
 
 
 def test_http_source_get_snapshot_and_list_sessions() -> None:
     payload = {
-        "runtime_id": "btc-futures-dry-run-aws",
+        "runtime_id": "btc-futures-dry-run-vps",
         "symbol": "BTCUSDT",
         "status": "running",
         "mode": "dry_run",
@@ -53,19 +53,19 @@ def test_http_source_get_snapshot_and_list_sessions() -> None:
         assert request.full_url == "https://example.test/status"
         return _FakeResponse(payload)
 
-    source = HttpAwsDryRunDataSource(
+    source = HttpLivePaperStatusDataSource(
         status_url="https://example.test/status",
         timeout_seconds=5.0,
         _urlopen=fake_urlopen,
     )
     snapshot = source.fetch_session_snapshot("ignored")
-    assert snapshot["runtime_id"] == "btc-futures-dry-run-aws"
+    assert snapshot["runtime_id"] == "btc-futures-dry-run-vps"
     assert snapshot["simulated"] is True
 
     sessions = source.list_live_sessions()
     assert len(sessions) == 1
     assert sessions[0].workflow is WorkflowKind.LIVE_PAPER
-    assert sessions[0].run_id == "btc-futures-dry-run-aws"
+    assert sessions[0].run_id == "btc-futures-dry-run-vps"
     assert "BTCUSDT" in sessions[0].title
     assert len(calls) == 2
 
@@ -81,7 +81,7 @@ def test_http_source_maps_http_errors() -> None:
             fp=io.BytesIO(b'{"error":"runtime_status_not_found"}'),
         )
 
-    source = HttpAwsDryRunDataSource(
+    source = HttpLivePaperStatusDataSource(
         status_url="https://example.test/status",
         _urlopen=fake_urlopen,
     )
@@ -94,7 +94,7 @@ def test_http_source_maps_network_errors() -> None:
         del request, timeout
         raise URLError("timed out")
 
-    source = HttpAwsDryRunDataSource(
+    source = HttpLivePaperStatusDataSource(
         status_url="https://example.test/status",
         _urlopen=fake_urlopen,
     )
