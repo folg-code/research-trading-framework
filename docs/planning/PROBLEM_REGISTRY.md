@@ -1071,6 +1071,64 @@ mandate, and an architect may not silently depart from it mid-implementation.
 
 ---
 
+## PRB-021 — `FileDatasetRegistry`'s Default Version Allocator Silently Overwrites Published Datasets on Re-Import
+
+```text
+Status: OPEN
+Severity: HIGH
+Domain: Market Data / Dataset Lifecycle
+Owner: Unassigned
+Discovered: 2026-09-08 (Sprint 052 prerequisite investigation, S051 BTC
+  dataset restoration)
+Last Updated: 2026-09-08
+```
+
+### Description
+
+`FileDatasetRegistry.__init__` (`src/trading_framework/infrastructure/storage/metadata/registry.py`) defaults to a fresh `InMemoryDatasetVersionAllocator()` whenever no allocator is explicitly passed in. That allocator's version counter lives only in process memory — it is never seeded from what is already published on disk. Every fresh CLI/script invocation therefore allocates `version=1` again for a given dataset identity, regardless of `DatasetVersionPolicy`'s conceptual rule that a content/checksum change should get a new version: the policy is never actually consulted against the prior on-disk version, because the allocator that would carry that state doesn't persist across processes.
+
+**Concrete consequence:** re-running an import command against an already-published dataset identity does not create `v2` — it silently overwrites `v1.json`, `import_manifest.json` and `bars.parquet` in place, with no error, no warning, and no record that a prior version ever existed.
+
+### Evidence
+
+Confirmed 13 call sites across the application layer (Binance historical import, Databento import, external CSV import, and others) construct `FileDatasetRegistry(storage_root)` with no explicit allocator argument.
+
+Directly observed the failure mode: `docs/planning/sprints/S051_BTC_DATA_INVENTORY.md` documents a successful `BTCUSDT.P` 1m import (`2024-01-01 → 2026-06-29`, 1,311,840 rows, published 2026-09-03T07:57:30Z). On 2026-09-08, a Sprint 052 prerequisite check found the actual on-disk `v1.json`/`bars.parquet` recorded a *different* range (`2025-01-01 → 2026-01-01`, 527,040 rows) with file timestamps predating the documented September 3rd publish — i.e. a later, unrelated re-import (or a repeated invocation of the same buggy pattern) had clobbered the original published version with no trace, no `v2`, and no error surfaced to whoever ran it. Re-running the original S051 import command reproduced the documented data exactly, including an identical checksum (`df83ecfaba111aeaad24d68905e3e978a11e8ef968f3f7429d3df0aaea28ffed`) — confirming the importer itself is deterministic and Binance's historical data was not revised; the loss was purely a registry/versioning defect.
+
+### Impact
+
+- Silent data loss: a previously published dataset version can vanish with no error, no diff, and no way to tell from the registry alone that anything changed.
+- Any workflow, sprint, or research result that depends on "the currently published version" being the one it was validated against can silently start running against different data after an unrelated re-import elsewhere touches the same dataset identity.
+- Affects every provider adapter that goes through `FileDatasetRegistry` without its own persistent allocator (at least Binance, Databento, external CSV import) — not specific to any one dataset.
+- Reproducibility claims made anywhere in this project's research artifacts (dataset fingerprints, `definition_hash` provenance records, etc.) implicitly assume the registry's version history is durable. It is not, for any dataset re-imported more than once in separate process invocations.
+
+### Possible Directions
+
+- Make `FileDatasetRegistry`'s default allocator scan on-disk versions for the dataset identity at construction time (or on first allocation) instead of starting from an empty in-memory counter, so a fresh process invocation correctly continues from the highest existing version.
+- Require every call site to wire an explicit, persistent allocator at the composition root (CLI/script entry points), removing the silently-defaulting in-memory allocator as an option entirely.
+- A hybrid: keep the in-memory allocator for tests/synthetic fixtures (where it is harmless and already relied upon), but make the production entry points (CLI commands, import scripts) construct `FileDatasetRegistry` with a disk-backed allocator explicitly, and add a boundary test asserting they do.
+
+### Decision or Resolution Criteria
+
+- A maintainer decision on which direction (or hybrid) to take.
+- Whichever direction is chosen, re-importing an already-published dataset identity must either allocate a genuinely new version or refuse with a clear error — never silently overwrite the prior version's files.
+- A regression test proving this: import a dataset identity, import it again with different content, and assert two versions exist (or an explicit refusal), not one silently mutated file.
+
+### Related Documents
+
+- `docs/planning/sprints/S051_BTC_DATA_INVENTORY.md` — the dataset whose loss and restoration surfaced this problem.
+- `docs/planning/sprints/SPRINT_052.md` — the sprint whose prerequisite check discovered it.
+
+### Related ADRs
+
+- None yet. `ADR-0007`/`ADR-0008` (dataset lifecycle and repository contracts, referenced elsewhere in this registry) may need amending depending on the chosen direction.
+
+### Related Tasks
+
+- None yet — discovered as a Sprint 052 prerequisite investigation, not itself Sprint 052 scope (Sprint 052's own FORBIDDEN list excludes `market_analysis/`/`research/predictive/` but this registry code is Market Data infrastructure, also outside Sprint 052's task list). Needs its own task/sprint once a direction is chosen.
+
+---
+
 # 6. Resolved Problems
 
 No problems have yet been formally moved to `RESOLVED`.
