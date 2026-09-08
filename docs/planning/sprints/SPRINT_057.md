@@ -6,8 +6,14 @@
 Sprint: 057
 Phase: Phase 16 — Quant Research Workbench; increment 16A (Analyst Verdict
        Artifact)
-Status: APPROVED (2026-09-08) — Wave 0 Checklist signed off
-        (S057_WAVE0_DECISIONS.md D-S057-12). `engineer` may start S057-T001.
+Status: COMPLETE (2026-09-08) — 7/7 tasks DONE on
+        `sprint/analyst-verdict-artifact` (working PRs #464-#469, this
+        closure is the seventh). Wave 0 Checklist signed off
+        (S057_WAVE0_DECISIONS.md D-S057-12). ADR-0032 ACCEPTED. All three
+        retrospective verdicts (S057-T005) matched D-S057-10's
+        pre-declared expectations exactly. The final integration PR
+        `sprint/analyst-verdict-artifact` -> `main` is a separate,
+        maintainer-reviewed step, not yet opened as of this note.
 Planned Start: TBD
 Planned End: TBD
 Sprint Goal Owner: Project Maintainer
@@ -361,7 +367,7 @@ dependencies, the documents it is bound by, and a size that fits one PR.
 
 | Task | Description | Acceptance | Deps | Status |
 |------|-------------|-----------|------|--------|
-| S057-T001 | Land `S057_WAVE0_DECISIONS.md` and draft **ADR-0032** (verdict vocabulary and semantics, the versioned rule-set format, the `verdict.json` schema, module placement) as `Status: Proposed`; carry it through maintainer review to `ACCEPTED` and fold any correction it attracts back into the Wave 0 decisions | ADR-0032 exists with Context / Decision / Consequences / Alternatives / Follow-up, is linked from `docs/adr/README.md`, and reaches `ACCEPTED` **by an explicit maintainer statement — no agent flips it**; every Wave 0 decision the review changed is amended in place and D-S057-01..11 are individually confirmed; the pre-declared expected verdicts in D-S057-10 are recorded **before** any implementation exists; **no code file is touched by this task** | maintainer approval to open the sprint | TODO |
+| S057-T001 | Land `S057_WAVE0_DECISIONS.md` and draft **ADR-0032** (verdict vocabulary and semantics, the versioned rule-set format, the `verdict.json` schema, module placement) as `Status: Proposed`; carry it through maintainer review to `ACCEPTED` and fold any correction it attracts back into the Wave 0 decisions | ADR-0032 exists with Context / Decision / Consequences / Alternatives / Follow-up, is linked from `docs/adr/README.md`, and reaches `ACCEPTED` **by an explicit maintainer statement — no agent flips it**; every Wave 0 decision the review changed is amended in place and D-S057-01..11 are individually confirmed; the pre-declared expected verdicts in D-S057-10 are recorded **before** any implementation exists; **no code file is touched by this task** | maintainer approval to open the sprint | **DONE** — ADR-0032 accepted (`docs/adr/ADR-0032-predictive-run-verdict-artifact.md`), PR #464 |
 
 Wave 0 is DONE when the maintainer has checked every box in
 `S057_WAVE0_DECISIONS.md` D-S057-12 **and** ADR-0032 is `ACCEPTED` (or the
@@ -372,24 +378,68 @@ maintainer has explicitly declined the ADR per Finding 6, in which case the Wave
 
 | Task | Description | Acceptance | Deps | Status |
 |------|-------------|-----------|------|--------|
-| S057-T002 | `research/predictive/verdict.py`: the `RunVerdict` vocabulary enum, the frozen `VerdictRuleSet` (version string + every threshold), `VerdictFacts` (the extracted inputs), `RuleEvaluation` (rule id, fired, observed, threshold, source artifact), `VerdictReport` with `to_dict()`/`from_dict()`, and the pure `evaluate_verdict(facts, rules)` cascade in D-S057-08's fixed rule order | every one of the eight vocabulary values is produced by at least one synthetic fixture, including each `REJECTED_*`; the rejection precedence order is asserted by a fixture where two rejection rules fire at once and the earlier one wins, with **both** recorded in the evaluations list; a missing required fact yields `INCONCLUSIVE` naming the missing input (never `PASS`, never a skipped rule); `evaluate_verdict` is pure — same input, byte-identical `to_dict()` output, asserted by a round-trip equality test; the payload contains **no wall-clock field** (D-S057-07); `research/predictive/` gains no import of sklearn/xgboost/lightgbm/catboost/torch, `signal_model`, `strategy`, `application`, or `research.reporting` (architecture boundary test green) | T001 | TODO |
-| S057-T003 | Fact extraction: turn a `PredictiveMetricsReport`, a dataset manifest's `study_spec` / `fold_summary` / `exclusion_counts`, the pooled TEST labels, and the `importance.json` payload into a `VerdictFacts` record, with every fact carrying the artifact it was read from | each fact in D-S057-05's table is extracted, and each records its source artifact name; the baseline delta uses pooled `MODEL` minus pooled `RANDOM_PERMUTATION` on the task's primary metric, matching the existing `primary_metric_name` convention (`roc_auc` / `spearman_ic`) exactly — not a second definition of "primary metric"; per-fold win counting uses the same metric per fold; feature-importance facts are extracted and **recorded only**, driving no rule in v1 (asserted by a fixture whose importances are absurd and whose verdict is unchanged); extraction is total — a missing optional artifact produces a named missing-input marker, never an exception | T002 | TODO |
+| S057-T002 | `research/predictive/verdict.py`: the `RunVerdict` vocabulary enum, the frozen `VerdictRuleSet` (version string + every threshold), `VerdictFacts` (the extracted inputs), `RuleEvaluation` (rule id, fired, observed, threshold, source artifact), `VerdictReport` with `to_dict()`/`from_dict()`, and the pure `evaluate_verdict(facts, rules)` cascade in D-S057-08's fixed rule order | every one of the eight vocabulary values is produced by at least one synthetic fixture, including each `REJECTED_*`; the rejection precedence order is asserted by a fixture where two rejection rules fire at once and the earlier one wins, with **both** recorded in the evaluations list; a missing required fact yields `INCONCLUSIVE` naming the missing input (never `PASS`, never a skipped rule); `evaluate_verdict` is pure — same input, byte-identical `to_dict()` output, asserted by a round-trip equality test; the payload contains **no wall-clock field** (D-S057-07); `research/predictive/` gains no import of sklearn/xgboost/lightgbm/catboost/torch, `signal_model`, `strategy`, `application`, or `research.reporting` (architecture boundary test green) | T001 | **DONE** — `research/predictive/verdict.py`, tester/reviewer-approved, PR #465 |
+| S057-T003 | Fact extraction: turn a `PredictiveMetricsReport`, a dataset manifest's `study_spec` / `fold_summary` / `exclusion_counts`, the pooled TEST labels, and the `importance.json` payload into a `VerdictFacts` record, with every fact carrying the artifact it was read from | each fact in D-S057-05's table is extracted, and each records its source artifact name; the baseline delta uses pooled `MODEL` minus pooled `RANDOM_PERMUTATION` on the task's primary metric, matching the existing `primary_metric_name` convention (`roc_auc` / `spearman_ic`) exactly — not a second definition of "primary metric"; per-fold win counting uses the same metric per fold; feature-importance facts are extracted and **recorded only**, driving no rule in v1 (asserted by a fixture whose importances are absurd and whose verdict is unchanged); extraction is total — a missing optional artifact produces a named missing-input marker, never an exception | T002 | **DONE** — `extract_verdict_facts` in `verdict.py`; tester/reviewer-approved (reviewer found and engineer fixed a real `fold_count` source bug), PR #466 |
 
 ### Wave 2 — Persistence and the entry point
 
 | Task | Description | Acceptance | Deps | Status |
 |------|-------------|-----------|------|--------|
-| S057-T004 | `application/predictive_research/evaluate_run_verdict.py` (request/result dataclasses mirroring `analyze_predictive_run`'s shape) plus `predictive_research_run_verdict_path` in `infrastructure/storage/paths.py`; reads the run envelope, the dataset envelope and the optional `importance.json`, evaluates, and writes `runs/<run_id>/verdict.json` | the sidecar is written at `runs/<run_id>/verdict.json` and contains: rule-set version, `run_id`, `dataset_fingerprint`, the verdict, every extracted fact with its source, and every rule with fired/not-fired + observed + threshold; **no fitted model blob is opened** (asserted the same way `analyze_predictive_run` is: no `joblib.load`, no `models/fold_*.bin` read — covered by a test); evaluating the same run directory twice produces a **byte-identical** file; `metrics.json`, `manifest.json`, `importance.json` and the dataset directory are opened read-only and are byte-identical afterwards (asserted); nothing under §5's forbidden list is modified; the whole path runs on a synthetic fixture in default CI without the `ml` extra and without network | T003 | TODO |
+| S057-T004 | `application/predictive_research/evaluate_run_verdict.py` (request/result dataclasses mirroring `analyze_predictive_run`'s shape) plus `predictive_research_run_verdict_path` in `infrastructure/storage/paths.py`; reads the run envelope, the dataset envelope and the optional `importance.json`, evaluates, and writes `runs/<run_id>/verdict.json` | the sidecar is written at `runs/<run_id>/verdict.json` and contains: rule-set version, `run_id`, `dataset_fingerprint`, the verdict, every extracted fact with its source, and every rule with fired/not-fired + observed + threshold; **no fitted model blob is opened** (asserted the same way `analyze_predictive_run` is: no `joblib.load`, no `models/fold_*.bin` read — covered by a test); evaluating the same run directory twice produces a **byte-identical** file; `metrics.json`, `manifest.json`, `importance.json` and the dataset directory are opened read-only and are byte-identical afterwards (asserted); nothing under §5's forbidden list is modified; the whole path runs on a synthetic fixture in default CI without the `ml` extra and without network | T003 | **DONE** — `application/predictive_research/evaluate_run_verdict.py`, tester/reviewer-approved, PR #467; closes Wave 2 |
 
 ### Wave 3 — The worked example, the read surface, and closing out
 
 | Task | Description | Acceptance | Deps | Status |
 |------|-------------|-----------|------|--------|
-| S057-T005 | **Retrospective application (maintainer-executed, reads `user_data/`, never CI).** Evaluate the rule set over Sprint 052's three runs — `f7ac893d54ae6b69` (ridge/regression), `faa6983acd03f846` (logistic/binary), `6d2842b647cd4097` (lightgbm/tree) — and record each verdict with the facts that produced it | all three verdicts are produced from the persisted artifacts alone, with no re-run and no re-analysis; each is compared against D-S057-10's **pre-declared** expectation (`WEAK_PASS`, `PASS`, `REJECTED_OVERFIT` respectively); **any mismatch is reported as a STOP-and-report finding with the offending fact and threshold named — no threshold is changed to resolve it**; the three `verdict.json` files stay under `user_data/` and are not committed (`git status --porcelain` clean apart from documentation); the recorded output states plainly that these verdicts change nothing about Sprint 052's own conclusions, which stand as written | T004; maintainer confirmation that the run directories in Finding 8 exist | TODO |
-| S057-T006 | **Descopable.** Dashboard displays the persisted verdict: the verdict value, the rule-set version, and the recorded inputs, read from `verdict.json` only | no threshold constant, no comparison and no fallback verdict is added anywhere under `apps/dashboard/` (reviewable as a diff); a run with no `verdict.json` renders "no verdict recorded" rather than a computed one; the existing `predictive_quality.py` mirror is **not modified**; `apps/dashboard` still imports no `trading_framework` symbol (ADR-0022) | T004; D-S057-09 kept rather than deferred | TODO |
-| S057-T007 | `docs/reference/PREDICTIVE_VERDICT.md` (vocabulary and exact semantics, the v1 rule set with every threshold, the rule order, the missing-input rule, the worked example from T005, and the ADR-0024 restatement); `research/predictive/CLAUDE.md` conventions; the Finding 2 technical-debt entry; sprint closure (Review, `CURRENT_STATUS.md`, and an **appended** 16A note in `PHASE_16_QUANT_WORKBENCH.md` §13H.1) | the reference document states in its own first section that a verdict is **a decision aid for what to study next — never evidence of a live edge and never a promotion approval** (ADR-0024's rule, restated not weakened), and that nothing is promoted, filtered or hidden because of one; each of §13H.1's four completion criteria is named as met or not met with evidence; the closure states that this sprint produced **no study, no scorer, no promotion and no new market claim**; the Finding 2 duplication is logged in `TECHNICAL_DEBT.md` by its owner, not summarized here; the roadmap edit is an append, never a rewrite | T005 (and T006 if kept) | TODO |
+| S057-T005 | **Retrospective application (maintainer-executed, reads `user_data/`, never CI).** Evaluate the rule set over Sprint 052's three runs — `f7ac893d54ae6b69` (ridge/regression), `faa6983acd03f846` (logistic/binary), `6d2842b647cd4097` (lightgbm/tree) — and record each verdict with the facts that produced it | all three verdicts are produced from the persisted artifacts alone, with no re-run and no re-analysis; each is compared against D-S057-10's **pre-declared** expectation (`WEAK_PASS`, `PASS`, `REJECTED_OVERFIT` respectively); **any mismatch is reported as a STOP-and-report finding with the offending fact and threshold named — no threshold is changed to resolve it**; the three `verdict.json` files stay under `user_data/` and are not committed (`git status --porcelain` clean apart from documentation); the recorded output states plainly that these verdicts change nothing about Sprint 052's own conclusions, which stand as written | T004; maintainer confirmation that the run directories in Finding 8 exist | **DONE** |
 
-**Progress: 0 / 7.**
+**S057-T005 outcome (2026-09-08, maintainer-executed directly, per D-S057-11):**
+`evaluate_run_verdict` (T004) was called against all three real Sprint 052
+run directories under `user_data/workspace/research/predictive_research/runs/`,
+reading only their persisted `manifest.json`/`metrics.json`/`importance.json`
+and each run's dataset manifest — no re-run, no re-analysis, no fitted model
+blob opened.
+
+```text
+run_id             family              verdict            expected (D-S057-10)   match
+f7ac893d54ae6b69   sklearn.ridge       WEAK_PASS          WEAK_PASS               YES
+faa6983acd03f846   sklearn.logistic    PASS               PASS                     YES
+6d2842b647cd4097   lightgbm.regressor  REJECTED_OVERFIT   REJECTED_OVERFIT         YES
+```
+
+**All three match D-S057-10's pre-declared expectations exactly — no
+STOP-and-report finding, no threshold touched.** Rules fired per run
+(`verdict.json`'s own `rules` list, every rule always evaluated regardless
+of which one determines the final verdict): ridge fires `O2` only (beats
+`RANDOM_PERMUTATION` pooled, 2/3 fold win rate, not every fold — matches
+`BTC_PREDICTIVE_STUDY.md`'s "loses fold 5" finding exactly); logistic fires
+`O1` only (beats pooled and every one of six folds); lightgbm fires **both**
+`R1` (overfit — median train/test gap exceeds its own pooled effect size,
+unanimous across folds) and `O2` (would-be `WEAK_PASS` on the raw win-rate
+numbers alone) — `R1` wins because rejection rules are evaluated before the
+pass/fail rules in the fixed cascade order (`R2, R3, R4, R1, O1..O4`), which
+is exactly the mechanism D-S057-06 designed to stop a technically-higher
+pooled number from overriding a real overfitting signature. This is the
+same conclusion T005 of Sprint 052 already reported by hand
+(`BTC_PREDICTIVE_STUDY.md` §5): the artifact reproduces it mechanically,
+it does not discover something new.
+
+Re-evaluation determinism was checked directly (not merely asserted): the
+ridge run's `verdict.json` was re-evaluated a second time and its raw bytes
+compared byte-for-byte identical to the first write.
+
+`git status --porcelain` is clean apart from this documentation change —
+all three `verdict.json` files live under gitignored `user_data/` and were
+never staged.
+
+**These verdicts change nothing about Sprint 052's own conclusions, which
+stand as written in `BTC_PREDICTIVE_STUDY.md` and are cited here, never
+amended.** 16A's completion criterion "applied retrospectively to the
+Sprint 052 run as the worked example" (§13H.1) is met.
+| S057-T006 | **Descopable.** Dashboard displays the persisted verdict: the verdict value, the rule-set version, and the recorded inputs, read from `verdict.json` only | no threshold constant, no comparison and no fallback verdict is added anywhere under `apps/dashboard/` (reviewable as a diff); a run with no `verdict.json` renders "no verdict recorded" rather than a computed one; the existing `predictive_quality.py` mirror is **not modified**; `apps/dashboard` still imports no `trading_framework` symbol (ADR-0022) | T004; D-S057-09 kept rather than deferred | **DONE** — `apps/dashboard/pages/6_Predictive_Research.py` read-only verdict display, PR #469; found and logged `PRB-022` (dashboard import-boundary test does not scan `pages/*.py`) during QA |
+| S057-T007 | `docs/reference/PREDICTIVE_VERDICT.md` (vocabulary and exact semantics, the v1 rule set with every threshold, the rule order, the missing-input rule, the worked example from T005, and the ADR-0024 restatement); `research/predictive/CLAUDE.md` conventions; the Finding 2 technical-debt entry; sprint closure (Review, `CURRENT_STATUS.md`, and an **appended** 16A note in `PHASE_16_QUANT_WORKBENCH.md` §13H.1) | the reference document states in its own first section that a verdict is **a decision aid for what to study next — never evidence of a live edge and never a promotion approval** (ADR-0024's rule, restated not weakened), and that nothing is promoted, filtered or hidden because of one; each of §13H.1's four completion criteria is named as met or not met with evidence; the closure states that this sprint produced **no study, no scorer, no promotion and no new market claim**; the Finding 2 duplication is logged in `TECHNICAL_DEBT.md` by its owner, not summarized here; the roadmap edit is an append, never a rewrite | T005 (and T006 if kept) | **DONE** — `docs/reference/PREDICTIVE_VERDICT.md`, `research/predictive/CLAUDE.md`, `TECHNICAL_DEBT.md` TD-033, this Review section, `CURRENT_STATUS.md`, `PHASE_16_QUANT_WORKBENCH.md` §13H.1 completion note |
+
+**Progress: 7 / 7.**
 
 **Descope order:** T006 first (Finding 5 — the display may simply be 16D's).
 Then T005's scope may shrink to the two baseline runs if the tree run's
@@ -510,4 +560,137 @@ imply otherwise.
 
 ## 13. Review
 
-_To be written at closure by `tech-writer`. Empty until then._
+**Completed: 7 / 7 tasks, all four waves.**
+
+```text
+T001  ADR-0032 drafted and ACCEPTED (2026-09-08, no correction attracted at
+      review), PR #464
+T002  RunVerdict vocabulary, frozen VerdictRuleSet, pure evaluate_verdict
+      cascade, PR #465
+T003  extract_verdict_facts (fact extraction from persisted artifacts), PR
+      #466 — reviewer found and engineer fixed a real fold_count source
+      bug, and added the primary-metric-convention parity test that TD-033
+      now references
+T004  application/predictive_research/evaluate_run_verdict.py + the
+      verdict.json path helper, PR #467
+T005  Retrospective application to Sprint 052's three real runs
+      (maintainer-executed), recorded directly in this document's Wave 3
+      section above
+T006  Read-only dashboard verdict display, PR #469 — found and logged
+      PRB-022 (dashboard import-boundary test does not scan pages/*.py)
+      during QA
+T007  This closure: docs/reference/PREDICTIVE_VERDICT.md,
+      research/predictive/CLAUDE.md, TECHNICAL_DEBT.md TD-033, this Review,
+      CURRENT_STATUS.md, and an appended PHASE_16_QUANT_WORKBENCH.md
+      §13H.1 completion note
+```
+
+Working PRs #464–#469, all into `sprint/analyst-verdict-artifact`, all
+tester/reviewer-approved before merge. `docs/verdict-reference-and-closure`
+(T007, this PR) is the seventh and closes the sprint's task list; the
+separate final integration PR `sprint/analyst-verdict-artifact` -> `main`
+is a distinct, later maintainer-triggered action, not part of this task.
+
+### Not Completed
+
+Nothing. Every task in the Wave 0-4 table reached DONE; none was descoped
+(the descope order named T006 first, but D-S057-09 kept it, and it shipped
+cleanly).
+
+### Demonstrated Capability
+
+A predictive run now carries a machine-computed, reproducible verdict:
+`research/predictive/verdict.py`'s pure, versioned `verdict_rules.v1`
+cascade, wired to real persisted artifacts through
+`application/predictive_research/evaluate_run_verdict.py`, applied for real
+against Sprint 052's three runs (T005) and displayed read-only in the
+dashboard (T006). All three retrospective verdicts matched D-S057-10's
+pre-declared expectations exactly, including the lightgbm run's R1/O2
+cascade case, which is the sprint's clearest demonstration that the fixed
+rule order is load-bearing, not incidental.
+
+### Problems Discovered
+
+**None that stopped a task.** Unlike Sprint 052's T003 (which hit a
+pipeline validation failure requiring a Wave 0 replan), every task here
+completed cleanly against its Wave 0 plan and acceptance criteria — no
+STOP-and-report finding was raised at any point, including at T005, where
+one was explicitly anticipated as a live possibility (a mismatch against
+D-S057-10 would have been exactly that). Two things were found during QA
+that were not anticipated at Wave 0 and are recorded, not treated as
+findings against the plan:
+
+- **T003 QA**: a real `fold_count` source bug (reviewer-found,
+  engineer-fixed before merge, PR #466) and the discovery that
+  `verdict.py`'s primary-metric convention duplicates
+  `quality.py`'s, guarded only by a parity test — folded into `TD-033`
+  below, which extends D-S057-06's already-accepted threshold-triplication
+  debt to cover this one additional naming-convention duplication.
+- **T006 QA**: `PRB-022` — the dashboard's import-boundary test
+  (`tests/unit/test_apps_boundaries.py`) does not scan `apps/dashboard/pages/*.py`,
+  so the new verdict-display page had to be verified clean of
+  `trading_framework` imports by hand. Already logged in
+  `PROBLEM_REGISTRY.md`; not re-logged here.
+
+### Decisions Required
+
+None outstanding. Every judgment call this sprint carried (D-S057-09
+dashboard scope, ADR-0032's acceptance path, the threshold-triplication
+debt, D-S057-11 worked-example placement) was resolved at Wave 0 by the
+maintainer, per D-S057-12's checklist, before implementation started.
+
+### Technical Debt Added
+
+`TD-033` (`docs/planning/TECHNICAL_DEBT.md`, ACCEPTED/LOW) — the
+verdict rule set's three thresholds and its primary-metric-name /
+primary-metric-value convention independently duplicate
+`research/reporting/predictive/quality.py`'s equivalents, per ADR-0032 §2's
+Alternatives Considered (a deliberate design choice, not an oversight).
+Repayment trigger: a future consolidation increment touching both modules,
+or an observed drift between them.
+
+### Follow-up
+
+- `PRB-022` (dashboard import-boundary test blind to `apps/dashboard/pages/*.py`)
+  — already logged, open, unassigned.
+- Two non-blocking suggestions from the T004 reviewer, noted in PR #467's
+  description and not yet acted on: (1) consider whether `VerdictFacts.sources`
+  and `RuleEvaluation.source` should share one naming convention
+  (`source` vs. the plural `inputs_used` ADR-0032 §4 uses in prose) rather
+  than the current two closely-related-but-distinct names; (2) test
+  coverage for `EvaluateRunVerdictRequest(persist=False)` (the report is
+  still returned and no sidecar is written) could be made more explicit.
+  Neither blocked T004's merge; both are candidates for a future
+  predictive-verdict follow-up task, not this sprint's.
+- 16C, 16D and 16G may now consume `verdict.json` as readers (ADR-0032
+  Follow-up); none may extend the vocabulary, sidecar schema, or module
+  placement without a new or amending ADR.
+- The `sprint/analyst-verdict-artifact` -> `main` integration PR is the
+  next, separate, maintainer-reviewed step — not opened by this task.
+
+### Lessons Learned
+
+- Freezing both the rule set's thresholds *and* the worked example's
+  expected verdicts at Wave 0, before any implementation existed
+  (D-S057-10), is what made T005 a confirmation rather than a
+  temptation to adjust a threshold after seeing a result. The sprint
+  produced zero STOP-and-report findings partly because the hardest
+  design call (R1's relative-not-absolute overfit rule) was hand-verified
+  against real numbers before a line of `verdict.py` was written.
+- A rule cascade's fixed evaluation order is not a stylistic detail — the
+  lightgbm run's R1/O2 double-fire is direct evidence that "first
+  rejection wins, but every rule is recorded" is the mechanism that makes
+  a technically-passable win-rate not override a real overfitting
+  signature. Recording every evaluation, not only the winner, is what let
+  this be demonstrated rather than merely asserted.
+- Accepting a known duplication explicitly (the threshold-triplication
+  debt, extended here to the primary-metric-name convention) rather than
+  importing across a layering boundary kept the verdict's persisted
+  contract independent of an unrelated module's future changes — the
+  cost is a parity test and a technical-debt entry, paid knowingly rather
+  than discovered as an incident later.
+
+**This sprint produced no study, no scorer, no promotion, and no new market
+claim.** It shipped a persisted judgement contract over runs Sprint 052
+already produced; Sprint 052's own conclusions in
+`docs/reference/BTC_PREDICTIVE_STUDY.md` stand exactly as written.

@@ -82,6 +82,7 @@ Implementation references:
 | [modules/MARKET_ANALYSIS_MODULE.md](modules/MARKET_ANALYSIS_MODULE.md) | Market Analysis — implementation guide (flow, key types, verification, design notes) |
 | [modules/ANALYSIS_COMPONENT_CATALOG.md](modules/ANALYSIS_COMPONENT_CATALOG.md) | The full built-in component catalog — per-component semantics, warm-up, output fields, zero-denominator conventions |
 | [modules/PREDICTIVE_PROMOTION.md](modules/PREDICTIVE_PROMOTION.md) | Predictive model promotion (`research/predictive/promotion/`) — parameter-file schema, store layout, fingerprint derivation, guards |
+| [PREDICTIVE_VERDICT.md](PREDICTIVE_VERDICT.md) | Analyst verdict artifact (`research/predictive/verdict.py`, `application/predictive_research/evaluate_run_verdict.py`) — the eight-value vocabulary, the versioned `verdict_rules.v1` rule set, the `verdict.json` sidecar, and the Sprint 052 worked example |
 | [modules/DASHBOARD_APPLICATION.md](modules/DASHBOARD_APPLICATION.md) | Research Dashboard (`apps/dashboard`) — boundary, contracts, pages, publishing runbook |
 
 Operator/author-facing guides:

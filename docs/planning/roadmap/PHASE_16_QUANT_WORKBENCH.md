@@ -228,6 +228,69 @@ persisted run artifacts (metrics, folds, importances)
 - Any automatic consequence of a verdict — nothing is promoted, filtered or
   hidden because of one.
 
+### Completion note (added at closure, 2026-09-08 — append-only, does not replace the text above)
+
+**16A is DONE.** Delivered by Sprint 057
+(`docs/planning/sprints/SPRINT_057.md`), 7/7 tasks, merged as six working
+PRs into `sprint/analyst-verdict-artifact` (#464 ADR-0032, #465 vocabulary
+and rule cascade, #466 fact extraction, #467 sidecar I/O, #468 retrospective
+application, #469 dashboard display). ADR-0032 was accepted 2026-09-08 with
+no correction attracted at review; the shipped vocabulary, rule set and
+sidecar schema match it exactly. `sprint/analyst-verdict-artifact` had not
+been merged into `main` as of this note — see
+`docs/planning/CURRENT_STATUS.md` §2/§3 for the current integration state.
+
+All four completion criteria above were assessed against the shipped
+artifact:
+
+1. **A run carries a verdict and the inputs behind it, both reproducible
+   from persisted artifacts alone — MET.** `evaluate_run_verdict`
+   (`application/predictive_research/evaluate_run_verdict.py`) reads only
+   `metrics.json`, the dataset envelope, and the optional `importance.json`
+   off disk; `verdict.json` records every extracted fact with its source
+   artifact and every rule with its observed values and threshold. Proven,
+   not merely asserted, against Sprint 052's three real runs
+   (`f7ac893d54ae6b69`, `faa6983acd03f846`, `6d2842b647cd4097`) in T005.
+2. **Re-running the rule set over the same artifacts yields the same
+   verdict — MET.** `evaluate_verdict` is pure (no randomness, no clock, no
+   dict-iteration-order dependence) and `verdict.json` carries no
+   wall-clock field. Checked directly, not only asserted: the ridge run's
+   `verdict.json` was re-evaluated a second time during T005 and its raw
+   bytes compared byte-for-byte identical to the first write.
+3. **The dashboard reads the verdict; no verdict logic exists in
+   `apps/dashboard` — MET.** T006 (PR #469) added a read-only display in
+   `apps/dashboard/pages/6_Predictive_Research.py` that renders
+   `verdict.json`'s contents verbatim, with zero threshold constants and
+   zero arithmetic; `apps/dashboard` still imports no `trading_framework`
+   symbol (ADR-0022). One gap was found and logged, not fixed, during this
+   task's QA: `PROBLEM_REGISTRY.md` PRB-022 — the dashboard's automated
+   import-boundary test does not scan `apps/dashboard/pages/*.py`, so this
+   criterion's enforcement for page files relied on manual review, not
+   only the automated guard.
+4. **Documentation states plainly a verdict is a decision aid, never
+   evidence of a live edge or a promotion approval — MET.**
+   `docs/reference/PREDICTIVE_VERDICT.md` states this in its own first
+   section, restating ADR-0024's rule unweakened, and the same statement
+   appears in ADR-0032 §6 and `research/predictive/CLAUDE.md`'s verdict
+   entry.
+
+One item of technical debt was left open: **TD-033**
+(`docs/planning/TECHNICAL_DEBT.md`, ACCEPTED/LOW) — the verdict rule set's
+three thresholds and its primary-metric-name convention independently
+duplicate `research/reporting/predictive/quality.py`'s equivalents (a
+deliberate design choice under ADR-0032 §2, not an oversight). Its
+repayment trigger is a future consolidation increment touching both
+modules, or an observed drift between them.
+
+**This closure produced no study, no scorer, no promotion, and no new
+market claim.** 16A remains a contract-and-artifact-only increment: it
+applies the rule set to Sprint 052's already-closed study retrospectively
+and changes nothing about that study's own conclusions
+(`docs/reference/BTC_PREDICTIVE_STUDY.md`, cited and never amended). 16C,
+16D and 16G may now consume `verdict.json` as readers; none may extend the
+vocabulary, sidecar schema, or module placement without a new or amending
+ADR (ADR-0032 Follow-up).
+
 ## 13H.2 — Increment 16B — SampleSpec Foundation
 
 ### Purpose

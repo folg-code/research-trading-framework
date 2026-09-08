@@ -30,6 +30,7 @@ Canonical workspace root (``--storage-root`` / operator workspace)::
             leaderboard.json  # optional; single-study comparison artifact
             learning_curves.json   # optional; inner-train / inner-val loss per fold
             window_accounting.json # optional; dropped windows and effective sample
+            verdict.json       # optional; ADR-0032 analyst verdict sidecar
             models/fold_{n}.bin
           promoted/{artifact_fingerprint}/     # promoted predictive artifacts
             manifest.json      # PromotedArtifactManifest; independently readable
@@ -153,6 +154,11 @@ def predictive_research_run_importance_path(root: Path, run_id: str) -> Path:
 def predictive_research_run_leaderboard_path(root: Path, run_id: str) -> Path:
     """Return the study-leaderboard path written beside a predictive run."""
     return predictive_research_run_dir(root, run_id) / "leaderboard.json"
+
+
+def predictive_research_run_verdict_path(root: Path, run_id: str) -> Path:
+    """Return the analyst verdict sidecar path for one Predictive Research run (ADR-0032)."""
+    return predictive_research_run_dir(root, run_id) / "verdict.json"
 
 
 def predictive_research_run_learning_curves_path(root: Path, run_id: str) -> Path:

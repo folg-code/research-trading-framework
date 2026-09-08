@@ -130,6 +130,7 @@ below).
 | [ADR-0028](ADR-0028-bracket-exit-and-equity-relative-sizing.md) | Bracket Exits and Equity-Relative Sizing: Widening the Strategy Model Gate | ACCEPTED (declined for Sprint 047; resumed with corrections for Sprint 048) | Sprint 047 / 048 |
 | [ADR-0029](ADR-0029-promoted-predictive-artifact.md) | Promoted Predictive Artifact: Parameter Format, Promotion Store, and the Narrow ADR-0023 §7 Amendment | ACCEPTED | Sprint 049 |
 | [ADR-0031](ADR-0031-predictive-sample-spec-and-task.md) | Predictive Sample Universe (`SampleSpec`) and Research Task Taxonomy (`PredictiveTask`) | ACCEPTED | Sprint 056 |
+| [ADR-0032](ADR-0032-predictive-run-verdict-artifact.md) | Predictive Run Verdict Artifact: Vocabulary, Rule Set, and Sidecar Schema | ACCEPTED | Sprint 057 |
 | ADR-0004 | Independent Research and Execution Workflows | PLANNED | TBD |
 | ADR-0009 | Batch Backtest vs Replay Execution | PLANNED | TBD |
 | ADR-0010 | Working Component and Model Fingerprints | PLANNED | TBD |

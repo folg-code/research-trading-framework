@@ -25,11 +25,13 @@ from dashboard_app.views.predictive import (
     build_leaderboard_rows,
     build_learning_curves_view,
     build_run_metrics_view,
+    build_verdict_view,
     build_window_accounting_rows,
     load_run_importance,
     load_run_learning_curves,
     load_run_metrics,
     load_run_provenance,
+    load_run_verdict,
     load_run_window_accounting,
     report_html_path,
     runs_for_dataset,
@@ -265,6 +267,51 @@ with st.expander("Window accounting (sequence families only)", expanded=False):
         )
     else:
         st.info("No `window_accounting.json` sidecar for this run.")
+
+# --- Analyst verdict (S057-T006, ADR-0032) -------------------------------------------
+st.subheader("Analyst verdict")
+st.caption(
+    "Read-only display of the persisted `verdict.json` sidecar (ADR-0032). Never a "
+    "promotion, an approval, or evidence of a live edge — a decision aid for what to "
+    "study next. The dashboard computes, compares, thresholds, and defaults nothing "
+    "here; every value below is copied verbatim from the sidecar (D-S057-08)."
+)
+verdict_view = build_verdict_view(load_run_verdict(selected_run.storage_path))
+if verdict_view is None:
+    st.info("No verdict recorded for this run.")
+else:
+    verdict_cols = st.columns(2)
+    verdict_cols[0].metric("Verdict", verdict_view.verdict)
+    verdict_cols[1].metric("Rule set", verdict_view.rule_set_version or "—")
+
+    if verdict_view.facts:
+        with st.expander("Recorded facts", expanded=False):
+            st.dataframe(
+                [
+                    {"fact": row.name, "value": row.value, "source": row.source}
+                    for row in verdict_view.facts
+                ],
+                use_container_width=True,
+                hide_index=True,
+            )
+
+    if verdict_view.rules:
+        with st.expander("Rule evaluations", expanded=False):
+            st.dataframe(
+                [
+                    {
+                        "rule": row.rule_id,
+                        "fired": row.fired,
+                        "evaluated": row.evaluated,
+                        "observed": row.observed,
+                        "threshold": row.threshold,
+                        "missing_input": row.missing_input,
+                    }
+                    for row in verdict_view.rules
+                ],
+                use_container_width=True,
+                hide_index=True,
+            )
 
 # --- Provenance + report link (T008) -------------------------------------------------
 st.subheader("Provenance")

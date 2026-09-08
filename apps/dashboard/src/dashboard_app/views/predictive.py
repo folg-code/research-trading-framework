@@ -1,9 +1,15 @@
 """View models for the Predictive Research dashboard page (S044-T004-T010).
 
 Reads persisted JSON sidecars only (D-S044-09): ``metrics.json``,
-``importance.json``, ``learning_curves.json``, ``window_accounting.json``.
-Never recomputes a research metric — a number not already in one of these
-files is a gap to close upstream, not in this module.
+``importance.json``, ``learning_curves.json``, ``window_accounting.json``,
+``verdict.json``. Never recomputes a research metric — a number not already
+in one of these files is a gap to close upstream, not in this module.
+
+``verdict.json`` (S057-T006, ADR-0032, D-S057-08/09) is read and displayed
+verbatim only: this module must never compute, compare, threshold, or
+default an analyst verdict — the dashboard may not import
+``trading_framework`` (ADR-0022) and, independently, is forbidden from
+computing a verdict at all (ADR-0032 §5, D-S057-08).
 """
 
 from __future__ import annotations
@@ -34,6 +40,7 @@ METRICS_FILENAME = "metrics.json"
 IMPORTANCE_FILENAME = "importance.json"
 LEARNING_CURVES_FILENAME = "learning_curves.json"
 WINDOW_ACCOUNTING_FILENAME = "window_accounting.json"
+VERDICT_FILENAME = "verdict.json"
 
 
 def list_predictive_datasets(storage_root: Path) -> tuple[PredictiveDatasetSummary, ...]:
@@ -379,6 +386,113 @@ def load_run_provenance(storage_root: Path, run_id: str) -> ProvenanceView | Non
         library=_optional_str(identity.get("library")),
         library_version=_optional_str(identity.get("library_version")),
         framework_version=_optional_str(identity.get("framework_version")),
+    )
+
+
+@dataclass(frozen=True, slots=True)
+class VerdictFactRow:
+    """One entry of ``verdict.json``'s ``facts`` object, copied verbatim (ADR-0032 §4)."""
+
+    name: str
+    value: Any
+    source: str | None
+
+
+@dataclass(frozen=True, slots=True)
+class VerdictRuleRow:
+    """One entry of ``verdict.json``'s ``rules`` array, copied verbatim (ADR-0032 §4)."""
+
+    rule_id: str
+    fired: bool
+    evaluated: bool
+    observed: Mapping[str, Any]
+    threshold: Mapping[str, Any]
+    source: str
+    missing_input: str | None
+
+
+@dataclass(frozen=True, slots=True)
+class VerdictView:
+    """Read-only display of one run's persisted analyst verdict (D-S057-08/09).
+
+    Every field is copied verbatim from ``verdict.json``. This module computes,
+    compares, thresholds, or defaults NOTHING — the verdict string persisted on
+    disk is already the judgement (ADR-0032 §1); this is display only.
+    """
+
+    verdict: str | None
+    rule_set_version: str | None
+    schema_version: str | None
+    run_id: str | None
+    dataset_id: str | None
+    dataset_fingerprint: str | None
+    facts: tuple[VerdictFactRow, ...]
+    rules: tuple[VerdictRuleRow, ...]
+
+
+def load_run_verdict(storage_path: str | Path) -> dict[str, Any] | None:
+    """Load ``verdict.json`` for one run, if present (S057-T006 — optional sidecar).
+
+    Absence means no verdict was ever recorded for this run — callers render
+    "no verdict recorded", never a fallback or re-derived verdict (D-S057-08/09).
+    """
+    return _read_json_object(Path(storage_path) / VERDICT_FILENAME)
+
+
+def build_verdict_view(payload: Mapping[str, Any] | None) -> VerdictView | None:
+    """Copy ``verdict.json``'s fields verbatim into a display view model.
+
+    ``None`` when the sidecar is absent or malformed — the caller shows "no
+    verdict recorded" rather than computing, guessing, or defaulting one
+    (D-S057-08/09). No threshold, comparison, or fallback verdict is evaluated
+    anywhere in this function.
+    """
+    if not payload:
+        return None
+    verdict_raw = payload.get("verdict")
+    if not isinstance(verdict_raw, str) or not verdict_raw:
+        return None
+
+    facts_raw = payload.get("facts")
+    facts_raw = facts_raw if isinstance(facts_raw, dict) else {}
+    facts = tuple(
+        VerdictFactRow(
+            name=str(name),
+            value=(entry.get("value") if isinstance(entry, dict) else entry),
+            source=(entry.get("source") if isinstance(entry, dict) else None),
+        )
+        for name, entry in facts_raw.items()
+    )
+
+    rules_raw = payload.get("rules")
+    rules_raw = rules_raw if isinstance(rules_raw, list) else []
+    rules: list[VerdictRuleRow] = []
+    for entry in rules_raw:
+        if not isinstance(entry, dict) or "rule_id" not in entry:
+            continue
+        observed = entry.get("observed")
+        threshold = entry.get("threshold")
+        rules.append(
+            VerdictRuleRow(
+                rule_id=str(entry["rule_id"]),
+                fired=bool(entry.get("fired", False)),
+                evaluated=bool(entry.get("evaluated", True)),
+                observed=observed if isinstance(observed, dict) else {},
+                threshold=threshold if isinstance(threshold, dict) else {},
+                source=str(entry.get("source", "")),
+                missing_input=_optional_str(entry.get("missing_input")),
+            )
+        )
+
+    return VerdictView(
+        verdict=verdict_raw,
+        rule_set_version=_optional_str(payload.get("rule_set_version")),
+        schema_version=_optional_str(payload.get("schema_version")),
+        run_id=_optional_str(payload.get("run_id")),
+        dataset_id=_optional_str(payload.get("dataset_id")),
+        dataset_fingerprint=_optional_str(payload.get("dataset_fingerprint")),
+        facts=facts,
+        rules=tuple(rules),
     )
 
 
