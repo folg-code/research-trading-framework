@@ -115,7 +115,7 @@ completed-phase archive and the live per-phase files under `docs/planning/roadma
 | 15A | Momentum and Regime Component Catalog | COMPLETE (Sprint 051) | `roadmap/PHASE_15_PREDICTIVE_CATALOG.md` §13G |
 | 15B | Real-Data BTC Predictive Study | COMPLETE (Sprint 052, 8/8; merged to `main` via #461-#463) | `roadmap/PHASE_15_PREDICTIVE_CATALOG.md` §13G |
 | 16A | Analyst Verdict Artifact | APPROVED, no sprint (gated on 15B) | `roadmap/PHASE_16_QUANT_WORKBENCH.md` §13H |
-| 16B | SampleSpec Foundation | APPROVED, no sprint (may run parallel to 15B) | `roadmap/PHASE_16_QUANT_WORKBENCH.md` §13H |
+| 16B | SampleSpec Foundation | COMPLETE (Sprint 056, 7/7; merged to `main` via #457) | `roadmap/PHASE_16_QUANT_WORKBENCH.md` §13H |
 | 16C | Signal Quality Scoring | APPROVED, no sprint | `roadmap/PHASE_16_QUANT_WORKBENCH.md` §13H |
 | 16D | Quant Lab Dashboard | DIRECTIONAL | `roadmap/PHASE_16_QUANT_WORKBENCH.md` §13H |
 | 16E | Strategy Families | DIRECTIONAL | `roadmap/PHASE_16_QUANT_WORKBENCH.md` §13H |
@@ -837,9 +837,11 @@ This phase is ACTIVE: edit the linked file, not this stub.
 
 # 13H. Phase 16 — Quant Research Workbench (APPROVED)
 
-**Status:** **APPROVED** (maintainer, 2026-09-04). **No sprint is opened, planned or
-numbered for any increment.** 16A–16C are the committed direction; **16D–16G are
-directional** and will be re-specified from evidence before any of them is planned (§2.9).
+**Status:** **APPROVED** (maintainer, 2026-09-04). **16B is COMPLETE** (Sprint 056, 7/7
+tasks, merged to `main` via #457, using the Q3 parallel-start carve-out). **No sprint is
+opened, planned or numbered for any other increment.** 16A–16C are the committed direction;
+**16D–16G are directional** and will be re-specified from evidence before any of them is
+planned (§2.9).
 
 Purpose: turn the existing independently-reached runners (Signal, Strategy, Robustness and
 Predictive Research plus the dashboard) into one quant research workbench over a single

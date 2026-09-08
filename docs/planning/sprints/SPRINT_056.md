@@ -514,3 +514,8 @@ advances 16A. Integration of `sprint/sample-spec-foundation` into `main` is
 a separate, distinct maintainer decision (D-S056-03) and had not happened as
 of this Review — see `CURRENT_STATUS.md` §2/§3 for the current integration
 state.
+
+**UPDATE (2026-09-08):** the maintainer decision was made — merged to `main`
+via #457. 16C's gate ("Sprint 052 having run") is also now satisfied
+(Sprint 052 merged via #461-#463, `SPRINT_052.md` §13 Review), independent
+of this sprint's own closure.

@@ -2,6 +2,9 @@
 
 ```text
 Status: APPROVED (maintainer, 2026-09-04) — no sprint opened for any increment
+        at approval time. UPDATE (2026-09-08): 16B is COMPLETE (Sprint 056,
+        7/7 tasks, merged to `main` via #457) — see §13H.2's "16B is DONE"
+        note below. No sprint is opened for any other increment.
 ```
 
 Full detail for `ROADMAP.md` §13H — this is the LIVE, canonically-updated location for this
