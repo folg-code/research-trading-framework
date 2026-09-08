@@ -513,6 +513,27 @@ def test_facts_mappings_are_read_only() -> None:
 # ---------------------------------------------------------------------------
 
 
+def test_fold_count_is_read_from_metrics_not_the_dataset_manifest() -> None:
+    """D-S057-05's locked fact table: fold count comes from ``metrics.json``
+    (``folds`` key count), never the dataset manifest's own
+    ``fold_summary.fold_count`` -- the two normally agree (same run, same
+    fold plan), but are not guaranteed to (e.g. a partial re-run with
+    metrics for fewer folds than the dataset was split into). Reviewer
+    (S057-T003 QA) found the implementation read the wrong artifact; this
+    fixture deliberately disagrees the two counts so the regression cannot
+    recur silently."""
+    metrics = _regression_metrics_report(
+        fold_model={"1": 0.06, "2": 0.05},
+        fold_permutation={"1": 0.01, "2": 0.0},
+    )
+    manifest = _dataset_manifest(per_fold_test_rows={1: 100, 2: 100, 3: 100})
+
+    facts = extract_verdict_facts(metrics=metrics, dataset_manifest=manifest)
+
+    assert facts.fold_count == 2, "must be len(metrics.folds), not the manifest's fold_count=3"
+    assert facts.sources["fold_count"] == "metrics.json:folds (key count)"
+
+
 def test_primary_metric_convention_matches_quality_module_exactly() -> None:
     from trading_framework.research.predictive.verdict import (
         _primary_metric_name,

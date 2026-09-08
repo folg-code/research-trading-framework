@@ -518,8 +518,8 @@ def extract_verdict_facts(
         )
 
     fold_summary = dataset_manifest.fold_summary
-    fold_count = _optional_int(fold_summary.get("fold_count"))
-    sources["fold_count"] = "dataset manifest.json:fold_summary.fold_count"
+    fold_count = len(metrics.folds)
+    sources["fold_count"] = "metrics.json:folds (key count)"
 
     role_counts_raw = fold_summary.get("role_counts")
     role_counts = (
@@ -642,15 +642,6 @@ def _primary_metric_value(source: SourceMetrics | None, task_type: TaskType) -> 
     if task_type is TaskType.CLASSIFICATION:
         return source.statistical.roc_auc
     return source.statistical.spearman_ic
-
-
-def _optional_int(value: object) -> int | None:
-    if value is None:
-        return None
-    if isinstance(value, bool) or not isinstance(value, int | float | str):
-        msg = f"expected an integer-like value, got {value!r}"
-        raise PredictiveSpecError(msg)
-    return int(value)
 
 
 def _optional_bar_duration_to_timedelta(value: object) -> timedelta | None:
