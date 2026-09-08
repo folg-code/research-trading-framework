@@ -12,11 +12,19 @@ no import of scikit-learn, XGBoost, LightGBM, CatBoost, torch,
 ``trading_framework.application`` or ``trading_framework.research.reporting``
 (ADR-0032 §5, enforced by ``tests/unit/test_architecture_boundaries.py``).
 
-Fact *extraction* (turning a persisted ``metrics.json`` / dataset manifest /
-``importance.json`` into a :class:`VerdictFacts`) is out of scope here
-(S057-T003). File I/O and sidecar persistence are out of scope here too
-(S057-T004). This module only declares the vocabulary and computes a verdict
-from an already-built :class:`VerdictFacts`.
+:func:`extract_verdict_facts` (S057-T003) turns already-parsed, in-memory
+representations of those artifacts (a
+:class:`~trading_framework.research.predictive.metrics.PredictiveMetricsReport`,
+a dataset
+:class:`~trading_framework.research.datasets.predictive.PredictiveDatasetManifest`,
+already-loaded TEST labels, an optional already-loaded
+:class:`~trading_framework.research.predictive.importance.ImportanceTrace`)
+into a :class:`VerdictFacts`. It performs no file I/O itself — reading
+``metrics.json``, a dataset envelope, ``features.parquet`` and
+``importance.json`` off disk is
+``application/predictive_research/evaluate_run_verdict.py``'s job
+(S057-T004), which parses each artifact and hands the already-built objects
+to this function. File I/O and sidecar persistence stay out of scope here.
 
 Rule order is fixed and part of the contract: ``R2, R3, R4, R1``, then
 ``O1..O4`` (D-S057-06). The first rejection rule that fires determines the
@@ -29,15 +37,36 @@ missing input, unless an earlier rejection rule already fired.
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from datetime import timedelta
 from enum import StrEnum
 from types import MappingProxyType
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from trading_framework.research.predictive.errors import PredictiveSpecError
 from trading_framework.research.predictive.estimators import TaskType
+from trading_framework.research.predictive.importance import ImportanceTrace
+from trading_framework.research.predictive.metrics import (
+    MetricSource,
+    PredictiveMetricsReport,
+    SourceMetrics,
+)
+from trading_framework.research.predictive.splitting import FoldRole
+from trading_framework.time.models.timeframe import Timeframe
+
+if TYPE_CHECKING:
+    # Deferred to TYPE_CHECKING only: `research.datasets.predictive` imports
+    # `research.predictive.exclusions` / `.sample` / `.splitting` (submodules
+    # of THIS package), so an eager, runtime import here — triggered while
+    # `research/predictive/__init__.py` is still executing — is a genuine
+    # circular import, not merely an undesirable layering. `from __future__
+    # import annotations` (top of this file) makes every annotation below a
+    # deferred string, so this Protocol-free type-only import is safe; nothing
+    # at runtime needs the real class, only structural attribute access
+    # (`.fold_summary`, `.study_spec`, `.exclusion_counts`,
+    # `.sample_provenance`) on whatever object the caller passes in.
+    from trading_framework.research.datasets.predictive import PredictiveDatasetManifest
 
 RULE_SET_VERSION_V1 = "verdict_rules.v1"
 
@@ -140,9 +169,24 @@ class VerdictFacts:
     ``fold_primary`` field (train/test primary-metric values per fold) — the
     realistic missing-input case R1 depends on.
 
-    This dataclass is built by hand in this package's own tests; turning a
-    real ``PredictiveMetricsReport`` / dataset manifest / ``importance.json``
-    into one is S057-T003's job, not this module's.
+    This dataclass is built by hand in this package's own tests, or produced
+    for real by :func:`extract_verdict_facts` (S057-T003) from an already-parsed
+    ``PredictiveMetricsReport`` / dataset manifest / ``importance.json``.
+
+    ``exclusion_counts``, ``sample_provenance`` and ``feature_importance`` are
+    RECORDED ONLY (D-S057-05): no rule in ``verdict_rules.v1`` reads them.
+    ``feature_importance_missing`` names why ``feature_importance`` is empty
+    when ``importance.json`` was not available to the extractor — the ONE
+    optional artifact in the fact table (D-S057-05); its absence never raises
+    and never forces the rule cascade to ``INCONCLUSIVE`` on its own, because
+    no rule depends on it.
+
+    ``sources`` maps each populated fact's field name to the artifact (and, for
+    ``metrics.json``/dataset ``manifest.json`` facts, the exact path within it)
+    the value was read from — the field-level analogue of
+    :attr:`RuleEvaluation.source`, and what makes "reproducible from the
+    persisted artifacts alone" (ADR-0032 §5) a fact a reader can point at,
+    not just claim.
     """
 
     task_type: TaskType
@@ -158,6 +202,11 @@ class VerdictFacts:
     embargo_span: timedelta | None = None
     label_horizon: timedelta | None = None
     minority_class_share: float | None = None
+    exclusion_counts: Mapping[str, int] = field(default_factory=dict)
+    sample_provenance: Mapping[str, Any] | None = None
+    feature_importance: Mapping[str, Mapping[str, float]] = field(default_factory=dict)
+    feature_importance_missing: str | None = None
+    sources: Mapping[str, str] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         object.__setattr__(
@@ -179,6 +228,22 @@ class VerdictFacts:
         )
         if self.role_counts is not None:
             object.__setattr__(self, "role_counts", MappingProxyType(dict(self.role_counts)))
+        object.__setattr__(self, "exclusion_counts", MappingProxyType(dict(self.exclusion_counts)))
+        if self.sample_provenance is not None:
+            object.__setattr__(
+                self, "sample_provenance", MappingProxyType(dict(self.sample_provenance))
+            )
+        object.__setattr__(
+            self,
+            "feature_importance",
+            MappingProxyType(
+                {
+                    fold_id: MappingProxyType(dict(values))
+                    for fold_id, values in self.feature_importance.items()
+                }
+            ),
+        )
+        object.__setattr__(self, "sources", MappingProxyType(dict(self.sources)))
         if self.fold_count is not None and self.fold_count < 0:
             msg = "fold_count must be non-negative"
             raise PredictiveSpecError(msg)
@@ -349,6 +414,256 @@ def evaluate_verdict(facts: VerdictFacts, rules: VerdictRuleSet) -> VerdictRepor
     # pooled/fold facts are present (checked via outcome_missing above).
     msg = "no outcome rule fired despite complete baseline facts"
     raise AssertionError(msg)
+
+
+# ---------------------------------------------------------------------------
+# Fact extraction (S057-T003, D-S057-05).
+#
+# `extract_verdict_facts` is pure: every argument is already an in-memory,
+# already-parsed representation of a persisted artifact. It performs no file
+# I/O — reading `metrics.json`, a dataset envelope, `features.parquet` and
+# `importance.json` off disk is the caller's job
+# (`application/predictive_research/evaluate_run_verdict.py`, S057-T004).
+# ---------------------------------------------------------------------------
+
+
+def extract_verdict_facts(
+    *,
+    metrics: PredictiveMetricsReport,
+    dataset_manifest: PredictiveDatasetManifest,
+    pooled_test_labels: Sequence[float] | None = None,
+    importance: ImportanceTrace | None = None,
+) -> VerdictFacts:
+    """Turn already-parsed persisted artifacts into a :class:`VerdictFacts` (D-S057-05).
+
+    ``metrics`` is the in-memory ``metrics.json`` representation. ``dataset_manifest``
+    is the dataset envelope's already-parsed manifest, supplying ``study_spec``,
+    ``fold_summary`` and ``exclusion_counts``. ``pooled_test_labels`` is the
+    pooled TEST-role label column read from the dataset's ``features.parquet``
+    (Finding 3) — required only to compute ``minority_class_share`` on a
+    ``CLASSIFICATION`` task; ``None`` is a legitimate value (e.g. a
+    ``REGRESSION`` task, or a caller that has not read the parquet), never an
+    error. ``importance`` is the ONE optional artifact (D-S057-05): ``None``
+    means ``importance.json`` was not present, and produces a named
+    ``feature_importance_missing`` marker rather than raising, because no rule
+    reads feature importance in v1.
+
+    The baseline delta and per-fold win counting both read the SAME primary
+    metric — ``roc_auc`` for ``CLASSIFICATION``, ``spearman_ic`` for
+    ``REGRESSION`` — matching the convention already declared by
+    ``research/reporting/predictive/quality.py::primary_metric_name`` /
+    ``primary_metric_value`` exactly. This module cannot import
+    ``research.reporting`` (ADR-0032 §5), so the convention is reproduced here
+    rather than imported; it is not a second, independent definition of
+    "primary metric" (the accepted threshold-triplication precedent, D-S057-06
+    Finding 2, extends the same way to this one naming convention).
+    """
+    task_type = metrics.task_type
+    metric_name = _primary_metric_name(task_type)
+    sources: dict[str, str] = {}
+
+    pooled_model_primary = _primary_metric_value(
+        metrics.pooled.get(MetricSource.MODEL.value), task_type
+    )
+    sources["pooled_model_primary"] = (
+        f"metrics.json:pooled.{MetricSource.MODEL.value}.statistical.{metric_name}"
+    )
+
+    pooled_random_permutation_primary = _primary_metric_value(
+        metrics.pooled.get(MetricSource.RANDOM_PERMUTATION.value), task_type
+    )
+    sources["pooled_random_permutation_primary"] = (
+        f"metrics.json:pooled.{MetricSource.RANDOM_PERMUTATION.value}.statistical.{metric_name}"
+    )
+
+    fold_model_primary: dict[str, float] = {}
+    fold_random_permutation_primary: dict[str, float] = {}
+    for fold_id, sources_by_name in metrics.folds.items():
+        model_value = _primary_metric_value(
+            sources_by_name.get(MetricSource.MODEL.value), task_type
+        )
+        if model_value is not None:
+            fold_model_primary[fold_id] = model_value
+        permutation_value = _primary_metric_value(
+            sources_by_name.get(MetricSource.RANDOM_PERMUTATION.value), task_type
+        )
+        if permutation_value is not None:
+            fold_random_permutation_primary[fold_id] = permutation_value
+    sources["fold_model_primary"] = (
+        f"metrics.json:folds.<fold_id>.{MetricSource.MODEL.value}.statistical.{metric_name}"
+    )
+    sources["fold_random_permutation_primary"] = (
+        f"metrics.json:folds.<fold_id>.{MetricSource.RANDOM_PERMUTATION.value}"
+        f".statistical.{metric_name}"
+    )
+
+    fold_train_primary: dict[str, float] = {}
+    fold_test_primary: dict[str, float] = {}
+    if metrics.fold_primary is not None:
+        for fold_id, values in metrics.fold_primary.items():
+            train_value = values.get("train_primary")
+            test_value = values.get("test_primary")
+            if train_value is not None:
+                fold_train_primary[fold_id] = train_value
+            if test_value is not None:
+                fold_test_primary[fold_id] = test_value
+        sources["fold_train_primary"] = "metrics.json:fold_primary.<fold_id>.train_primary"
+        sources["fold_test_primary"] = "metrics.json:fold_primary.<fold_id>.test_primary"
+    else:
+        sources["fold_train_primary"] = (
+            "metrics.json:fold_primary (absent — optional field, D-S057-07)"
+        )
+        sources["fold_test_primary"] = (
+            "metrics.json:fold_primary (absent — optional field, D-S057-07)"
+        )
+
+    fold_summary = dataset_manifest.fold_summary
+    fold_count = _optional_int(fold_summary.get("fold_count"))
+    sources["fold_count"] = "dataset manifest.json:fold_summary.fold_count"
+
+    role_counts_raw = fold_summary.get("role_counts")
+    role_counts = (
+        {str(role): int(count) for role, count in role_counts_raw.items()}
+        if isinstance(role_counts_raw, Mapping)
+        else None
+    )
+    sources["role_counts"] = "dataset manifest.json:fold_summary.role_counts"
+
+    fold_test_row_counts: dict[str, int] = {}
+    per_fold_raw = fold_summary.get("per_fold")
+    if isinstance(per_fold_raw, Sequence) and not isinstance(per_fold_raw, (str, bytes)):
+        for entry in per_fold_raw:
+            if not isinstance(entry, Mapping):
+                continue
+            entry_fold_id = entry.get("fold_id")
+            test_count = entry.get(FoldRole.TEST.value)
+            if entry_fold_id is not None and test_count is not None:
+                fold_test_row_counts[str(entry_fold_id)] = int(test_count)
+    sources["fold_test_row_counts"] = (
+        f"dataset manifest.json:fold_summary.per_fold[].{FoldRole.TEST.value}"
+    )
+
+    study_spec = dataset_manifest.study_spec
+    split_payload = study_spec.get("split", {})
+    label_payload = study_spec.get("label", {})
+    embargo_span = _optional_bar_duration_to_timedelta(
+        split_payload.get("embargo_span") if isinstance(split_payload, Mapping) else None
+    )
+    sources["embargo_span"] = "dataset manifest.json:study_spec.split.embargo_span"
+    label_horizon = _optional_bar_duration_to_timedelta(
+        label_payload.get("horizon") if isinstance(label_payload, Mapping) else None
+    )
+    sources["label_horizon"] = "dataset manifest.json:study_spec.label.horizon"
+
+    exclusion_counts = dict(dataset_manifest.exclusion_counts)
+    sources["exclusion_counts"] = "dataset manifest.json:exclusion_counts"
+
+    if dataset_manifest.sample_provenance is not None:
+        sample_provenance: Mapping[str, Any] | None = dataset_manifest.sample_provenance.to_dict()
+        sources["sample_provenance"] = "dataset manifest.json:sample_provenance"
+    else:
+        sample_provenance = None
+        sources["sample_provenance"] = (
+            "dataset manifest.json:sample_provenance (absent — predictive_dataset.v1 schema)"
+        )
+
+    minority_class_share: float | None = None
+    if task_type is not TaskType.CLASSIFICATION:
+        sources["minority_class_share"] = (
+            "dataset features.parquet (not applicable — REGRESSION task, "
+            "R3(c) is CLASSIFICATION-only)"
+        )
+    elif not pooled_test_labels:
+        sources["minority_class_share"] = (
+            "dataset features.parquet:TEST-role label column (not provided to extraction)"
+        )
+    else:
+        labels = list(pooled_test_labels)
+        positives = sum(1 for value in labels if value > 0.0)
+        minority_class_share = min(positives, len(labels) - positives) / len(labels)
+        sources["minority_class_share"] = "dataset features.parquet:TEST-role label column"
+
+    feature_importance: dict[str, dict[str, float]] = {}
+    feature_importance_missing: str | None = None
+    if importance is None:
+        feature_importance_missing = "importance.json not present (optional artifact, D-S057-05)"
+        sources["feature_importance"] = "importance.json (absent — optional artifact)"
+    else:
+        for fold in importance.folds:
+            feature_importance[str(fold.fold_id)] = dict(
+                zip(
+                    fold.permutation.feature_names,
+                    fold.permutation.importances_mean,
+                    strict=True,
+                )
+            )
+        sources["feature_importance"] = (
+            "importance.json:folds[].permutation.{feature_names,importances_mean}"
+        )
+
+    return VerdictFacts(
+        task_type=task_type,
+        pooled_model_primary=pooled_model_primary,
+        pooled_random_permutation_primary=pooled_random_permutation_primary,
+        fold_model_primary=fold_model_primary,
+        fold_random_permutation_primary=fold_random_permutation_primary,
+        fold_train_primary=fold_train_primary,
+        fold_test_primary=fold_test_primary,
+        fold_test_row_counts=fold_test_row_counts,
+        fold_count=fold_count,
+        role_counts=role_counts,
+        embargo_span=embargo_span,
+        label_horizon=label_horizon,
+        minority_class_share=minority_class_share,
+        exclusion_counts=exclusion_counts,
+        sample_provenance=sample_provenance,
+        feature_importance=feature_importance,
+        feature_importance_missing=feature_importance_missing,
+        sources=sources,
+    )
+
+
+def _primary_metric_name(task_type: TaskType) -> str:
+    """Same convention as ``research/reporting/predictive/quality.py::primary_metric_name``.
+
+    Reproduced, not imported (ADR-0032 §5 forbids importing ``research.reporting``);
+    see :func:`extract_verdict_facts`'s docstring for why this is not a second
+    definition of "primary metric".
+    """
+    if task_type is TaskType.CLASSIFICATION:
+        return "roc_auc"
+    return "spearman_ic"
+
+
+def _primary_metric_value(source: SourceMetrics | None, task_type: TaskType) -> float | None:
+    """Same convention as ``quality.py::primary_metric_value`` — see ``_primary_metric_name``."""
+    if source is None:
+        return None
+    if task_type is TaskType.CLASSIFICATION:
+        return source.statistical.roc_auc
+    return source.statistical.spearman_ic
+
+
+def _optional_int(value: object) -> int | None:
+    if value is None:
+        return None
+    if isinstance(value, bool) or not isinstance(value, int | float | str):
+        msg = f"expected an integer-like value, got {value!r}"
+        raise PredictiveSpecError(msg)
+    return int(value)
+
+
+def _optional_bar_duration_to_timedelta(value: object) -> timedelta | None:
+    """Parse a persisted ``Timeframe.value`` bar duration string (e.g. ``"5m"``).
+
+    ``None`` if absent. Reuses ``Timeframe`` itself, the same value object
+    ``PurgedWalkForwardSplitSpec.embargo_span`` / ``LabelSpec.horizon`` are
+    declared and serialized with, rather than a second parser for the same
+    grammar.
+    """
+    if value is None:
+        return None
+    return timedelta(seconds=Timeframe(str(value)).total_seconds)
 
 
 def _evaluate_r2(facts: VerdictFacts, rules: VerdictRuleSet) -> RuleEvaluation:

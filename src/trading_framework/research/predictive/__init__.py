@@ -119,6 +119,7 @@ from trading_framework.research.predictive.verdict import (
     VerdictReport,
     VerdictRuleSet,
     evaluate_verdict,
+    extract_verdict_facts,
 )
 from trading_framework.research.predictive.windows import (
     MAX_LOOKBACK_BARS,
@@ -223,6 +224,7 @@ __all__ = [
     "default_decision_threshold",
     "default_preprocessing_spec",
     "evaluate_verdict",
+    "extract_verdict_facts",
     "fold_learning_curve_from_resolved_params",
     "fold_train_targets",
     "label_expr",
