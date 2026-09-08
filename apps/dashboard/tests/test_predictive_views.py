@@ -11,11 +11,13 @@ from dashboard_app.views.predictive import (
     build_leaderboard_rows,
     build_learning_curves_view,
     build_run_metrics_view,
+    build_verdict_view,
     build_window_accounting_rows,
     load_run_importance,
     load_run_learning_curves,
     load_run_metrics,
     load_run_provenance,
+    load_run_verdict,
     load_run_window_accounting,
     report_html_path,
     runs_for_dataset,
@@ -455,6 +457,107 @@ def test_report_html_path_present_and_absent(tmp_path: Path) -> None:
     path = report_html_path(run_dir)
     assert path is not None
     assert path.name == "report.html"
+
+
+# --- Analyst verdict (S057-T006, ADR-0032, D-S057-08/09) ----------------------------
+
+
+def _verdict_payload(**overrides: object) -> dict[str, object]:
+    payload: dict[str, object] = {
+        "schema_version": "predictive_run_verdict.v1",
+        "rule_set_version": "verdict_rules.v1",
+        "rule_set": {"version": "verdict_rules.v1", "min_test_rows": 30},
+        "run_id": "r1",
+        "dataset_id": "d1",
+        "dataset_fingerprint": "fp-d1",
+        "verdict": "WEAK_PASS",
+        "facts": {
+            "pooled_model_primary": {
+                "value": 0.61,
+                "source": "metrics.json:pooled.MODEL.statistical.roc_auc",
+            },
+            "fold_count": {"value": 2, "source": "metrics.json:folds (key count)"},
+        },
+        "rules": [
+            {
+                "rule_id": "R1",
+                "fired": False,
+                "observed": {"median_train_test_gap": 0.04},
+                "threshold": {"overfit_gap_ratio": 1.0},
+                "source": "fold_train_primary, fold_test_primary, pooled_model_primary",
+                "evaluated": True,
+                "missing_input": None,
+            },
+            {
+                "rule_id": "O2",
+                "fired": True,
+                "observed": {"baseline_delta": 0.03, "fold_win_rate": 0.6667},
+                "threshold": {"fold_win_rate_ge": 0.6667},
+                "source": "pooled_model_primary, pooled_random_permutation_primary",
+                "evaluated": True,
+                "missing_input": None,
+            },
+        ],
+    }
+    payload.update(overrides)
+    return payload
+
+
+def test_load_run_verdict_absent_when_no_sidecar(tmp_path: Path) -> None:
+    run_dir = _write_run(tmp_path, metrics=_metrics())
+    assert load_run_verdict(run_dir) is None
+
+
+def test_build_verdict_view_none_when_missing() -> None:
+    assert build_verdict_view(None) is None
+
+
+def test_build_verdict_view_none_when_verdict_field_absent() -> None:
+    payload = _verdict_payload()
+    del payload["verdict"]
+    assert build_verdict_view(payload) is None
+
+
+def test_build_verdict_view_copies_fields_verbatim(tmp_path: Path) -> None:
+    run_dir = _write_run(tmp_path, metrics=_metrics())
+    _write(run_dir / "verdict.json", _verdict_payload())
+
+    payload = load_run_verdict(run_dir)
+    view = build_verdict_view(payload)
+
+    assert view is not None
+    assert view.verdict == "WEAK_PASS"
+    assert view.rule_set_version == "verdict_rules.v1"
+    assert view.schema_version == "predictive_run_verdict.v1"
+    assert view.run_id == "r1"
+    assert view.dataset_id == "d1"
+    assert view.dataset_fingerprint == "fp-d1"
+
+    fact_by_name = {row.name: row for row in view.facts}
+    assert fact_by_name["pooled_model_primary"].value == 0.61
+    assert (
+        fact_by_name["pooled_model_primary"].source
+        == "metrics.json:pooled.MODEL.statistical.roc_auc"
+    )
+    assert fact_by_name["fold_count"].value == 2
+
+    rule_by_id = {row.rule_id: row for row in view.rules}
+    assert rule_by_id["R1"].fired is False
+    assert rule_by_id["R1"].observed == {"median_train_test_gap": 0.04}
+    assert rule_by_id["O2"].fired is True
+    assert rule_by_id["O2"].threshold == {"fold_win_rate_ge": 0.6667}
+
+
+def test_build_verdict_view_degrades_on_malformed_rules(tmp_path: Path) -> None:
+    run_dir = _write_run(tmp_path, metrics=_metrics())
+    _write(run_dir / "verdict.json", _verdict_payload(rules="not-a-list", facts="not-a-dict"))
+
+    view = build_verdict_view(load_run_verdict(run_dir))
+
+    assert view is not None
+    assert view.verdict == "WEAK_PASS"
+    assert view.facts == ()
+    assert view.rules == ()
 
 
 def _blank_finance() -> dict[str, object]:
