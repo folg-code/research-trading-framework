@@ -249,22 +249,36 @@ thing a synthetic-only validation can hide.
 
 **S052-T001 outcome (docs-only, `docs/btc-predictive-study-planning`):** the
 fold plan is confirmed, **not corrected** — D-S052-03's "expected
-instantiation" (`V=15m`, `BINARY` label/1h horizon, `F=6`, `T=30d`, `E=1d`,
-`M=2000`) matches the measured `S051_BTC_DATA_INVENTORY.md` facts (911 days,
-1,311,840 rows, zero gaps) with wide margins on every LOCKED bound: initial
-TRAIN is ~726 days (~23.9 months, vs. the 12-month floor), `embargo_span` is
-24x the label horizon, and the measured 1,311,840-row / 911-day dataset is
-more than double the computed 632,160-row / 439-day under-powered floor. The
-study is **NOT under-powered** — the per-fold TEST windows, the arithmetic,
-and the floor derivation are recorded in `S052_WAVE0_DECISIONS.md` D-S052-03.
+instantiation" (`V=15m`, `BINARY` label/1h horizon for the classification
+pass, `forward_return`/`FORWARD_RETURN` over the same 1h horizon for the
+regression pass, `F=6`, `T=30d`, `E=1d`, `M=2000`) matches the measured
+`S051_BTC_DATA_INVENTORY.md` facts (911 days, 1,311,840 rows, zero gaps) with
+wide margins on every LOCKED bound: initial TRAIN is ~726 days (725 days
+23:59:00 exactly, ~23.9 months, vs. the 12-month floor), `embargo_span` is
+24x the label horizon (applies identically to both passes, since they share
+one horizon), and the measured 1,311,840-row / 911-day dataset is more than
+double the computed 632,160-row / 439-day under-powered floor. The study is
+**NOT under-powered** — the per-fold TEST windows, the arithmetic, and the
+floor derivation are recorded in `S052_WAVE0_DECISIONS.md` D-S052-03.
 D-S052-05's feature list is frozen at ten components (Sprint 051's six plus
-the four suggested incumbents), all confirmed present under their suggested
-names in `registry/builtins.py` (read-only check; no `research/predictive/`
-or `market_analysis/` file was touched). **One item remains before T002/T003
-may proceed:** the maintainer must review and check D-S052-11's "fold table
-produced by T001 reviewed and accepted" box — that box is intentionally left
-unchecked by this task, per D-S052-11's own instruction that it is checked
-by the maintainer, not by an agent.
+the four suggested incumbents; family mix momentum:3/volatility:3/
+statistics:2/trend:1/candle:1, no family over 30%), all confirmed present
+under their suggested names in `registry/builtins.py` (read-only check; no
+`research/predictive/` or `market_analysis/` file was touched).
+
+**Reviewer follow-up (same PR, `docs/btc-predictive-study-planning`):** closed
+one Warning — the original T001 pass locked the BINARY pass's label but left
+D-S052-06's REGRESSION pass label undecided, a real judgment call that would
+otherwise have fallen to T002. D-S052-03 now explicitly locks both passes'
+label configuration (same horizon, `PredictiveTask=FORWARD_RETURN` for the
+regression pass) before this goes to the maintainer. Three cheap Suggestions
+were also folded in: the rounding note on the ~726-day figure, the family
+tally on the frozen feature list, and a trimmed embargo-margin sentence.
+
+**One item remains before T002/T003 may proceed:** the maintainer must review
+and check D-S052-11's "fold table produced by T001 reviewed and accepted"
+box — that box is intentionally left unchecked by this task, per D-S052-11's
+own instruction that it is checked by the maintainer, not by an agent.
 
 **Progress: 1 / 8.**
 

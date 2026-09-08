@@ -122,7 +122,11 @@ Derived and REPORTED at T001, per fold:
 
 ```text
 V  = 15m          evaluation timeframe
-label = BINARY, horizon 1h (4 evaluation bars), threshold 0.0
+label (BINARY pass)     = BINARY, horizon 1h (4 evaluation bars), threshold 0.0
+label (REGRESSION pass) = continuous forward_return, SAME 1h horizon (4 eval
+                          bars), PredictiveTask=FORWARD_RETURN (the default) —
+                          both D-S052-06 passes share one horizon and one fold
+                          plan; only the label KIND differs between them
 F  = 6            folds
 T  = 30d          test span  -> 180d total out-of-sample tail
 E  = 1d           embargo    -> comfortably exceeds the 1h label horizon
@@ -150,8 +154,9 @@ G            gaps: NONE (inventory §3, import_manifest.json `gaps: []`,
 ```text
 label horizon   = 1h  = 60 minutes = 4 evaluation bars @ V=15m
 embargo_span E  = 1d  = 1,440 minutes = 96 evaluation bars @ V=15m
-1,440 minutes / 60 minutes = 24  ->  E is 24x the label horizon.
-1,440 >= 60  holds with a 23x margin, not a near-miss.
+1,440 minutes / 60 minutes = 24  ->  E is 24x the label horizon, comfortably
+clearing the required E >= horizon floor. Applies identically to both the
+BINARY and REGRESSION passes, since they share one horizon.
 ```
 
 **Fold placement arithmetic** (same formula `splitting.py._fold_windows` uses:
@@ -166,7 +171,9 @@ tail consumed by 6 test windows + their internal embargoes
   = (F-1) x stride + T = 5 x 31d + 30d = 185d
 first_test_lower = t_max - 185d = 2025-12-26
 initial TRAIN duration entering fold 0 = first_test_lower - t_min
-  = 2025-12-26 - 2024-01-01 = 726 days (~23.9 months)
+  = 2025-12-26 - 2024-01-01
+  ~= 726 days (725 days 23:59:00 exactly, rounding up from t_max's
+     23:59 bar-open time; ~23.9 months)
   -> clears the LOCKED >= 12 months initial-TRAIN rule with an ~12-month margin
 ```
 
@@ -319,9 +326,14 @@ Suggested incumbents (confirmed present, exact names, default=True):
   volatility.range_expansion
 ```
 
-Ten declared features total. This list does not change after T002 commits the
-`FeatureSpec` entries, and it does not change regardless of what T004's
-comparison shows (acceptance criterion 8).
+Ten declared features total. Family tally, so the "not a single-family bet"
+claim is checkable at a glance rather than requiring a manual count:
+`momentum.*` = 3, `volatility.*` = 3, `statistics.*` = 2, `trend.*` = 1,
+`candle.*` = 1 — no single family exceeds 30% of the list.
+
+This list does not change after T002 commits the `FeatureSpec` entries, and
+it does not change regardless of what T004's comparison shows (acceptance
+criterion 8).
 
 ---
 
