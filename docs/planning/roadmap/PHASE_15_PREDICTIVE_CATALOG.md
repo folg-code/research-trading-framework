@@ -2,8 +2,8 @@
 
 ```text
 Status: APPROVED (maintainer, 2026-09-02) — 15A COMPLETE, 15B COMPLETE
-(2026-09-08, 8/8 tasks; integration to `sprint/btc-predictive-study` and
-then `main` still pending — see below) — Phase 15 as a whole is COMPLETE
+(2026-09-08, 8/8 tasks; merged to `main` via #461-#463 — see below) —
+Phase 15 as a whole is COMPLETE
 ```
 
 Full detail for `ROADMAP.md` §13G — this is the LIVE, canonically-updated location for this
@@ -23,12 +23,10 @@ already used in `ROADMAP_COMPLETED_PHASES.md`.
 # 13G. Phase 15 — Predictive Research Catalog Expansion and Real-Data Study (APPROVED)
 
 **Status:** **APPROVED** (maintainer, 2026-09-02). Sprint 051 (increment 15A)
-is **COMPLETE** (11/11, on `sprint/momentum-and-regime-catalog`; final
-integration PR to `main` pending) — see `SPRINT_051.md` §13 Review. Sprint 052
-(increment 15B) is **COMPLETE** (8/8 tasks, 2026-09-08, on
-`docs/btc-predictive-study-baseline-run`; tester/reviewer sign-off and
-integration to `sprint/btc-predictive-study`, then a final integration PR to
-`main`, are still pending — see `SPRINT_052.md` §13 Review). The real-data
+is **COMPLETE** (11/11, merged to `main` via #409) — see `SPRINT_051.md` §13
+Review. Sprint 052 (increment 15B) is **COMPLETE** (8/8 tasks, 2026-09-08,
+merged to `main` via #461-#463 — tester/reviewer-approved) — see
+`SPRINT_052.md` §13 Review. The real-data
 study ran on `BTCUSDT.P` (`S051_BTC_DATA_INVENTORY.md`'s delivered dataset)
 and produced a split verdict: the BINARY/classification pass
 (`sklearn.logistic`, run `faa6983acd03f846`) beats `RANDOM_PERMUTATION` on

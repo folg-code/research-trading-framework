@@ -30,24 +30,25 @@ Status Date: 2026-09-08
 Current Phase: Phase 15 — Predictive Research Catalog Expansion and
   Real-Data Study. Increment 15A (Sprint 051) is COMPLETE and merged to
   `main` (#409). Increment 15B (Sprint 052, the real-data BTC predictive
-  study) is COMPLETE (8/8 tasks, 2026-09-08, on
-  `docs/btc-predictive-study-baseline-run`; integration to
-  `sprint/btc-predictive-study` and then `main` still pending) — Phase 15
-  as a whole is COMPLETE. Verdict: split result — the BINARY/classification
-  pass (`sklearn.logistic`) clears `S044_GATE.md` §1.4's strict per-fold
-  bar and closes ROADMAP §13F's Q5 dependency; the REGRESSION pass does
-  not. Full write-up: `docs/reference/BTC_PREDICTIVE_STUDY.md`.
+  study) is COMPLETE (8/8 tasks) and **merged to `main`** (#461, #462, #463,
+  2026-09-08) — Phase 15 as a whole is COMPLETE. Verdict: split result — the
+  BINARY/classification pass (`sklearn.logistic`) clears `S044_GATE.md`
+  §1.4's strict per-fold bar and closes ROADMAP §13F's Q5 dependency; the
+  REGRESSION pass does not. Full write-up:
+  `docs/reference/BTC_PREDICTIVE_STUDY.md`.
   Phase 14 — Predictive Model Promotion. Increment 14A (Sprint 049) is
   COMPLETE and merged to `main` (#396). Increment 14B (Sprint 050) is not
   planned or started — Phase 14 as a whole is NOT complete (no Market
-  Analysis component, State, executor change, or dry-run session exists).
+  Analysis component, State, executor change, or dry-run session exists);
+  Q5 closing does not by itself satisfy 14B's remaining prerequisites
+  (ADR-0030, the named downstream robustness plan).
   Phase 16 — Quant Research Workbench (APPROVED 2026-09-04). Increment 16B
   (Sprint 056, SampleSpec Foundation) is COMPLETE on
   `sprint/sample-spec-foundation`, not yet integrated to `main`. No other
   16-series increment is planned, opened, or started — 16A/16C-16G's gate
-  was "Sprint 052 having run"; Sprint 052 has now run (8/8 tasks, not yet
-  integrated to `main`), but whether that satisfies the gate for opening
-  16A is a separate maintainer decision, not made by this update
+  was "Sprint 052 having run"; Sprint 052 has now run AND merged to `main`
+  (8/8 tasks), so that gate condition is factually met, but opening 16A
+  remains a separate maintainer decision, not made by this update
   (`ROADMAP.md` §13H; `docs/planning/roadmap/PHASE_16_QUANT_WORKBENCH.md`).
   All phases through Phase 13 (Sprint 048, #383) are COMPLETE on `main`.
 Active Sprint: None on `main`. SPRINT_056 (SampleSpec Foundation, Phase 16
@@ -60,7 +61,9 @@ Last Completed Sprint (cross-cutting, merged to `main`): SPRINT_055
   (Documentation Architecture Rebuild, high-level to low-level) — merged to
   `main` via #447. SPRINT_054 (Vision Reclassification and Reference
   Layering, Phase 6b + 10a) — merged to `main` via #434.
-Last Completed Sprint (research track, merged to `main`): SPRINT_051
+Last Completed Sprint (research track, merged to `main`): SPRINT_052
+  (Real-Data BTC Predictive Study, Phase 15B) — 8/8 tasks, merged to `main`
+  via #461/#462/#463; closes Phase 15 and ROADMAP §13F's Q5. SPRINT_051
   (Momentum and Regime Component Catalog, Phase 15A) — 11/11 tasks, merged
   to `main` via #409.
 Overall Status: STABLE
@@ -93,17 +96,18 @@ items Sprint 053 deliberately deferred (vision-file reclassification and
 `docs/planning/sprints/SPRINT_055.md` and `SPRINT_054.md` for task-level
 status.
 
-**Also closed, pending integration to `main`:** SPRINT_052 (Real-Data BTC
-Predictive Study, Phase 15B) — 8/8 tasks DONE on
-`docs/btc-predictive-study-baseline-run`. Both baseline passes (regression/
-ridge, binary/logistic) and the triggered tree pass ran on real `BTCUSDT.P`
-data through the unmodified Phase 10 pipeline; the write-up and Q5
-disposition are recorded in `docs/reference/BTC_PREDICTIVE_STUDY.md`. Q5
-(ROADMAP §13F) is CLOSED by the binary pass (run `faa6983acd03f846`,
-`sklearn.logistic`) — see `docs/planning/sprints/SPRINT_052.md` §13 Review.
-The sprint's own tasks are complete; tester/reviewer sign-off, integration
-to `sprint/btc-predictive-study`, and a final integration PR to `main` are
-still pending.
+**Merged to `main` (2026-09-08):** SPRINT_052 (Real-Data BTC
+Predictive Study, Phase 15B) — 8/8 tasks, tester/reviewer-approved, merged
+via #461 (T003-T008 into `sprint/btc-predictive-study`), #462 (follow-up
+fixes: off-by-one fold-date correction, `TECHNICAL_DEBT.md` TD-032), and
+#463 (`sprint/btc-predictive-study` integration into `main`). Both baseline
+passes (regression/ridge, binary/logistic) and the triggered tree pass ran
+on real `BTCUSDT.P` data through the unmodified Phase 10 pipeline; the
+write-up and Q5 disposition are recorded in
+`docs/reference/BTC_PREDICTIVE_STUDY.md`. Q5 (ROADMAP §13F) is CLOSED by
+the binary pass (run `faa6983acd03f846`, `sklearn.logistic`) — see
+`docs/planning/sprints/SPRINT_052.md` §13 Review. This closes Phase 15 as a
+whole.
 
 **Next planned capability (APPROVED, one increment now complete on its
 sprint branch):** Phase 16 — Quant Research Workbench (increments 16A–16G),
@@ -112,9 +116,10 @@ approved by the maintainer 2026-09-04. Canonical description: `ROADMAP.md`
 completion note). **16B (Sprint 056) is complete on its sprint branch, not
 yet integrated to `main`.** No other increment is opened, planned or
 numbered; 16A and everything after 16B were gated on Sprint 052 having run
-— Sprint 052 has now run (8/8 tasks; see above), so that gate condition is
-factually met, but opening 16A remains a separate maintainer decision, not
-made by this update. Sprint 052 is not re-scoped or absorbed by Phase 16.
+— Sprint 052 has now run **and merged to `main`** (8/8 tasks; see above),
+so that gate condition is factually met, but opening 16A remains a separate
+maintainer decision, not made by this update. Sprint 052 is not re-scoped
+or absorbed by Phase 16.
 
 ---
 
@@ -190,7 +195,7 @@ These have their own canonical owners — this file does not duplicate them:
 | 048 | Exit/Risk Model Expansion, Catalog Growth and New Strategies (Phase 13) | COMPLETED | 13 / 13 tasks; all four waves (#368-#381); merged to main via #383 |
 | 049 | Promotable Predictive Artifact (Phase 14A) | COMPLETED | 15 / 15 tasks; all five waves (#385-#393); merged to main via #396; Phase 14A only — Phase 14 overall NOT complete (Sprint 050 / Phase 14B not started) |
 | 051 | Momentum and Regime Component Catalog (Phase 15A) | COMPLETED | 11 / 11 tasks; all four waves (#397-#407); merged to main via #409; Phase 15A only — Phase 15 overall now COMPLETE (Sprint 052 / Phase 15B done, see next row) |
-| 052 | Real-Data BTC Predictive Study (Phase 15B) | COMPLETE on task branch; **not yet integrated to `main`** | 8 / 8 tasks (#460 landed the Wave 0 V=1m correction; T003-T008 on `docs/btc-predictive-study-baseline-run`, not yet merged to `sprint/btc-predictive-study`); Q5 CLOSED by run `faa6983acd03f846` (`sklearn.logistic`) — see `docs/reference/BTC_PREDICTIVE_STUDY.md` and `docs/planning/sprints/SPRINT_052.md` §13 Review |
+| 052 | Real-Data BTC Predictive Study (Phase 15B) | COMPLETED | 8 / 8 tasks; #460 (Wave 0 V=1m correction), #461 (T003-T008), #462 (follow-up fixes), #463 (integration to `main`); Q5 CLOSED by run `faa6983acd03f846` (`sklearn.logistic`) — see `docs/reference/BTC_PREDICTIVE_STUDY.md` and `docs/planning/sprints/SPRINT_052.md` §13 Review |
 | 053 | Repository Workflow & Documentation Hygiene | IN PROGRESS | see `docs/planning/sprints/SPRINT_053.md` |
 | 056 | SampleSpec Foundation (Phase 16, increment 16B) | COMPLETE on sprint branch; **not yet integrated to `main`** | 7 / 7 tasks; working PRs #448, #449, #450, #451, #456 into `sprint/sample-spec-foundation`; sprint-to-main integration is a separate, not-yet-made maintainer decision (D-S056-03) — see `docs/planning/sprints/SPRINT_056.md` §13 Review |
 

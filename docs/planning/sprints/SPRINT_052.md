@@ -13,13 +13,12 @@ Status: COMPLETE (2026-09-08) — 8/8 tasks DONE on
         docs/planning/sprints/S051_BTC_DATA_INVENTORY.md records a usable
         published BTCUSDT.P dataset (911 days, 1,311,840 rows, zero gaps).
         Q5 (ROADMAP §13F) is CLOSED by the BINARY pass (run
-        `faa6983acd03f846`, `sklearn.logistic`) — see §13 Review. Tester/
-        reviewer sign-off and integration to `sprint/btc-predictive-study`,
-        then a final integration PR to `main`, are still pending (not part
-        of this sprint's own task list).
+        `faa6983acd03f846`, `sklearn.logistic`) — see §13 Review.
+        Tester/reviewer-approved and merged to `main` via #461 (T003-T008),
+        #462 (follow-up fixes), and #463 (integration).
 Planned Start: 2026-09-08 (`sprint/btc-predictive-study` cut from `main` @
         6cb0826, S052-T001 landed same day)
-Planned End: 2026-09-08 (all 8 tasks DONE same day; integration pending)
+Planned End: 2026-09-08 (all 8 tasks DONE same day; merged to `main` same day via #461-#463)
 Sprint Goal Owner: Project Maintainer
 Depends On: SPRINT_051 (the six components + the BTC dataset inventory),
             SPRINT_039-044 (the Phase 10 pipeline this sprint CONSUMES unmodified),
