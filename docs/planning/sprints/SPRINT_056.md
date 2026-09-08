@@ -267,10 +267,10 @@ Wave 0 is DONE when the maintainer has checked off the Wave 0 Checklist
 
 | Task | Description | Acceptance | Deps | Status |
 |------|-------------|-----------|------|--------|
-| S056-T006 | One committed **synthetic** example: `apps/cli/examples/predictive/signal_occurrences_sample_example.yaml` plus a network-free, extra-free parse test; update `research/predictive/CLAUDE.md` conventions and the predictive reference page with the sample contract, the kind x task matrix, and the filter-late rule | the example loads through `load_predictive_study_spec` with no code change and its `definition_hash` appears in a header comment; the parse test runs in default CI without the `ml` extra and without network; **no `btc_*.yaml` and not `research_run_predictive.yaml` is touched** (D-S056-02, reviewable as a diff); the documentation states plainly that `strategy_trades` / `labelled_setups` are declared-and-refused and names 16F | T004 | TODO |
+| S056-T006 | One committed **synthetic** example: `apps/cli/examples/predictive/signal_occurrences_sample_example.yaml` plus a network-free, extra-free parse test; update `research/predictive/CLAUDE.md` conventions and the predictive reference page with the sample contract, the kind x task matrix, and the filter-late rule | the example loads through `load_predictive_study_spec` with no code change and its `definition_hash` appears in a header comment; the parse test runs in default CI without the `ml` extra and without network; **no `btc_*.yaml` and not `research_run_predictive.yaml` is touched** (D-S056-02, reviewable as a diff); the documentation states plainly that `strategy_trades` / `labelled_setups` are declared-and-refused and names 16F | T004 | **DONE** — 2026-09-08, `apps/cli/examples/predictive/signal_occurrences_sample_example.yaml` committed (first file under this new subdirectory; `sample: {kind: signal_occurrences}` + `task: SIGNAL_QUALITY`, header comment carries its real `definition_hash`, loader-verified); two parse tests added to `tests/unit/research/predictive/test_spec.py` (loads with no code change; header hash matches the loaded spec), network-free and `ml`-extra-free; `git diff --name-only` against the sprint branch confirms neither `research_run_predictive.yaml` nor any `btc_*.yaml` was touched — the `apps/cli/examples/predictive/` directory did not exist before this task, Sprint 052 (not yet run) will add its own files alongside this one; the example cannot be RUN end to end today (confirmed against TD-031: no `signal_model_file` loader exists) and fails fast with the same named `PredictiveDatasetError` `build_predictive_dataset` already raises, stated in the file's own header comment; `research/predictive/CLAUDE.md` and `docs/reference/workflows/RESEARCH_METHODOLOGIES.md` §8 "Samples" updated with the sample contract, the kind x task matrix, the filter-late rule, and the 16F-owned refusal of `strategy_trades`/`labelled_setups` |
 | S056-T007 | Sprint closure: the Review section, `CURRENT_STATUS.md` §2/§3/§6, and the 16B status flip in `docs/planning/roadmap/PHASE_16_QUANT_WORKBENCH.md` (append, never rewrite) | every task above is `DONE` or explicitly recorded as not done with a reason; the closure states which of 16B's completion criteria (§13H.2) were met and names any that were not; it restates that **no verdict, no scorer and no study** was produced, so a reader cannot mistake 16B for 16A or 16C; any new problem or debt is logged in its own registry by its own owner, not summarized here | T005, T006 | TODO |
 
-**Progress:** 5 / 7 — T001 done (ADR-0031 accepted, Wave 0 signed off); T002
+**Progress:** 6 / 7 — T001 done (ADR-0031 accepted, Wave 0 signed off); T002
 done (SampleSpec/PredictiveTask contract, default elision, refusals); T003
 done (sample provenance persisted in the manifest for both kinds, schema v2
 bump, v1 read-compat, fingerprint independence asserted); T004 done
@@ -278,8 +278,9 @@ bump, v1 read-compat, fingerprint independence asserted); T004 done
 filter-late structural, direction passed through, row-count identity asserted
 on a synthetic fixture); T005 done (leakage guards proven correct for
 irregularly-spaced rows; no defect found, `splitting.py` untouched — see the
-task row for the specific tests added). Wave 3 (T006, then closure T007) may
-now start.
+task row for the specific tests added); T006 done (committed synthetic
+example + parse tests, module and reference documentation updated — see the
+task row). Only closure (T007) remains.
 
 **Descope order:** T006's example may shrink to the parse test alone. **T005 is
 never dropped** — without it this sprint ships a new way to build a dataset with

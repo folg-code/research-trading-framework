@@ -137,6 +137,18 @@ library-free predictive metrics (`metrics.py`).
   loads with `sample_provenance is None`; only v2 requires it, enforced at
   `PredictiveDatasetRepository.write`).
 
+- `apps/cli/examples/predictive/signal_occurrences_sample_example.yaml`
+  (S056-T006) is the committed synthetic `PredictiveStudySpec` demonstrating
+  `sample: {kind: signal_occurrences}` + `task: SIGNAL_QUALITY`. It loads
+  through `load_predictive_study_spec` with no code change (parse test:
+  `tests/unit/research/predictive/test_spec.py`), and its `definition_hash`
+  is recorded in the file's own header comment — reviewable by inspection,
+  not by trust. It cannot be RUN end to end today: no loader turns a declared
+  `signal_model_file` into a `SignalModelDefinition` yet (TD-031,
+  `docs/planning/TECHNICAL_DEBT.md`), so `build_predictive_dataset` fails
+  fast with the same named `PredictiveDatasetError` described two bullets up
+  the moment someone points a CLI config at it — never a silent no-op or an
+  unrelated crash.
 - `promotion/` (Sprint 049, ADR-0029) is the pure-NumPy promoted-artifact
   evaluator: `PromotedArtifactParameters` (the parameter-file payload schema),
   `load_promoted_artifact` (the load-time format/family guard, no bypass), and
