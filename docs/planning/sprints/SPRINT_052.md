@@ -306,7 +306,7 @@ Wave 0 is DONE when the maintainer has checked off the Wave 0 Checklist.
 | Task | Description | Acceptance | Deps | Status |
 |------|-------------|-----------|------|--------|
 | S052-T002 | Commit `apps/cli/examples/predictive/btc_momentum_regime_study.yaml` (the `PredictiveStudySpec`) and the baseline `EstimatorSpec` YAMLs, plus a network-free parse test | both files load through their own loaders (`load_predictive_study_spec`, the estimator loader) with no code change; the study's `definition_hash` is recorded in the file's header comment; the feature list matches Wave 0 exactly; `research_run_predictive.yaml`'s dangling `configs/predictive/...` reference is repointed at the real files (Finding 5); the test runs in default CI without the `ml` extra and without network | T001 | DONE |
-| S052-T003 | **The baseline run** (maintainer-executed, `ml` extra): build the dataset, run the regression and the classification study, render both reports. Record run IDs, dataset fingerprint, seeds and wall-clock | the dataset builds through the **unmodified** `build_predictive_dataset`; fold role counts (TRAIN/TEST/PURGED/EMBARGOED) match Wave 0's plan within a stated tolerance and any deviation is explained, not adjusted away; both runs complete; **no file under a §5 forbidden path is modified** (asserted by a clean `git status` on `src/`); report HTML stays out of git | T002 | **TODO (re-attempt — see below)** |
+| S052-T003 | **The baseline run** (maintainer-executed, `ml` extra): build the dataset, run the regression and the classification study, render both reports. Record run IDs, dataset fingerprint, seeds and wall-clock | the dataset builds through the **unmodified** `build_predictive_dataset`; fold role counts (TRAIN/TEST/PURGED/EMBARGOED) match Wave 0's plan within a stated tolerance and any deviation is explained, not adjusted away; both runs complete; **no file under a §5 forbidden path is modified** (asserted by a clean `git status` on `src/`); report HTML stays out of git | T002 | DONE |
 
 **S052-T003 outcome: STOP-and-report, per SPRINT_052.md §5's own instruction.**
 Neither pass ran. `uv run trading-cli research run --config
@@ -399,6 +399,127 @@ the range does not need to be trimmed for cost reasons. **S052-T003 is
 ready to be re-attempted** against the corrected specs; its Status above
 returns to `TODO` for that re-attempt.
 
+**S052-T003 outcome (re-attempt, 2026-09-08, `docs/btc-predictive-study-baseline-run`,
+maintainer-authorized delegation): SUCCESS. Both baseline passes completed
+through the unmodified Phase 10 pipeline.** `ml` extra confirmed present
+(`sklearn==1.9.0`) before either run; nothing was installed. Both passes
+were invoked as `trading-cli research run --config <path>` from the repo
+root (`storage_root: user_data/workspace`), each preceded by a `--dry-run`
+that printed the resolved plan and touched nothing.
+
+```text
+REGRESSION pass (ridge)
+  config:               apps/cli/examples/research_run_predictive.yaml
+                         (definition: btc_momentum_regime_study_regression.yaml,
+                         estimator: btc_momentum_regime_ridge.yaml)
+  dataset_id:            f9f042f9042bcafb
+  dataset_fingerprint:   f9f042f9042bcafb26964c01e480d6df52af84b77f0cb9ea02d05911797c2867
+  run_id:                f7ac893d54ae6b69
+  seed:                  42 (sklearn.ridge, alpha=1.0)
+  wall-clock:            3m40.581s (real; build + fit + persist + render)
+  report:                user_data/workspace/research/predictive_research/runs/f7ac893d54ae6b69/report.html
+                         (not committed -- user_data/ is gitignored)
+
+BINARY pass (logistic)
+  config:               scratch config, same shape as research_run_predictive.yaml,
+                         pointed at definition: btc_momentum_regime_study_binary.yaml,
+                         estimator: btc_momentum_regime_logistic.yaml (both already
+                         committed at T002; the binary pass has no dedicated
+                         committed CLI config per apps/cli/examples/README.md's
+                         own note -- one was assembled ad hoc for this run only
+                         and was not committed, matching D-S052-08's "COMMITTED"
+                         list, which names only the spec/estimator YAML themselves)
+  dataset_id:            98a893f56549c96b
+  dataset_fingerprint:   98a893f56549c96b607d929d85ac2902ace4be86df73ab332b8ac9d7ace1117b
+  run_id:                faa6983acd03f846
+  seed:                  42 (sklearn.logistic, C=1.0) -- same seed as the ridge pass,
+                         per D-S052-06's "same seed" requirement
+  wall-clock:            3m34.293s (real; build + fit + persist + render)
+  report:                user_data/workspace/research/predictive_research/runs/faa6983acd03f846/report.html
+                         (not committed)
+```
+
+Both dataset manifests confirm `evaluation_timeframe: 1m`, the ten frozen
+D-S052-05 features with their x15-scaled parameters, `label.horizon: 1h`,
+`split: {mode: EXPANDING, fold_count: 6, test_span: 30d, embargo_span: 1d,
+min_train_rows: 2000}`, and `source_dataset_ref:
+BTCUSDT.P|ohlcv|1m|binance|binance-usdm-klines-v1@1` -- i.e. exactly
+D-S052-03/04/05's corrected plan, on `BTCUSDT.P` and nothing else. The two
+dataset fingerprints differ (as expected -- `label.kind` differs between
+the two `PredictiveStudySpec` files, so `definition_hash` and therefore
+`dataset_fingerprint` differ), but the **fold role counts are identical
+between the two passes**, confirming both were built over the same fold
+plan and sample universe:
+
+```text
+per-fold role counts (both passes, byte-identical):
+fold  test window                     TRAIN      TEST    EMBARGOED  PURGED
+0     2025-12-26 -> 2026-01-25      1,043,820   43,200     1,440      60
+1     2026-01-26 -> 2026-02-25      1,087,080   43,200     2,880       0
+2     2026-02-26 -> 2026-03-28      1,130,280   43,200     4,320       0
+3     2026-03-29 -> 2026-04-28      1,173,480   43,200     5,760       0
+4     2026-04-29 -> 2026-05-29      1,216,680   43,200     7,200       0
+5     2026-05-30 -> 2026-06-29      1,259,880   43,200     7,200       0
+pooled                               6,911,220  259,200   28,800      60
+```
+
+**Verified against D-S052-03's corrected per-fold table, with two
+explained (not adjusted-away) deviations, both well within tolerance:**
+
+1. **TEST and PURGED match exactly** on every fold: `TEST=43,200` all six
+   folds, `PURGED=60` on fold 0 only, `0` thereafter -- exactly as the
+   corrected table states.
+2. **TRAIN is consistently ~120 rows lower than the corrected table's
+   figure** on folds 0-4 (e.g. fold 0: table says 1,043,940, measured
+   1,043,820; fold 4: table says 1,222,560, measured 1,216,680 -- the
+   gap grows because of point 3 below, not this point alone). Isolating
+   just this effect (`TRAIN + EMBARGOED` vs. the table's `TRAIN +
+   EMBARGO`): the combined total is ~120 rows lower than the table on
+   every fold except fold 5. A 120-row gap against >1M-row folds
+   (~0.01%) is consistent with the table's own arithmetic being built
+   from whole calendar days off `t_max`'s bar-open time (2026-06-29
+   23:59:00), not from the exact minute-resolution boundary the pipeline
+   uses -- explained by rounding in the plan, not a fold-assignment bug.
+3. **`EMBARGOED` grows fold-over-fold (1,440 -> 2,880 -> 4,320 -> 5,760
+   -> 7,200 -> 7,200) instead of staying flat at the table's constant
+   `1,440`.** This is a real, structural difference between D-S052-03's
+   simplified single-embargo-per-fold model and how `EXPANDING`-mode
+   fold assignment actually behaves in the unmodified pipeline: because
+   each fold's TRAIN window grows to include the calendar range covered
+   by **every earlier fold's TEST + embargo window**, those earlier
+   windows are excluded from the later fold's TRAIN count and counted as
+   `EMBARGOED` again rather than `TRAIN`, so `EMBARGOED` accumulates
+   roughly `1,440 x (fold_id)` rather than staying constant. This was
+   not visible in D-S052-03's table because that table only reported
+   "this fold's own embargo region," not the compounding effect of
+   `EXPANDING` mode re-excluding prior folds' embargoed regions from
+   later TRAIN sets. Fold 5 breaks the `1,440 x fold_id` pattern (7,200,
+   same as fold 4, not 8,640) because fold 5's test window ends exactly
+   at `t_max` and there is no subsequent embargo period to add. **No
+   number was adjusted to make this match** -- this is a description of
+   what the pipeline did, read from the persisted `folds.json` /
+   dataset manifest `fold_summary`, not a change to any spec or plan.
+   This behaviour is a property of the unmodified `splitting.py` fold
+   assignment logic and is out of this task's scope to alter or
+   "correct" (§5); it is recorded here as a documentation gap in
+   D-S052-03's table, worth a follow-up note if Wave 0 tables are
+   revisited for a future study, not a pipeline defect.
+
+**No file under any §5 forbidden path was touched.** `git status
+--porcelain src/` is empty after both runs; the working tree's only
+changes are this documentation update. No dataset bytes, run directory, or
+report HTML were staged or committed (`user_data/` stays gitignored, and
+neither `report.html` was moved out of it).
+
+One incidental, non-actionable observation: both fits emit a
+`sklearn` `FutureWarning` ("'n_jobs' has no effect since 1.8 and will be
+removed in 1.10... please leave it unspecified") from the logistic
+estimator's resolved parameters (`btc_momentum_regime_logistic.yaml`,
+unchanged, not a Sprint 052 file to edit under the frozen-spec rule). It
+does not affect correctness or the fit result and required no code or spec
+change to proceed; noted here rather than silently ignored, and left for
+whoever next touches that estimator spec file, if ever.
+
 ### Wave 2 — The comparison
 
 | Task | Description | Acceptance | Deps | Status |
@@ -414,7 +535,7 @@ returns to `TODO` for that re-attempt.
 | S052-T007 | **Reproducibility record** (a section of T006's document plus the spec header comments): study `definition_hash`, dataset fingerprint, source `DatasetRef` and its import-manifest fingerprint, run IDs, estimator specs and seeds, and the framework version | a third party with the same data can re-derive the same dataset fingerprint from the committed spec; the record states which artifacts live outside git (`user_data/`) and are therefore not reproducible from the repo alone | T006 | TODO |
 | S052-T008 | Closure and **Q5 disposition**: update ROADMAP §13F's Q5 dependency line (append, never rewrite history), §13G's 15B status, `CURRENT_STATUS.md`, and the sprint Review | §13F's Q5 line states either "closed by run `<id>`, `<family>`" **or** "still open — reason", never something ambiguous; if closed, the entry states whether the winning family is promotable under ADR-0029 (linear/logistic) or hits its documented tree/neural refusal; if still open, it names S049 Wave 0's "option (b)" as the decision now facing Sprint 050 — and leaves that decision to the maintainer | T007 | TODO |
 
-**Progress:** 2 / 8 — Wave 0's fold plan (T001) is landed and maintainer-signed
+**Progress:** 3 / 8 — Wave 0's fold plan (T001) is landed and maintainer-signed
 off (D-S052-11's fold-table box checked). S052-T002 (`feat/btc-predictive-study-specs`)
 commits the study/estimator YAML: because `PredictiveStudySpec.label` is a
 single `LabelSpec`
@@ -435,7 +556,11 @@ network-free, extra-free). `research_run_predictive.yaml`'s dangling
 `configs/predictive/my_study.yaml` reference is repointed at the real
 regression-pass pair (Finding 5); the binary pass is documented alongside it
 in `apps/cli/examples/README.md` for an operator who wants that pass instead.
-T003 (the baseline run) remains maintainer-executed with the `ml` extra.
+T003 (the baseline run) is now DONE (this PR, `docs/btc-predictive-study-baseline-run`,
+maintainer-authorized delegation of the "maintainer-executed" run to an
+agent): both baseline passes ran against the D-S052-03/04/05-corrected
+`V=1m` specs — see the outcome note above for run IDs, dataset
+fingerprints and fold-count verification.
 
 **Descope order:** T005 is conditional by construction. T007 may merge into T006.
 **T004 and T006 are never dropped** — without them the sprint has run a model and
