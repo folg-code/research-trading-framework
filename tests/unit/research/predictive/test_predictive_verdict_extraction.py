@@ -499,3 +499,49 @@ def test_facts_mappings_are_read_only() -> None:
     assert isinstance(facts.sources, MappingProxyType)
     assert isinstance(facts.feature_importance, MappingProxyType)
     assert isinstance(facts.exclusion_counts, MappingProxyType)
+
+
+# ---------------------------------------------------------------------------
+# Parity guard: verdict.py's reproduced primary-metric convention must not
+# silently drift from research/reporting/predictive/quality.py's canonical
+# one. verdict.py cannot import research.reporting (ADR-0032 SS5), so the
+# convention is reproduced rather than shared -- this test is the tripwire
+# that would fail if either copy changed without the other (flagged by
+# tester during S057-T003 QA; quality.py's own triplication note does not
+# name this specific duplication, so this guard is added rather than left
+# purely to a future TECHNICAL_DEBT.md entry).
+# ---------------------------------------------------------------------------
+
+
+def test_primary_metric_convention_matches_quality_module_exactly() -> None:
+    from trading_framework.research.predictive.verdict import (
+        _primary_metric_name,
+        _primary_metric_value,
+    )
+    from trading_framework.research.reporting.predictive.quality import (
+        primary_metric_name,
+        primary_metric_value,
+    )
+
+    for task_type in (TaskType.CLASSIFICATION, TaskType.REGRESSION):
+        assert _primary_metric_name(task_type) == primary_metric_name(task_type)
+
+    stats = StatisticalMetrics(
+        rmse=0.1,
+        mae=0.05,
+        r_squared=0.2,
+        spearman_ic=0.42,
+        pearson_ic=0.40,
+        accuracy=0.61,
+        balanced_accuracy=0.60,
+        roc_auc=0.58,
+        pr_auc=0.55,
+        log_loss=0.65,
+        brier_score=0.24,
+    )
+    source = SourceMetrics(statistical=stats, finance=_finance())
+
+    for task_type in (TaskType.CLASSIFICATION, TaskType.REGRESSION):
+        assert _primary_metric_value(source, task_type) == primary_metric_value(stats, task_type)
+
+    assert _primary_metric_value(None, TaskType.CLASSIFICATION) is None
