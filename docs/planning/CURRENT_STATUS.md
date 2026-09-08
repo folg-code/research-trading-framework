@@ -189,8 +189,8 @@ These have their own canonical owners — this file does not duplicate them:
 | 047 | Custom Strategy Authoring (Phase 12, `strategy_file` loader) | COMPLETED | 10 / 10 tasks; main #366; working PRs #363–#365 |
 | 048 | Exit/Risk Model Expansion, Catalog Growth and New Strategies (Phase 13) | COMPLETED | 13 / 13 tasks; all four waves (#368-#381); merged to main via #383 |
 | 049 | Promotable Predictive Artifact (Phase 14A) | COMPLETED | 15 / 15 tasks; all five waves (#385-#393); merged to main via #396; Phase 14A only — Phase 14 overall NOT complete (Sprint 050 / Phase 14B not started) |
-| 051 | Momentum and Regime Component Catalog (Phase 15A) | COMPLETED | 11 / 11 tasks; all four waves (#397-#407); merged to main via #409; Phase 15A only — Phase 15 overall NOT complete (Sprint 052 / Phase 15B PLANNED, not approved/opened) |
-| 052 | Real-Data BTC Predictive Study (Phase 15B) | PLANNED | requires maintainer approval to open |
+| 051 | Momentum and Regime Component Catalog (Phase 15A) | COMPLETED | 11 / 11 tasks; all four waves (#397-#407); merged to main via #409; Phase 15A only — Phase 15 overall now COMPLETE (Sprint 052 / Phase 15B done, see next row) |
+| 052 | Real-Data BTC Predictive Study (Phase 15B) | COMPLETE on task branch; **not yet integrated to `main`** | 8 / 8 tasks (#460 landed the Wave 0 V=1m correction; T003-T008 on `docs/btc-predictive-study-baseline-run`, not yet merged to `sprint/btc-predictive-study`); Q5 CLOSED by run `faa6983acd03f846` (`sklearn.logistic`) — see `docs/reference/BTC_PREDICTIVE_STUDY.md` and `docs/planning/sprints/SPRINT_052.md` §13 Review |
 | 053 | Repository Workflow & Documentation Hygiene | IN PROGRESS | see `docs/planning/sprints/SPRINT_053.md` |
 | 056 | SampleSpec Foundation (Phase 16, increment 16B) | COMPLETE on sprint branch; **not yet integrated to `main`** | 7 / 7 tasks; working PRs #448, #449, #450, #451, #456 into `sprint/sample-spec-foundation`; sprint-to-main integration is a separate, not-yet-made maintainer decision (D-S056-03) — see `docs/planning/sprints/SPRINT_056.md` §13 Review |
 
