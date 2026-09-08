@@ -1,0 +1,123 @@
+# apps/cli/examples/predictive/btc_momentum_regime_study_binary.yaml
+#
+# Real-data BTC predictive study, BINARY classification pass (Sprint 052 /
+# S052-T002, Phase 15B). Declares the study half of D-S052-06's Pass 1: one
+# binary target (LabelKind.BINARY, threshold 0.0 on forward_return),
+# PredictiveTask=FORWARD_RETURN (the default, elided from the serialized
+# payload -- ADR-0031 Decision 2), over Sprint 051's six components plus four
+# incumbents on BTCUSDT.P (D-S052-05's frozen ten-feature list,
+# S052_WAVE0_DECISIONS.md).
+#
+# This is a SEPARATE PredictiveStudySpec file from the REGRESSION pass
+# (btc_momentum_regime_study_regression.yaml), not two labels on one spec:
+# PredictiveStudySpec.label is a single LabelSpec
+# (src/trading_framework/research/predictive/spec.py), and D-S052-06 runs one
+# REGRESSION pass and one BINARY pass over the same sample universe and fold
+# plan -- the label KIND is the only thing that differs between the two
+# files. Both share the same dataset_ref, time_range, features, split, and
+# evaluation_timeframe, byte-for-byte.
+#
+# Fold plan matches S052_WAVE0_DECISIONS.md D-S052-03 exactly (CORRECTED
+# 2026-09-08, post-T003 STOP): V=1m (was 15m -- validate_evaluation_timeframe
+# rejects a run-level grid coarser than the source; the range and F=6/T=30d/
+# E=1d/M=2000 are unchanged, fold TEST dates are byte-identical). Every
+# evaluation-bar-denominated component parameter below is scaled x15 from its
+# original V=15m value (D-S052-05's correction, maintainer-approved Option A)
+# to hold each rolling window's wall-clock span constant. Label horizon 1h is
+# now 60 evaluation bars @ 1m (was 4 @ 15m), same horizon as the REGRESSION
+# pass.
+#
+# Loads and validates through `load_predictive_study_spec` with no code
+# change (network-free, extra-free parse test:
+# tests/unit/research/predictive/test_btc_momentum_regime_study.py).
+#
+# Sprint 052 does not RUN this study (that is S052-T003, maintainer-executed
+# with the `ml` extra) -- this file only commits and parse-validates the
+# declared configuration (SPRINT_052.md acceptance criterion 2).
+#
+# definition_hash: b5a0e074eb9bfa1d4fdfb34bea0f3ee4bfa82c4b37443693d08b2dde6b570efd
+
+study:
+  study_id: btc_momentum_regime_study_binary
+  dataset_ref:
+    dataset_id: BTCUSDT.P|ohlcv|1m|binance|binance-usdm-klines-v1
+    version: 1
+  time_range:
+    start: 2024-01-01
+    end: 2026-06-30
+  evaluation_timeframe: 1m
+  features:
+    - component_id: momentum.rsi
+      parameters:
+        period: 210
+      output_id: value
+      alias: momentum_rsi_210
+      transform: NONE
+    - component_id: momentum.macd
+      parameters:
+        fast_period: 180
+        slow_period: 390
+        signal_period: 135
+      output_id: histogram
+      alias: momentum_macd_histogram
+      transform: NONE
+    - component_id: momentum.stochastic
+      parameters:
+        period: 210
+        smoothing_period: 45
+      output_id: k
+      alias: momentum_stochastic_k
+      transform: NONE
+    - component_id: volatility.relative_volatility
+      parameters:
+        period: 300
+        baseline_period: 1500
+      output_id: ratio
+      alias: volatility_relative_volatility_ratio
+      transform: NONE
+    - component_id: statistics.return_autocorrelation
+      parameters:
+        period: 900
+        lag: 15
+      output_id: value
+      alias: statistics_return_autocorrelation
+      transform: NONE
+    - component_id: statistics.return_distribution
+      parameters:
+        period: 900
+      output_id: skew
+      alias: statistics_return_distribution_skew
+      transform: NONE
+    - component_id: volatility.atr
+      parameters:
+        period: 210
+      output_id: value
+      alias: volatility_atr_210
+      transform: NONE
+    - component_id: trend.slope
+      parameters:
+        period: 300
+      output_id: value
+      alias: trend_slope_300
+      transform: NONE
+    - component_id: candle.wick
+      parameters: {}
+      output_id: upper_wick_ratio
+      alias: candle_wick_upper_ratio
+      transform: NONE
+    - component_id: volatility.range_expansion
+      parameters:
+        period: 210
+      output_id: ratio
+      alias: volatility_range_expansion_ratio
+      transform: NONE
+  label:
+    kind: BINARY
+    horizon: 1h
+    threshold: 0.0
+  split:
+    mode: EXPANDING
+    fold_count: 6
+    test_span: 30d
+    embargo_span: 1d
+    min_train_rows: 2000

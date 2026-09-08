@@ -7,8 +7,21 @@
 # v1: build -> run -> render happen in one call, passing typed identifiers
 # between steps (never through stdout).
 #
+# Points at the real, committed Sprint 052 BTC predictive study spec pair
+# (S052-T002, Phase 15B): the REGRESSION pass of
+# btc_momentum_regime_study_regression.yaml, paired with the ridge
+# EstimatorSpec. This fixes the dangling `configs/predictive/my_study.yaml`
+# reference that previously pointed nowhere (SPRINT_052.md Sec4 Finding 5).
+# The BINARY pass has its own study/estimator pair --
+# predictive/btc_momentum_regime_study_binary.yaml +
+# predictive/btc_momentum_regime_logistic.yaml -- not referenced by this
+# file; point `definition`/`estimator` at those two instead to run that pass.
+#
 # Safe to try with --dry-run first: prints the resolved plan and touches
-# nothing (it does not require the definition/estimator files to exist yet).
+# nothing. Requires BTCUSDT.P (2024-01-01 -> 2026-06-30, 1m) to already be
+# published under `storage_root` to run for real -- see
+# S051_BTC_DATA_INVENTORY.md. The `ml` extra is required to fit
+# (S052-T003, maintainer-executed); this config's own YAML parses without it.
 
 version: 1
 storage_root: user_data/workspace
@@ -16,7 +29,7 @@ storage_root: user_data/workspace
 research:
   kind: predictive
   predictive:
-    definition: configs/predictive/my_study.yaml
-    estimator: configs/predictive/ridge.yaml
+    definition: apps/cli/examples/predictive/btc_momentum_regime_study_regression.yaml
+    estimator: apps/cli/examples/predictive/btc_momentum_regime_ridge.yaml
     persist: true
     render_report: true

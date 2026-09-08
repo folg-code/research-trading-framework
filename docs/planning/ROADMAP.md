@@ -113,7 +113,7 @@ completed-phase archive and the live per-phase files under `docs/planning/roadma
 | 14A | Promotable Predictive Artifact | COMPLETE (Sprint 049) | `roadmap/PHASE_14_PREDICTIVE_PROMOTION.md` §13F |
 | 14B | Model-Backed Market Analysis State | NOT PLANNED | `roadmap/PHASE_14_PREDICTIVE_PROMOTION.md` §13F |
 | 15A | Momentum and Regime Component Catalog | COMPLETE (Sprint 051) | `roadmap/PHASE_15_PREDICTIVE_CATALOG.md` §13G |
-| 15B | Real-Data BTC Predictive Study | PLANNED, not opened | `roadmap/PHASE_15_PREDICTIVE_CATALOG.md` §13G |
+| 15B | Real-Data BTC Predictive Study | COMPLETE (Sprint 052, 8/8; integration to `main` pending) | `roadmap/PHASE_15_PREDICTIVE_CATALOG.md` §13G |
 | 16A | Analyst Verdict Artifact | APPROVED, no sprint (gated on 15B) | `roadmap/PHASE_16_QUANT_WORKBENCH.md` §13H |
 | 16B | SampleSpec Foundation | APPROVED, no sprint (may run parallel to 15B) | `roadmap/PHASE_16_QUANT_WORKBENCH.md` §13H |
 | 16C | Signal Quality Scoring | APPROVED, no sprint | `roadmap/PHASE_16_QUANT_WORKBENCH.md` §13H |
@@ -150,7 +150,7 @@ Research Capability Track
   Phase 10B — Tree-Based Predictive Models        COMPLETE  (Sprint 042)
   Phase 10C — Neural Predictive Models            COMPLETE  (Sprints 043–044)
   Phase 14 — Predictive Model Promotion           APPROVED  (Sprints 049 + 050; 049 COMPLETE, 14A only — 050 NOT planned)
-  Phase 15 — Predictive Catalog Expansion + Real-Data Study   APPROVED  (Sprints 051 + 052; 051 IN PROGRESS, 052 NOT planned)
+  Phase 15 — Predictive Catalog Expansion + Real-Data Study   COMPLETE  (Sprints 051 + 052; both 8/8 or 11/11 done, 052 integration to `main` pending)
   Phase 16 — Quant Research Workbench (16A–16G)   APPROVED  (§13H; no sprint opened)
 
 Execution Capability Track
@@ -789,10 +789,11 @@ framework-owned NumPy parameter format with zero ML dependency in the runtime im
 
 Key open items for 14B: **ADR-0030** (inference-time `available_at` enforcement — the
 S049-T001 finding proved the executor mechanism ADR-0024 condition 2 presupposes does not
-exist today), a real non-synthetic BTC candidate model (actively pursued by Phase 15, §13G),
-and a named downstream robustness plan (S044_GATE §1.5). The binding rules — ADR-0024's five
-inherited conditions, the exact-equality parity bar, and condition 5's no-registry negative
-constraint — are **not restated here**; see the linked file.
+exist today), a real non-synthetic BTC candidate model (actively pursued by Phase 15, §13G —
+**UPDATE 2026-09-08: CLOSED**, see `roadmap/PHASE_14_PREDICTIVE_PROMOTION.md` §13F for the
+Q5 disposition), and a named downstream robustness plan (S044_GATE §1.5). The binding rules
+— ADR-0024's five inherited conditions, the exact-equality parity bar, and condition 5's
+no-registry negative constraint — are **not restated here**; see the linked file.
 
 **Full detail (maintained here, not in ROADMAP.md):**
 `docs/planning/roadmap/PHASE_14_PREDICTIVE_PROMOTION.md` §13F.
@@ -805,9 +806,16 @@ This phase is ACTIVE: edit the linked file, not this stub.
 
 **Status:** **APPROVED** (maintainer, 2026-09-02). **15A is COMPLETE** — Sprint 051 (11/11,
 `sprint/momentum-and-regime-catalog`), including the BTC import (`BTCUSDT.P`, 1m,
-`2024-01-01 -> 2026-06-29`, 911 days, 1,311,840 rows, zero gaps). **15B / Sprint 052 is
-PLANNED but NOT approved or opened.** Phase 15 as a whole is NOT complete — no real-data
-predictive study has been run.
+`2024-01-01 -> 2026-06-29`, 911 days, 1,311,840 rows, zero gaps).
+
+**UPDATE (2026-09-08): 15B / Sprint 052 is COMPLETE** (8/8 tasks, on
+`docs/btc-predictive-study-baseline-run`; integration to `sprint/btc-predictive-study` and
+then `main` still pending). The real-data study ran on `BTCUSDT.P` and produced a split
+verdict — the BINARY/classification pass clears `S044_GATE.md` §1.4's strict per-fold bar
+and closes §13F's Q5 dependency; the REGRESSION pass does not. **Phase 15 as a whole is now
+COMPLETE** — see `roadmap/PHASE_15_PREDICTIVE_CATALOG.md` §13G and
+`docs/reference/BTC_PREDICTIVE_STUDY.md` for the full detail; this stub is not rewritten
+further per this file's own "edit the linked file, not this stub" rule.
 
 Purpose: close §13F's Q5 gap — Phase 10's methodology was validated on synthetic fixtures
 only — by running one real-data BTC predictive study through the unmodified Phase 10

@@ -6,14 +6,20 @@
 Sprint: 052
 Phase: Phase 15 — Predictive Research Catalog Expansion and Real-Data Study;
        increment 15B (closing increment)
-Status: APPROVED (2026-09-08) — Wave 0 Checklist signed off
+Status: COMPLETE (2026-09-08) — 8/8 tasks DONE on
+        `docs/btc-predictive-study-baseline-run`. Wave 0 Checklist signed off
         (S052_WAVE0_DECISIONS.md D-S052-11). Gate condition satisfied: Sprint
         051 is complete and merged to `main` (#409), and
         docs/planning/sprints/S051_BTC_DATA_INVENTORY.md records a usable
         published BTCUSDT.P dataset (911 days, 1,311,840 rows, zero gaps).
-        `engineer` may start S052-T001.
-Planned Start: TBD (branch not yet cut)
-Planned End: TBD
+        Q5 (ROADMAP §13F) is CLOSED by the BINARY pass (run
+        `faa6983acd03f846`, `sklearn.logistic`) — see §13 Review. Tester/
+        reviewer sign-off and integration to `sprint/btc-predictive-study`,
+        then a final integration PR to `main`, are still pending (not part
+        of this sprint's own task list).
+Planned Start: 2026-09-08 (`sprint/btc-predictive-study` cut from `main` @
+        6cb0826, S052-T001 landed same day)
+Planned End: 2026-09-08 (all 8 tasks DONE same day; integration pending)
 Sprint Goal Owner: Project Maintainer
 Depends On: SPRINT_051 (the six components + the BTC dataset inventory),
             SPRINT_039-044 (the Phase 10 pipeline this sprint CONSUMES unmodified),
@@ -188,6 +194,23 @@ that grid). This is the existing, no-code-change knob for:
 Wave 0 locks the grid; under memory or wall-clock pressure the **range or grid**
 moves — never the pipeline, and never the instrument.
 
+**CORRECTION (2026-09-08, post-T003 STOP — see the T003 outcome note under
+Wave 1 above).** This finding's central claim was wrong:
+`PredictiveStudySpec.evaluation_timeframe` is validated **source-or-finer**
+(`validate_evaluation_timeframe`, `ADR-MA-012` "Timeframe roles" —
+Evaluation, not Computation), not source-or-coarser. It is not a
+no-code-change knob for coarsening the study's own row grid; the actual
+per-feature coarsening role (`ComponentRequest.computation_timeframe`) is
+not wireable from `PredictiveStudySpec` today and wiring it would itself be
+a forbidden `research/predictive/` change (§5). `S052_WAVE0_DECISIONS.md`
+D-S052-03/D-S052-04's corrections (2026-09-08) adopt option (a) from the
+T003 STOP note instead: `V` is corrected to `1m` (matching source), the
+range is kept exactly as signed off, and the ten frozen components'
+evaluation-bar-denominated parameters are scaled x15 (D-S052-05's
+correction) to hold their wall-clock window constant. A diagnostic
+benchmark of the full-range 1m matrix build (~45s wall-clock, ~5.3GB peak
+memory) confirmed no range trim is needed for cost reasons either.
+
 ### Finding 4 — `RANDOM_PERMUTATION` is a metric-layer comparator, not a family
 
 It is computed inside the metrics layer per fold using `EstimatorSpec.seed`
@@ -244,7 +267,42 @@ thing a synthetic-only validation can hide.
 
 | Task | Description | Acceptance | Deps | Status |
 |------|-------------|-----------|------|--------|
-| S052-T001 | Land `S052_WAVE0_DECISIONS.md`, including the **fold plan computed from `S051_BTC_DATA_INVENTORY.md`**: evaluation timeframe, label kind and horizon, `fold_count`, `test_span`, `embargo_span`, `min_train_rows`, mode, and the exact feature list | every number traces to a measured value in the inventory (the range is fixed by D-S051-07, but the row count and gap list are not assumed); `embargo_span >= label horizon` is shown arithmetically; the resulting per-fold TEST windows are listed as concrete date ranges with their approximate row counts; the document states the minimum row count below which the study is declared under-powered and NOT run; the dataset is `BTCUSDT.P` and nothing else | Sprint 051 closed with a usable BTC inventory; maintainer approval | TODO |
+| S052-T001 | Land `S052_WAVE0_DECISIONS.md`, including the **fold plan computed from `S051_BTC_DATA_INVENTORY.md`**: evaluation timeframe, label kind and horizon, `fold_count`, `test_span`, `embargo_span`, `min_train_rows`, mode, and the exact feature list | every number traces to a measured value in the inventory (the range is fixed by D-S051-07, but the row count and gap list are not assumed); `embargo_span >= label horizon` is shown arithmetically; the resulting per-fold TEST windows are listed as concrete date ranges with their approximate row counts; the document states the minimum row count below which the study is declared under-powered and NOT run; the dataset is `BTCUSDT.P` and nothing else | Sprint 051 closed with a usable BTC inventory; maintainer approval | DONE |
+
+**S052-T001 outcome (docs-only, `docs/btc-predictive-study-planning`):** the
+fold plan is confirmed, **not corrected** — D-S052-03's "expected
+instantiation" (`V=15m`, `BINARY` label/1h horizon for the classification
+pass, `forward_return`/`FORWARD_RETURN` over the same 1h horizon for the
+regression pass, `F=6`, `T=30d`, `E=1d`, `M=2000`) matches the measured
+`S051_BTC_DATA_INVENTORY.md` facts (911 days, 1,311,840 rows, zero gaps) with
+wide margins on every LOCKED bound: initial TRAIN is ~726 days (725 days
+23:59:00 exactly, ~23.9 months, vs. the 12-month floor), `embargo_span` is
+24x the label horizon (applies identically to both passes, since they share
+one horizon), and the measured 1,311,840-row / 911-day dataset is more than
+double the computed 632,160-row / 439-day under-powered floor. The study is
+**NOT under-powered** — the per-fold TEST windows, the arithmetic, and the
+floor derivation are recorded in `S052_WAVE0_DECISIONS.md` D-S052-03.
+D-S052-05's feature list is frozen at ten components (Sprint 051's six plus
+the four suggested incumbents; family mix momentum:3/volatility:3/
+statistics:2/trend:1/candle:1, no family over 30%), all confirmed present
+under their suggested names in `registry/builtins.py` (read-only check; no
+`research/predictive/` or `market_analysis/` file was touched).
+
+**Reviewer follow-up (same PR, `docs/btc-predictive-study-planning`):** closed
+one Warning — the original T001 pass locked the BINARY pass's label but left
+D-S052-06's REGRESSION pass label undecided, a real judgment call that would
+otherwise have fallen to T002. D-S052-03 now explicitly locks both passes'
+label configuration (same horizon, `PredictiveTask=FORWARD_RETURN` for the
+regression pass) before this goes to the maintainer. Three cheap Suggestions
+were also folded in: the rounding note on the ~726-day figure, the family
+tally on the frozen feature list, and a trimmed embargo-margin sentence.
+
+**One item remains before T002/T003 may proceed:** the maintainer must review
+and check D-S052-11's "fold table produced by T001 reviewed and accepted"
+box — that box is intentionally left unchecked by this task, per D-S052-11's
+own instruction that it is checked by the maintainer, not by an agent.
+
+**Progress: 1 / 8.**
 
 Wave 0 is DONE when the maintainer has checked off the Wave 0 Checklist.
 
@@ -252,29 +310,657 @@ Wave 0 is DONE when the maintainer has checked off the Wave 0 Checklist.
 
 | Task | Description | Acceptance | Deps | Status |
 |------|-------------|-----------|------|--------|
-| S052-T002 | Commit `apps/cli/examples/predictive/btc_momentum_regime_study.yaml` (the `PredictiveStudySpec`) and the baseline `EstimatorSpec` YAMLs, plus a network-free parse test | both files load through their own loaders (`load_predictive_study_spec`, the estimator loader) with no code change; the study's `definition_hash` is recorded in the file's header comment; the feature list matches Wave 0 exactly; `research_run_predictive.yaml`'s dangling `configs/predictive/...` reference is repointed at the real files (Finding 5); the test runs in default CI without the `ml` extra and without network | T001 | TODO |
-| S052-T003 | **The baseline run** (maintainer-executed, `ml` extra): build the dataset, run the regression and the classification study, render both reports. Record run IDs, dataset fingerprint, seeds and wall-clock | the dataset builds through the **unmodified** `build_predictive_dataset`; fold role counts (TRAIN/TEST/PURGED/EMBARGOED) match Wave 0's plan within a stated tolerance and any deviation is explained, not adjusted away; both runs complete; **no file under a §5 forbidden path is modified** (asserted by a clean `git status` on `src/`); report HTML stays out of git | T002 | TODO |
+| S052-T002 | Commit `apps/cli/examples/predictive/btc_momentum_regime_study.yaml` (the `PredictiveStudySpec`) and the baseline `EstimatorSpec` YAMLs, plus a network-free parse test | both files load through their own loaders (`load_predictive_study_spec`, the estimator loader) with no code change; the study's `definition_hash` is recorded in the file's header comment; the feature list matches Wave 0 exactly; `research_run_predictive.yaml`'s dangling `configs/predictive/...` reference is repointed at the real files (Finding 5); the test runs in default CI without the `ml` extra and without network | T001 | DONE |
+| S052-T003 | **The baseline run** (maintainer-executed, `ml` extra): build the dataset, run the regression and the classification study, render both reports. Record run IDs, dataset fingerprint, seeds and wall-clock | the dataset builds through the **unmodified** `build_predictive_dataset`; fold role counts (TRAIN/TEST/PURGED/EMBARGOED) match Wave 0's plan within a stated tolerance and any deviation is explained, not adjusted away; both runs complete; **no file under a §5 forbidden path is modified** (asserted by a clean `git status` on `src/`); report HTML stays out of git | T002 | DONE |
+
+**S052-T003 outcome: STOP-and-report, per SPRINT_052.md §5's own instruction.**
+Neither pass ran. `uv run trading-cli research run --config
+apps/cli/examples/research_run_predictive.yaml` (regression pass, `ml`
+extra confirmed installed: `sklearn==1.9.0`) and the equivalent config for
+the binary pass both fail identically, in ~2s, before any fold assignment
+or model fit, with:
+
+```text
+WorkflowError: 'research run predictive' failed: evaluation_timeframe
+cannot be coarser than source timeframe: 15m vs 1m
+```
+
+This is raised by `RequestResolver.run_context` ->
+`validate_evaluation_timeframe`
+(`src/trading_framework/market_analysis/models/timeframes.py`), called from
+`build_predictive_dataset` with `timeframe=spec.dataset_ref.dataset_id.timeframe`
+(1m, the published BTCUSDT.P source) and
+`evaluation_timeframe=spec.evaluation_timeframe` (15m, both committed T002
+specs, D-S052-03/D-S052-04's `V=15m`). Both committed spec files are
+byte-for-byte frozen per D-S052-05 and were not edited to investigate this
+— reading the validator and its own docstring
+(`"Ensure the evaluation grid is not coarser than the source dataset"`)
+against `ADR-MA-012` §"Timeframe roles" is what identified the mismatch:
+
+- `ADR-MA-012` documents **three** timeframe roles: Source, **Computation**
+  (`ComponentRequest.computation_timeframe`, may be coarser than source —
+  the actual per-feature resample knob) and **Evaluation**
+  (`RunAnalysisRequest.evaluation_timeframe`, defaults to source and is the
+  grid results are aligned back onto — the ADR's own words: "align results
+  onto a finer evaluation grid without look-ahead"). `PredictiveStudySpec.
+  evaluation_timeframe` feeds directly into this run-level Evaluation role,
+  not the per-component Computation role.
+- Wave 0's Finding 3 / D-S052-04 (`SPRINT_052.md` §4, `S052_WAVE0_DECISIONS.md`
+  D-S052-04) describes `PredictiveStudySpec.evaluation_timeframe` as "the
+  existing, no-code-change knob" for evaluating on a grid **coarser** than
+  the 1m source, specifically to keep the ~1.31M-row 1m import's row count
+  and memory footprint sane. The code enforces the opposite: the run-level
+  evaluation grid must be **no coarser than** the source. No committed
+  regression, unit, or spec-parse test (`test_spec.py`,
+  `test_build_predictive_dataset.py`) exercises
+  `evaluation_timeframe` strictly coarser than the dataset's source
+  timeframe — every existing fixture uses `1m`/`1m` or an explicit
+  same-or-finer pair, which is why this was never caught before real data
+  and a real 15m/1m pair reached the pipeline.
+- **No file under any §5 forbidden path was modified to investigate or
+  work around this** — `git status` on the full working tree (not just
+  `src/`) is clean; only reads. No attempt was made to patch
+  `market_analysis/`, `research/predictive/`, or
+  `application/predictive_research/`, and none was made to loosen the
+  committed spec files, weaken the fold plan, or invent a different
+  evaluation timeframe on the spot — any of those would themselves be
+  scope violations (unmodified pipeline; frozen D-S052-05 feature/grid
+  plan).
+- **Consequence:** Wave 0's fold-plan arithmetic (D-S052-03, `S052_BTC_DATA_
+  INVENTORY.md`-derived row counts, the ~87k 15m-evaluation-row estimate)
+  assumed a working coarsening path that does not exist at the
+  `PredictiveStudySpec` level today. The actual, working coarsening
+  mechanism (`ComponentRequest.computation_timeframe`, per feature) does
+  not reduce the run's own output row count the way a run-level
+  `evaluation_timeframe` was assumed to — components would compute on a
+  resampled 15m view, but the labelled feature matrix and fold assignment
+  would still run over the full 1m grid (~1.31M rows), which is exactly
+  the memory/wall-clock risk Finding 3 was written to avoid.
+- **This is a Wave 0 replanning question, not an engineering workaround.**
+  It requires deciding, with maintainer sign-off, one of: (a) re-derive the
+  fold plan and both committed specs with `evaluation_timeframe` left at
+  `1m` (matching source) and accept the full 1m row count/memory cost,
+  (b) find or add a supported, no-pipeline-change way to reduce the study's
+  own row grid before folding (not identified in the current code by this
+  read), or (c) treat this as a genuine pipeline gap and open an ADR/TD
+  entry proposing one. None of these is this task's call to make.
+
+Recorded facts: no run IDs, no dataset fingerprint, and no fold role counts
+exist for T003 — the failure occurs before `build_predictive_dataset`
+reaches fold assignment. Total wall-clock across both failed attempts: ~4s.
+`ml` extra was independently confirmed present (`sklearn 1.9.0`) so this is
+not an environment/dependency gap.
+
+**Resolution (2026-09-08): option (a) adopted, maintainer-approved.**
+`S052_WAVE0_DECISIONS.md` D-S052-03/D-S052-04/D-S052-05 now carry the
+correction (`V` 15m -> 1m, range/F/T/E/M unchanged, the ten frozen
+components' evaluation-bar parameters scaled x15 -- Option A). Both
+committed T002 spec files were updated to match and their
+`definition_hash` header values recomputed; the parse test
+(`tests/unit/research/predictive/test_btc_momentum_regime_study.py`, 11
+cases) passes against the corrected specs. A diagnostic benchmark of the
+full-range 1m matrix build (~45s wall-clock, ~5.3GB peak memory) confirmed
+the range does not need to be trimmed for cost reasons. **S052-T003 is
+ready to be re-attempted** against the corrected specs; its Status above
+returns to `TODO` for that re-attempt.
+
+**S052-T003 outcome (re-attempt, 2026-09-08, `docs/btc-predictive-study-baseline-run`,
+maintainer-authorized delegation): SUCCESS. Both baseline passes completed
+through the unmodified Phase 10 pipeline.** `ml` extra confirmed present
+(`sklearn==1.9.0`) before either run; nothing was installed. Both passes
+were invoked as `trading-cli research run --config <path>` from the repo
+root (`storage_root: user_data/workspace`), each preceded by a `--dry-run`
+that printed the resolved plan and touched nothing.
+
+```text
+REGRESSION pass (ridge)
+  config:               apps/cli/examples/research_run_predictive.yaml
+                         (definition: btc_momentum_regime_study_regression.yaml,
+                         estimator: btc_momentum_regime_ridge.yaml)
+  dataset_id:            f9f042f9042bcafb
+  dataset_fingerprint:   f9f042f9042bcafb26964c01e480d6df52af84b77f0cb9ea02d05911797c2867
+  run_id:                f7ac893d54ae6b69
+  seed:                  42 (sklearn.ridge, alpha=1.0)
+  wall-clock:            3m40.581s (real; build + fit + persist + render)
+  report:                user_data/workspace/research/predictive_research/runs/f7ac893d54ae6b69/report.html
+                         (not committed -- user_data/ is gitignored)
+
+BINARY pass (logistic)
+  config:               scratch config, same shape as research_run_predictive.yaml,
+                         pointed at definition: btc_momentum_regime_study_binary.yaml,
+                         estimator: btc_momentum_regime_logistic.yaml (both already
+                         committed at T002; the binary pass has no dedicated
+                         committed CLI config per apps/cli/examples/README.md's
+                         own note -- one was assembled ad hoc for this run only
+                         and was not committed, matching D-S052-08's "COMMITTED"
+                         list, which names only the spec/estimator YAML themselves)
+  dataset_id:            98a893f56549c96b
+  dataset_fingerprint:   98a893f56549c96b607d929d85ac2902ace4be86df73ab332b8ac9d7ace1117b
+  run_id:                faa6983acd03f846
+  seed:                  42 (sklearn.logistic, C=1.0) -- same seed as the ridge pass,
+                         per D-S052-06's "same seed" requirement
+  wall-clock:            3m34.293s (real; build + fit + persist + render)
+  report:                user_data/workspace/research/predictive_research/runs/faa6983acd03f846/report.html
+                         (not committed)
+```
+
+Both dataset manifests confirm `evaluation_timeframe: 1m`, the ten frozen
+D-S052-05 features with their x15-scaled parameters, `label.horizon: 1h`,
+`split: {mode: EXPANDING, fold_count: 6, test_span: 30d, embargo_span: 1d,
+min_train_rows: 2000}`, and `source_dataset_ref:
+BTCUSDT.P|ohlcv|1m|binance|binance-usdm-klines-v1@1` -- i.e. exactly
+D-S052-03/04/05's corrected plan, on `BTCUSDT.P` and nothing else. The two
+dataset fingerprints differ (as expected -- `label.kind` differs between
+the two `PredictiveStudySpec` files, so `definition_hash` and therefore
+`dataset_fingerprint` differ), but the **fold role counts are identical
+between the two passes**, confirming both were built over the same fold
+plan and sample universe:
+
+```text
+per-fold role counts (both passes, byte-identical):
+fold  test window                     TRAIN      TEST    EMBARGOED  PURGED
+0     2025-12-26 -> 2026-01-25      1,043,820   43,200     1,440      60
+1     2026-01-26 -> 2026-02-25      1,087,080   43,200     2,880       0
+2     2026-02-26 -> 2026-03-28      1,130,280   43,200     4,320       0
+3     2026-03-29 -> 2026-04-28      1,173,480   43,200     5,760       0
+4     2026-04-29 -> 2026-05-29      1,216,680   43,200     7,200       0
+5     2026-05-30 -> 2026-06-29      1,259,880   43,200     7,200       0
+pooled                               6,911,220  259,200   28,800      60
+```
+
+**Verified against D-S052-03's corrected per-fold table, with two
+explained (not adjusted-away) deviations, both well within tolerance:**
+
+1. **TEST and PURGED match exactly** on every fold: `TEST=43,200` all six
+   folds, `PURGED=60` on fold 0 only, `0` thereafter -- exactly as the
+   corrected table states.
+2. **TRAIN is consistently ~120 rows lower than the corrected table's
+   figure** on folds 0-4 (e.g. fold 0: table says 1,043,940, measured
+   1,043,820; fold 4: table says 1,222,560, measured 1,216,680 -- the
+   gap grows because of point 3 below, not this point alone). Isolating
+   just this effect (`TRAIN + EMBARGOED` vs. the table's `TRAIN +
+   EMBARGO`): the combined total is ~120 rows lower than the table on
+   every fold except fold 5. A 120-row gap against >1M-row folds
+   (~0.01%) is consistent with the table's own arithmetic being built
+   from whole calendar days off `t_max`'s bar-open time (2026-06-29
+   23:59:00), not from the exact minute-resolution boundary the pipeline
+   uses -- explained by rounding in the plan, not a fold-assignment bug.
+3. **`EMBARGOED` grows fold-over-fold (1,440 -> 2,880 -> 4,320 -> 5,760
+   -> 7,200 -> 7,200) instead of staying flat at the table's constant
+   `1,440`.** This is a real, structural difference between D-S052-03's
+   simplified single-embargo-per-fold model and how `EXPANDING`-mode
+   fold assignment actually behaves in the unmodified pipeline: because
+   each fold's TRAIN window grows to include the calendar range covered
+   by **every earlier fold's TEST + embargo window**, those earlier
+   windows are excluded from the later fold's TRAIN count and counted as
+   `EMBARGOED` again rather than `TRAIN`, so `EMBARGOED` accumulates
+   roughly `1,440 x (fold_id)` rather than staying constant. This was
+   not visible in D-S052-03's table because that table only reported
+   "this fold's own embargo region," not the compounding effect of
+   `EXPANDING` mode re-excluding prior folds' embargoed regions from
+   later TRAIN sets. Fold 5 breaks the `1,440 x fold_id` pattern (7,200,
+   same as fold 4, not 8,640) because fold 5's test window ends exactly
+   at `t_max` and there is no subsequent embargo period to add. **No
+   number was adjusted to make this match** -- this is a description of
+   what the pipeline did, read from the persisted `folds.json` /
+   dataset manifest `fold_summary`, not a change to any spec or plan.
+   This behaviour is a property of the unmodified `splitting.py` fold
+   assignment logic and is out of this task's scope to alter or
+   "correct" (§5); it is recorded here as a documentation gap in
+   D-S052-03's table, worth a follow-up note if Wave 0 tables are
+   revisited for a future study, not a pipeline defect.
+
+**No file under any §5 forbidden path was touched.** `git status
+--porcelain src/` is empty after both runs; the working tree's only
+changes are this documentation update. No dataset bytes, run directory, or
+report HTML were staged or committed (`user_data/` stays gitignored, and
+neither `report.html` was moved out of it).
+
+One incidental, non-actionable observation: both fits emit a
+`sklearn` `FutureWarning` ("'n_jobs' has no effect since 1.8 and will be
+removed in 1.10... please leave it unspecified") from the logistic
+estimator's resolved parameters (`btc_momentum_regime_logistic.yaml`,
+unchanged, not a Sprint 052 file to edit under the frozen-spec rule). It
+does not affect correctness or the fit result and required no code or spec
+change to proceed; noted here rather than silently ignored, and left for
+whoever next touches that estimator spec file, if ever.
 
 ### Wave 2 — The comparison
 
 | Task | Description | Acceptance | Deps | Status |
 |------|-------------|-----------|------|--------|
-| S052-T004 | Extract the verdict: run `analyze_predictive_run` and `compare_predictive_runs`, and tabulate the primary metric **per fold and pooled** against `RANDOM_PERMUTATION`, plus the train/test gap and the permutation-importance ranking of the Sprint 051 features | the table reports both `S044_GATE` §1.4's strict bar ("beats permutation on **every** fold") and the pooled result, and says explicitly which was cleared; the train/test gap is reported for every fold so an overfit win cannot be presented as a clean one; feature importances are reported for the new components specifically, so a null result can distinguish "the features were ignored" from "the features misled" | T003 | TODO |
-| S052-T005 | **Conditional, bounded second pass.** Only if Wave 0's trigger fires (baseline neither clearly clears nor clearly fails the bar): one tree family (`ml-trees`), one `CandidateSetSpec` at the default cap of 8, same dataset fingerprint, same folds, same seed | if the trigger does not fire, this task is closed as NOT RUN with one sentence of reasoning — that is a valid outcome, not a skip; if it runs, the dataset fingerprint is identical to T003's (asserted, so the leaderboard is a like-for-like comparison); no third pass exists, no matter the result; no feature is added or removed | T004 | TODO |
+| S052-T004 | Extract the verdict: run `analyze_predictive_run` and `compare_predictive_runs`, and tabulate the primary metric **per fold and pooled** against `RANDOM_PERMUTATION`, plus the train/test gap and the permutation-importance ranking of the Sprint 051 features | the table reports both `S044_GATE` §1.4's strict bar ("beats permutation on **every** fold") and the pooled result, and says explicitly which was cleared; the train/test gap is reported for every fold so an overfit win cannot be presented as a clean one; feature importances are reported for the new components specifically, so a null result can distinguish "the features were ignored" from "the features misled" | T003 | DONE |
+| S052-T005 | **Conditional, bounded second pass.** Only if Wave 0's trigger fires (baseline neither clearly clears nor clearly fails the bar): one tree family (`ml-trees`), one `CandidateSetSpec` at the default cap of 8, same dataset fingerprint, same folds, same seed | if the trigger does not fire, this task is closed as NOT RUN with one sentence of reasoning — that is a valid outcome, not a skip; if it runs, the dataset fingerprint is identical to T003's (asserted, so the leaderboard is a like-for-like comparison); no third pass exists, no matter the result; no feature is added or removed | T004 | DONE |
+
+**S052-T004 outcome (2026-09-08, `docs/btc-predictive-study-baseline-run`):**
+`analyze_predictive_run` (`persist=True`, re-deriving `metrics.json` in place —
+a read/recompute over already-persisted `predictions.parquet` and the dataset
+envelope, not a change to any file under a §5 forbidden path) and
+`compare_predictive_runs` were run against both `f7ac893d54ae6b69`
+(REGRESSION/ridge) and `faa6983acd03f846`(BINARY/logistic), both unmodified.
+Both are read-only over persisted run artifacts under `user_data/` (gitignored,
+nothing committed) — no code under `research/predictive/`,
+`application/predictive_research/`, `market_analysis/`, or
+`infrastructure/ml/` was touched, and `git status --porcelain src/` stayed
+empty throughout.
+
+**Per-fold and pooled comparison vs. `RANDOM_PERMUTATION`:**
+
+```text
+REGRESSION pass (ridge, run f7ac893d54ae6b69) — primary metric: spearman_ic
+fold  test window                MODEL       RANDOM_PERMUTATION   vs. permutation
+0     2025-12-26 -> 2026-01-25   0.021431    -0.002227             BEATS
+1     2026-01-26 -> 2026-02-25   0.013676     0.001038             BEATS
+2     2026-02-26 -> 2026-03-28   0.028457    -0.001969             BEATS
+3     2026-03-29 -> 2026-04-28   0.050279    -0.002727             BEATS
+4     2026-04-29 -> 2026-05-29   0.055561     0.001113             BEATS
+5     2026-05-30 -> 2026-06-29  -0.009730    -0.001766             LOSES
+pooled                           0.020566    -0.004792             BEATS
+
+BINARY pass (logistic, run faa6983acd03f846) — primary metric: roc_auc
+fold  test window                MODEL       RANDOM_PERMUTATION   vs. permutation
+0     2025-12-26 -> 2026-01-25   0.545385     0.499030             BEATS
+1     2026-01-26 -> 2026-02-25   0.533585     0.500667             BEATS
+2     2026-02-26 -> 2026-03-28   0.539353     0.503985             BEATS
+3     2026-03-29 -> 2026-04-28   0.559752     0.498767             BEATS
+4     2026-04-29 -> 2026-05-29   0.557209     0.496858             BEATS
+5     2026-05-30 -> 2026-06-29   0.541288     0.501019             BEATS
+pooled                           0.544182     0.498606             BEATS
+```
+
+**`S044_GATE.md` §1.4 bar assessment:**
+
+- **REGRESSION pass: clears the pooled bar, does NOT clear the strict
+  per-fold bar.** MODEL beats `RANDOM_PERMUTATION` pooled (0.020566 vs.
+  -0.004792) and on 5 of 6 folds, but loses on fold 5 (-0.009730 vs.
+  -0.001766, both negative — the model is mildly anti-correlated with
+  outcomes in that fold and permutation is closer to zero). The strict
+  "every fold" bar is **not** cleared.
+- **BINARY pass: clears BOTH the pooled bar and the strict per-fold bar.**
+  MODEL beats `RANDOM_PERMUTATION` on all 6 folds individually (margins
+  0.035–0.061 roc_auc) and pooled (0.544182 vs. 0.498606). This is the
+  stronger, cleaner result of the two passes.
+
+**Train/test primary-metric gap per fold** (`train_primary`/`test_primary`
+recomputed by `analyze_predictive_run` and carried in `metrics.json`'s
+`fold_primary`; the identical values also appear as `primary_gap` in
+`importance.json`, cross-checked and consistent):
+
+```text
+REGRESSION pass — gap = |train_primary - test_primary| (spearman_ic)
+fold  train_primary  test_primary   gap
+0     0.016846        0.021431      0.004585
+1     0.016671        0.013676      0.002995
+2     0.015239        0.028457      0.013218
+3     0.016796        0.050279      0.033483
+4     0.021196        0.055561      0.034365
+5     0.024186       -0.009730      0.033916
+
+BINARY pass — gap = |train_primary - test_primary| (roc_auc)
+fold  train_primary  test_primary   gap
+0     0.533798        0.545385      0.011587
+1     0.534199        0.533585      0.000614
+2     0.533971        0.539353      0.005381
+3     0.533873        0.559752      0.025878
+4     0.534740        0.557209      0.022469
+5     0.535447        0.541288      0.005841
+```
+
+Neither pass shows the classic overfit signature (train materially *higher*
+than test) — in both passes `test_primary` is usually *above*
+`train_primary` (folds 0/2/3/4 in both passes), which is the opposite
+direction from overfitting and is more consistent with a small, noisy
+train-fold estimate of an already-weak signal than with the model
+memorizing TRAIN. **This is still flagged, not waved through**: for the
+REGRESSION pass, the gap on folds 3–5 (0.033–0.034) is *larger than the
+test-fold signal itself* (test_primary 0.050, 0.056, and -0.010
+respectively) — i.e. the fold-to-fold instability is large relative to the
+effect size being measured, which is exactly the kind of result an unhedged
+write-up (T006) needs to name plainly rather than round up to "wins." The
+BINARY pass's gaps are smaller in both absolute terms and relative to its
+own effect size (test_primary ~0.53–0.56 throughout).
+
+**Permutation importance for Sprint 051's six components**
+(`importance.json`, `n_repeats=5`, `EstimatorSpec.seed=42`; only 6 of the 10
+frozen features are Sprint 051's — the other 4 are the D-S052-05 incumbents
+and are out of scope for this reporting item). Sign convention: a
+**positive** mean means shuffling that feature *hurts* the model (i.e. the
+feature genuinely helps); a **negative** mean means shuffling it *helps*
+(i.e. the feature actively degrades predictions where used).
+
+```text
+REGRESSION pass — importance mean by fold (spearman_ic units)
+component                          f0       f1       f2       f3       f4       f5
+momentum.rsi                    -0.0030  -0.0058  -0.0016  -0.0174  -0.0136  -0.0111
+momentum.macd                   -0.0000  +0.0005  +0.0033  +0.0079  +0.0107  +0.0066
+momentum.stochastic             +0.0129  +0.0068  +0.0081  +0.0222  +0.0395  +0.0234
+volatility.relative_volatility  -0.0016  -0.0026  -0.0014  +0.0028  +0.0111  -0.0104
+statistics.return_autocorrelation +0.0308 -0.0036  +0.0325  +0.0184  +0.0598  +0.0007
+statistics.return_distribution  -0.0038  -0.0007  -0.0152  +0.0020  +0.0092  +0.0015
+
+BINARY pass — importance mean by fold (roc_auc units)
+component                          f0       f1       f2       f3       f4       f5
+momentum.rsi                    +0.0353  +0.0184  +0.0317  +0.0344  +0.0360  +0.0251
+momentum.macd                   +0.0024  +0.0071  -0.0005  +0.0011  -0.0004  +0.0004
+momentum.stochastic             +0.0158  +0.0090  +0.0199  +0.0241  +0.0273  +0.0270
+volatility.relative_volatility  +0.0000  -0.0001  +0.0001  +0.0011  -0.0008  -0.0006
+statistics.return_autocorrelation +0.0039 +0.0009  +0.0036  +0.0046  +0.0048  -0.0002
+statistics.return_distribution  +0.0013  -0.0000  +0.0005  +0.0049  +0.0043  +0.0029
+```
+
+- **Ignored vs. misled, per pass:**
+  - **REGRESSION**: `momentum.macd`, `volatility.relative_volatility`, and
+    `statistics.return_distribution` sit near zero on every fold (|mean|
+    mostly <0.01, no consistent sign) — **ignored**. `momentum.stochastic`
+    and `statistics.return_autocorrelation` are consistently the largest
+    positive contributors and drive most of the 5 winning folds —
+    genuinely used, and correctly so. `momentum.rsi` is **consistently
+    negative on all 6 folds** (-0.003 to -0.017) — the model is using it,
+    but using it in a way that actively hurts predictions on every fold:
+    this is **misled**, not ignored. On the one losing fold (5),
+    `statistics.return_autocorrelation` — the strongest driver on 4 of the
+    other 5 folds — collapses to near zero (+0.0007) while `momentum.rsi`
+    and `volatility.relative_volatility` both turn more negative than
+    their own fold-5-adjacent values; the fold 5 loss reads as "the
+    autocorrelation signal that carried most other folds went quiet, and
+    the actively-harmful rsi/relative-volatility contribution was left
+    unmasked," not as a single dramatic misleading spike.
+  - **BINARY**: `momentum.macd`, `volatility.relative_volatility`,
+    `statistics.return_autocorrelation`, and `statistics.return_distribution`
+    are all near zero on every fold (|mean| mostly <0.005) — **ignored**,
+    cleanly, with no "misled" case to report since the pass does not lose
+    on any fold. `momentum.rsi` and `momentum.stochastic` are the two
+    real drivers, both consistently positive (0.018–0.036 and 0.009–0.027
+    respectively) on every fold — genuinely used and correctly so. Notably,
+    `momentum.rsi` is the strongest single driver of the BINARY pass's
+    clean win, while it is the one component that actively hurts the
+    REGRESSION pass on every fold — the same feature reads oppositely
+    depending on task framing, worth naming in T006 rather than averaging
+    away.
+
+**`compare_predictive_runs`:** the two passes carry **different**
+`dataset_fingerprint`s (`f9f042f9...` for REGRESSION vs. `98a893f5...` for
+BINARY), because `PredictiveStudySpec.label.kind` differs between the two
+committed spec files (T003 outcome note already established this). Calling
+`compare_predictive_runs` with both run directories together correctly
+raises `PredictiveSpecError: leaderboard runs must share one dataset
+fingerprint` — the function's own designed guard, not a bug. Each pass was
+therefore compared singly against its own baselines: both leaderboards
+confirm `MODEL` (`sklearn.ridge` / `sklearn.logistic`) ranks first, ahead of
+`RANDOM_PERMUTATION` (and `CONSTANT_MEAN`/`MAJORITY_CLASS` respectively),
+matching the pooled numbers above exactly.
+
+**S052-T005 trigger determination (D-S052-06: regression and binary are two
+separate passes, evaluated independently):**
+
+- **REGRESSION pass: the trigger FIRES.** It beats `RANDOM_PERMUTATION`
+  pooled but loses on one of six folds (fold 5) — this is precisely the
+  pre-declared trigger condition ("beats permutation pooled but not on
+  every fold"), stated as a factual read of the table above, not a
+  judgment call.
+- **BINARY pass: the trigger does NOT fire.** It beats `RANDOM_PERMUTATION`
+  on every fold and pooled — it clearly clears the strict per-fold bar, so
+  the "neither clearly clears nor clearly fails" condition does not apply.
+
+Per §3/§5 ("no feature added after seeing a result", "a second estimator
+pass ... only under the Wave-0-defined trigger"), this determination alone
+does not authorize running T005 yet — D-S052-06's Wave 0 language and any
+scoping (e.g. whether a fired trigger on one pass runs a tree pass for that
+pass only, both passes, or is itself a maintainer checkpoint) is read and
+applied fresh at T005, not decided here.
+
+**S052-T005 outcome (2026-09-08, `docs/btc-predictive-study-baseline-run`):**
+D-S052-06 scopes the trigger per pass ("regression and binary are two
+separate passes, evaluated independently" — the T004 determination above).
+Applied here: the BINARY pass's trigger did not fire, so its second pass is
+**NOT RUN** — one sentence of reasoning, as required: the BINARY pass beat
+`RANDOM_PERMUTATION` on every fold and pooled, a clean strict-bar pass under
+D-S052-06's own "a clear pass ... ends the sprint at pass 1" rule, so
+running a tree family against it would violate the "no chasing a better
+result" rule with nothing to chase. The REGRESSION pass's trigger fired
+(beats permutation pooled, loses one of six folds), so its tree pass **ran**.
+
+```text
+Tree pass (lightgbm.regressor, run 6d2842b647cd4097)
+  family:                lightgbm.regressor -- ONE tree family (D-S052-06),
+                          via ml-trees (confirmed installed before running:
+                          lightgbm==4.7.0, xgboost==3.4.1 also present but
+                          not used; nothing was installed)
+  candidate_set:          8 candidates at max_candidates=8 (the default cap,
+                          not widened), all lightgbm.regressor, all seed=42,
+                          selection_metric=spearman_ic (the REGRESSION
+                          selection metric CandidateSetSpec.__post_init__
+                          requires); varying only n_estimators/max_depth/
+                          learning_rate/num_leaves within lightgbm's allowed
+                          hyperparameter set -- one family, many
+                          hyperparameter points, exactly what D-S052-06
+                          authorizes
+  dataset_ref:            same persisted T003 regression-pass dataset
+                          (dataset_id f9f042f9042bcafb), read directly
+                          rather than rebuilt, so the fingerprint match is
+                          not a re-derivation that could drift -- it is
+                          the same artifact
+  dataset_fingerprint:    f9f042f9042bcafb26964c01e480d6df52af84b77f0cb9ea02d05911797c2867
+                          -- asserted equal (not assumed) to T003's recorded
+                          value by an explicit equality check against the
+                          persisted manifest before the run was allowed to
+                          proceed; the script would have raised before
+                          fitting anything had it differed
+  run_id:                 6d2842b647cd4097
+  folds/seed:             same 6-fold EXPANDING plan as T003/T004 (read from
+                          the same persisted dataset envelope, not
+                          redeclared); seed 42, matching the ridge and
+                          logistic passes
+  library:                lightgbm 4.7.0 (recorded in manifest.json /
+                          leaderboard.json)
+```
+
+**Per-fold and pooled comparison vs. `RANDOM_PERMUTATION`, primary metric
+`spearman_ic`** (via the unmodified `analyze_predictive_run`, same call
+pattern as T004):
+
+```text
+fold  test window                MODEL       RANDOM_PERMUTATION   vs. permutation
+0     2025-12-26 -> 2026-01-25   0.034221     0.002931             BEATS
+1     2026-01-26 -> 2026-02-25   0.018734    -0.005582             BEATS
+2     2026-02-26 -> 2026-03-28  -0.020915     0.003441             LOSES
+3     2026-03-29 -> 2026-04-28   0.076786    -0.000642             BEATS
+4     2026-04-29 -> 2026-05-29  -0.008486     0.000812             LOSES
+5     2026-05-30 -> 2026-06-29   0.054681    -0.002864             BEATS
+pooled                           0.023922    -0.000445             BEATS
+```
+
+**`S044_GATE.md` §1.4 bar assessment:** the tree pass clears the pooled bar
+(0.023922 vs. -0.000445) but **does not clear the strict per-fold bar** —
+it loses on folds 2 and 4, two of six, compared to the ridge baseline's one
+loss (fold 5 only). The tree pass does not fix the strict-bar failure that
+triggered it; if anything it fails on more folds than the model it was
+meant to test against.
+
+**Comparison against the ridge baseline itself** (`compare_predictive_runs`,
+both runs sharing the identical `f9f042f9042bcafb...` dataset fingerprint,
+so the leaderboard call succeeds without the fingerprint-mismatch guard that
+separated the two T004 passes):
+
+```text
+rank  run                        family              source   pooled spearman_ic
+1     6d2842b647cd4097 (tree)    lightgbm.regressor  MODEL    0.023922
+2     f7ac893d54ae6b69 (ridge)   sklearn.ridge        MODEL    0.020566
+3     6d2842b647cd4097 (tree)    RANDOM_PERMUTATION  baseline -0.000445
+4     6d2842b647cd4097 (tree)    CONSTANT_MEAN       baseline -0.004662
+5     f7ac893d54ae6b69 (ridge)   CONSTANT_MEAN       baseline -0.004662
+6     f7ac893d54ae6b69 (ridge)   RANDOM_PERMUTATION  baseline -0.004792
+```
+
+The tree pass edges out ridge on the pooled metric by a small margin
+(0.023922 vs. 0.020566) and ranks first on the leaderboard — but pooled
+ranking is not the bar this sprint uses to judge a pass (`S044_GATE.md`
+§1.4's per-fold bar is), and the tree pass fails that stricter bar more
+often than ridge did.
+
+**Train/test gap** (`fold_primary` from `metrics.json`, same field T004
+reported for the baseline passes):
+
+```text
+fold  train_primary  test_primary   gap
+0     0.147789        0.034221      0.113568
+1     0.050440        0.018734      0.031706
+2     0.072038       -0.020915      0.092954
+3     0.103525        0.076786      0.026739
+4     0.138426       -0.008486      0.146912
+5     0.186257        0.054681      0.131577
+```
+
+Unlike the ridge pass (where test was often *above* train — noise on a weak
+signal, not overfitting, per T004's read), the tree pass shows train
+**consistently and substantially above** test on every one of the six
+folds — the classic overfit signature T004's acceptance criteria exist to
+catch. Gaps of 0.09-0.15 dwarf the pooled effect size being measured
+(0.024). This is the expected shape for a higher-capacity family fit on the
+same ten-feature, purged-fold data the linear model saw: it fits TRAIN
+noise more aggressively, and that does not survive to TEST. Read together
+with the per-fold table above, the tree pass's small pooled edge over ridge
+looks like it is bought by folds 0/1/3/5 fitting harder, not by generalizing
+better — it still loses two folds outright, one more than ridge.
+
+**No file under any §5 forbidden path was touched.** The tree pass was run
+by calling the existing, unmodified `run_predictive_research` /
+`analyze_predictive_run` / `compare_predictive_runs` application functions
+directly from an uncommitted scratch script (same pattern T003/T004 used
+for the binary pass's ad hoc CLI config and for direct analysis calls) —
+**not** through `trading-cli research run`, because that CLI command has no
+config key for `RunPredictiveResearchRequest.candidate_set`
+(`apps/cli/src/trading_cli/commands/research.py::_run_predictive` only ever
+builds a single `EstimatorSpec`, never a `CandidateSetSpec`). This is a real
+CLI gap worth naming, not a workaround: nothing under `apps/cli/`,
+`research/predictive/`, or `application/predictive_research/` was edited to
+work around it — the existing `CandidateSetSpec`-aware application function
+was simply called directly, exactly as `research_promote.yaml`'s own
+CLI-vs-application split already treats `research promote` as a thin
+wrapper over an application function with its own request shape. `git
+status --porcelain src/` and the full working tree stay empty; no dataset
+bytes, run directory, or report HTML were staged or committed. **No new
+`EstimatorSpec` YAML was committed** for this pass, per the task's own
+guidance to prefer not committing when uncertain: `apps/cli/examples/`
+carries one example per command group (README.md's own stated convention),
+`research run predictive` already has both a regression and a binary
+committed example, and a `CandidateSetSpec`-driven config would need a CLI
+feature that does not exist yet to ever be runnable from a committed file —
+committing a YAML nothing can consume would be exactly the kind of debris
+`code-quality` warns against. If the CLI ever grows `candidate_set` support,
+a committed example belongs with that change, not retrofitted here.
+
+**No third pass, by construction.** D-S052-06's "NO pass 3, whatever pass 2
+shows" is honoured as written — this result is recorded as-is, not chased
+with a second tree configuration, a different family, or a wider candidate
+set.
 
 ### Wave 3 — The write-up and the disposition
 
 | Task | Description | Acceptance | Deps | Status |
 |------|-------------|-----------|------|--------|
-| S052-T006 | `docs/reference/BTC_PREDICTIVE_STUDY.md`: the instrument, range and gaps; the fold plan; the feature list; the per-fold and pooled comparison table; the train/test gaps; the importance ranking; and **the verdict stated in one unhedged sentence** | a reader learns the answer in the first paragraph without inference; a negative result is stated as plainly as a positive one, with no "promising signs" language; the document names what would change the verdict (a different horizon, grid, or feature family) as *future options*, never as retroactive excuses; it states that Phase 10 metrics are a precondition and never a verdict that the model should trade (ADR-0024); the document describes a **BTC** study only (D-S052-03a) | T004, T005 | TODO |
-| S052-T007 | **Reproducibility record** (a section of T006's document plus the spec header comments): study `definition_hash`, dataset fingerprint, source `DatasetRef` and its import-manifest fingerprint, run IDs, estimator specs and seeds, and the framework version | a third party with the same data can re-derive the same dataset fingerprint from the committed spec; the record states which artifacts live outside git (`user_data/`) and are therefore not reproducible from the repo alone | T006 | TODO |
-| S052-T008 | Closure and **Q5 disposition**: update ROADMAP §13F's Q5 dependency line (append, never rewrite history), §13G's 15B status, `CURRENT_STATUS.md`, and the sprint Review | §13F's Q5 line states either "closed by run `<id>`, `<family>`" **or** "still open — reason", never something ambiguous; if closed, the entry states whether the winning family is promotable under ADR-0029 (linear/logistic) or hits its documented tree/neural refusal; if still open, it names S049 Wave 0's "option (b)" as the decision now facing Sprint 050 — and leaves that decision to the maintainer | T007 | TODO |
+| S052-T006 | `docs/reference/BTC_PREDICTIVE_STUDY.md`: the instrument, range and gaps; the fold plan; the feature list; the per-fold and pooled comparison table; the train/test gaps; the importance ranking; and **the verdict stated in one unhedged sentence** | a reader learns the answer in the first paragraph without inference; a negative result is stated as plainly as a positive one, with no "promising signs" language; the document names what would change the verdict (a different horizon, grid, or feature family) as *future options*, never as retroactive excuses; it states that Phase 10 metrics are a precondition and never a verdict that the model should trade (ADR-0024); the document describes a **BTC** study only (D-S052-03a) | T004, T005 | DONE |
+| S052-T007 | **Reproducibility record** (a section of T006's document plus the spec header comments): study `definition_hash`, dataset fingerprint, source `DatasetRef` and its import-manifest fingerprint, run IDs, estimator specs and seeds, and the framework version | a third party with the same data can re-derive the same dataset fingerprint from the committed spec; the record states which artifacts live outside git (`user_data/`) and are therefore not reproducible from the repo alone | T006 | DONE (folded into T006) |
+| S052-T008 | Closure and **Q5 disposition**: update ROADMAP §13F's Q5 dependency line (append, never rewrite history), §13G's 15B status, `CURRENT_STATUS.md`, and the sprint Review | §13F's Q5 line states either "closed by run `<id>`, `<family>`" **or** "still open — reason", never something ambiguous; if closed, the entry states whether the winning family is promotable under ADR-0029 (linear/logistic) or hits its documented tree/neural refusal; if still open, it names S049 Wave 0's "option (b)" as the decision now facing Sprint 050 — and leaves that decision to the maintainer | T007 | DONE |
 
-**Progress:** 0 / 8 — not started; sprint not approved and its input does not yet exist.
+**Progress: 8 / 8 — all Wave 3 tasks DONE, sprint tasks complete.**
+
+**S052-T008 outcome (2026-09-08, `docs/btc-predictive-study-baseline-run`):
+DONE.** Updated `docs/planning/roadmap/PHASE_14_PREDICTIVE_PROMOTION.md`
+§13F's Q5 dependency bullet with an appended (not rewritten) update note:
+**Q5 is CLOSED by run `faa6983acd03f846`, family `sklearn.logistic`** — the
+BINARY pass beats `RANDOM_PERMUTATION` on every one of six folds and
+pooled, clearing `S044_GATE.md` §1.4's strict per-fold bar, and is
+immediately compatible with ADR-0029's promotion v1 (linear/logistic
+only); this closes the dependency without promoting anything (promotion
+stays a separate, maintainer-only, out-of-scope act). The note also
+records, honestly, that the REGRESSION pass (ridge, and its triggered
+`lightgbm.regressor` tree pass) did **not** clear the bar — per D-S052-09,
+Q5 is closed by any one qualifying positive result, and the binary pass
+alone satisfies it. `docs/planning/roadmap/PHASE_15_PREDICTIVE_CATALOG.md`
+(header and §13G status paragraph) and `docs/planning/ROADMAP.md` (the
+phase table row, the parallel-tracks summary line, and the §13F/§13G stub
+paragraphs, which restate status rather than only pointing at the linked
+file) were updated to reflect 15B COMPLETE (8/8) and Phase 15 as a whole
+COMPLETE, consistent with the same Q5 disposition sentence.
+`docs/planning/CURRENT_STATUS.md` was updated (Status Metadata's Current
+Phase block, the Work in Progress section, and the Phase 16 gate-condition
+note) to mark Sprint 052 / Phase 15B complete with a pointer to
+`docs/reference/BTC_PREDICTIVE_STUDY.md`. No file under any §5 forbidden
+path was touched; `git status --porcelain src/` stayed empty.
+
+**Progress: 7 / 8** *(historical figure, prior to T008 — see 8/8 above)* —
+Wave 0's fold plan (T001) is landed and maintainer-signed
+off (D-S052-11's fold-table box checked). S052-T002 (`feat/btc-predictive-study-specs`)
+commits the study/estimator YAML: because `PredictiveStudySpec.label` is a
+single `LabelSpec`
+(`src/trading_framework/research/predictive/spec.py`) and D-S052-06's Pass 1
+declares one REGRESSION run and one BINARY run over the SAME fold plan and
+feature list, the "one file" description above is delivered as **two**
+`PredictiveStudySpec` files that are byte-for-byte identical except
+`label.kind` —
+`apps/cli/examples/predictive/btc_momentum_regime_study_regression.yaml` and
+`..._binary.yaml` — paired with `btc_momentum_regime_ridge.yaml`
+(`sklearn.ridge`) and `btc_momentum_regime_logistic.yaml`
+(`sklearn.logistic`), both seed `42`. All four declare D-S052-05's frozen
+ten-feature list and D-S052-03's locked fold plan (`EXPANDING`, `F=6`,
+`T=30d`, `E=1d`, `M=2000`, `V=15m`) exactly, each `definition_hash` recorded
+in its own header comment and asserted against the loader in
+`tests/unit/research/predictive/test_btc_momentum_regime_study.py` (11 tests,
+network-free, extra-free). `research_run_predictive.yaml`'s dangling
+`configs/predictive/my_study.yaml` reference is repointed at the real
+regression-pass pair (Finding 5); the binary pass is documented alongside it
+in `apps/cli/examples/README.md` for an operator who wants that pass instead.
+T003 (the baseline run) is now DONE (this PR, `docs/btc-predictive-study-baseline-run`,
+maintainer-authorized delegation of the "maintainer-executed" run to an
+agent): both baseline passes ran against the D-S052-03/04/05-corrected
+`V=1m` specs — see the outcome note above for run IDs, dataset
+fingerprints and fold-count verification. T004 (this PR) is now DONE: the
+BINARY pass clears `S044_GATE` §1.4's strict per-fold bar cleanly (6/6 folds
++ pooled) and its T005 trigger does not fire; the REGRESSION pass clears the
+pooled bar but loses fold 5, and its T005 trigger fires — see the outcome
+note above for the full per-fold/pooled tables, train/test gaps, and the
+Sprint 051 feature importance ("ignored" vs. "misled") breakdown per pass.
+T005 (this PR) is now DONE: the BINARY pass's tree pass is NOT RUN (its
+trigger did not fire, a clean strict-bar pass); the REGRESSION pass's tree
+pass (`lightgbm.regressor`, 8-candidate `CandidateSetSpec` at the default
+cap, identical dataset fingerprint to T003, asserted not assumed) ran and
+clears the pooled bar but loses two of six folds (worse than ridge's one
+loss) with a pronounced train/test overfit gap on every fold — see the
+outcome note above. No third pass follows, per D-S052-06.
 
 **Descope order:** T005 is conditional by construction. T007 may merge into T006.
 **T004 and T006 are never dropped** — without them the sprint has run a model and
 reported nothing, which is the one outcome that would waste the compute.
+
+**S052-T006/T007 outcome (2026-09-08, `docs/btc-predictive-study-baseline-run`,
+folded per the descope note above): DONE.**
+`docs/reference/BTC_PREDICTIVE_STUDY.md` is written, reproducing T004's
+per-fold/pooled comparison tables and train/test gaps for both the ridge
+and logistic passes, T004's Sprint-051-component permutation-importance
+"ignored vs. misled" breakdown, and T005's tree-pass table and overfit
+finding, verbatim against the outcome notes above. The verdict is stated
+as one unhedged sentence in the first paragraph: the BINARY pass beats
+`RANDOM_PERMUTATION` on every fold and pooled, the REGRESSION pass does
+not (loses fold 5 with ridge, loses two folds with the tree pass, which
+also overfits) — reported as a genuine split result, not rounded toward
+either a single positive or negative headline. The document restates
+ADR-0024's precondition-not-verdict rule, names the promotability
+consequence (ADR-0029: the logistic pass is v1-compatible; the tree
+result would hit the documented refusal, moot since it didn't clear the
+bar), lists "what would change the verdict" as future-only options, and
+states the BTC-only scope per D-S052-03a. The reproducibility record
+(T007, folded in) carries both `definition_hash` values (read from the
+committed spec header comments, unchanged from T002), both dataset
+fingerprints and `DatasetRef`s, all three run IDs, estimator specs and
+seeds (all `seed=42`), and the framework version (`0.1.0`, read from
+`pyproject.toml` and `src/trading_framework/__init__.py`) — flagged in the
+document itself as read-at-write-time, not independently cross-checked
+against a run manifest field recording the version active during
+T003/T004/T005. It states plainly that `user_data/` (dataset bytes, run
+directories, report HTML, model blobs) lives outside git and is not
+reproducible from the repo alone. No file under any §5 forbidden path was
+touched; `git status --porcelain src/` stayed empty.
 
 ---
 
@@ -374,4 +1060,151 @@ tree/neural promotion path (TD-029) if a tree family wins here.
 
 ## 13. Review
 
-_(to be written at closure by `tech-writer`)_
+**Closed 2026-09-08 by `tech-writer` (S052-T008).** Facts recorded below;
+nothing here rewrites Wave 0's plan or the task-level outcome notes above —
+this section summarizes them.
+
+### Completed
+
+All 8 tasks across 4 waves are DONE:
+
+- **Wave 0 (T001):** the fold plan computed from `S051_BTC_DATA_INVENTORY.md`'s
+  measured facts (911 days, 1,311,840 rows, zero gaps); maintainer-signed off
+  (D-S052-11).
+- **Wave 1 (T002, T003):** committed `PredictiveStudySpec`/`EstimatorSpec`
+  YAML under `apps/cli/examples/predictive/`, a network-free parse test, and
+  both baseline passes (regression/ridge, binary/logistic) run through the
+  unmodified Phase 10 pipeline on real `BTCUSDT.P` data.
+- **Wave 2 (T004, T005):** the per-fold/pooled `RANDOM_PERMUTATION` comparison,
+  train/test gaps, and Sprint 051 feature importance for both passes; the
+  conditional tree pass (`lightgbm.regressor`) ran once, only for the
+  REGRESSION pass, under its pre-declared trigger.
+- **Wave 3 (T006/T007 folded, T008):** `docs/reference/BTC_PREDICTIVE_STUDY.md`
+  written with an unhedged verdict, and the Q5 disposition recorded in
+  `PHASE_14_PREDICTIVE_PROMOTION.md` §13F, `PHASE_15_PREDICTIVE_CATALOG.md`
+  §13G, `ROADMAP.md`, and `CURRENT_STATUS.md`.
+
+No file under any §5 forbidden path (`research/predictive/`,
+`application/predictive_research/`, `market_analysis/`, `infrastructure/ml/`,
+`research/predictive/promotion/`) was touched at any point in the sprint;
+`git status --porcelain src/` stayed empty on every run task.
+
+### Not completed
+
+Nothing in the 8-task breakdown was skipped or left undone. Two items outside
+the task breakdown remain open, both flagged rather than absorbed:
+
+- Integration of this sprint's work into `sprint/btc-predictive-study` and a
+  final integration PR to `main` — explicitly not part of this sprint's own
+  task list (T008's acceptance criteria stop at the Q5 disposition and the
+  document updates).
+- The `apps/cli` `CandidateSetSpec` gap named below was not fixed — fixing it
+  was never in scope (§3: "Any change to ... application/predictive_research/"
+  is forbidden, and a CLI feature addition would itself be new scope).
+
+### Demonstrated capability
+
+The unmodified Phase 10 pipeline (`build_predictive_dataset`,
+`run_predictive_research`, `analyze_predictive_run`, `compare_predictive_runs`)
+runs end-to-end on a real, non-synthetic, ~1.3M-row 1-minute BTC futures
+dataset — walk-forward folds, purge/embargo, permutation-baseline comparison,
+and permutation importance all execute correctly outside the synthetic
+fixtures the pipeline had only ever been exercised against before this
+sprint (Sprint 043's characterization was synthetic-only, per Finding 1).
+The pipeline produced a genuine, reportable out-of-sample effect on one of
+two passes (BINARY/logistic) without any pipeline code change.
+
+### Problems discovered
+
+**One real STOP-and-report, resolved within the sprint (S052-T003, first
+attempt).** `PredictiveStudySpec.evaluation_timeframe` is validated
+source-or-finer (`validate_evaluation_timeframe`,
+`src/trading_framework/market_analysis/models/timeframes.py`), not
+source-or-coarser as Wave 0's Finding 3 / D-S052-04 had assumed — the
+run-level Evaluation role and the per-component Computation role
+(`ComponentRequest.computation_timeframe`) are different mechanisms per
+`ADR-MA-012`, and only the latter can coarsen a per-feature grid; it is not
+wireable from `PredictiveStudySpec` today, and wiring it would itself be a
+forbidden `research/predictive/` change. Both committed T002 spec files
+(`V=15m`) failed pipeline validation identically, in ~2s, before any fold
+assignment or model fit. No forbidden-path file was touched investigating or
+working around this. **Resolution (maintainer-approved, same day): option
+(a)** — `V` corrected to `1m` (matching source), range/fold-count/test-span/
+embargo/min-train-rows unchanged, and the ten frozen components'
+evaluation-bar-denominated parameters scaled x15 to hold their wall-clock
+window constant (D-S052-03/D-S052-04/D-S052-05 corrections, appended not
+rewritten). A diagnostic benchmark (~45s wall-clock, ~5.3GB peak memory for
+the full-range 1m matrix build) confirmed no range trim was needed. The
+re-attempt succeeded cleanly. This is a genuine, previously-uncaught gap in
+existing test coverage: no committed regression/unit/spec-parse test
+exercised `evaluation_timeframe` strictly coarser than the dataset's source
+timeframe before real data and a real 15m/1m pair reached the pipeline.
+
+**A newly-discovered CLI gap (S052-T005).** `trading-cli research run` has
+no config key for `RunPredictiveResearchRequest.candidate_set`
+(`apps/cli/src/trading_cli/commands/research.py::_run_predictive` only ever
+builds a single `EstimatorSpec`, never a `CandidateSetSpec`), so the
+conditional tree pass could not be run through the CLI at all — it was run
+by calling the existing, unmodified application function directly from an
+uncommitted scratch script, with no committed `EstimatorSpec` YAML for that
+pass (nothing under `apps/cli/`, `research/predictive/`, or
+`application/predictive_research/` was edited to work around this). **This
+is worth a `TECHNICAL_DEBT.md` entry if one does not already exist** — this
+review does not check whether `TD-030` or a similar ID already covers it,
+and does not create a new entry itself; that determination and any new
+entry are the maintainer's/reviewer's call outside this task.
+
+### Decisions required
+
+None new. The one decision this sprint's own task list required — Q5's
+disposition — was made per the pre-agreed rule (D-S052-09: closed by any one
+qualifying positive result) and is recorded above and in
+`PHASE_14_PREDICTIVE_PROMOTION.md` §13F; it did not require a fresh
+maintainer decision beyond the already-signed-off Wave 0 rule. The one
+decision genuinely left open by this sprint, by design (D-S052-09), is
+Sprint 050 / Phase 14B's own planning — out of this sprint's scope by §3 —
+but that decision no longer needs S049 Wave 0's "option (b)" fallback, since
+Q5 closed on a real result rather than staying open.
+
+### Technical debt added
+
+None added by this sprint directly (no code was touched under any forbidden
+path, and no shortcut was taken in the committed specs or tests). The CLI
+`CandidateSetSpec` gap named above pre-dates this sprint (it was discovered,
+not introduced, by T005) and is recommended, not logged, as a candidate debt
+entry — see "Problems discovered" above.
+
+### Lessons learned
+
+- **A "no-code-change knob" claim in a Wave 0 finding needs to be verified
+  against the validator's own code, not inferred from its docstring or
+  intent, before it is used to size a fold plan.** Finding 3's assumption
+  was reasonable on paper and matched the validator's docstring's spirit,
+  but not its actual enforced direction; the gap was caught by reading
+  `validate_evaluation_timeframe` itself against `ADR-MA-012`, not by any
+  existing test, because no test exercised that direction of mismatch
+  before this sprint's real data reached it.
+- **Running a real dataset through a pipeline only ever exercised on
+  synthetic fixtures surfaces test-coverage gaps that synthetic-only CI
+  cannot** — exactly the risk this sprint (and Phase 15 as a whole) was
+  designed to retire. The STOP-and-report mechanism worked as designed: the
+  agent stopped, read the code, proposed three options, and waited for
+  maintainer sign-off rather than patching around the mismatch.
+- **A split verdict is a completed sprint, not a partial one**, per the
+  sprint's own framing (§0): the BINARY pass's clean pass and the
+  REGRESSION pass's clean failure (including its triggered tree pass's
+  worse per-fold result and clear overfit signature) are both reported with
+  equal weight, and Q5 closes on the strength of one qualifying result
+  without either inflating or downplaying the other pass's outcome.
+
+### Follow-up
+
+- Integrate this sprint's work into `sprint/btc-predictive-study`, then open
+  the final integration PR to `main` (next step, not part of this task).
+- Maintainer/reviewer to decide whether the `apps/cli` `CandidateSetSpec` gap
+  warrants a new `TECHNICAL_DEBT.md` entry (or already has one).
+- Sprint 050 / Phase 14B planning can now proceed against a real, positive
+  Q5 result (`sklearn.logistic`, immediately promotable under ADR-0029)
+  rather than S049 Wave 0's "option (b)" fallback — that planning step
+  itself remains out of this sprint's scope and is the maintainer's next
+  call.

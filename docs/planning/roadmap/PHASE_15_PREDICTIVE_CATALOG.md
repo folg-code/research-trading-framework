@@ -1,7 +1,9 @@
 # Phase 15 — Predictive Research Catalog Expansion and Real-Data Study
 
 ```text
-Status: APPROVED (maintainer, 2026-09-02) — 15A COMPLETE, 15B PLANNED but not opened
+Status: APPROVED (maintainer, 2026-09-02) — 15A COMPLETE, 15B COMPLETE
+(2026-09-08, 8/8 tasks; integration to `sprint/btc-predictive-study` and
+then `main` still pending — see below) — Phase 15 as a whole is COMPLETE
 ```
 
 Full detail for `ROADMAP.md` §13G — this is the LIVE, canonically-updated location for this
@@ -23,12 +25,20 @@ already used in `ROADMAP_COMPLETED_PHASES.md`.
 **Status:** **APPROVED** (maintainer, 2026-09-02). Sprint 051 (increment 15A)
 is **COMPLETE** (11/11, on `sprint/momentum-and-regime-catalog`; final
 integration PR to `main` pending) — see `SPRINT_051.md` §13 Review. Sprint 052
-(increment 15B) is **PLANNED but NOT approved/opened** (`SPRINT_052.md`,
-`Status: PLANNED`); it now has its delivered prerequisite fact from Sprint
-051 (`BTCUSDT.P`, 1m, `2024-01-01 -> 2026-06-29`, 911 days, 1,311,840 rows,
-zero gaps — `S051_BTC_DATA_INVENTORY.md`), but opening it remains a separate
-maintainer approval step. **Phase 15 as a whole is NOT complete** — no
-real-data predictive study has been run.
+(increment 15B) is **COMPLETE** (8/8 tasks, 2026-09-08, on
+`docs/btc-predictive-study-baseline-run`; tester/reviewer sign-off and
+integration to `sprint/btc-predictive-study`, then a final integration PR to
+`main`, are still pending — see `SPRINT_052.md` §13 Review). The real-data
+study ran on `BTCUSDT.P` (`S051_BTC_DATA_INVENTORY.md`'s delivered dataset)
+and produced a split verdict: the BINARY/classification pass
+(`sklearn.logistic`, run `faa6983acd03f846`) beats `RANDOM_PERMUTATION` on
+every fold and pooled, clearing `S044_GATE.md` §1.4's strict bar; the
+REGRESSION pass (`sklearn.ridge`, and its triggered `lightgbm.regressor`
+tree pass) does not. **§13F's Q5 dependency is CLOSED by the binary pass**
+(`PHASE_14_PREDICTIVE_PROMOTION.md` §13F, updated 2026-09-08) — see
+`docs/reference/BTC_PREDICTIVE_STUDY.md` for the full write-up. **Phase 15
+as a whole is now COMPLETE** — the real-data predictive study has run and
+its verdict is written down, positive and negative parts both.
 **Product source:** `docs/product/PRD-predictive-research-catalog-expansion.md`
 — the maintainer's grill-me discovery record; authoritative on scope,
 non-goals and success metrics.
