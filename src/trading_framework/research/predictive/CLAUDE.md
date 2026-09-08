@@ -149,6 +149,17 @@ library-free predictive metrics (`metrics.py`).
   fast with the same named `PredictiveDatasetError` described two bullets up
   the moment someone points a CLI config at it — never a silent no-op or an
   unrelated crash.
+- `apps/cli/examples/predictive/btc_momentum_regime_study_regression.yaml` +
+  `..._binary.yaml` (Sprint 052 / S052-T002, Phase 15B) are the committed
+  real-data `BTCUSDT.P` study specs. **Two separate `PredictiveStudySpec`
+  files, not one with two labels**: `PredictiveStudySpec.label` is a single
+  `LabelSpec`, so a study that runs one `REGRESSION` pass and one `BINARY`
+  pass over the *same* fold plan and feature list (D-S052-06) needs two spec
+  files that are otherwise byte-for-byte identical — `label.kind` (and
+  `label.threshold` for `BINARY`) is the only field that differs. Each pairs
+  with its own `EstimatorSpec` (`btc_momentum_regime_ridge.yaml` /
+  `..._logistic.yaml`, same `seed`). Parse test:
+  `tests/unit/research/predictive/test_btc_momentum_regime_study.py`.
 - `promotion/` (Sprint 049, ADR-0029) is the pure-NumPy promoted-artifact
   evaluator: `PromotedArtifactParameters` (the parameter-file payload schema),
   `load_promoted_artifact` (the load-time format/family guard, no bypass), and

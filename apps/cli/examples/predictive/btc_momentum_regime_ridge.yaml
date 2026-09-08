@@ -1,0 +1,25 @@
+# apps/cli/examples/predictive/btc_momentum_regime_ridge.yaml
+#
+# Baseline EstimatorSpec for the REGRESSION pass of the BTC predictive study
+# (Sprint 052 / S052-T002, D-S052-06 Pass 1). Pairs with
+# btc_momentum_regime_study_regression.yaml. `sklearn.ridge` (D-S052-06: the
+# "ridge or elastic net" choice, ridge taken as the simpler of the two).
+# Fold-local preprocessing is the framework default (IMPUTE_MEDIAN then
+# STANDARDIZE, `PreprocessingSpec` unset on `RunPredictiveResearchRequest`)
+# and is not re-declared here -- there is no `preprocessing` key on
+# `EstimatorSpec` itself
+# (src/trading_framework/research/predictive/estimators.py).
+#
+# `seed: 42` is shared with btc_momentum_regime_logistic.yaml, matching
+# D-S052-06's "same seed" requirement across both Pass 1 runs.
+#
+# Loads through `EstimatorSpec.from_dict` (via
+# trading_cli.commands.research._load_estimator_spec) with no code change.
+# Requires the `ml` extra to FIT (S052-T003, maintainer-executed); parsing
+# this file needs neither `ml` nor the network.
+
+family: sklearn.ridge
+task_type: REGRESSION
+seed: 42
+hyperparameters:
+  alpha: 1.0
