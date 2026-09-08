@@ -1927,6 +1927,105 @@ than introducing a new trust-model question.
 
 ---
 
+## TD-033 — Verdict Rule Thresholds and the Primary-Metric Convention Are Independently Triplicated
+
+```text
+Status: ACCEPTED
+Priority: LOW
+Domain: research/predictive (verdict.py) / research/reporting/predictive (quality.py)
+Introduced: Sprint 057 (2026-09-08), decided at Wave 0 (D-S057-06) and
+  extended during S057-T003's QA
+Target Review: A future consolidation increment that touches both
+  `research/predictive/verdict.py` and
+  `research/reporting/predictive/quality.py`
+Owner: Unassigned
+```
+
+### Accepted Shortcut
+
+`research/predictive/verdict.py`'s frozen `VerdictRuleSet` (`verdict_rules.v1`)
+independently declares three thresholds that already exist in
+`PredictiveReportQualityRules` (`research/reporting/predictive/quality.py`)
+and its non-importing dashboard-local mirror
+(`apps/dashboard/.../catalog/predictive_quality.py`, ADR-0022):
+`min_test_rows=30`, `max_single_fold_test_share=0.60`, and
+`min_minority_class_share=0.10`. These are now declared in **three**
+independent places. In addition — found during S057-T003's QA, not at
+Wave 0 — `verdict.py`'s `_primary_metric_name` / `_primary_metric_value`
+functions reproduce `quality.py`'s `primary_metric_name` /
+`primary_metric_value` convention (`roc_auc` for `CLASSIFICATION`,
+`spearman_ic` for `REGRESSION`) by hand rather than importing it, guarded
+only by a parity test (`test_verdict.py`) asserting the two conventions
+stay in sync — not by a shared source of truth.
+
+### Reason
+
+`research/predictive/verdict.py` may not import `research.reporting`
+(ADR-0032 §5, enforced by `tests/unit/test_architecture_boundaries.py`): a
+report-quality *warning* threshold changing for display reasons must not
+silently change the meaning of an already-persisted, versioned *verdict*.
+Importing `quality.py`'s thresholds and its primary-metric convention
+directly was considered and rejected in ADR-0032's Alternatives Considered
+section for exactly this reason. The duplication is the accepted cost of
+keeping the verdict's contract independently frozen and versioned.
+
+### Consequences
+
+- Three numeric values (`min_test_rows`, `max_single_fold_test_share`,
+  `min_minority_class_share`) and one naming convention
+  (`primary_metric_name` / `primary_metric_value`) now live in more than
+  one place, each independently maintainable and each capable of drifting
+  from the others unnoticed by any single reviewer looking at only one
+  file.
+- A future change to `quality.py`'s thresholds or its primary-metric
+  convention does not automatically propagate to `verdict.py`, and vice
+  versa; only the parity test on the primary-metric convention catches a
+  drift there, and nothing catches a drift on the three numeric
+  thresholds.
+
+### Safe Operating Boundary
+
+No caller may assume `verdict.py`'s thresholds or primary-metric convention
+are sourced from, or kept in lockstep with, `quality.py` by anything other
+than manual review and the one parity test named above. Each is versioned
+and serialized into its own artifact (`verdict.json`'s `rule_set`, a report's
+own quality-flag payload), so a drift is visible in the artifacts themselves
+even though it is not prevented at the source.
+
+### Repayment Trigger
+
+A future consolidation increment that touches both
+`research/predictive/verdict.py` and
+`research/reporting/predictive/quality.py` in the same sprint, or a
+maintainer decision that threshold drift between the report-quality flags
+and the verdict rule set has become a real, observed problem.
+
+### Repayment Direction
+
+Not prescribed here. ADR-0032's Alternatives Considered section already
+rejected importing `quality.py`'s thresholds directly into the verdict rule
+set for v1; a repayment would need its own review of whether that reasoning
+still holds, or whether a third, shared, versioned module both files could
+depend on is warranted — a design decision for the increment that repays
+this, not a default assumed now.
+
+### Related Documents
+
+- `docs/adr/ADR-0032-predictive-run-verdict-artifact.md` §2, Alternatives
+  Considered — the decision this debt implements
+- `docs/planning/sprints/SPRINT_057.md` Finding 2
+- `docs/planning/sprints/S057_WAVE0_DECISIONS.md` D-S057-06
+- `docs/reference/PREDICTIVE_VERDICT.md` §2 — the reference document's own
+  statement of this debt
+
+### Related Tasks
+
+- PR #466 (`feat/verdict-fact-extraction`) — where the primary-metric
+  convention duplication was found during QA and the parity test was added
+- Logged by S057-T007 per ADR-0032 Follow-up and SPRINT_057.md's task table
+
+---
+
 # 6. Planned Debt Boundaries
 
 The following shortcuts may be accepted later but are not yet introduced:

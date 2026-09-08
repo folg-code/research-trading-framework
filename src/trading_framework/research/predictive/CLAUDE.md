@@ -175,6 +175,29 @@ library-free predictive metrics (`metrics.py`).
   is not a tradeable verdict and this package ships no Market Analysis
   component — see that document §1 and §9.
 
+- `verdict.py` (Sprint 057, ADR-0032) declares the eight-value analyst
+  verdict vocabulary (`RunVerdict`), the frozen, versioned `VerdictRuleSet`
+  (`VERDICT_RULES_V1`, `"verdict_rules.v1"`), `VerdictFacts`,
+  `RuleEvaluation`, `VerdictReport`, and the pure `evaluate_verdict` /
+  `extract_verdict_facts` functions — pure, library-free, no import of
+  `research.reporting`, `application`, `infrastructure`, `signal_model`,
+  `strategy`, or any ML library (enforced by
+  `tests/unit/test_architecture_boundaries.py`). Rule evaluation order is
+  fixed (`R2, R3, R4, R1`, then `O1..O4`); every rule is always evaluated
+  and recorded, not only the one that determines the verdict. A verdict is
+  never computed here from a file — file I/O and `verdict.json` persistence
+  are `application/predictive_research/evaluate_run_verdict.py`'s job
+  (mirrors `analyze_predictive_run.py`'s shape, including "never
+  deserializes a fitted model blob"). `_primary_metric_name` /
+  `_primary_metric_value` deliberately reproduce (never import)
+  `research/reporting/predictive/quality.py`'s `primary_metric_name` /
+  `primary_metric_value` convention — a knowingly accepted duplication,
+  `TD-033`. Full vocabulary, rule set, and the Sprint 052 worked example:
+  `docs/reference/PREDICTIVE_VERDICT.md`. A verdict is a decision aid for
+  what to study next, never evidence of a live edge and never a promotion
+  approval (ADR-0024) — nothing in this package or its caller may act on
+  one.
+
 ## Tests
 
 Unit tests live under `tests/unit/research/predictive/`. Architecture boundary
