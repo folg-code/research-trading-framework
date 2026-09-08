@@ -6,13 +6,13 @@
 Sprint: 052
 Phase: Phase 15 — Predictive Research Catalog Expansion and Real-Data Study;
        increment 15B (closing increment)
-Status: PLANNED — requires maintainer approval. **Additionally gated:** this
-        sprint may not open until Sprint 051 is complete AND
+Status: APPROVED (2026-09-08) — Wave 0 Checklist signed off
+        (S052_WAVE0_DECISIONS.md D-S052-11). Gate condition satisfied: Sprint
+        051 is complete and merged to `main` (#409), and
         docs/planning/sprints/S051_BTC_DATA_INVENTORY.md records a usable
-        published BTCUSDT.P dataset. Its Wave 0 fold design is computed FROM
-        that document and cannot be locked without it. Substituting another
-        instrument to unblock it is forbidden (D-S052-03a).
-Planned Start: TBD (after Sprint 051 closes)
+        published BTCUSDT.P dataset (911 days, 1,311,840 rows, zero gaps).
+        `engineer` may start S052-T001.
+Planned Start: TBD (branch not yet cut)
 Planned End: TBD
 Sprint Goal Owner: Project Maintainer
 Depends On: SPRINT_051 (the six components + the BTC dataset inventory),
@@ -28,7 +28,10 @@ Numbering: verified against origin/main @ 5bd9969 (2026-09-02). Sprint 050 is
         reserved for Phase 14B by merged documents and is NOT taken here.
 Architecture Sources:
   - docs/product/PRD-predictive-research-catalog-expansion.md — AUTHORITATIVE
-  - docs/planning/ROADMAP_INCREMENT_PHASE_15.md (§13G) — PROPOSED
+  - docs/planning/roadmap/PHASE_15_PREDICTIVE_CATALOG.md (§13G) — APPROVED
+    (corrected 2026-09-08; formerly ROADMAP_INCREMENT_PHASE_15.md, spliced
+    into ROADMAP.md and then extracted to this file by a roadmap
+    defragmentation pass — same decision, moved location)
   - docs/planning/sprints/SPRINT_051.md + S051_WAVE0_DECISIONS.md
     (D-S051-07 and D-S051-07a inherited whole)
   - docs/planning/sprints/S051_BTC_DATA_INVENTORY.md — the measured input
@@ -315,7 +318,9 @@ reported nothing, which is the one outcome that would waste the compute.
 
 ## 9. Dependencies
 
-**Required:** ROADMAP §13G approved (**Status: PROPOSED**).
+**Required:** ROADMAP §13G approved — **satisfied** (APPROVED 2026-09-04;
+now `docs/planning/roadmap/PHASE_15_PREDICTIVE_CATALOG.md` §13G after the
+2026-09-08 roadmap defragmentation).
 
 **Required:** Sprint 051 complete, **including a usable
 `S051_BTC_DATA_INVENTORY.md` for `BTCUSDT.P`**. This is a hard gate: Wave 0 is

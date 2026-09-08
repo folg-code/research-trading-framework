@@ -4,10 +4,8 @@ Binding decisions for the Real-Data BTC Predictive Study (Phase 15B).
 Date: 2026-09-02.
 
 ```text
-Status: PROPOSED — requires the maintainer's Wave 0 Checklist sign-off
-        (D-S052-11). `engineer` must refuse to start while any box is unchecked.
-        One item (D-S052-03a, the NQ hard stop) is already ANSWERED by the
-        maintainer on 2026-09-02.
+Status: APPROVED (2026-09-08) — Wave 0 Checklist (D-S052-11) signed off by
+        the maintainer. `engineer` may start S052-T001.
 
 ADDITIONALLY GATED: D-S052-03's fold table is INTENTIONALLY INCOMPLETE. It is
         completed by S052-T001 from docs/planning/sprints/S051_BTC_DATA_INVENTORY.md
@@ -18,7 +16,12 @@ ADDITIONALLY GATED: D-S052-03's fold table is INTENTIONALLY INCOMPLETE. It is
         recur.
 
 Basis:  docs/product/PRD-predictive-research-catalog-expansion.md — AUTHORITATIVE
-        docs/planning/ROADMAP_INCREMENT_PHASE_15.md (§13G) — PROPOSED
+        docs/planning/roadmap/PHASE_15_PREDICTIVE_CATALOG.md (§13G) — APPROVED
+        (corrected 2026-09-08: the source note this line originally cited,
+        ROADMAP_INCREMENT_PHASE_15.md, was spliced into ROADMAP.md as §13G and
+        deleted; §13G itself was later extracted to this file as part of a
+        roadmap defragmentation pass, and Phase 15 was approved by the
+        maintainer before either of those moves)
         docs/planning/sprints/SPRINT_052.md
         docs/planning/sprints/SPRINT_051.md + S051_WAVE0_DECISIONS.md
                 (D-S051-07 and D-S051-07a are INHERITED WHOLE)
@@ -319,23 +322,25 @@ Intentionally unused, so decision IDs already referenced elsewhere do not shift.
 Nothing below may be checked off by an agent. `engineer` must refuse to start
 while any box is unchecked.
 
-- [ ] **Sprint 051 is closed and `S051_BTC_DATA_INVENTORY.md` records a usable published `BTCUSDT.P` dataset.** If it does not, this sprint does not open (SPRINT_052.md §4 Finding 1, D-S052-03a).
-- [ ] **ROADMAP §13G approved**, and Sprint 052 / Phase 15B confirmed as its closing increment; **Sprint 050 stays reserved for Phase 14B.**
-- [ ] **D-S052-03 confirmed** — the fold plan is computed from measured facts at T001; the under-powered STOP rule is accepted; gaps are never filled and the embargo/purge policy is never tuned to make the arithmetic work.
-- [ ] **The fold table produced by T001 reviewed and accepted** (this box is checked after T001, before T003 runs).
+- [x] **Sprint 051 is closed and `S051_BTC_DATA_INVENTORY.md` records a usable published `BTCUSDT.P` dataset.** Confirmed: 911 days, 1,311,840 rows, zero gaps (`BTCUSDT.P`, 1m, 2024-01-01 -> 2026-06-29). Sprint 051 is merged to `main` (#409).
+- [x] **ROADMAP §13G approved** (2026-09-04, corrected 2026-09-08: now `docs/planning/roadmap/PHASE_15_PREDICTIVE_CATALOG.md` §13G after the roadmap defragmentation — the decision and its APPROVED status are unchanged, only its file location moved), and Sprint 052 / Phase 15B confirmed as its closing increment; **Sprint 050 stays reserved for Phase 14B.**
+- [x] **D-S052-03 confirmed** — the fold plan is computed from measured facts at T001; the under-powered STOP rule is accepted; gaps are never filled and the embargo/purge policy is never tuned to make the arithmetic work.
+- [ ] **The fold table produced by T001 reviewed and accepted** (this box is checked after T001, before T003 runs — correctly left unchecked here; T001 has not run yet).
 - [x] **D-S052-03a — ANSWERED by the maintainer, 2026-09-02.** Non-BTC data (NQ.c.0 or otherwise) is **REJECTED as a substitute**: a hard stop, not a fallback. If BTC data is unavailable the sprint does not open and the work returns to the maintainer. Q5 can only be closed by a BTC result.
-- [ ] **D-S052-04 confirmed** — coarser `evaluation_timeframe`; range or grid is adjusted under pressure, never the pipeline and never the instrument.
-- [ ] **D-S052-05 confirmed** — the feature list is frozen at T001 and adding features after seeing a result is forbidden.
-- [ ] **PRD Open Question 3 answered as D-S052-06** — sklearn baselines first; one bounded tree pass only under the pre-declared trigger; no pass 3; no neural; and the note that this is a sequencing choice, not an invented family restriction.
-- [ ] **D-S052-07 confirmed** — both permutation bars reported, per-fold train/test gaps mandatory, one unhedged verdict sentence, no hedging in either direction.
-- [ ] **A negative result is accepted in advance as a completed sprint**, and will not be treated as a reason to widen the catalog inside this sprint.
-- [ ] **D-S052-08 confirmed** — specs and the write-up are committed; no `user_data/` content, dataset bytes or run outputs enter git.
-- [ ] **D-S052-09 confirmed** — Q5's disposition is recorded unambiguously, and the "option (b)" decision for Sprint 050 is surfaced to the maintainer, not taken by the sprint.
-- [ ] **Sprint 052 scope approved as 8 tasks, 4 waves**, shipping **no** component, **no** pipeline change and **no** promotion.
-- [ ] **Branch `sprint/btc-predictive-study` approved**, to be cut from `main` after Sprint 051 integrates.
+- [x] **D-S052-04 confirmed** — coarser `evaluation_timeframe`; range or grid is adjusted under pressure, never the pipeline and never the instrument.
+- [x] **D-S052-05 confirmed** — the feature list is frozen at T001 and adding features after seeing a result is forbidden.
+- [x] **PRD Open Question 3 answered as D-S052-06** — sklearn baselines first; one bounded tree pass only under the pre-declared trigger; no pass 3; no neural; and the note that this is a sequencing choice, not an invented family restriction.
+- [x] **D-S052-07 confirmed** — both permutation bars reported, per-fold train/test gaps mandatory, one unhedged verdict sentence, no hedging in either direction.
+- [x] **A negative result is accepted in advance as a completed sprint**, and will not be treated as a reason to widen the catalog inside this sprint.
+- [x] **D-S052-08 confirmed** — specs and the write-up are committed; no `user_data/` content, dataset bytes or run outputs enter git.
+- [x] **D-S052-09 confirmed** — Q5's disposition is recorded unambiguously, and the "option (b)" decision for Sprint 050 is surfaced to the maintainer, not taken by the sprint.
+- [x] **Sprint 052 scope approved as 8 tasks, 4 waves**, shipping **no** component, **no** pipeline change and **no** promotion.
+- [x] **Branch `sprint/btc-predictive-study` approved**, to be cut from `main` (Sprint 051 already integrated, #409).
 
-Approved-by: _(pending — no agent may fill this in. The D-S052-03a entry above
-is a recorded decision on one item, not sign-off of this checklist.)_
+Approved-by: Project Maintainer, 2026-09-08 (conversational approval: full Wave 0
+checklist summary presented, including the corrected §13G status and the pre-existing
+D-S052-03a answer, confirmed with explicit "tak"). The fold-table-review box remains
+unchecked by design — it is signed off after T001 produces real numbers, not now.
 
 Once every box is checked, the first task for `engineer` is **S052-T001** (the
 Wave 0 locks plus the fold plan computed from the inventory, docs only) on
