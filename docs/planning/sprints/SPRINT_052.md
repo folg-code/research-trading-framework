@@ -854,11 +854,11 @@ set.
 
 | Task | Description | Acceptance | Deps | Status |
 |------|-------------|-----------|------|--------|
-| S052-T006 | `docs/reference/BTC_PREDICTIVE_STUDY.md`: the instrument, range and gaps; the fold plan; the feature list; the per-fold and pooled comparison table; the train/test gaps; the importance ranking; and **the verdict stated in one unhedged sentence** | a reader learns the answer in the first paragraph without inference; a negative result is stated as plainly as a positive one, with no "promising signs" language; the document names what would change the verdict (a different horizon, grid, or feature family) as *future options*, never as retroactive excuses; it states that Phase 10 metrics are a precondition and never a verdict that the model should trade (ADR-0024); the document describes a **BTC** study only (D-S052-03a) | T004, T005 | TODO |
-| S052-T007 | **Reproducibility record** (a section of T006's document plus the spec header comments): study `definition_hash`, dataset fingerprint, source `DatasetRef` and its import-manifest fingerprint, run IDs, estimator specs and seeds, and the framework version | a third party with the same data can re-derive the same dataset fingerprint from the committed spec; the record states which artifacts live outside git (`user_data/`) and are therefore not reproducible from the repo alone | T006 | TODO |
+| S052-T006 | `docs/reference/BTC_PREDICTIVE_STUDY.md`: the instrument, range and gaps; the fold plan; the feature list; the per-fold and pooled comparison table; the train/test gaps; the importance ranking; and **the verdict stated in one unhedged sentence** | a reader learns the answer in the first paragraph without inference; a negative result is stated as plainly as a positive one, with no "promising signs" language; the document names what would change the verdict (a different horizon, grid, or feature family) as *future options*, never as retroactive excuses; it states that Phase 10 metrics are a precondition and never a verdict that the model should trade (ADR-0024); the document describes a **BTC** study only (D-S052-03a) | T004, T005 | DONE |
+| S052-T007 | **Reproducibility record** (a section of T006's document plus the spec header comments): study `definition_hash`, dataset fingerprint, source `DatasetRef` and its import-manifest fingerprint, run IDs, estimator specs and seeds, and the framework version | a third party with the same data can re-derive the same dataset fingerprint from the committed spec; the record states which artifacts live outside git (`user_data/`) and are therefore not reproducible from the repo alone | T006 | DONE (folded into T006) |
 | S052-T008 | Closure and **Q5 disposition**: update ROADMAP §13F's Q5 dependency line (append, never rewrite history), §13G's 15B status, `CURRENT_STATUS.md`, and the sprint Review | §13F's Q5 line states either "closed by run `<id>`, `<family>`" **or** "still open — reason", never something ambiguous; if closed, the entry states whether the winning family is promotable under ADR-0029 (linear/logistic) or hits its documented tree/neural refusal; if still open, it names S049 Wave 0's "option (b)" as the decision now facing Sprint 050 — and leaves that decision to the maintainer | T007 | TODO |
 
-**Progress:** 5 / 8 — Wave 0's fold plan (T001) is landed and maintainer-signed
+**Progress:** 7 / 8 — Wave 0's fold plan (T001) is landed and maintainer-signed
 off (D-S052-11's fold-table box checked). S052-T002 (`feat/btc-predictive-study-specs`)
 commits the study/estimator YAML: because `PredictiveStudySpec.label` is a
 single `LabelSpec`
@@ -900,6 +900,35 @@ outcome note above. No third pass follows, per D-S052-06.
 **Descope order:** T005 is conditional by construction. T007 may merge into T006.
 **T004 and T006 are never dropped** — without them the sprint has run a model and
 reported nothing, which is the one outcome that would waste the compute.
+
+**S052-T006/T007 outcome (2026-09-08, `docs/btc-predictive-study-baseline-run`,
+folded per the descope note above): DONE.**
+`docs/reference/BTC_PREDICTIVE_STUDY.md` is written, reproducing T004's
+per-fold/pooled comparison tables and train/test gaps for both the ridge
+and logistic passes, T004's Sprint-051-component permutation-importance
+"ignored vs. misled" breakdown, and T005's tree-pass table and overfit
+finding, verbatim against the outcome notes above. The verdict is stated
+as one unhedged sentence in the first paragraph: the BINARY pass beats
+`RANDOM_PERMUTATION` on every fold and pooled, the REGRESSION pass does
+not (loses fold 5 with ridge, loses two folds with the tree pass, which
+also overfits) — reported as a genuine split result, not rounded toward
+either a single positive or negative headline. The document restates
+ADR-0024's precondition-not-verdict rule, names the promotability
+consequence (ADR-0029: the logistic pass is v1-compatible; the tree
+result would hit the documented refusal, moot since it didn't clear the
+bar), lists "what would change the verdict" as future-only options, and
+states the BTC-only scope per D-S052-03a. The reproducibility record
+(T007, folded in) carries both `definition_hash` values (read from the
+committed spec header comments, unchanged from T002), both dataset
+fingerprints and `DatasetRef`s, all three run IDs, estimator specs and
+seeds (all `seed=42`), and the framework version (`0.1.0`, read from
+`pyproject.toml` and `src/trading_framework/__init__.py`) — flagged in the
+document itself as read-at-write-time, not independently cross-checked
+against a run manifest field recording the version active during
+T003/T004/T005. It states plainly that `user_data/` (dataset bytes, run
+directories, report HTML, model blobs) lives outside git and is not
+reproducible from the repo alone. No file under any §5 forbidden path was
+touched; `git status --porcelain src/` stayed empty.
 
 ---
 
