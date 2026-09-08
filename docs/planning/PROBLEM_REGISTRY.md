@@ -1129,6 +1129,83 @@ Directly observed the failure mode: `docs/planning/sprints/S051_BTC_DATA_INVENTO
 
 ---
 
+## PRB-022 — `apps/dashboard`'s Import-Boundary Test Does Not Scan `pages/*.py`
+
+```text
+Status: OPEN
+Severity: LOW
+Domain: apps/dashboard / Architecture Boundaries
+Owner: Unassigned
+Discovered: 2026-09-08 (Sprint 057, S057-T006 QA)
+Last Updated: 2026-09-08
+```
+
+### Description
+
+`tests/unit/test_apps_boundaries.py`'s dashboard import-boundary guard (the
+test asserting `apps/dashboard` never imports `trading_framework` or an ML
+library, per ADR-0022) scopes its file scan to `_DASHBOARD_SRC = _APPS_ROOT
+/ "dashboard" / "src"` only. `apps/dashboard/pages/*.py` — Streamlit's own
+top-level page-routing convention, where every dashboard page's rendering
+code actually lives — is entirely unscanned. Any future change to a page
+file can introduce a `trading_framework` import with zero automated
+pushback, even though the boundary the test exists to enforce applies
+identically to that directory.
+
+### Evidence
+
+Found during S057-T006's QA pass (Analyst Verdict Artifact, dashboard
+verdict display): the new rendering code in
+`apps/dashboard/pages/6_Predictive_Research.py` had to be verified clean of
+`trading_framework` imports by hand (`git diff` + manual grep), because the
+existing automated guard does not cover that file at all. Confirmed by
+reading `tests/unit/test_apps_boundaries.py`'s file-collection logic
+directly — it walks `_DASHBOARD_SRC`, never `apps/dashboard/pages/`.
+
+### Impact
+
+- The `apps/dashboard` / `trading_framework` import boundary (ADR-0022) is
+  currently enforced by a combination of an automated test AND manual
+  review for anything under `apps/dashboard/pages/` — the automated half is
+  silently absent for that directory.
+- A future PR touching a page file (not `src/`) could introduce a
+  `trading_framework` import and pass CI with no warning, quietly
+  reintroducing the coupling ADR-0022 exists to prevent.
+
+### Possible Directions
+
+- Widen `test_apps_boundaries.py`'s dashboard file collection to also walk
+  `apps/dashboard/pages/`, so both directories share one guard.
+- Confirm no other dashboard-owned directory (e.g. a components folder) has
+  the same blind spot while making the fix.
+
+### Decision or Resolution Criteria
+
+- The import-boundary test scans every directory under `apps/dashboard/`
+  that contains Python source the dashboard actually ships (`src/` and
+  `pages/` at minimum), not a subset chosen for historical reasons.
+- A regression test: a page file with a deliberately-injected
+  `trading_framework` import should fail the widened test.
+
+### Related Documents
+
+- `docs/planning/sprints/SPRINT_057.md` — S057-T006, where this was found.
+- `docs/adr/ADR-0022-...md` — the dashboard/`trading_framework` import
+  boundary this guard enforces.
+
+### Related ADRs
+
+- ADR-0022 (the boundary itself, unchanged — this is a gap in its
+  enforcement, not its definition).
+
+### Related Tasks
+
+- None yet — flagged during S057-T006 QA, out of that task's scope (T006 is
+  the verdict display itself, not the boundary test). Needs its own small
+  task once picked up.
+
+---
+
 # 6. Resolved Problems
 
 No problems have yet been formally moved to `RESOLVED`.
