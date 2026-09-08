@@ -51,7 +51,10 @@ Current Phase: Phase 15 — Predictive Research Catalog Expansion and
   this update (`ROADMAP.md` §13H;
   `docs/planning/roadmap/PHASE_16_QUANT_WORKBENCH.md`).
   All phases through Phase 13 (Sprint 048, #383) are COMPLETE on `main`.
-Active Sprint: None on `main`.
+Active Sprint: SPRINT_057 (Analyst Verdict Artifact, Phase 16 increment
+  16A) — Wave 0 APPROVED (2026-09-08), branch `sprint/analyst-verdict-artifact`
+  not yet cut. See `docs/planning/sprints/SPRINT_057.md` and
+  `S057_WAVE0_DECISIONS.md`.
 Last Completed Sprint (cross-cutting, merged to `main`): SPRINT_055
   (Documentation Architecture Rebuild, high-level to low-level) — merged to
   `main` via #447. SPRINT_054 (Vision Reclassification and Reference
