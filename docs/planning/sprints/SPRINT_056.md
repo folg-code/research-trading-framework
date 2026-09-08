@@ -268,9 +268,9 @@ Wave 0 is DONE when the maintainer has checked off the Wave 0 Checklist
 | Task | Description | Acceptance | Deps | Status |
 |------|-------------|-----------|------|--------|
 | S056-T006 | One committed **synthetic** example: `apps/cli/examples/predictive/signal_occurrences_sample_example.yaml` plus a network-free, extra-free parse test; update `research/predictive/CLAUDE.md` conventions and the predictive reference page with the sample contract, the kind x task matrix, and the filter-late rule | the example loads through `load_predictive_study_spec` with no code change and its `definition_hash` appears in a header comment; the parse test runs in default CI without the `ml` extra and without network; **no `btc_*.yaml` and not `research_run_predictive.yaml` is touched** (D-S056-02, reviewable as a diff); the documentation states plainly that `strategy_trades` / `labelled_setups` are declared-and-refused and names 16F | T004 | **DONE** — 2026-09-08, `apps/cli/examples/predictive/signal_occurrences_sample_example.yaml` committed (first file under this new subdirectory; `sample: {kind: signal_occurrences}` + `task: SIGNAL_QUALITY`, header comment carries its real `definition_hash`, loader-verified); two parse tests added to `tests/unit/research/predictive/test_spec.py` (loads with no code change; header hash matches the loaded spec), network-free and `ml`-extra-free; `git diff --name-only` against the sprint branch confirms neither `research_run_predictive.yaml` nor any `btc_*.yaml` was touched — the `apps/cli/examples/predictive/` directory did not exist before this task, Sprint 052 (not yet run) will add its own files alongside this one; the example cannot be RUN end to end today (confirmed against TD-031: no `signal_model_file` loader exists) and fails fast with the same named `PredictiveDatasetError` `build_predictive_dataset` already raises, stated in the file's own header comment; `research/predictive/CLAUDE.md` and `docs/reference/workflows/RESEARCH_METHODOLOGIES.md` §8 "Samples" updated with the sample contract, the kind x task matrix, the filter-late rule, and the 16F-owned refusal of `strategy_trades`/`labelled_setups` |
-| S056-T007 | Sprint closure: the Review section, `CURRENT_STATUS.md` §2/§3/§6, and the 16B status flip in `docs/planning/roadmap/PHASE_16_QUANT_WORKBENCH.md` (append, never rewrite) | every task above is `DONE` or explicitly recorded as not done with a reason; the closure states which of 16B's completion criteria (§13H.2) were met and names any that were not; it restates that **no verdict, no scorer and no study** was produced, so a reader cannot mistake 16B for 16A or 16C; any new problem or debt is logged in its own registry by its own owner, not summarized here | T005, T006 | TODO |
+| S056-T007 | Sprint closure: the Review section, `CURRENT_STATUS.md` §2/§3/§6, and the 16B status flip in `docs/planning/roadmap/PHASE_16_QUANT_WORKBENCH.md` (append, never rewrite) | every task above is `DONE` or explicitly recorded as not done with a reason; the closure states which of 16B's completion criteria (§13H.2) were met and names any that were not; it restates that **no verdict, no scorer and no study** was produced, so a reader cannot mistake 16B for 16A or 16C; any new problem or debt is logged in its own registry by its own owner, not summarized here | T005, T006 | **DONE** — 2026-09-08, §13 Review written (all 7 tasks DONE, all 12 §8 acceptance criteria MET with PR-level evidence, all 4 §13H.2 completion criteria MET, TD-031 referenced not re-logged, no-verdict/no-scorer/no-study restated); `PHASE_16_QUANT_WORKBENCH.md` §13H.2 appended with a completion note; `CURRENT_STATUS.md` §2/§3/§6 updated to reflect Sprint 056 complete on `sprint/sample-spec-foundation`, not yet integrated to `main` |
 
-**Progress:** 6 / 7 — T001 done (ADR-0031 accepted, Wave 0 signed off); T002
+**Progress:** 7 / 7 — T001 done (ADR-0031 accepted, Wave 0 signed off); T002
 done (SampleSpec/PredictiveTask contract, default elision, refusals); T003
 done (sample provenance persisted in the manifest for both kinds, schema v2
 bump, v1 read-compat, fingerprint independence asserted); T004 done
@@ -280,7 +280,9 @@ on a synthetic fixture); T005 done (leakage guards proven correct for
 irregularly-spaced rows; no defect found, `splitting.py` untouched — see the
 task row for the specific tests added); T006 done (committed synthetic
 example + parse tests, module and reference documentation updated — see the
-task row). Only closure (T007) remains.
+task row); T007 done (sprint closure — Review, `CURRENT_STATUS.md`, and the
+16B status flip in `PHASE_16_QUANT_WORKBENCH.md`; see the task row and §13).
+**Sprint 056 is complete on `sprint/sample-spec-foundation`.**
 
 **Descope order:** T006's example may shrink to the parse test alone. **T005 is
 never dropped** — without it this sprint ships a new way to build a dataset with
@@ -383,4 +385,132 @@ sprint's closure must not imply it does.
 
 ## 13. Review
 
-_(to be written at closure by `tech-writer`)_
+_Written at closure by `tech-writer`, 2026-09-08._
+
+### 13.1 What this sprint is, restated once more
+
+**16B shipped a contract, not a result.** No verdict, no scorer and no study
+was produced by this sprint. It does not advance 16A (Analyst Verdict
+Artifact — not planned, not started) and it does not advance 16C (Signal
+Quality Scoring — still gated on Sprint 052 having run). A reader of this
+Review should not infer either. The one thing 16B adds is a new way to *ask*
+the pipeline a question (`sample: {kind: signal_occurrences}`); it answers
+none of those questions itself.
+
+### 13.2 What was delivered
+
+- **Contract types** (`SampleKind`, `SampleSpec`, `PredictiveTask`) declared
+  in `research/predictive/sample.py`, wired into `PredictiveStudySpec` with
+  default elision in `to_dict()` — T002, PR #448.
+- **Sample provenance** persisted in `PredictiveDatasetManifest`
+  (`SampleProvenance`: kind, task, `universe_row_count`,
+  `resolved_row_count`, `drop_counts`) under an additive schema bump
+  (`PREDICTIVE_DATASET_SCHEMA_V2`) with a documented v1 read-compat rule —
+  T003, PR #449.
+- **Real `signal_occurrences` resolution** in
+  `application/predictive_research/resolve_signal_occurrences.py`:
+  `evaluate_models` -> `materialize_signal_occurrences` -> a filter-late join
+  against the full labelled evaluation grid (D-S056-05), with occurrence
+  `direction` passed through to a second
+  `compute_forward_outcomes_for_horizons` call (D-S056-06) and
+  `entity_id = occurrence_id` — T004, PR #450.
+- **Leakage-guard proof for irregular spacing**: `splitting.py` needed zero
+  code changes (Finding 1 confirmed — the diff against pre-T005
+  `splitting.py` is empty); new tests prove datetime-arithmetic fold roles,
+  purge/embargo precedence, and that both the zero-TEST-rows and
+  `min_train_rows` guards still raise on an under-powered sparse sample,
+  covering both the `research/predictive/` and
+  `application/predictive_research/` layers — T005, PR #451.
+- **Committed example and docs**:
+  `apps/cli/examples/predictive/signal_occurrences_sample_example.yaml`
+  (first file in that subdirectory; its `definition_hash` is recorded in its
+  own header comment), a network-free/extra-free parse test, and updates to
+  `research/predictive/CLAUDE.md` and
+  `docs/reference/workflows/RESEARCH_METHODOLOGIES.md` §8 documenting the
+  sample contract, the kind x task compatibility matrix, and the filter-late
+  rule — T006, PR #456.
+- **ADR-0031** (`SampleSpec` contract shape + `PredictiveTask` taxonomy)
+  carried to `ACCEPTED` (2026-09-04) with no corrections attracted — T001,
+  direct commits to the sprint branch (`aee7246`, `264ac15`) predating the
+  PR sequence, since Wave 0 is docs-only by design.
+
+### 13.3 Task breakdown status
+
+All seven tasks are **DONE**. See §6's task table for the acceptance
+evidence recorded by `engineer`/`tester` on each row; this Review does not
+restate it. Progress: **7 / 7**.
+
+### 13.4 Sprint-level acceptance criteria (§8) — evidence
+
+1. **Byte-identical `definition_hash` for every existing spec under
+   `every_bar`** — MET. Asserted in T002 (PR #448) against pre-change
+   recorded values, not recomputed on both sides.
+2. **An explicit `every_bar` spec hashes identically to an omitted one** —
+   MET. Same T002 assertion (default elision).
+3. **`signal_occurrences` candidate row count equals the occurrence count,
+   asserted as an equality** — MET. T004 (PR #450) tests
+   `candidate_rows == occurrences.height` plus per-reason drop accounting,
+   per D-S056-08's mechanism.
+4. **Purge/embargo correct for irregular rows; no guard relaxed** — MET.
+   T005 (PR #451); the guard code itself is unchanged (empty diff against
+   `splitting.py`), and new tests cover both layers.
+5. **`label_end_at` filter-late equality** — MET. Covered by T004's tests
+   and exercised further by T005's irregular-spacing fixtures.
+6. **Sample provenance persisted for both kinds; fingerprint unaffected** —
+   MET. T003 (PR #449); fingerprint independence asserted directly in
+   `tests/unit/research/datasets/test_predictive_fingerprint.py`.
+7. **Reserved names/tasks refused at load time with a named error, tested**
+   — MET. T002 (`ReservedSampleKindError`, `ReservedPredictiveTaskError`,
+   `IncompatibleSampleTaskError`).
+8. **No new import into `research/predictive/`** — MET. Architecture
+   boundary test stays green throughout (T002, T004). Note: T004 narrowed
+   (did not weaken) a pre-existing, broader boundary test that had
+   incorrectly forbidden `application/predictive_research/` itself from
+   importing `signal_model`/`strategy` — a layering ADR-0031/D-S056-04 had
+   already accepted; the narrowed test still forbids
+   `research.simulation`/`execution` there.
+9. **ADR-0031 `ACCEPTED` before Wave 1** — MET. Accepted 2026-09-04 (T001),
+   before T002 merged.
+10. **CI stays synthetic-only, network-free; no new dependency/extra** —
+    MET, across every PR (`ruff`/`mypy`/`pytest` green per each task's own
+    acceptance note; T005 additionally records the full `tests/unit` suite
+    at 1692 passed).
+11. **No file on the Sprint 052 reverse-boundary list touched** — MET. T006
+    (PR #456) explicitly diffed for this; the `apps/cli/examples/predictive/`
+    directory did not exist before T006, so there was no `btc_*.yaml` or
+    `research_run_predictive.yaml` to collide with.
+12. **No research result, verdict, scorer or promotion produced or
+    implied** — MET, by construction (see §13.1).
+
+All twelve of the sprint's own acceptance criteria are MET. Separately,
+§13H.2's four phase-level completion criteria (`PHASE_16_QUANT_WORKBENCH.md`)
+are also all MET — see the append made to that file's §13H.2 as part of this
+closure (§13.6 below restates the pointer).
+
+### 13.5 Technical debt
+
+One item was logged during this sprint's QA: **TD-031** — no loader turns a
+declared `signal_model_file` path into a `SignalModelDefinition`; every
+current caller must supply the `signal_model` object in-process
+(`docs/planning/TECHNICAL_DEBT.md`, ACCEPTED/MEDIUM). Not re-explained here;
+see that entry for the accepted shortcut, consequences, and repayment
+trigger (16C planning, or an operator needing a CLI-driven
+`signal_occurrences` study before then).
+
+No other problem or debt was found during closure review of the merged
+history. T001–T006's own recorded acceptance evidence was cross-checked
+against the actual merge history
+(`ac5f2a4`, `44233a4`, `28421d1`, `2d6bc5b`, `d3e75c2`, `d189598`, `5fe16d4`,
+`e3fbc62`, `792f323`, `dc9b3b6`, `2f527a4`, `7559475`, `5c543b1`, `d75eef2`,
+`dce880d`, `f0a50f7` on `sprint/sample-spec-foundation`) and no gap between a
+task's claimed DONE status and its merged evidence was found.
+
+### 13.6 Post-sprint direction (restated, not changed)
+
+16B unblocks 16C (Signal Quality Scoring), which remains gated on Sprint 052
+having run — unaffected by this closure. 16F inherits the `strategy_trades`
+name this sprint reserved but did not implement. Nothing in this sprint
+advances 16A. Integration of `sprint/sample-spec-foundation` into `main` is
+a separate, distinct maintainer decision (D-S056-03) and had not happened as
+of this Review — see `CURRENT_STATUS.md` §2/§3 for the current integration
+state.

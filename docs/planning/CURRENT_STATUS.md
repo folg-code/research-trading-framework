@@ -26,7 +26,7 @@ below. Detailed task state belongs in `docs/planning/sprints/`.
 ## 2. Status Metadata
 
 ```text
-Status Date: 2026-09-03
+Status Date: 2026-09-08
 Current Phase: Phase 15 — Predictive Research Catalog Expansion and
   Real-Data Study. Increment 15A (Sprint 051) is COMPLETE and merged to
   `main` (#409). Increment 15B (Sprint 052, the real-data BTC predictive
@@ -36,14 +36,26 @@ Current Phase: Phase 15 — Predictive Research Catalog Expansion and
   COMPLETE and merged to `main` (#396). Increment 14B (Sprint 050) is not
   planned or started — Phase 14 as a whole is NOT complete (no Market
   Analysis component, State, executor change, or dry-run session exists).
+  Phase 16 — Quant Research Workbench (APPROVED 2026-09-04). Increment 16B
+  (Sprint 056, SampleSpec Foundation) is COMPLETE on
+  `sprint/sample-spec-foundation`, not yet integrated to `main`. No other
+  16-series increment is planned, opened, or started — 16A/16C-16G remain
+  gated on Sprint 052 having run (`ROADMAP.md` §13H;
+  `docs/planning/roadmap/PHASE_16_QUANT_WORKBENCH.md`).
   All phases through Phase 13 (Sprint 048, #383) are COMPLETE on `main`.
-Active Sprint: SPRINT_055 (Documentation Architecture Rebuild, high-level to
-  low-level) — cross-cutting docs architecture, not part of the Phase 15
-  research track. In progress on `sprint/documentation-architecture-rebuild`.
-Last Completed Sprint (cross-cutting): SPRINT_054 (Vision Reclassification
-  and Reference Layering, Phase 6b + 10a) — merged to `main` via #434.
-Last Completed Sprint (research track): SPRINT_051 (Momentum and Regime
-  Component Catalog, Phase 15A) — 11/11 tasks, merged to `main` via #409.
+Active Sprint: None on `main`. SPRINT_056 (SampleSpec Foundation, Phase 16
+  increment 16B) is COMPLETE (7/7 tasks) on its own sprint branch
+  `sprint/sample-spec-foundation`, but that branch has **not** been
+  integrated into `main` yet — sprint-to-main integration is a separate
+  maintainer decision (`SPRINT_056.md` D-S056-03), not part of the sprint's
+  own task list. See `docs/planning/sprints/SPRINT_056.md` §13 Review.
+Last Completed Sprint (cross-cutting, merged to `main`): SPRINT_055
+  (Documentation Architecture Rebuild, high-level to low-level) — merged to
+  `main` via #447. SPRINT_054 (Vision Reclassification and Reference
+  Layering, Phase 6b + 10a) — merged to `main` via #434.
+Last Completed Sprint (research track, merged to `main`): SPRINT_051
+  (Momentum and Regime Component Catalog, Phase 15A) — 11/11 tasks, merged
+  to `main` via #409.
 Overall Status: STABLE
 Full sprint-by-sprint history: §12 below (compact index) and each sprint's
   own `docs/planning/sprints/SPRINT_XXX.md`.
@@ -53,30 +65,40 @@ Full sprint-by-sprint history: §12 below (compact index) and each sprint's
 
 ## 3. Work in Progress
 
-**Active:** SPRINT_055 (Documentation Architecture Rebuild) on
-`sprint/documentation-architecture-rebuild` — rebuilding `docs/reference/`
-and `docs/vision/`'s information architecture high-level to low-level,
-with a per-folder context-map index in each subfolder. See
-`docs/planning/sprints/SPRINT_055.md` for task-level status.
+**Closed, pending integration to `main`:** SPRINT_056 (SampleSpec
+Foundation, Phase 16 increment 16B) — 7/7 tasks DONE on
+`sprint/sample-spec-foundation` (merged working PRs #448, #449, #450, #451,
+#456). Contract types, sample provenance, real `signal_occurrences`
+resolution, and a leakage-guard proof for irregularly-spaced rows all
+shipped; no verdict, scorer, or study was produced. One item of technical
+debt was left open (`TECHNICAL_DEBT.md` TD-031). The sprint's own tasks are
+complete; integrating the sprint branch into `main` is a separate,
+not-yet-made maintainer decision (`SPRINT_056.md` D-S056-03). See
+`docs/planning/sprints/SPRINT_056.md` §13 Review for the full closure
+record.
 
-**Previously active:** SPRINT_054 (Vision Reclassification and Reference
-Layering, Phase 6b + 10a) closed and merged to `main` via #434 — closed
-the two items Sprint 053 deliberately deferred (vision-file
-reclassification and `docs/reference/` layering) from
+**Previously active (merged to `main`):** SPRINT_055 (Documentation
+Architecture Rebuild) — merged via #447. SPRINT_054 (Vision Reclassification
+and Reference Layering, Phase 6b + 10a) — merged via #434, closing the two
+items Sprint 053 deliberately deferred (vision-file reclassification and
+`docs/reference/` layering) from
 `docs/historical/REPO_WORKFLOW_DOCS_AUDIT.md`. See
-`docs/planning/sprints/SPRINT_054.md` for task-level status.
+`docs/planning/sprints/SPRINT_055.md` and `SPRINT_054.md` for task-level
+status.
 
 **Planned, not yet opened:** SPRINT_052 (Real-Data BTC Predictive Study,
 Phase 15B) — gated on the Sprint 051 BTC dataset inventory, which exists
 (`S051_BTC_DATA_INVENTORY.md`); requires maintainer approval to open.
 
-**Next planned capability (APPROVED, no sprint opened):** Phase 16 — Quant
-Research Workbench (increments 16A–16G), approved by the maintainer
-2026-09-04. Canonical description: `ROADMAP.md` §13H. **No sprint is opened,
-planned or numbered for any increment**; 16A and everything after it are
-gated on Sprint 052 having run, with 16B permitted to start in parallel.
-Sprint 052 is not re-scoped or absorbed by it and remains separately gated
-on its own approval.
+**Next planned capability (APPROVED, one increment now complete on its
+sprint branch):** Phase 16 — Quant Research Workbench (increments 16A–16G),
+approved by the maintainer 2026-09-04. Canonical description: `ROADMAP.md`
+§13H and `docs/planning/roadmap/PHASE_16_QUANT_WORKBENCH.md` §13H.2 (16B's
+completion note). **16B (Sprint 056) is complete on its sprint branch, not
+yet integrated to `main`.** No other increment is opened, planned or
+numbered; 16A and everything after 16B remain gated on Sprint 052 having
+run. Sprint 052 is not re-scoped or absorbed by Phase 16 and remains
+separately gated on its own approval.
 
 ---
 
@@ -154,6 +176,7 @@ These have their own canonical owners — this file does not duplicate them:
 | 051 | Momentum and Regime Component Catalog (Phase 15A) | COMPLETED | 11 / 11 tasks; all four waves (#397-#407); merged to main via #409; Phase 15A only — Phase 15 overall NOT complete (Sprint 052 / Phase 15B PLANNED, not approved/opened) |
 | 052 | Real-Data BTC Predictive Study (Phase 15B) | PLANNED | requires maintainer approval to open |
 | 053 | Repository Workflow & Documentation Hygiene | IN PROGRESS | see `docs/planning/sprints/SPRINT_053.md` |
+| 056 | SampleSpec Foundation (Phase 16, increment 16B) | COMPLETE on sprint branch; **not yet integrated to `main`** | 7 / 7 tasks; working PRs #448, #449, #450, #451, #456 into `sprint/sample-spec-foundation`; sprint-to-main integration is a separate, not-yet-made maintainer decision (D-S056-03) — see `docs/planning/sprints/SPRINT_056.md` §13 Review |
 
 Sprint numbering has no gap at 050 — it is reserved for Phase 14B and not yet
 opened (see `docs/planning/sprints/SPRINT_053.md` metadata for the numbering

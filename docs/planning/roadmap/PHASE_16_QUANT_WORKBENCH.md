@@ -324,6 +324,40 @@ The `SampleSpec` contract shape and the `PredictiveTask` taxonomy are
 hard-to-reverse contract decisions that every later increment depends on.
 **An ADR is required for this increment** (§13H.9).
 
+### Completion note (added at closure, 2026-09-08 — append-only, does not replace the text above)
+
+**16B is DONE.** Delivered by Sprint 056 (`docs/planning/sprints/SPRINT_056.md`),
+7/7 tasks, merged as five PRs into `sprint/sample-spec-foundation`
+(#448 contract types + default elision, #449 sample provenance + schema v2,
+#450 real `signal_occurrences` resolution, #451 irregular-spacing leakage
+proof, #456 committed example + docs). ADR-0031 was accepted 2026-09-04 with
+no corrections and the shipped contract shape matches it exactly — a
+confirmation, not a surprise.
+
+All four completion criteria above were met: the `every_bar` default is
+byte-identical (`definition_hash`-comparable, asserted not assumed); a
+`signal_occurrences` study's row count is asserted equal to the Signal
+Model's occurrence count; purge/embargo semantics were re-derived and shown
+correct for irregular spacing with no guard relaxed (the leakage-guard code
+itself needed zero changes — Sprint 056 Finding 1 confirmed the risk was
+elsewhere, at `label_end_at` derivation, and D-S056-05's filter-late rule
+closed it); CI stayed synthetic-only and network-free throughout.
+
+One item of technical debt was left open: **TD-031**
+(`docs/planning/TECHNICAL_DEBT.md`, ACCEPTED/MEDIUM) — no loader exists yet
+to turn a declared `signal_model_file` path into a `SignalModelDefinition`,
+so a real (non-fixture) `signal_occurrences` study cannot run through
+`trading-cli` today; every current caller must supply the resolved object
+in-process. Its repayment trigger is 16C being planned, or an operator
+needing a CLI-driven `signal_occurrences` study before then.
+
+**This closure produced no verdict, no scorer and no study.** 16B remains a
+contract-only increment; it does not advance 16A or 16C. Integration of
+`sprint/sample-spec-foundation` into `main` is a separate, distinct
+maintainer decision (SPRINT_056.md D-S056-03) and had not happened as of
+this note — see `docs/planning/CURRENT_STATUS.md` §2/§3 for the current
+integration state.
+
 ## 13H.3 — Increment 16C — Signal Quality Scoring
 
 ### Purpose
