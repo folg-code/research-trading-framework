@@ -525,7 +525,7 @@ whoever next touches that estimator spec file, if ever.
 | Task | Description | Acceptance | Deps | Status |
 |------|-------------|-----------|------|--------|
 | S052-T004 | Extract the verdict: run `analyze_predictive_run` and `compare_predictive_runs`, and tabulate the primary metric **per fold and pooled** against `RANDOM_PERMUTATION`, plus the train/test gap and the permutation-importance ranking of the Sprint 051 features | the table reports both `S044_GATE` §1.4's strict bar ("beats permutation on **every** fold") and the pooled result, and says explicitly which was cleared; the train/test gap is reported for every fold so an overfit win cannot be presented as a clean one; feature importances are reported for the new components specifically, so a null result can distinguish "the features were ignored" from "the features misled" | T003 | DONE |
-| S052-T005 | **Conditional, bounded second pass.** Only if Wave 0's trigger fires (baseline neither clearly clears nor clearly fails the bar): one tree family (`ml-trees`), one `CandidateSetSpec` at the default cap of 8, same dataset fingerprint, same folds, same seed | if the trigger does not fire, this task is closed as NOT RUN with one sentence of reasoning — that is a valid outcome, not a skip; if it runs, the dataset fingerprint is identical to T003's (asserted, so the leaderboard is a like-for-like comparison); no third pass exists, no matter the result; no feature is added or removed | T004 | TODO |
+| S052-T005 | **Conditional, bounded second pass.** Only if Wave 0's trigger fires (baseline neither clearly clears nor clearly fails the bar): one tree family (`ml-trees`), one `CandidateSetSpec` at the default cap of 8, same dataset fingerprint, same folds, same seed | if the trigger does not fire, this task is closed as NOT RUN with one sentence of reasoning — that is a valid outcome, not a skip; if it runs, the dataset fingerprint is identical to T003's (asserted, so the leaderboard is a like-for-like comparison); no third pass exists, no matter the result; no feature is added or removed | T004 | DONE |
 
 **S052-T004 outcome (2026-09-08, `docs/btc-predictive-study-baseline-run`):**
 `analyze_predictive_run` (`persist=True`, re-deriving `metrics.json` in place —
@@ -704,6 +704,152 @@ scoping (e.g. whether a fired trigger on one pass runs a tree pass for that
 pass only, both passes, or is itself a maintainer checkpoint) is read and
 applied fresh at T005, not decided here.
 
+**S052-T005 outcome (2026-09-08, `docs/btc-predictive-study-baseline-run`):**
+D-S052-06 scopes the trigger per pass ("regression and binary are two
+separate passes, evaluated independently" — the T004 determination above).
+Applied here: the BINARY pass's trigger did not fire, so its second pass is
+**NOT RUN** — one sentence of reasoning, as required: the BINARY pass beat
+`RANDOM_PERMUTATION` on every fold and pooled, a clean strict-bar pass under
+D-S052-06's own "a clear pass ... ends the sprint at pass 1" rule, so
+running a tree family against it would violate the "no chasing a better
+result" rule with nothing to chase. The REGRESSION pass's trigger fired
+(beats permutation pooled, loses one of six folds), so its tree pass **ran**.
+
+```text
+Tree pass (lightgbm.regressor, run 6d2842b647cd4097)
+  family:                lightgbm.regressor -- ONE tree family (D-S052-06),
+                          via ml-trees (confirmed installed before running:
+                          lightgbm==4.7.0, xgboost==3.4.1 also present but
+                          not used; nothing was installed)
+  candidate_set:          8 candidates at max_candidates=8 (the default cap,
+                          not widened), all lightgbm.regressor, all seed=42,
+                          selection_metric=spearman_ic (the REGRESSION
+                          selection metric CandidateSetSpec.__post_init__
+                          requires); varying only n_estimators/max_depth/
+                          learning_rate/num_leaves within lightgbm's allowed
+                          hyperparameter set -- one family, many
+                          hyperparameter points, exactly what D-S052-06
+                          authorizes
+  dataset_ref:            same persisted T003 regression-pass dataset
+                          (dataset_id f9f042f9042bcafb), read directly
+                          rather than rebuilt, so the fingerprint match is
+                          not a re-derivation that could drift -- it is
+                          the same artifact
+  dataset_fingerprint:    f9f042f9042bcafb26964c01e480d6df52af84b77f0cb9ea02d05911797c2867
+                          -- asserted equal (not assumed) to T003's recorded
+                          value by an explicit equality check against the
+                          persisted manifest before the run was allowed to
+                          proceed; the script would have raised before
+                          fitting anything had it differed
+  run_id:                 6d2842b647cd4097
+  folds/seed:             same 6-fold EXPANDING plan as T003/T004 (read from
+                          the same persisted dataset envelope, not
+                          redeclared); seed 42, matching the ridge and
+                          logistic passes
+  library:                lightgbm 4.7.0 (recorded in manifest.json /
+                          leaderboard.json)
+```
+
+**Per-fold and pooled comparison vs. `RANDOM_PERMUTATION`, primary metric
+`spearman_ic`** (via the unmodified `analyze_predictive_run`, same call
+pattern as T004):
+
+```text
+fold  test window                MODEL       RANDOM_PERMUTATION   vs. permutation
+0     2025-12-26 -> 2026-01-25   0.034221     0.002931             BEATS
+1     2026-01-26 -> 2026-02-25   0.018734    -0.005582             BEATS
+2     2026-02-26 -> 2026-03-28  -0.020915     0.003441             LOSES
+3     2026-03-29 -> 2026-04-28   0.076786    -0.000642             BEATS
+4     2026-04-29 -> 2026-05-29  -0.008486     0.000812             LOSES
+5     2026-05-30 -> 2026-06-29   0.054681    -0.002864             BEATS
+pooled                           0.023922    -0.000445             BEATS
+```
+
+**`S044_GATE.md` §1.4 bar assessment:** the tree pass clears the pooled bar
+(0.023922 vs. -0.000445) but **does not clear the strict per-fold bar** —
+it loses on folds 2 and 4, two of six, compared to the ridge baseline's one
+loss (fold 5 only). The tree pass does not fix the strict-bar failure that
+triggered it; if anything it fails on more folds than the model it was
+meant to test against.
+
+**Comparison against the ridge baseline itself** (`compare_predictive_runs`,
+both runs sharing the identical `f9f042f9042bcafb...` dataset fingerprint,
+so the leaderboard call succeeds without the fingerprint-mismatch guard that
+separated the two T004 passes):
+
+```text
+rank  run                        family              source   pooled spearman_ic
+1     6d2842b647cd4097 (tree)    lightgbm.regressor  MODEL    0.023922
+2     f7ac893d54ae6b69 (ridge)   sklearn.ridge        MODEL    0.020566
+3     6d2842b647cd4097 (tree)    RANDOM_PERMUTATION  baseline -0.000445
+4     6d2842b647cd4097 (tree)    CONSTANT_MEAN       baseline -0.004662
+5     f7ac893d54ae6b69 (ridge)   CONSTANT_MEAN       baseline -0.004662
+6     f7ac893d54ae6b69 (ridge)   RANDOM_PERMUTATION  baseline -0.004792
+```
+
+The tree pass edges out ridge on the pooled metric by a small margin
+(0.023922 vs. 0.020566) and ranks first on the leaderboard — but pooled
+ranking is not the bar this sprint uses to judge a pass (`S044_GATE.md`
+§1.4's per-fold bar is), and the tree pass fails that stricter bar more
+often than ridge did.
+
+**Train/test gap** (`fold_primary` from `metrics.json`, same field T004
+reported for the baseline passes):
+
+```text
+fold  train_primary  test_primary   gap
+0     0.147789        0.034221      0.113568
+1     0.050440        0.018734      0.031706
+2     0.072038       -0.020915      0.092954
+3     0.103525        0.076786      0.026739
+4     0.138426       -0.008486      0.146912
+5     0.186257        0.054681      0.131577
+```
+
+Unlike the ridge pass (where test was often *above* train — noise on a weak
+signal, not overfitting, per T004's read), the tree pass shows train
+**consistently and substantially above** test on every one of the six
+folds — the classic overfit signature T004's acceptance criteria exist to
+catch. Gaps of 0.09-0.15 dwarf the pooled effect size being measured
+(0.024). This is the expected shape for a higher-capacity family fit on the
+same ten-feature, purged-fold data the linear model saw: it fits TRAIN
+noise more aggressively, and that does not survive to TEST. Read together
+with the per-fold table above, the tree pass's small pooled edge over ridge
+looks like it is bought by folds 0/1/3/5 fitting harder, not by generalizing
+better — it still loses two folds outright, one more than ridge.
+
+**No file under any §5 forbidden path was touched.** The tree pass was run
+by calling the existing, unmodified `run_predictive_research` /
+`analyze_predictive_run` / `compare_predictive_runs` application functions
+directly from an uncommitted scratch script (same pattern T003/T004 used
+for the binary pass's ad hoc CLI config and for direct analysis calls) —
+**not** through `trading-cli research run`, because that CLI command has no
+config key for `RunPredictiveResearchRequest.candidate_set`
+(`apps/cli/src/trading_cli/commands/research.py::_run_predictive` only ever
+builds a single `EstimatorSpec`, never a `CandidateSetSpec`). This is a real
+CLI gap worth naming, not a workaround: nothing under `apps/cli/`,
+`research/predictive/`, or `application/predictive_research/` was edited to
+work around it — the existing `CandidateSetSpec`-aware application function
+was simply called directly, exactly as `research_promote.yaml`'s own
+CLI-vs-application split already treats `research promote` as a thin
+wrapper over an application function with its own request shape. `git
+status --porcelain src/` and the full working tree stay empty; no dataset
+bytes, run directory, or report HTML were staged or committed. **No new
+`EstimatorSpec` YAML was committed** for this pass, per the task's own
+guidance to prefer not committing when uncertain: `apps/cli/examples/`
+carries one example per command group (README.md's own stated convention),
+`research run predictive` already has both a regression and a binary
+committed example, and a `CandidateSetSpec`-driven config would need a CLI
+feature that does not exist yet to ever be runnable from a committed file —
+committing a YAML nothing can consume would be exactly the kind of debris
+`code-quality` warns against. If the CLI ever grows `candidate_set` support,
+a committed example belongs with that change, not retrofitted here.
+
+**No third pass, by construction.** D-S052-06's "NO pass 3, whatever pass 2
+shows" is honoured as written — this result is recorded as-is, not chased
+with a second tree configuration, a different family, or a wider candidate
+set.
+
 ### Wave 3 — The write-up and the disposition
 
 | Task | Description | Acceptance | Deps | Status |
@@ -712,7 +858,7 @@ applied fresh at T005, not decided here.
 | S052-T007 | **Reproducibility record** (a section of T006's document plus the spec header comments): study `definition_hash`, dataset fingerprint, source `DatasetRef` and its import-manifest fingerprint, run IDs, estimator specs and seeds, and the framework version | a third party with the same data can re-derive the same dataset fingerprint from the committed spec; the record states which artifacts live outside git (`user_data/`) and are therefore not reproducible from the repo alone | T006 | TODO |
 | S052-T008 | Closure and **Q5 disposition**: update ROADMAP §13F's Q5 dependency line (append, never rewrite history), §13G's 15B status, `CURRENT_STATUS.md`, and the sprint Review | §13F's Q5 line states either "closed by run `<id>`, `<family>`" **or** "still open — reason", never something ambiguous; if closed, the entry states whether the winning family is promotable under ADR-0029 (linear/logistic) or hits its documented tree/neural refusal; if still open, it names S049 Wave 0's "option (b)" as the decision now facing Sprint 050 — and leaves that decision to the maintainer | T007 | TODO |
 
-**Progress:** 4 / 8 — Wave 0's fold plan (T001) is landed and maintainer-signed
+**Progress:** 5 / 8 — Wave 0's fold plan (T001) is landed and maintainer-signed
 off (D-S052-11's fold-table box checked). S052-T002 (`feat/btc-predictive-study-specs`)
 commits the study/estimator YAML: because `PredictiveStudySpec.label` is a
 single `LabelSpec`
@@ -743,6 +889,13 @@ BINARY pass clears `S044_GATE` §1.4's strict per-fold bar cleanly (6/6 folds
 pooled bar but loses fold 5, and its T005 trigger fires — see the outcome
 note above for the full per-fold/pooled tables, train/test gaps, and the
 Sprint 051 feature importance ("ignored" vs. "misled") breakdown per pass.
+T005 (this PR) is now DONE: the BINARY pass's tree pass is NOT RUN (its
+trigger did not fire, a clean strict-bar pass); the REGRESSION pass's tree
+pass (`lightgbm.regressor`, 8-candidate `CandidateSetSpec` at the default
+cap, identical dataset fingerprint to T003, asserted not assumed) ran and
+clears the pooled bar but loses two of six folds (worse than ridge's one
+loss) with a pronounced train/test overfit gap on every fold — see the
+outcome note above. No third pass follows, per D-S052-06.
 
 **Descope order:** T005 is conditional by construction. T007 may merge into T006.
 **T004 and T006 are never dropped** — without them the sprint has run a model and
