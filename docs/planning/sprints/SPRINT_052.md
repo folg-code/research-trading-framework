@@ -189,6 +189,23 @@ that grid). This is the existing, no-code-change knob for:
 Wave 0 locks the grid; under memory or wall-clock pressure the **range or grid**
 moves — never the pipeline, and never the instrument.
 
+**CORRECTION (2026-09-08, post-T003 STOP — see the T003 outcome note under
+Wave 1 above).** This finding's central claim was wrong:
+`PredictiveStudySpec.evaluation_timeframe` is validated **source-or-finer**
+(`validate_evaluation_timeframe`, `ADR-MA-012` "Timeframe roles" —
+Evaluation, not Computation), not source-or-coarser. It is not a
+no-code-change knob for coarsening the study's own row grid; the actual
+per-feature coarsening role (`ComponentRequest.computation_timeframe`) is
+not wireable from `PredictiveStudySpec` today and wiring it would itself be
+a forbidden `research/predictive/` change (§5). `S052_WAVE0_DECISIONS.md`
+D-S052-03/D-S052-04's corrections (2026-09-08) adopt option (a) from the
+T003 STOP note instead: `V` is corrected to `1m` (matching source), the
+range is kept exactly as signed off, and the ten frozen components'
+evaluation-bar-denominated parameters are scaled x15 (D-S052-05's
+correction) to hold their wall-clock window constant. A diagnostic
+benchmark of the full-range 1m matrix build (~45s wall-clock, ~5.3GB peak
+memory) confirmed no range trim is needed for cost reasons either.
+
 ### Finding 4 — `RANDOM_PERMUTATION` is a metric-layer comparator, not a family
 
 It is computed inside the metrics layer per fold using `EstimatorSpec.seed`

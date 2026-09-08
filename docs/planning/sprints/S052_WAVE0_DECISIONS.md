@@ -234,6 +234,86 @@ LOCKED  Purge/embargo policy is inherited from ADR-0023 §4 and is not tuned.
 
 ---
 
+### CORRECTION (2026-09-08, post-T003 STOP) — `V` corrected from `15m` to `1m`
+
+**Appended, not rewritten.** S052-T003 (`SPRINT_052.md`'s recorded STOP)
+found that `PredictiveStudySpec.evaluation_timeframe` is validated
+source-or-finer, not source-or-coarser (`ADR-MA-012` "Timeframe roles";
+`validate_evaluation_timeframe`,
+`src/trading_framework/market_analysis/models/timeframes.py`). The `V=15m`
+instantiation above is therefore invalid against `BTCUSDT.P`'s 1m source and
+was never run. This section is the maintainer-reviewed replan, option (a)
+from T003's STOP note: **keep `V=1m` (matching source), keep the range
+exactly as signed off.**
+
+```text
+V  = 1m           evaluation timeframe (was 15m; corrected to match source)
+F  = 6            folds                        (UNCHANGED)
+T  = 30d          test span                    (UNCHANGED)
+E  = 1d           embargo                      (UNCHANGED)
+M  = 2000         min train rows                (UNCHANGED)
+R  = 2024-01-01 -> 2026-06-30                   (UNCHANGED, D-S051-07)
+```
+
+**Why the range does not move.** Fold `TEST` window placement is computed
+backward from `t_max` only (`stride = T + E`; `test_end_i = t_max - (F-1-i)
+x stride`; `test_lower_i = test_end_i - T`) and never depends on `t_min`.
+Since `F`, `T`, `E` and `t_max` are all unchanged, **the six `TEST` window
+dates are byte-identical to the `V=15m` table above** — only the bar density
+inside each window changes (1,440 bars/day instead of 96):
+
+```text
+fold 0   2025-12-27 -> 2026-01-25   TRAIN=1,043,940  TEST=43,200  EMBARGO=1,440  PURGED=60
+fold 1   2026-01-27 -> 2026-02-25   TRAIN=1,088,640  TEST=43,200  EMBARGO=1,440  PURGED=0
+fold 2   2026-02-27 -> 2026-03-28   TRAIN=1,133,280  TEST=43,200  EMBARGO=1,440  PURGED=0
+fold 3   2026-03-30 -> 2026-04-28   TRAIN=1,177,920  TEST=43,200  EMBARGO=1,440  PURGED=0
+fold 4   2026-04-30 -> 2026-05-29   TRAIN=1,222,560  TEST=43,200  EMBARGO=1,440  PURGED=0
+fold 5   2026-05-31 -> 2026-06-29   TRAIN=1,267,200  TEST=43,200  EMBARGO=1,440  PURGED=0
+```
+
+(`PURGED=60` on fold 0 only: the label horizon at `V=1m` is 60 evaluation
+bars — see D-S052-04's correction below — so the last 60 rows of the initial
+TRAIN window are purged once, per ADR-0023 §4; later folds purge nothing new
+because EXPANDING mode only appends history.) Long-format total emitted rows
+across the 6 folds: **7,201,380**. Fold 5's TRAIN row count (1,267,200)
+matches the full-range 1m row count check: `(2026-06-29 - 2024-01-01 + 1
+day) x 1,440 min/day = 1,311,840`, consistent with
+`S051_BTC_DATA_INVENTORY.md`'s measured total.
+
+**Under-powered floor, re-checked at `V=1m`** (the floor itself is a day
+count, not an evaluation-bar count, so it is unaffected by `V`; only the
+row-count conversion changes):
+
+```text
+floor total range = 439 days  (unchanged — see original derivation above)
+floor row count (1m) = 439d x 1,440 min/day = 632,160 rows
+measured = 1,311,840 rows / 911 days -> clears the floor by a factor of 2.08
+```
+
+The study is **NOT under-powered** at `V=1m` either — the margin is
+identical in day-terms and the row-count margin is larger, not smaller,
+than the `V=15m` table implied.
+
+**Empirical cost check (diagnostic benchmark, run before this correction was
+finalized, not extrapolated from the formula alone):** building the full 1m
+labelled feature matrix over the complete signed-off range extrapolates to
+roughly **45s wall-clock** and **~5.3GB peak memory** for the ten-feature,
+single-label matrix. Both are well inside what a maintainer-executed,
+non-CI research run can absorb, so **no range trim is needed** — the
+simpler correction (same range, `V` only) is adopted over the alternative,
+narrower-range proposal that was considered while this cost was still
+unmeasured.
+
+```text
+LOCKED  This correction changes ONLY `V` (15m -> 1m) and, per D-S052-04's own
+        correction below, the ten frozen components' evaluation-bar-denominated
+        parameters (scaled x15 to hold their ECONOMIC window constant). It
+        changes nothing else in D-S052-03: not F, not T, not E, not M, not R,
+        not the fold dates, not the under-powered floor's verdict.
+```
+
+---
+
 ## D-S052-03a — Non-BTC data is a HARD STOP (ANSWERED by the maintainer, 2026-09-02)
 
 Inherited whole from `S051_WAVE0_DECISIONS.md` D-S051-07a and restated here so
@@ -287,6 +367,40 @@ LOCKED  If memory or wall-clock forces a change, the RANGE is trimmed or the
 
 ---
 
+### CORRECTION (2026-09-08, post-T003 STOP) — the "no-code-change coarsening knob" claim was wrong
+
+**Appended, not rewritten.** `PredictiveStudySpec.evaluation_timeframe` is
+the run-level **Evaluation** role (`ADR-MA-012` "Timeframe roles") and is
+validated source-or-finer (`validate_evaluation_timeframe`) — it cannot
+coarsen the study's own row grid below the source's 1m. The actual
+per-feature coarsening knob is `ComponentRequest.computation_timeframe`
+(the **Computation** role), which is not currently wireable from
+`PredictiveStudySpec`/`FeatureSpec` at all (confirmed by reading
+`src/trading_framework/research/predictive/spec.py`: no such field exists).
+Wiring it would be a `research/predictive/` change — forbidden by
+`SPRINT_052.md` §5 — so it is out of reach for this sprint regardless.
+
+```text
+LOCKED  D-S052-03's correction stands: V is corrected to 1m, matching source.
+        No new component, spec field, or pipeline change is introduced to
+        recover a coarser grid. This is exactly D-S052-04's own "range or
+        grid, never the pipeline" rule, applied to itself.
+LOCKED  The label horizon stays "1h" in wall-clock terms (D-S052-06 is
+        UNCHANGED) but is now 60 evaluation bars at V=1m, not 4. Embargo
+        stays "1d" in wall-clock terms (UNCHANGED) and is still 24x the
+        label horizon at V=1m (1,440 min / 60 min = 24), identical margin
+        to the V=15m table.
+LOCKED  Sprint 051's rolling-higher-moments minimum window
+        (statistics.return_distribution, "at least 60 evaluation bars") is
+        now read in 1m evaluation bars. D-S052-05's correction below scales
+        that component's period to 900 (60 x 15), which clears the 60-bar
+        floor by the same 15x margin it held at V=15m (900 >= 60 trivially;
+        the floor was never the binding constraint — economic-window
+        preservation is).
+```
+
+---
+
 ## D-S052-05 — Feature list
 
 ```text
@@ -334,6 +448,54 @@ claim is checkable at a glance rather than requiring a manual count:
 This list does not change after T002 commits the `FeatureSpec` entries, and
 it does not change regardless of what T004's comparison shows (acceptance
 criterion 8).
+
+---
+
+### CORRECTION (2026-09-08, post-T003 STOP) — evaluation-bar-denominated parameters scaled x15
+
+**Appended, not rewritten.** Every component parameter below is a *count of
+evaluation bars*, not a wall-clock duration — a `period: 14` at `V=15m`
+means "the last 14 x 15m = 210 minutes." Correcting `V` to `1m`
+(D-S052-03's correction) without touching these parameters would silently
+shrink every rolling window's ECONOMIC span by 15x (14 minutes instead of
+210) — a real change in what the study measures, not a neutral grid change.
+**Option A (maintainer-approved, "1 A"): scale every evaluation-bar
+parameter x15** so each component's wall-clock window is unchanged. This is
+the ONLY change made to the frozen list — no component is added, removed,
+or renamed; the ten identifiers, their `output_id`s, and `transform: NONE`
+are exactly as T001 froze them.
+
+```text
+component                         parameter          T001 (V=15m)  CORRECTED (V=1m, x15)
+momentum.rsi                      period                    14            210
+momentum.macd                     fast_period               12            180
+momentum.macd                     slow_period               26            390
+momentum.macd                     signal_period               9            135
+momentum.stochastic               period                    14            210
+momentum.stochastic               smoothing_period            3             45
+volatility.relative_volatility    period                    20            300
+volatility.relative_volatility    baseline_period          100           1500
+statistics.return_autocorrelation period                    60            900
+statistics.return_autocorrelation lag                        1             15
+statistics.return_distribution    period                    60            900
+volatility.atr                    period                    14            210
+trend.slope                       period                    20            300
+candle.wick                       (no parameters)             -              -
+volatility.range_expansion        period                    14            210
+```
+
+```text
+LOCKED  This is the only correction to D-S052-05. The family tally is
+        unaffected by a period value (momentum:3 / volatility:3 /
+        statistics:2 / trend:1 / candle:1, no family over 30%) since it
+        counts components, not parameters.
+LOCKED  T002's committed spec files (apps/cli/examples/predictive/
+        btc_momentum_regime_study_regression.yaml and _binary.yaml) must be
+        updated to this table before S052-T003 is re-attempted, with fresh
+        definition_hash values recomputed and the parse test re-run. That
+        update is its own reviewable task/PR (S052-T003 STOP note, option
+        (a)) — it is not silently edited in place without a diff.
+```
 
 ---
 
