@@ -18,10 +18,25 @@ from trading_framework.market.datasets import DatasetRef
 from trading_framework.market_analysis.models.output_ref import OutputRef
 from trading_framework.market_analysis.models.time_range import TimeRange
 from trading_framework.research.predictive.exclusions import MatrixExclusionCounts
+from trading_framework.research.predictive.sample import SampleProvenance
 from trading_framework.research.predictive.splitting import FoldRole
 from trading_framework.time.models.utc_instant import require_utc_aware
 
+# v1 predates sample provenance (S056-T003) and is read-only from here on: no
+# writer in this codebase emits it anymore, but a manifest already persisted
+# under v1 must still load. v2 additively carries `sample_provenance`
+# (ADR-0031 Decision 6) and is the only version new datasets are written
+# under (`build_predictive_dataset`). This mirrors the read/write-version
+# split `research/datasets/signal_research.py` already established for its
+# own v1 -> v2 migration.
 PREDICTIVE_DATASET_SCHEMA_VERSION = "predictive_dataset.v1"
+PREDICTIVE_DATASET_SCHEMA_V2 = "predictive_dataset.v2"
+SUPPORTED_READ_SCHEMA_VERSIONS = frozenset(
+    {PREDICTIVE_DATASET_SCHEMA_VERSION, PREDICTIVE_DATASET_SCHEMA_V2}
+)
+SUPPORTED_WRITE_SCHEMA_VERSIONS = frozenset(
+    {PREDICTIVE_DATASET_SCHEMA_VERSION, PREDICTIVE_DATASET_SCHEMA_V2}
+)
 DATASET_ID_HEX_LENGTH = 16
 _REQUIRED_FEATURE_COLUMNS = (
     "entity_id",
@@ -100,7 +115,20 @@ class ResolvedFoldBoundary:
 
 @dataclass(frozen=True, slots=True)
 class PredictiveDatasetManifest:
-    """Dataset-level metadata for one Predictive Research envelope."""
+    """Dataset-level metadata for one Predictive Research envelope.
+
+    ``sample_provenance`` (S056-T003, ADR-0031 Decision 6) is ``None`` only
+    for a manifest persisted under ``PREDICTIVE_DATASET_SCHEMA_VERSION`` (v1),
+    before this field existed. Such a dataset predates ``signal_occurrences``
+    entirely, so it is known to have been built over the whole evaluation
+    grid — but that fact was never *recorded*, so ``None`` here means "not
+    persisted", not "recorded as every_bar"; a v1 reader wanting the grid size
+    should use ``exclusion_counts['candidate_rows']`` instead. Every manifest
+    persisted under ``PREDICTIVE_DATASET_SCHEMA_V2`` (v2) carries a
+    non-``None`` value for both sample kinds — ``PredictiveDatasetRepository
+    .write`` refuses a v2 manifest with ``sample_provenance is None``. This
+    field is never part of ``compute_dataset_fingerprint``'s inputs.
+    """
 
     schema_version: str
     dataset_id: str
@@ -114,6 +142,7 @@ class PredictiveDatasetManifest:
     fold_summary: dict[str, Any]
     framework_version: str
     created_at_utc: datetime
+    sample_provenance: SampleProvenance | None = None
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "created_at_utc", require_utc_aware(self.created_at_utc))
@@ -136,6 +165,11 @@ class PredictiveDatasetManifest:
             "fold_summary": dict(self.fold_summary),
             "framework_version": self.framework_version,
             "created_at_utc": self.created_at_utc.isoformat(),
+            **(
+                {"sample_provenance": self.sample_provenance.to_dict()}
+                if self.sample_provenance is not None
+                else {}
+            ),
         }
 
     @classmethod
@@ -156,6 +190,17 @@ class PredictiveDatasetManifest:
         if not isinstance(study_spec, dict):
             msg = "manifest study_spec must be a mapping"
             raise ValidationError(msg)
+        sample_provenance_payload = payload.get("sample_provenance")
+        if sample_provenance_payload is not None and not isinstance(
+            sample_provenance_payload, dict
+        ):
+            msg = "manifest sample_provenance must be a mapping"
+            raise ValidationError(msg)
+        sample_provenance = (
+            SampleProvenance.from_dict(sample_provenance_payload)
+            if sample_provenance_payload is not None
+            else None
+        )
         return cls(
             schema_version=str(payload["schema_version"]),
             dataset_id=str(payload["dataset_id"]),
@@ -169,6 +214,7 @@ class PredictiveDatasetManifest:
             fold_summary=dict(fold_summary),
             framework_version=str(payload["framework_version"]),
             created_at_utc=datetime.fromisoformat(str(payload["created_at_utc"])),
+            sample_provenance=sample_provenance,
         )
 
 
@@ -316,8 +362,17 @@ class PredictiveDatasetRepository:
         if not envelope.manifest.dataset_id.strip():
             msg = "manifest dataset_id must be non-empty"
             raise ValidationError(msg)
-        if envelope.manifest.schema_version != PREDICTIVE_DATASET_SCHEMA_VERSION:
+        if envelope.manifest.schema_version not in SUPPORTED_WRITE_SCHEMA_VERSIONS:
             msg = f"unsupported schema version: {envelope.manifest.schema_version}"
+            raise ValidationError(msg)
+        if (
+            envelope.manifest.schema_version == PREDICTIVE_DATASET_SCHEMA_V2
+            and envelope.manifest.sample_provenance is None
+        ):
+            msg = (
+                f"{PREDICTIVE_DATASET_SCHEMA_V2} manifest requires sample_provenance "
+                "(S056-T003, ADR-0031 Decision 6)"
+            )
             raise ValidationError(msg)
 
         dataset_dir = predictive_research_dataset_dir(self._root, envelope.manifest.dataset_id)
@@ -350,7 +405,7 @@ class PredictiveDatasetRepository:
         manifest = PredictiveDatasetManifest.from_dict(
             json.loads(manifest_path.read_text(encoding="utf-8"))
         )
-        if manifest.schema_version != PREDICTIVE_DATASET_SCHEMA_VERSION:
+        if manifest.schema_version not in SUPPORTED_READ_SCHEMA_VERSIONS:
             msg = f"unsupported schema version: {manifest.schema_version}"
             raise ValidationError(msg)
 

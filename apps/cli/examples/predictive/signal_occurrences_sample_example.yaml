@@ -1,0 +1,54 @@
+# apps/cli/examples/predictive/signal_occurrences_sample_example.yaml
+#
+# Synthetic PredictiveStudySpec demonstrating `sample: {kind: signal_occurrences}`
+# and `task: SIGNAL_QUALITY` (ADR-0031, Sprint 056 / S056-T006). The Signal
+# Model is referenced by DECLARATION only (signal_model_file + signal_model_id),
+# never by a run id or a persisted occurrence artifact (ADR-0024 condition 5).
+# This asks a different question than every_bar's default: "is THIS signal's
+# own firing predictive?", not "what happens next, from anywhere?".
+#
+# Loads and validates through `load_predictive_study_spec` with no code
+# change (network-free, extra-free parse test:
+# tests/unit/research/predictive/test_spec.py::test_signal_occurrences_sample_example_parses).
+#
+# Cannot be RUN end to end today. `signal_model_file` is a declared path, but
+# no loader in the framework turns it into a SignalModelDefinition yet
+# (TD-031, docs/planning/TECHNICAL_DEBT.md). `trading-cli research run
+# --config <a config pointing at this study>` fails fast with a named
+# PredictiveDatasetError identifying the missing `signal_model` input --
+# not a silent no-op, not an obscure crash
+# (BuildPredictiveDatasetRequest.signal_model, S056-T004).
+#
+# definition_hash: af460780bd829aaf393766b286bba6df7ef44bd9c2a7c4dc122b74d318cb4554
+
+study:
+  study_id: signal_occurrences_sample_example
+  dataset_ref:
+    dataset_id: ES.c.0|ohlcv|1m|csv|synthetic_signal_example
+    version: 1
+  time_range:
+    start: 2025-01-01
+    end: 2025-06-30
+  evaluation_timeframe: 1m
+  features:
+    - component_id: volatility.atr
+      parameters:
+        period: 14
+      output_id: atr
+      alias: atr_14
+      transform: NONE
+  label:
+    kind: REGRESSION
+    horizon: 15m
+  split:
+    mode: EXPANDING
+    fold_count: 4
+    test_span: 20d
+    embargo_span: 15m
+    min_train_rows: 500
+  sample:
+    kind: signal_occurrences
+    signal_model_file: user_data/components/signal_models/breakout.yaml
+    signal_model_id: breakout_v1
+    direction: ANY
+  task: SIGNAL_QUALITY

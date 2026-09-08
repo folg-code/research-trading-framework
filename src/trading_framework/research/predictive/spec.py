@@ -15,6 +15,13 @@ from trading_framework.market_analysis.models.time_range import TimeRange
 from trading_framework.research.predictive.errors import PredictiveSpecError
 from trading_framework.research.predictive.features import FeatureMatrixSpec
 from trading_framework.research.predictive.labels import LabelSpec
+from trading_framework.research.predictive.sample import (
+    PredictiveTask,
+    SampleKind,
+    SampleSpec,
+    parse_predictive_task,
+    validate_sample_task_compatibility,
+)
 from trading_framework.research.predictive.splitting import PurgedWalkForwardSplitSpec
 from trading_framework.time.models.timeframe import Timeframe
 
@@ -37,6 +44,8 @@ class PredictiveStudySpec:
     label: LabelSpec
     split: PurgedWalkForwardSplitSpec
     evaluation_timeframe: Timeframe = field(default_factory=lambda: Timeframe("1m"))
+    sample: SampleSpec = field(default_factory=lambda: SampleSpec(kind=SampleKind.EVERY_BAR))
+    task: PredictiveTask = PredictiveTask.FORWARD_RETURN
     definition_hash: str | None = None
 
     def __post_init__(self) -> None:
@@ -48,6 +57,7 @@ class PredictiveStudySpec:
         if self.evaluation_timeframe.is_event_level:
             msg = "evaluation_timeframe must be a bar duration"
             raise PredictiveSpecError(msg)
+        validate_sample_task_compatibility(self.sample, self.task)
         self.label_horizon_bars()
         if self.definition_hash is None:
             object.__setattr__(self, "definition_hash", compute_definition_hash(self))
@@ -89,6 +99,14 @@ class PredictiveStudySpec:
             "label": self.label.to_dict(),
             "split": self.split.to_dict(),
         }
+        # Default elision (ADR-0031 Decision 2, D-S056-04): an explicitly
+        # declared default hashes identically to an omitted one. `sample` is
+        # omitted only for `every_bar` and `task` only for `FORWARD_RETURN`,
+        # which is what keeps every existing spec's definition_hash unchanged.
+        if self.sample.kind is not SampleKind.EVERY_BAR:
+            payload["sample"] = self.sample.to_dict()
+        if self.task is not PredictiveTask.FORWARD_RETURN:
+            payload["task"] = self.task.value
         if self.definition_hash is not None:
             payload["definition_hash"] = self.definition_hash
         return payload
@@ -135,6 +153,22 @@ class PredictiveStudySpec:
                 raise
             raise PredictiveSpecError(str(exc)) from exc
 
+        sample_payload = normalized.get("sample")
+        if sample_payload is None:
+            sample = SampleSpec(kind=SampleKind.EVERY_BAR)
+        elif isinstance(sample_payload, dict):
+            sample = SampleSpec.from_dict(sample_payload)
+        else:
+            msg = "sample must be a mapping"
+            raise PredictiveSpecError(msg)
+
+        task_payload = normalized.get("task")
+        task = (
+            PredictiveTask.FORWARD_RETURN
+            if task_payload is None
+            else parse_predictive_task(str(task_payload))
+        )
+
         return cls(
             study_id=study_id,
             dataset_ref=dataset_ref,
@@ -145,6 +179,8 @@ class PredictiveStudySpec:
                 {str(key): value for key, value in split_payload.items()}
             ),
             evaluation_timeframe=evaluation_timeframe,
+            sample=sample,
+            task=task,
         )
 
 

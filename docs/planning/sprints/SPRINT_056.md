@@ -253,25 +253,36 @@ Wave 0 is DONE when the maintainer has checked off the Wave 0 Checklist
 
 | Task | Description | Acceptance | Deps | Status |
 |------|-------------|-----------|------|--------|
-| S056-T002 | `research/predictive/sample.py`: `SampleKind`, `SampleSpec`, `PredictiveTask`; wire `sample` / `task` into `PredictiveStudySpec` with **default elision** in `to_dict()`; load-time validation of the kind x task matrix with named errors | every study spec fixture in the repo loads unchanged and yields a **byte-identical `definition_hash`** to the value produced on `main` (asserted against recorded values, not recomputed on both sides); an explicit `sample: {kind: every_bar}` + `task: FORWARD_RETURN` spec hashes **identically** to one that omits both; each of `strategy_trades`, `labelled_setups`, `sessions_or_windows`, `TRADE_OUTCOME`, `REGIME_CLASSIFICATION`, `VOLATILITY_FORECAST`, `NO_TRADE_FILTER`, `DISCRETIONARY_SETUP_CLASSIFICATION` raises a named `PredictiveSpecError` naming the owning increment; `research/predictive/` gains no new import (architecture boundary test green) | T001 | TODO |
-| S056-T003 | Persist **sample provenance** in `PredictiveDatasetManifest`: sample kind, task, resolved row counts and per-reason drop counts; additive field with a `PREDICTIVE_DATASET_SCHEMA_VERSION` bump and a documented read-compat rule for manifests written before it | an `every_bar` build records provenance stating the whole grid was used; the **dataset fingerprint is unchanged** by this task (it is derived from `definition_hash` + lineage + `dataset_ref` + range, and this is asserted); a manifest at the previous schema version still loads, or the refusal is explicit and documented — silent tolerance of an old manifest is not acceptable | T002 | TODO |
+| S056-T002 | `research/predictive/sample.py`: `SampleKind`, `SampleSpec`, `PredictiveTask`; wire `sample` / `task` into `PredictiveStudySpec` with **default elision** in `to_dict()`; load-time validation of the kind x task matrix with named errors | every study spec fixture in the repo loads unchanged and yields a **byte-identical `definition_hash`** to the value produced on `main` (asserted against recorded values, not recomputed on both sides); an explicit `sample: {kind: every_bar}` + `task: FORWARD_RETURN` spec hashes **identically** to one that omits both; each of `strategy_trades`, `labelled_setups`, `sessions_or_windows`, `TRADE_OUTCOME`, `REGIME_CLASSIFICATION`, `VOLATILITY_FORECAST`, `NO_TRADE_FILTER`, `DISCRETIONARY_SETUP_CLASSIFICATION` raises a named `PredictiveSpecError` naming the owning increment; `research/predictive/` gains no new import (architecture boundary test green) | T001 | DONE — 2026-09-04, `feat/predictive-sample-spec-contract`; byte-identical hash asserted against a value recorded before the change; reserved names refused via `ReservedSampleKindError` / `ReservedPredictiveTaskError` (never a generic error), compatibility matrix refused via `IncompatibleSampleTaskError`; architecture boundary test green |
+| S056-T003 | Persist **sample provenance** in `PredictiveDatasetManifest`: sample kind, task, resolved row counts and per-reason drop counts; additive field with a `PREDICTIVE_DATASET_SCHEMA_VERSION` bump and a documented read-compat rule for manifests written before it | an `every_bar` build records provenance stating the whole grid was used; the **dataset fingerprint is unchanged** by this task (it is derived from `definition_hash` + lineage + `dataset_ref` + range, and this is asserted); a manifest at the previous schema version still loads, or the refusal is explicit and documented — silent tolerance of an old manifest is not acceptable | T002 | **DONE** — 2026-09-04, `SampleProvenance` (kind, task, `universe_row_count`, `resolved_row_count`, `drop_counts`) added to `research/predictive/sample.py` (pure data, no new import) and persisted on `PredictiveDatasetManifest.sample_provenance` in `research/datasets/predictive.py`. `PREDICTIVE_DATASET_SCHEMA_V2` is additive over the existing `PREDICTIVE_DATASET_SCHEMA_VERSION` (v1), mirroring the read/write-version split `research/datasets/signal_research.py` already established for its own v1→v2 migration: v1 manifests still **load** (`sample_provenance is None`, tested directly against a hand-written legacy `manifest.json` with no `sample_provenance` key), while `PredictiveDatasetRepository.write` refuses a v2 manifest lacking `sample_provenance` (`ValidationError`, tested). `build_predictive_dataset` now writes v2 and always populates provenance; for `every_bar` this is `universe_row_count == resolved_row_count` with `drop_counts == {}`, stated explicitly rather than inferred from an absent key (Finding 5). Because `signal_occurrences` resolution does not exist until T004, `build_predictive_dataset` refuses (`PredictiveDatasetError`, tested) any spec declaring a `signal_occurrences` sample rather than silently building the whole grid under a manifest that would claim otherwise. The `signal_occurrences` provenance *shape* (round-trip, drop-count-sum validation) is covered by a manually constructed `SampleProvenance` fixture in `tests/unit/research/predictive/test_sample.py`, since T004's resolver does not exist yet — full pipeline coverage of that path is T004's job. Fingerprint independence is asserted directly: `compute_dataset_fingerprint` takes no `sample_provenance` argument, and two manifests sharing fingerprint inputs but carrying different provenance content produce the identical `dataset_fingerprint` (`tests/unit/research/datasets/test_predictive_fingerprint.py::test_dataset_fingerprint_unaffected_by_sample_provenance`). `research/predictive/CLAUDE.md` documents the convention. All existing manifest-constructing test fixtures elsewhere in the suite (leaderboard, promotion, ML runs) were left on v1 unmodified — the field is additive and optional, so they were unaffected. |
 
 ### Wave 2 — The new sample kind, and the leakage work
 
 | Task | Description | Acceptance | Deps | Status |
 |------|-------------|-----------|------|--------|
-| S056-T004 | Resolve `signal_occurrences` in `application/predictive_research/`: `evaluate_models` -> emissions -> `materialize_signal_occurrences` -> a resolved row selection handed to the matrix builder, which **filters late** (after labels and `label_end_at` are computed on the full evaluation grid). `entity_id` becomes the `occurrence_id`; the occurrence's own `direction` is passed through | on a synthetic fixture, `candidate_rows` for the built dataset **equals** the occurrence table's row count over the same range and evaluation timeframe — asserted as an equality, not a bound (D-S056-08); every occurrence that did not become a labelled row is accounted for by exactly one reason in the exclusion counts, and the reasons sum to the occurrence count; a short-direction signal produces direction-adjusted `forward_return` identical to what Signal Research computes for the same occurrence; `research/predictive/` still imports no `signal_model` / `strategy` symbol | T002, T003 | TODO |
-| S056-T005 | **Leakage under irregular spacing.** Tests and, only if a defect is found, fixes: fold roles for sparse rows are derived from `available_at`/`label_end_at` datetime arithmetic; `label_end_at` for a sampled row equals the value it had on the full grid; the zero-TEST-rows and `min_train_rows` guards still raise on an under-powered sparse sample; a purged row stays `PURGED` and an embargoed row stays `EMBARGOED` under the existing precedence | a test asserts `label_end_at` equality between the `every_bar` and `signal_occurrences` builds for rows present in both — this is the filter-late property, asserted directly; an under-powered sparse sample raises `PredictiveMatrixError` and the test asserts the **error**, not a degraded result; no guard threshold, span, or precedence rule is weakened anywhere in the diff (reviewable as a diff against ADR-0023 §4's rules); if a real leakage defect is found, it is fixed here and recorded — widening a guard to accommodate the new kind is forbidden | T004 | TODO |
+| S056-T004 | Resolve `signal_occurrences` in `application/predictive_research/`: `evaluate_models` -> emissions -> `materialize_signal_occurrences` -> a resolved row selection handed to the matrix builder, which **filters late** (after labels and `label_end_at` are computed on the full evaluation grid). `entity_id` becomes the `occurrence_id`; the occurrence's own `direction` is passed through | on a synthetic fixture, `candidate_rows` for the built dataset **equals** the occurrence table's row count over the same range and evaluation timeframe — asserted as an equality, not a bound (D-S056-08); every occurrence that did not become a labelled row is accounted for by exactly one reason in the exclusion counts, and the reasons sum to the occurrence count; a short-direction signal produces direction-adjusted `forward_return` identical to what Signal Research computes for the same occurrence; `research/predictive/` still imports no `signal_model` / `strategy` symbol | T002, T003 | **DONE** — `research/predictive/matrix.py::build_labelled_feature_matrix` now also returns `LabelledFeatureMatrix.candidates` (the full, unfiltered evaluation grid, additive field) so a resolver can read `label_end_at`/feature values/outcome status for one bar without re-deriving them from a filtered sequence; `label_expr` made public for reuse. New `application/predictive_research/resolve_signal_occurrences.py`: calls `evaluate_models` -> `materialize_signal_occurrences` (unchanged) to get the occurrence table, joins it against the already-labelled full grid (filter-late, D-S056-05), recomputes `forward_return`/`label` for the resolved subset with the occurrence's own direction via a second `compute_forward_outcomes_for_horizons` call (D-S056-06), and writes `entity_id = occurrence_id`. `build_predictive_dataset.py`'s hard refusal is replaced by this real dispatch; `BuildPredictiveDatasetRequest` gains `signal_model: SignalModelDefinition | None` (the caller supplies the resolved definition directly — no `signal_model_file` on-disk loader exists anywhere in the framework yet, a scope boundary flagged in the PR, not a shortcut taken silently). All D-S056-08 mechanism assertions (`candidate_rows == occurrences.height`, per-reason accounting, entity_id subset across folds), the direction-adjusted `forward_return` equality against a direct `compute_forward_outcomes_for_horizons` call, and the `label_end_at` structural-equality test between an `every_bar` and a `signal_occurrences` build (SPRINT_056.md sec8 AC5, T005's foundation) are covered by new tests in `tests/unit/application/predictive_research/test_build_predictive_dataset.py`. A pre-existing, broader "wave4" architecture test (`tests/unit/test_architecture_boundaries.py`) also forbade `application/predictive_research/` from importing `signal_model`/`strategy`, predating and conflicting with ADR-0031 Decision 3 / D-S056-04's already-accepted layering; narrowed to exclude that one path (still forbidding `research.simulation`/`execution` there, via a new dedicated test), not weakened or removed. `research/predictive/` gained no new import; `tests/unit/test_architecture_boundaries.py` stays green throughout. |
+| S056-T005 | **Leakage under irregular spacing.** Tests and, only if a defect is found, fixes: fold roles for sparse rows are derived from `available_at`/`label_end_at` datetime arithmetic; `label_end_at` for a sampled row equals the value it had on the full grid; the zero-TEST-rows and `min_train_rows` guards still raise on an under-powered sparse sample; a purged row stays `PURGED` and an embargoed row stays `EMBARGOED` under the existing precedence | a test asserts `label_end_at` equality between the `every_bar` and `signal_occurrences` builds for rows present in both — this is the filter-late property, asserted directly; an under-powered sparse sample raises `PredictiveMatrixError` and the test asserts the **error**, not a degraded result; no guard threshold, span, or precedence rule is weakened anywhere in the diff (reviewable as a diff against ADR-0023 §4's rules); if a real leakage defect is found, it is fixed here and recorded — widening a guard to accommodate the new kind is forbidden | T004 | **DONE** — 2026-09-05, no defect found: `splitting.py` was already correct for irregular spacing (Finding 1 confirmed, `git diff` against pre-T005 `splitting.py` is empty — zero lines changed). Added `tests/unit/research/predictive/test_splitting.py::test_irregular_spacing_uses_datetime_arithmetic_not_row_position` (two widely-separated clusters; a row-position-based window would blend them, `timedelta` arithmetic keeps them apart), `::test_irregular_spacing_purge_and_embargo_precedence_hold` (all four roles present on a genuinely non-uniformly-spaced row set; reuses the existing generic invariant checks plus the file's own "relabel and assert it now fails" sensitivity pattern), and `::test_irregular_sparse_sample_still_raises_zero_test_rows_guard` / `::test_irregular_sparse_sample_still_raises_min_train_rows_guard` (D-S056-07: both guards still raise `PredictiveMatrixError` on sparse irregular rows). Added to `tests/unit/application/predictive_research/test_build_predictive_dataset.py`: `test_signal_occurrences_fold_roles_correct_for_sparse_irregular_timestamps` (a real `signal_occurrences` build over a spike signal firing at genuinely irregular gaps — 10, 29, 50, 1, 58, 25, 1, 29 minutes apart, not the T004 fixture's contiguous run — asserting exact PURGED/TEST/EMBARGOED roles for specific rows, end to end through `resolve_signal_occurrences_sample` + fold assignment), `test_signal_occurrences_under_powered_sample_raises_min_train_rows_guard` / `test_signal_occurrences_under_powered_sample_raises_zero_test_rows_guard` (D-S056-07 asserted at the application layer, not just splitting.py), and `test_insufficient_data_reason_for_occurrence_missing_from_full_grid` (the PR #450 reviewer gap: `_classify_row`'s `insufficient_data` branch, exercised via `_resolve_from_occurrences` with a corrupted `detected_at`, never a reimplementation of its logic). `ruff`, `mypy`, and the full `tests/unit` suite (1692 passed) are green. |
 
 ### Wave 3 — Making it usable and closing out
 
 | Task | Description | Acceptance | Deps | Status |
 |------|-------------|-----------|------|--------|
-| S056-T006 | One committed **synthetic** example: `apps/cli/examples/predictive/signal_occurrences_sample_example.yaml` plus a network-free, extra-free parse test; update `research/predictive/CLAUDE.md` conventions and the predictive reference page with the sample contract, the kind x task matrix, and the filter-late rule | the example loads through `load_predictive_study_spec` with no code change and its `definition_hash` appears in a header comment; the parse test runs in default CI without the `ml` extra and without network; **no `btc_*.yaml` and not `research_run_predictive.yaml` is touched** (D-S056-02, reviewable as a diff); the documentation states plainly that `strategy_trades` / `labelled_setups` are declared-and-refused and names 16F | T004 | TODO |
-| S056-T007 | Sprint closure: the Review section, `CURRENT_STATUS.md` §2/§3/§6, and the 16B status flip in `docs/planning/roadmap/PHASE_16_QUANT_WORKBENCH.md` (append, never rewrite) | every task above is `DONE` or explicitly recorded as not done with a reason; the closure states which of 16B's completion criteria (§13H.2) were met and names any that were not; it restates that **no verdict, no scorer and no study** was produced, so a reader cannot mistake 16B for 16A or 16C; any new problem or debt is logged in its own registry by its own owner, not summarized here | T005, T006 | TODO |
+| S056-T006 | One committed **synthetic** example: `apps/cli/examples/predictive/signal_occurrences_sample_example.yaml` plus a network-free, extra-free parse test; update `research/predictive/CLAUDE.md` conventions and the predictive reference page with the sample contract, the kind x task matrix, and the filter-late rule | the example loads through `load_predictive_study_spec` with no code change and its `definition_hash` appears in a header comment; the parse test runs in default CI without the `ml` extra and without network; **no `btc_*.yaml` and not `research_run_predictive.yaml` is touched** (D-S056-02, reviewable as a diff); the documentation states plainly that `strategy_trades` / `labelled_setups` are declared-and-refused and names 16F | T004 | **DONE** — 2026-09-08, `apps/cli/examples/predictive/signal_occurrences_sample_example.yaml` committed (first file under this new subdirectory; `sample: {kind: signal_occurrences}` + `task: SIGNAL_QUALITY`, header comment carries its real `definition_hash`, loader-verified); two parse tests added to `tests/unit/research/predictive/test_spec.py` (loads with no code change; header hash matches the loaded spec), network-free and `ml`-extra-free; `git diff --name-only` against the sprint branch confirms neither `research_run_predictive.yaml` nor any `btc_*.yaml` was touched — the `apps/cli/examples/predictive/` directory did not exist before this task, Sprint 052 (not yet run) will add its own files alongside this one; the example cannot be RUN end to end today (confirmed against TD-031: no `signal_model_file` loader exists) and fails fast with the same named `PredictiveDatasetError` `build_predictive_dataset` already raises, stated in the file's own header comment; `research/predictive/CLAUDE.md` and `docs/reference/workflows/RESEARCH_METHODOLOGIES.md` §8 "Samples" updated with the sample contract, the kind x task matrix, the filter-late rule, and the 16F-owned refusal of `strategy_trades`/`labelled_setups` |
+| S056-T007 | Sprint closure: the Review section, `CURRENT_STATUS.md` §2/§3/§6, and the 16B status flip in `docs/planning/roadmap/PHASE_16_QUANT_WORKBENCH.md` (append, never rewrite) | every task above is `DONE` or explicitly recorded as not done with a reason; the closure states which of 16B's completion criteria (§13H.2) were met and names any that were not; it restates that **no verdict, no scorer and no study** was produced, so a reader cannot mistake 16B for 16A or 16C; any new problem or debt is logged in its own registry by its own owner, not summarized here | T005, T006 | **DONE** — 2026-09-08, §13 Review written (all 7 tasks DONE, all 12 §8 acceptance criteria MET with PR-level evidence, all 4 §13H.2 completion criteria MET, TD-031 referenced not re-logged, no-verdict/no-scorer/no-study restated); `PHASE_16_QUANT_WORKBENCH.md` §13H.2 appended with a completion note; `CURRENT_STATUS.md` §2/§3/§6 updated to reflect Sprint 056 complete on `sprint/sample-spec-foundation`, not yet integrated to `main` |
 
-**Progress:** 1 / 7 — T001 done (ADR-0031 accepted, Wave 0 signed off);
-Wave 1 (T002) may now start.
+**Progress:** 7 / 7 — T001 done (ADR-0031 accepted, Wave 0 signed off); T002
+done (SampleSpec/PredictiveTask contract, default elision, refusals); T003
+done (sample provenance persisted in the manifest for both kinds, schema v2
+bump, v1 read-compat, fingerprint independence asserted); T004 done
+(`signal_occurrences` resolved for real in `application/predictive_research/`,
+filter-late structural, direction passed through, row-count identity asserted
+on a synthetic fixture); T005 done (leakage guards proven correct for
+irregularly-spaced rows; no defect found, `splitting.py` untouched — see the
+task row for the specific tests added); T006 done (committed synthetic
+example + parse tests, module and reference documentation updated — see the
+task row); T007 done (sprint closure — Review, `CURRENT_STATUS.md`, and the
+16B status flip in `PHASE_16_QUANT_WORKBENCH.md`; see the task row and §13).
+**Sprint 056 is complete on `sprint/sample-spec-foundation`.**
 
 **Descope order:** T006's example may shrink to the parse test alone. **T005 is
 never dropped** — without it this sprint ships a new way to build a dataset with
@@ -374,4 +385,132 @@ sprint's closure must not imply it does.
 
 ## 13. Review
 
-_(to be written at closure by `tech-writer`)_
+_Written at closure by `tech-writer`, 2026-09-08._
+
+### 13.1 What this sprint is, restated once more
+
+**16B shipped a contract, not a result.** No verdict, no scorer and no study
+was produced by this sprint. It does not advance 16A (Analyst Verdict
+Artifact — not planned, not started) and it does not advance 16C (Signal
+Quality Scoring — still gated on Sprint 052 having run). A reader of this
+Review should not infer either. The one thing 16B adds is a new way to *ask*
+the pipeline a question (`sample: {kind: signal_occurrences}`); it answers
+none of those questions itself.
+
+### 13.2 What was delivered
+
+- **Contract types** (`SampleKind`, `SampleSpec`, `PredictiveTask`) declared
+  in `research/predictive/sample.py`, wired into `PredictiveStudySpec` with
+  default elision in `to_dict()` — T002, PR #448.
+- **Sample provenance** persisted in `PredictiveDatasetManifest`
+  (`SampleProvenance`: kind, task, `universe_row_count`,
+  `resolved_row_count`, `drop_counts`) under an additive schema bump
+  (`PREDICTIVE_DATASET_SCHEMA_V2`) with a documented v1 read-compat rule —
+  T003, PR #449.
+- **Real `signal_occurrences` resolution** in
+  `application/predictive_research/resolve_signal_occurrences.py`:
+  `evaluate_models` -> `materialize_signal_occurrences` -> a filter-late join
+  against the full labelled evaluation grid (D-S056-05), with occurrence
+  `direction` passed through to a second
+  `compute_forward_outcomes_for_horizons` call (D-S056-06) and
+  `entity_id = occurrence_id` — T004, PR #450.
+- **Leakage-guard proof for irregular spacing**: `splitting.py` needed zero
+  code changes (Finding 1 confirmed — the diff against pre-T005
+  `splitting.py` is empty); new tests prove datetime-arithmetic fold roles,
+  purge/embargo precedence, and that both the zero-TEST-rows and
+  `min_train_rows` guards still raise on an under-powered sparse sample,
+  covering both the `research/predictive/` and
+  `application/predictive_research/` layers — T005, PR #451.
+- **Committed example and docs**:
+  `apps/cli/examples/predictive/signal_occurrences_sample_example.yaml`
+  (first file in that subdirectory; its `definition_hash` is recorded in its
+  own header comment), a network-free/extra-free parse test, and updates to
+  `research/predictive/CLAUDE.md` and
+  `docs/reference/workflows/RESEARCH_METHODOLOGIES.md` §8 documenting the
+  sample contract, the kind x task compatibility matrix, and the filter-late
+  rule — T006, PR #456.
+- **ADR-0031** (`SampleSpec` contract shape + `PredictiveTask` taxonomy)
+  carried to `ACCEPTED` (2026-09-04) with no corrections attracted — T001,
+  direct commits to the sprint branch (`aee7246`, `264ac15`) predating the
+  PR sequence, since Wave 0 is docs-only by design.
+
+### 13.3 Task breakdown status
+
+All seven tasks are **DONE**. See §6's task table for the acceptance
+evidence recorded by `engineer`/`tester` on each row; this Review does not
+restate it. Progress: **7 / 7**.
+
+### 13.4 Sprint-level acceptance criteria (§8) — evidence
+
+1. **Byte-identical `definition_hash` for every existing spec under
+   `every_bar`** — MET. Asserted in T002 (PR #448) against pre-change
+   recorded values, not recomputed on both sides.
+2. **An explicit `every_bar` spec hashes identically to an omitted one** —
+   MET. Same T002 assertion (default elision).
+3. **`signal_occurrences` candidate row count equals the occurrence count,
+   asserted as an equality** — MET. T004 (PR #450) tests
+   `candidate_rows == occurrences.height` plus per-reason drop accounting,
+   per D-S056-08's mechanism.
+4. **Purge/embargo correct for irregular rows; no guard relaxed** — MET.
+   T005 (PR #451); the guard code itself is unchanged (empty diff against
+   `splitting.py`), and new tests cover both layers.
+5. **`label_end_at` filter-late equality** — MET. Covered by T004's tests
+   and exercised further by T005's irregular-spacing fixtures.
+6. **Sample provenance persisted for both kinds; fingerprint unaffected** —
+   MET. T003 (PR #449); fingerprint independence asserted directly in
+   `tests/unit/research/datasets/test_predictive_fingerprint.py`.
+7. **Reserved names/tasks refused at load time with a named error, tested**
+   — MET. T002 (`ReservedSampleKindError`, `ReservedPredictiveTaskError`,
+   `IncompatibleSampleTaskError`).
+8. **No new import into `research/predictive/`** — MET. Architecture
+   boundary test stays green throughout (T002, T004). Note: T004 narrowed
+   (did not weaken) a pre-existing, broader boundary test that had
+   incorrectly forbidden `application/predictive_research/` itself from
+   importing `signal_model`/`strategy` — a layering ADR-0031/D-S056-04 had
+   already accepted; the narrowed test still forbids
+   `research.simulation`/`execution` there.
+9. **ADR-0031 `ACCEPTED` before Wave 1** — MET. Accepted 2026-09-04 (T001),
+   before T002 merged.
+10. **CI stays synthetic-only, network-free; no new dependency/extra** —
+    MET, across every PR (`ruff`/`mypy`/`pytest` green per each task's own
+    acceptance note; T005 additionally records the full `tests/unit` suite
+    at 1692 passed).
+11. **No file on the Sprint 052 reverse-boundary list touched** — MET. T006
+    (PR #456) explicitly diffed for this; the `apps/cli/examples/predictive/`
+    directory did not exist before T006, so there was no `btc_*.yaml` or
+    `research_run_predictive.yaml` to collide with.
+12. **No research result, verdict, scorer or promotion produced or
+    implied** — MET, by construction (see §13.1).
+
+All twelve of the sprint's own acceptance criteria are MET. Separately,
+§13H.2's four phase-level completion criteria (`PHASE_16_QUANT_WORKBENCH.md`)
+are also all MET — see the append made to that file's §13H.2 as part of this
+closure (§13.6 below restates the pointer).
+
+### 13.5 Technical debt
+
+One item was logged during this sprint's QA: **TD-031** — no loader turns a
+declared `signal_model_file` path into a `SignalModelDefinition`; every
+current caller must supply the `signal_model` object in-process
+(`docs/planning/TECHNICAL_DEBT.md`, ACCEPTED/MEDIUM). Not re-explained here;
+see that entry for the accepted shortcut, consequences, and repayment
+trigger (16C planning, or an operator needing a CLI-driven
+`signal_occurrences` study before then).
+
+No other problem or debt was found during closure review of the merged
+history. T001–T006's own recorded acceptance evidence was cross-checked
+against the actual merge history
+(`ac5f2a4`, `44233a4`, `28421d1`, `2d6bc5b`, `d3e75c2`, `d189598`, `5fe16d4`,
+`e3fbc62`, `792f323`, `dc9b3b6`, `2f527a4`, `7559475`, `5c543b1`, `d75eef2`,
+`dce880d`, `f0a50f7` on `sprint/sample-spec-foundation`) and no gap between a
+task's claimed DONE status and its merged evidence was found.
+
+### 13.6 Post-sprint direction (restated, not changed)
+
+16B unblocks 16C (Signal Quality Scoring), which remains gated on Sprint 052
+having run — unaffected by this closure. 16F inherits the `strategy_trades`
+name this sprint reserved but did not implement. Nothing in this sprint
+advances 16A. Integration of `sprint/sample-spec-foundation` into `main` is
+a separate, distinct maintainer decision (D-S056-03) and had not happened as
+of this Review — see `CURRENT_STATUS.md` §2/§3 for the current integration
+state.

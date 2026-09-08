@@ -449,10 +449,81 @@ gate. Models do not trade.
 
 ### Samples
 
-Rows are **evaluation bars**, not `SignalOccurrence` objects. The matrix builder
-constructs a synthetic long-only occurrence table (one row per bar) so
-`compute_forward_outcomes_for_horizons` can be reused. Incomplete and non-finite
-rows are excluded and counted in the manifest; they never receive a label.
+`PredictiveStudySpec` declares *which rows* a study is about via an explicit
+`sample` block plus a `task` (Sprint 056 / ADR-0031, increment 16B). This
+answers a different question from the one Phase 10 always answered
+implicitly: not just "what happens next, from anywhere?", but optionally
+"what happens after this specific thing fires?".
+
+```text
+sample.kind = every_bar             one row per complete evaluation bar --
+                                     the default, and today's original
+                                     behaviour, made explicit.
+sample.kind = signal_occurrences    rows are a declared Signal Model's
+                                     firings, referenced by declaration only
+                                     (signal_model_file + signal_model_id),
+                                     never by a run id or a persisted
+                                     occurrence artifact. An optional
+                                     direction filter (ANY | LONG | SHORT,
+                                     default ANY) narrows the firings kept.
+```
+
+Both `sample` and `task` default-elide out of the spec's serialized form when
+they hold their default value (`every_bar` / `FORWARD_RETURN`), so every
+study that predates this feature keeps the exact `definition_hash` it always
+had — an explicitly-declared default hashes identically to an omitted one.
+
+`task` records research *intent*, distinct from `LabelKind`/the estimator's
+statistical task type. Only two combinations of `sample.kind` x `task` are
+implemented; every other pairing is refused at load time with a named error:
+
+| sample kind | task | |
+|---|---|---|
+| `every_bar` | `FORWARD_RETURN` | accepted — today's behaviour |
+| `signal_occurrences` | `FORWARD_RETURN` | accepted — plain forward return over a selected universe |
+| `signal_occurrences` | `SIGNAL_QUALITY` | accepted — is this signal's own firing predictive? |
+| `every_bar` | `SIGNAL_QUALITY` | refused — there is no signal whose quality could be judged |
+
+`strategy_trades` and `labelled_setups` (rows from a simulated trade or a
+discretionary setup) are **declared in the contract's design intent and
+refused at load time, not silently accepted as no-ops** — increment **16F**
+owns implementing them. `sessions_or_windows` is reserved the same way, for a
+later, unassigned increment.
+
+For `every_bar`, rows are **evaluation bars**, not `SignalOccurrence` objects:
+the matrix builder constructs a synthetic long-only occurrence table (one row
+per bar) so `compute_forward_outcomes_for_horizons` can be reused. For
+`signal_occurrences`, rows are the declared Signal Model's real firings,
+resolved by `application/predictive_research/resolve_signal_occurrences.py`
+(`evaluate_models` -> `materialize_signal_occurrences`), with the
+occurrence's own direction passed through to `forward_return` — never
+synthesized as long-only. In both cases incomplete and non-finite rows are
+excluded and counted in the manifest; they never receive a label, and the
+manifest's sample provenance (kind, task, resolved row counts, per-reason
+drop counts) is persisted for both kinds, so "which rows and why" is always a
+read, never an inference.
+
+**Sample selection is applied after labelling, on the full evaluation grid,
+never before (the filter-late rule, D-S056-05).** `label_end_at` is derived
+*positionally* from the complete bar sequence (`timestamps[index +
+horizon_bars]`); computing it over an already-filtered, sparse sequence would
+silently fabricate a wider label window than the study declared and leak
+across it. This is why the implementation order is the opposite of the
+naive reading ("resolve the sample universe first, then compute features at
+those rows") — the full grid is always labelled first, and only afterwards
+is a `signal_occurrences` sample's row selection applied to it. No leakage
+guard (purge, embargo, `min_train_rows`, the zero-TEST-rows error) is ever
+relaxed to accommodate a sparse sample; an under-powered sample raises the
+same hard error it always did.
+
+A committed synthetic example — `apps/cli/examples/predictive/signal_occurrences_sample_example.yaml`
+— declares a `signal_occurrences` sample and parses through
+`load_predictive_study_spec` with no code change. It cannot be run end to
+end yet: no loader in the framework turns a declared `signal_model_file`
+path into a `SignalModelDefinition` (TD-031, `docs/planning/TECHNICAL_DEBT.md`),
+so pointing a CLI config at it fails fast with a named
+`PredictiveDatasetError` naming the missing `signal_model` input, rather than
+a silent no-op.
 
 ### Features and transforms
 
