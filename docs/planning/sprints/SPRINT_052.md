@@ -288,7 +288,7 @@ Wave 0 is DONE when the maintainer has checked off the Wave 0 Checklist.
 
 | Task | Description | Acceptance | Deps | Status |
 |------|-------------|-----------|------|--------|
-| S052-T002 | Commit `apps/cli/examples/predictive/btc_momentum_regime_study.yaml` (the `PredictiveStudySpec`) and the baseline `EstimatorSpec` YAMLs, plus a network-free parse test | both files load through their own loaders (`load_predictive_study_spec`, the estimator loader) with no code change; the study's `definition_hash` is recorded in the file's header comment; the feature list matches Wave 0 exactly; `research_run_predictive.yaml`'s dangling `configs/predictive/...` reference is repointed at the real files (Finding 5); the test runs in default CI without the `ml` extra and without network | T001 | TODO |
+| S052-T002 | Commit `apps/cli/examples/predictive/btc_momentum_regime_study.yaml` (the `PredictiveStudySpec`) and the baseline `EstimatorSpec` YAMLs, plus a network-free parse test | both files load through their own loaders (`load_predictive_study_spec`, the estimator loader) with no code change; the study's `definition_hash` is recorded in the file's header comment; the feature list matches Wave 0 exactly; `research_run_predictive.yaml`'s dangling `configs/predictive/...` reference is repointed at the real files (Finding 5); the test runs in default CI without the `ml` extra and without network | T001 | DONE |
 | S052-T003 | **The baseline run** (maintainer-executed, `ml` extra): build the dataset, run the regression and the classification study, render both reports. Record run IDs, dataset fingerprint, seeds and wall-clock | the dataset builds through the **unmodified** `build_predictive_dataset`; fold role counts (TRAIN/TEST/PURGED/EMBARGOED) match Wave 0's plan within a stated tolerance and any deviation is explained, not adjusted away; both runs complete; **no file under a §5 forbidden path is modified** (asserted by a clean `git status` on `src/`); report HTML stays out of git | T002 | TODO |
 
 ### Wave 2 — The comparison
@@ -306,9 +306,28 @@ Wave 0 is DONE when the maintainer has checked off the Wave 0 Checklist.
 | S052-T007 | **Reproducibility record** (a section of T006's document plus the spec header comments): study `definition_hash`, dataset fingerprint, source `DatasetRef` and its import-manifest fingerprint, run IDs, estimator specs and seeds, and the framework version | a third party with the same data can re-derive the same dataset fingerprint from the committed spec; the record states which artifacts live outside git (`user_data/`) and are therefore not reproducible from the repo alone | T006 | TODO |
 | S052-T008 | Closure and **Q5 disposition**: update ROADMAP §13F's Q5 dependency line (append, never rewrite history), §13G's 15B status, `CURRENT_STATUS.md`, and the sprint Review | §13F's Q5 line states either "closed by run `<id>`, `<family>`" **or** "still open — reason", never something ambiguous; if closed, the entry states whether the winning family is promotable under ADR-0029 (linear/logistic) or hits its documented tree/neural refusal; if still open, it names S049 Wave 0's "option (b)" as the decision now facing Sprint 050 — and leaves that decision to the maintainer | T007 | TODO |
 
-**Progress:** 1 / 8 — Wave 0's fold plan (T001) is landed on
-`docs/btc-predictive-study-planning`, docs only. The maintainer's fold-table
-review (D-S052-11) is the one remaining item before T002/T003 may proceed.
+**Progress:** 2 / 8 — Wave 0's fold plan (T001) is landed and maintainer-signed
+off (D-S052-11's fold-table box checked). S052-T002 (`feat/btc-predictive-study-specs`)
+commits the study/estimator YAML: because `PredictiveStudySpec.label` is a
+single `LabelSpec`
+(`src/trading_framework/research/predictive/spec.py`) and D-S052-06's Pass 1
+declares one REGRESSION run and one BINARY run over the SAME fold plan and
+feature list, the "one file" description above is delivered as **two**
+`PredictiveStudySpec` files that are byte-for-byte identical except
+`label.kind` —
+`apps/cli/examples/predictive/btc_momentum_regime_study_regression.yaml` and
+`..._binary.yaml` — paired with `btc_momentum_regime_ridge.yaml`
+(`sklearn.ridge`) and `btc_momentum_regime_logistic.yaml`
+(`sklearn.logistic`), both seed `42`. All four declare D-S052-05's frozen
+ten-feature list and D-S052-03's locked fold plan (`EXPANDING`, `F=6`,
+`T=30d`, `E=1d`, `M=2000`, `V=15m`) exactly, each `definition_hash` recorded
+in its own header comment and asserted against the loader in
+`tests/unit/research/predictive/test_btc_momentum_regime_study.py` (11 tests,
+network-free, extra-free). `research_run_predictive.yaml`'s dangling
+`configs/predictive/my_study.yaml` reference is repointed at the real
+regression-pass pair (Finding 5); the binary pass is documented alongside it
+in `apps/cli/examples/README.md` for an operator who wants that pass instead.
+T003 (the baseline run) remains maintainer-executed with the `ml` extra.
 
 **Descope order:** T005 is conditional by construction. T007 may merge into T006.
 **T004 and T006 are never dropped** — without them the sprint has run a model and
