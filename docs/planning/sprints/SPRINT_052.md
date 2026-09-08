@@ -12,7 +12,8 @@ Status: APPROVED (2026-09-08) — Wave 0 Checklist signed off
         docs/planning/sprints/S051_BTC_DATA_INVENTORY.md records a usable
         published BTCUSDT.P dataset (911 days, 1,311,840 rows, zero gaps).
         `engineer` may start S052-T001.
-Planned Start: TBD (branch not yet cut)
+Planned Start: 2026-09-08 (`sprint/btc-predictive-study` cut from `main` @
+        6cb0826, S052-T001 landed same day)
 Planned End: TBD
 Sprint Goal Owner: Project Maintainer
 Depends On: SPRINT_051 (the six components + the BTC dataset inventory),
@@ -244,7 +245,28 @@ thing a synthetic-only validation can hide.
 
 | Task | Description | Acceptance | Deps | Status |
 |------|-------------|-----------|------|--------|
-| S052-T001 | Land `S052_WAVE0_DECISIONS.md`, including the **fold plan computed from `S051_BTC_DATA_INVENTORY.md`**: evaluation timeframe, label kind and horizon, `fold_count`, `test_span`, `embargo_span`, `min_train_rows`, mode, and the exact feature list | every number traces to a measured value in the inventory (the range is fixed by D-S051-07, but the row count and gap list are not assumed); `embargo_span >= label horizon` is shown arithmetically; the resulting per-fold TEST windows are listed as concrete date ranges with their approximate row counts; the document states the minimum row count below which the study is declared under-powered and NOT run; the dataset is `BTCUSDT.P` and nothing else | Sprint 051 closed with a usable BTC inventory; maintainer approval | TODO |
+| S052-T001 | Land `S052_WAVE0_DECISIONS.md`, including the **fold plan computed from `S051_BTC_DATA_INVENTORY.md`**: evaluation timeframe, label kind and horizon, `fold_count`, `test_span`, `embargo_span`, `min_train_rows`, mode, and the exact feature list | every number traces to a measured value in the inventory (the range is fixed by D-S051-07, but the row count and gap list are not assumed); `embargo_span >= label horizon` is shown arithmetically; the resulting per-fold TEST windows are listed as concrete date ranges with their approximate row counts; the document states the minimum row count below which the study is declared under-powered and NOT run; the dataset is `BTCUSDT.P` and nothing else | Sprint 051 closed with a usable BTC inventory; maintainer approval | DONE |
+
+**S052-T001 outcome (docs-only, `docs/btc-predictive-study-planning`):** the
+fold plan is confirmed, **not corrected** — D-S052-03's "expected
+instantiation" (`V=15m`, `BINARY` label/1h horizon, `F=6`, `T=30d`, `E=1d`,
+`M=2000`) matches the measured `S051_BTC_DATA_INVENTORY.md` facts (911 days,
+1,311,840 rows, zero gaps) with wide margins on every LOCKED bound: initial
+TRAIN is ~726 days (~23.9 months, vs. the 12-month floor), `embargo_span` is
+24x the label horizon, and the measured 1,311,840-row / 911-day dataset is
+more than double the computed 632,160-row / 439-day under-powered floor. The
+study is **NOT under-powered** — the per-fold TEST windows, the arithmetic,
+and the floor derivation are recorded in `S052_WAVE0_DECISIONS.md` D-S052-03.
+D-S052-05's feature list is frozen at ten components (Sprint 051's six plus
+the four suggested incumbents), all confirmed present under their suggested
+names in `registry/builtins.py` (read-only check; no `research/predictive/`
+or `market_analysis/` file was touched). **One item remains before T002/T003
+may proceed:** the maintainer must review and check D-S052-11's "fold table
+produced by T001 reviewed and accepted" box — that box is intentionally left
+unchecked by this task, per D-S052-11's own instruction that it is checked
+by the maintainer, not by an agent.
+
+**Progress: 1 / 8.**
 
 Wave 0 is DONE when the maintainer has checked off the Wave 0 Checklist.
 
@@ -270,7 +292,9 @@ Wave 0 is DONE when the maintainer has checked off the Wave 0 Checklist.
 | S052-T007 | **Reproducibility record** (a section of T006's document plus the spec header comments): study `definition_hash`, dataset fingerprint, source `DatasetRef` and its import-manifest fingerprint, run IDs, estimator specs and seeds, and the framework version | a third party with the same data can re-derive the same dataset fingerprint from the committed spec; the record states which artifacts live outside git (`user_data/`) and are therefore not reproducible from the repo alone | T006 | TODO |
 | S052-T008 | Closure and **Q5 disposition**: update ROADMAP §13F's Q5 dependency line (append, never rewrite history), §13G's 15B status, `CURRENT_STATUS.md`, and the sprint Review | §13F's Q5 line states either "closed by run `<id>`, `<family>`" **or** "still open — reason", never something ambiguous; if closed, the entry states whether the winning family is promotable under ADR-0029 (linear/logistic) or hits its documented tree/neural refusal; if still open, it names S049 Wave 0's "option (b)" as the decision now facing Sprint 050 — and leaves that decision to the maintainer | T007 | TODO |
 
-**Progress:** 0 / 8 — not started; sprint not approved and its input does not yet exist.
+**Progress:** 1 / 8 — Wave 0's fold plan (T001) is landed on
+`docs/btc-predictive-study-planning`, docs only. The maintainer's fold-table
+review (D-S052-11) is the one remaining item before T002/T003 may proceed.
 
 **Descope order:** T005 is conditional by construction. T007 may merge into T006.
 **T004 and T006 are never dropped** — without them the sprint has run a model and
