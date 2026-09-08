@@ -117,24 +117,109 @@ Derived and REPORTED at T001, per fold:
         count, and the TRAIN row count entering that fold
 ```
 
-**Expected instantiation** — the maintainer has now fixed the import range
-(D-S051-07: 2024-01-01 → 2026-06-30, 1m), so this is the plan T001 should
-arrive at unless the inventory's measured gaps or row count say otherwise:
+**Confirmed instantiation (S052-T001, computed from
+`S051_BTC_DATA_INVENTORY.md` §2/§3/§8 — measured, not assumed):**
 
 ```text
 V  = 15m          evaluation timeframe
-label = BINARY, horizon 1h (4 evaluation bars), threshold 0.0
+label (BINARY pass)     = BINARY, horizon 1h (4 evaluation bars), threshold 0.0
+label (REGRESSION pass) = continuous forward_return, SAME 1h horizon (4 eval
+                          bars), PredictiveTask=FORWARD_RETURN (the default) —
+                          both D-S052-06 passes share one horizon and one fold
+                          plan; only the label KIND differs between them
 F  = 6            folds
 T  = 30d          test span  -> 180d total out-of-sample tail
 E  = 1d           embargo    -> comfortably exceeds the 1h label horizon
 M  = 2000         min train rows
 ```
 
-Sanity check: ~30 months of 15m bars is roughly 87,000 evaluation rows; six
-30-day test windows are roughly 2,880 rows each, and fold 1 still trains on well
-over a year of history. **These numbers are still confirmed against the measured
-inventory at T001, not assumed here** — the range is now known, the exact row
-count and gap list are not.
+Every number below traces to the inventory's measured facts:
+
+```text
+dataset_ref  BTCUSDT.P|ohlcv|1m|binance|binance-usdm-klines-v1@1  (inventory §2)
+R            start_at 2024-01-01T00:00:00+00:00 ->
+             end_at   2026-06-29T23:59:00+00:00 (open time of last 1m bar)
+             (inventory §2 — read from registry metadata, not the request)
+N_1m         1,311,840 rows, measured (inventory §2)
+             cross-check: 1,311,840 / 1,440 min/day = 911.0 days exactly ->
+             matches the registry range with zero missing/duplicate minutes
+G            gaps: NONE (inventory §3, import_manifest.json `gaps: []`,
+             `rows_rejected: 0`) -> no fold's TEST window needs to be moved
+             or dropped for a gap; D-S052-03's "gaps are never filled or
+             synthesized" rule has nothing to apply to here
+```
+
+**Embargo >= label horizon, shown arithmetically (not asserted):**
+
+```text
+label horizon   = 1h  = 60 minutes = 4 evaluation bars @ V=15m
+embargo_span E  = 1d  = 1,440 minutes = 96 evaluation bars @ V=15m
+1,440 minutes / 60 minutes = 24  ->  E is 24x the label horizon, comfortably
+clearing the required E >= horizon floor. Applies identically to both the
+BINARY and REGRESSION passes, since they share one horizon.
+```
+
+**Fold placement arithmetic** (same formula `splitting.py._fold_windows` uses:
+`stride = test_span + embargo_span`; fold *i*'s `test_end = t_max -
+(F-1-i) x stride`; `test_lower = test_end - test_span`; EXPANDING mode trains
+every fold from `t_min`), using the measured `t_max = 2026-06-29` (last bar's
+open date) and `t_min = 2024-01-01`:
+
+```text
+stride = T + E = 30d + 1d = 31d
+tail consumed by 6 test windows + their internal embargoes
+  = (F-1) x stride + T = 5 x 31d + 30d = 185d
+first_test_lower = t_max - 185d = 2025-12-26
+initial TRAIN duration entering fold 0 = first_test_lower - t_min
+  = 2025-12-26 - 2024-01-01
+  ~= 726 days (725 days 23:59:00 exactly, rounding up from t_max's
+     23:59 bar-open time; ~23.9 months)
+  -> clears the LOCKED >= 12 months initial-TRAIN rule with an ~12-month margin
+```
+
+**Per-fold TEST windows** (concrete dates, half-open `(test_lower, test_end]`,
+each 30 calendar days, separated by the 1-day embargo) and their approximate
+row counts at `V=15m` (96 evaluation bars/day x 30 days = 2,880 bars/fold):
+
+```text
+fold 0   2025-12-26 -> 2026-01-25   ~2,880 evaluation rows
+fold 1   2026-01-26 -> 2026-02-25   ~2,880 evaluation rows
+fold 2   2026-02-26 -> 2026-03-28   ~2,880 evaluation rows
+fold 3   2026-03-29 -> 2026-04-28   ~2,880 evaluation rows
+fold 4   2026-04-29 -> 2026-05-29   ~2,880 evaluation rows
+fold 5   2026-05-30 -> 2026-06-29   ~2,880 evaluation rows  (ends at t_max)
+```
+
+Total 15m evaluation grid over the full 911-day range: 911d x 96 bars/day ~=
+87,456 evaluation rows — matches the sanity check's "~87,000" order of
+magnitude the formula predicted before the inventory existed. TRAIN row count
+entering fold 0 (EXPANDING mode, ~726 days of history at V=15m): 726d x 96
+~= 69,696 rows, ~35x the locked `M = 2000` floor and ~350x the `>= 20 x
+feature count` rule (10 features -> 200 rows) — TRAIN never comes close to
+starving at any fold, since later folds only add history.
+
+**Minimum row count below which the study is declared UNDER-POWERED and NOT
+run** (per D-S052-03's LOCKED rule: `F >= 5`, `T >= 14d` each, `>= 12 months`
+initial TRAIN — the floor configuration, not this plan's chosen F=6/T=30d):
+
+```text
+floor F = 5, floor T = 14d, embargo held at this plan's E = 1d (a design
+choice, not itself part of the LOCKED floor, kept fixed here so the
+threshold is a single concrete number rather than a family of curves)
+floor stride = 14d + 1d = 15d
+floor tail   = (F-1) x stride + T = 4 x 15d + 14d = 74d
+floor total range = 12 months (365d, calendar approximation) + 74d = 439 days
+floor row count (1m)  = 439d x 1,440 min/day = 632,160 rows
+```
+
+**Measured vs. floor:** 1,311,840 measured rows over 911 days is more than
+double the 632,160-row / 439-day floor. The study is **NOT under-powered** —
+this plan's own F=6/T=30d/12-month-plus-margin design clears the floor by a
+wide margin, not a borderline call.
+
+**Dataset confirmation:** the inventory's published `DatasetRef` is
+`BTCUSDT.P|ohlcv|1m|binance|binance-usdm-klines-v1@1` — `BTCUSDT.P` and
+nothing else (D-S052-03a). No substitute instrument was considered or used.
 
 ```text
 LOCKED  If the measured range cannot support F >= 5 folds with T >= 14d each
@@ -218,6 +303,37 @@ LOCKED  THE FEATURE LIST IS FROZEN AT T001. Adding a feature after seeing a
         result is forbidden (PRD's named risk) and is reviewable as a diff
         against the committed spec (SPRINT_052.md acceptance criterion 8).
 ```
+
+**FROZEN feature list (S052-T001)** — confirmed against
+`src/trading_framework/market_analysis/registry/builtins.py` (read only; not
+modified by this task). All ten component identifiers below are registered
+with `default=True` and match the suggested names exactly — no renaming was
+needed:
+
+```text
+Sprint 051's six components (SPRINT_051.md §1/§13, all default=True):
+  momentum.rsi
+  momentum.macd
+  momentum.stochastic
+  volatility.relative_volatility
+  statistics.return_autocorrelation
+  statistics.return_distribution
+
+Suggested incumbents (confirmed present, exact names, default=True):
+  volatility.atr
+  trend.slope
+  candle.wick
+  volatility.range_expansion
+```
+
+Ten declared features total. Family tally, so the "not a single-family bet"
+claim is checkable at a glance rather than requiring a manual count:
+`momentum.*` = 3, `volatility.*` = 3, `statistics.*` = 2, `trend.*` = 1,
+`candle.*` = 1 — no single family exceeds 30% of the list.
+
+This list does not change after T002 commits the `FeatureSpec` entries, and
+it does not change regardless of what T004's comparison shows (acceptance
+criterion 8).
 
 ---
 
@@ -325,7 +441,7 @@ while any box is unchecked.
 - [x] **Sprint 051 is closed and `S051_BTC_DATA_INVENTORY.md` records a usable published `BTCUSDT.P` dataset.** Confirmed: 911 days, 1,311,840 rows, zero gaps (`BTCUSDT.P`, 1m, 2024-01-01 -> 2026-06-29). Sprint 051 is merged to `main` (#409).
 - [x] **ROADMAP §13G approved** (2026-09-04, corrected 2026-09-08: now `docs/planning/roadmap/PHASE_15_PREDICTIVE_CATALOG.md` §13G after the roadmap defragmentation — the decision and its APPROVED status are unchanged, only its file location moved), and Sprint 052 / Phase 15B confirmed as its closing increment; **Sprint 050 stays reserved for Phase 14B.**
 - [x] **D-S052-03 confirmed** — the fold plan is computed from measured facts at T001; the under-powered STOP rule is accepted; gaps are never filled and the embargo/purge policy is never tuned to make the arithmetic work.
-- [ ] **The fold table produced by T001 reviewed and accepted** (this box is checked after T001, before T003 runs — correctly left unchecked here; T001 has not run yet).
+- [x] **The fold table produced by T001 reviewed and accepted.** Approved 2026-09-08: `V=15m`, `F=6`/`T=30d`/`E=1d`/`M=2000`, NOT under-powered (911 measured days vs. 439-day floor, 2x+ margin), 10 frozen features (momentum:3/volatility:3/statistics:2/trend:1/candle:1, no family over 30%), both BINARY and REGRESSION pass labels locked on the same 1h horizon.
 - [x] **D-S052-03a — ANSWERED by the maintainer, 2026-09-02.** Non-BTC data (NQ.c.0 or otherwise) is **REJECTED as a substitute**: a hard stop, not a fallback. If BTC data is unavailable the sprint does not open and the work returns to the maintainer. Q5 can only be closed by a BTC result.
 - [x] **D-S052-04 confirmed** — coarser `evaluation_timeframe`; range or grid is adjusted under pressure, never the pipeline and never the instrument.
 - [x] **D-S052-05 confirmed** — the feature list is frozen at T001 and adding features after seeing a result is forbidden.
