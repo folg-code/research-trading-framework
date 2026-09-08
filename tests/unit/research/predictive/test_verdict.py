@@ -72,6 +72,32 @@ def test_two_of_three_folds_winning_produces_weak_pass() -> None:
 
     assert report.verdict is RunVerdict.WEAK_PASS
     assert _evaluation(report, "O2").fired is True
+    # O1 (every fold wins) must not also fire for a genuinely partial win.
+    assert _evaluation(report, "O1").fired is False
+
+
+def test_o1_and_o2_are_mutually_exclusive_not_just_cascade_ordered() -> None:
+    """O2's own `fired` flag (not just the cascade's first-match order) must
+    exclude the `fold_win_rate == 1.0` case, since every rule's fired value is
+    recorded in verdict.json regardless of which one determines the verdict
+    (ADR-0032 §2/§4) -- a reader must never see both O1 and O2 fired for the
+    same run.
+    """
+    pass_report = evaluate_verdict(_clean_facts(), VERDICT_RULES_V1)
+    assert pass_report.verdict is RunVerdict.PASS
+    assert _evaluation(pass_report, "O1").fired is True
+    assert _evaluation(pass_report, "O2").fired is False
+
+    weak_pass_report = evaluate_verdict(
+        _clean_facts(
+            fold_model_primary={"1": 0.06, "2": 0.05, "3": 0.01},
+            fold_random_permutation_primary={"1": 0.01, "2": 0.0, "3": 0.02},
+        ),
+        VERDICT_RULES_V1,
+    )
+    assert weak_pass_report.verdict is RunVerdict.WEAK_PASS
+    assert _evaluation(weak_pass_report, "O1").fired is False
+    assert _evaluation(weak_pass_report, "O2").fired is True
 
 
 def test_fewer_than_two_thirds_folds_winning_produces_inconclusive() -> None:
