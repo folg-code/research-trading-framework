@@ -9,9 +9,10 @@ from pathlib import Path
 _ENV_STORAGE_ROOT = "DASHBOARD_STORAGE_ROOT"
 _ENV_STATUS_URL = "DASHBOARD_STATUS_URL"
 
-# Deployed AWS dry-run status API (API Gateway → status Lambda). Override via
-# DASHBOARD_STATUS_URL or the Live Paper sidebar when the gateway changes.
-DEFAULT_LIVE_PAPER_STATUS_URL = "https://279rmuo95c.execute-api.eu-north-1.amazonaws.com/status"
+# Live Paper status is intentionally opt-in while the runtime is being migrated
+# to the new VPS deployment. Configure DASHBOARD_STATUS_URL when the endpoint is
+# available again.
+DEFAULT_LIVE_PAPER_STATUS_URL: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -35,7 +36,7 @@ def load_settings(
         Optional override (e.g. from the Streamlit sidebar). When omitted, the
         environment variable ``DASHBOARD_STORAGE_ROOT`` is required.
     status_url:
-        Optional read-only AWS status API URL. When omitted, uses
+        Optional read-only Live Paper status API URL. When omitted, uses
         ``DASHBOARD_STATUS_URL`` if set, otherwise ``DEFAULT_LIVE_PAPER_STATUS_URL``.
     """
     if storage_root is not None:
@@ -54,7 +55,7 @@ def load_settings(
 
 
 def resolve_status_url(*, status_url: str | None = None) -> str | None:
-    """Resolve status URL from override, env, or the built-in AWS default."""
+    """Resolve status URL from override, env, or the built-in default."""
     return _resolve_status_url(status_url)
 
 

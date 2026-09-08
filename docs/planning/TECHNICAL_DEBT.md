@@ -1775,6 +1775,86 @@ correct working directory.
 
 ---
 
+## TD-031 — No Loader Turns a Declared `signal_model_file` Into a `SignalModelDefinition`
+
+```text
+Status: ACCEPTED
+Priority: MEDIUM
+Domain: Predictive Research / Phase 16 (Sprint 056, increment 16B)
+Introduced: Sprint 056 (2026-09-05), discovered during S056-T004 QA
+Target Review: Before 16C (Signal Quality Scoring) is planned, or any CLI-
+  driven `signal_occurrences` predictive study is requested
+Owner: Unassigned
+```
+
+### Accepted Shortcut
+
+`SampleSpec.signal_model_file` (ADR-0031) declares a path to an
+operator-authored Signal Model, but no code anywhere in the framework turns
+that path into a `SignalModelDefinition`. `BuildPredictiveDatasetRequest`
+instead gained a `signal_model: SignalModelDefinition | None` seam — the
+same externally-supplied-object pattern already used by `preloaded_bars`
+and `preloaded_view` — so a caller who already holds the object in memory
+(a test, a script) can supply it directly. Neither real caller in the repo
+(`apps/cli/src/trading_cli/commands/research.py::_run_predictive`,
+`scripts/predictive_research/build_predictive_dataset.py`) passes it today.
+
+### Reason
+
+Signal Models are authored as Python DSL calls (`build_strategy()`-style),
+not YAML/JSON like `PredictiveStudySpec` itself, so a file-based loader is a
+distinct trust-model decision — akin to `apps/cli`'s `strategy_file` /
+ADR-0027 — not a small addition. Sprint 056 / S056-T004's own acceptance
+criteria (D-S056-08) only require resolving `signal_occurrences` against a
+synthetic, in-memory fixture; no task in the sprint asks for a file-driven
+CLI path. Building the loader inside S056-T004 would have smuggled a new
+trust-model decision into a task scoped as a resolution mechanism.
+
+### Consequences
+
+- An operator cannot run a real (non-synthetic-fixture) `signal_occurrences`
+  predictive study through `trading-cli research run` today — a
+  `signal_occurrences` spec with no `signal_model` object supplied fails
+  fast with a named `PredictiveDatasetError` identifying the missing input
+  (not a silent no-op, not an obscure crash).
+- Phase 16 increment 16C (Signal Quality Scoring, `docs/planning/roadmap/PHASE_16_QUANT_WORKBENCH.md`
+  §13H.3) is the first increment that plausibly needs a real, file-driven
+  `signal_occurrences` study and does not yet have a way to get one.
+
+### Safe Operating Boundary
+
+No workflow may assume `signal_model_file` alone is sufficient to resolve a
+`signal_occurrences` sample. Every current caller must supply
+`BuildPredictiveDatasetRequest.signal_model` explicitly, in-process.
+
+### Repayment Trigger
+
+16C is planned, or an operator needs a CLI-driven `signal_occurrences`
+study before then.
+
+### Repayment Direction
+
+Design a `signal_model_file` loader through its own decision record (Wave 0
+decision or ADR, depending on how much a trust-model question it raises by
+then) — do not add it as a side effect of another task. The likely shape
+mirrors ADR-0027's `strategy_file` convention (a fixed entry-point function
+convention, an explicit trust-model statement, a pre-flight error taxonomy).
+
+### Related Documents
+
+- `docs/adr/ADR-0031-predictive-sample-spec-and-task.md`
+- `docs/planning/sprints/SPRINT_056.md` (S056-T004)
+- `docs/planning/roadmap/PHASE_16_QUANT_WORKBENCH.md` §13H.3 (16C)
+- `docs/adr/ADR-0027-operator-authored-strategy-loading.md` (the precedent
+  this loader would likely follow)
+
+### Related Tasks
+
+- PR #450 (`feat/predictive-signal-occurrence-samples`) — where this gap
+  was found and deliberately left open, flagged in the PR description
+
+---
+
 # 6. Planned Debt Boundaries
 
 The following shortcuts may be accepted later but are not yet introduced:

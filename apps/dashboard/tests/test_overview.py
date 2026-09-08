@@ -26,12 +26,12 @@ def test_research_diagram_covers_provider_to_analytics() -> None:
     assert "Analytics layer" in text
 
 
-def test_live_diagram_covers_aws_and_readonly_dashboard() -> None:
+def test_live_diagram_covers_runtime_host_and_readonly_dashboard() -> None:
     text = LIVE_WORKFLOW_MERMAID
     assert "Exchange provider live feed" in text
-    assert "subgraph aws" in text
+    assert "subgraph runtimeHost" in text
     assert "Framework runtime" in text
-    assert "Live strategy instance" in text
+    assert "Paper strategy instance" in text
     assert "Research path" not in text
     assert "Read-only status API" in text
     assert "Dashboard Live Paper view" in text

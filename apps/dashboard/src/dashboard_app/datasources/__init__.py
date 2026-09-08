@@ -1,16 +1,19 @@
-"""Presentation datasource contracts (historical + AWS dry-run status)."""
+"""Presentation datasource contracts (historical + Live Paper status)."""
 
-from dashboard_app.datasources.aws_http import HttpAwsDryRunDataSource
-from dashboard_app.datasources.aws_stub import AwsDryRunDataSource, UnimplementedAwsDryRunDataSource
 from dashboard_app.datasources.historical import (
     HistoricalRunDataSource,
     ParquetHistoricalRunDataSource,
 )
+from dashboard_app.datasources.live_paper_http import HttpLivePaperStatusDataSource
+from dashboard_app.datasources.live_paper_stub import (
+    LivePaperStatusDataSource,
+    UnimplementedLivePaperStatusDataSource,
+)
 
 __all__ = [
-    "AwsDryRunDataSource",
     "HistoricalRunDataSource",
-    "HttpAwsDryRunDataSource",
+    "HttpLivePaperStatusDataSource",
+    "LivePaperStatusDataSource",
     "ParquetHistoricalRunDataSource",
-    "UnimplementedAwsDryRunDataSource",
+    "UnimplementedLivePaperStatusDataSource",
 ]
