@@ -45,17 +45,22 @@ Current Phase: Phase 15 — Predictive Research Catalog Expansion and
   Phase 16 — Quant Research Workbench (APPROVED 2026-09-04). Increment 16B
   (Sprint 056, SampleSpec Foundation) is COMPLETE and merged to `main`
   (#457). Increment 16A (Sprint 057, Analyst Verdict Artifact) is COMPLETE
-  (7/7 tasks) on branch `sprint/analyst-verdict-artifact` (working PRs
-  #464-#469) but **not yet merged to `main`** — the final integration PR
-  is a separate, maintainer-reviewed step. No other 16-series increment
-  is planned, opened, or started
+  (7/7 tasks) and **merged to `main`** (#471, 2026-09-08) — the integration
+  PR from `sprint/analyst-verdict-artifact` closed this increment. Increment
+  16C (Signal Quality Scoring, Sprint 058) is **APPROVED** for
+  implementation (maintainer, 2026-09-08) — ADR-0033 (score delivery
+  boundary) is ACCEPTED; no task has started yet
   (`ROADMAP.md` §13H;
-  `docs/planning/roadmap/PHASE_16_QUANT_WORKBENCH.md`).
+  `docs/planning/roadmap/PHASE_16_QUANT_WORKBENCH.md`;
+  `docs/planning/sprints/SPRINT_058.md`;
+  `docs/adr/ADR-0033-predictive-score-delivery-boundary.md`).
   All phases through Phase 13 (Sprint 048, #383) are COMPLETE on `main`.
-Active Sprint: none opened. SPRINT_057 (Analyst Verdict Artifact, Phase 16
-  increment 16A) is COMPLETE (7/7 tasks) pending its integration PR into
-  `main`. See `docs/planning/sprints/SPRINT_057.md` §13 Review and
-  `S057_WAVE0_DECISIONS.md`.
+Active Sprint: SPRINT_058 (Signal Quality Scoring, Phase 16 increment 16C)
+  is Approved; T001/T002/T003/T005 are Ready, T004 and T006 depend on
+  earlier tasks in practice. No task has started. SPRINT_057 (Analyst
+  Verdict Artifact, Phase 16 increment 16A) is COMPLETE (7/7 tasks) and
+  merged to `main` via #471. See `docs/planning/sprints/SPRINT_057.md` §13
+  Review and `S057_WAVE0_DECISIONS.md`.
 Last Completed Sprint (cross-cutting, merged to `main`): SPRINT_055
   (Documentation Architecture Rebuild, high-level to low-level) — merged to
   `main` via #447. SPRINT_054 (Vision Reclassification and Reference
@@ -69,9 +74,10 @@ Last Completed Sprint (Phase 16 track, merged to `main`): SPRINT_056
   (SampleSpec Foundation, Phase 16 increment 16B) — 7/7 tasks, merged to
   `main` via #457. One item of technical debt left open (`TECHNICAL_DEBT.md`
   TD-031).
-Last Completed Sprint (Phase 16 track, not yet merged to `main`):
+Last Completed Sprint (Phase 16 track, merged to `main`):
   SPRINT_057 (Analyst Verdict Artifact, Phase 16 increment 16A) — 7/7
-  tasks, working PRs #464-#469 merged into `sprint/analyst-verdict-artifact`.
+  tasks, working PRs #464-#469 merged into `sprint/analyst-verdict-artifact`,
+  which was then merged to `main` via #471 (2026-09-08).
   All three retrospective verdicts (S057-T005) matched the pre-declared
   expectations exactly; no threshold was adjusted. One item of technical
   debt left open (`TECHNICAL_DEBT.md` TD-033); `PROBLEM_REGISTRY.md`
@@ -89,7 +95,8 @@ Full sprint-by-sprint history: §12 below (compact index) and each sprint's
 16 increment 16A) — 7/7 tasks, working PRs #464 (ADR-0032), #465 (rule
 set), #466 (fact extraction), #467 (sidecar I/O), #468 (retrospective
 application), #469 (dashboard display), all merged into
-`sprint/analyst-verdict-artifact`. `research/predictive/verdict.py` and
+`sprint/analyst-verdict-artifact`, which was then merged to `main` via
+#471 (2026-09-08). `research/predictive/verdict.py` and
 `application/predictive_research/evaluate_run_verdict.py` now produce a
 reproducible, versioned verdict for a predictive run from persisted
 artifacts alone; applied retrospectively to Sprint 052's three real runs,
@@ -98,8 +105,7 @@ all three matched the pre-declared expectations exactly (see
 left open (`TECHNICAL_DEBT.md` TD-033); `PROBLEM_REGISTRY.md` PRB-022 also
 logged. No study, scorer, promotion, or new market claim was produced. See
 `docs/planning/sprints/SPRINT_057.md` §13 Review for the full closure
-record. The final `sprint/analyst-verdict-artifact` -> `main` integration
-PR has not been opened as of this update.
+record.
 
 **Previously active (merged to `main`):** SPRINT_056 (SampleSpec
 Foundation, Phase 16 increment 16B) — 7/7 tasks, merged via #457 (working
@@ -130,15 +136,17 @@ the binary pass (run `faa6983acd03f846`, `sklearn.logistic`) — see
 `docs/planning/sprints/SPRINT_052.md` §13 Review. This closes Phase 15 as a
 whole.
 
-**Next planned capability (APPROVED, two increments now complete):** Phase
-16 — Quant Research Workbench (increments 16A–16G), approved by the
-maintainer 2026-09-04. Canonical description: `ROADMAP.md` §13H and
-`docs/planning/roadmap/PHASE_16_QUANT_WORKBENCH.md` §13H.1 (16A's
+**Next planned capability (APPROVED, two increments now complete and
+merged):** Phase 16 — Quant Research Workbench (increments 16A–16G),
+approved by the maintainer 2026-09-04. Canonical description: `ROADMAP.md`
+§13H and `docs/planning/roadmap/PHASE_16_QUANT_WORKBENCH.md` §13H.1 (16A's
 completion note) / §13H.2 (16B's completion note). **16B (Sprint 056) is
 complete and merged to `main` (#457). 16A (Sprint 057) is complete (7/7
-tasks) on `sprint/analyst-verdict-artifact`, not yet merged to `main`.** No
-other increment (16C–16G) is opened, planned or numbered. Sprint 052 is
-not re-scoped or absorbed by Phase 16.
+tasks) and merged to `main` (#471). 16C (Sprint 058, Signal Quality Scoring)
+is APPROVED** (maintainer, 2026-09-08) — ADR-0033 (score delivery boundary)
+is ACCEPTED; implementation has not started. No other increment (16D–16G)
+is opened, planned or numbered. Sprint 052 is not re-scoped or absorbed by
+Phase 16.
 
 ---
 
@@ -217,7 +225,8 @@ These have their own canonical owners — this file does not duplicate them:
 | 052 | Real-Data BTC Predictive Study (Phase 15B) | COMPLETED | 8 / 8 tasks; #460 (Wave 0 V=1m correction), #461 (T003-T008), #462 (follow-up fixes), #463 (integration to `main`); Q5 CLOSED by run `faa6983acd03f846` (`sklearn.logistic`) — see `docs/reference/BTC_PREDICTIVE_STUDY.md` and `docs/planning/sprints/SPRINT_052.md` §13 Review |
 | 053 | Repository Workflow & Documentation Hygiene | IN PROGRESS | see `docs/planning/sprints/SPRINT_053.md` |
 | 056 | SampleSpec Foundation (Phase 16, increment 16B) | COMPLETED | 7 / 7 tasks; working PRs #448, #449, #450, #451, #456; integrated to `main` via #457 — see `docs/planning/sprints/SPRINT_056.md` §13 Review |
-| 057 | Analyst Verdict Artifact (Phase 16, increment 16A) | COMPLETED | 7 / 7 tasks; working PRs #464-#469 into `sprint/analyst-verdict-artifact`; not yet integrated to `main` — see `docs/planning/sprints/SPRINT_057.md` §13 Review |
+| 057 | Analyst Verdict Artifact (Phase 16, increment 16A) | COMPLETED | 7 / 7 tasks; working PRs #464-#469 into `sprint/analyst-verdict-artifact`; integrated to `main` via #471 — see `docs/planning/sprints/SPRINT_057.md` §13 Review |
+| 058 | Signal Quality Scoring (Phase 16, increment 16C) | APPROVED, 0 / 6 tasks | ADR-0033 (score delivery boundary) ACCEPTED 2026-09-08; sprint approved for implementation, no task started yet — see `docs/planning/sprints/SPRINT_058.md` |
 
 Sprint numbering has no gap at 050 — it is reserved for Phase 14B and not yet
 opened (see `docs/planning/sprints/SPRINT_053.md` metadata for the numbering

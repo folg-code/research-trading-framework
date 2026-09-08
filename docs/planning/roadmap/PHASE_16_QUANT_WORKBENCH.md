@@ -4,7 +4,12 @@
 Status: APPROVED (maintainer, 2026-09-04) — no sprint opened for any increment
         at approval time. UPDATE (2026-09-08): 16B is COMPLETE (Sprint 056,
         7/7 tasks, merged to `main` via #457) — see §13H.2's "16B is DONE"
-        note below. No sprint is opened for any other increment.
+        note below. 16A is COMPLETE (Sprint 057, 7/7 tasks, merged to `main`
+        via #471) — see §13H.1's "16A is DONE" note below. 16C is APPROVED
+        for implementation (Sprint 058, `docs/planning/sprints/SPRINT_058.md`,
+        maintainer 2026-09-08) — ADR-0033 (score delivery boundary) is
+        ACCEPTED; no task has started. See §13H.3 below. No sprint is opened
+        for 16D–16G.
 ```
 
 Full detail for `ROADMAP.md` §13H — this is the LIVE, canonically-updated location for this
@@ -236,8 +241,8 @@ PRs into `sprint/analyst-verdict-artifact` (#464 ADR-0032, #465 vocabulary
 and rule cascade, #466 fact extraction, #467 sidecar I/O, #468 retrospective
 application, #469 dashboard display). ADR-0032 was accepted 2026-09-08 with
 no correction attracted at review; the shipped vocabulary, rule set and
-sidecar schema match it exactly. `sprint/analyst-verdict-artifact` had not
-been merged into `main` as of this note — see
+sidecar schema match it exactly. `sprint/analyst-verdict-artifact` was
+merged into `main` via #471 (2026-09-08) — see
 `docs/planning/CURRENT_STATUS.md` §2/§3 for the current integration state.
 
 All four completion criteria above were assessed against the shipped
