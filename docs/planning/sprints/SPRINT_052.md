@@ -189,6 +189,23 @@ that grid). This is the existing, no-code-change knob for:
 Wave 0 locks the grid; under memory or wall-clock pressure the **range or grid**
 moves — never the pipeline, and never the instrument.
 
+**CORRECTION (2026-09-08, post-T003 STOP — see the T003 outcome note under
+Wave 1 above).** This finding's central claim was wrong:
+`PredictiveStudySpec.evaluation_timeframe` is validated **source-or-finer**
+(`validate_evaluation_timeframe`, `ADR-MA-012` "Timeframe roles" —
+Evaluation, not Computation), not source-or-coarser. It is not a
+no-code-change knob for coarsening the study's own row grid; the actual
+per-feature coarsening role (`ComponentRequest.computation_timeframe`) is
+not wireable from `PredictiveStudySpec` today and wiring it would itself be
+a forbidden `research/predictive/` change (§5). `S052_WAVE0_DECISIONS.md`
+D-S052-03/D-S052-04's corrections (2026-09-08) adopt option (a) from the
+T003 STOP note instead: `V` is corrected to `1m` (matching source), the
+range is kept exactly as signed off, and the ten frozen components'
+evaluation-bar-denominated parameters are scaled x15 (D-S052-05's
+correction) to hold their wall-clock window constant. A diagnostic
+benchmark of the full-range 1m matrix build (~45s wall-clock, ~5.3GB peak
+memory) confirmed no range trim is needed for cost reasons either.
+
 ### Finding 4 — `RANDOM_PERMUTATION` is a metric-layer comparator, not a family
 
 It is computed inside the metrics layer per fold using `EstimatorSpec.seed`
@@ -289,7 +306,98 @@ Wave 0 is DONE when the maintainer has checked off the Wave 0 Checklist.
 | Task | Description | Acceptance | Deps | Status |
 |------|-------------|-----------|------|--------|
 | S052-T002 | Commit `apps/cli/examples/predictive/btc_momentum_regime_study.yaml` (the `PredictiveStudySpec`) and the baseline `EstimatorSpec` YAMLs, plus a network-free parse test | both files load through their own loaders (`load_predictive_study_spec`, the estimator loader) with no code change; the study's `definition_hash` is recorded in the file's header comment; the feature list matches Wave 0 exactly; `research_run_predictive.yaml`'s dangling `configs/predictive/...` reference is repointed at the real files (Finding 5); the test runs in default CI without the `ml` extra and without network | T001 | DONE |
-| S052-T003 | **The baseline run** (maintainer-executed, `ml` extra): build the dataset, run the regression and the classification study, render both reports. Record run IDs, dataset fingerprint, seeds and wall-clock | the dataset builds through the **unmodified** `build_predictive_dataset`; fold role counts (TRAIN/TEST/PURGED/EMBARGOED) match Wave 0's plan within a stated tolerance and any deviation is explained, not adjusted away; both runs complete; **no file under a §5 forbidden path is modified** (asserted by a clean `git status` on `src/`); report HTML stays out of git | T002 | TODO |
+| S052-T003 | **The baseline run** (maintainer-executed, `ml` extra): build the dataset, run the regression and the classification study, render both reports. Record run IDs, dataset fingerprint, seeds and wall-clock | the dataset builds through the **unmodified** `build_predictive_dataset`; fold role counts (TRAIN/TEST/PURGED/EMBARGOED) match Wave 0's plan within a stated tolerance and any deviation is explained, not adjusted away; both runs complete; **no file under a §5 forbidden path is modified** (asserted by a clean `git status` on `src/`); report HTML stays out of git | T002 | **TODO (re-attempt — see below)** |
+
+**S052-T003 outcome: STOP-and-report, per SPRINT_052.md §5's own instruction.**
+Neither pass ran. `uv run trading-cli research run --config
+apps/cli/examples/research_run_predictive.yaml` (regression pass, `ml`
+extra confirmed installed: `sklearn==1.9.0`) and the equivalent config for
+the binary pass both fail identically, in ~2s, before any fold assignment
+or model fit, with:
+
+```text
+WorkflowError: 'research run predictive' failed: evaluation_timeframe
+cannot be coarser than source timeframe: 15m vs 1m
+```
+
+This is raised by `RequestResolver.run_context` ->
+`validate_evaluation_timeframe`
+(`src/trading_framework/market_analysis/models/timeframes.py`), called from
+`build_predictive_dataset` with `timeframe=spec.dataset_ref.dataset_id.timeframe`
+(1m, the published BTCUSDT.P source) and
+`evaluation_timeframe=spec.evaluation_timeframe` (15m, both committed T002
+specs, D-S052-03/D-S052-04's `V=15m`). Both committed spec files are
+byte-for-byte frozen per D-S052-05 and were not edited to investigate this
+— reading the validator and its own docstring
+(`"Ensure the evaluation grid is not coarser than the source dataset"`)
+against `ADR-MA-012` §"Timeframe roles" is what identified the mismatch:
+
+- `ADR-MA-012` documents **three** timeframe roles: Source, **Computation**
+  (`ComponentRequest.computation_timeframe`, may be coarser than source —
+  the actual per-feature resample knob) and **Evaluation**
+  (`RunAnalysisRequest.evaluation_timeframe`, defaults to source and is the
+  grid results are aligned back onto — the ADR's own words: "align results
+  onto a finer evaluation grid without look-ahead"). `PredictiveStudySpec.
+  evaluation_timeframe` feeds directly into this run-level Evaluation role,
+  not the per-component Computation role.
+- Wave 0's Finding 3 / D-S052-04 (`SPRINT_052.md` §4, `S052_WAVE0_DECISIONS.md`
+  D-S052-04) describes `PredictiveStudySpec.evaluation_timeframe` as "the
+  existing, no-code-change knob" for evaluating on a grid **coarser** than
+  the 1m source, specifically to keep the ~1.31M-row 1m import's row count
+  and memory footprint sane. The code enforces the opposite: the run-level
+  evaluation grid must be **no coarser than** the source. No committed
+  regression, unit, or spec-parse test (`test_spec.py`,
+  `test_build_predictive_dataset.py`) exercises
+  `evaluation_timeframe` strictly coarser than the dataset's source
+  timeframe — every existing fixture uses `1m`/`1m` or an explicit
+  same-or-finer pair, which is why this was never caught before real data
+  and a real 15m/1m pair reached the pipeline.
+- **No file under any §5 forbidden path was modified to investigate or
+  work around this** — `git status` on the full working tree (not just
+  `src/`) is clean; only reads. No attempt was made to patch
+  `market_analysis/`, `research/predictive/`, or
+  `application/predictive_research/`, and none was made to loosen the
+  committed spec files, weaken the fold plan, or invent a different
+  evaluation timeframe on the spot — any of those would themselves be
+  scope violations (unmodified pipeline; frozen D-S052-05 feature/grid
+  plan).
+- **Consequence:** Wave 0's fold-plan arithmetic (D-S052-03, `S052_BTC_DATA_
+  INVENTORY.md`-derived row counts, the ~87k 15m-evaluation-row estimate)
+  assumed a working coarsening path that does not exist at the
+  `PredictiveStudySpec` level today. The actual, working coarsening
+  mechanism (`ComponentRequest.computation_timeframe`, per feature) does
+  not reduce the run's own output row count the way a run-level
+  `evaluation_timeframe` was assumed to — components would compute on a
+  resampled 15m view, but the labelled feature matrix and fold assignment
+  would still run over the full 1m grid (~1.31M rows), which is exactly
+  the memory/wall-clock risk Finding 3 was written to avoid.
+- **This is a Wave 0 replanning question, not an engineering workaround.**
+  It requires deciding, with maintainer sign-off, one of: (a) re-derive the
+  fold plan and both committed specs with `evaluation_timeframe` left at
+  `1m` (matching source) and accept the full 1m row count/memory cost,
+  (b) find or add a supported, no-pipeline-change way to reduce the study's
+  own row grid before folding (not identified in the current code by this
+  read), or (c) treat this as a genuine pipeline gap and open an ADR/TD
+  entry proposing one. None of these is this task's call to make.
+
+Recorded facts: no run IDs, no dataset fingerprint, and no fold role counts
+exist for T003 — the failure occurs before `build_predictive_dataset`
+reaches fold assignment. Total wall-clock across both failed attempts: ~4s.
+`ml` extra was independently confirmed present (`sklearn 1.9.0`) so this is
+not an environment/dependency gap.
+
+**Resolution (2026-09-08): option (a) adopted, maintainer-approved.**
+`S052_WAVE0_DECISIONS.md` D-S052-03/D-S052-04/D-S052-05 now carry the
+correction (`V` 15m -> 1m, range/F/T/E/M unchanged, the ten frozen
+components' evaluation-bar parameters scaled x15 -- Option A). Both
+committed T002 spec files were updated to match and their
+`definition_hash` header values recomputed; the parse test
+(`tests/unit/research/predictive/test_btc_momentum_regime_study.py`, 11
+cases) passes against the corrected specs. A diagnostic benchmark of the
+full-range 1m matrix build (~45s wall-clock, ~5.3GB peak memory) confirmed
+the range does not need to be trimmed for cost reasons. **S052-T003 is
+ready to be re-attempted** against the corrected specs; its Status above
+returns to `TODO` for that re-attempt.
 
 ### Wave 2 — The comparison
 
