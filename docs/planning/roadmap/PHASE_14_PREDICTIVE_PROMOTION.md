@@ -211,6 +211,28 @@ Phase 13's Exit/Risk work (ADR-0028) is CONSUMED, never modified
   **outside** Sprint 049 (no 14A task depends on it); it gates 14B and the PRD's
   success metrics 2 and 3. **Now being actively pursued by Phase 15 (§13G,
   Sprints 051+052)** — closes this dependency only on a positive result,
+
+  **UPDATE (2026-09-08, S052-T008, D-S052-09 disposition) — CLOSED by run
+  `faa6983acd03f846`, family `sklearn.logistic`.** Sprint 052's BINARY/
+  classification pass (BTC futures, `BTCUSDT.P`, unmodified Phase 10
+  pipeline) beats `RANDOM_PERMUTATION` on every one of six walk-forward
+  folds and pooled, clearing `S044_GATE.md` §1.4's strict per-fold bar —
+  a real, non-synthetic trained candidate model showing genuine
+  out-of-sample structure on BTC data, satisfying this dependency exactly
+  as worded. The winning family, `sklearn.logistic`, is immediately
+  compatible with ADR-0029's promotion v1 (linear/logistic families only)
+  — **this closes the dependency; it does not itself promote anything**
+  (promotion is a separate, maintainer-only, out-of-scope act, per
+  `SPRINT_052.md` §3). Per D-S052-09, this dependency is closed by ANY
+  qualifying positive result, not by every pass succeeding: the
+  REGRESSION pass (`sklearn.ridge`, and its triggered `lightgbm.regressor`
+  tree pass) did **not** clear this bar — the ridge pass beats permutation
+  pooled but loses one of six folds, and the tree pass loses two of six
+  folds with a pronounced train/test overfit gap — but that does not
+  reopen this dependency, since the BINARY pass alone already satisfies
+  it. Full detail: `docs/reference/BTC_PREDICTIVE_STUDY.md`;
+  `docs/planning/sprints/SPRINT_052.md` (S052-T004/T005/T008 outcome
+  notes); `docs/planning/sprints/S052_WAVE0_DECISIONS.md` D-S052-09.
 - **a named downstream robustness plan** (S044_GATE §1.5) — **does not exist**;
   same status: prerequisite outside Sprint 049, gates 14B,
 - **ADR-0030** (inference-time availability enforcement) — needed per

@@ -6,15 +6,20 @@
 Sprint: 052
 Phase: Phase 15 — Predictive Research Catalog Expansion and Real-Data Study;
        increment 15B (closing increment)
-Status: APPROVED (2026-09-08) — Wave 0 Checklist signed off
+Status: COMPLETE (2026-09-08) — 8/8 tasks DONE on
+        `docs/btc-predictive-study-baseline-run`. Wave 0 Checklist signed off
         (S052_WAVE0_DECISIONS.md D-S052-11). Gate condition satisfied: Sprint
         051 is complete and merged to `main` (#409), and
         docs/planning/sprints/S051_BTC_DATA_INVENTORY.md records a usable
         published BTCUSDT.P dataset (911 days, 1,311,840 rows, zero gaps).
-        `engineer` may start S052-T001.
+        Q5 (ROADMAP §13F) is CLOSED by the BINARY pass (run
+        `faa6983acd03f846`, `sklearn.logistic`) — see §13 Review. Tester/
+        reviewer sign-off and integration to `sprint/btc-predictive-study`,
+        then a final integration PR to `main`, are still pending (not part
+        of this sprint's own task list).
 Planned Start: 2026-09-08 (`sprint/btc-predictive-study` cut from `main` @
         6cb0826, S052-T001 landed same day)
-Planned End: TBD
+Planned End: 2026-09-08 (all 8 tasks DONE same day; integration pending)
 Sprint Goal Owner: Project Maintainer
 Depends On: SPRINT_051 (the six components + the BTC dataset inventory),
             SPRINT_039-044 (the Phase 10 pipeline this sprint CONSUMES unmodified),
@@ -856,9 +861,36 @@ set.
 |------|-------------|-----------|------|--------|
 | S052-T006 | `docs/reference/BTC_PREDICTIVE_STUDY.md`: the instrument, range and gaps; the fold plan; the feature list; the per-fold and pooled comparison table; the train/test gaps; the importance ranking; and **the verdict stated in one unhedged sentence** | a reader learns the answer in the first paragraph without inference; a negative result is stated as plainly as a positive one, with no "promising signs" language; the document names what would change the verdict (a different horizon, grid, or feature family) as *future options*, never as retroactive excuses; it states that Phase 10 metrics are a precondition and never a verdict that the model should trade (ADR-0024); the document describes a **BTC** study only (D-S052-03a) | T004, T005 | DONE |
 | S052-T007 | **Reproducibility record** (a section of T006's document plus the spec header comments): study `definition_hash`, dataset fingerprint, source `DatasetRef` and its import-manifest fingerprint, run IDs, estimator specs and seeds, and the framework version | a third party with the same data can re-derive the same dataset fingerprint from the committed spec; the record states which artifacts live outside git (`user_data/`) and are therefore not reproducible from the repo alone | T006 | DONE (folded into T006) |
-| S052-T008 | Closure and **Q5 disposition**: update ROADMAP §13F's Q5 dependency line (append, never rewrite history), §13G's 15B status, `CURRENT_STATUS.md`, and the sprint Review | §13F's Q5 line states either "closed by run `<id>`, `<family>`" **or** "still open — reason", never something ambiguous; if closed, the entry states whether the winning family is promotable under ADR-0029 (linear/logistic) or hits its documented tree/neural refusal; if still open, it names S049 Wave 0's "option (b)" as the decision now facing Sprint 050 — and leaves that decision to the maintainer | T007 | TODO |
+| S052-T008 | Closure and **Q5 disposition**: update ROADMAP §13F's Q5 dependency line (append, never rewrite history), §13G's 15B status, `CURRENT_STATUS.md`, and the sprint Review | §13F's Q5 line states either "closed by run `<id>`, `<family>`" **or** "still open — reason", never something ambiguous; if closed, the entry states whether the winning family is promotable under ADR-0029 (linear/logistic) or hits its documented tree/neural refusal; if still open, it names S049 Wave 0's "option (b)" as the decision now facing Sprint 050 — and leaves that decision to the maintainer | T007 | DONE |
 
-**Progress:** 7 / 8 — Wave 0's fold plan (T001) is landed and maintainer-signed
+**Progress: 8 / 8 — all Wave 3 tasks DONE, sprint tasks complete.**
+
+**S052-T008 outcome (2026-09-08, `docs/btc-predictive-study-baseline-run`):
+DONE.** Updated `docs/planning/roadmap/PHASE_14_PREDICTIVE_PROMOTION.md`
+§13F's Q5 dependency bullet with an appended (not rewritten) update note:
+**Q5 is CLOSED by run `faa6983acd03f846`, family `sklearn.logistic`** — the
+BINARY pass beats `RANDOM_PERMUTATION` on every one of six folds and
+pooled, clearing `S044_GATE.md` §1.4's strict per-fold bar, and is
+immediately compatible with ADR-0029's promotion v1 (linear/logistic
+only); this closes the dependency without promoting anything (promotion
+stays a separate, maintainer-only, out-of-scope act). The note also
+records, honestly, that the REGRESSION pass (ridge, and its triggered
+`lightgbm.regressor` tree pass) did **not** clear the bar — per D-S052-09,
+Q5 is closed by any one qualifying positive result, and the binary pass
+alone satisfies it. `docs/planning/roadmap/PHASE_15_PREDICTIVE_CATALOG.md`
+(header and §13G status paragraph) and `docs/planning/ROADMAP.md` (the
+phase table row, the parallel-tracks summary line, and the §13F/§13G stub
+paragraphs, which restate status rather than only pointing at the linked
+file) were updated to reflect 15B COMPLETE (8/8) and Phase 15 as a whole
+COMPLETE, consistent with the same Q5 disposition sentence.
+`docs/planning/CURRENT_STATUS.md` was updated (Status Metadata's Current
+Phase block, the Work in Progress section, and the Phase 16 gate-condition
+note) to mark Sprint 052 / Phase 15B complete with a pointer to
+`docs/reference/BTC_PREDICTIVE_STUDY.md`. No file under any §5 forbidden
+path was touched; `git status --porcelain src/` stayed empty.
+
+**Progress: 7 / 8** *(historical figure, prior to T008 — see 8/8 above)* —
+Wave 0's fold plan (T001) is landed and maintainer-signed
 off (D-S052-11's fold-table box checked). S052-T002 (`feat/btc-predictive-study-specs`)
 commits the study/estimator YAML: because `PredictiveStudySpec.label` is a
 single `LabelSpec`
@@ -1028,4 +1060,151 @@ tree/neural promotion path (TD-029) if a tree family wins here.
 
 ## 13. Review
 
-_(to be written at closure by `tech-writer`)_
+**Closed 2026-09-08 by `tech-writer` (S052-T008).** Facts recorded below;
+nothing here rewrites Wave 0's plan or the task-level outcome notes above —
+this section summarizes them.
+
+### Completed
+
+All 8 tasks across 4 waves are DONE:
+
+- **Wave 0 (T001):** the fold plan computed from `S051_BTC_DATA_INVENTORY.md`'s
+  measured facts (911 days, 1,311,840 rows, zero gaps); maintainer-signed off
+  (D-S052-11).
+- **Wave 1 (T002, T003):** committed `PredictiveStudySpec`/`EstimatorSpec`
+  YAML under `apps/cli/examples/predictive/`, a network-free parse test, and
+  both baseline passes (regression/ridge, binary/logistic) run through the
+  unmodified Phase 10 pipeline on real `BTCUSDT.P` data.
+- **Wave 2 (T004, T005):** the per-fold/pooled `RANDOM_PERMUTATION` comparison,
+  train/test gaps, and Sprint 051 feature importance for both passes; the
+  conditional tree pass (`lightgbm.regressor`) ran once, only for the
+  REGRESSION pass, under its pre-declared trigger.
+- **Wave 3 (T006/T007 folded, T008):** `docs/reference/BTC_PREDICTIVE_STUDY.md`
+  written with an unhedged verdict, and the Q5 disposition recorded in
+  `PHASE_14_PREDICTIVE_PROMOTION.md` §13F, `PHASE_15_PREDICTIVE_CATALOG.md`
+  §13G, `ROADMAP.md`, and `CURRENT_STATUS.md`.
+
+No file under any §5 forbidden path (`research/predictive/`,
+`application/predictive_research/`, `market_analysis/`, `infrastructure/ml/`,
+`research/predictive/promotion/`) was touched at any point in the sprint;
+`git status --porcelain src/` stayed empty on every run task.
+
+### Not completed
+
+Nothing in the 8-task breakdown was skipped or left undone. Two items outside
+the task breakdown remain open, both flagged rather than absorbed:
+
+- Integration of this sprint's work into `sprint/btc-predictive-study` and a
+  final integration PR to `main` — explicitly not part of this sprint's own
+  task list (T008's acceptance criteria stop at the Q5 disposition and the
+  document updates).
+- The `apps/cli` `CandidateSetSpec` gap named below was not fixed — fixing it
+  was never in scope (§3: "Any change to ... application/predictive_research/"
+  is forbidden, and a CLI feature addition would itself be new scope).
+
+### Demonstrated capability
+
+The unmodified Phase 10 pipeline (`build_predictive_dataset`,
+`run_predictive_research`, `analyze_predictive_run`, `compare_predictive_runs`)
+runs end-to-end on a real, non-synthetic, ~1.3M-row 1-minute BTC futures
+dataset — walk-forward folds, purge/embargo, permutation-baseline comparison,
+and permutation importance all execute correctly outside the synthetic
+fixtures the pipeline had only ever been exercised against before this
+sprint (Sprint 043's characterization was synthetic-only, per Finding 1).
+The pipeline produced a genuine, reportable out-of-sample effect on one of
+two passes (BINARY/logistic) without any pipeline code change.
+
+### Problems discovered
+
+**One real STOP-and-report, resolved within the sprint (S052-T003, first
+attempt).** `PredictiveStudySpec.evaluation_timeframe` is validated
+source-or-finer (`validate_evaluation_timeframe`,
+`src/trading_framework/market_analysis/models/timeframes.py`), not
+source-or-coarser as Wave 0's Finding 3 / D-S052-04 had assumed — the
+run-level Evaluation role and the per-component Computation role
+(`ComponentRequest.computation_timeframe`) are different mechanisms per
+`ADR-MA-012`, and only the latter can coarsen a per-feature grid; it is not
+wireable from `PredictiveStudySpec` today, and wiring it would itself be a
+forbidden `research/predictive/` change. Both committed T002 spec files
+(`V=15m`) failed pipeline validation identically, in ~2s, before any fold
+assignment or model fit. No forbidden-path file was touched investigating or
+working around this. **Resolution (maintainer-approved, same day): option
+(a)** — `V` corrected to `1m` (matching source), range/fold-count/test-span/
+embargo/min-train-rows unchanged, and the ten frozen components'
+evaluation-bar-denominated parameters scaled x15 to hold their wall-clock
+window constant (D-S052-03/D-S052-04/D-S052-05 corrections, appended not
+rewritten). A diagnostic benchmark (~45s wall-clock, ~5.3GB peak memory for
+the full-range 1m matrix build) confirmed no range trim was needed. The
+re-attempt succeeded cleanly. This is a genuine, previously-uncaught gap in
+existing test coverage: no committed regression/unit/spec-parse test
+exercised `evaluation_timeframe` strictly coarser than the dataset's source
+timeframe before real data and a real 15m/1m pair reached the pipeline.
+
+**A newly-discovered CLI gap (S052-T005).** `trading-cli research run` has
+no config key for `RunPredictiveResearchRequest.candidate_set`
+(`apps/cli/src/trading_cli/commands/research.py::_run_predictive` only ever
+builds a single `EstimatorSpec`, never a `CandidateSetSpec`), so the
+conditional tree pass could not be run through the CLI at all — it was run
+by calling the existing, unmodified application function directly from an
+uncommitted scratch script, with no committed `EstimatorSpec` YAML for that
+pass (nothing under `apps/cli/`, `research/predictive/`, or
+`application/predictive_research/` was edited to work around this). **This
+is worth a `TECHNICAL_DEBT.md` entry if one does not already exist** — this
+review does not check whether `TD-030` or a similar ID already covers it,
+and does not create a new entry itself; that determination and any new
+entry are the maintainer's/reviewer's call outside this task.
+
+### Decisions required
+
+None new. The one decision this sprint's own task list required — Q5's
+disposition — was made per the pre-agreed rule (D-S052-09: closed by any one
+qualifying positive result) and is recorded above and in
+`PHASE_14_PREDICTIVE_PROMOTION.md` §13F; it did not require a fresh
+maintainer decision beyond the already-signed-off Wave 0 rule. The one
+decision genuinely left open by this sprint, by design (D-S052-09), is
+Sprint 050 / Phase 14B's own planning — out of this sprint's scope by §3 —
+but that decision no longer needs S049 Wave 0's "option (b)" fallback, since
+Q5 closed on a real result rather than staying open.
+
+### Technical debt added
+
+None added by this sprint directly (no code was touched under any forbidden
+path, and no shortcut was taken in the committed specs or tests). The CLI
+`CandidateSetSpec` gap named above pre-dates this sprint (it was discovered,
+not introduced, by T005) and is recommended, not logged, as a candidate debt
+entry — see "Problems discovered" above.
+
+### Lessons learned
+
+- **A "no-code-change knob" claim in a Wave 0 finding needs to be verified
+  against the validator's own code, not inferred from its docstring or
+  intent, before it is used to size a fold plan.** Finding 3's assumption
+  was reasonable on paper and matched the validator's docstring's spirit,
+  but not its actual enforced direction; the gap was caught by reading
+  `validate_evaluation_timeframe` itself against `ADR-MA-012`, not by any
+  existing test, because no test exercised that direction of mismatch
+  before this sprint's real data reached it.
+- **Running a real dataset through a pipeline only ever exercised on
+  synthetic fixtures surfaces test-coverage gaps that synthetic-only CI
+  cannot** — exactly the risk this sprint (and Phase 15 as a whole) was
+  designed to retire. The STOP-and-report mechanism worked as designed: the
+  agent stopped, read the code, proposed three options, and waited for
+  maintainer sign-off rather than patching around the mismatch.
+- **A split verdict is a completed sprint, not a partial one**, per the
+  sprint's own framing (§0): the BINARY pass's clean pass and the
+  REGRESSION pass's clean failure (including its triggered tree pass's
+  worse per-fold result and clear overfit signature) are both reported with
+  equal weight, and Q5 closes on the strength of one qualifying result
+  without either inflating or downplaying the other pass's outcome.
+
+### Follow-up
+
+- Integrate this sprint's work into `sprint/btc-predictive-study`, then open
+  the final integration PR to `main` (next step, not part of this task).
+- Maintainer/reviewer to decide whether the `apps/cli` `CandidateSetSpec` gap
+  warrants a new `TECHNICAL_DEBT.md` entry (or already has one).
+- Sprint 050 / Phase 14B planning can now proceed against a real, positive
+  Q5 result (`sklearn.logistic`, immediately promotable under ADR-0029)
+  rather than S049 Wave 0's "option (b)" fallback — that planning step
+  itself remains out of this sprint's scope and is the maintainer's next
+  call.
