@@ -524,8 +524,185 @@ whoever next touches that estimator spec file, if ever.
 
 | Task | Description | Acceptance | Deps | Status |
 |------|-------------|-----------|------|--------|
-| S052-T004 | Extract the verdict: run `analyze_predictive_run` and `compare_predictive_runs`, and tabulate the primary metric **per fold and pooled** against `RANDOM_PERMUTATION`, plus the train/test gap and the permutation-importance ranking of the Sprint 051 features | the table reports both `S044_GATE` §1.4's strict bar ("beats permutation on **every** fold") and the pooled result, and says explicitly which was cleared; the train/test gap is reported for every fold so an overfit win cannot be presented as a clean one; feature importances are reported for the new components specifically, so a null result can distinguish "the features were ignored" from "the features misled" | T003 | TODO |
+| S052-T004 | Extract the verdict: run `analyze_predictive_run` and `compare_predictive_runs`, and tabulate the primary metric **per fold and pooled** against `RANDOM_PERMUTATION`, plus the train/test gap and the permutation-importance ranking of the Sprint 051 features | the table reports both `S044_GATE` §1.4's strict bar ("beats permutation on **every** fold") and the pooled result, and says explicitly which was cleared; the train/test gap is reported for every fold so an overfit win cannot be presented as a clean one; feature importances are reported for the new components specifically, so a null result can distinguish "the features were ignored" from "the features misled" | T003 | DONE |
 | S052-T005 | **Conditional, bounded second pass.** Only if Wave 0's trigger fires (baseline neither clearly clears nor clearly fails the bar): one tree family (`ml-trees`), one `CandidateSetSpec` at the default cap of 8, same dataset fingerprint, same folds, same seed | if the trigger does not fire, this task is closed as NOT RUN with one sentence of reasoning — that is a valid outcome, not a skip; if it runs, the dataset fingerprint is identical to T003's (asserted, so the leaderboard is a like-for-like comparison); no third pass exists, no matter the result; no feature is added or removed | T004 | TODO |
+
+**S052-T004 outcome (2026-09-08, `docs/btc-predictive-study-baseline-run`):**
+`analyze_predictive_run` (`persist=True`, re-deriving `metrics.json` in place —
+a read/recompute over already-persisted `predictions.parquet` and the dataset
+envelope, not a change to any file under a §5 forbidden path) and
+`compare_predictive_runs` were run against both `f7ac893d54ae6b69`
+(REGRESSION/ridge) and `faa6983acd03f846`(BINARY/logistic), both unmodified.
+Both are read-only over persisted run artifacts under `user_data/` (gitignored,
+nothing committed) — no code under `research/predictive/`,
+`application/predictive_research/`, `market_analysis/`, or
+`infrastructure/ml/` was touched, and `git status --porcelain src/` stayed
+empty throughout.
+
+**Per-fold and pooled comparison vs. `RANDOM_PERMUTATION`:**
+
+```text
+REGRESSION pass (ridge, run f7ac893d54ae6b69) — primary metric: spearman_ic
+fold  test window                MODEL       RANDOM_PERMUTATION   vs. permutation
+0     2025-12-26 -> 2026-01-25   0.021431    -0.002227             BEATS
+1     2026-01-26 -> 2026-02-25   0.013676     0.001038             BEATS
+2     2026-02-26 -> 2026-03-28   0.028457    -0.001969             BEATS
+3     2026-03-29 -> 2026-04-28   0.050279    -0.002727             BEATS
+4     2026-04-29 -> 2026-05-29   0.055561     0.001113             BEATS
+5     2026-05-30 -> 2026-06-29  -0.009730    -0.001766             LOSES
+pooled                           0.020566    -0.004792             BEATS
+
+BINARY pass (logistic, run faa6983acd03f846) — primary metric: roc_auc
+fold  test window                MODEL       RANDOM_PERMUTATION   vs. permutation
+0     2025-12-26 -> 2026-01-25   0.545385     0.499030             BEATS
+1     2026-01-26 -> 2026-02-25   0.533585     0.500667             BEATS
+2     2026-02-26 -> 2026-03-28   0.539353     0.503985             BEATS
+3     2026-03-29 -> 2026-04-28   0.559752     0.498767             BEATS
+4     2026-04-29 -> 2026-05-29   0.557209     0.496858             BEATS
+5     2026-05-30 -> 2026-06-29   0.541288     0.501019             BEATS
+pooled                           0.544182     0.498606             BEATS
+```
+
+**`S044_GATE.md` §1.4 bar assessment:**
+
+- **REGRESSION pass: clears the pooled bar, does NOT clear the strict
+  per-fold bar.** MODEL beats `RANDOM_PERMUTATION` pooled (0.020566 vs.
+  -0.004792) and on 5 of 6 folds, but loses on fold 5 (-0.009730 vs.
+  -0.001766, both negative — the model is mildly anti-correlated with
+  outcomes in that fold and permutation is closer to zero). The strict
+  "every fold" bar is **not** cleared.
+- **BINARY pass: clears BOTH the pooled bar and the strict per-fold bar.**
+  MODEL beats `RANDOM_PERMUTATION` on all 6 folds individually (margins
+  0.035–0.061 roc_auc) and pooled (0.544182 vs. 0.498606). This is the
+  stronger, cleaner result of the two passes.
+
+**Train/test primary-metric gap per fold** (`train_primary`/`test_primary`
+recomputed by `analyze_predictive_run` and carried in `metrics.json`'s
+`fold_primary`; the identical values also appear as `primary_gap` in
+`importance.json`, cross-checked and consistent):
+
+```text
+REGRESSION pass — gap = |train_primary - test_primary| (spearman_ic)
+fold  train_primary  test_primary   gap
+0     0.016846        0.021431      0.004585
+1     0.016671        0.013676      0.002995
+2     0.015239        0.028457      0.013218
+3     0.016796        0.050279      0.033483
+4     0.021196        0.055561      0.034365
+5     0.024186       -0.009730      0.033916
+
+BINARY pass — gap = |train_primary - test_primary| (roc_auc)
+fold  train_primary  test_primary   gap
+0     0.533798        0.545385      0.011587
+1     0.534199        0.533585      0.000614
+2     0.533971        0.539353      0.005381
+3     0.533873        0.559752      0.025878
+4     0.534740        0.557209      0.022469
+5     0.535447        0.541288      0.005841
+```
+
+Neither pass shows the classic overfit signature (train materially *higher*
+than test) — in both passes `test_primary` is usually *above*
+`train_primary` (folds 0/2/3/4 in both passes), which is the opposite
+direction from overfitting and is more consistent with a small, noisy
+train-fold estimate of an already-weak signal than with the model
+memorizing TRAIN. **This is still flagged, not waved through**: for the
+REGRESSION pass, the gap on folds 3–5 (0.033–0.034) is *larger than the
+test-fold signal itself* (test_primary 0.050, 0.056, and -0.010
+respectively) — i.e. the fold-to-fold instability is large relative to the
+effect size being measured, which is exactly the kind of result an unhedged
+write-up (T006) needs to name plainly rather than round up to "wins." The
+BINARY pass's gaps are smaller in both absolute terms and relative to its
+own effect size (test_primary ~0.53–0.56 throughout).
+
+**Permutation importance for Sprint 051's six components**
+(`importance.json`, `n_repeats=5`, `EstimatorSpec.seed=42`; only 6 of the 10
+frozen features are Sprint 051's — the other 4 are the D-S052-05 incumbents
+and are out of scope for this reporting item). Sign convention: a
+**positive** mean means shuffling that feature *hurts* the model (i.e. the
+feature genuinely helps); a **negative** mean means shuffling it *helps*
+(i.e. the feature actively degrades predictions where used).
+
+```text
+REGRESSION pass — importance mean by fold (spearman_ic units)
+component                          f0       f1       f2       f3       f4       f5
+momentum.rsi                    -0.0030  -0.0058  -0.0016  -0.0174  -0.0136  -0.0111
+momentum.macd                   -0.0000  +0.0005  +0.0033  +0.0079  +0.0107  +0.0066
+momentum.stochastic             +0.0129  +0.0068  +0.0081  +0.0222  +0.0395  +0.0234
+volatility.relative_volatility  -0.0016  -0.0026  -0.0014  +0.0028  +0.0111  -0.0104
+statistics.return_autocorrelation +0.0308 -0.0036  +0.0325  +0.0184  +0.0598  +0.0007
+statistics.return_distribution  -0.0038  -0.0007  -0.0152  +0.0020  +0.0092  +0.0015
+
+BINARY pass — importance mean by fold (roc_auc units)
+component                          f0       f1       f2       f3       f4       f5
+momentum.rsi                    +0.0353  +0.0184  +0.0317  +0.0344  +0.0360  +0.0251
+momentum.macd                   +0.0024  +0.0071  -0.0005  +0.0011  -0.0004  +0.0004
+momentum.stochastic             +0.0158  +0.0090  +0.0199  +0.0241  +0.0273  +0.0270
+volatility.relative_volatility  +0.0000  -0.0001  +0.0001  +0.0011  -0.0008  -0.0006
+statistics.return_autocorrelation +0.0039 +0.0009  +0.0036  +0.0046  +0.0048  -0.0002
+statistics.return_distribution  +0.0013  -0.0000  +0.0005  +0.0049  +0.0043  +0.0029
+```
+
+- **Ignored vs. misled, per pass:**
+  - **REGRESSION**: `momentum.macd`, `volatility.relative_volatility`, and
+    `statistics.return_distribution` sit near zero on every fold (|mean|
+    mostly <0.01, no consistent sign) — **ignored**. `momentum.stochastic`
+    and `statistics.return_autocorrelation` are consistently the largest
+    positive contributors and drive most of the 5 winning folds —
+    genuinely used, and correctly so. `momentum.rsi` is **consistently
+    negative on all 6 folds** (-0.003 to -0.017) — the model is using it,
+    but using it in a way that actively hurts predictions on every fold:
+    this is **misled**, not ignored. On the one losing fold (5),
+    `statistics.return_autocorrelation` — the strongest driver on 4 of the
+    other 5 folds — collapses to near zero (+0.0007) while `momentum.rsi`
+    and `volatility.relative_volatility` both turn more negative than
+    their own fold-5-adjacent values; the fold 5 loss reads as "the
+    autocorrelation signal that carried most other folds went quiet, and
+    the actively-harmful rsi/relative-volatility contribution was left
+    unmasked," not as a single dramatic misleading spike.
+  - **BINARY**: `momentum.macd`, `volatility.relative_volatility`,
+    `statistics.return_autocorrelation`, and `statistics.return_distribution`
+    are all near zero on every fold (|mean| mostly <0.005) — **ignored**,
+    cleanly, with no "misled" case to report since the pass does not lose
+    on any fold. `momentum.rsi` and `momentum.stochastic` are the two
+    real drivers, both consistently positive (0.018–0.036 and 0.009–0.027
+    respectively) on every fold — genuinely used and correctly so. Notably,
+    `momentum.rsi` is the strongest single driver of the BINARY pass's
+    clean win, while it is the one component that actively hurts the
+    REGRESSION pass on every fold — the same feature reads oppositely
+    depending on task framing, worth naming in T006 rather than averaging
+    away.
+
+**`compare_predictive_runs`:** the two passes carry **different**
+`dataset_fingerprint`s (`f9f042f9...` for REGRESSION vs. `98a893f5...` for
+BINARY), because `PredictiveStudySpec.label.kind` differs between the two
+committed spec files (T003 outcome note already established this). Calling
+`compare_predictive_runs` with both run directories together correctly
+raises `PredictiveSpecError: leaderboard runs must share one dataset
+fingerprint` — the function's own designed guard, not a bug. Each pass was
+therefore compared singly against its own baselines: both leaderboards
+confirm `MODEL` (`sklearn.ridge` / `sklearn.logistic`) ranks first, ahead of
+`RANDOM_PERMUTATION` (and `CONSTANT_MEAN`/`MAJORITY_CLASS` respectively),
+matching the pooled numbers above exactly.
+
+**S052-T005 trigger determination (D-S052-06: regression and binary are two
+separate passes, evaluated independently):**
+
+- **REGRESSION pass: the trigger FIRES.** It beats `RANDOM_PERMUTATION`
+  pooled but loses on one of six folds (fold 5) — this is precisely the
+  pre-declared trigger condition ("beats permutation pooled but not on
+  every fold"), stated as a factual read of the table above, not a
+  judgment call.
+- **BINARY pass: the trigger does NOT fire.** It beats `RANDOM_PERMUTATION`
+  on every fold and pooled — it clearly clears the strict per-fold bar, so
+  the "neither clearly clears nor clearly fails" condition does not apply.
+
+Per §3/§5 ("no feature added after seeing a result", "a second estimator
+pass ... only under the Wave-0-defined trigger"), this determination alone
+does not authorize running T005 yet — D-S052-06's Wave 0 language and any
+scoping (e.g. whether a fired trigger on one pass runs a tree pass for that
+pass only, both passes, or is itself a maintainer checkpoint) is read and
+applied fresh at T005, not decided here.
 
 ### Wave 3 — The write-up and the disposition
 
@@ -535,7 +712,7 @@ whoever next touches that estimator spec file, if ever.
 | S052-T007 | **Reproducibility record** (a section of T006's document plus the spec header comments): study `definition_hash`, dataset fingerprint, source `DatasetRef` and its import-manifest fingerprint, run IDs, estimator specs and seeds, and the framework version | a third party with the same data can re-derive the same dataset fingerprint from the committed spec; the record states which artifacts live outside git (`user_data/`) and are therefore not reproducible from the repo alone | T006 | TODO |
 | S052-T008 | Closure and **Q5 disposition**: update ROADMAP §13F's Q5 dependency line (append, never rewrite history), §13G's 15B status, `CURRENT_STATUS.md`, and the sprint Review | §13F's Q5 line states either "closed by run `<id>`, `<family>`" **or** "still open — reason", never something ambiguous; if closed, the entry states whether the winning family is promotable under ADR-0029 (linear/logistic) or hits its documented tree/neural refusal; if still open, it names S049 Wave 0's "option (b)" as the decision now facing Sprint 050 — and leaves that decision to the maintainer | T007 | TODO |
 
-**Progress:** 3 / 8 — Wave 0's fold plan (T001) is landed and maintainer-signed
+**Progress:** 4 / 8 — Wave 0's fold plan (T001) is landed and maintainer-signed
 off (D-S052-11's fold-table box checked). S052-T002 (`feat/btc-predictive-study-specs`)
 commits the study/estimator YAML: because `PredictiveStudySpec.label` is a
 single `LabelSpec`
@@ -560,7 +737,12 @@ T003 (the baseline run) is now DONE (this PR, `docs/btc-predictive-study-baselin
 maintainer-authorized delegation of the "maintainer-executed" run to an
 agent): both baseline passes ran against the D-S052-03/04/05-corrected
 `V=1m` specs — see the outcome note above for run IDs, dataset
-fingerprints and fold-count verification.
+fingerprints and fold-count verification. T004 (this PR) is now DONE: the
+BINARY pass clears `S044_GATE` §1.4's strict per-fold bar cleanly (6/6 folds
++ pooled) and its T005 trigger does not fire; the REGRESSION pass clears the
+pooled bar but loses fold 5, and its T005 trigger fires — see the outcome
+note above for the full per-fold/pooled tables, train/test gaps, and the
+Sprint 051 feature importance ("ignored" vs. "misled") breakdown per pass.
 
 **Descope order:** T005 is conditional by construction. T007 may merge into T006.
 **T004 and T006 are never dropped** — without them the sprint has run a model and
