@@ -317,6 +317,45 @@ def test_predictive_research_does_not_import_trading_capabilities() -> None:
     assert _import_offenders(package_root, predicate=_is_forbidden_predictive_import) == []
 
 
+def test_verdict_module_imports_none_of_its_forbidden_list() -> None:
+    """ADR-0032 §5: verdict.py may not import ML libraries, signal_model, strategy,
+    application, or research.reporting. sklearn/xgboost/lightgbm/catboost/torch and
+    signal_model/strategy are already covered package-wide by the two tests above;
+    this test additionally forbids application and research.reporting, which are not
+    covered elsewhere for research/predictive/.
+    """
+    verdict_module = (
+        Path(trading_framework.__file__).resolve().parent / "research" / "predictive" / "verdict.py"
+    )
+
+    def is_forbidden(module_name: str) -> bool:
+        forbidden_prefixes = (
+            *_ML_LIBRARY_ROOTS,
+            "trading_framework.signal_model",
+            "trading_framework.strategy",
+            "trading_framework.application",
+            "trading_framework.research.reporting",
+        )
+        return any(
+            module_name == prefix or module_name.startswith(f"{prefix}.")
+            for prefix in forbidden_prefixes
+        )
+
+    offenders: list[str] = []
+    tree = ast.parse(verdict_module.read_text(encoding="utf-8"))
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            offenders.extend(alias.name for alias in node.names if is_forbidden(alias.name))
+        elif (
+            isinstance(node, ast.ImportFrom)
+            and node.module is not None
+            and is_forbidden(node.module)
+        ):
+            offenders.append(node.module)
+
+    assert offenders == []
+
+
 def test_predictive_research_wave4_packages_do_not_import_ml_libraries() -> None:
     assert _import_offenders_from_roots(_wave4_predictive_paths(), predicate=_is_ml_library) == []
 
