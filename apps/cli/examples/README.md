@@ -29,3 +29,4 @@ them first.
 | `research_run_strategy_level_distance.yaml` | `research run --config ...` (`research.kind: strategy`, `strategy_file` set) | No -- requires a published `DatasetRef` **and** the gitignored `user_data/components/strategies/level_distance_pullback.py` (recreate it from `docs/reference/modules/STRATEGY_AUTHORING.md`, Sprint 047 / ADR-0027) |
 | `dry_run_start.yaml` | `dry-run start --config ...` | No -- connects to the live Binance USD-M websocket feed |
 | `report_render.yaml` | `report render --config ...` | No -- requires an existing `run_id` from a prior `research run predictive`/`strategy` |
+| `predictive/signal_occurrences_sample_example.yaml` | `research run --config ...` (`research.kind: predictive`) | No -- parses and hashes cleanly (Sprint 056, ADR-0031) but has no `signal_model` supplied; fails fast with a named `PredictiveDatasetError` naming the missing input (TD-031: no `signal_model_file` loader exists yet) |
