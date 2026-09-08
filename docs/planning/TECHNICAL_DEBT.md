@@ -1845,6 +1845,78 @@ convention, an explicit trust-model statement, a pre-flight error taxonomy).
 - `docs/adr/ADR-0031-predictive-sample-spec-and-task.md`
 - `docs/planning/sprints/SPRINT_056.md` (S056-T004)
 - `docs/planning/roadmap/PHASE_16_QUANT_WORKBENCH.md` §13H.3 (16C)
+
+---
+
+## TD-032 — No CLI Support for `CandidateSetSpec` (Tree-Family Predictive Runs)
+
+```text
+Status: ACCEPTED
+Priority: LOW
+Domain: apps/cli / Predictive Research (Phase 10B, Phase 15B)
+Introduced: Sprint 052 (2026-09-08), discovered during S052-T005
+Target Review: Before any future sprint needs a repeatable, committed
+  tree-family predictive run through `trading-cli`
+Owner: Unassigned
+```
+
+### Accepted Shortcut
+
+`_run_predictive` (`apps/cli/src/trading_cli/commands/research.py`) only ever
+builds a single `EstimatorSpec` from the config file's `research.predictive`
+block — there is no config shape for a `CandidateSetSpec` (Phase 10B's
+tree-family candidate search, already supported by the underlying
+`run_predictive_research` workflow). S052-T005's conditional tree pass
+(LightGBM, triggered by D-S052-06) had to be run through an uncommitted,
+ad hoc scratch script instead of a committed, reviewable
+`apps/cli/examples/predictive/*.yaml` config, because there was nothing in
+the locked CLI config schema to point at.
+
+### Reason
+
+No prior sprint needed a CLI-driven tree pass: Sprint 042 (Phase 10B)
+exercised `CandidateSetSpec` through direct workflow calls / scripts, and
+Sprint 052's own Wave 0 plan (D-S052-06) only pre-declared the tree pass as
+*conditional* — building CLI support for a path that might not even trigger
+would have been speculative work inside a task scoped to run one estimator
+pass, not to extend the CLI's config schema.
+
+### Consequences
+
+- An operator cannot reproduce S052-T005's tree pass directly through
+  `trading-cli research run` — only through the same kind of uncommitted
+  scratch script T005 used, which is not reviewable or repeatable by
+  construction.
+- Any future sprint that wants a **committed**, reviewable tree-family
+  predictive study config hits the same gap and must either extend the CLI
+  schema first or fall back to the same scratch-script workaround.
+
+### Safe Operating Boundary
+
+No workflow may assume `trading-cli research run` can drive a
+`CandidateSetSpec` today. A tree-family pass must be invoked through a
+direct workflow call (script or one-off), never presented as a committed,
+`--config`-driven example until this is repaid.
+
+### Repayment Trigger
+
+A sprint needs a committed, reviewable, repeatable tree-family predictive
+run through `trading-cli` — e.g. a future increment that promotes or
+regularly re-runs a tree candidate.
+
+### Repayment Direction
+
+Extend `research.predictive`'s config schema (D-S046-07's locked shape) with
+an optional `candidate_set` block mapping to `CandidateSetSpec`, following
+the same pattern `EstimatorSpec` already uses (spec loaded by path, no
+re-encoding in the CLI layer). Likely a small, single-purpose Wave 0
+decision rather than a full ADR, since it extends an existing schema rather
+than introducing a new trust-model question.
+
+### Related Documents
+
+- `docs/planning/sprints/SPRINT_052.md` (S052-T005)
+- `docs/adr/ADR-0026-...md` (the CLI's config-schema and import-boundary ADR)
 - `docs/adr/ADR-0027-operator-authored-strategy-loading.md` (the precedent
   this loader would likely follow)
 
