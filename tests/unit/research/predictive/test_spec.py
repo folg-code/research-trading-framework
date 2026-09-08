@@ -520,3 +520,43 @@ def test_sample_payload_must_be_a_mapping() -> None:
 
     with pytest.raises(PredictiveSpecError, match="sample must be a mapping"):
         PredictiveStudySpec.from_dict(payload)
+
+
+# --- S056-T006: committed signal_occurrences example, network-free parse only ---
+
+_SIGNAL_OCCURRENCES_EXAMPLE = (
+    Path(__file__).resolve().parents[4]
+    / "apps"
+    / "cli"
+    / "examples"
+    / "predictive"
+    / "signal_occurrences_sample_example.yaml"
+)
+
+
+def test_signal_occurrences_sample_example_parses() -> None:
+    """The committed synthetic example (SPRINT_056.md S056-T006) loads through
+    `load_predictive_study_spec` with no code change, network-free and without
+    the `ml` extra. It is parse/validate-only: T004's `build_predictive_dataset`
+    requires an already-resolved `signal_model` object (TD-031), which no CLI
+    path supplies today, so this spec cannot be run end to end -- only loaded.
+    """
+    loaded = load_predictive_study_spec(_SIGNAL_OCCURRENCES_EXAMPLE)
+
+    assert loaded.study_id == "signal_occurrences_sample_example"
+    assert loaded.sample.kind is SampleKind.SIGNAL_OCCURRENCES
+    assert loaded.sample.signal_model_id == "breakout_v1"
+    assert loaded.task is PredictiveTask.SIGNAL_QUALITY
+
+
+def test_signal_occurrences_sample_example_header_hash_matches_the_loaded_spec() -> None:
+    """The header comment's `definition_hash` (ADR-0031 Finding 3 convention)
+    must be the value the loader itself computes -- reviewable by inspection,
+    not by trust."""
+    text = _SIGNAL_OCCURRENCES_EXAMPLE.read_text(encoding="utf-8")
+    header_line = next(line for line in text.splitlines() if "definition_hash:" in line)
+    header_hash = header_line.split("definition_hash:", 1)[1].strip()
+
+    loaded = load_predictive_study_spec(_SIGNAL_OCCURRENCES_EXAMPLE)
+
+    assert loaded.definition_hash == header_hash
