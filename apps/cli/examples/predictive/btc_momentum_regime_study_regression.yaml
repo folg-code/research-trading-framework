@@ -16,10 +16,14 @@
 # files. Both share the same dataset_ref, time_range, features, split, and
 # evaluation_timeframe, byte-for-byte.
 #
-# Fold plan matches S052_WAVE0_DECISIONS.md D-S052-03 exactly (frozen,
-# maintainer-reviewed 2026-09-08): V=15m, F=6, T=30d, E=1d, M=2000,
-# EXPANDING mode. Label horizon 1h (4 evaluation bars @ 15m), same horizon as
-# the BINARY pass.
+# Fold plan matches S052_WAVE0_DECISIONS.md D-S052-03 exactly (CORRECTED
+# 2026-09-08, post-T003 STOP): V=1m (was 15m -- validate_evaluation_timeframe
+# rejects a run-level grid coarser than the source; the range and F=6/T=30d/
+# E=1d/M=2000 are unchanged, fold TEST dates are byte-identical). Every
+# evaluation-bar-denominated component parameter below is scaled x15 from its
+# original V=15m value (D-S052-05's correction, maintainer-approved Option A)
+# to hold each rolling window's wall-clock span constant. Label horizon 1h is
+# now 60 evaluation bars @ 1m (was 4 @ 15m), same horizon as the BINARY pass.
 #
 # Loads and validates through `load_predictive_study_spec` with no code
 # change (network-free, extra-free parse test:
@@ -29,7 +33,7 @@
 # with the `ml` extra) -- this file only commits and parse-validates the
 # declared configuration (SPRINT_052.md acceptance criterion 2).
 #
-# definition_hash: 96c5fa2c0338d1ddafdbb8dfa197a3213df555627c5b546e356df32d21bce7d8
+# definition_hash: 7c219aa47fc72d03e4ca1b01f99fd8da955482bc4487175faddaa539cfc400e7
 
 study:
   study_id: btc_momentum_regime_study_regression
@@ -39,60 +43,60 @@ study:
   time_range:
     start: 2024-01-01
     end: 2026-06-30
-  evaluation_timeframe: 15m
+  evaluation_timeframe: 1m
   features:
     - component_id: momentum.rsi
       parameters:
-        period: 14
+        period: 210
       output_id: value
-      alias: momentum_rsi_14
+      alias: momentum_rsi_210
       transform: NONE
     - component_id: momentum.macd
       parameters:
-        fast_period: 12
-        slow_period: 26
-        signal_period: 9
+        fast_period: 180
+        slow_period: 390
+        signal_period: 135
       output_id: histogram
       alias: momentum_macd_histogram
       transform: NONE
     - component_id: momentum.stochastic
       parameters:
-        period: 14
-        smoothing_period: 3
+        period: 210
+        smoothing_period: 45
       output_id: k
       alias: momentum_stochastic_k
       transform: NONE
     - component_id: volatility.relative_volatility
       parameters:
-        period: 20
-        baseline_period: 100
+        period: 300
+        baseline_period: 1500
       output_id: ratio
       alias: volatility_relative_volatility_ratio
       transform: NONE
     - component_id: statistics.return_autocorrelation
       parameters:
-        period: 60
-        lag: 1
+        period: 900
+        lag: 15
       output_id: value
       alias: statistics_return_autocorrelation
       transform: NONE
     - component_id: statistics.return_distribution
       parameters:
-        period: 60
+        period: 900
       output_id: skew
       alias: statistics_return_distribution_skew
       transform: NONE
     - component_id: volatility.atr
       parameters:
-        period: 14
+        period: 210
       output_id: value
-      alias: volatility_atr_14
+      alias: volatility_atr_210
       transform: NONE
     - component_id: trend.slope
       parameters:
-        period: 20
+        period: 300
       output_id: value
-      alias: trend_slope_20
+      alias: trend_slope_300
       transform: NONE
     - component_id: candle.wick
       parameters: {}
@@ -101,7 +105,7 @@ study:
       transform: NONE
     - component_id: volatility.range_expansion
       parameters:
-        period: 14
+        period: 210
       output_id: ratio
       alias: volatility_range_expansion_ratio
       transform: NONE

@@ -72,7 +72,7 @@ def test_btc_study_spec_parses(path: Path, label_kind: LabelKind, study_id: str)
         "BTCUSDT.P|ohlcv|1m|binance|binance-usdm-klines-v1"
     )
     assert loaded.dataset_ref.version == 1
-    assert loaded.evaluation_timeframe.value == "15m"
+    assert loaded.evaluation_timeframe.value == "1m"
     assert loaded.label.kind is label_kind
     assert loaded.label.horizon.value == "1h"
 
