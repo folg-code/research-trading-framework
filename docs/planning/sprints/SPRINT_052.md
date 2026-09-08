@@ -306,7 +306,7 @@ Wave 0 is DONE when the maintainer has checked off the Wave 0 Checklist.
 | Task | Description | Acceptance | Deps | Status |
 |------|-------------|-----------|------|--------|
 | S052-T002 | Commit `apps/cli/examples/predictive/btc_momentum_regime_study.yaml` (the `PredictiveStudySpec`) and the baseline `EstimatorSpec` YAMLs, plus a network-free parse test | both files load through their own loaders (`load_predictive_study_spec`, the estimator loader) with no code change; the study's `definition_hash` is recorded in the file's header comment; the feature list matches Wave 0 exactly; `research_run_predictive.yaml`'s dangling `configs/predictive/...` reference is repointed at the real files (Finding 5); the test runs in default CI without the `ml` extra and without network | T001 | DONE |
-| S052-T003 | **The baseline run** (maintainer-executed, `ml` extra): build the dataset, run the regression and the classification study, render both reports. Record run IDs, dataset fingerprint, seeds and wall-clock | the dataset builds through the **unmodified** `build_predictive_dataset`; fold role counts (TRAIN/TEST/PURGED/EMBARGOED) match Wave 0's plan within a stated tolerance and any deviation is explained, not adjusted away; both runs complete; **no file under a §5 forbidden path is modified** (asserted by a clean `git status` on `src/`); report HTML stays out of git | T002 | **STOP — see below** |
+| S052-T003 | **The baseline run** (maintainer-executed, `ml` extra): build the dataset, run the regression and the classification study, render both reports. Record run IDs, dataset fingerprint, seeds and wall-clock | the dataset builds through the **unmodified** `build_predictive_dataset`; fold role counts (TRAIN/TEST/PURGED/EMBARGOED) match Wave 0's plan within a stated tolerance and any deviation is explained, not adjusted away; both runs complete; **no file under a §5 forbidden path is modified** (asserted by a clean `git status` on `src/`); report HTML stays out of git | T002 | **TODO (re-attempt — see below)** |
 
 **S052-T003 outcome: STOP-and-report, per SPRINT_052.md §5's own instruction.**
 Neither pass ran. `uv run trading-cli research run --config
@@ -385,6 +385,19 @@ exist for T003 — the failure occurs before `build_predictive_dataset`
 reaches fold assignment. Total wall-clock across both failed attempts: ~4s.
 `ml` extra was independently confirmed present (`sklearn 1.9.0`) so this is
 not an environment/dependency gap.
+
+**Resolution (2026-09-08): option (a) adopted, maintainer-approved.**
+`S052_WAVE0_DECISIONS.md` D-S052-03/D-S052-04/D-S052-05 now carry the
+correction (`V` 15m -> 1m, range/F/T/E/M unchanged, the ten frozen
+components' evaluation-bar parameters scaled x15 -- Option A). Both
+committed T002 spec files were updated to match and their
+`definition_hash` header values recomputed; the parse test
+(`tests/unit/research/predictive/test_btc_momentum_regime_study.py`, 11
+cases) passes against the corrected specs. A diagnostic benchmark of the
+full-range 1m matrix build (~45s wall-clock, ~5.3GB peak memory) confirmed
+the range does not need to be trimmed for cost reasons. **S052-T003 is
+ready to be re-attempted** against the corrected specs; its Status above
+returns to `TODO` for that re-attempt.
 
 ### Wave 2 — The comparison
 
