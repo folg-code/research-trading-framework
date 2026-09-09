@@ -7,7 +7,8 @@ Done (field inventory frozen, one STOP-and-report finding resolved); T002
 is Done; T003 (study view + charts, consuming a real committed
 public-projection bundle) is Done (#493); T004 (routing and `Explore
 Evidence` navigation) is Done (#494); T005 (contract/regression tests) is
-In review.
+Done (#495); T006 (visual QA, maintainer walkthrough, doc reconciliation)
+is In review.
 Goal: Deliver the first complete portfolio story from Signal/Predictive
 Research context through living methodology and the BTC Signal Quality study
 to simplified persisted evidence and the existing technical view.
@@ -91,8 +92,8 @@ Out of scope:
 | T002 | Author and review the Signal/Predictive workflow context and living Signal Quality methodology content, with links to canonical references and no run-specific interpretation | T001; Sprint 059 content contract | `apps/dashboard` content + methodology review | standard | Done | [#492](https://github.com/folg-code/research-trading-framework/pull/492) |
 | T003 | Implement the simplified study view and its three persisted-fact charts with neutral metric definitions, explicit assumptions, warnings and unavailable-state behavior | T001, T002 | `apps/dashboard` study view/charts | high | Done | [#493](https://github.com/folg-code/research-trading-framework/pull/493) |
 | T004 | Connect stable overview, workflow, methodology and study routes; add one-action `Explore Evidence` navigation to the existing Predictive and Strategy Research details without duplicating them | T003 | `apps/dashboard` navigation/evidence integration | standard | Done | [#494](https://github.com/folg-code/research-trading-framework/pull/494) |
-| T005 | Add contract and regression tests for traceability, negative/`INCONCLUSIVE` evidence, absent optional artifacts, no dashboard-side verdict/metric logic and unchanged technical/live-paper surfaces | T003, T004 | dashboard tests | high | In review | pending |
-| T006 | Run desktop visual QA and the maintainer-observed success walkthrough; reconcile dashboard/reference/planning docs and record remaining portfolio outcomes outside this PRD | T002–T005 | visual acceptance + documentation | standard | Gated | — |
+| T005 | Add contract and regression tests for traceability, negative/`INCONCLUSIVE` evidence, absent optional artifacts, no dashboard-side verdict/metric logic and unchanged technical/live-paper surfaces | T003, T004 | dashboard tests | high | Done | [#495](https://github.com/folg-code/research-trading-framework/pull/495) |
+| T006 | Run desktop visual QA and the maintainer-observed success walkthrough; reconcile dashboard/reference/planning docs and record remaining portfolio outcomes outside this PRD | T002–T005 | visual acceptance + documentation | standard | In review | pending |
 
 ## Acceptance criteria
 
@@ -129,8 +130,41 @@ Out of scope:
 
 ## Closeout
 
-- Integrated checks: pending
-- Documentation reconciliation: pending
-- Review: pending
-- Remaining work: full catalog grouping and the other workflow/content
-  surfaces remain later outcomes under the accepted direction
+- Integrated checks: `apps/dashboard` full suite (189 tests, includes
+  `test_navigation_acceptance.py` and `test_study_contract.py`) and
+  `tests/unit/test_apps_boundaries.py` (6 tests) pass together on the
+  integrated sprint branch; `ruff check`, `ruff format --check` and a
+  project-wide (not single-file-scoped, per PRB-023) `mypy` are clean for
+  every file this sprint touched.
+- Documentation reconciliation: `docs/reference/modules/DASHBOARD_APPLICATION.md`
+  gained a "BTC Signal Quality study and evidence path (Sprint 060)"
+  section documenting the three additive sanitizer roles, the committed
+  generator output, `views.study`/`views.portfolio_content`, and the
+  section-by-section fail-closed behavior; `docs/reference/system/MODULE_MAP.md`
+  lists the new `views/study.py`, `views/portfolio_content.py`,
+  `pages/7-9_*.py` and `scripts/dashboard/` entries.
+- Review: T001–T005 each went through independent review in a fresh
+  context per `.claude/WORKFLOW.md`, including one round-trip on T005
+  where the reviewer found and a follow-up commit fixed two real defects
+  (a cross-test monkeypatch leak and a silently-ambiguous artifact-role
+  resolution in a traceability test) before merge. The maintainer
+  additionally walked the rendered path locally
+  (`streamlit run apps/dashboard/Project_Overview.py`) on 2026-09-09 —
+  Overview → Signal Quality Workflow → Signal Quality Methodology → BTC
+  Signal Quality Study in three clicks, the persisted `INCONCLUSIVE`
+  verdict and all three charts, `Explore Evidence` opening the real
+  Predictive Research page, and the existing technical pages (spot-checked
+  via Strategy Research) behaving exactly as before — and accepted it
+  ("jest ok").
+- Remaining work, explicitly outside this PRD (ADR-0034 Follow-up):
+  migrating the remaining technical pages (`pages/1-6_*.py`) onto the
+  projection and removing `storage_path` from their rendered output;
+  reconciling the automatic-inclusion catalog model in
+  `DASHBOARD_DEVELOPMENT_DIRECTION.md` §8 with the curated/immutable
+  publication model in `RESEARCH_APPLICATION_PRODUCT_VISION.md`; deciding
+  and documenting where projection generation runs at deploy time (local
+  pre-step vs. CI) before the first public deployment of this path; a
+  second study or a generalized multi-study catalog (this sprint ships
+  exactly one, hand-authored manifest). **PRB-023** (root `mypy`/`pytest`
+  never checking `apps/dashboard/` or `scripts/`) remains logged as OPEN
+  in `docs/planning/PROBLEM_REGISTRY.md`, unchanged by this sprint.

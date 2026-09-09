@@ -44,7 +44,8 @@ Active Sprint: SPRINT_060 — Signal Quality Portfolio Evidence. Decisions
   narrative-sourced, not persisted). T002 is Done (#492); T003 (study view
   + charts, real committed public-projection bundle) is Done (#493); T004
   (routing + `Explore Evidence` navigation) is Done (#494); T005
-  (contract/regression tests) is In review.
+  (contract/regression tests) is Done (#495); T006 (visual QA, maintainer
+  walkthrough, doc reconciliation) is In review.
 Last Completed Sprint: SPRINT_059 — Portfolio Publication Foundation
   (Phase 16D), 6/6 tasks, merged to `main` via #490 (2026-09-09). ADR-0034
   records the accepted publication boundary; `dashboard_app.publication`
@@ -78,10 +79,11 @@ view + charts) and T004 (routing: new `Signal Quality Workflow`, `Signal
 Quality Methodology` and `BTC Signal Quality Study` pages, linked overview
 -> workflow -> methodology -> study in three navigation actions, plus
 `Explore Evidence` links into the existing Predictive/Strategy Research
-pages) are Done. T005 (contract and regression tests for traceability,
+pages) and T005 (contract and regression tests for traceability,
 non-`INCONCLUSIVE` evidence, absent optional artifacts, and no
-dashboard-side verdict/metric logic) is In review. T006 is Gated behind
-it.
+dashboard-side verdict/metric logic) are Done. T006 (desktop visual QA,
+maintainer-observed walkthrough, doc reconciliation) is In review — the
+maintainer walked the rendered path locally on 2026-09-09 and accepted it.
 
 SPRINT_057 (Analyst Verdict Artifact, Phase
 16 increment 16A) — 7/7 tasks, working PRs #464 (ADR-0032), #465 (rule
@@ -215,7 +217,7 @@ These have their own canonical owners — this file does not duplicate them:
 | 057 | Analyst Verdict Artifact (Phase 16, increment 16A) | COMPLETED | 7 / 7 tasks; working PRs #464-#469 into `sprint/analyst-verdict-artifact`; integrated to `main` via #471 — see `docs/planning/sprints/SPRINT_057.md` §13 Review |
 | 058 | Signal Quality Scoring (Phase 16, increment 16C) | COMPLETED | 6 / 6 tasks; working PRs #472-#479; integrated to `main` via #480; real-data worked example produced a complete negative result — see `docs/planning/sprints/SPRINT_058.md` Closeout and `docs/reference/BTC_SIGNAL_QUALITY_STUDY.md` |
 | 059 | Portfolio Publication Foundation (Phase 16, increment 16D) | COMPLETED | 6 / 6 tasks; working PRs #484-#489; integrated to `main` via #490 — see `docs/planning/sprints/SPRINT_059.md` §Closeout |
-| 060 | Signal Quality Portfolio Evidence (Phase 16, increment 16D) | OPEN | D060-01/D060-03 approved at opening (2026-09-09); T001-T004 Done, T005 In review — see `docs/planning/sprints/SPRINT_060.md` |
+| 060 | Signal Quality Portfolio Evidence (Phase 16, increment 16D) | OPEN | D060-01/D060-03 approved at opening (2026-09-09); T001-T005 Done, T006 In review — see `docs/planning/sprints/SPRINT_060.md` |
 
 Sprint numbering has no gap at 050 — it is reserved for Phase 14B and not yet
 opened (see `docs/planning/sprints/SPRINT_053.md` metadata for the numbering
