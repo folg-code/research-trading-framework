@@ -7,7 +7,7 @@ Status: APPROVED (maintainer, 2026-09-04) — no sprint opened for any increment
         note below. 16A is COMPLETE (Sprint 057, 7/7 tasks, merged to `main`
         via #471) — see §13H.1's "16A is DONE" note below. UPDATE
         (2026-09-09): 16C is COMPLETE (Sprint 058, 6/6 tasks, working PRs
-        #472-#478 into `sprint/signal-quality-scoring`, not yet integrated
+        #472-#479 into `sprint/signal-quality-scoring`, not yet integrated
         to `main`) — ADR-0033 (score delivery boundary) is ACCEPTED and
         implemented; TD-021 REPAID, TD-022's promotion branch confirmed
         repaid, TD-029 re-deferred to 16G. See §13H.3's "16C is DONE" note

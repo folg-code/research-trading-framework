@@ -48,7 +48,7 @@ Current Phase: Phase 15 — Predictive Research Catalog Expansion and
   (7/7 tasks) and **merged to `main`** (#471, 2026-09-08) — the integration
   PR from `sprint/analyst-verdict-artifact` closed this increment. Increment
   16C (Signal Quality Scoring, Sprint 058) is **COMPLETE** (6/6 tasks,
-  2026-09-09) on working PRs #472-#478 into `sprint/signal-quality-scoring`
+  2026-09-09) on working PRs #472-#479 into `sprint/signal-quality-scoring`
   — ADR-0033 (score delivery boundary) is ACCEPTED and implemented; TD-021
   is REPAID, TD-022's promotion branch is confirmed repaid (residual open),
   TD-029 is re-deferred to 16G in writing and in code. Integration of
@@ -172,7 +172,7 @@ completion note). **16B (Sprint 056) is complete and merged to `main`
 (#457). 16A (Sprint 057) is complete (7/7 tasks) and merged to `main`
 (#471). 16C (Sprint 058, Signal Quality Scoring) is COMPLETE** (6/6
 tasks, 2026-09-09) — ADR-0033 (score delivery boundary) is ACCEPTED and
-implemented; working PRs #472-#478 land into `sprint/signal-quality-
+implemented; working PRs #472-#479 land into `sprint/signal-quality-
 scoring`, not yet integrated to `main`. No other increment (16D–16G)
 is opened, planned or numbered. Sprint 052 is not re-scoped or absorbed by
 Phase 16.
@@ -255,7 +255,7 @@ These have their own canonical owners — this file does not duplicate them:
 | 053 | Repository Workflow & Documentation Hygiene | IN PROGRESS | see `docs/planning/sprints/SPRINT_053.md` |
 | 056 | SampleSpec Foundation (Phase 16, increment 16B) | COMPLETED | 7 / 7 tasks; working PRs #448, #449, #450, #451, #456; integrated to `main` via #457 — see `docs/planning/sprints/SPRINT_056.md` §13 Review |
 | 057 | Analyst Verdict Artifact (Phase 16, increment 16A) | COMPLETED | 7 / 7 tasks; working PRs #464-#469 into `sprint/analyst-verdict-artifact`; integrated to `main` via #471 — see `docs/planning/sprints/SPRINT_057.md` §13 Review |
-| 058 | Signal Quality Scoring (Phase 16, increment 16C) | COMPLETE | 6 / 6 tasks; working PRs #472-#478 into `sprint/signal-quality-scoring`; not yet integrated to `main`; real-data worked example came back a complete negative result — see `docs/planning/sprints/SPRINT_058.md` Closeout and `docs/reference/BTC_SIGNAL_QUALITY_STUDY.md` |
+| 058 | Signal Quality Scoring (Phase 16, increment 16C) | COMPLETE | 6 / 6 tasks; working PRs #472-#479 into `sprint/signal-quality-scoring`; not yet integrated to `main`; real-data worked example came back a complete negative result — see `docs/planning/sprints/SPRINT_058.md` Closeout and `docs/reference/BTC_SIGNAL_QUALITY_STUDY.md` |
 
 Sprint numbering has no gap at 050 — it is reserved for Phase 14B and not yet
 opened (see `docs/planning/sprints/SPRINT_053.md` metadata for the numbering

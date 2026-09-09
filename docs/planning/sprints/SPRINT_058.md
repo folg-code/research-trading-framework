@@ -24,8 +24,8 @@ Sources:
   §13H.13 (registry entries this sprint closes: TD-021, TD-022's promotion
   branch).
 - `docs/adr/ADR-0033-predictive-score-delivery-boundary.md` — the central
-  design decision (score delivery boundary), PROPOSED, drafted for this
-  sprint.
+  design decision (score delivery boundary), ACCEPTED, drafted and
+  implemented for this sprint.
 - `docs/adr/ADR-0029-promoted-predictive-artifact.md`,
   `docs/adr/ADR-0031-predictive-sample-spec-and-task.md`,
   `docs/adr/ADR-0032-predictive-run-verdict-artifact.md` — consumed as
@@ -83,7 +83,7 @@ Out of scope:
 | T003 | Scorer-reference contract: fingerprint resolution via `PromotedArtifactRepository` at config load time; named-error refusal for (a) missing fingerprint, (b) non-allowlisted family; boundary test asserting Strategy Research imports nothing from `infrastructure/ml/` | ADR-0033 (accepted), ADR-0029 promotion store | TBD | high | Done | #475, #476 |
 | T004 | Strategy Research condition: predictive score gate, evaluated in-process via the unmodified NumPy evaluator under `available_at`; no-look-ahead test (score computed only from features available at occurrence time); simulator (fills/slippage/sizing/ledger) unchanged | T003 | TBD | high | Done | #477 |
 | T005 | Worked example on real data: one strategy, its scorer, baseline vs. score-filtered variants, comparison written down whether or not the score helps (a negative result is a complete outcome) | T001, T002, T004, Sprint 052 real-data pipeline | TBD | standard | Done | #478 |
-| T006 | Closing documentation: apply 16A's verdict to the T005 run; record TD-021 confirmation, TD-022 promotion-branch repayment (asserted by test, cited here), TD-029 re-deferral to 16G, in `TECHNICAL_DEBT.md` and this sprint's Closeout | T001–T005, 16A (merged, `main`) | TBD | low | Done | #TBD |
+| T006 | Closing documentation: apply 16A's verdict to the T005 run; record TD-021 confirmation, TD-022 promotion-branch repayment (asserted by test, cited here), TD-029 re-deferral to 16G, in `TECHNICAL_DEBT.md` and this sprint's Closeout | T001–T005, 16A (merged, `main`) | TBD | low | Done | #479 |
 
 ## Acceptance criteria
 
@@ -173,7 +173,7 @@ Drawn directly from §13H.3's completion criteria — do not weaken:
     contradiction of, T005's own "the score does not meaningfully filter
     this strategy's trades" finding — a positive-but-inconsistent pooled
     effect is exactly what INCONCLUSIVE is for.
-- **Review:** Every PR (#472-#478) received an independent fresh-context
+- **Review:** Every PR (#472-#479) received an independent fresh-context
   review per `.claude/WORKFLOW.md`'s risk table before the next task
   built on it. No open review findings remain unaddressed; optional
   (non-blocking) findings from T002/T004/T005's reviews are recorded in
