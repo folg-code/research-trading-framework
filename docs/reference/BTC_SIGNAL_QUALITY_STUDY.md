@@ -110,6 +110,30 @@ high-confidence tail is noted here as a candidate for future
 investigation — a larger sample, a different feature set, or a different
 base signal — not adopted as this study's result.
 
+### Analyst verdict (ADR-0032, applied Sprint 058 T006)
+
+`evaluate_run_verdict` applied to `run_id=2ef6426b3cc06463` from the
+persisted `metrics.json`/`importance.json` alone (`verdict.json` sidecar
+next to the run):
+
+```text
+verdict: INCONCLUSIVE
+rule fired: O3 (pooled_model_effect > 0, i.e. positive baseline delta over
+            RANDOM_PERMUTATION, but fold_win_rate = 0.5, below the 0.667
+            threshold R4/O2 require for a stronger verdict)
+pooled baseline delta: 0.0169 (pooled MODEL roc_auc 0.5239 minus pooled
+                        RANDOM_PERMUTATION roc_auc 0.5070)
+folds beating RANDOM_PERMUTATION: 2 of 4
+```
+
+This is consistent with, not a contradiction of, §7's finding: a small
+positive pooled effect that is *inconsistent across folds* is exactly the
+shape INCONCLUSIVE exists to name, distinct from a clean `FAIL` (no
+positive effect at all) or a `PASS`/`WEAK_PASS` (a consistent one). The
+verdict is a decision aid for what to study next, never evidence of a
+live edge or a promotion approval (ADR-0024's rule, restated by ADR-0032)
+— it does not change §7's conclusion.
+
 ## 5. Promotion
 
 `scripts/predictive_research/promote_predictive_run.py`, last walk-forward

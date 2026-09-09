@@ -116,7 +116,7 @@ completed-phase archive and the live per-phase files under `docs/planning/roadma
 | 15B | Real-Data BTC Predictive Study | COMPLETE (Sprint 052, 8/8; merged to `main` via #461-#463) | `roadmap/PHASE_15_PREDICTIVE_CATALOG.md` §13G |
 | 16A | Analyst Verdict Artifact | COMPLETE (Sprint 057, 7/7; merged to `main` via #471) | `roadmap/PHASE_16_QUANT_WORKBENCH.md` §13H |
 | 16B | SampleSpec Foundation | COMPLETE (Sprint 056, 7/7; merged to `main` via #457) | `roadmap/PHASE_16_QUANT_WORKBENCH.md` §13H |
-| 16C | Signal Quality Scoring | Sprint 058 APPROVED (2026-09-08); ADR-0033 ACCEPTED | `roadmap/PHASE_16_QUANT_WORKBENCH.md` §13H |
+| 16C | Signal Quality Scoring | Sprint 058 COMPLETE (2026-09-09, 6/6 tasks); ADR-0033 ACCEPTED; negative result | `roadmap/PHASE_16_QUANT_WORKBENCH.md` §13H |
 | 16D | Quant Lab Dashboard | DIRECTIONAL | `roadmap/PHASE_16_QUANT_WORKBENCH.md` §13H |
 | 16E | Strategy Families | DIRECTIONAL | `roadmap/PHASE_16_QUANT_WORKBENCH.md` §13H |
 | 16F | Trade Outcome and No-Trade Models | DIRECTIONAL | `roadmap/PHASE_16_QUANT_WORKBENCH.md` §13H |
