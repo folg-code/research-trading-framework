@@ -12,21 +12,27 @@ observability**.
 This Streamlit app is a **read-only analytics surface**. It does not run research engines and does
 not submit exchange orders.
 
-## Three independent capabilities
+## Six independent workflows
 
 ```text
-                       Shared definitions
-              Market / Models / Time / Data contracts
-                              │
-             ┌────────────────┼────────────────┐
-             │                │                │
-             ▼                ▼                ▼
-      Signal Research   Strategy Research   Strategy Execution
+                              Shared definitions
+                    Market Data / Market Analysis / Time / Data contracts
+                                      │
+       ┌───────────┬───────────┬───────────┬───────────┬───────────┐
+       │           │           │           │           │           │
+       ▼           ▼           ▼           ▼           ▼           ▼
+  Market Data  Signal      Strategy    Robustness  Predictive  Strategy
+               Research    Research    Research    Research    Execution
 ```
+
+Market Data and Market Analysis are shared capabilities every other workflow
+reads, not a seventh workflow of their own.
 
 - Signal research can run without strategy research.
 - Strategy research can run without a prior signal-research run.
-- Live/paper execution does **not** depend on research rankings or dashboard analytics.
+- Robustness and predictive research each run independently of the others.
+- Live/paper execution does **not** depend on research rankings or dashboard
+  analytics, and remains a future capability today (dry-run only).
 
 ## Hard boundaries
 
