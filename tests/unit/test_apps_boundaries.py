@@ -23,6 +23,13 @@ _REPO_ROOT = Path(__file__).resolve().parents[2]
 _CLI_ALLOWLIST_TEST_FILE = Path(__file__).resolve()
 _APPS_ROOT = _REPO_ROOT / "apps"
 _DASHBOARD_SRC = _APPS_ROOT / "dashboard" / "src"
+#: Streamlit's own page-routing convention (PRB-022, Sprint 059 T003): every
+#: dashboard page's rendering code lives here, not under `src/`, so the same
+#: import boundary must scan this directory too -- a page file is otherwise
+#: free to import `trading_framework` or an ML library with zero automated
+#: pushback.
+_DASHBOARD_PAGES = _APPS_ROOT / "dashboard" / "pages"
+_DASHBOARD_SCAN_ROOTS = (_DASHBOARD_SRC, _DASHBOARD_PAGES)
 
 _FORBIDDEN_PREFIXES = (
     "trading_framework.research",
@@ -65,13 +72,15 @@ def _imported_modules(path: Path) -> list[str]:
 
 def test_dashboard_does_not_import_forbidden_framework_packages() -> None:
     assert _DASHBOARD_SRC.is_dir(), "expected apps/dashboard/src (ADR-0022)"
+    assert _DASHBOARD_PAGES.is_dir(), "expected apps/dashboard/pages (PRB-022)"
     offenders: list[str] = []
 
-    for path in _python_files(_DASHBOARD_SRC):
-        relative = path.relative_to(_REPO_ROOT).as_posix()
-        for module in _imported_modules(path):
-            if _is_forbidden(module, _FORBIDDEN_PREFIXES):
-                offenders.append(f"{relative}:{module}")
+    for scan_root in _DASHBOARD_SCAN_ROOTS:
+        for path in _python_files(scan_root):
+            relative = path.relative_to(_REPO_ROOT).as_posix()
+            for module in _imported_modules(path):
+                if _is_forbidden(module, _FORBIDDEN_PREFIXES):
+                    offenders.append(f"{relative}:{module}")
 
     assert offenders == []
 
@@ -84,15 +93,40 @@ def test_dashboard_does_not_import_ml_training_libraries() -> None:
     to appear in any dashboard source file.
     """
     assert _DASHBOARD_SRC.is_dir(), "expected apps/dashboard/src (ADR-0022)"
+    assert _DASHBOARD_PAGES.is_dir(), "expected apps/dashboard/pages (PRB-022)"
     offenders: list[str] = []
 
-    for path in _python_files(_DASHBOARD_SRC):
-        relative = path.relative_to(_REPO_ROOT).as_posix()
-        for module in _imported_modules(path):
-            if _is_forbidden(module, _FORBIDDEN_ML_LIBRARY_PREFIXES):
-                offenders.append(f"{relative}:{module}")
+    for scan_root in _DASHBOARD_SCAN_ROOTS:
+        for path in _python_files(scan_root):
+            relative = path.relative_to(_REPO_ROOT).as_posix()
+            for module in _imported_modules(path):
+                if _is_forbidden(module, _FORBIDDEN_ML_LIBRARY_PREFIXES):
+                    offenders.append(f"{relative}:{module}")
 
     assert offenders == []
+
+
+def test_dashboard_pages_scan_actually_detects_a_forbidden_import(tmp_path: Path) -> None:
+    """Regression test for PRB-022: prove the widened scan can fail, not just pass.
+
+    A test that only asserts ``offenders == []`` against the real, already-
+    clean ``pages/`` tree would pass even if the scan silently skipped that
+    directory entirely. This constructs a synthetic file with a
+    deliberately-injected ``trading_framework.research`` import and asserts
+    the same helpers used by the two tests above flag it.
+    """
+    offending_file = tmp_path / "synthetic_page.py"
+    offending_file.write_text(
+        "import trading_framework.research.predictive.verdict\n", encoding="utf-8"
+    )
+
+    offenders = [
+        module
+        for module in _imported_modules(offending_file)
+        if _is_forbidden(module, _FORBIDDEN_PREFIXES)
+    ]
+
+    assert offenders == ["trading_framework.research.predictive.verdict"]
 
 
 # ---------------------------------------------------------------------------
