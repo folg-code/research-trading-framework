@@ -177,12 +177,27 @@ class PromotedArtifactManifest:
             msg = "manifest features must be a sequence"
             raise ValidationError(msg)
 
+        try:
+            fold_id = int(payload["fold_id"])
+        except (TypeError, ValueError) as exc:
+            msg = f"manifest fold_id must be an integer: {payload['fold_id']!r}"
+            raise ValidationError(msg) from exc
+
+        try:
+            created_at_utc = datetime.fromisoformat(str(payload["created_at_utc"]))
+        except ValueError as exc:
+            msg = (
+                "manifest created_at_utc is not a valid ISO-8601 timestamp: "
+                f"{payload['created_at_utc']!r}"
+            )
+            raise ValidationError(msg) from exc
+
         return cls(
             schema_version=str(payload["schema_version"]),
             artifact_fingerprint=str(payload["artifact_fingerprint"]),
             run_fingerprint=str(payload["run_fingerprint"]),
             dataset_fingerprint=str(payload["dataset_fingerprint"]),
-            fold_id=int(payload["fold_id"]),
+            fold_id=fold_id,
             feature_output_refs=tuple(str(item) for item in features),
             model_family=str(payload["model_family"]),
             format=str(payload["format"]),
@@ -191,7 +206,7 @@ class PromotedArtifactManifest:
             estimator_spec=dict(estimator_spec),
             training_library=str(payload["training_library"]),
             training_library_version=str(payload["training_library_version"]),
-            created_at_utc=datetime.fromisoformat(str(payload["created_at_utc"])),
+            created_at_utc=created_at_utc,
         )
 
 

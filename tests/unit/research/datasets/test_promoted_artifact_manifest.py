@@ -82,6 +82,27 @@ def test_model_family_outside_allowlist_is_validation_error() -> None:
         _manifest(model_family="xgboost.tree")
 
 
+def test_non_numeric_fold_id_is_validation_error_not_a_bare_value_error() -> None:
+    """Sprint 058 T003 review finding: a hand-edited or corrupted manifest
+    used to raise a bare ValueError here, one layer below any caller's
+    ValidationError/named-error handling (e.g. resolve_score_condition's
+    config-load-time refusal, ADR-0033 §2) -- undermining the "named-error
+    refusal" guarantee for exactly the malformed-manifest case it exists
+    to cover.
+    """
+    payload = _manifest().to_dict()
+    payload["fold_id"] = "not-a-number"
+    with pytest.raises(ValidationError, match="fold_id"):
+        PromotedArtifactManifest.from_dict(payload)
+
+
+def test_malformed_created_at_utc_is_validation_error_not_a_bare_value_error() -> None:
+    payload = _manifest().to_dict()
+    payload["created_at_utc"] = "not-a-timestamp"
+    with pytest.raises(ValidationError, match="created_at_utc"):
+        PromotedArtifactManifest.from_dict(payload)
+
+
 def test_promoted_artifact_ref_normalizes_and_rejects_empty() -> None:
     ref = PromotedArtifactRef(artifact_fingerprint="  " + "a" * 64 + "  ")
     assert ref.artifact_fingerprint == "a" * 64
