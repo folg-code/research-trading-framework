@@ -78,6 +78,10 @@ from trading_framework.signal_model.definitions import (
 from trading_framework.time.clocks.fixed import FixedClock
 from trading_framework.time.models.timeframe import Timeframe
 
+pytest.importorskip("sklearn")
+
+pytestmark = pytest.mark.ml
+
 _BAR_COUNT = 180
 _ATR_PERIOD = 2
 _BREAKOUT_THRESHOLD = 108.0
