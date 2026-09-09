@@ -1013,12 +1013,13 @@ D-S027-08). Do not silently change continuous Parquet schema.
 ## TD-021 — Predictive Research Has No Model Registry
 
 ```text
-Status: ACCEPTED
+Status: REPAID
 Priority: MEDIUM
 Domain: Predictive Research
 Introduced: Sprint 040 (2026-08-26)
 Target Review: Sprint 044 / IDEA-014 promotion gate
 Owner: Unassigned
+Repaid: Sprint 058 T003 / T005 (Phase 16 increment 16C)
 ```
 
 ### Accepted Shortcut
@@ -1088,6 +1089,25 @@ and written down*, not by a registry appearing. If 16C's design work shows
 a fingerprint reference is genuinely unusable from a config, that is an
 ADR-0024 revisit and a maintainer decision — not something 16C may do
 inline.
+
+### 16C disposition (2026-09-09) — REPAID
+
+**Confirmed exactly as predicted: yes, still sufficient.** ADR-0033
+(`docs/adr/ADR-0033-predictive-score-delivery-boundary.md`, ACCEPTED) names
+a bare `artifact_fingerprint` as the only field `ScoreConditionSpec`
+(`trading_framework.strategy.score_condition`) carries — no index, no
+alias, no `latest` pointer. `resolve_score_condition`
+(`application/strategy_research/resolve_score_condition.py`, Sprint 058
+T003) resolves it via the existing `PromotedArtifactRepository`, and
+`docs/reference/BTC_SIGNAL_QUALITY_STUDY.md` (Sprint 058 T005) is the real
+consumer: a genuine Strategy Research config named a real promoted
+artifact (`00e919cc8f950eb8da7217b9e00f8bfb463642c4f2e114d325372404b9b368a3`)
+by fingerprint alone and resolved it successfully, end to end, against
+real BTC data. No index, `latest` pointer, or lifecycle field was added
+anywhere in Phase 16 to make this work — ADR-0024 condition 5 holds
+unweakened. TD-021 is closed on exactly the terms its repayment trigger
+named: confirmation against a real consumer, not construction of the
+thing it forbids.
 
 ---
 
@@ -1179,6 +1199,23 @@ reloading `models/fold_{n}.bin`; the Sprint 049 disposition's boundary
 ("research-run blobs are completely unchanged") is preserved, not widened.
 TD-022's residual — opacity of *never-promoted* research-run blobs —
 remains open after 16C and is not claimed as repaid.
+
+### 16C disposition (2026-09-09) — promotion branch confirmed repaid, residual stays open
+
+**The promotion branch is repaid, asserted by test, not by convention.**
+`score_gate.py` (Sprint 058 T004) reads only `manifest.json` and
+`artifact.json` (the plain-number parameter payload) — never
+`models/fold_{n}.bin`. This is enforced, not merely observed:
+`tests/unit/test_architecture_boundaries.py::
+test_strategy_research_does_not_import_ml_infrastructure` (Sprint 058 T003)
+asserts neither `trading_framework.strategy` nor
+`application/strategy_research` imports `infrastructure.ml` — the only
+place `joblib`/blob-loading code lives — even transitively. The real
+worked example (`docs/reference/BTC_SIGNAL_QUALITY_STUDY.md`, Sprint 058
+T005) exercised this path against a real promoted artifact end to end.
+**As predicted, the residual is unchanged and stays open**: a
+never-promoted research-run blob is exactly as opaque today as before this
+phase. Nothing in Sprint 058 touched that boundary.
 
 ---
 
@@ -1696,6 +1733,29 @@ When 16G does repay this entry, the design must still reuse
 `infrastructure/ml/promotion.py::require_supported_model_family`'s guard
 ordering, as this entry's Repayment Direction already prescribes, and must
 go through its own ADR.
+
+### 16C disposition (2026-09-09) — re-deferred to 16G, in writing and in code
+
+**The re-deferral happened exactly as planned — not silently.** 16C's
+estimator comparison (Sprint 058 T002,
+`tests/integration/predictive_research/test_signal_quality_estimator_comparison.py`)
+demonstrably compares a promotable family (`sklearn.logistic`) against a
+research-only tree family (`xgboost.classifier`) on the same dataset, and
+the test itself partitions the resulting leaderboard against
+`MODEL_FAMILY_ALLOWLIST` rather than treating every ranked row as
+gate-eligible — proving the comparison stayed research-only where it
+needed to. The config-load-time refusal is real and tested:
+`resolve_score_condition` (Sprint 058 T003) raises the named
+`ScoreConditionFamilyRefusedError` for a promoted-artifact reference
+naming a non-allowlisted `model_family`, asserted by
+`tests/unit/application/strategy_research/test_resolve_score_condition.py::
+test_resolve_score_condition_refuses_a_non_allowlisted_family`.
+`MODEL_FAMILY_ALLOWLIST` itself (`research/datasets/promoted_artifact.py`)
+is byte-for-byte unchanged by Sprint 058 — asserted directly by
+`tests/integration/predictive_research/test_signal_quality_estimator_comparison.py::
+test_family_allowlist_is_unchanged_by_this_sprint`. TD-029 stays ACCEPTED,
+its repayment still owned by 16G, exactly as this entry's Planned
+repayment route already recorded.
 
 ---
 

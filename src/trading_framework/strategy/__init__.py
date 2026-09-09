@@ -33,6 +33,10 @@ from trading_framework.strategy.risk_model import (
     FixedQuantityRiskModel,
     RiskModel,
 )
+from trading_framework.strategy.score_condition import (
+    ScoreConditionError,
+    ScoreConditionSpec,
+)
 from trading_framework.strategy.signal_occurrence import (
     OccurrenceMaterializationContext,
     derive_occurrence_id,
@@ -65,6 +69,8 @@ __all__ = [
     "ReferencePriceLookup",
     "ReferencePricePolicy",
     "RiskModel",
+    "ScoreConditionError",
+    "ScoreConditionSpec",
     "StrategyModelDefinition",
     "StrategyModelDefinitionError",
     "build_btc_futures_demo_strategy_model",

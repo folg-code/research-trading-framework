@@ -4,7 +4,14 @@
 Status: APPROVED (maintainer, 2026-09-04) — no sprint opened for any increment
         at approval time. UPDATE (2026-09-08): 16B is COMPLETE (Sprint 056,
         7/7 tasks, merged to `main` via #457) — see §13H.2's "16B is DONE"
-        note below. No sprint is opened for any other increment.
+        note below. 16A is COMPLETE (Sprint 057, 7/7 tasks, merged to `main`
+        via #471) — see §13H.1's "16A is DONE" note below. UPDATE
+        (2026-09-09): 16C is COMPLETE (Sprint 058, 6/6 tasks, working PRs
+        #472-#479 into `sprint/signal-quality-scoring`, not yet integrated
+        to `main`) — ADR-0033 (score delivery boundary) is ACCEPTED and
+        implemented; TD-021 REPAID, TD-022's promotion branch confirmed
+        repaid, TD-029 re-deferred to 16G. See §13H.3's "16C is DONE" note
+        below. No sprint is opened for 16D–16G.
 ```
 
 Full detail for `ROADMAP.md` §13H — this is the LIVE, canonically-updated location for this
@@ -236,8 +243,8 @@ PRs into `sprint/analyst-verdict-artifact` (#464 ADR-0032, #465 vocabulary
 and rule cascade, #466 fact extraction, #467 sidecar I/O, #468 retrospective
 application, #469 dashboard display). ADR-0032 was accepted 2026-09-08 with
 no correction attracted at review; the shipped vocabulary, rule set and
-sidecar schema match it exactly. `sprint/analyst-verdict-artifact` had not
-been merged into `main` as of this note — see
+sidecar schema match it exactly. `sprint/analyst-verdict-artifact` was
+merged into `main` via #471 (2026-09-08) — see
 `docs/planning/CURRENT_STATUS.md` §2/§3 for the current integration state.
 
 All four completion criteria above were assessed against the shipped
@@ -606,6 +613,84 @@ ADR replaces it (which, under Option B, is 16G's ADR).
   ADR.
 - Replacing any rule-based strategy with an opaque model.
 - TD-022's residual (never-promoted research-run blob opacity).
+
+### Completion note (added at closure, 2026-09-09 — append-only, does not replace the text above)
+
+**16C is DONE.** Delivered by Sprint 058
+(`docs/planning/sprints/SPRINT_058.md`), 6/6 tasks, working PRs #472
+(planning docs, ADR-0033) / #473 (T001) / #474 (T002) / #475+#476 (T003 +
+a manifest-parsing robustness fix found by review) / #477 (T004 + a
+warm-up-sizing fix found by review) / #478 (T005) into
+`sprint/signal-quality-scoring`. ADR-0033 (score delivery boundary) was
+accepted 2026-09-08 and implemented exactly as designed: a strategy
+condition (`ScoreConditionSpec`) names a promoted artifact by
+content-addressed fingerprint only, resolved once at config load time
+(`resolve_score_condition`, T003), evaluated in-process at simulation
+time via the unmodified pure-NumPy evaluator (ADR-0029) under the same
+`available_at` discipline as every other component (`score_gate.py`, T004)
+— never a fitted blob, never `infrastructure.ml`, never bypassing the
+simulator.
+
+Every completion criterion above was assessed against the shipped result:
+
+1. **One end-to-end worked example on real data — MET.** Sprint 051's real
+   RSI / relative-volatility strategy, a real `signal_occurrences`
+   `SIGNAL_QUALITY` study over real `BTCUSDT.P` data (16,415 occurrences),
+   a real promoted `sklearn.logistic` scorer, and a real baseline-vs-
+   scored Strategy Research comparison — all reproducible via three
+   committed scripts. `docs/reference/BTC_SIGNAL_QUALITY_STUDY.md` is the
+   full write-up.
+2. **The simulator is not bypassed — MET.** `apply_score_gate` composes
+   strictly after the existing market/signal gate, as one further Polars
+   filter on `{available_at, direction}`; `research/simulation/engine.py`
+   is untouched by this sprint's diff, confirmed by direct inspection in
+   T004's independent review.
+3. **No look-ahead through the model — MET, independently verified.**
+   `available_at` in the score path is the byte-identical
+   `timestamp + evaluation_timeframe` formula the market/signal gate
+   already uses (`model_expression/evaluation/frame_adapter.py`), over the
+   same preloaded OHLCV batch — confirmed by direct source comparison in
+   T004's review, not merely asserted.
+4. **A negative result is a complete outcome — MET, and is the actual
+   result.** The worked example's ROC AUC (0.524) barely clears the
+   0.507 random-permutation baseline; at the declared, non-cherry-picked
+   threshold (0.5, fixed before the threshold-sensitivity table was
+   computed), the score gate rejects 2 of 6,200 baseline trades —
+   statistically indistinguishable from noise. The 16A verdict applied to
+   the underlying predictive run is `INCONCLUSIVE` (rule O3: a positive
+   pooled baseline delta, but a per-fold win rate of only 0.5). This is
+   reported plainly, not smoothed over — `docs/reference/
+   BTC_SIGNAL_QUALITY_STUDY.md` §7 states the honest headline before
+   anything downstream is built on it.
+5. **TD-021 is repaid — MET.** A real Strategy Research config named a
+   real promoted artifact by bare content-addressed fingerprint alone; no
+   index, alias, or `latest` pointer was introduced anywhere in the
+   phase. `docs/planning/TECHNICAL_DEBT.md` TD-021 is marked **REPAID**.
+6. **TD-022's promotion branch is repaid — MET, asserted by test.** The
+   score path depends only on `artifact.json`, never `models/fold_{n}
+   .bin` — enforced by
+   `tests/unit/test_architecture_boundaries.py::
+   test_strategy_research_does_not_import_ml_infrastructure`, not merely
+   observed. The residual (never-promoted research-run blob opacity)
+   stays open, as required.
+7. **TD-029 is explicitly re-deferred, in writing and in code — MET.**
+   `resolve_score_condition` refuses a non-allowlisted `model_family` at
+   config load time with a named error
+   (`ScoreConditionFamilyRefusedError`), asserted by test; a real
+   promotable-vs-research-only comparison (`sklearn.logistic` vs.
+   `xgboost.classifier`) was exercised and correctly partitioned in T002.
+   `MODEL_FAMILY_ALLOWLIST` is confirmed byte-for-byte unchanged by this
+   sprint, asserted by test, not by convention.
+
+**This closure produced a real predictive study, a real promoted scorer,
+and a real Strategy Research comparison — and a complete negative
+result.** No market claim is made; ADR-0024's rule (a backtest is never
+evidence of a live edge) is restated in the worked example's own write-up.
+16D, 16E, and 16G may now consume this increment's artifacts (the
+`ScoreConditionSpec` contract, the promoted-artifact reference mechanism,
+`docs/reference/BTC_SIGNAL_QUALITY_STUDY.md`'s worked example) as readers;
+none may extend the scorer-reference contract or the score-gate mechanism
+without a new or amending ADR (ADR-0033 Follow-up).
 
 ## 13H.4 — Increment 16D — Quant Lab Dashboard (directional)
 
@@ -1128,8 +1213,8 @@ This table is the forward index; the annotations in `PROBLEM_REGISTRY.md` /
 | `PRB-012` — planner limits need defaults | OPEN / MEDIUM | 16E (§13H.5) | Conservative defaults, explicit override, planner tests, no silent pruning — in 16E's completion criteria. Scoped to the new Strategy Research planner only (Q8) |
 | `PRB-013` — parity not measurable | OPEN / HIGH | 16G (§13H.7) | Formal parity suite, versioned numeric tolerances (numbers set at 16G's Wave 0, Q7), documented unavoidable differences — the concrete meaning of 16G's "offline/online parity test" step |
 | `PRB-020` — Strategy Research lacks family machinery | OPEN / MEDIUM | 16E (§13H.5) | Bounded candidate generation with generated/evaluated/skipped bookkeeping, along Q4's default port direction (or a Wave 0 divergence recorded with rationale) |
-| `TD-021` — no model registry | ACCEPTED / MEDIUM | 16C (§13H.3) | Confirmed, against a real config consumer, that content-addressed fingerprint reference suffices; ADR-0024 condition 5 upheld, no registry built |
-| `TD-022` — opaque fitted blobs | ACCEPTED / LOW | 16C (§13H.3) | Score path provably depends on no `models/fold_{n}.bin`; promotion branch repaid, never-promoted-blob residual explicitly left open |
+| `TD-021` — no model registry | **REPAID** (2026-09-09) | 16C (§13H.3) | Confirmed, against a real config consumer, that content-addressed fingerprint reference suffices; ADR-0024 condition 5 upheld, no registry built |
+| `TD-022` — opaque fitted blobs | ACCEPTED / LOW — promotion branch **repaid** (2026-09-09), residual still open | 16C (§13H.3) | Score path provably depends on no `models/fold_{n}.bin`; promotion branch repaid, never-promoted-blob residual explicitly left open |
 | `TD-029` — tree/neural promotion deferred | ACCEPTED / LOW | **16G** (§13H.7) | Q6 = Option B: 16C refuses non-promotable families as strategy gates at config load time; the version-pinned serialization ADR and any allow-list widening belong to 16G |
 
 None of these is closed by approving this phase. Approval only makes the

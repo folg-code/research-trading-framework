@@ -10,6 +10,7 @@ from trading_framework.market_model.definitions import MarketModelDefinition
 from trading_framework.signal_model.definitions import SignalDirection, SignalModelDefinition
 from trading_framework.strategy.exit_model import ExitModel
 from trading_framework.strategy.risk_model import RiskModel
+from trading_framework.strategy.score_condition import ScoreConditionSpec
 
 
 class StrategyModelDefinitionError(ValidationError):
@@ -18,13 +19,22 @@ class StrategyModelDefinitionError(ValidationError):
 
 @dataclass(frozen=True, slots=True)
 class StrategyModelDefinition:
-    """Composition of Market, Signal, Exit and Risk models for one strategy."""
+    """Composition of Market, Signal, Exit and Risk models for one strategy.
+
+    ``score_condition`` is optional (Sprint 058 T004, ADR-0033): when
+    declared, it names a promoted artifact whose score must clear a
+    threshold, evaluated in-process as an additional gate on top of the
+    market/signal gate every strategy already has — never a replacement
+    for it, and never something the simulator is aware of. ``None`` is the
+    default and preserves every existing strategy's behaviour unchanged.
+    """
 
     strategy_model_id: str
     market_model: MarketModelDefinition
     signal_model: SignalModelDefinition
     exit_model: ExitModel
     risk_model: RiskModel
+    score_condition: ScoreConditionSpec | None = None
 
     def __post_init__(self) -> None:
         normalized = self.strategy_model_id.strip()
