@@ -116,8 +116,8 @@ completed-phase archive and the live per-phase files under `docs/planning/roadma
 | 15B | Real-Data BTC Predictive Study | COMPLETE (Sprint 052, 8/8; merged to `main` via #461-#463) | `roadmap/PHASE_15_PREDICTIVE_CATALOG.md` §13G |
 | 16A | Analyst Verdict Artifact | COMPLETE (Sprint 057, 7/7; merged to `main` via #471) | `roadmap/PHASE_16_QUANT_WORKBENCH.md` §13H |
 | 16B | SampleSpec Foundation | COMPLETE (Sprint 056, 7/7; merged to `main` via #457) | `roadmap/PHASE_16_QUANT_WORKBENCH.md` §13H |
-| 16C | Signal Quality Scoring | Sprint 058 COMPLETE (2026-09-09, 6/6 tasks); ADR-0033 ACCEPTED; negative result | `roadmap/PHASE_16_QUANT_WORKBENCH.md` §13H |
-| 16D | Quant Lab Dashboard | DIRECTIONAL | `roadmap/PHASE_16_QUANT_WORKBENCH.md` §13H |
+| 16C | Signal Quality Scoring | COMPLETE (Sprint 058, 6/6; merged to `main` via #480) | `roadmap/PHASE_16_QUANT_WORKBENCH.md` §13H |
+| 16D | Portfolio Dashboard | PLANNING — PRD and Sprints 059–060 DRAFT | `roadmap/PHASE_16D_PORTFOLIO_DASHBOARD.md` |
 | 16E | Strategy Families | DIRECTIONAL | `roadmap/PHASE_16_QUANT_WORKBENCH.md` §13H |
 | 16F | Trade Outcome and No-Trade Models | DIRECTIONAL | `roadmap/PHASE_16_QUANT_WORKBENCH.md` §13H |
 | 16G | Promotion Candidate Gate | DIRECTIONAL | `roadmap/PHASE_16_QUANT_WORKBENCH.md` §13H |
@@ -151,7 +151,7 @@ Research Capability Track
   Phase 10C — Neural Predictive Models            COMPLETE  (Sprints 043–044)
   Phase 14 — Predictive Model Promotion           APPROVED  (Sprints 049 + 050; 049 COMPLETE, 14A only — 050 NOT planned)
   Phase 15 — Predictive Catalog Expansion + Real-Data Study   COMPLETE  (Sprints 051 + 052; both merged to `main`, #409 / #461-#463)
-  Phase 16 — Quant Research Workbench (16A–16G)   APPROVED  (§13H; no sprint opened)
+  Phase 16 — Quant Research Workbench (16A–16G)   ACTIVE  (§13H; 16D planning draft)
 
 Execution Capability Track
   Phase 8 — Replay and Paper Execution            PLANNED
@@ -233,8 +233,10 @@ sequenced.
 **Phase 16 (§13H) is APPROVED** (maintainer, 2026-09-04): a seven-increment
 capability track turning the existing runners into one quant research
 workbench over a single neutral Market Analysis component catalog. Approval
-of the phase is **not** approval to open a sprint — 16A–16C are the
-committed direction, 16D–16G stay directional (§2.9). Its increment 16A
+of the phase is **not** approval to open a sprint. 16A–16C are complete;
+16D has been re-specified as the Portfolio Dashboard and has a DRAFT PRD plus
+DRAFT Sprints 059–060. Neither sprint is opened. 16E–16G stay directional
+(§2.9). Increment 16A
 does **not** re-plan Phase 15B — Sprint 052 remains the real-data study and
 is Phase 16's entry condition, not one of its increments (§13H.0); the one
 carve-out is 16B, which may start in parallel with Sprint 052. Phase 16 is
@@ -837,11 +839,11 @@ This phase is ACTIVE: edit the linked file, not this stub.
 
 # 13H. Phase 16 — Quant Research Workbench (APPROVED)
 
-**Status:** **APPROVED** (maintainer, 2026-09-04). **16B is COMPLETE** (Sprint 056, 7/7
-tasks, merged to `main` via #457, using the Q3 parallel-start carve-out). **No sprint is
-opened, planned or numbered for any other increment.** 16A–16C are the committed direction;
-**16D–16G are directional** and will be re-specified from evidence before any of them is
-planned (§2.9).
+**Status:** **ACTIVE.** 16A–16C are COMPLETE; Sprint 058 was merged to `main`
+via #480. Increment 16D has been re-specified as the public **Portfolio
+Dashboard** under the maintainer-accepted
+`DASHBOARD_DEVELOPMENT_DIRECTION.md`. Its PRD and Sprints 059–060 are DRAFT;
+neither sprint is opened. 16E–16G remain directional (§2.9).
 
 Purpose: turn the existing independently-reached runners (Signal, Strategy, Robustness and
 Predictive Research plus the dashboard) into one quant research workbench over a single
@@ -850,7 +852,7 @@ feature" concept.
 
 ```text
 16A — Analyst Verdict Artifact     16B — SampleSpec Foundation
-16C — Signal Quality Scoring       16D — Quant Lab Dashboard
+16C — Signal Quality Scoring       16D — Portfolio Dashboard
 16E — Strategy Families            16F — Trade Outcome and No-Trade Models
 16G — Promotion Candidate Gate
 ```

@@ -27,67 +27,22 @@ below. Detailed task state belongs in `docs/planning/sprints/`.
 
 ```text
 Status Date: 2026-09-09
-Current Phase: Phase 15 — Predictive Research Catalog Expansion and
-  Real-Data Study. Increment 15A (Sprint 051) is COMPLETE and merged to
-  `main` (#409). Increment 15B (Sprint 052, the real-data BTC predictive
-  study) is COMPLETE (8/8 tasks) and **merged to `main`** (#461, #462, #463,
-  2026-09-08) — Phase 15 as a whole is COMPLETE. Verdict: split result — the
-  BINARY/classification pass (`sklearn.logistic`) clears `S044_GATE.md`
-  §1.4's strict per-fold bar and closes ROADMAP §13F's Q5 dependency; the
-  REGRESSION pass does not. Full write-up:
-  `docs/reference/BTC_PREDICTIVE_STUDY.md`.
-  Phase 14 — Predictive Model Promotion. Increment 14A (Sprint 049) is
-  COMPLETE and merged to `main` (#396). Increment 14B (Sprint 050) is not
-  planned or started — Phase 14 as a whole is NOT complete (no Market
-  Analysis component, State, executor change, or dry-run session exists);
-  Q5 closing does not by itself satisfy 14B's remaining prerequisites
-  (ADR-0030, the named downstream robustness plan).
-  Phase 16 — Quant Research Workbench (APPROVED 2026-09-04). Increment 16B
-  (Sprint 056, SampleSpec Foundation) is COMPLETE and merged to `main`
-  (#457). Increment 16A (Sprint 057, Analyst Verdict Artifact) is COMPLETE
-  (7/7 tasks) and **merged to `main`** (#471, 2026-09-08) — the integration
-  PR from `sprint/analyst-verdict-artifact` closed this increment. Increment
-  16C (Signal Quality Scoring, Sprint 058) is **COMPLETE** (6/6 tasks,
-  2026-09-09) on working PRs #472-#479 into `sprint/signal-quality-scoring`
-  — ADR-0033 (score delivery boundary) is ACCEPTED and implemented; TD-021
-  is REPAID, TD-022's promotion branch is confirmed repaid (residual open),
-  TD-029 is re-deferred to 16G in writing and in code. Integration of
-  `sprint/signal-quality-scoring` into `main` is a separate,
-  maintainer-reviewed step, not yet performed
-  (`ROADMAP.md` §13H;
-  `docs/planning/roadmap/PHASE_16_QUANT_WORKBENCH.md`;
-  `docs/planning/sprints/SPRINT_058.md`;
-  `docs/adr/ADR-0033-predictive-score-delivery-boundary.md`;
-  `docs/reference/BTC_SIGNAL_QUALITY_STUDY.md`).
-  All phases through Phase 13 (Sprint 048, #383) are COMPLETE on `main`.
-Active Sprint: none opened. SPRINT_058 (Signal Quality Scoring, Phase 16
-  increment 16C) is COMPLETE (6/6 tasks) pending its integration PR into
-  `main`. See `docs/planning/sprints/SPRINT_058.md` Closeout. SPRINT_057
-  (Analyst Verdict Artifact, Phase 16 increment 16A) is COMPLETE (7/7
-  tasks) and merged to `main` via #471. See
-  `docs/planning/sprints/SPRINT_057.md` §13 Review and
-  `S057_WAVE0_DECISIONS.md`.
-Last Completed Sprint (cross-cutting, merged to `main`): SPRINT_055
-  (Documentation Architecture Rebuild, high-level to low-level) — merged to
-  `main` via #447. SPRINT_054 (Vision Reclassification and Reference
-  Layering, Phase 6b + 10a) — merged to `main` via #434.
-Last Completed Sprint (research track, merged to `main`): SPRINT_052
-  (Real-Data BTC Predictive Study, Phase 15B) — 8/8 tasks, merged to `main`
-  via #461/#462/#463; closes Phase 15 and ROADMAP §13F's Q5. SPRINT_051
-  (Momentum and Regime Component Catalog, Phase 15A) — 11/11 tasks, merged
-  to `main` via #409.
-Last Completed Sprint (Phase 16 track, merged to `main`): SPRINT_056
-  (SampleSpec Foundation, Phase 16 increment 16B) — 7/7 tasks, merged to
-  `main` via #457. One item of technical debt left open (`TECHNICAL_DEBT.md`
-  TD-031).
-Last Completed Sprint (Phase 16 track, merged to `main`):
-  SPRINT_057 (Analyst Verdict Artifact, Phase 16 increment 16A) — 7/7
-  tasks, working PRs #464-#469 merged into `sprint/analyst-verdict-artifact`,
-  which was then merged to `main` via #471 (2026-09-08).
-  All three retrospective verdicts (S057-T005) matched the pre-declared
-  expectations exactly; no threshold was adjusted. One item of technical
-  debt left open (`TECHNICAL_DEBT.md` TD-033); `PROBLEM_REGISTRY.md`
-  PRB-022 also logged during this sprint.
+Current Phase: Phase 16 — Quant Research Workbench. Increments 16A–16C are
+  COMPLETE. Sprint 058 (Signal Quality Scoring, 6/6) was merged to `main`
+  via #480 on 2026-09-09 and produced the real BTC Signal Quality evidence
+  used by the next dashboard increment.
+Current Increment: 16D — Portfolio Dashboard, PLANNING. The accepted
+  `DASHBOARD_DEVELOPMENT_DIRECTION.md` is authoritative for this increment
+  and replaces the former Quant Lab framing. The feature PRD and Sprint 059
+  / Sprint 060 plans are DRAFT.
+Active Sprint: none opened. Sprints 059 and 060 are planning artifacts only;
+  implementation requires PRD approval and the architecture decisions in
+  SPRINT_059.md.
+Last Completed Sprint: SPRINT_058 — Signal Quality Scoring (Phase 16C),
+  merged to `main` via #480. See `docs/planning/sprints/SPRINT_058.md` and
+  `docs/reference/BTC_SIGNAL_QUALITY_STUDY.md`.
+Parallel state: Phase 15 is COMPLETE. Phase 14A is COMPLETE; Phase 14B /
+  reserved Sprint 050 remains not planned and not started.
 Overall Status: STABLE
 Full sprint-by-sprint history: §12 below (compact index) and each sprint's
   own `docs/planning/sprints/SPRINT_XXX.md`.
@@ -97,26 +52,18 @@ Full sprint-by-sprint history: §12 below (compact index) and each sprint's
 
 ## 3. Work in Progress
 
-**No sprint currently open.** SPRINT_058 (Signal Quality Scoring, Phase 16
-increment 16C) — 6/6 tasks, working PRs #472 (planning docs, ADR-0033),
-#473 (T001, SIGNAL_QUALITY pipeline proof), #474 (T002, estimator
-comparison + threshold sensitivity), #475+#476 (T003, scorer-reference
-contract + a manifest-parsing robustness fix found by review), #477 (T004,
-the Strategy Research score gate + a warm-up-sizing fix found by review),
-#478 (T005, the real-data BTC worked example). This is the phase's key
-vertical slice: a fitted, promoted `sklearn.logistic` scorer over real
-`BTCUSDT.P` `signal_occurrences` was named by a Strategy Research config
-via a bare content-addressed fingerprint (TD-021 REPAID), evaluated
-in-process under the same `available_at` discipline as every other
-component (never a fitted blob, TD-022's promotion branch confirmed
-repaid), and the comparison came back a complete, honest **negative
-result**: ROC AUC 0.524 (barely above the 0.507 random-permutation
-baseline), 2 of 6,200 trades filtered at a non-cherry-picked threshold —
-see `docs/reference/BTC_SIGNAL_QUALITY_STUDY.md`. TD-029 is re-deferred to
-16G in writing and in code. No PR has been merged yet; working PRs land
-into `sprint/signal-quality-scoring`. See
-`docs/planning/sprints/SPRINT_058.md` Closeout for the full closure
-record.
+**No sprint currently open.** Phase 16D planning is in progress. The
+Portfolio Dashboard PRD and two delivery slices are DRAFT:
+
+- Sprint 059 — Portfolio Publication Foundation: safe public projection,
+  study/content/routing contracts, strengthened app boundary and overview;
+- Sprint 060 — Signal Quality Portfolio Evidence: methodology, simplified BTC
+  study, persisted-fact charts and `Explore Evidence` navigation.
+
+Sprint 059 is gated on PRD approval and three architecture decisions covering
+the public projection, dashboard-local study identity and public content
+ownership. Sprint 060 depends on the completed Sprint 059 foundation. Neither
+plan authorizes implementation or opens a sprint.
 
 SPRINT_057 (Analyst Verdict Artifact, Phase
 16 increment 16A) — 7/7 tasks, working PRs #464 (ADR-0032), #465 (rule
@@ -163,19 +110,12 @@ the binary pass (run `faa6983acd03f846`, `sklearn.logistic`) — see
 `docs/planning/sprints/SPRINT_052.md` §13 Review. This closes Phase 15 as a
 whole.
 
-**Next planned capability (APPROVED, three increments now complete):**
-Phase 16 — Quant Research Workbench (increments 16A–16G), approved by the
-maintainer 2026-09-04. Canonical description: `ROADMAP.md` §13H and
-`docs/planning/roadmap/PHASE_16_QUANT_WORKBENCH.md` §13H.1 (16A's
-completion note) / §13H.2 (16B's completion note) / §13H.3 (16C's
-completion note). **16B (Sprint 056) is complete and merged to `main`
-(#457). 16A (Sprint 057) is complete (7/7 tasks) and merged to `main`
-(#471). 16C (Sprint 058, Signal Quality Scoring) is COMPLETE** (6/6
-tasks, 2026-09-09) — ADR-0033 (score delivery boundary) is ACCEPTED and
-implemented; working PRs #472-#479 land into `sprint/signal-quality-
-scoring`, not yet integrated to `main`. No other increment (16D–16G)
-is opened, planned or numbered. Sprint 052 is not re-scoped or absorbed by
-Phase 16.
+**Next planned capability:** Phase 16D — Portfolio Dashboard. Its accepted
+direction supersedes the earlier Quant Lab description for this increment
+only. The implementation proposal is split into DRAFT Sprints 059 and 060;
+the PRD and Sprint 059 architecture decisions still require maintainer
+approval. Increments 16E–16G remain directional and are not pulled into this
+plan.
 
 ---
 
@@ -255,7 +195,9 @@ These have their own canonical owners — this file does not duplicate them:
 | 053 | Repository Workflow & Documentation Hygiene | IN PROGRESS | see `docs/planning/sprints/SPRINT_053.md` |
 | 056 | SampleSpec Foundation (Phase 16, increment 16B) | COMPLETED | 7 / 7 tasks; working PRs #448, #449, #450, #451, #456; integrated to `main` via #457 — see `docs/planning/sprints/SPRINT_056.md` §13 Review |
 | 057 | Analyst Verdict Artifact (Phase 16, increment 16A) | COMPLETED | 7 / 7 tasks; working PRs #464-#469 into `sprint/analyst-verdict-artifact`; integrated to `main` via #471 — see `docs/planning/sprints/SPRINT_057.md` §13 Review |
-| 058 | Signal Quality Scoring (Phase 16, increment 16C) | COMPLETE | 6 / 6 tasks; working PRs #472-#479 into `sprint/signal-quality-scoring`; not yet integrated to `main`; real-data worked example came back a complete negative result — see `docs/planning/sprints/SPRINT_058.md` Closeout and `docs/reference/BTC_SIGNAL_QUALITY_STUDY.md` |
+| 058 | Signal Quality Scoring (Phase 16, increment 16C) | COMPLETED | 6 / 6 tasks; working PRs #472-#479; integrated to `main` via #480; real-data worked example produced a complete negative result — see `docs/planning/sprints/SPRINT_058.md` Closeout and `docs/reference/BTC_SIGNAL_QUALITY_STUDY.md` |
+| 059 | Portfolio Publication Foundation (Phase 16, increment 16D) | DRAFT | Not opened; gated on PRD and architecture-decision approval — see `docs/planning/sprints/SPRINT_059.md` |
+| 060 | Signal Quality Portfolio Evidence (Phase 16, increment 16D) | DRAFT | Not opened; depends on completed Sprint 059 — see `docs/planning/sprints/SPRINT_060.md` |
 
 Sprint numbering has no gap at 050 — it is reserved for Phase 14B and not yet
 opened (see `docs/planning/sprints/SPRINT_053.md` metadata for the numbering

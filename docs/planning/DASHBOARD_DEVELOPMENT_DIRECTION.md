@@ -1,10 +1,11 @@
 # Portfolio Dashboard Development Direction
 
 ```text
-Status: DRAFT
+Status: ACCEPTED (maintainer, 2026-09-09)
 Discovery: maintainer Q&A completed 2026-09-09
 Owner: Planning
-Scope: public portfolio dashboard direction, not an approved sprint scope
+Scope: authoritative public portfolio dashboard direction; sprint scope is
+       approved separately
 ```
 
 ## 1. Purpose
