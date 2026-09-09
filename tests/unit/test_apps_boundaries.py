@@ -70,17 +70,35 @@ def _imported_modules(path: Path) -> list[str]:
     return modules
 
 
+def _scan_dashboard_offenders(scan_roots: tuple[Path, ...], prefixes: tuple[str, ...]) -> list[str]:
+    """Walk every root in ``scan_roots``, flagging any import matching ``prefixes``.
+
+    Shared by both real boundary tests and the PRB-022 regression test below,
+    so the regression test exercises this exact root-iteration logic --
+    including which directories are scanned -- rather than only the lower-
+    level ``_imported_modules``/``_is_forbidden`` helpers.
+    """
+    offenders: list[str] = []
+    for scan_root in scan_roots:
+        for path in _python_files(scan_root):
+            try:
+                relative = path.relative_to(_REPO_ROOT).as_posix()
+            except ValueError:
+                # A scan_root outside _REPO_ROOT (e.g. a test's tmp_path
+                # standing in for a "pages"-shaped directory) has no
+                # repo-relative form; fall back to the file name alone.
+                relative = path.name
+            for module in _imported_modules(path):
+                if _is_forbidden(module, prefixes):
+                    offenders.append(f"{relative}:{module}")
+    return offenders
+
+
 def test_dashboard_does_not_import_forbidden_framework_packages() -> None:
     assert _DASHBOARD_SRC.is_dir(), "expected apps/dashboard/src (ADR-0022)"
     assert _DASHBOARD_PAGES.is_dir(), "expected apps/dashboard/pages (PRB-022)"
-    offenders: list[str] = []
 
-    for scan_root in _DASHBOARD_SCAN_ROOTS:
-        for path in _python_files(scan_root):
-            relative = path.relative_to(_REPO_ROOT).as_posix()
-            for module in _imported_modules(path):
-                if _is_forbidden(module, _FORBIDDEN_PREFIXES):
-                    offenders.append(f"{relative}:{module}")
+    offenders = _scan_dashboard_offenders(_DASHBOARD_SCAN_ROOTS, _FORBIDDEN_PREFIXES)
 
     assert offenders == []
 
@@ -94,14 +112,8 @@ def test_dashboard_does_not_import_ml_training_libraries() -> None:
     """
     assert _DASHBOARD_SRC.is_dir(), "expected apps/dashboard/src (ADR-0022)"
     assert _DASHBOARD_PAGES.is_dir(), "expected apps/dashboard/pages (PRB-022)"
-    offenders: list[str] = []
 
-    for scan_root in _DASHBOARD_SCAN_ROOTS:
-        for path in _python_files(scan_root):
-            relative = path.relative_to(_REPO_ROOT).as_posix()
-            for module in _imported_modules(path):
-                if _is_forbidden(module, _FORBIDDEN_ML_LIBRARY_PREFIXES):
-                    offenders.append(f"{relative}:{module}")
+    offenders = _scan_dashboard_offenders(_DASHBOARD_SCAN_ROOTS, _FORBIDDEN_ML_LIBRARY_PREFIXES)
 
     assert offenders == []
 
@@ -111,22 +123,36 @@ def test_dashboard_pages_scan_actually_detects_a_forbidden_import(tmp_path: Path
 
     A test that only asserts ``offenders == []`` against the real, already-
     clean ``pages/`` tree would pass even if the scan silently skipped that
-    directory entirely. This constructs a synthetic file with a
-    deliberately-injected ``trading_framework.research`` import and asserts
-    the same helpers used by the two tests above flag it.
+    directory entirely -- and a test that calls ``_imported_modules``/
+    ``_is_forbidden`` directly on a synthetic file would prove nothing about
+    root selection either, since those helpers were never the source of
+    PRB-022 (an unscanned directory was). This test instead builds a
+    ``pages``-shaped temporary directory, injects a forbidden import into a
+    file inside it, and calls the SAME ``_scan_dashboard_offenders`` helper
+    the two real boundary tests use, with ``scan_roots`` pointed at that
+    temporary directory -- proving the production root-iteration logic
+    itself would fail on a dashboard page carrying a forbidden import, not
+    just that the low-level helpers can recognize one in isolation.
     """
-    offending_file = tmp_path / "synthetic_page.py"
-    offending_file.write_text(
+    pages_dir = tmp_path / "pages"
+    pages_dir.mkdir()
+    (pages_dir / "synthetic_page.py").write_text(
         "import trading_framework.research.predictive.verdict\n", encoding="utf-8"
     )
 
-    offenders = [
-        module
-        for module in _imported_modules(offending_file)
-        if _is_forbidden(module, _FORBIDDEN_PREFIXES)
-    ]
+    offenders = _scan_dashboard_offenders((pages_dir,), _FORBIDDEN_PREFIXES)
 
-    assert offenders == ["trading_framework.research.predictive.verdict"]
+    assert offenders == ["synthetic_page.py:trading_framework.research.predictive.verdict"]
+
+
+def test_dashboard_scan_roots_include_pages_directory() -> None:
+    """Guards directly against reverting PRB-022: `_DASHBOARD_SCAN_ROOTS` must
+    include `_DASHBOARD_PAGES`, not just `_DASHBOARD_SRC`, or the two real
+    boundary tests above silently stop covering `apps/dashboard/pages/`
+    again -- exactly the original bug, and one the other tests can't catch
+    on their own since today's `pages/` tree happens to be clean either way.
+    """
+    assert _DASHBOARD_PAGES in _DASHBOARD_SCAN_ROOTS
 
 
 # ---------------------------------------------------------------------------
