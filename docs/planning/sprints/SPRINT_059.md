@@ -1,6 +1,10 @@
 # Sprint 059: Portfolio Publication Foundation (Phase 16, increment 16D)
 
-Status: Draft — not opened; maintainer approval required
+Status: OPEN — the maintainer approved
+`docs/product/PRD-portfolio-dashboard-mvp.md` and Decisions D059-01 through
+D059-04 at sprint opening (2026-09-09). T001 recorded those decisions in
+ADR-0034, which the maintainer accepted as drafted on 2026-09-09; T002–T006
+are Ready.
 Goal: Establish the safe publication, content and navigation foundation for a
 public portfolio dashboard, then ship an overview that explains the product,
 shared domain architecture and six independent workflows.
@@ -13,14 +17,17 @@ Sources:
 - `docs/planning/roadmap/PHASE_16_QUANT_WORKBENCH.md` §13H.4.
 - `docs/adr/ADR-0022-repository-top-level-layout.md` — dashboard application
   boundary.
+- `docs/adr/ADR-0034-portfolio-publication-boundary.md` — D059-01–D059-04 as
+  recorded by T001 (ACCEPTED; T002–T006 consume it).
 - `docs/reference/modules/DASHBOARD_APPLICATION.md` — current contracts and
   publication path.
 - `docs/vision/PRODUCT_DIRECTION.md` — workflow independence and shared-domain
   foundation.
 
-Architecture triage: pending maintainer approval of Decisions D059-01 through
-D059-03 below. Implementation tasks are not Ready until those decisions are
-accepted and recorded in an ADR or an explicit amendment to ADR-0022.
+Architecture triage: Decisions D059-01 through D059-04 below are approved and
+are now recorded in ADR-0034, which extends ADR-0022 rather than amending it.
+ADR-0034 carries an explicit maintainer acceptance statement (2026-09-09);
+implementation tasks T002–T006 are Ready.
 
 ## Scope
 
@@ -55,19 +62,19 @@ Out of scope:
 
 | Decision | Recommendation and rationale | Status |
 |---|---|---|
-| D059-01 — publication boundary | Generate a separate sanitized projection before deployment and make the new public portfolio path read only that projection. The projection schema and sanitizer are dashboard-owned and library-free; unknown fields are excluded by default. This preserves ADR-0022 and prevents `storage_path` or private workspace content from becoming public merely because a scanner found it. | Pending maintainer approval |
-| D059-02 — study identity | Use a versioned dashboard-local `PortfolioStudyManifest` containing an explicit study slug, workflow references, artifact roles and public labels. It points only to projected artifacts and never infers that separate workflows form one pipeline. Do not add a shared framework study aggregate in this sprint. | Pending maintainer approval |
-| D059-03 — content ownership | Store public narrative as version-controlled dashboard content with required metadata (`slug`, title, status, updated date, order and links) and a restricted Markdown subset. Canonical technical contracts remain in `docs/reference/` and ADRs; methodology content links to them rather than duplicating them. | Pending maintainer approval |
-| D059-04 — routing | Use stable Streamlit page routes plus stable slugs for portfolio concepts. Query parameters may identify a study or evidence target but transient filters and tabs are not persisted. This follows the accepted product direction and requires no new framework contract. | Proposed implementation constraint |
+| D059-01 — publication boundary | Generate a separate sanitized projection before deployment and make the new public portfolio path read only that projection. The projection schema and sanitizer are dashboard-owned and library-free; unknown fields are excluded by default. This preserves ADR-0022 and prevents `storage_path` or private workspace content from becoming public merely because a scanner found it. | Accepted (maintainer, 2026-09-09); recorded in ADR-0034 §1, §5, §6 |
+| D059-02 — study identity | Use a versioned dashboard-local `PortfolioStudyManifest` containing an explicit study slug, workflow references, artifact roles and public labels. It points only to projected artifacts and never infers that separate workflows form one pipeline. Do not add a shared framework study aggregate in this sprint. | Accepted (maintainer, 2026-09-09); recorded in ADR-0034 §2 |
+| D059-03 — content ownership | Store public narrative as version-controlled dashboard content with required metadata (`slug`, title, status, updated date, order and links) and a restricted Markdown subset. Canonical technical contracts remain in `docs/reference/` and ADRs; methodology content links to them rather than duplicating them. | Accepted (maintainer, 2026-09-09); recorded in ADR-0034 §3 |
+| D059-04 — routing | Use stable Streamlit page routes plus stable slugs for portfolio concepts. Query parameters may identify a study or evidence target but transient filters and tabs are not persisted. This follows the accepted product direction and requires no new framework contract. | Accepted implementation constraint (originally proposed); recorded in ADR-0034 §4 |
 
 ## Tasks
 
 | Task | Outcome | Dependencies | Ownership | Risk | Status | PR |
 |---|---|---|---|---|---|---|
-| T001 | Record the accepted public-projection, study-identity and content boundaries in ADR-0034 or an explicitly approved ADR-0022 amendment; include producer, consumer, compatibility and migration rules | PRD approval; D059-01–03 | Architecture + dashboard application | high | Gated | — |
-| T002 | Implement the versioned public projection and study-manifest contracts with mixed safe/private fixtures proving allowlisted fields are retained and forbidden or unknown fields are omitted | T001 | `apps/dashboard` publication boundary; exact package fixed by T001 | high | Gated | — |
-| T003 | Extend app-boundary enforcement to `apps/dashboard/pages/*.py`; prove the portfolio code imports no framework engines, execution, providers or ML libraries; update PRB-022 disposition | T001 | `tests/unit/test_apps_boundaries.py` | standard | Gated | — |
-| T004 | Implement the content loader, required metadata validation, restricted rendering and stable-slug routing contract, with missing/invalid-content behavior covered by tests | T001, T002 | `apps/dashboard` content/navigation | standard | Gated | — |
+| T001 | Record the accepted public-projection, study-identity and content boundaries in ADR-0034 or an explicitly approved ADR-0022 amendment; include producer, consumer, compatibility and migration rules | PRD approval; D059-01–03 | Architecture + dashboard application | high | Done | pending |
+| T002 | Implement the versioned public projection and study-manifest contracts with mixed safe/private fixtures proving allowlisted fields are retained and forbidden or unknown fields are omitted | T001 | `apps/dashboard` publication boundary; exact package fixed by T001 | high | Ready | — |
+| T003 | Extend app-boundary enforcement to `apps/dashboard/pages/*.py`; prove the portfolio code imports no framework engines, execution, providers or ML libraries; update PRB-022 disposition | T001 | `tests/unit/test_apps_boundaries.py` | standard | Ready | — |
+| T004 | Implement the content loader, required metadata validation, restricted rendering and stable-slug routing contract, with missing/invalid-content behavior covered by tests | T001, T002 | `apps/dashboard` content/navigation | standard | Ready (blocked on T002) | — |
 | T005 | Refresh the overview with the product thesis, shared-domain map, six independent workflow entries and maturity labels, using concise English content and existing visual components | T004 | `apps/dashboard` overview/content | standard | Gated | — |
 | T006 | Reconcile dashboard reference docs and add a desktop acceptance fixture/render showing that the overview is readable and does not imply a mandatory pipeline | T002–T005 | dashboard docs + visual acceptance | standard | Gated | — |
 
