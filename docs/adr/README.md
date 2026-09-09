@@ -132,6 +132,7 @@ below).
 | [ADR-0031](ADR-0031-predictive-sample-spec-and-task.md) | Predictive Sample Universe (`SampleSpec`) and Research Task Taxonomy (`PredictiveTask`) | ACCEPTED | Sprint 056 |
 | [ADR-0032](ADR-0032-predictive-run-verdict-artifact.md) | Predictive Run Verdict Artifact: Vocabulary, Rule Set, and Sidecar Schema | ACCEPTED | Sprint 057 |
 | [ADR-0033](ADR-0033-predictive-score-delivery-boundary.md) | Predictive Score Delivery Boundary for Strategy Research (16C) | ACCEPTED | Sprint 058 |
+| [ADR-0034](ADR-0034-portfolio-publication-boundary.md) | Public Portfolio Publication Boundary: Projection, Study Identity, Content and Routing (16D) | ACCEPTED | Sprint 059 |
 | ADR-0004 | Independent Research and Execution Workflows | PLANNED | TBD |
 | ADR-0009 | Batch Backtest vs Replay Execution | PLANNED | TBD |
 | ADR-0010 | Working Component and Model Fingerprints | PLANNED | TBD |
