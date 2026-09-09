@@ -16,6 +16,9 @@ from dashboard_app.contracts import (
     PredictiveFoldMetricRow,
     PredictiveImportanceRow,
     PredictiveLearningCurveView,
+    SignalQualityFoldRocAucRow,
+    SignalQualityThresholdPoint,
+    SignalQualityTradeDispositionRow,
     TradeView,
 )
 from dashboard_app.query import OhlcvBarRow
@@ -713,6 +716,112 @@ def build_predictive_learning_curve_figure(curve: PredictiveLearningCurveView) -
     apply_public_layout(figure, title=f"Fold {curve.fold_id} learning curve", height=340)
     figure.update_xaxes(title="Epoch")
     figure.update_yaxes(title="Loss")
+    return figure
+
+
+def build_signal_quality_fold_roc_auc_figure(
+    pooled: SignalQualityFoldRocAucRow | None,
+    folds: Sequence[SignalQualityFoldRocAucRow],
+) -> go.Figure:
+    """Build grouped MODEL vs RANDOM_PERMUTATION ROC AUC bars, pooled + per fold (Chart 1)."""
+    from dashboard_app.charts.style import apply_public_layout
+
+    figure = go.Figure()
+    rows = ([pooled] if pooled is not None else []) + list(folds)
+    if not rows:
+        apply_public_layout(figure, title="Model vs. random-permutation ROC AUC", height=360)
+        return figure
+
+    labels = [row.fold_id for row in rows]
+    figure.add_trace(
+        go.Bar(
+            x=labels,
+            y=[row.model_roc_auc for row in rows],
+            name="MODEL",
+            marker_color="#1f4e79",
+        )
+    )
+    figure.add_trace(
+        go.Bar(
+            x=labels,
+            y=[row.random_permutation_roc_auc for row in rows],
+            name="RANDOM_PERMUTATION",
+            marker_color="#9e9e9e",
+        )
+    )
+    apply_public_layout(figure, title="Model vs. random-permutation ROC AUC", height=380)
+    figure.update_layout(barmode="group")
+    figure.update_yaxes(title="ROC AUC")
+    return figure
+
+
+def build_signal_quality_threshold_coverage_figure(
+    points: Sequence[SignalQualityThresholdPoint],
+) -> go.Figure:
+    """Build coverage and hit-rate lines across the threshold grid (Sprint 060 Chart 2)."""
+    from dashboard_app.charts.style import apply_public_layout
+
+    figure = go.Figure()
+    if not points:
+        apply_public_layout(figure, title="Threshold sensitivity", height=360)
+        return figure
+
+    ordered = sorted(points, key=lambda point: point.threshold)
+    figure.add_trace(
+        go.Scatter(
+            x=[point.threshold for point in ordered],
+            y=[point.coverage for point in ordered],
+            mode="lines+markers",
+            name="Coverage",
+            line={"color": "#1f4e79"},
+        )
+    )
+    figure.add_trace(
+        go.Scatter(
+            x=[point.threshold for point in ordered],
+            y=[point.hit_rate for point in ordered],
+            mode="lines+markers",
+            name="Hit rate",
+            line={"color": "#9e9e9e"},
+        )
+    )
+    apply_public_layout(figure, title="Threshold sensitivity: coverage and hit rate", height=380)
+    figure.update_xaxes(title="Decision threshold")
+    figure.update_yaxes(title="Coverage / hit rate", range=[0, 1])
+    return figure
+
+
+def build_signal_quality_trade_disposition_figure(
+    rows: Sequence[SignalQualityTradeDispositionRow],
+) -> go.Figure:
+    """Build grouped baseline-vs-scored bars for trade_count, win_rate, net_pnl (Chart 3)."""
+    from dashboard_app.charts.style import apply_public_layout
+
+    figure = make_subplots(rows=1, cols=3, subplot_titles=("Trade count", "Win rate", "Net PnL"))
+    if not rows:
+        apply_public_layout(figure, title="Baseline vs. scored trade disposition", height=360)
+        return figure
+
+    labels = [row.label for row in rows]
+    colors = ["#9e9e9e", "#1f4e79"][: len(rows)]
+    figure.add_trace(
+        go.Bar(
+            x=labels, y=[row.trade_count for row in rows], marker_color=colors, showlegend=False
+        ),
+        row=1,
+        col=1,
+    )
+    figure.add_trace(
+        go.Bar(x=labels, y=[row.win_rate for row in rows], marker_color=colors, showlegend=False),
+        row=1,
+        col=2,
+    )
+    figure.add_trace(
+        go.Bar(x=labels, y=[row.net_pnl for row in rows], marker_color=colors, showlegend=False),
+        row=1,
+        col=3,
+    )
+    apply_public_layout(figure, title="Baseline vs. scored trade disposition", height=380)
     return figure
 
 

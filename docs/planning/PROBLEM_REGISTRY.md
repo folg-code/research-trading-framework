@@ -1217,6 +1217,92 @@ directly — it walks `_DASHBOARD_SRC`, never `apps/dashboard/pages/`.
 
 ---
 
+## PRB-023 — Root `mypy`/`pytest` Never Check `apps/dashboard/` or `scripts/`
+
+```text
+Status: OPEN
+Severity: MEDIUM
+Domain: Tooling / CI Gates
+Owner: Unassigned
+Discovered: 2026-09-09 (Sprint 060 T003 QA)
+Last Updated: 2026-09-09
+```
+
+### Description
+
+Root `pyproject.toml`'s `[tool.mypy]` sets `files = ["src", "tests"]` and
+`[tool.pytest.ini_options]` sets `testpaths = ["tests"]` — both resolved
+relative to the repository root, i.e. `trading_framework`'s own `src/` and
+`tests/` only. `.pre-commit-config.yaml`'s `mypy` and `pytest` hooks both
+invoke the bare command (`uv run mypy`, `uv run pytest`, `pass_filenames:
+false`), so neither hook ever type-checks or tests `apps/dashboard/` or any
+file under `scripts/` — regardless of what changed in a given commit.
+
+### Evidence
+
+Discovered while verifying Sprint 060 T003: `uv run mypy` from repo root
+reports "Success" with the same file count before and after adding several
+new `apps/dashboard/src/dashboard_app/publication/*.py` and
+`scripts/dashboard/*.py` files across this session — confirming those
+files were never analyzed. Running `cd apps/dashboard && uv run mypy .`
+directly (default, non-strict settings — `apps/dashboard/pyproject.toml`
+has no `[tool.mypy]` section of its own) surfaces 42 pre-existing errors in
+17 files unrelated to Sprint 059/060 (e.g. `pages/5_Live_Paper_Trading.py`,
+`tests/test_query.py`), confirming `apps/dashboard` has never been
+mypy-clean under any settings and is not part of the enforced gate today.
+`apps/dashboard`'s own tests ARE run correctly throughout Sprints 059/060,
+but only because each task manually ran `cd apps/dashboard && uv run
+pytest` — the pre-push hook itself would not have caught a dashboard test
+regression.
+
+### Impact
+
+- A real dashboard type error or a broken dashboard test can be committed
+  and pushed without the pre-commit/pre-push hooks ever detecting it.
+- Every "mypy clean" claim made for `apps/dashboard` code during Sprints
+  059–060 (in commit messages, PR descriptions, and review reports) reflects
+  a manually-scoped check (`cd apps/dashboard && uv run mypy <files>`, run
+  from inside the app so cross-module imports resolve), not the project's
+  actual enforced gate — the gate itself stayed silent on this code the
+  entire time.
+- Any script under `scripts/` (not just the new `scripts/dashboard/`
+  addition) has the same gap; this is a pre-existing condition, not
+  something Sprint 060 introduced.
+
+### Possible Directions
+
+- Add a scoped `[tool.mypy]` section to `apps/dashboard/pyproject.toml` and
+  a corresponding CI/pre-commit step that runs `cd apps/dashboard && uv run
+  mypy` (or `uv run --project apps/dashboard mypy`) separately from the
+  root check, deciding first whether to fix or explicitly accept the 42
+  pre-existing errors.
+- Add `apps/dashboard/tests` to a second pytest invocation in the pre-push
+  hook (or a dashboard-specific hook), so a broken dashboard test blocks a
+  push the same way a broken framework test does.
+- Decide whether `scripts/` warrants the same treatment, or is intentionally
+  out of scope (thin CLI wrappers, per `AGENTS.md`'s "`scripts/` stay thin"
+  rule) and only needs `ruff check`, which the pre-commit hook already runs
+  repo-wide regardless of `files`/`testpaths`.
+
+### Decision or Resolution Criteria
+
+- A single documented command (or a hook) that a contributor can run and
+  trust actually type-checks and tests everything they changed, including
+  `apps/dashboard/` and `scripts/` — not just `trading_framework`'s own
+  `src/`/`tests/`.
+
+### Related Documents
+
+- `pyproject.toml` (`[tool.mypy]`, `[tool.pytest.ini_options]`).
+- `.pre-commit-config.yaml`.
+- `AGENTS.md` (`## Quality Commands`).
+
+### Related Tasks
+
+- None yet — discovered during Sprint 060 T003 QA, out of that task's scope.
+
+---
+
 # 6. Resolved Problems
 
 No problems have yet been formally moved to `RESOLVED`.

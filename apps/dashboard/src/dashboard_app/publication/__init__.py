@@ -26,6 +26,11 @@ from dashboard_app.publication.manifest import (
     PortfolioStudyManifest,
     StudyMaturity,
 )
+from dashboard_app.publication.paths import (
+    PUBLICATION_DATA_ROOT,
+    projection_bundle_path,
+    study_manifest_path,
+)
 from dashboard_app.publication.projection import (
     PUBLIC_PROJECTION_SCHEMA_VERSION,
     ProjectedArtifact,
@@ -35,12 +40,16 @@ from dashboard_app.publication.validation import (
     PublicationUnavailable,
     StudyEvidence,
     load_projection_bundle,
+    load_projection_bundle_from_path,
+    load_study_manifest,
+    load_study_manifest_from_path,
     resolve_study_evidence,
 )
 
 __all__ = [
     "GENERATOR_VERSION",
     "PORTFOLIO_STUDY_MANIFEST_SCHEMA_VERSION",
+    "PUBLICATION_DATA_ROOT",
     "PUBLIC_PROJECTION_SCHEMA_VERSION",
     "InvalidProjectionSchemaError",
     "PortfolioStudyManifest",
@@ -54,5 +63,10 @@ __all__ = [
     "UnknownArtifactRoleError",
     "build_projection_bundle",
     "load_projection_bundle",
+    "load_projection_bundle_from_path",
+    "load_study_manifest",
+    "load_study_manifest_from_path",
+    "projection_bundle_path",
     "resolve_study_evidence",
+    "study_manifest_path",
 ]
