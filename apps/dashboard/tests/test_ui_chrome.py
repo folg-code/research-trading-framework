@@ -32,6 +32,7 @@ def test_home_module_has_no_mvp_or_duckdb_copy() -> None:
     assert "MVP pages" not in home_text
     assert "DuckDB" not in home_text
     assert "Parquet" not in home_text
-    assert "render_origin_of_results" in home_text
+    assert "render_shared_domain_map" in home_text
+    assert "render_workflow_entries" in home_text
     assert "pages/1_Research_Catalog.py" in overview_text
     assert "st.mermaid_chart" in overview_text

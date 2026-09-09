@@ -1132,13 +1132,24 @@ Directly observed the failure mode: `docs/planning/sprints/S051_BTC_DATA_INVENTO
 ## PRB-022 — `apps/dashboard`'s Import-Boundary Test Does Not Scan `pages/*.py`
 
 ```text
-Status: OPEN
+Status: RESOLVED (Sprint 059 T003)
 Severity: LOW
 Domain: apps/dashboard / Architecture Boundaries
 Owner: Unassigned
 Discovered: 2026-09-08 (Sprint 057, S057-T006 QA)
-Last Updated: 2026-09-08
+Last Updated: 2026-09-09
 ```
+
+### Resolution
+
+`tests/unit/test_apps_boundaries.py` now scans both `apps/dashboard/src` and
+`apps/dashboard/pages` (`_DASHBOARD_SCAN_ROOTS`) in both dashboard boundary
+tests. A dedicated regression test,
+`test_dashboard_pages_scan_actually_detects_a_forbidden_import`, proves the
+widened scan can fail — it constructs a synthetic file with a
+deliberately-injected `trading_framework.research` import and asserts the
+scan's own helpers flag it — satisfying this problem's own Decision or
+Resolution Criteria.
 
 ### Description
 

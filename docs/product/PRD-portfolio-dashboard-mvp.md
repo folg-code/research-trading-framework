@@ -1,11 +1,12 @@
 # PRD — Portfolio Dashboard MVP: Foundation and Signal Quality Evidence
 
 ```text
-Status: DRAFT
+Status: ACCEPTED
 Discovery: maintainer Q&A completed 2026-09-09
 Parent direction: docs/planning/DASHBOARD_DEVELOPMENT_DIRECTION.md
-Approval gate: PRD scope and Sprint 059 architecture recommendations require
-               maintainer approval
+Approved-by: Filip Folga (folga33@gmail.com), 2026-09-09 — approved this PRD
+             scope and the Sprint 059 D059-01 through D059-04 architecture
+             recommendations at sprint opening.
 ```
 
 ## Problem
@@ -215,10 +216,12 @@ analysis service.
 
 ## Open questions
 
-Architecture triage has identified three decisions that must be accepted in
+Architecture triage identified three decisions that had to be accepted in
 Sprint 059 before implementation: the public-projection boundary,
-dashboard-local study identity and public content ownership. The PRD remains
-DRAFT until those recommendations and this product scope are approved.
+dashboard-local study identity and public content ownership. The maintainer
+approved those recommendations and this product scope at sprint opening
+(2026-09-09); see `docs/adr/ADR-0034-portfolio-publication-boundary.md` for
+where D059-01 through D059-04 are recorded.
 
 ### Resolved during roadmap and sprint planning (2026-09-09)
 
