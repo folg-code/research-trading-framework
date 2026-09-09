@@ -11,11 +11,14 @@ and a list:
     status: AS_BUILT
     updated: 2026-09-09
     order: 1
-    links: docs/adr/ADR-0034-portfolio-publication-boundary.md,
-      docs/reference/modules/DASHBOARD_APPLICATION.md
+    links: docs/adr/ADR-0034.md, docs/reference/modules/DASHBOARD_APPLICATION.md
     ---
 
     # Markdown body...
+
+Each frontmatter field must be a single physical line (``key: value``) --
+there is no line-continuation syntax; a multi-value field like ``links`` is
+one line with comma-separated entries, as shown above.
 
 Every failure -- a missing file, a missing/unparsable metadata field, or a
 disallowed Markdown construct -- becomes an explicit ``ContentUnavailable``
@@ -45,7 +48,7 @@ class ContentUnavailable:
     """An explicit unavailable/invalid content state.
 
     ``reason`` is one of a small closed set of reason codes: ``"file_missing"``,
-    ``"invalid_metadata"``, ``"disallowed_markdown"``.
+    ``"file_unreadable"``, ``"invalid_metadata"``, ``"disallowed_markdown"``.
     """
 
     reason: str
@@ -57,7 +60,10 @@ def load_content_document(path: Path) -> ContentDocument | ContentUnavailable:
     if not path.is_file():
         return ContentUnavailable(reason="file_missing", detail=f"content file not found: {path}")
 
-    raw_text = path.read_text(encoding="utf-8")
+    try:
+        raw_text = path.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError) as exc:
+        return ContentUnavailable(reason="file_unreadable", detail=str(exc))
 
     try:
         fields, body_markdown = _parse_frontmatter(raw_text)
