@@ -4,7 +4,8 @@
 Status: DRAFT
 Discovery: maintainer Q&A completed 2026-09-09
 Parent direction: docs/planning/DASHBOARD_DEVELOPMENT_DIRECTION.md
-Approval gate: architecture triage and documentation-conflict resolution required
+Approval gate: PRD scope and Sprint 059 architecture recommendations require
+               maintainer approval
 ```
 
 ## Problem
@@ -214,21 +215,21 @@ analysis service.
 
 ## Open questions
 
-Architecture triage and documentation reconciliation are required before this
-PRD is eligible for approval.
+Architecture triage has identified three decisions that must be accepted in
+Sprint 059 before implementation: the public-projection boundary,
+dashboard-local study identity and public content ownership. The PRD remains
+DRAFT until those recommendations and this product scope are approved.
 
-- **Direction precedence conflict:** Phase 16 currently says
-  `DASHBOARD_DEVELOPMENT_DIRECTION.md` informs 16D without governing it. The
-  maintainer has now declared that direction note authoritative over other
-  documentation for this PRD. The Phase 16 wording must be reconciled rather
-  than leaving two precedence rules.
-- **Phase 16D scope conflict:** the roadmap describes 16D primarily as a Quant
-  Lab analyst-review surface over 16A–16C, proposes five lab-style sections and
-  targets a defensible accept/reject opinion. The parent direction defines a
-  public software portfolio over six independent workflows and forbids the UI
-  from creating such an opinion. This PRD follows the parent direction and
-  displays only an upstream persisted verdict. The roadmap must be amended or
-  its lab scope reclassified as a later analytical increment.
+### Resolved during roadmap and sprint planning (2026-09-09)
+
+- **Direction precedence:** the maintainer accepted
+  `DASHBOARD_DEVELOPMENT_DIRECTION.md` as authoritative for 16D. The phase
+  roadmap now states that precedence explicitly.
+- **Phase 16D scope:** the former Quant Lab / dashboard-authored accept-reject
+  framing was replaced with the public Portfolio Dashboard outcome. The UI
+  displays an upstream persisted verdict and never creates one.
+
+### Remaining questions and conflicts
 - **Public publication conflict:**
   `RESEARCH_APPLICATION_PRODUCT_VISION.md` describes curated, immutable
   publication versions created by an explicit publish action. The parent

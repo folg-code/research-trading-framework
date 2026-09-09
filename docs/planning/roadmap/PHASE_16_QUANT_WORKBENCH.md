@@ -1,17 +1,19 @@
 # Phase 16 — Quant Research Workbench
 
 ```text
-Status: APPROVED (maintainer, 2026-09-04) — no sprint opened for any increment
-        at approval time. UPDATE (2026-09-08): 16B is COMPLETE (Sprint 056,
+Status: ACTIVE — approved 2026-09-04; 16A–16C complete; 16D planning draft
+        UPDATE (2026-09-08): 16B is COMPLETE (Sprint 056,
         7/7 tasks, merged to `main` via #457) — see §13H.2's "16B is DONE"
         note below. 16A is COMPLETE (Sprint 057, 7/7 tasks, merged to `main`
         via #471) — see §13H.1's "16A is DONE" note below. UPDATE
         (2026-09-09): 16C is COMPLETE (Sprint 058, 6/6 tasks, working PRs
-        #472-#479 into `sprint/signal-quality-scoring`, not yet integrated
-        to `main`) — ADR-0033 (score delivery boundary) is ACCEPTED and
+        #472-#479; merged to `main` via #480) — ADR-0033 (score delivery
+        boundary) is ACCEPTED and
         implemented; TD-021 REPAID, TD-022's promotion branch confirmed
         repaid, TD-029 re-deferred to 16G. See §13H.3's "16C is DONE" note
-        below. No sprint is opened for 16D–16G.
+        below. Increment 16D has an accepted product direction and a DRAFT
+        PRD plus DRAFT Sprints 059–060; neither sprint is opened. No sprint
+        is opened for 16E–16G.
 ```
 
 Full detail for `ROADMAP.md` §13H — this is the LIVE, canonically-updated location for this
@@ -34,20 +36,23 @@ process, never through a file move.
 
 # 13H. Phase 16 — Quant Research Workbench (APPROVED)
 
-**Status:** **APPROVED** (maintainer, 2026-09-04). Approving the phase is
-**not** approving a sprint: no sprint is opened, planned or numbered for any
-increment. 16A–16C are the committed direction; 16D–16G are directional and
-will be re-specified from evidence before any of them is planned (§2.9, §2.8).
+**Status:** **ACTIVE.** The phase was approved by the maintainer on
+2026-09-04. 16A–16C are COMPLETE. Increment 16D has now been re-specified
+from implementation evidence; its PRD and Sprints 059–060 are DRAFT and do
+not open either sprint. 16E–16G remain directional (§2.9, §2.8).
 Increment-level decisions deliberately left open at phase approval — 16E's
 port-vs-bespoke confirmation (§13H.12 Q4), 16G's numeric parity tolerances
 (§13H.12 Q7) — are Wave 0 decisions for the sprint that plans that increment.
 **Source:** `docs/planning/RESEARCH_SIMULATION_DEVELOPMENT_DIRECTION.md`
 (`Status: DRAFT`) — the maintainer's directional note. That note remains the
-originating record; **this section is the canonical roadmap location**. An
-adjacent DRAFT note,
+originating record; **this section is the canonical roadmap location**.
 [`docs/planning/DASHBOARD_DEVELOPMENT_DIRECTION.md`](../DASHBOARD_DEVELOPMENT_DIRECTION.md),
-covers presentation direction and informs 16D without governing it.
-**Sprints:** none. Increment numbering (16A–16G) is deliberately independent
+is the maintainer-accepted, authoritative product direction for 16D. Where
+the former Quant Lab wording conflicted with it, §13H.4 was replaced on
+2026-09-09. It does not govern the research contracts delivered by 16A–16C
+or the directional research increments 16E–16G.
+**Sprints:** 059 and 060 are DRAFT; neither is opened. Increment numbering
+(16A–16G) is deliberately independent
 of sprint numbering, per the practice already used for 13A–13G and 15A/15B.
 **ADRs:** **five are anticipated, none written.** Under the resolved §13H.12
 Q6 (Option B) the tree/neural serialization ADR belongs to **16G**, not 16C.
@@ -107,16 +112,17 @@ exists to prevent.
                                                  promotion branch; TD-029 is
                                                  explicitly re-deferred to 16G
                                                  (Q6 = Option B, resolved)
-16D — Quant Lab Dashboard                        read-only, over 16A/16C artifacts
+16D — Portfolio Dashboard                        public, read-only portfolio over persisted evidence
 16E — Strategy Families                          closes PRB-020 and PRB-012
 16F — Trade Outcome and No-Trade Models          strategy_trades sample kind
 16G — Promotion Candidate Gate                   closes PRB-013 and TD-029;
                                                  explicit gate, no auto-approval
 ```
 
-Ordering is a dependency chain, not a schedule. 16A–16C are the committed
-direction; 16D–16G are directional and will be re-specified from evidence
-before any of them is planned (§2.9, §2.8).
+Ordering is a dependency chain, not a schedule. 16A–16C are complete; 16D has
+been re-specified and its Sprints 059–060 remain DRAFT. 16E–16G are directional
+and will be re-specified from evidence before any of them is planned (§2.9,
+§2.8).
 
 ## 13H.0 — Relationship to Phase 15B / Sprint 052 (read first)
 
@@ -693,40 +699,17 @@ evidence of a live edge) is restated in the worked example's own write-up.
 none may extend the scorer-reference contract or the score-gate mechanism
 without a new or amending ADR (ADR-0033 Follow-up).
 
-## 13H.4 — Increment 16D — Quant Lab Dashboard (directional)
+## 13H.4 — Increment 16D — Portfolio Dashboard (planning)
 
-### Purpose
+The former Quant Lab / dashboard-authored accept-reject framing was replaced by
+the maintainer-accepted Portfolio Dashboard direction on 2026-09-09. This
+increment presents upstream persisted evidence to a general software developer;
+it does not create a verdict.
 
-Evolve `apps/dashboard` from run browsing into an analyst review surface over
-what 16A–16C now persist.
-
-### Expected capabilities
-
-- Sections along the lines of Model Lab, Signal Quality Lab, Strategy Family
-  Lab, Robustness Lab, Promotion Candidates.
-- Study / feature-set / run navigation; a leaderboard ordered by baseline
-  delta; the 16A verdict; threshold sensitivity; accepted-vs-rejected signal
-  breakdown; fold stability, train/test gap, sample and concentration warnings.
-
-### Completion criteria (directional)
-
-- Every number displayed is read from a persisted artifact. The dashboard
-  **fits nothing, recomputes no research metric, imports no research engine,
-  promotes nothing and declares nothing validated** — the existing read-only
-  boundary is preserved, not renegotiated.
-- A reviewer can reach a defensible accept/reject opinion on a run without
-  opening a terminal.
-
-### Dependencies
-
-16A (verdict), 16C (the comparison it displays). Informed by
-[`DASHBOARD_DEVELOPMENT_DIRECTION.md`](../DASHBOARD_DEVELOPMENT_DIRECTION.md)
-(DRAFT).
-
-### Main risks
-
-Presentation pressure to compute "just one small metric" in the app; scope
-sprawl across five labs at once (this increment should itself be sliced).
+Detailed outcomes, dependencies, completion criteria, risks and the DRAFT
+Sprint 059–060 delivery slices live in
+[`PHASE_16D_PORTFOLIO_DASHBOARD.md`](PHASE_16D_PORTFOLIO_DASHBOARD.md).
+Neither sprint is opened.
 
 ## 13H.5 — Increment 16E — Strategy Families (directional)
 

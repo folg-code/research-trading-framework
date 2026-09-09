@@ -1,0 +1,111 @@
+# Sprint 059: Portfolio Publication Foundation (Phase 16, increment 16D)
+
+Status: Draft — not opened; maintainer approval required
+Goal: Establish the safe publication, content and navigation foundation for a
+public portfolio dashboard, then ship an overview that explains the product,
+shared domain architecture and six independent workflows.
+Sources:
+
+- `docs/planning/DASHBOARD_DEVELOPMENT_DIRECTION.md` — authoritative product
+  direction for 16D.
+- `docs/product/PRD-portfolio-dashboard-mvp.md` — feature requirements; DRAFT
+  until approved.
+- `docs/planning/roadmap/PHASE_16_QUANT_WORKBENCH.md` §13H.4.
+- `docs/adr/ADR-0022-repository-top-level-layout.md` — dashboard application
+  boundary.
+- `docs/reference/modules/DASHBOARD_APPLICATION.md` — current contracts and
+  publication path.
+- `docs/vision/PRODUCT_DIRECTION.md` — workflow independence and shared-domain
+  foundation.
+
+Architecture triage: pending maintainer approval of Decisions D059-01 through
+D059-03 below. Implementation tasks are not Ready until those decisions are
+accepted and recorded in an ADR or an explicit amendment to ADR-0022.
+
+## Scope
+
+In scope:
+
+- A versioned, deny-by-default public projection for the facts needed by the
+  portfolio overview and Signal Quality slice.
+- A dashboard-local study manifest that links explicit persisted evidence
+  without creating a framework domain object or claiming undocumented lineage.
+- Version-controlled public content with a small safe Markdown and metadata
+  contract.
+- Stable direct routes for the overview, workflow context, methodology and
+  study concepts; no persisted filter or tab state.
+- A refreshed overview: concise product thesis, readable shared-domain map,
+  six independent workflow entry points and visible `AS BUILT`,
+  `IN DEVELOPMENT`, `FUTURE IDEAS`, `ARCHIVED` states.
+- Extension of the dashboard import-boundary test to
+  `apps/dashboard/pages/*.py` (PRB-022).
+
+Out of scope:
+
+- Signal Quality methodology prose, study charts and final evidence page
+  (Sprint 060).
+- A complete study-grouped catalog, full workflow redesign, Notes,
+  Engineering or Future Direction sections.
+- Any research computation, new metric, verdict, run control, live control,
+  frontend migration, CMS, saved state or mobile-first redesign.
+- Replacing or removing existing technical pages or changing current-only
+  live-paper behavior.
+
+## Decisions
+
+| Decision | Recommendation and rationale | Status |
+|---|---|---|
+| D059-01 — publication boundary | Generate a separate sanitized projection before deployment and make the new public portfolio path read only that projection. The projection schema and sanitizer are dashboard-owned and library-free; unknown fields are excluded by default. This preserves ADR-0022 and prevents `storage_path` or private workspace content from becoming public merely because a scanner found it. | Pending maintainer approval |
+| D059-02 — study identity | Use a versioned dashboard-local `PortfolioStudyManifest` containing an explicit study slug, workflow references, artifact roles and public labels. It points only to projected artifacts and never infers that separate workflows form one pipeline. Do not add a shared framework study aggregate in this sprint. | Pending maintainer approval |
+| D059-03 — content ownership | Store public narrative as version-controlled dashboard content with required metadata (`slug`, title, status, updated date, order and links) and a restricted Markdown subset. Canonical technical contracts remain in `docs/reference/` and ADRs; methodology content links to them rather than duplicating them. | Pending maintainer approval |
+| D059-04 — routing | Use stable Streamlit page routes plus stable slugs for portfolio concepts. Query parameters may identify a study or evidence target but transient filters and tabs are not persisted. This follows the accepted product direction and requires no new framework contract. | Proposed implementation constraint |
+
+## Tasks
+
+| Task | Outcome | Dependencies | Ownership | Risk | Status | PR |
+|---|---|---|---|---|---|---|
+| T001 | Record the accepted public-projection, study-identity and content boundaries in ADR-0034 or an explicitly approved ADR-0022 amendment; include producer, consumer, compatibility and migration rules | PRD approval; D059-01–03 | Architecture + dashboard application | high | Gated | — |
+| T002 | Implement the versioned public projection and study-manifest contracts with mixed safe/private fixtures proving allowlisted fields are retained and forbidden or unknown fields are omitted | T001 | `apps/dashboard` publication boundary; exact package fixed by T001 | high | Gated | — |
+| T003 | Extend app-boundary enforcement to `apps/dashboard/pages/*.py`; prove the portfolio code imports no framework engines, execution, providers or ML libraries; update PRB-022 disposition | T001 | `tests/unit/test_apps_boundaries.py` | standard | Gated | — |
+| T004 | Implement the content loader, required metadata validation, restricted rendering and stable-slug routing contract, with missing/invalid-content behavior covered by tests | T001, T002 | `apps/dashboard` content/navigation | standard | Gated | — |
+| T005 | Refresh the overview with the product thesis, shared-domain map, six independent workflow entries and maturity labels, using concise English content and existing visual components | T004 | `apps/dashboard` overview/content | standard | Gated | — |
+| T006 | Reconcile dashboard reference docs and add a desktop acceptance fixture/render showing that the overview is readable and does not imply a mandatory pipeline | T002–T005 | dashboard docs + visual acceptance | standard | Gated | — |
+
+## Acceptance criteria
+
+- A test projection containing both allowed facts and private/unknown fields
+  exposes every required allowed fact and none of the forbidden fields.
+- No new portfolio route reads or displays an internal `storage_path` or scans
+  the private workspace as its publication decision.
+- `apps/dashboard/src/` and `apps/dashboard/pages/` both pass the strengthened
+  import-boundary checks.
+- The overview explains the product thesis before metrics, names six
+  independent workflows, presents Market Analysis as shared capability and
+  does not depict one mandatory pipeline.
+- All four maturity labels are visually distinguishable and future capability
+  cannot be mistaken for shipped capability.
+- Stable overview and workflow-context URLs reopen in a new browser session;
+  transient UI state is not saved.
+- Existing technical evidence and Live Paper pages remain reachable and their
+  targeted regression tests pass.
+- Architecture and module documentation matches the accepted publication
+  boundary before sprint closeout.
+
+## Integration risks
+
+- The sanitizer could become an implicit second research schema. Keep it a
+  small presentation contract over explicitly named persisted facts.
+- A study manifest could invent lineage. Require explicit artifact roles and
+  test that missing links remain missing rather than inferred.
+- Content could duplicate technical contracts. Keep methodology explanatory
+  and link to canonical references.
+- Streamlit navigation constraints could tempt saved transient state. Stable
+  concept slugs are sufficient for this increment.
+
+## Closeout
+
+- Integrated checks: pending
+- Documentation reconciliation: pending
+- Review: pending
+- Remaining work: Sprint 060 plus later outcomes explicitly excluded by the
+  Portfolio Dashboard MVP PRD
