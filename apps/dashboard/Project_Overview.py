@@ -6,28 +6,16 @@ import streamlit as st
 
 from dashboard_app.ui import configure_page, render_app_chrome
 from dashboard_app.views.overview import (
-    render_architecture_one_pager,
-    render_module_cards,
-    render_origin_of_results,
+    render_product_thesis,
+    render_shared_domain_map,
+    render_workflow_entries,
 )
 
 configure_page(title="Project Overview")
 settings = render_app_chrome()
 
 st.title("Trading Research Framework")
-st.markdown(
-    """
-Modular Python framework for market-data processing, declarative market and signal
-models, strategy backtesting, robustness analysis, predictive research, and
-paper-runtime observability.
-
-This public dashboard is a **read-only** view of persisted research artifacts and
-live paper status. The workflow diagrams below are simplified; see the
-[architecture one-pager](https://github.com/folg-code/research-trading-framework/blob/main/apps/dashboard/docs/ARCHITECTURE.md)
-and the [GitHub README](https://github.com/folg-code/research-trading-framework) for
-full project description and methodology.
-"""
-)
+render_product_thesis()
 
 if settings is None:
     st.warning(
@@ -35,8 +23,7 @@ if settings is None:
         "or open **System diagnostics** in the sidebar for local use."
     )
 
-render_origin_of_results()
 st.divider()
-render_architecture_one_pager()
+render_shared_domain_map()
 st.divider()
-render_module_cards()
+render_workflow_entries()
