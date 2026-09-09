@@ -1,7 +1,9 @@
 # Sprint 058: Signal Quality Scoring (Phase 16, increment 16C)
 
-Status: Approved (maintainer, 2026-09-08 — "akceptuję"). ADR-0033
-(score delivery boundary) is ACCEPTED. Implementation may begin.
+Status: COMPLETE (6/6 tasks, 2026-09-09). ADR-0033 (score delivery
+boundary) is ACCEPTED. Working PRs #472-#479, integration into
+`sprint/signal-quality-scoring` / `main` a separate, maintainer-reviewed
+step (per `AGENTS.md`'s Sprint Git Workflow).
 
 Goal: Build the phase's key vertical slice — a `SIGNAL_QUALITY` predictive
 study over signal occurrences, a promotable-family estimator comparison, a
@@ -76,12 +78,12 @@ Out of scope:
 
 | Task | Outcome | Dependencies | Ownership | Risk | Status | PR |
 |---|---|---|---|---|---|---|
-| T001 | `SIGNAL_QUALITY` label builder + sample wiring: a runnable `PredictiveStudySpec` over `signal_occurrences` with a forward-outcome quality label, through the unmodified Phase 10 pipeline | 16B (merged, `main`), Phase 10 pipeline | TBD | standard | Ready | — |
-| T002 | Estimator comparison + threshold sensitivity report over the T001 study, promotable families only for anything gate-eligible; tree/neural remain usable for research-only comparison, clearly separated | T001 | TBD | standard | Ready | — |
-| T003 | Scorer-reference contract: fingerprint resolution via `PromotedArtifactRepository` at config load time; named-error refusal for (a) missing fingerprint, (b) non-allowlisted family; boundary test asserting Strategy Research imports nothing from `infrastructure/ml/` | ADR-0033 (accepted), ADR-0029 promotion store | TBD | high | Ready | — |
-| T004 | Strategy Research condition: predictive score gate, evaluated in-process via the unmodified NumPy evaluator under `available_at`; no-look-ahead test (score computed only from features available at occurrence time); simulator (fills/slippage/sizing/ledger) unchanged | T003 | TBD | high | Ready (blocked on T003 in practice) | — |
-| T005 | Worked example on real data: one strategy, its scorer, baseline vs. score-filtered variants, comparison written down whether or not the score helps (a negative result is a complete outcome) | T001, T002, T004, Sprint 052 real-data pipeline | TBD | standard | Ready (blocked on T004 in practice) | — |
-| T006 | Closing documentation: apply 16A's verdict to the T005 run; record TD-021 confirmation, TD-022 promotion-branch repayment (asserted by test, cited here), TD-029 re-deferral to 16G, in `TECHNICAL_DEBT.md` and this sprint's Closeout | T001–T005, 16A (merged, `main`) | TBD | low | Ready (blocked on T005 in practice) | — |
+| T001 | `SIGNAL_QUALITY` label builder + sample wiring: a runnable `PredictiveStudySpec` over `signal_occurrences` with a forward-outcome quality label, through the unmodified Phase 10 pipeline | 16B (merged, `main`), Phase 10 pipeline | TBD | standard | Done | #473 |
+| T002 | Estimator comparison + threshold sensitivity report over the T001 study, promotable families only for anything gate-eligible; tree/neural remain usable for research-only comparison, clearly separated | T001 | TBD | standard | Done | #474 |
+| T003 | Scorer-reference contract: fingerprint resolution via `PromotedArtifactRepository` at config load time; named-error refusal for (a) missing fingerprint, (b) non-allowlisted family; boundary test asserting Strategy Research imports nothing from `infrastructure/ml/` | ADR-0033 (accepted), ADR-0029 promotion store | TBD | high | Done | #475, #476 |
+| T004 | Strategy Research condition: predictive score gate, evaluated in-process via the unmodified NumPy evaluator under `available_at`; no-look-ahead test (score computed only from features available at occurrence time); simulator (fills/slippage/sizing/ledger) unchanged | T003 | TBD | high | Done | #477 |
+| T005 | Worked example on real data: one strategy, its scorer, baseline vs. score-filtered variants, comparison written down whether or not the score helps (a negative result is a complete outcome) | T001, T002, T004, Sprint 052 real-data pipeline | TBD | standard | Done | #478 |
+| T006 | Closing documentation: apply 16A's verdict to the T005 run; record TD-021 confirmation, TD-022 promotion-branch repayment (asserted by test, cited here), TD-029 re-deferral to 16G, in `TECHNICAL_DEBT.md` and this sprint's Closeout | T001–T005, 16A (merged, `main`) | TBD | low | Done | #TBD |
 
 ## Acceptance criteria
 
@@ -131,11 +133,56 @@ Drawn directly from §13H.3's completion criteria — do not weaken:
 
 ## Closeout
 
-- Integrated checks: (filled at sprint close)
-- Documentation reconciliation: `docs/planning/CURRENT_STATUS.md`,
-  `docs/planning/ROADMAP.md` §13H row for 16C, `TECHNICAL_DEBT.md` (TD-021,
-  TD-022, TD-029), `docs/adr/README.md` index (ADR-0033 status).
-- Review: fresh-context review per `.claude/WORKFLOW.md` (this is
-  `standard`/`high` risk work — T003/T004 in particular require fresh-context
-  review before merge, per the workflow's risk table).
-- Remaining work: (filled at sprint close)
+- **Integrated checks:** Full unit suite green at every task boundary
+  (final count: 1785 passed, 4 skipped [torch, opt-in extra], 0 failed —
+  `tests/unit -q`), full `mypy` clean (900 source files), `ruff
+  check`/`format --check` clean on every changed file. No regression was
+  introduced in any of T001-T005's six PRs; each was independently
+  fresh-context reviewed (per `.claude/WORKFLOW.md`'s risk table for
+  `standard`/`high` risk work) before the next task built on it. One real
+  bug was found and fixed mid-sprint by a reviewer (T004: a scorer feature
+  needing more warm-up history than the strategy's own market/signal
+  components was silently starved of it — `run_strategy_research.py`'s
+  `_resolve_evaluation_inputs` now widens the preload for both) — see
+  PR #477's commit history. A second real bug was found by running the
+  suite, not by review (T005: the worked-example scripts were initially
+  placed under the wave4-restricted `scripts/predictive_research/`,
+  caught by `test_architecture_boundaries.py`; moved to
+  `scripts/strategy_research/`).
+- **Documentation reconciliation:**
+  - `docs/planning/CURRENT_STATUS.md`, `docs/planning/ROADMAP.md` §13H row
+    for 16C, `docs/planning/roadmap/PHASE_16_QUANT_WORKBENCH.md` §13H.3
+    completion note — updated to COMPLETE alongside this Closeout.
+  - `docs/planning/TECHNICAL_DEBT.md` — TD-021 marked **REPAID** (16C
+    confirmed a bare fingerprint reference suffices from a real Strategy
+    Research consumer; no registry, index, or `latest` pointer
+    introduced). TD-022 stays ACCEPTED with its promotion branch
+    confirmed repaid (asserted by
+    `test_strategy_research_does_not_import_ml_infrastructure`, not
+    merely convention) and its never-promoted-blob residual explicitly
+    still open. TD-029 stays ACCEPTED, re-deferred to 16G in both writing
+    and code (`ScoreConditionFamilyRefusedError`, asserted by test;
+    `MODEL_FAMILY_ALLOWLIST` unchanged, asserted by test).
+  - `docs/adr/README.md` index — ADR-0033 already listed ACCEPTED.
+  - `docs/reference/BTC_SIGNAL_QUALITY_STUDY.md` (T005) carries the 16A
+    verdict applied to the T005 predictive run
+    (`run_id=2ef6426b3cc06463`): **INCONCLUSIVE** (rule O3 fired — a
+    positive pooled baseline delta over `RANDOM_PERMUTATION`, but a
+    per-fold win rate of only 0.5, below the 0.667 threshold R4/O2
+    require for a stronger verdict). This is consistent with, not a
+    contradiction of, T005's own "the score does not meaningfully filter
+    this strategy's trades" finding — a positive-but-inconsistent pooled
+    effect is exactly what INCONCLUSIVE is for.
+- **Review:** Every PR (#472-#478) received an independent fresh-context
+  review per `.claude/WORKFLOW.md`'s risk table before the next task
+  built on it. No open review findings remain unaddressed; optional
+  (non-blocking) findings from T002/T004/T005's reviews are recorded in
+  their own PR threads, not repeated here.
+- **Remaining work:** None for 16C itself. Explicitly out of scope and
+  carried forward as directional increments per
+  `PHASE_16_QUANT_WORKBENCH.md` §13H: 16D (Quant Lab Dashboard), 16E
+  (Strategy Families / PRB-020 / PRB-012), 16F (Trade Outcome Models),
+  16G (Promotion Candidate Gate / PRB-013 / TD-029's remaining
+  repayment). Integration of `sprint/signal-quality-scoring` into `main`
+  is a separate, maintainer-reviewed step, per `AGENTS.md`'s Sprint Git
+  Workflow — not performed as part of this Closeout.
