@@ -39,6 +39,8 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from pathlib import Path
 
+import pytest
+
 from trading_framework.application.predictive_research import (
     AnalyzeThresholdSensitivityRequest,
     ComparePredictiveRunsRequest,
@@ -64,6 +66,11 @@ from trading_framework.research.predictive import (
 from trading_framework.time.clocks.fixed import FixedClock
 
 from ._fixtures import estimator, labelled_rows, write_dataset
+
+pytest.importorskip("sklearn")
+pytest.importorskip("xgboost")
+
+pytestmark = pytest.mark.ml_trees
 
 #: xgboost's classifier/regressor factories reject sklearn's alpha/C
 #: hyperparameter names (`_reject_unknown_hyperparameters`) -- `_fixtures.py`'s

@@ -52,6 +52,10 @@ from trading_framework.research.predictive import (
 from trading_framework.time.clocks.fixed import FixedClock
 from trading_framework.time.models.timeframe import Timeframe
 
+pytest.importorskip("sklearn")
+
+pytestmark = pytest.mark.ml
+
 _ROW_COUNT = 200
 UTC_US = pl.Datetime(time_unit="us", time_zone="UTC")
 
