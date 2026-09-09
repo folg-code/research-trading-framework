@@ -15,8 +15,8 @@ not submit exchange orders.
 ## Six independent workflows
 
 ```text
-                              Shared definitions
-                    Market Data / Market Analysis / Time / Data contracts
+                          Shared definitions
+              Market Analysis / Time model / Data contracts
                                       │
        ┌───────────┬───────────┬───────────┬───────────┬───────────┐
        │           │           │           │           │           │
@@ -25,8 +25,10 @@ not submit exchange orders.
                Research    Research    Research    Research    Execution
 ```
 
-Market Data and Market Analysis are shared capabilities every other workflow
-reads, not a seventh workflow of their own.
+Market Data, Signal Research, Strategy Research, Robustness Research,
+Predictive Research and Strategy Execution are the six independent
+workflows. Market Analysis is a shared domain capability every workflow
+reads, not a seventh workflow of its own.
 
 - Signal research can run without strategy research.
 - Strategy research can run without a prior signal-research run.

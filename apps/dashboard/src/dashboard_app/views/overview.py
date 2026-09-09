@@ -28,7 +28,7 @@ ARCHITECTURE_ONE_PAGER_URL = "https://github.com/folg-code/research-trading-fram
 #: mechanically true rather than merely asserted in prose.
 SHARED_DOMAIN_MERMAID = """
 flowchart TB
-  shared[Shared: Market Data, Market Analysis, Time Model, Data Contracts]
+  shared[Shared: Market Analysis, Time Model, Data Contracts]
   marketData[Market Data]
   signal[Signal Research]
   strategy[Strategy Research]
@@ -79,19 +79,26 @@ class WorkflowEntry:
 
 
 #: The six independent workflows (docs/planning/DASHBOARD_DEVELOPMENT_DIRECTION.md
-#: §3). Market Data and Signal Research deliberately share one page path:
-#: Market Data is a shared capability with no page of its own today, and
-#: pointing both entries at the same page is what makes that concrete
-#: rather than merely claimed in prose. Strategy Execution is IN_DEVELOPMENT
-#: because `pages/5_Live_Paper_Trading.py` is a dry-run monitor only
-#: (ADR-0021: "Strategy Execution remains a future capability").
+#: §3: "Market Data, Signal Research, Strategy Research, Robustness Research,
+#: Predictive Research and Strategy Execution are separate workflows. Market
+#: Analysis is a shared domain capability rather than a seventh workflow" --
+#: Market Data is one of the six, NOT the shared capability; only Market
+#: Analysis is shared). Market Data has no dedicated page today, so its entry
+#: points at the same page as Signal Research; the card copy says so
+#: explicitly rather than leaving the sharing implicit in a repeated
+#: page_path. Strategy Execution is IN_DEVELOPMENT because
+#: `pages/5_Live_Paper_Trading.py` is a dry-run monitor only (ADR-0021:
+#: "Strategy Execution remains a future capability").
 WORKFLOW_ENTRIES: tuple[WorkflowEntry, ...] = (
     WorkflowEntry(
         title="Market Data",
         workflow=WorkflowKind.MARKET,
         maturity=StudyMaturity.AS_BUILT,
         page_path="pages/2_Market_and_Signal_Research.py",
-        description="Shared market-data contracts consumed by every other workflow.",
+        description=(
+            "Provider ingestion, normalization and validation of market data used by "
+            "every workflow below. Shares its page with Signal Research today."
+        ),
     ),
     WorkflowEntry(
         title="Signal Research",
