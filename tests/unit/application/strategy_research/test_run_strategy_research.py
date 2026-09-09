@@ -407,3 +407,113 @@ def test_run_strategy_research_refuses_score_condition_with_shared_evaluation(
                 shared_evaluation=fake_shared_evaluation,  # type: ignore[arg-type]
             )
         )
+
+
+def test_resolve_evaluation_inputs_widens_warmup_for_score_condition_features(
+    tmp_path: Path,
+    ohlcv_sample_1m_path: Path,
+) -> None:
+    """Regression test for a review finding on this increment: a scorer
+    feature needing MORE lookback than the strategy's own market/signal
+    components used to get silently starved -- the preloaded OHLCV batch
+    was sized only for market/signal warm-up, and
+    ``load_analysis_data_view`` uses a supplied preloaded batch verbatim,
+    ignoring any ``computation_range`` computed after the fact.
+
+    Asserted at the ``resolve_analysis_computation_range`` level (the
+    warm-up PLANNING step), not the final preloaded batch: the sample
+    fixture's history starts exactly at the requested range, so a
+    storage-clamped fetch cannot show a widened plan reaching further back
+    than data actually exists -- the planning step is what
+    ``extra_component_requests`` must reach, and is where this bug lived.
+    """
+    from trading_framework.application.market_analysis.run_analysis import (
+        RunAnalysisRequest,
+        resolve_analysis_computation_range,
+    )
+    from trading_framework.market_analysis.identity.component import ComponentId
+    from trading_framework.market_analysis.models.parameters import CanonicalParameters
+    from trading_framework.market_analysis.models.request import ComponentRequest
+    from trading_framework.model_expression.planning import (
+        build_analysis_frame_request,
+        collect_model_dependencies,
+    )
+
+    storage_root = tmp_path / "storage"
+    dataset_ref = _write_published_dataset(storage_root, csv_path=ohlcv_sample_1m_path)
+    metadata = FileDatasetRegistry(storage_root).get(dataset_ref)
+    strategy_model = build_canonical_strategy_model()
+    requested_range = TimeRange(start=metadata.start_at, end=metadata.end_at)
+    dependencies = collect_model_dependencies(
+        market_models=(strategy_model.market_model,),
+        signal_models=(strategy_model.signal_model,),
+    )
+    frame_request = build_analysis_frame_request(dependencies)
+    wide_lookback_request = ComponentRequest(
+        component_id=ComponentId("volatility.atr"),
+        parameters=CanonicalParameters.from_mapping({"period": 200}),
+    )
+
+    baseline_range = resolve_analysis_computation_range(
+        RunAnalysisRequest(
+            dataset_ref=dataset_ref,
+            timeframe=Timeframe("1m"),
+            requested_range=requested_range,
+            storage_root=storage_root,
+            component_requests=dependencies.component_requests,
+            frame_request=frame_request,
+            evaluation_timeframe=Timeframe("1m"),
+        )
+    )
+    widened_range = resolve_analysis_computation_range(
+        RunAnalysisRequest(
+            dataset_ref=dataset_ref,
+            timeframe=Timeframe("1m"),
+            requested_range=requested_range,
+            storage_root=storage_root,
+            component_requests=(*dependencies.component_requests, wide_lookback_request),
+            frame_request=frame_request,
+            evaluation_timeframe=Timeframe("1m"),
+        )
+    )
+
+    assert widened_range.start < baseline_range.start
+
+    request = RunStrategyResearchRequest(
+        dataset_ref=dataset_ref,
+        timeframe=Timeframe("1m"),
+        requested_range=requested_range,
+        storage_root=storage_root,
+        strategy_model=strategy_model,
+        assumptions=SimulationAssumptions(),
+        evaluation_timeframe=Timeframe("1m"),
+        session_resolver=CmeEsRthSessionResolver(),
+        persist=False,
+    )
+    # And confirm run_strategy_research's own wiring reaches this planning
+    # step at all -- extra_component_requests is not merely accepted but
+    # actually used, by patching the planner to capture what it was called
+    # with when a score_condition is declared.
+    captured_component_requests: list[tuple[object, ...]] = []
+    _write_promoted_ridge_artifact(storage_root, fingerprint="a" * 64)
+    scored_strategy_model = replace(
+        strategy_model,
+        score_condition=ScoreConditionSpec(artifact_fingerprint="a" * 64, threshold=-1e9),
+    )
+    scored_request = replace(request, strategy_model=scored_strategy_model)
+
+    real_resolve_range = resolve_analysis_computation_range
+
+    def spy_resolve_range(analysis_request, **kwargs):
+        captured_component_requests.append(analysis_request.component_requests)
+        return real_resolve_range(analysis_request, **kwargs)
+
+    with patch(
+        "trading_framework.application.strategy_research.run_strategy_research"
+        ".resolve_analysis_computation_range",
+        side_effect=spy_resolve_range,
+    ):
+        run_strategy_research(scored_request)
+
+    assert len(captured_component_requests) == 1
+    assert len(captured_component_requests[0]) > len(dependencies.component_requests)

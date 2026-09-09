@@ -99,6 +99,23 @@ def decode_feature_matrix_spec(resolved: ResolvedScoreCondition) -> FeatureMatri
     return FeatureMatrixSpec(features=features)
 
 
+def component_requests_for_score_condition(
+    resolved: ResolvedScoreCondition,
+) -> tuple[ComponentRequest, ...]:
+    """The scorer's own component requests, for merging into the warm-up /
+    ``computation_range`` calculation the caller runs *before* fetching
+    historical bars (``resolve_analysis_computation_range``).
+
+    Without this, a preloaded OHLCV batch sized only for the strategy's
+    market/signal components can be too short for the scorer's own
+    features, silently starving ``build_score_table``'s analysis pass of
+    warm-up history (``load_analysis_data_view`` uses a supplied preloaded
+    batch verbatim, ignoring any ``computation_range`` computed after the
+    fact) -- found by independent review of this increment.
+    """
+    return _score_component_requests(decode_feature_matrix_spec(resolved))
+
+
 @dataclass(frozen=True, slots=True)
 class ScoreTableRequest:
     """Inputs for the scorer's own, narrowly-scoped analysis pass."""

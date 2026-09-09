@@ -28,6 +28,7 @@ from trading_framework.application.strategy_research.score_gate import (
     ScoreTableRequest,
     apply_score_gate,
     build_score_table,
+    component_requests_for_score_condition,
     read_promoted_artifact_parameters,
 )
 from trading_framework.application.strategy_research.shared_evaluation import (
@@ -39,6 +40,7 @@ from trading_framework.core.profiling import optional_phase
 from trading_framework.market.datasets import DatasetRef
 from trading_framework.market_analysis.data.columnar import OhlcvColumnBatch
 from trading_framework.market_analysis.data.view import AnalysisDataView
+from trading_framework.market_analysis.models.request import ComponentRequest
 from trading_framework.market_analysis.models.time_range import TimeRange
 from trading_framework.model_expression.planning import (
     build_analysis_frame_request,
@@ -131,7 +133,14 @@ def run_strategy_research(
             )
 
     evaluation_timeframe = request.evaluation_timeframe or request.timeframe
-    preloaded_column_batch, eval_result = _resolve_evaluation_inputs(request)
+    extra_component_requests = (
+        component_requests_for_score_condition(resolved_score_condition)
+        if resolved_score_condition is not None
+        else ()
+    )
+    preloaded_column_batch, eval_result = _resolve_evaluation_inputs(
+        request, extra_component_requests=extra_component_requests
+    )
 
     frame = eval_result.analysis.frame
     if frame is None:
@@ -252,7 +261,25 @@ def run_strategy_research(
 
 def _resolve_evaluation_inputs(
     request: RunStrategyResearchRequest,
+    *,
+    extra_component_requests: tuple[ComponentRequest, ...] = (),
 ) -> tuple[OhlcvColumnBatch, EvaluateModelsResult]:
+    """Resolve one shared OHLCV preload plus the market/signal evaluation pass.
+
+    ``extra_component_requests`` (Sprint 058 T004) widens ONLY the warm-up /
+    ``computation_range`` calculation below -- never the market/signal
+    ``frame_request`` or ``evaluate_models`` call, which still derive
+    strictly from ``strategy_model.market_model``/``signal_model``, byte for
+    byte unchanged from before this parameter existed. Its sole job is
+    making sure the preloaded OHLCV batch this function returns (which
+    ``build_score_table`` reuses verbatim, never re-querying) is fetched
+    with enough history for the scorer's OWN declared features too --
+    without this, a scorer needing more lookback than the strategy's
+    market/signal components silently starves on too little warm-up
+    (``load_analysis_data_view`` uses a supplied preloaded batch as-is,
+    ignoring any ``computation_range`` computed after the fact). Found by
+    independent review of this increment.
+    """
     strategy_model = request.strategy_model
     evaluation_timeframe = request.evaluation_timeframe or request.timeframe
     shared = request.shared_evaluation
@@ -274,18 +301,18 @@ def _resolve_evaluation_inputs(
         signal_models=(strategy_model.signal_model,),
     )
     frame_request = build_analysis_frame_request(dependencies)
-    analysis_request = RunAnalysisRequest(
+    computation_range_request = RunAnalysisRequest(
         dataset_ref=request.dataset_ref,
         timeframe=request.timeframe,
         requested_range=request.requested_range,
         storage_root=request.storage_root,
-        component_requests=dependencies.component_requests,
+        component_requests=dependencies.component_requests + extra_component_requests,
         frame_request=frame_request,
         evaluation_timeframe=evaluation_timeframe,
         session_resolver=request.session_resolver,
     )
     with optional_phase("strategy_research.plan_computation_range"):
-        computation_range = resolve_analysis_computation_range(analysis_request)
+        computation_range = resolve_analysis_computation_range(computation_range_request)
     with optional_phase("strategy_research.load_ohlcv"):
         preloaded_column_batch = query_historical_columnar(
             QueryHistoricalRequest(

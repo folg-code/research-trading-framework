@@ -29,6 +29,7 @@ from trading_framework.application.strategy_research.score_gate import (
     ScoreTableRequest,
     apply_score_gate,
     build_score_table,
+    component_requests_for_score_condition,
     decode_feature_matrix_spec,
     read_promoted_artifact_parameters,
 )
@@ -66,6 +67,7 @@ __all__ = [
     "build_score_table",
     "build_shared_strategy_evaluation_context",
     "build_strategy_dashboard_view_model",
+    "component_requests_for_score_condition",
     "decode_feature_matrix_spec",
     "read_promoted_artifact_parameters",
     "resolve_score_condition",
