@@ -74,9 +74,9 @@ Out of scope:
 | T001 | Record the accepted public-projection, study-identity and content boundaries in ADR-0034 or an explicitly approved ADR-0022 amendment; include producer, consumer, compatibility and migration rules | PRD approval; D059-01–03 | Architecture + dashboard application | high | Done | [#484](https://github.com/folg-code/research-trading-framework/pull/484) |
 | T002 | Implement the versioned public projection and study-manifest contracts with mixed safe/private fixtures proving allowlisted fields are retained and forbidden or unknown fields are omitted | T001 | `apps/dashboard/src/dashboard_app/publication/` | high | Done | [#485](https://github.com/folg-code/research-trading-framework/pull/485) |
 | T003 | Extend app-boundary enforcement to `apps/dashboard/pages/*.py`; prove the portfolio code imports no framework engines, execution, providers or ML libraries; update PRB-022 disposition | T001 | `tests/unit/test_apps_boundaries.py` | standard | Done | [#486](https://github.com/folg-code/research-trading-framework/pull/486) |
-| T004 | Implement the content loader, required metadata validation, restricted rendering and stable-slug routing contract, with missing/invalid-content behavior covered by tests | T001, T002 | `apps/dashboard/src/dashboard_app/content/` | standard | In review | [#487](https://github.com/folg-code/research-trading-framework/pull/487) |
-| T005 | Refresh the overview with the product thesis, shared-domain map, six independent workflow entries and maturity labels, using concise English content and existing visual components | T004 | `apps/dashboard` overview/content | standard | In review | [#488](https://github.com/folg-code/research-trading-framework/pull/488) |
-| T006 | Reconcile dashboard reference docs and add a desktop acceptance fixture/render showing that the overview is readable and does not imply a mandatory pipeline | T002–T005 | dashboard docs + visual acceptance | standard | Gated | — |
+| T004 | Implement the content loader, required metadata validation, restricted rendering and stable-slug routing contract, with missing/invalid-content behavior covered by tests | T001, T002 | `apps/dashboard/src/dashboard_app/content/` | standard | Done | [#487](https://github.com/folg-code/research-trading-framework/pull/487) |
+| T005 | Refresh the overview with the product thesis, shared-domain map, six independent workflow entries and maturity labels, using concise English content and existing visual components | T004 | `apps/dashboard` overview/content | standard | Done | [#488](https://github.com/folg-code/research-trading-framework/pull/488) |
+| T006 | Reconcile dashboard reference docs and add a desktop acceptance fixture/render showing that the overview is readable and does not imply a mandatory pipeline | T002–T005 | dashboard docs + visual acceptance | standard | In review | pending |
 
 ## Acceptance criteria
 
@@ -111,8 +111,22 @@ Out of scope:
 
 ## Closeout
 
-- Integrated checks: pending
-- Documentation reconciliation: pending
-- Review: pending
+- Integrated checks: `apps/dashboard` full suite (148 tests, includes the new
+  `test_overview_acceptance.py` desktop-render fixture) and
+  `tests/unit/test_apps_boundaries.py` pass together on the integrated sprint
+  branch; `ruff check`, `ruff format --check` and `mypy` (900+ files) clean.
+- Documentation reconciliation: `docs/reference/modules/DASHBOARD_APPLICATION.md`
+  documents the new `dashboard_app.publication` / `dashboard_app.content`
+  packages and the refreshed overview; `docs/reference/system/MODULE_MAP.md`
+  lists both new subpackages; a stale `pages/5_Live_Paper.py` filename
+  reference was also corrected.
+- Review: T001–T006 each went through independent review in a fresh context
+  per `.claude/WORKFLOW.md`; the maintainer additionally reviewed the
+  rendered overview locally (`streamlit run apps/dashboard/Project_Overview.py`)
+  on 2026-09-09 and accepted it as a draft with the simplifications explicitly
+  named in that review (workflow entry points reuse existing technical pages
+  unchanged; Market Data shares Signal Research's page; Strategy Execution is
+  a dry-run monitor only; no workflow-context/methodology/study pages yet;
+  `content/routing.py`'s slug contract is unused by this sprint's one page).
 - Remaining work: Sprint 060 plus later outcomes explicitly excluded by the
-  Portfolio Dashboard MVP PRD
+  Portfolio Dashboard MVP PRD.

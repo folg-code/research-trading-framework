@@ -17,6 +17,29 @@ mounted workspace (market_data/ + research/)
 
 Must **not** import `trading_framework.research` engines, execution, or providers.
 Optional shared presentation DTOs live inside `dashboard_app.contracts`.
+The import-boundary test (`tests/unit/test_apps_boundaries.py`) scans both
+`apps/dashboard/src/` and `apps/dashboard/pages/*.py` (Sprint 059 T003,
+PRB-022) — a page file is checked exactly like a `src/` module.
+
+## Public portfolio publication boundary (ADR-0034, Sprint 059)
+
+A second, stricter boundary sits inside the one above, for the public
+portfolio path only (the refreshed `Project_Overview.py` today; more pages
+in later 16D sprints). See `docs/adr/ADR-0034-portfolio-publication-boundary.md`
+for the full decision record.
+
+| Package | Role |
+|---|---|
+| `dashboard_app.publication` | A versioned, deny-by-default `PublicProjectionBundle` (`dashboard.public.v1`) built at build/deploy time from raw persisted artifacts, plus a dashboard-local `PortfolioStudyManifest` (`dashboard.study_manifest.v1`) grouping projected artifacts into a named study by explicit role. Never carries `storage_path` or any filesystem path. |
+| `dashboard_app.content` | A hand-parsed frontmatter + restricted-Markdown content loader (`load_content_document`), required metadata (`slug`, `title`, `status`, `updated`, `order`, `links`), and a stable-slug routing contract (`is_valid_slug`, `resolve_query_slug`). Content files live under `apps/dashboard/content/*.md`, version-controlled like code. |
+
+Both packages fail closed: every load/validate function returns an explicit
+`...Unavailable` result (`PublicationUnavailable`, `ContentUnavailable`)
+rather than raising into a page render or falling back to a raw workspace
+scan. The existing catalog scanner and its `storage_path`-carrying contracts
+(`RunSummary`, `PredictiveDatasetSummary`, `PredictiveRunSummary`) are
+grandfathered for the existing technical pages (`pages/1-6_*.py`) — they are
+not migrated onto the projection in this sprint.
 
 ## Contracts
 
@@ -34,7 +57,7 @@ Schema version: `dashboard.presentation.v1`.
 
 ## Live Paper (Sprint 031 / 025)
 
-Page: `pages/5_Live_Paper.py` with helpers in `dashboard_app.views.live_paper`.
+Page: `pages/5_Live_Paper_Trading.py` with helpers in `dashboard_app.views.live_paper`.
 
 - Configure `DASHBOARD_STATUS_URL` or the sidebar (falls back to `DEFAULT_LIVE_PAPER_STATUS_URL`).
 - Shows simulated banner, stale-heartbeat warning, candlestick from `recent_bars`, fill markers.
@@ -59,6 +82,25 @@ Page: `pages/6_Predictive_Research.py` with helpers in
   `tests/unit/test_apps_boundaries.py`.
 - Importance and calibration panels degrade gracefully when a run did not
   persist that sidecar file.
+
+## Project Overview (Sprint 059 T005)
+
+Entry page: `Project_Overview.py` with helpers in `dashboard_app.views.overview`.
+
+- The product thesis is loaded from `apps/dashboard/content/portfolio-overview.md`
+  through `dashboard_app.content.loader.load_content_document` — an absent or
+  invalid content document renders an explicit `st.warning`, never a crash.
+- `SHARED_DOMAIN_MERMAID` is a hub-and-spoke diagram: one shared node
+  (Market Analysis, Time Model, Data Contracts) with six independent
+  workflow spokes and no edges between workflow nodes — deliberately not a
+  linear pipeline (`docs/planning/DASHBOARD_DEVELOPMENT_DIRECTION.md` §3).
+- `WORKFLOW_ENTRIES` names all six workflows (Market Data, Signal Research,
+  Strategy Research, Robustness Research, Predictive Research, Strategy
+  Execution) with a `StudyMaturity` badge each — reused from
+  `dashboard_app.publication.manifest`, not a second enum. Market Data has
+  no page of its own today and shares `pages/2_Market_and_Signal_Research.py`
+  with Signal Research; Strategy Execution is `IN_DEVELOPMENT` per
+  ADR-0021 ("Strategy Execution remains a future capability").
 
 ## Adding a page
 
