@@ -10,6 +10,7 @@ from dashboard_app.views.overview import (
     render_shared_domain_map,
     render_workflow_entries,
 )
+from dashboard_app.views.portfolio_content import render_portfolio_evidence_entry_point
 
 configure_page(title="Project Overview")
 settings = render_app_chrome()
@@ -27,3 +28,5 @@ st.divider()
 render_shared_domain_map()
 st.divider()
 render_workflow_entries()
+st.divider()
+render_portfolio_evidence_entry_point()
