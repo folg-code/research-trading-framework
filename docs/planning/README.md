@@ -17,6 +17,7 @@ Catalog of `docs/planning/`. For taxonomy and reading paths see **[../README.md]
 | File | Purpose |
 |------|---------|
 | [ROADMAP.md](ROADMAP.md) | Long-term capability roadmap |
+| [DASHBOARD_DEVELOPMENT_DIRECTION.md](DASHBOARD_DEVELOPMENT_DIRECTION.md) | Public portfolio dashboard product and presentation direction |
 | [PROBLEM_REGISTRY.md](PROBLEM_REGISTRY.md) | Open problems and priorities |
 | [TECHNICAL_DEBT.md](TECHNICAL_DEBT.md) | Known debt items |
 | [IDEA_INBOX.md](IDEA_INBOX.md) | Unprocessed ideas |
