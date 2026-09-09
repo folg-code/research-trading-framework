@@ -28,6 +28,7 @@ a maturity claim.
 | File | Purpose | Maturity | Verified as of |
 |---|---|---|---|
 | [PRODUCT_DIRECTION.md](PRODUCT_DIRECTION.md) | Product-level vision, target capabilities, the three-capability contract | FUTURE/principles | Sprint 054 |
+| [RESEARCH_APPLICATION_PRODUCT_VISION.md](RESEARCH_APPLICATION_PRODUCT_VISION.md) | Local-first Research Workbench, private live control, public portfolio, and structured builder direction | DRAFT | Discovery 2026-09-09 |
 
 ## Domain target architecture
 
