@@ -44,7 +44,8 @@ port-vs-bespoke confirmation (§13H.12 Q4), 16G's numeric parity tolerances
 **Source:** `docs/planning/RESEARCH_SIMULATION_DEVELOPMENT_DIRECTION.md`
 (`Status: DRAFT`) — the maintainer's directional note. That note remains the
 originating record; **this section is the canonical roadmap location**. An
-adjacent DRAFT note, `docs/planning/DASHBOARD_DEVELOPMENT_DIRECTION.md`,
+adjacent DRAFT note,
+[`docs/planning/DASHBOARD_DEVELOPMENT_DIRECTION.md`](../DASHBOARD_DEVELOPMENT_DIRECTION.md),
 covers presentation direction and informs 16D without governing it.
 **Sprints:** none. Increment numbering (16A–16G) is deliberately independent
 of sprint numbering, per the practice already used for 13A–13G and 15A/15B.
@@ -719,7 +720,8 @@ what 16A–16C now persist.
 ### Dependencies
 
 16A (verdict), 16C (the comparison it displays). Informed by
-`DASHBOARD_DEVELOPMENT_DIRECTION.md` (DRAFT).
+[`DASHBOARD_DEVELOPMENT_DIRECTION.md`](../DASHBOARD_DEVELOPMENT_DIRECTION.md)
+(DRAFT).
 
 ### Main risks
 
