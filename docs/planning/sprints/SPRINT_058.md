@@ -76,7 +76,7 @@ Out of scope:
 
 | Task | Outcome | Dependencies | Ownership | Risk | Status | PR |
 |---|---|---|---|---|---|---|
-| T001 | `SIGNAL_QUALITY` label builder + sample wiring: a runnable `PredictiveStudySpec` over `signal_occurrences` with a forward-outcome quality label, through the unmodified Phase 10 pipeline | 16B (merged, `main`), Phase 10 pipeline | TBD | standard | Done | #TBD |
+| T001 | `SIGNAL_QUALITY` label builder + sample wiring: a runnable `PredictiveStudySpec` over `signal_occurrences` with a forward-outcome quality label, through the unmodified Phase 10 pipeline | 16B (merged, `main`), Phase 10 pipeline | TBD | standard | Ready | — |
 | T002 | Estimator comparison + threshold sensitivity report over the T001 study, promotable families only for anything gate-eligible; tree/neural remain usable for research-only comparison, clearly separated | T001 | TBD | standard | Ready | — |
 | T003 | Scorer-reference contract: fingerprint resolution via `PromotedArtifactRepository` at config load time; named-error refusal for (a) missing fingerprint, (b) non-allowlisted family; boundary test asserting Strategy Research imports nothing from `infrastructure/ml/` | ADR-0033 (accepted), ADR-0029 promotion store | TBD | high | Ready | — |
 | T004 | Strategy Research condition: predictive score gate, evaluated in-process via the unmodified NumPy evaluator under `available_at`; no-look-ahead test (score computed only from features available at occurrence time); simulator (fills/slippage/sizing/ledger) unchanged | T003 | TBD | high | Ready (blocked on T003 in practice) | — |
