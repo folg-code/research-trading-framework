@@ -62,6 +62,24 @@ library-free predictive metrics (`metrics.py`).
   by pooled primary metric. S040 metric-layer baselines appear as rows; they
   are not estimator families. Neural families (`torch.*`) rank as ordinary
   estimator rows. Mismatched fingerprints are `PredictiveSpecError`.
+  **`leaderboard.py` carries no promotable/research-only awareness** — a
+  gate-eligible and a research-only family can legitimately share one
+  leaderboard, ranked together. Partitioning by `MODEL_FAMILY_ALLOWLIST`
+  (`research/datasets/promoted_artifact.py`) is the caller's job, never
+  this module's — see `threshold_sensitivity.py` below and
+  `tests/integration/predictive_research/test_signal_quality_estimator_comparison.py`
+  (Sprint 058 T002) for the pattern.
+- Threshold sensitivity (`threshold_sensitivity.py`, Sprint 058 T002) sweeps
+  `metrics.py`'s `classification_statistical_metrics` / `finance_metrics`
+  across a probability threshold grid (`DEFAULT_THRESHOLD_GRID`, 19 points
+  on `(0, 1)`, excluding the degenerate 0.0/1.0 endpoints) for one run's
+  already-computed pooled TEST predictions. Library-free, numpy only; never
+  fits, re-fits, or reads a fitted model blob. A threshold is only
+  meaningful for a `CLASSIFICATION` run's `y_proba` — refusing a
+  `REGRESSION` run with a named error is
+  `application/predictive_research/analyze_threshold_sensitivity.py`'s job,
+  not this module's, which stays a pure function over already-selected
+  scores.
 - Learning curves (`learning_curves.py`) persist inner-train / inner-validation
   loss per outer fold plus the restored stopping epoch. Application writes
   `learning_curves.json` when `describe().resolved_params` carries those keys;

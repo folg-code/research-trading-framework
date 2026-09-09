@@ -17,6 +17,8 @@ Catalog of `docs/planning/`. For taxonomy and reading paths see **[../README.md]
 | File | Purpose |
 |------|---------|
 | [ROADMAP.md](ROADMAP.md) | Long-term capability roadmap |
+| [DASHBOARD_DEVELOPMENT_DIRECTION.md](DASHBOARD_DEVELOPMENT_DIRECTION.md) | Accepted, authoritative direction for the public portfolio dashboard |
+| [roadmap/PHASE_16D_PORTFOLIO_DASHBOARD.md](roadmap/PHASE_16D_PORTFOLIO_DASHBOARD.md) | Detailed Phase 16D outcomes and draft delivery slices |
 | [PROBLEM_REGISTRY.md](PROBLEM_REGISTRY.md) | Open problems and priorities |
 | [TECHNICAL_DEBT.md](TECHNICAL_DEBT.md) | Known debt items |
 | [IDEA_INBOX.md](IDEA_INBOX.md) | Unprocessed ideas |
@@ -76,6 +78,8 @@ Catalog of `docs/planning/`. For taxonomy and reading paths see **[../README.md]
 | [sprints/S013_WAVE0_DECISIONS.md](sprints/S013_WAVE0_DECISIONS.md) | Sprint 013 binding decisions (D-S013-01 … D-S013-16) |
 | [sprints/S004_MTF_SPIKE_AND_DECISIONS.md](sprints/S004_MTF_SPIKE_AND_DECISIONS.md) | Sprint 004 T001 spike outcomes |
 | [sprints/S003_WAVE0_*.md](sprints/) | Sprint 003 wave 0 artefacts |
+| [sprints/SPRINT_059.md](sprints/SPRINT_059.md) | Portfolio Publication Foundation (draft; not opened) |
+| [sprints/SPRINT_060.md](sprints/SPRINT_060.md) | Signal Quality Portfolio Evidence (draft; not opened) |
 
 ### Sprint document policy (new sprints only)
 

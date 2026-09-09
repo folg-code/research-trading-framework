@@ -20,6 +20,17 @@ from trading_framework.application.market_data.query_historical import (
 from trading_framework.application.model_evaluation import EvaluateModelsRequest, evaluate_models
 from trading_framework.application.model_evaluation.evaluate_models import EvaluateModelsResult
 from trading_framework.application.strategy_research.entry_signals import build_gated_entry_signals
+from trading_framework.application.strategy_research.resolve_score_condition import (
+    ResolvedScoreCondition,
+    resolve_score_condition,
+)
+from trading_framework.application.strategy_research.score_gate import (
+    ScoreTableRequest,
+    apply_score_gate,
+    build_score_table,
+    component_requests_for_score_condition,
+    read_promoted_artifact_parameters,
+)
 from trading_framework.application.strategy_research.shared_evaluation import (
     SharedStrategyEvaluationContext,
     SharedStrategyEvaluationError,
@@ -29,6 +40,7 @@ from trading_framework.core.profiling import optional_phase
 from trading_framework.market.datasets import DatasetRef
 from trading_framework.market_analysis.data.columnar import OhlcvColumnBatch
 from trading_framework.market_analysis.data.view import AnalysisDataView
+from trading_framework.market_analysis.models.request import ComponentRequest
 from trading_framework.market_analysis.models.time_range import TimeRange
 from trading_framework.model_expression.planning import (
     build_analysis_frame_request,
@@ -106,8 +118,29 @@ def run_strategy_research(
     exit_model = _dispatch_exit_model(strategy_model)
     risk_model = _require_structural_risk_model(strategy_model)
 
+    resolved_score_condition: ResolvedScoreCondition | None = None
+    if strategy_model.score_condition is not None:
+        if request.shared_evaluation is not None:
+            msg = (
+                "score_condition is not supported together with shared_evaluation "
+                "in this slice (Sprint 058 T004) -- the scorer's feature columns "
+                "are not part of a pre-built shared analysis pass"
+            )
+            raise StrategyResearchError(msg)
+        with optional_phase("strategy_research.resolve_score_condition"):
+            resolved_score_condition = resolve_score_condition(
+                strategy_model.score_condition, storage_root=request.storage_root
+            )
+
     evaluation_timeframe = request.evaluation_timeframe or request.timeframe
-    preloaded_column_batch, eval_result = _resolve_evaluation_inputs(request)
+    extra_component_requests = (
+        component_requests_for_score_condition(resolved_score_condition)
+        if resolved_score_condition is not None
+        else ()
+    )
+    preloaded_column_batch, eval_result = _resolve_evaluation_inputs(
+        request, extra_component_requests=extra_component_requests
+    )
 
     frame = eval_result.analysis.frame
     if frame is None:
@@ -123,6 +156,30 @@ def run_strategy_research(
             signal_emissions=signal_emissions,
             market_state=market_state,
         )
+        if resolved_score_condition is not None:
+            with optional_phase("strategy_research.apply_score_gate"):
+                parameters = read_promoted_artifact_parameters(
+                    request.storage_root,
+                    resolved_score_condition.spec.artifact_fingerprint,
+                )
+                score_table = build_score_table(
+                    ScoreTableRequest(
+                        dataset_ref=request.dataset_ref,
+                        timeframe=request.timeframe,
+                        requested_range=request.requested_range,
+                        storage_root=request.storage_root,
+                        evaluation_timeframe=evaluation_timeframe,
+                        preloaded_column_batch=preloaded_column_batch,
+                        session_resolver=request.session_resolver,
+                    ),
+                    resolved=resolved_score_condition,
+                    parameters=parameters,
+                )
+                entry_signals = apply_score_gate(
+                    entry_signals,
+                    score_table,
+                    threshold=resolved_score_condition.spec.threshold,
+                )
         simulation_column_batch = preloaded_column_batch.slice_observed_range(
             request.requested_range
         )
@@ -204,7 +261,25 @@ def run_strategy_research(
 
 def _resolve_evaluation_inputs(
     request: RunStrategyResearchRequest,
+    *,
+    extra_component_requests: tuple[ComponentRequest, ...] = (),
 ) -> tuple[OhlcvColumnBatch, EvaluateModelsResult]:
+    """Resolve one shared OHLCV preload plus the market/signal evaluation pass.
+
+    ``extra_component_requests`` (Sprint 058 T004) widens ONLY the warm-up /
+    ``computation_range`` calculation below -- never the market/signal
+    ``frame_request`` or ``evaluate_models`` call, which still derive
+    strictly from ``strategy_model.market_model``/``signal_model``, byte for
+    byte unchanged from before this parameter existed. Its sole job is
+    making sure the preloaded OHLCV batch this function returns (which
+    ``build_score_table`` reuses verbatim, never re-querying) is fetched
+    with enough history for the scorer's OWN declared features too --
+    without this, a scorer needing more lookback than the strategy's
+    market/signal components silently starves on too little warm-up
+    (``load_analysis_data_view`` uses a supplied preloaded batch as-is,
+    ignoring any ``computation_range`` computed after the fact). Found by
+    independent review of this increment.
+    """
     strategy_model = request.strategy_model
     evaluation_timeframe = request.evaluation_timeframe or request.timeframe
     shared = request.shared_evaluation
@@ -226,18 +301,18 @@ def _resolve_evaluation_inputs(
         signal_models=(strategy_model.signal_model,),
     )
     frame_request = build_analysis_frame_request(dependencies)
-    analysis_request = RunAnalysisRequest(
+    computation_range_request = RunAnalysisRequest(
         dataset_ref=request.dataset_ref,
         timeframe=request.timeframe,
         requested_range=request.requested_range,
         storage_root=request.storage_root,
-        component_requests=dependencies.component_requests,
+        component_requests=dependencies.component_requests + extra_component_requests,
         frame_request=frame_request,
         evaluation_timeframe=evaluation_timeframe,
         session_resolver=request.session_resolver,
     )
     with optional_phase("strategy_research.plan_computation_range"):
-        computation_range = resolve_analysis_computation_range(analysis_request)
+        computation_range = resolve_analysis_computation_range(computation_range_request)
     with optional_phase("strategy_research.load_ohlcv"):
         preloaded_column_batch = query_historical_columnar(
             QueryHistoricalRequest(

@@ -110,6 +110,13 @@ from trading_framework.research.predictive.splitting import (
     PurgedWalkForwardSplitSpec,
     assign_purged_walk_forward_folds,
 )
+from trading_framework.research.predictive.threshold_sensitivity import (
+    DEFAULT_THRESHOLD_GRID,
+    THRESHOLD_SENSITIVITY_SCHEMA_VERSION,
+    ThresholdSensitivityPoint,
+    ThresholdSensitivityReport,
+    sweep_threshold_sensitivity,
+)
 from trading_framework.research.predictive.verdict import (
     RULE_SET_VERSION_V1,
     VERDICT_RULES_V1,
@@ -143,6 +150,7 @@ __all__ = [
     "DEFAULT_MAX_CANDIDATES",
     "DEFAULT_PERMUTATION_REPEATS",
     "DEFAULT_SAMPLE_SPEC",
+    "DEFAULT_THRESHOLD_GRID",
     "LEARNING_CURVES_FILENAME",
     "MAX_CANDIDATES_CAP",
     "MAX_LOOKBACK_BARS",
@@ -152,6 +160,7 @@ __all__ = [
     "PREDICTIVE_METRICS_SCHEMA_VERSION",
     "REGRESSION_DECISION_THRESHOLD",
     "RULE_SET_VERSION_V1",
+    "THRESHOLD_SENSITIVITY_SCHEMA_VERSION",
     "VERDICT_RULES_V1",
     "WINDOW_ACCOUNTING_FILENAME",
     "CandidateFoldScore",
@@ -209,6 +218,8 @@ __all__ = [
     "SourceMetrics",
     "StatisticalMetrics",
     "TaskType",
+    "ThresholdSensitivityPoint",
+    "ThresholdSensitivityReport",
     "VerdictFacts",
     "VerdictReport",
     "VerdictRuleSet",
@@ -242,6 +253,7 @@ __all__ = [
     "require_train_only_fit_roles",
     "select_winning_index",
     "split_inner_train_validation",
+    "sweep_threshold_sensitivity",
     "validate_sample_task_compatibility",
     "write_learning_curves",
     "write_window_accounting",

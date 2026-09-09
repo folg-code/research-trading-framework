@@ -401,3 +401,29 @@ def test_predictive_research_application_layer_imports_no_simulation_or_executio
         )
         == []
     )
+
+
+def test_strategy_research_does_not_import_ml_infrastructure() -> None:
+    """Sprint 058 T003 / ADR-0033: Strategy Research consumes a promoted
+    artifact's manifest (`research.datasets.promoted_artifact`) directly --
+    a narrow, read-only edge ADR-0033 introduces deliberately. It must never
+    import `infrastructure.ml` (sklearn/joblib adapters), even transitively,
+    or "ML enters simulation only through explicit strategy semantics, never
+    by loading model binaries" (Phase 16 §13H.8) stops being true. Covers
+    both the domain (`trading_framework.strategy`) and application
+    (`trading_framework.application.strategy_research`) layers, since
+    ADR-0033's new reference type and its resolver could plausibly land in
+    either.
+    """
+    framework_root = Path(trading_framework.__file__).resolve().parent
+
+    def is_ml_infrastructure(module_name: str) -> bool:
+        return module_name == "trading_framework.infrastructure.ml" or module_name.startswith(
+            "trading_framework.infrastructure.ml."
+        )
+
+    strategy_root = framework_root / "strategy"
+    strategy_research_root = framework_root / "application" / "strategy_research"
+
+    assert _import_offenders(strategy_root, predicate=is_ml_infrastructure) == []
+    assert _import_offenders(strategy_research_root, predicate=is_ml_infrastructure) == []
