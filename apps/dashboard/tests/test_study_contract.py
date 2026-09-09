@@ -21,9 +21,11 @@ happy-path coverage:
 end to end -- there is no injection seam by design (ADR-0034 S1.6: the
 public path reads only the committed bundle/manifest, nothing else). Tests
 that need synthetic evidence therefore monkeypatch
-``dashboard_app.views.study.load_btc_signal_quality_evidence`` in an
-isolated subprocess-free ``AppTest`` run, mirroring
-``test_study_acceptance.py``'s throwaway-script convention.
+``dashboard_app.views.study.load_btc_signal_quality_evidence`` via pytest's
+``monkeypatch`` fixture -- scoped to one test and auto-restored on
+teardown, unlike mutating the module attribute directly, which would leak
+into every other test sharing this process (``AppTest`` executes each
+script in-process, against the same cached module object).
 """
 
 from __future__ import annotations
@@ -35,36 +37,28 @@ import textwrap
 from pathlib import Path
 from typing import Any
 
+import pytest
 from streamlit.testing.v1 import AppTest
 
-from dashboard_app.publication.paths import projection_bundle_path
+from dashboard_app.publication.paths import projection_bundle_path, study_manifest_path
+from dashboard_app.publication.projection import ProjectedArtifact
+from dashboard_app.publication.validation import (
+    PublicationUnavailable,
+    StudyEvidence,
+    load_study_manifest_from_path,
+)
+from dashboard_app.views.study import STUDY_SLUG
 
 _STUDY_SOURCE = (
     Path(__file__).resolve().parents[1] / "src" / "dashboard_app" / "views" / "study.py"
 ).read_text(encoding="utf-8")
 
-_SYNTHETIC_EVIDENCE_APP = textwrap.dedent(
+_RENDER_APP_SCRIPT = textwrap.dedent(
     """
     import sys
     sys.path.insert(0, {src!r})
-
-    import dashboard_app.views.study as study_module
-    from dashboard_app.publication.projection import ProjectedArtifact
-    from dashboard_app.publication.validation import StudyEvidence
-
-    resolved_artifacts = {resolved_artifacts!r}
-    manifest = object()  # never read by the view; only .resolved_artifacts is used
-
-    def _fake_load_evidence():
-        return StudyEvidence(
-            manifest=manifest,
-            resolved_artifacts={{
-                role: ProjectedArtifact(**kwargs) for role, kwargs in resolved_artifacts.items()
-            }},
-        )
-
-    study_module.load_btc_signal_quality_evidence = _fake_load_evidence
-    study_module.render_btc_signal_quality_study()
+    from dashboard_app.views.study import render_btc_signal_quality_study
+    render_btc_signal_quality_study()
     """
 )
 
@@ -72,7 +66,7 @@ _SYNTHETIC_EVIDENCE_APP = textwrap.dedent(
 #: -- distinct from any real persisted number, so a test failure cannot be
 #: confused with a real-data coincidence. Verdict is deliberately NOT
 #: "INCONCLUSIVE" (property 2).
-_FULL_SENTINEL_ARTIFACTS: dict[str, dict[str, object]] = {
+_FULL_SENTINEL_ARTIFACTS: dict[str, dict[str, Any]] = {
     "verdict": {
         "artifact_id": "verdict-1",
         "artifact_role": "predictive_run_verdict",
@@ -134,14 +128,29 @@ _FULL_SENTINEL_ARTIFACTS: dict[str, dict[str, object]] = {
 }
 
 
-def _run_synthetic_study_app(resolved_artifacts: dict[str, dict[str, object]]) -> AppTest:
+def _run_synthetic_study_app(
+    monkeypatch: pytest.MonkeyPatch, resolved_artifacts: dict[str, dict[str, Any]]
+) -> AppTest:
+    import dashboard_app.views.study as study_module
+
+    def _fake_load_evidence() -> StudyEvidence | PublicationUnavailable:
+        return StudyEvidence(
+            manifest=object(),  # type: ignore[arg-type]  # never read; only .resolved_artifacts is
+            resolved_artifacts={
+                role: ProjectedArtifact(**kwargs) for role, kwargs in resolved_artifacts.items()
+            },
+        )
+
+    # A plain module-attribute assignment would leak into every other test
+    # sharing this process, because AppTest executes the script below
+    # in-process against the same cached `dashboard_app.views.study` module
+    # object -- `monkeypatch` restores the original function on teardown.
+    monkeypatch.setattr(study_module, "load_btc_signal_quality_evidence", _fake_load_evidence)
+
     dashboard_src = str(Path(__file__).resolve().parents[1] / "src")
     with tempfile.TemporaryDirectory() as temp_dir:
         script_path = Path(temp_dir) / "study_contract_app.py"
-        rendered_app = _SYNTHETIC_EVIDENCE_APP.format(
-            src=dashboard_src, resolved_artifacts=resolved_artifacts
-        )
-        script_path.write_text(rendered_app, encoding="utf-8")
+        script_path.write_text(_RENDER_APP_SCRIPT.format(src=dashboard_src), encoding="utf-8")
         app = AppTest.from_file(str(script_path))
         app.run(timeout=30)
         return app
@@ -195,8 +204,10 @@ def test_verdict_badge_color_is_a_source_level_literal_never_derived_from_verdic
 # --- Properties 1 + 2: traceability, and non-INCONCLUSIVE evidence ----------------
 
 
-def test_synthetic_non_inconclusive_verdict_renders_verbatim() -> None:
-    app = _run_synthetic_study_app(_FULL_SENTINEL_ARTIFACTS)
+def test_synthetic_non_inconclusive_verdict_renders_verbatim(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    app = _run_synthetic_study_app(monkeypatch, _FULL_SENTINEL_ARTIFACTS)
 
     assert not app.exception
     badge_markdown = "\n".join(entry.value for entry in app.markdown)
@@ -204,10 +215,12 @@ def test_synthetic_non_inconclusive_verdict_renders_verbatim() -> None:
     assert "INCONCLUSIVE" not in badge_markdown
 
 
-def test_synthetic_sentinel_values_trace_exactly_into_the_charts() -> None:
+def test_synthetic_sentinel_values_trace_exactly_into_the_charts(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """Every plotted number must equal the resolved artifact field verbatim --
     proof the view/chart layer copies rather than recomputes (ADR-0034 S1.4)."""
-    app = _run_synthetic_study_app(_FULL_SENTINEL_ARTIFACTS)
+    app = _run_synthetic_study_app(monkeypatch, _FULL_SENTINEL_ARTIFACTS)
 
     assert not app.exception
     all_y_values = {round(value, 6) for series in _figure_y_values(app) for value in series}
@@ -235,63 +248,69 @@ def test_synthetic_sentinel_values_trace_exactly_into_the_charts() -> None:
     assert "415926" in full_text  # seed caption, verbatim
 
 
-def test_study_traceability_against_the_real_committed_bundle() -> None:
-    """The real study's rendered ROC AUC values must equal the committed
-    bundle's raw fields exactly -- a regression guard against any future
-    rounding, normalization or recomputation creeping into the view."""
+def _real_resolved_artifacts_by_sentinel_role() -> dict[str, dict[str, Any]]:
+    """Map every sentinel role name onto its real committed artifact.
+
+    Uses the real, committed study manifest's own ``artifact_roles`` (role
+    name -> artifact id) to resolve each role -- the same lookup
+    ``resolve_study_evidence`` performs in production. Matching on
+    ``artifact_role`` string alone would be ambiguous: the real bundle has
+    *two* artifacts sharing ``artifact_role: "strategy_research_run_summary"``
+    (baseline and scored), which a role-string match cannot tell apart.
+    """
+    manifest = load_study_manifest_from_path(study_manifest_path(STUDY_SLUG))
+    assert not isinstance(manifest, PublicationUnavailable), manifest
     raw_bundle = json.loads(projection_bundle_path().read_text(encoding="utf-8"))
-    metrics_fields = next(
-        artifact["fields"]
-        for artifact in raw_bundle["artifacts"].values()
-        if artifact["artifact_role"] == "predictive_run_metrics"
-    )
+
+    return {
+        role: raw_bundle["artifacts"][manifest.artifact_roles[role]]
+        for role in _FULL_SENTINEL_ARTIFACTS
+    }
+
+
+def test_study_traceability_against_the_real_committed_bundle() -> None:
+    """The real study's rendered numbers must equal the real committed
+    manifest/bundle's raw fields exactly -- a regression guard against any
+    future rounding, normalization or recomputation creeping into the view.
+
+    Runs the real, unmocked render path end to end (no monkeypatching) --
+    this is what ``test_study_acceptance.py`` already does; this test adds
+    the explicit byte-for-byte comparison against the raw committed JSON
+    that acceptance test does not make.
+    """
+    real_artifacts = _real_resolved_artifacts_by_sentinel_role()
+    metrics_fields = real_artifacts["predictive_metrics"]["fields"]
     expected_pooled_model = metrics_fields["pooled"]["MODEL"]["statistical"]["roc_auc"]
     expected_pooled_permutation = metrics_fields["pooled"]["RANDOM_PERMUTATION"]["statistical"][
         "roc_auc"
     ]
-
-    app = _run_synthetic_study_app(  # real committed data, routed through the same render path
-        {
-            role: {
-                "artifact_id": artifact["artifact_id"],
-                "artifact_role": artifact["artifact_role"],
-                "fields": artifact["fields"],
-            }
-            for role, artifact in zip(
-                _FULL_SENTINEL_ARTIFACTS,
-                (
-                    raw_bundle["artifacts"][artifact_id]
-                    for artifact_id in _resolve_real_roles(raw_bundle)
-                ),
-                strict=True,
-            )
-        }
+    expected_baseline_trade_count = real_artifacts["strategy_baseline"]["fields"]["trade_count"]
+    expected_scored_trade_count = real_artifacts["strategy_scored"]["fields"]["trade_count"]
+    assert expected_baseline_trade_count != expected_scored_trade_count, (
+        "fixture sanity check: baseline and scored must be genuinely distinct real artifacts"
     )
+
+    dashboard_src = str(Path(__file__).resolve().parents[1] / "src")
+    with tempfile.TemporaryDirectory() as temp_dir:
+        script_path = Path(temp_dir) / "study_real_data_app.py"
+        script_path.write_text(_RENDER_APP_SCRIPT.format(src=dashboard_src), encoding="utf-8")
+        app = AppTest.from_file(str(script_path))
+        app.run(timeout=30)
 
     assert not app.exception
     all_y_values = {value for series in _figure_y_values(app) for value in series}
     assert expected_pooled_model in all_y_values
     assert expected_pooled_permutation in all_y_values
-
-
-def _resolve_real_roles(raw_bundle: dict[str, Any]) -> list[str]:
-    """Map this test's fixed role order onto the real bundle's artifact ids
-    by matching each fixture's own ``artifact_role`` -- avoids hard-coding
-    the real, content-addressed artifact ids anywhere in this test."""
-    role_by_artifact_role = {
-        artifact["artifact_role"]: artifact_id
-        for artifact_id, artifact in raw_bundle["artifacts"].items()
-    }
-    return [
-        role_by_artifact_role[_FULL_SENTINEL_ARTIFACTS[role]["artifact_role"]]
-        for role in _FULL_SENTINEL_ARTIFACTS
-    ]
+    assert float(expected_baseline_trade_count) in all_y_values
+    assert float(expected_scored_trade_count) in all_y_values
 
 
 # --- Property 3: absent optional artifacts -----------------------------------------
 
 
-def test_study_degrades_one_section_when_a_role_is_absent_from_the_manifest() -> None:
+def test_study_degrades_one_section_when_a_role_is_absent_from_the_manifest(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """A study manifest that never declares ``threshold_sensitivity`` (a
     role legitimately absent, not a dangling reference) must still render
     the verdict and the other two charts -- never the whole-page
@@ -302,7 +321,7 @@ def test_study_degrades_one_section_when_a_role_is_absent_from_the_manifest() ->
         for role, kwargs in _FULL_SENTINEL_ARTIFACTS.items()
         if role != "threshold_sensitivity"
     }
-    app = _run_synthetic_study_app(partial_artifacts)
+    app = _run_synthetic_study_app(monkeypatch, partial_artifacts)
 
     assert not app.exception
     subheaders = {entry.value for entry in app.subheader}
