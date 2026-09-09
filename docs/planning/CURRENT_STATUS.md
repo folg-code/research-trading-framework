@@ -205,7 +205,7 @@ These have their own canonical owners — this file does not duplicate them:
 | 057 | Analyst Verdict Artifact (Phase 16, increment 16A) | COMPLETED | 7 / 7 tasks; working PRs #464-#469 into `sprint/analyst-verdict-artifact`; integrated to `main` via #471 — see `docs/planning/sprints/SPRINT_057.md` §13 Review |
 | 058 | Signal Quality Scoring (Phase 16, increment 16C) | COMPLETED | 6 / 6 tasks; working PRs #472-#479; integrated to `main` via #480; real-data worked example produced a complete negative result — see `docs/planning/sprints/SPRINT_058.md` Closeout and `docs/reference/BTC_SIGNAL_QUALITY_STUDY.md` |
 | 059 | Portfolio Publication Foundation (Phase 16, increment 16D) | COMPLETED | 6 / 6 tasks; working PRs #484-#489; integrated to `main` via #490 — see `docs/planning/sprints/SPRINT_059.md` §Closeout |
-| 060 | Signal Quality Portfolio Evidence (Phase 16, increment 16D) | OPEN | D060-01/D060-03 approved at opening (2026-09-09); T001 Ready — see `docs/planning/sprints/SPRINT_060.md` |
+| 060 | Signal Quality Portfolio Evidence (Phase 16, increment 16D) | OPEN | D060-01/D060-03 approved at opening (2026-09-09); T001 Done, T002 Ready — see `docs/planning/sprints/SPRINT_060.md` |
 
 Sprint numbering has no gap at 050 — it is reserved for Phase 14B and not yet
 opened (see `docs/planning/sprints/SPRINT_053.md` metadata for the numbering
