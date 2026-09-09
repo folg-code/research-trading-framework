@@ -20,6 +20,16 @@ from trading_framework.application.market_data.query_historical import (
 from trading_framework.application.model_evaluation import EvaluateModelsRequest, evaluate_models
 from trading_framework.application.model_evaluation.evaluate_models import EvaluateModelsResult
 from trading_framework.application.strategy_research.entry_signals import build_gated_entry_signals
+from trading_framework.application.strategy_research.resolve_score_condition import (
+    ResolvedScoreCondition,
+    resolve_score_condition,
+)
+from trading_framework.application.strategy_research.score_gate import (
+    ScoreTableRequest,
+    apply_score_gate,
+    build_score_table,
+    read_promoted_artifact_parameters,
+)
 from trading_framework.application.strategy_research.shared_evaluation import (
     SharedStrategyEvaluationContext,
     SharedStrategyEvaluationError,
@@ -106,6 +116,20 @@ def run_strategy_research(
     exit_model = _dispatch_exit_model(strategy_model)
     risk_model = _require_structural_risk_model(strategy_model)
 
+    resolved_score_condition: ResolvedScoreCondition | None = None
+    if strategy_model.score_condition is not None:
+        if request.shared_evaluation is not None:
+            msg = (
+                "score_condition is not supported together with shared_evaluation "
+                "in this slice (Sprint 058 T004) -- the scorer's feature columns "
+                "are not part of a pre-built shared analysis pass"
+            )
+            raise StrategyResearchError(msg)
+        with optional_phase("strategy_research.resolve_score_condition"):
+            resolved_score_condition = resolve_score_condition(
+                strategy_model.score_condition, storage_root=request.storage_root
+            )
+
     evaluation_timeframe = request.evaluation_timeframe or request.timeframe
     preloaded_column_batch, eval_result = _resolve_evaluation_inputs(request)
 
@@ -123,6 +147,30 @@ def run_strategy_research(
             signal_emissions=signal_emissions,
             market_state=market_state,
         )
+        if resolved_score_condition is not None:
+            with optional_phase("strategy_research.apply_score_gate"):
+                parameters = read_promoted_artifact_parameters(
+                    request.storage_root,
+                    resolved_score_condition.spec.artifact_fingerprint,
+                )
+                score_table = build_score_table(
+                    ScoreTableRequest(
+                        dataset_ref=request.dataset_ref,
+                        timeframe=request.timeframe,
+                        requested_range=request.requested_range,
+                        storage_root=request.storage_root,
+                        evaluation_timeframe=evaluation_timeframe,
+                        preloaded_column_batch=preloaded_column_batch,
+                        session_resolver=request.session_resolver,
+                    ),
+                    resolved=resolved_score_condition,
+                    parameters=parameters,
+                )
+                entry_signals = apply_score_gate(
+                    entry_signals,
+                    score_table,
+                    threshold=resolved_score_condition.spec.threshold,
+                )
         simulation_column_batch = preloaded_column_batch.slice_observed_range(
             request.requested_range
         )
