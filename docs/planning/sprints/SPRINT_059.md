@@ -12,8 +12,8 @@ Sources:
 
 - `docs/planning/DASHBOARD_DEVELOPMENT_DIRECTION.md` — authoritative product
   direction for 16D.
-- `docs/product/PRD-portfolio-dashboard-mvp.md` — feature requirements; DRAFT
-  until approved.
+- `docs/product/PRD-portfolio-dashboard-mvp.md` — feature requirements;
+  ACCEPTED (maintainer, 2026-09-09).
 - `docs/planning/roadmap/PHASE_16_QUANT_WORKBENCH.md` §13H.4.
 - `docs/adr/ADR-0022-repository-top-level-layout.md` — dashboard application
   boundary.
