@@ -11,6 +11,13 @@ from trading_framework.application.strategy_research.dashboard import (
     build_strategy_dashboard_view_model,
 )
 from trading_framework.application.strategy_research.entry_signals import build_gated_entry_signals
+from trading_framework.application.strategy_research.resolve_score_condition import (
+    ResolvedScoreCondition,
+    ScoreConditionFamilyRefusedError,
+    ScoreConditionNotFoundError,
+    ScoreConditionResolutionError,
+    resolve_score_condition,
+)
 from trading_framework.application.strategy_research.run_strategy_research import (
     RunStrategyResearchRequest,
     RunStrategyResearchResult,
@@ -32,8 +39,12 @@ __all__ = [
     "AnalyzeStrategyResearchRequest",
     "AnalyzeStrategyResearchResult",
     "BuildStrategyDashboardRequest",
+    "ResolvedScoreCondition",
     "RunStrategyResearchRequest",
     "RunStrategyResearchResult",
+    "ScoreConditionFamilyRefusedError",
+    "ScoreConditionNotFoundError",
+    "ScoreConditionResolutionError",
     "SharedStrategyEvaluationCache",
     "SharedStrategyEvaluationContext",
     "SharedStrategyEvaluationError",
@@ -43,5 +54,6 @@ __all__ = [
     "build_gated_entry_signals",
     "build_shared_strategy_evaluation_context",
     "build_strategy_dashboard_view_model",
+    "resolve_score_condition",
     "run_strategy_research",
 ]
