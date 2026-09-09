@@ -183,6 +183,19 @@ def test_projection_bundle_rejects_major_schema_mismatch() -> None:
         PublicProjectionBundle.from_dict(payload)
 
 
+def test_projection_bundle_rejects_malformed_artifact_entry() -> None:
+    """A corrupted per-artifact entry must fail closed, not raise KeyError."""
+    payload = {
+        "schema_version": PUBLIC_PROJECTION_SCHEMA_VERSION,
+        "generator_version": "dashboard.publication.generator.v1",
+        "generated_at_utc": "2026-09-09T00:00:00+00:00",
+        "artifacts": {"bad-1": {"artifact_role": "predictive_run_verdict", "fields": {}}},
+    }
+
+    with pytest.raises(InvalidProjectionSchemaError):
+        PublicProjectionBundle.from_dict(payload)
+
+
 def test_study_manifest_round_trip() -> None:
     manifest = PortfolioStudyManifest(
         schema_version=PORTFOLIO_STUDY_MANIFEST_SCHEMA_VERSION,

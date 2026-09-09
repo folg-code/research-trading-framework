@@ -108,12 +108,18 @@ class PublicProjectionBundle:
             msg = "public projection bundle 'artifacts' must be a mapping"
             raise InvalidProjectionSchemaError(msg)
 
+        try:
+            artifacts = {
+                artifact_id: ProjectedArtifact.from_dict(artifact_payload)
+                for artifact_id, artifact_payload in artifacts_payload.items()
+            }
+        except (KeyError, TypeError, AttributeError) as exc:
+            msg = f"malformed artifact entry in public projection bundle: {exc}"
+            raise InvalidProjectionSchemaError(msg) from exc
+
         return cls(
             schema_version=schema_version,
             generator_version=generator_version,
             generated_at_utc=generated_at_utc,
-            artifacts={
-                artifact_id: ProjectedArtifact.from_dict(artifact_payload)
-                for artifact_id, artifact_payload in artifacts_payload.items()
-            },
+            artifacts=artifacts,
         )

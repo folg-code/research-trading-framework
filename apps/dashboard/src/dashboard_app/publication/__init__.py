@@ -15,6 +15,12 @@ from dashboard_app.publication.errors import (
     InvalidProjectionSchemaError,
     PublicationError,
 )
+from dashboard_app.publication.generator import (
+    GENERATOR_VERSION,
+    RawArtifactInput,
+    UnknownArtifactRoleError,
+    build_projection_bundle,
+)
 from dashboard_app.publication.manifest import (
     PORTFOLIO_STUDY_MANIFEST_SCHEMA_VERSION,
     PortfolioStudyManifest,
@@ -33,6 +39,7 @@ from dashboard_app.publication.validation import (
 )
 
 __all__ = [
+    "GENERATOR_VERSION",
     "PORTFOLIO_STUDY_MANIFEST_SCHEMA_VERSION",
     "PUBLIC_PROJECTION_SCHEMA_VERSION",
     "InvalidProjectionSchemaError",
@@ -41,8 +48,11 @@ __all__ = [
     "PublicProjectionBundle",
     "PublicationError",
     "PublicationUnavailable",
+    "RawArtifactInput",
     "StudyEvidence",
     "StudyMaturity",
+    "UnknownArtifactRoleError",
+    "build_projection_bundle",
     "load_projection_bundle",
     "resolve_study_evidence",
 ]
