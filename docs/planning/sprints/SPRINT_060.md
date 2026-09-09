@@ -1,10 +1,6 @@
 # Sprint 060: Signal Quality Portfolio Evidence (Phase 16, increment 16D)
 
-Status: OPEN — the maintainer approved Decisions D060-01 and D060-03 at
-sprint opening (2026-09-09); D060-02 was already inherited from the
-accepted Sprint 059 / DASHBOARD_DEVELOPMENT_DIRECTION.md direction. T001 is
-Done (field inventory frozen, one STOP-and-report finding resolved); T002
-is Ready.
+Status: Draft — not opened; depends on completed Sprint 059
 Goal: Deliver the first complete portfolio story from Signal/Predictive
 Research context through living methodology and the BTC Signal Quality study
 to simplified persisted evidence and the existing technical view.
@@ -12,35 +8,20 @@ Sources:
 
 - `docs/planning/DASHBOARD_DEVELOPMENT_DIRECTION.md` — authoritative product
   direction for 16D.
-- `docs/product/PRD-portfolio-dashboard-mvp.md` — feature requirements;
-  ACCEPTED (maintainer, 2026-09-09).
+- `docs/product/PRD-portfolio-dashboard-mvp.md` — feature requirements; DRAFT
+  until approved.
 - `docs/planning/sprints/SPRINT_059.md` — publication, content and routing
-  contracts (Done; merged to `main` via #490).
-- `docs/adr/ADR-0034-portfolio-publication-boundary.md` — the accepted
-  publication boundary this sprint consumes without amending.
+  contracts.
 - `docs/reference/BTC_SIGNAL_QUALITY_STUDY.md` — as-built result and artifact
   inventory source.
 - `docs/reference/PREDICTIVE_VERDICT.md` and ADR-0032 — verdict semantics and
   display restrictions.
 - ADR-0033 — score delivery boundary; consumed, not changed.
-- `docs/planning/sprints/SPRINT_060_T001_FIELD_INVENTORY.md` — T001's frozen
-  artifact-to-public-field inventory and the STOP-and-report resolution
-  below.
 
 Architecture triage: inherits the accepted Sprint 059 publication boundary.
 Any need to change a persisted research schema, verdict semantics or
 cross-workflow lineage is a STOP-and-report finding, not an implementation
 detail.
-
-**T001 STOP-and-report, resolved (maintainer, 2026-09-09):** the "rejected
-winners and losers" fact (D060-01 chart 3; the acceptance criterion "two
-rejected occurrences (one winner, one loser)") and the Strategy Research
-score-gate threshold are not persisted in any JSON/parquet artifact — only
-as prose in `docs/reference/BTC_SIGNAL_QUALITY_STUDY.md` §6. These facts
-are sourced as reviewed narrative content through `dashboard_app.content`
-(T002), never computed by the dashboard or added as a new research-layer
-artifact this sprint. See `SPRINT_060_T001_FIELD_INVENTORY.md` for the full
-resolution and the three new `publication/` sanitizer roles T003 adds.
 
 ## Scope
 
@@ -73,16 +54,16 @@ Out of scope:
 
 | Decision | Recommendation and rationale | Status |
 |---|---|---|
-| D060-01 — chart set | Use: (1) model versus random-permutation ROC AUC across persisted folds, (2) threshold sensitivity emphasizing coverage collapse, and (3) baseline-versus-scored trade disposition including rejected winners and losers. PnL may appear as a neutral supporting fact, not the hero chart. This set explains stability, threshold risk and downstream usefulness without inventing analysis. | Accepted (maintainer, 2026-09-09) |
+| D060-01 — chart set | Use: (1) model versus random-permutation ROC AUC across persisted folds, (2) threshold sensitivity emphasizing coverage collapse, and (3) baseline-versus-scored trade disposition including rejected winners and losers. PnL may appear as a neutral supporting fact, not the hero chart. This set explains stability, threshold risk and downstream usefulness without inventing analysis. | Proposed for maintainer approval before opening |
 | D060-02 — workflow narrative | Present Signal Research, Predictive Research and Strategy Research as separate processes connected only by explicit persisted inputs/outputs in this study. Do not show a synthetic end-to-end artifact lineage. | Inherited from accepted direction |
-| D060-03 — result language | Use the persisted verdict verbatim and neutral explanatory definitions. The study page may state that the score did not meaningfully filter this strategy because that finding is already persisted in the canonical study evidence; it must not generate a new conclusion from chart values. | Accepted (maintainer, 2026-09-09) |
+| D060-03 — result language | Use the persisted verdict verbatim and neutral explanatory definitions. The study page may state that the score did not meaningfully filter this strategy because that finding is already persisted in the canonical study evidence; it must not generate a new conclusion from chart values. | Proposed for maintainer approval before opening |
 
 ## Tasks
 
 | Task | Outcome | Dependencies | Ownership | Risk | Status | PR |
 |---|---|---|---|---|---|---|
-| T001 | Freeze the exact Phase 16C artifact-to-public-field inventory for the four study questions and three recommended charts; report any missing fact instead of deriving it | Sprint 059; real 16C artifacts available | dashboard publication contract + documentation | high | Done | pending |
-| T002 | Author and review the Signal/Predictive workflow context and living Signal Quality methodology content, with links to canonical references and no run-specific interpretation | T001; Sprint 059 content contract | `apps/dashboard` content + methodology review | standard | Ready | — |
+| T001 | Freeze the exact Phase 16C artifact-to-public-field inventory for the four study questions and three recommended charts; report any missing fact instead of deriving it | Sprint 059; real 16C artifacts available | dashboard publication contract + documentation | high | Gated | — |
+| T002 | Author and review the Signal/Predictive workflow context and living Signal Quality methodology content, with links to canonical references and no run-specific interpretation | T001; Sprint 059 content contract | `apps/dashboard` content + methodology review | standard | Gated | — |
 | T003 | Implement the simplified study view and its three persisted-fact charts with neutral metric definitions, explicit assumptions, warnings and unavailable-state behavior | T001, T002 | `apps/dashboard` study view/charts | high | Gated | — |
 | T004 | Connect stable overview, workflow, methodology and study routes; add one-action `Explore Evidence` navigation to the existing Predictive and Strategy Research details without duplicating them | T003 | `apps/dashboard` navigation/evidence integration | standard | Gated | — |
 | T005 | Add contract and regression tests for traceability, negative/`INCONCLUSIVE` evidence, absent optional artifacts, no dashboard-side verdict/metric logic and unchanged technical/live-paper surfaces | T003, T004 | dashboard tests | high | Gated | — |
