@@ -97,6 +97,8 @@ Separate app package (not under `trading_framework`):
 ```text
 apps/dashboard/src/dashboard_app/
     catalog/ query/ views/ charts/ caching/ datasources/
+    publication/                     # Public projection + PortfolioStudyManifest (ADR-0034, Sprint 059)
+    content/                         # Version-controlled content loader + slug routing (ADR-0034, Sprint 059)
     catalog/predictive_quality.py   # Predictive Research quality flags (Sprint 044)
     views/predictive.py             # Predictive Research picker/leaderboard/detail view models
     pages/6_Predictive_Research.py  # Predictive Research page
