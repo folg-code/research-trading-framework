@@ -81,8 +81,8 @@ Out of scope:
 
 | Task | Outcome | Dependencies | Ownership | Risk | Status | PR |
 |---|---|---|---|---|---|---|
-| T001 | Freeze the exact Phase 16C artifact-to-public-field inventory for the four study questions and three recommended charts; report any missing fact instead of deriving it | Sprint 059; real 16C artifacts available | dashboard publication contract + documentation | high | Done | pending |
-| T002 | Author and review the Signal/Predictive workflow context and living Signal Quality methodology content, with links to canonical references and no run-specific interpretation | T001; Sprint 059 content contract | `apps/dashboard` content + methodology review | standard | Ready | — |
+| T001 | Freeze the exact Phase 16C artifact-to-public-field inventory for the four study questions and three recommended charts; report any missing fact instead of deriving it | Sprint 059; real 16C artifacts available | dashboard publication contract + documentation | high | Done | [#491](https://github.com/folg-code/research-trading-framework/pull/491) |
+| T002 | Author and review the Signal/Predictive workflow context and living Signal Quality methodology content, with links to canonical references and no run-specific interpretation | T001; Sprint 059 content contract | `apps/dashboard` content + methodology review | standard | In review | pending |
 | T003 | Implement the simplified study view and its three persisted-fact charts with neutral metric definitions, explicit assumptions, warnings and unavailable-state behavior | T001, T002 | `apps/dashboard` study view/charts | high | Gated | — |
 | T004 | Connect stable overview, workflow, methodology and study routes; add one-action `Explore Evidence` navigation to the existing Predictive and Strategy Research details without duplicating them | T003 | `apps/dashboard` navigation/evidence integration | standard | Gated | — |
 | T005 | Add contract and regression tests for traceability, negative/`INCONCLUSIVE` evidence, absent optional artifacts, no dashboard-side verdict/metric logic and unchanged technical/live-paper surfaces | T003, T004 | dashboard tests | high | Gated | — |
