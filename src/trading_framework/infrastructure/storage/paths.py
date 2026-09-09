@@ -171,6 +171,11 @@ def predictive_research_run_window_accounting_path(root: Path, run_id: str) -> P
     return predictive_research_run_dir(root, run_id) / "window_accounting.json"
 
 
+def predictive_research_run_threshold_sensitivity_path(root: Path, run_id: str) -> Path:
+    """Return the score-threshold sensitivity sidecar path for one run (Sprint 058 T002)."""
+    return predictive_research_run_dir(root, run_id) / "threshold_sensitivity.json"
+
+
 def promoted_artifacts_root(workspace: Path) -> Path:
     """Return the promoted-artifact store root (ADR-0029 §2, D-S049-03).
 
