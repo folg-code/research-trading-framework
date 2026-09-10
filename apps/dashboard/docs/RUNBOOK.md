@@ -1,7 +1,8 @@
 # Dashboard deploy runbook
 
-Read-only Streamlit dashboard over a mounted research workspace, plus optional
-Live Paper status from the dry-run status API.
+Read-only Streamlit dashboard over a sanitized public projection, plus optional
+Live Paper status from the dry-run status API. The private research workspace is
+mounted only into a short-lived generation container and never into Streamlit.
 
 **Primary UI:** `apps/dashboard` (Streamlit).  
 **Legacy:** HTML demo artifacts under `artifacts/demo/` and
@@ -9,17 +10,22 @@ Live Paper status from the dry-run status API.
 
 ## Local Compose
 
-From `apps/dashboard`:
+From the repository root, generate and select an immutable release, then start
+the dashboard:
 
 ```powershell
-$env:DASHBOARD_STORAGE_HOST_PATH = (Resolve-Path ..\..\user_data).Path
+$env:DASHBOARD_STORAGE_HOST_PATH = (Resolve-Path user_data\workspace).Path
+$env:DASHBOARD_PUBLICATION_HOST_ROOT = (Resolve-Path artifacts).Path + "\dashboard-publication"
+$env:DASHBOARD_PUBLICATION_RELEASE_ID = "local-001"
 $env:DASHBOARD_HTTP_PORT = "8080"
-docker compose -f deploy/docker-compose.yml up --build
+bash scripts/dashboard/deploy_public_dashboard.sh
 ```
 
 Open `http://localhost:8080`.
 
-Storage is mounted **read-only** at `/data` (`DASHBOARD_STORAGE_ROOT=/data`).
+Only the selected release directory (`projection.json` plus its validated
+study manifests) is mounted **read-only** at
+`/opt/dashboard/publication_data`.
 `DASHBOARD_STATUS_URL` is passed into the container for Live Paper (optional;
 when configured).
 
@@ -38,24 +44,28 @@ and a fresh `last_heartbeat_at` when the worker is running.
 
 ## VPS publish
 
-1. On the VPS, clone/pull this repo (or deploy only `apps/dashboard` + compose).
-2. Sync a workspace with `market_data/` and `research/` to a host path
-   (e.g. `/var/lib/trading-dashboard/user_data`).
-3. Export env and start Compose from `apps/dashboard`:
+1. On the VPS, clone/pull this repository.
+2. Sync the private workspace to a host path accessible to the deploy user.
+3. Create a separate publication root. Releases are append-only directories;
+   `CURRENT` is an atomically replaced release-id pointer.
+4. Export env and run the deployment helper from the repository root:
 
 ```bash
-export DASHBOARD_STORAGE_HOST_PATH=/var/lib/trading-dashboard/user_data
+export DASHBOARD_STORAGE_HOST_PATH=/var/lib/trading-research/workspace
+export DASHBOARD_PUBLICATION_HOST_ROOT=/var/lib/trading-dashboard/publication
+export DASHBOARD_PUBLICATION_RELEASE_ID="$(git rev-parse HEAD)-manual-1"
 export DASHBOARD_HTTP_PORT=8080
-docker compose -f deploy/docker-compose.yml up --build -d
+scripts/dashboard/deploy_public_dashboard.sh
 ```
 
-4. Prefer binding Compose Caddy to localhost/`DASHBOARD_HTTP_PORT` (default
+5. Prefer binding Compose Caddy to localhost/`DASHBOARD_HTTP_PORT` (default
    `8080`) and terminate TLS on a **shared VPS edge** (e.g. `/opt/edge`), not
    inside another application Compose stack.
-5. Do **not** mount writable research output into the dashboard container.
-6. After new research runs, refresh the browser; Overview cache keys use a storage
-   fingerprint and invalidate when top-level `research/` / `market_data/` mtimes change.
-7. Live Paper stale heartbeat: fix the **runtime worker**, not the dashboard.
+6. Do **not** mount the research workspace into the dashboard container. The
+   deploy helper gives it only to the one-shot generator as read-only input.
+7. A failed generation or schema validation leaves `CURRENT` unchanged. A
+   release id is never overwritten; retry with a new id.
+8. Live Paper stale heartbeat: fix the **runtime worker**, not the dashboard.
 
 ### Public hostname (ops)
 
@@ -69,13 +79,16 @@ Compose stack on `:8080`; it does not manage edge TLS.
 After the one-time VPS prep below, merges to `main` that touch
 `apps/dashboard/**` (or `.github/workflows/deploy-dashboard.yml`) run
 **Deploy dashboard** (`.github/workflows/deploy-dashboard.yml`). The job SSHs
-to the VPS, hard-resets the deploy checkout to `origin/main`, then rebuilds
-Compose (`deploy/docker-compose.yml`). Keep Caddy published on host `:8080`
+to the VPS, hard-resets the deploy checkout to `origin/main`, builds the image,
+generates and validates a uniquely versioned projection, atomically selects it,
+and then recreates Compose. Keep Caddy published on host `:8080`
 so the shared edge proxy (`172.17.0.1:8080`) can reach it; do not enable
 `docker-compose.vps.yml` (loopback-only) with that edge setup.
 
-`user_data` / storage sync is **not** part of this pipeline — mount and sync
-remain operator-managed.
+Private workspace sync is **not** part of this pipeline and remains
+operator-managed. The deployment reads the paths below from the VPS-local
+`apps/dashboard/.env`; those values are not GitHub secrets and are never copied
+into the public bundle.
 
 ### GitHub secrets
 
@@ -102,14 +115,16 @@ Prefer attaching them to the `dashboard-vps` Environment (the workflow uses it).
    without interactive sudo.
 5. Create a deploy-only SSH keypair; put the **public** key in that user's
    `authorized_keys`; store the **private** key only as `DASHBOARD_VPS_SSH_KEY`.
-6. Put Compose env next to the app (shell profile, systemd, or
-   `apps/dashboard/.env` that is **not** committed), e.g.
-   `DASHBOARD_STORAGE_HOST_PATH`, `DASHBOARD_STATUS_URL`, `DASHBOARD_HTTP_PORT`.
+6. Put deployment env in `apps/dashboard/.env` (never commit it):
+   `DASHBOARD_STORAGE_HOST_PATH`, `DASHBOARD_PUBLICATION_HOST_ROOT`, optional
+   `DASHBOARD_STATUS_URL`, and `DASHBOARD_HTTP_PORT`.
 7. Confirm a manual start works:
 
 ```bash
-cd "$DASHBOARD_VPS_REPO_PATH/apps/dashboard"
-docker compose -f deploy/docker-compose.yml up --build -d
+cd "$DASHBOARD_VPS_REPO_PATH"
+export DASHBOARD_PUBLICATION_RELEASE_ID="$(git rev-parse HEAD)-manual-1"
+set -a; . apps/dashboard/.env; set +a
+scripts/dashboard/deploy_public_dashboard.sh
 ```
 
 ### Force redeploy

@@ -38,7 +38,8 @@ Active Sprint: SPRINT_061 — Portfolio Story, Content and Direction
   Completion. Decisions D061-01 through D061-04 were accepted by the
   maintainer on 2026-09-10. T001 is Done (#503). T002–T004 are Done (#506)
   after the maintainer accepted the rendered content and architecture.
-  T005 is Done (#510, #511); T006 is in progress and T007–T008 remain.
+  T005 is Done (#510, #511); T006 is Done (#512–#515); T007 is in progress
+  and T008 remains.
 Last Completed Sprint: SPRINT_060 — Signal Quality Portfolio Evidence
   (Phase 16D), 6/6 tasks, merged to `main` via #498 (2026-09-10). It shipped
   the first real Signal Quality publication and persisted-evidence path over
@@ -194,7 +195,7 @@ These have their own canonical owners — this file does not duplicate them:
 | 058 | Signal Quality Scoring (Phase 16, increment 16C) | COMPLETED | 6 / 6 tasks; working PRs #472-#479; integrated to `main` via #480; real-data worked example produced a complete negative result — see `docs/planning/sprints/SPRINT_058.md` Closeout and `docs/reference/BTC_SIGNAL_QUALITY_STUDY.md` |
 | 059 | Portfolio Publication Foundation (Phase 16, increment 16D) | COMPLETED | 6 / 6 tasks; working PRs #484-#489; integrated to `main` via #490 — see `docs/planning/sprints/SPRINT_059.md` §Closeout |
 | 060 | Signal Quality Portfolio Evidence (Phase 16, increment 16D) | COMPLETED | 6/6 tasks; working PRs #491-#496; integrated to `main` via #498 — see `docs/planning/sprints/SPRINT_060.md` |
-| 061 | Portfolio Story, Content and Direction Completion (Phase 16, increment 16D) | IN PROGRESS | T001 Done (#503); T002–T004 Done (#506); T005 Done (#510, #511); T006 in progress; T007–T008 remain — see `docs/planning/sprints/SPRINT_061.md` |
+| 061 | Portfolio Story, Content and Direction Completion (Phase 16, increment 16D) | IN PROGRESS | T001 Done (#503); T002–T004 Done (#506); T005 Done (#510, #511); T006 Done (#512–#515); T007 in progress; T008 remains — see `docs/planning/sprints/SPRINT_061.md` |
 
 Sprint numbering has no gap at 050 — it is reserved for Phase 14B and not yet
 opened (see `docs/planning/sprints/SPRINT_053.md` metadata for the numbering
