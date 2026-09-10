@@ -46,3 +46,10 @@ apps/dashboard/
 See `docs/RUNBOOK.md` for Compose + read-only storage mount,
 `docs/ARCHITECTURE.md` for the public architecture one-pager, and
 `docs/reference/modules/DASHBOARD_APPLICATION.md` for architecture notes.
+
+## Quality gates
+
+From the repository root, `uv run mypy` covers framework code and tests plus
+`apps/dashboard/src`, every Streamlit page, and `scripts/dashboard`. The
+pre-push hook runs both the framework and dashboard pytest suites. CI repeats
+the dashboard Ruff and pytest checks in its dedicated dashboard job.

@@ -86,7 +86,7 @@ def candles_from_status_bars(recent_bars: object) -> list[CandlePoint]:
         high = _as_float(item.get("high"))
         low = _as_float(item.get("low"))
         close = _as_float(item.get("close"))
-        if observed is None or None in (open_, high, low, close):
+        if observed is None or open_ is None or high is None or low is None or close is None:
             continue
         time = to_unix_seconds(observed)
         if time in seen:

@@ -111,7 +111,13 @@ strict = true
 warn_unreachable = true
 show_error_codes = true
 pretty = true
-files = ["src", "tests"]
+files = [
+    "src",
+    "tests",
+    "apps/dashboard/src",
+    "apps/dashboard/pages",
+    "scripts/dashboard",
+]
 exclude = ["tests/spike/"]
 
 [[tool.mypy.overrides]]
@@ -143,6 +149,16 @@ ignore_missing_imports = true
 [[tool.mypy.overrides]]
 module = ["torch", "torch.*"]
 ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["plotly", "plotly.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["dashboard_app.caching.streamlit"]
+# Streamlit's cache decorator is intentionally untyped. The decorated
+# functions keep explicit input/output annotations and are covered by tests.
+disable_error_code = ["no-any-return", "untyped-decorator"]
 
 [[tool.mypy.overrides]]
 module = ["trading_framework.research.simulation.kernels.fixed_bars"]
