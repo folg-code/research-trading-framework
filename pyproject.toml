@@ -71,6 +71,7 @@ addopts = [
 markers = [
     "tier2_databento: opt-in integration tests requiring a local Databento DBN archive",
     "binance_network: opt-in integration tests requiring public Binance network access",
+    "docker: opt-in integration tests requiring a local Docker daemon",
     "ml: tests that require the optional ml extra (scikit-learn)",
     "ml_trees: tests that require the optional ml-trees extra (XGBoost / LightGBM / CatBoost)",
     "torch: tests that require the optional dl extra (CPU PyTorch)",
