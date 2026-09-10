@@ -39,10 +39,11 @@ record.
 Both packages fail closed: every load/validate function returns an explicit
 `...Unavailable` result (`PublicationUnavailable`, `ContentUnavailable`)
 rather than raising into a page render or falling back to a raw workspace
-scan. The existing catalog scanner and its `storage_path`-carrying contracts
+scan. The existing scanner and its `storage_path`-carrying contracts
 (`RunSummary`, `PredictiveDatasetSummary`, `PredictiveRunSummary`) are
-grandfathered for the existing technical pages (`pages/1-6_*.py`) until the
-Sprint 061 T006 migration.
+grandfathered only for the technical evidence pages (`pages/2-6_*.py`) until
+their Sprint 061 T006 migration. `pages/1_Research_Catalog.py` reads no
+workspace configuration.
 
 ADR-0035 extends the same `dashboard.public.v1` bundle additively. Every
 safely identifiable Market, Signal, Strategy, Robustness and Predictive run
@@ -53,6 +54,22 @@ so the UI can show `NO VERDICT` without inference. The build-time
 `scripts/dashboard/generate_public_projection.py` command can append these
 entries to the committed study fixture and writes atomically to an explicit
 output path. Production versioning and deployment selection remain T007.
+
+## Projection-backed Research Catalog (Sprint 061 T006)
+
+`pages/1_Research_Catalog.py` loads the immutable projection and
+version-controlled study manifests through `publication.catalog_index`. It
+does not require `DASHBOARD_STORAGE_ROOT`, import the scanner or display a
+filesystem path. The reader re-applies the catalog sanitizer and rejects a
+bundle entry containing any non-allowlisted field.
+
+The hierarchy follows ADR-0035 exactly. A manifest explicitly claims catalog
+artifact ids first. Every remaining run is grouped by workflow and DatasetRef,
+then by persisted `experiment_id` (or `run_id` when absent). Automatic groups
+are labelled `no editorial study manifest`; a missing persisted verdict is
+shown as `NO VERDICT` and is never derived from metrics. The committed demo
+bundle contains seven path-free real-workspace entries; production generation
+and immutable release selection remain T007.
 
 ## Contracts
 
