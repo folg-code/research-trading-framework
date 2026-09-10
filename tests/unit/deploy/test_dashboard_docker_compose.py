@@ -98,6 +98,16 @@ def test_caddy_and_worker_do_not_share_a_network_with_status() -> None:
     assert worker_networks.isdisjoint(caddy_networks)
 
 
+def test_status_network_is_internal_blocking_its_own_outbound_egress() -> None:
+    # Stricter than ADR-0035's literal minimum (SS1.4 only requires caddy/worker isolation from
+    # `status`): a compromised dry-run-status container should not gain outbound internet access
+    # either. Regression-guards the deliberate `internal: true` hardening.
+    compose = _load_compose()
+    status_network = compose["networks"]["status"]
+    assert isinstance(status_network, dict)
+    assert status_network.get("internal") is True
+
+
 def test_worker_and_status_declare_bounded_restart_policy_and_resource_limits() -> None:
     compose = _load_compose()
     for name in ("dry-run-worker", "dry-run-status"):
