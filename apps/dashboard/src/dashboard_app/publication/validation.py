@@ -17,7 +17,10 @@ from pathlib import Path
 from typing import Any
 
 from dashboard_app.publication.errors import InvalidProjectionSchemaError
-from dashboard_app.publication.manifest import PortfolioStudyManifest
+from dashboard_app.publication.manifest import (
+    PORTFOLIO_STUDY_MANIFEST_SCHEMA_VERSION,
+    PortfolioStudyManifest,
+)
 from dashboard_app.publication.projection import ProjectedArtifact, PublicProjectionBundle
 
 
@@ -35,7 +38,7 @@ class PublicationUnavailable:
 
     ``reason`` is one of a small closed set of reason codes:
     ``"bundle_missing"``, ``"manifest_missing"``, ``"schema_mismatch"``,
-    ``"dangling_reference"``.
+    ``"dangling_reference"``, ``"catalog_invalid"``.
     """
 
     reason: str
@@ -98,6 +101,14 @@ def load_study_manifest(
     if payload is None:
         return PublicationUnavailable(
             reason="manifest_missing", detail="no study manifest payload was supplied"
+        )
+
+    if payload.get("schema_version") != PORTFOLIO_STUDY_MANIFEST_SCHEMA_VERSION:
+        return PublicationUnavailable(
+            reason="schema_mismatch",
+            detail=(
+                f"unsupported study manifest schema_version: {payload.get('schema_version')!r}"
+            ),
         )
 
     try:
