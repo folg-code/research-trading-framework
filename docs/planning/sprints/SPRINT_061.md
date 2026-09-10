@@ -1,6 +1,7 @@
 # Sprint 061: Portfolio Story, Content and Direction Completion
 
-Status: Draft — requires maintainer approval before implementation
+Status: OPEN — maintainer approved Sprint 061 and Decisions D061-01 through
+D061-04 at sprint opening (2026-09-10). T001 is in review.
 Goal: Make the public dashboard explain the project and its infrastructure
 accurately and convincingly, then complete the remaining Portfolio Dashboard
 direction with two explicit Future Ideas, a safe study-grouped catalog,
@@ -77,10 +78,10 @@ Out of scope:
 
 | Decision | Recommendation | Status |
 |---|---|---|
-| D061-01 — visibility | Automatically include every artifact that passes an allowlisted public role and safe identity check. Keep manual curation only for Home features and editorial notes; curation must not hide eligible negative, incomplete or `NO VERDICT` catalog entries. | Pending maintainer approval; blocks T005 |
-| D061-02 — catalog grouping | Use explicit study manifests when present. Group other eligible runs under a deterministic workflow/dataset/experiment identity and label the absence of an editorial study manifest rather than dropping the run. | Pending maintainer approval; blocks T005–T006 |
-| D061-03 — production bundle | Keep committed fixtures for tests/demo. In production, generate a versioned immutable projection into a VPS host directory as an explicit pre-deploy step and mount it read-only into the dashboard container. A failed generation must leave the previous bundle active or make the new release fail closed. | Pending maintainer approval; blocks T007 |
-| D061-04 — representative views | Exactly one representative persisted-evidence view per workflow in this sprint; deeper or alternative study views remain iterative. | Pending maintainer approval; blocks T006 |
+| D061-01 — visibility | Automatically include every artifact that passes an allowlisted public role and safe identity check. Keep manual curation only for Home features and editorial notes; curation must not hide eligible negative, incomplete or `NO VERDICT` catalog entries. | Accepted (maintainer, 2026-09-10); blocks removed |
+| D061-02 — catalog grouping | Use explicit study manifests when present. Group other eligible runs under a deterministic workflow/dataset/experiment identity and label the absence of an editorial study manifest rather than dropping the run. | Accepted (maintainer, 2026-09-10); blocks removed |
+| D061-03 — production bundle | Keep committed fixtures for tests/demo. In production, generate a versioned immutable projection into a VPS host directory as an explicit pre-deploy step and mount it read-only into the dashboard container. A failed generation must leave the previous bundle active or make the new release fail closed. | Accepted (maintainer, 2026-09-10); blocks removed |
+| D061-04 — representative views | Exactly one representative persisted-evidence view per workflow in this sprint; deeper or alternative study views remain iterative. | Accepted (maintainer, 2026-09-10); blocks removed |
 | D061-05 — content priority | Public content and infrastructure explanation are the first reviewable outcome and a sprint acceptance gate, not polish deferred behind catalog work. | Accepted by maintainer request; binding |
 | D061-06 — Future Ideas | Home shows exactly two new `FUTURE IDEAS` cards: `AI Research Infrastructure`, based on the maintainer-provided note, and `Research Application`, based on the draft product vision. Each links to a stable detail page and explicitly says that it is not as-built capability or implementation approval. | Accepted by maintainer request; binding |
 
@@ -126,7 +127,7 @@ runtime decision requires separate discovery/architecture approval.
 
 | Task | Outcome | Dependencies | Ownership | Risk | Status | PR |
 |---|---|---|---|---|---|---|
-| T001 | Build a public-content evidence matrix mapping every project/infrastructure claim to as-built code, ADR, workflow reference, runbook or persisted evidence; mark stale, conflicting and future-only claims before authoring | approved sprint | product content + architecture/reference docs | high | Ready | — |
+| T001 | Build a public-content evidence matrix mapping every project/infrastructure claim to as-built code, ADR, workflow reference, runbook or persisted evidence; mark stale, conflicting and future-only claims before authoring | approved sprint | product content + architecture/reference docs | high | In review | pending |
 | T002 | Author and review the core portfolio story: product purpose, shared-domain architecture, six independent workflows, deterministic research lifecycle, persisted evidence/provenance, application boundaries, CI/quality and deployment/runtime infrastructure | T001 | `apps/dashboard/content`, architecture and workflow pages | high | Ready after T001 | — |
 | T003 | Create the two `FUTURE IDEAS` cards and stable detail pages. Distill the attached AI-infrastructure note and the draft Research Application vision into accessible public copy, with current-state boundary, target idea, staged evolution and explicit non-as-built status | T001; parallel with T002 | dashboard content + Future Direction view | standard | Ready after T001 | — |
 | T004 | Rework Home and navigation around the reviewed content; add stable Architecture, Engineering, Future Direction and Research & Engineering Notes pages, 2–3 real featured studies and the two Future Ideas cards | T002–T003 | dashboard content/views/routes | high | Ready after T003 | — |
