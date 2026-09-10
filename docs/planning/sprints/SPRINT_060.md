@@ -133,9 +133,13 @@ Out of scope:
 - Integrated checks: `apps/dashboard` full suite (189 tests, includes
   `test_navigation_acceptance.py` and `test_study_contract.py`) and
   `tests/unit/test_apps_boundaries.py` (6 tests) pass together on the
-  integrated sprint branch; `ruff check`, `ruff format --check` and a
-  project-wide (not single-file-scoped, per PRB-023) `mypy` are clean for
-  every file this sprint touched.
+  integrated sprint branch; `ruff check` and `ruff format --check` are
+  clean for every file this sprint touched. A project-wide (not
+  single-file-scoped, per PRB-023) `mypy` reports no new errors from this
+  sprint's diff; it still reports 3 pre-existing `import-untyped` errors
+  for `plotly`/`plotly.subplots` in `charts/builders.py` (present since
+  Sprint 044, unrelated to this sprint) that this sprint did not
+  introduce and does not fix.
 - Documentation reconciliation: `docs/reference/modules/DASHBOARD_APPLICATION.md`
   gained a "BTC Signal Quality study and evidence path (Sprint 060)"
   section documenting the three additive sanitizer roles, the committed
@@ -156,15 +160,19 @@ Out of scope:
   Predictive Research page, and the existing technical pages (spot-checked
   via Strategy Research) behaving exactly as before — and accepted it
   ("jest ok").
-- Remaining work, explicitly outside this PRD (ADR-0034 Follow-up):
-  migrating the remaining technical pages (`pages/1-6_*.py`) onto the
-  projection and removing `storage_path` from their rendered output;
-  reconciling the automatic-inclusion catalog model in
+- Remaining work explicitly outside this PRD, per ADR-0034's own
+  `## Follow-up` section: migrating the remaining technical pages
+  (`pages/1-6_*.py`) onto the projection and removing `storage_path` from
+  their rendered output ("Catalog migration"); reconciling the
+  automatic-inclusion catalog model in
   `DASHBOARD_DEVELOPMENT_DIRECTION.md` §8 with the curated/immutable
-  publication model in `RESEARCH_APPLICATION_PRODUCT_VISION.md`; deciding
-  and documenting where projection generation runs at deploy time (local
-  pre-step vs. CI) before the first public deployment of this path; a
-  second study or a generalized multi-study catalog (this sprint ships
-  exactly one, hand-authored manifest). **PRB-023** (root `mypy`/`pytest`
+  publication model in `RESEARCH_APPLICATION_PRODUCT_VISION.md`
+  ("Visibility model reconciliation"); deciding and documenting where
+  projection generation runs at deploy time, local pre-step vs. CI,
+  before the first public deployment of this path ("Deploy wiring").
+  Separately, and not an ADR-0034 Follow-up item — a sprint-scope note
+  only: this sprint ships exactly one study behind one hand-authored
+  manifest; a second study or a generalized multi-study catalog is future
+  work this sprint did not attempt. **PRB-023** (root `mypy`/`pytest`
   never checking `apps/dashboard/` or `scripts/`) remains logged as OPEN
   in `docs/planning/PROBLEM_REGISTRY.md`, unchanged by this sprint.
