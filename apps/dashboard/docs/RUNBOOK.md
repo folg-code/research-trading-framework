@@ -25,8 +25,13 @@ when configured).
 
 ## Live Paper status URL
 
-Configure with env or the Streamlit sidebar once the runtime status endpoint is
-available. The dashboard **never** writes to execution storage or starts the worker.
+`deploy/docker-compose.yml` now runs the dry-run worker and status service as
+Compose services (`dry-run-worker`, `dry-run-status`) on internal-only
+networks, and defaults `DASHBOARD_STATUS_URL` to
+`http://dry-run-status:8090/status` — the internal Compose DNS name, never a
+public URL. Override only if pointing at a different (e.g. AWS Lambda) status
+endpoint. The dashboard **never** writes to execution storage or starts the
+worker.
 
 Operator check: `GET` the URL in a browser — expect JSON with `"simulated": true`
 and a fresh `last_heartbeat_at` when the worker is running.
@@ -35,6 +40,42 @@ and a fresh `last_heartbeat_at` when the worker is running.
 
 - Streamlit: `GET /_stcore/health` on port 8501
 - Compose `healthcheck` waits for that endpoint before starting Caddy
+- `dry-run-worker`: no HTTP endpoint; liveness is heartbeat freshness of its
+  own persisted execution state, checked in-container
+  (`scripts/execution/vps_worker_healthcheck.py`)
+- `dry-run-status`: `GET /healthz` on the internal `status` network only
+  (never published) — reports process liveness and state-volume readability,
+  not whether the worker is running
+
+### Dry-run worker: exhausted restart retries
+
+`dry-run-worker` and `dry-run-status` restart with a **bounded** policy
+(`on-failure` with a capped attempt count, ADR-0035 section 4.6) rather than
+an unbounded `unless-stopped` loop, so a deterministic configuration problem
+becomes visible instead of hiding behind an invisible crash loop.
+
+If `docker compose ps` shows `dry-run-worker` **Exited** (not restarting) or
+repeatedly cycling `Restarting`/`Exited` with no `Up (healthy)` state:
+
+1. Check the exit reason first: `docker compose logs dry-run-worker --tail 50`.
+   - Exit code `2` — refuse-to-start: persisted state is incompatible with the
+     current configuration (ADR-0035 section 4.4). Fix the configuration to
+     match the persisted state, or deliberately reset by removing/renaming the
+     runtime's directory in the `dry_run_execution_state` volume (an explicit
+     operator action — never automatic).
+   - Exit code `1` — a configuration error or unrecoverable runtime failure;
+     the log line names the problem without any container path or secret.
+2. Fix the underlying cause (env var, network reachability to Binance, or the
+   state reset above), then restart explicitly:
+   `docker compose up -d dry-run-worker`.
+3. The public status card reflects this too: once retries are exhausted the
+   worker stops writing heartbeats, so the card shows a stale/offline state
+   rather than a silently frozen "current" snapshot — the dashboard itself
+   stays up throughout (it does not depend on the worker or status service
+   being healthy).
+
+This is a short operational note; the full provider-neutral deploy/rollback
+runbook is written in a later sprint task.
 
 ## VPS publish
 
