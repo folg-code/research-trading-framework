@@ -11,7 +11,12 @@ from streamlit.testing.v1 import AppTest
 from dashboard_app.content.loader import ContentUnavailable, load_content_document
 from dashboard_app.content.paths import content_document_path
 from dashboard_app.publication.manifest import StudyMaturity
-from dashboard_app.views.overview import FEATURED_STUDIES, FUTURE_IDEAS, RECENT_NOTES
+from dashboard_app.views.overview import (
+    FEATURED_STUDIES,
+    FUTURE_IDEAS,
+    RECENT_NOTES,
+    WORKFLOW_ENTRIES,
+)
 
 _DASHBOARD_ROOT = Path(__file__).resolve().parents[1]
 _REPO_ROOT = _DASHBOARD_ROOT.parents[1]
@@ -24,6 +29,12 @@ _CONTENT_STATUS = {
     "future-ai-research-infrastructure": StudyMaturity.FUTURE_IDEAS,
     "future-research-application": StudyMaturity.FUTURE_IDEAS,
     "research-engineering-notes": StudyMaturity.AS_BUILT,
+    "workflow-market-data": StudyMaturity.AS_BUILT,
+    "workflow-signal-research": StudyMaturity.AS_BUILT,
+    "workflow-strategy-research": StudyMaturity.AS_BUILT,
+    "workflow-robustness-research": StudyMaturity.AS_BUILT,
+    "workflow-predictive-research": StudyMaturity.AS_BUILT,
+    "workflow-strategy-execution": StudyMaturity.IN_DEVELOPMENT,
 }
 
 
@@ -119,6 +130,23 @@ def test_home_links_every_stable_sprint061_page() -> None:
         assert expected in targets
 
 
+def test_workflow_cards_lead_to_publications_before_technical_evidence() -> None:
+    expected_pages = {
+        "Market Data": "pages/16_Market_Data_Workflow.py",
+        "Signal Research": "pages/17_Signal_Research_Workflow.py",
+        "Strategy Research": "pages/18_Strategy_Research_Workflow.py",
+        "Robustness Research": "pages/19_Robustness_Research_Workflow.py",
+        "Predictive Research": "pages/20_Predictive_Research_Workflow.py",
+        "Strategy Execution": "pages/21_Strategy_Execution_Workflow.py",
+    }
+    assert {entry.title: entry.page_path for entry in WORKFLOW_ENTRIES} == expected_pages
+
+    app = _run_overview()
+    targets = {element.proto.page for element in app.get("page_link")}
+    for page_path in expected_pages.values():
+        assert Path(page_path).stem.split("_", maxsplit=1)[1] in targets
+
+
 def test_supporting_pages_render_with_stable_titles() -> None:
     pages = {
         "pages/10_Architecture.py": "Architecture",
@@ -127,8 +155,31 @@ def test_supporting_pages_render_with_stable_titles() -> None:
         "pages/13_AI_Research_Infrastructure.py": "AI Research Infrastructure",
         "pages/14_Research_Application.py": "Research Application",
         "pages/15_Research_and_Engineering_Notes.py": "Research & Engineering Notes",
+        "pages/16_Market_Data_Workflow.py": "Market Data Workflow",
+        "pages/17_Signal_Research_Workflow.py": "Signal Research Workflow",
+        "pages/18_Strategy_Research_Workflow.py": "Strategy Research Workflow",
+        "pages/19_Robustness_Research_Workflow.py": "Robustness Research Workflow",
+        "pages/20_Predictive_Research_Workflow.py": "Predictive Research Workflow",
+        "pages/21_Strategy_Execution_Workflow.py": "Strategy Execution Workflow",
     }
     for page_path, expected_title in pages.items():
         app = _switch_to(page_path)
         assert not app.exception
         assert app.title[0].value == expected_title
+
+
+def test_workflow_publications_offer_evidence_only_after_methodology() -> None:
+    evidence_targets = {
+        "pages/16_Market_Data_Workflow.py": "Market_and_Signal_Research",
+        "pages/17_Signal_Research_Workflow.py": "Market_and_Signal_Research",
+        "pages/18_Strategy_Research_Workflow.py": "Strategy_Research",
+        "pages/19_Robustness_Research_Workflow.py": "Robustness_Analysis",
+        "pages/20_Predictive_Research_Workflow.py": "Predictive_Research",
+        "pages/21_Strategy_Execution_Workflow.py": "Live_Paper_Trading",
+    }
+    for publication_page, technical_target in evidence_targets.items():
+        app = _switch_to(publication_page)
+        assert not app.exception
+        assert "Explore Evidence" in [element.value for element in app.subheader]
+        targets = {element.proto.page for element in app.get("page_link")}
+        assert technical_target in targets

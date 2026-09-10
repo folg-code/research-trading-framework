@@ -22,26 +22,71 @@ from dashboard_app.publication.manifest import StudyMaturity
 
 ARCHITECTURE_ONE_PAGER_URL = "https://github.com/folg-code/research-trading-framework/blob/main/apps/dashboard/docs/ARCHITECTURE.md"
 
-#: Hub-and-spoke, not a chain: every workflow node connects only to the
-#: shared node, never to another workflow node. This is what makes "does
-#: not depict one mandatory pipeline" (SPRINT_059.md acceptance criteria)
-#: mechanically true rather than merely asserted in prose.
+#: Market Data ends at a published DatasetRef. Research and execution are
+#: independent consumers of shared contracts; each workflow owns its outputs.
+#: Strategy composition is explicit rather than hidden in a monolithic class.
 SHARED_DOMAIN_MERMAID = """
-flowchart TB
-  shared[Shared: Market Analysis, Time Model, Data Contracts]
-  marketData[Market Data]
-  signal[Signal Research]
-  strategy[Strategy Research]
-  robustness[Robustness Research]
-  predictive[Predictive Research]
-  execution[Strategy Execution]
+flowchart LR
+  subgraph providers[Provider boundary]
+    sources[OHLCV sources: APIs, archives, files]
+    adapters[Provider adapters]
+  end
 
-  shared --> marketData
-  shared --> signal
-  shared --> strategy
-  shared --> robustness
-  shared --> predictive
-  shared --> execution
+  subgraph marketData[Market Data workflow]
+    preparation[Normalize, validate, version]
+    dataset[Published DatasetRef]
+  end
+
+  sources --> adapters --> preparation --> dataset
+
+  subgraph shared[Shared domain contracts]
+    analysis[Market Analysis: Features, Structures, States]
+    market[Market Model]
+    signalModel[Signal Model]
+    exit[Exit Model]
+    risk[Risk Model]
+    strategyModel[Strategy Model: Market x Signal x Exit x Risk]
+    analysis --> market
+    analysis --> signalModel
+    market --> strategyModel
+    signalModel --> strategyModel
+    exit --> strategyModel
+    risk --> strategyModel
+  end
+
+  dataset --> analysis
+
+  subgraph workflows[Independent workflow consumers]
+    signalResearch[Signal Research]
+    strategyResearch[Strategy Research]
+    robustness[Robustness Research]
+    predictive[Predictive Research]
+    execution[Strategy Execution: DRY_RUN today]
+  end
+
+  dataset --> signalResearch
+  market --> signalResearch
+  signalModel --> signalResearch
+  dataset --> predictive
+  analysis --> predictive
+  dataset --> strategyResearch
+  strategyModel --> strategyResearch
+  strategyModel --> robustness
+  strategyModel --> execution
+
+  subgraph evidence[Workflow-owned persisted evidence]
+    signalEvidence[Signal Research Dataset]
+    predictiveEvidence[Predictive Dataset, Run, Verdict]
+    strategyEvidence[Strategy Research Dataset]
+    robustnessEvidence[Robustness artifacts]
+    executionState[Operational state]
+  end
+
+  signalResearch --> signalEvidence
+  predictive --> predictiveEvidence
+  strategyResearch --> strategyEvidence
+  robustness --> robustnessEvidence
+  execution --> executionState
 """
 
 #: Wire values (StudyMaturity) -> the spaced display strings used
@@ -92,10 +137,9 @@ class PortfolioEntry:
 #: Predictive Research and Strategy Execution are separate workflows. Market
 #: Analysis is a shared domain capability rather than a seventh workflow" --
 #: Market Data is one of the six, NOT the shared capability; only Market
-#: Analysis is shared). Market Data has no dedicated page today, so its entry
-#: points at the same page as Signal Research; the card copy says so
-#: explicitly rather than leaving the sharing implicit in a repeated
-#: page_path. Strategy Execution is IN_DEVELOPMENT because
+#: Analysis is shared). Each entry leads to a methodology/architecture
+#: publication before offering a link to technical evidence. Strategy
+#: Execution is IN_DEVELOPMENT because
 #: `pages/5_Live_Paper_Trading.py` is a dry-run monitor only (ADR-0021:
 #: "Strategy Execution remains a future capability").
 WORKFLOW_ENTRIES: tuple[WorkflowEntry, ...] = (
@@ -103,46 +147,62 @@ WORKFLOW_ENTRIES: tuple[WorkflowEntry, ...] = (
         title="Market Data",
         workflow=WorkflowKind.MARKET,
         maturity=StudyMaturity.AS_BUILT,
-        page_path="pages/2_Market_and_Signal_Research.py",
+        page_path="pages/16_Market_Data_Workflow.py",
         description=(
-            "Provider ingestion, normalization and validation of market data used by "
-            "every workflow below. Shares its page with Signal Research today."
+            "Provider adapters turn OHLCV from APIs, archives or files into validated, "
+            "versioned DatasetRefs. This workflow prepares inputs; it does not produce "
+            "research results."
         ),
     ),
     WorkflowEntry(
         title="Signal Research",
         workflow=WorkflowKind.SIGNAL,
         maturity=StudyMaturity.AS_BUILT,
-        page_path="pages/2_Market_and_Signal_Research.py",
-        description="Occurrence analysis for market and signal models, and how events resolve.",
+        page_path="pages/17_Signal_Research_Workflow.py",
+        description=(
+            "Methodology for Market Models, Signal Models or their composition, with "
+            "persistent occurrence and forward-outcome evidence."
+        ),
     ),
     WorkflowEntry(
         title="Strategy Research",
         workflow=WorkflowKind.STRATEGY,
         maturity=StudyMaturity.AS_BUILT,
-        page_path="pages/3_Strategy_Research.py",
-        description="Backtest results, KPIs, equity curves, and trade visualization.",
+        page_path="pages/18_Strategy_Research_Workflow.py",
+        description=(
+            "Methodology for complete Market x Signal x Exit x Risk compositions under "
+            "explicit historical and execution assumptions."
+        ),
     ),
     WorkflowEntry(
         title="Robustness Research",
         workflow=WorkflowKind.ROBUSTNESS,
         maturity=StudyMaturity.AS_BUILT,
-        page_path="pages/4_Robustness_Analysis.py",
-        description="Walk-forward, parameter sweep, stress tests, and Monte Carlo.",
+        page_path="pages/19_Robustness_Research_Workflow.py",
+        description=(
+            "Methodology for challenging persisted strategy evidence with walk-forward, "
+            "parameter, stress and Monte Carlo tests."
+        ),
     ),
     WorkflowEntry(
         title="Predictive Research",
         workflow=WorkflowKind.PREDICTIVE,
         maturity=StudyMaturity.AS_BUILT,
-        page_path="pages/6_Predictive_Research.py",
-        description="ML research diagnostics over persisted predictive runs and verdicts.",
+        page_path="pages/20_Predictive_Research_Workflow.py",
+        description=(
+            "Leakage-aware methodology for testing whether analysis columns contain "
+            "out-of-sample predictive information."
+        ),
     ),
     WorkflowEntry(
         title="Strategy Execution",
         workflow=WorkflowKind.LIVE_PAPER,
         maturity=StudyMaturity.IN_DEVELOPMENT,
-        page_path="pages/5_Live_Paper_Trading.py",
-        description="Paper-runtime observability today; live execution is a future capability.",
+        page_path="pages/21_Strategy_Execution_Workflow.py",
+        description=(
+            "Architecture for applying the same Strategy Model definitions to runtime data. "
+            "Only simulated DRY_RUN execution is available today."
+        ),
     ),
 )
 
@@ -218,13 +278,14 @@ def render_product_thesis() -> None:
 
 
 def render_shared_domain_map() -> None:
-    """Render the hub-and-spoke shared-domain diagram."""
-    st.subheader("Shared domain, independent workflows")
+    """Render the provider-neutral data boundary and compositional architecture."""
+    st.subheader("Modular infrastructure, shared contracts")
     st.caption(
-        "Every workflow below reads the same shared market-data, market-analysis "
-        "and time-model contracts, but none of them requires another to have run "
-        "first. This is a simplified map — see the "
-        f"[architecture one-pager]({ARCHITECTURE_ONE_PAGER_URL}) for the full picture."
+        "Provider adapters converge on one published DatasetRef contract. Research "
+        "workflows reuse data and model identities without sharing mandatory workflow "
+        "state, while each workflow persists its own evidence. A Strategy Model is the "
+        "explicit composition Market x Signal x Exit x Risk. See the "
+        f"[architecture one-pager]({ARCHITECTURE_ONE_PAGER_URL}) for repository detail."
     )
     st.mermaid_chart(SHARED_DOMAIN_MERMAID)
     st.page_link("pages/10_Architecture.py", label="Explore Architecture")
@@ -259,7 +320,12 @@ def _render_portfolio_entries(entries: tuple[PortfolioEntry, ...]) -> None:
 def render_featured_studies() -> None:
     """Render two reviewed, real-evidence study entry points."""
     st.header("Featured studies")
-    st.caption("Persisted evidence, including results that did not support the hypothesis.")
+    st.caption(
+        "BTCUSDT.P was selected for these public examples because high-quality historical "
+        "OHLCV is accessible through a free public API. That is an evidence-availability "
+        "choice, not a framework boundary: another asset can use the same research "
+        "contracts once its provider data is normalized and published as a DatasetRef."
+    )
     _render_portfolio_entries(FEATURED_STUDIES)
 
 

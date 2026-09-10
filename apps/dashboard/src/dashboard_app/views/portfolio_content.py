@@ -37,6 +37,18 @@ def render_static_content_page(slug: str) -> None:
     st.markdown(document.body_markdown)
 
 
+def render_workflow_publication(slug: str, *, evidence_page: str, evidence_label: str) -> None:
+    """Render workflow methodology first, then offer its technical evidence view."""
+    render_static_content_page(slug)
+    st.divider()
+    st.subheader("Explore Evidence")
+    st.caption(
+        "The technical view below reads persisted artifacts. It is evidence for this "
+        "workflow, not a substitute for its methodology and architecture."
+    )
+    st.page_link(evidence_page, label=evidence_label)
+
+
 def render_future_direction_entries() -> None:
     """Link the Future Direction index to exactly its two approved ideas."""
     columns = st.columns(2)

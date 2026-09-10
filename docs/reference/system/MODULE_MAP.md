@@ -113,6 +113,12 @@ apps/dashboard/src/dashboard_app/
     pages/13_AI_Research_Infrastructure.py # AI Research Infrastructure Future Idea (Sprint 061 T003)
     pages/14_Research_Application.py       # Research Application Future Idea (Sprint 061 T003)
     pages/15_Research_and_Engineering_Notes.py # Selected evidence/decision notes (Sprint 061 T004)
+    pages/16_Market_Data_Workflow.py       # Market Data architecture/methodology before evidence (Sprint 061)
+    pages/17_Signal_Research_Workflow.py   # Signal Research publication before evidence (Sprint 061)
+    pages/18_Strategy_Research_Workflow.py # Strategy composition/methodology before evidence (Sprint 061)
+    pages/19_Robustness_Research_Workflow.py # Robustness publication before evidence (Sprint 061)
+    pages/20_Predictive_Research_Workflow.py # Predictive publication before evidence (Sprint 061)
+    pages/21_Strategy_Execution_Workflow.py # DRY_RUN architecture before status evidence (Sprint 061)
 
 scripts/dashboard/
     generate_btc_signal_quality_projection.py  # Build-time public-projection generator (Sprint 060 T003);

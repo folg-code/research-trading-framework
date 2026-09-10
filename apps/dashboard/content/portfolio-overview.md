@@ -21,9 +21,17 @@ This public dashboard is a **read-only** view of persisted research
 artifacts and live paper status. It does not run research engines and does
 not submit exchange orders.
 
-Six independent workflows below share the same underlying market data,
-market analysis and time-model contracts, but each can run on its own —
-this is not one mandatory pipeline. For the full architecture map, see the
+Six independent workflows below share published DatasetRefs, market-analysis
+outputs, time rules and declarative model definitions, but each owns its own
+computation and evidence. Market Data prepares and publishes inputs; it does
+not produce research results. A complete Strategy Model explicitly composes
+Market × Signal × Exit × Risk rather than hiding those responsibilities in one
+class. This is not one mandatory pipeline. For the full architecture map, see the
 [architecture one-pager](https://github.com/folg-code/research-trading-framework/blob/main/apps/dashboard/docs/ARCHITECTURE.md).
 Module contracts and setup instructions live in the
 [project README on GitHub](https://github.com/folg-code/research-trading-framework).
+
+The featured studies use BTCUSDT.P because a free public API provides
+accessible, high-quality historical OHLCV. BTC is an evidence choice, not an
+architectural limit: any asset can use the same research contracts after its
+data and instrument semantics are normalized and published as a DatasetRef.
