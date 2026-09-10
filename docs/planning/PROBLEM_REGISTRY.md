@@ -1303,6 +1303,85 @@ regression.
 
 ---
 
+## PRB-024 — `scripts/dashboard/` Is Not Covered by Any Import-Boundary Scan
+
+```text
+Status: OPEN
+Severity: LOW
+Domain: apps/dashboard / Architecture Boundaries
+Owner: Unassigned
+Discovered: 2026-09-10 (Sprint 060 close-out integration review)
+Last Updated: 2026-09-10
+```
+
+### Description
+
+`tests/unit/test_apps_boundaries.py`'s `_DASHBOARD_SCAN_ROOTS` covers
+`apps/dashboard/src` and `apps/dashboard/pages` only (PRB-022 widened it to
+include `pages/`, but never `scripts/`). `scripts/dashboard/generate_btc_signal_quality_projection.py`
+(Sprint 060 T003) — the build-time generator that is the *only* code ADR-0034
+§1.2 permits to read raw research artifacts on the public-portfolio path,
+and which that same section requires to be "library-free": no
+`trading_framework` research/execution/provider import, no ML library
+(`sklearn`, `xgboost`, `torch`) — sits entirely outside both scanned roots.
+The guarantee is real today (the script's imports are
+`argparse`/`json`/`sys`/`datetime`/`pathlib` plus `dashboard_app.publication.*`
+only, confirmed by direct reading) but is enforced only by manual review,
+not by any automated test — the same class of gap PRB-022 already fixed
+once for `pages/*.py`.
+
+### Evidence
+
+Found during the Sprint 060 sprint-close integration review (the first
+point at which the complete assembled diff, including `scripts/dashboard/`,
+was reviewed as a whole): `_DASHBOARD_SCAN_ROOTS` in
+`tests/unit/test_apps_boundaries.py` is a 2-tuple that does not name
+`scripts/dashboard`, confirmed by reading the constant directly.
+
+### Impact
+
+- A future change to the generator script (or a second `scripts/dashboard/*.py`
+  script added later) could introduce a `trading_framework` or ML-library
+  import — silently violating ADR-0034 §1.2's library-free requirement for
+  the one piece of code permitted to touch raw research artifacts on the
+  public path — with zero automated pushback.
+
+### Possible Directions
+
+- Add `apps/dashboard`'s existing forbidden-prefix scan (or a
+  purpose-built one, since `scripts/dashboard/` sits outside
+  `apps/dashboard/` proper) over `scripts/dashboard/`, mirroring how
+  PRB-022 widened `_DASHBOARD_SCAN_ROOTS` for `pages/`.
+- Confirm no other `scripts/*` directory feeding the public-portfolio path
+  has the same blind spot while making the fix.
+
+### Decision or Resolution Criteria
+
+- Every script permitted to read raw research artifacts for the public
+  portfolio path is covered by an automated import-boundary scan, not
+  manual review alone.
+- A regression test: a script with a deliberately-injected
+  `trading_framework` or ML-library import should fail the widened scan.
+
+### Related Documents
+
+- `docs/planning/sprints/SPRINT_060.md` — where the generator script this
+  gap concerns was introduced (T003).
+- `docs/adr/ADR-0034-portfolio-publication-boundary.md` §1.2 — the
+  library-free requirement this guard would enforce.
+
+### Related ADRs
+
+- ADR-0034 (the requirement itself, unchanged — this is a gap in its
+  enforcement, not its definition).
+
+### Related Tasks
+
+- None yet — flagged during Sprint 060 close-out, out of that sprint's
+  scope. Needs its own small task once picked up.
+
+---
+
 # 6. Resolved Problems
 
 No problems have yet been formally moved to `RESOLVED`.

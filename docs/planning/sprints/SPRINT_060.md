@@ -134,13 +134,24 @@ Out of scope:
 - Integrated checks: `apps/dashboard` full suite (189 tests, includes
   `test_navigation_acceptance.py` and `test_study_contract.py`) and
   `tests/unit/test_apps_boundaries.py` (6 tests) pass together on the
-  integrated sprint branch; `ruff check` and `ruff format --check` are
-  clean for every file this sprint touched. A project-wide (not
-  single-file-scoped, per PRB-023) `mypy` reports no new errors from this
-  sprint's diff; it still reports 3 pre-existing `import-untyped` errors
-  for `plotly`/`plotly.subplots` in `charts/builders.py` (present since
-  Sprint 028, unrelated to this sprint) that this sprint did not
-  introduce and does not fix.
+  integrated sprint branch, including from the repo root with CI's exact
+  invocation (`uv run --package trading-dashboard pytest
+  apps/dashboard/tests -q`); `ruff check` and `ruff format --check` are
+  clean for every file this sprint touched. `cd apps/dashboard && uv run
+  mypy .` (PRB-023's own documented command) reports 42 pre-existing
+  errors in 17 files — none in any file this sprint added
+  (`views/study.py`, `views/portfolio_content.py`, the extended
+  `publication/*.py`, `contracts.py`, `scripts/dashboard/*.py`, or any new
+  test file). `charts/builders.py`, which this sprint extended with three
+  new chart-builder functions, is the one touched file among the 17: its 2
+  errors are `import-untyped` for the file's pre-existing top-of-file
+  `plotly`/`plotly.subplots` imports (dating to Sprint 028), not anything
+  this sprint added. The same `plotly` import-untyped class recurs,
+  pre-existing and unrelated, in `charts/overlays.py`,
+  `views/live_paper.py` and `pages/2_Market_and_Signal_Research.py`; the
+  remaining ~37 errors are unrelated typing issues (untyped `pyarrow`
+  calls in tests, unreachable statements, type mismatches) all logged
+  under PRB-023, which this sprint leaves OPEN and unchanged.
 - Documentation reconciliation: `docs/reference/modules/DASHBOARD_APPLICATION.md`
   gained a "BTC Signal Quality study and evidence path (Sprint 060)"
   section documenting the three additive sanitizer roles, the committed
@@ -148,12 +159,22 @@ Out of scope:
   section-by-section fail-closed behavior; `docs/reference/system/MODULE_MAP.md`
   lists the new `views/study.py`, `views/portfolio_content.py`,
   `pages/7-9_*.py` and `scripts/dashboard/` entries.
-- Review: T001–T005 each went through independent review in a fresh
-  context per `.claude/WORKFLOW.md`, including one round-trip on T005
-  where the reviewer found and a follow-up commit fixed two real defects
-  (a cross-test monkeypatch leak and a silently-ambiguous artifact-role
-  resolution in a traceability test) before merge. The maintainer
-  additionally walked the rendered path locally
+- Review: T001–T006 each went through independent review in a fresh
+  context per `.claude/WORKFLOW.md`, with fix-and-re-review round-trips on
+  T005 (a cross-test monkeypatch leak and a silently-ambiguous
+  artifact-role resolution in a traceability test) and T006 (two factual
+  inaccuracies in this Closeout's own first draft: an overclaimed "mypy
+  clean" scope, and an ADR-0034 Follow-up item that ADR-0034 does not
+  actually list) before each merged. A sprint-close integration review of
+  the complete assembled diff (`sprint/signal-quality-portfolio-evidence`
+  → `main`) additionally caught a third mypy-count inaccuracy in this same
+  paragraph (corrected above to the exact PRB-023-documented command and
+  count) and PRB-024 (above); it separately surfaced that CI's own
+  "Dashboard tests" job -- run from the repo root, not `apps/dashboard` --
+  had been failing since Sprint 059 merged (#490) due to `AppTest.from_file`
+  resolving relative paths against the invocation directory; fixed by
+  resolving to an absolute path in both affected acceptance-test files.
+  The maintainer additionally walked the rendered path locally
   (`streamlit run apps/dashboard/Project_Overview.py`) on 2026-09-09 —
   Overview → Signal Quality Workflow → Signal Quality Methodology → BTC
   Signal Quality Study in three clicks, the persisted `INCONCLUSIVE`
@@ -176,4 +197,9 @@ Out of scope:
   manifest; a second study or a generalized multi-study catalog is future
   work this sprint did not attempt. **PRB-023** (root `mypy`/`pytest`
   never checking `apps/dashboard/` or `scripts/`) remains logged as OPEN
-  in `docs/planning/PROBLEM_REGISTRY.md`, unchanged by this sprint.
+  in `docs/planning/PROBLEM_REGISTRY.md`, unchanged by this sprint. The
+  sprint-close integration review additionally found and logged
+  **PRB-024** (`scripts/dashboard/` -- the generator script ADR-0034 §1.2
+  requires to be library-free -- is not covered by any automated
+  import-boundary scan, only manual review); confirmed not an active
+  violation today, logged OPEN for a future task.
