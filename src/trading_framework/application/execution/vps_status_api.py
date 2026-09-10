@@ -58,6 +58,43 @@ _UNREADABLE_STATE_ERRORS: Final = (
     OSError,
 )
 
+# Allowlisted `ExecutionEvent.payload` keys (ADR-0035 section 3.2/3.3). `payload` is a free-form
+# `Mapping[str, str]` (`trading_framework.execution.models.events.ExecutionEvent.payload`); unlike
+# the rest of this module, allowlisting the *field* "recent_events" is not enough, because the
+# *value* of "payload" within it is operator/exception-adjacent free text unless each key is
+# individually vetted. Every payload key actually emitted by `LocalExecutionRuntimeSession`
+# (`execution/runtime/session.py`) is enumerated below as either safe (closed vocabulary, an id, an
+# enum value, or a numeric value formatted as a string) or deliberately omitted. `message`,
+# `reason` and `feed_last_error` are free text that can carry raw exception text or embed a stream
+# URL/host -- the same category ADR-0035 section 3.4 closed for the top-level `feed_last_error`
+# field (e.g. `RUNTIME_FAILED`'s `message`, built from `str(exc)[:500]` in
+# `binance_local_btc_futures.py`, and persisted verbatim by `LocalExecutionRuntimeSession.fail`) --
+# and are never emitted, truncated or otherwise transformed here. A key not in this set, including
+# any future payload key this module does not yet know about, is silently dropped, never passed
+# through.
+_SAFE_EVENT_PAYLOAD_KEYS: Final[frozenset[str]] = frozenset(
+    {
+        "runtime_id",
+        "provider",
+        "status",
+        "simulated",
+        "event_at",
+        "current_signal",
+        "feed_connection_state",
+        "feed_reconnect_count",
+        "intent_id",
+        "strategy_id",
+        "side",
+        "order_type",
+        "quantity",
+        "order_id",
+        "fill_id",
+        "price",
+        "unrealized_pnl",
+        "equity",
+    }
+)
+
 # Closed vocabulary for feed_last_error_code. The raw feed_last_error string is never passed
 # through: it can embed a stream URL or host (ADR-0035 section 3.4). Keyword matching is
 # best-effort classification for operators; anything unmatched maps to "unknown", not omitted,
@@ -297,16 +334,26 @@ def _fill_to_json(fill: RecentFillView) -> dict[str, Any]:
 
 
 def _event_to_json(event: RecentExecutionEventView) -> dict[str, Any]:
-    payload = event.payload
     return {
         "event_id": event.event_id,
         "event_type": event.event_type.value,
         "occurred_at": _datetime_to_json(event.occurred_at),
         "symbol": event.symbol,
-        "payload": dict(payload) if payload is not None else None,
+        "payload": _sanitized_event_payload(event.payload),
         "correlation_id": event.correlation_id,
         "simulated": event.simulated,
     }
+
+
+def _sanitized_event_payload(payload: Mapping[str, str] | None) -> dict[str, str] | None:
+    """Allowlist ``ExecutionEvent.payload`` keys; see ``_SAFE_EVENT_PAYLOAD_KEYS`` above.
+
+    Never passes through free text (``message``, ``reason``, ``feed_last_error``) or any
+    unrecognized key -- deny by default, structurally, not by review.
+    """
+    if payload is None:
+        return None
+    return {key: value for key, value in payload.items() if key in _SAFE_EVENT_PAYLOAD_KEYS}
 
 
 def _bar_to_json(bar: RecentBarView) -> dict[str, Any]:

@@ -18,6 +18,7 @@ from trading_framework.application.execution.vps_status_api import (
 from trading_framework.core.exceptions import ValidationError
 from trading_framework.core.types import Price
 from trading_framework.execution import (
+    ExecutionEventType,
     ExecutionMode,
     ExecutionReadModelQuery,
     PaperPosition,
@@ -201,6 +202,79 @@ def test_feed_last_error_is_mapped_to_closed_vocabulary_code(
     assert "feed_last_error" not in response.body
     if raw_error is not None:
         assert raw_error not in str(response.body)
+
+
+def test_runtime_failed_event_payload_message_is_never_emitted() -> None:
+    """`RUNTIME_FAILED`'s ``message`` payload value is raw exception text
+    (``binance_local_btc_futures.py`` calls ``session.fail(message=str(exc)[:500])``), which
+    ``LocalExecutionRuntimeSession.fail`` persists verbatim into the event payload. It must never
+    reach the public response, structurally, not merely be truncated (ADR-0035 section 3.3/3.4).
+    """
+    leaking_message = (
+        "ConnectionError: wss://stream.binance.com:9443/ws/btcusdt@aggTrade "
+        "unreachable from host vps-prod-01.internal at /var/lib/execution-state"
+    )
+    event = RecentExecutionEventView(
+        event_id="btc-futures-dry-run-vps-000042-runtime_failed",
+        event_type=ExecutionEventType.RUNTIME_FAILED,
+        occurred_at=NOW,
+        symbol="BTCUSDT",
+        payload={
+            "runtime_id": "btc-futures-dry-run-vps",
+            "status": "failed",
+            "message": leaking_message,
+            "simulated": "true",
+        },
+    )
+    config = VpsExecutionStatusApiConfig(runtime_id="vps-runtime-1")
+    repository = FakeExecutionStatusRepository(status=_status(recent_events=(event,)))
+
+    response = handle_vps_execution_status_request(
+        "GET", config=config, repository=repository, now=NOW
+    )
+
+    recent_events = response.body["recent_events"]
+    assert len(recent_events) == 1
+    payload = recent_events[0]["payload"]
+    assert payload is not None
+    assert "message" not in payload
+    assert payload == {
+        "runtime_id": "btc-futures-dry-run-vps",
+        "status": "failed",
+        "simulated": "true",
+    }
+    # Never leaks anywhere in the body, not just under the "message" key.
+    assert leaking_message not in str(response.body)
+    assert "wss://" not in str(response.body)
+    assert "vps-prod-01.internal" not in str(response.body)
+    assert "/var/lib/execution-state" not in str(response.body)
+
+
+@pytest.mark.parametrize("free_text_key", ["message", "reason", "feed_last_error"])
+def test_event_payload_free_text_keys_are_always_dropped(free_text_key: str) -> None:
+    """Every known free-text payload key is dropped regardless of which event type carries it."""
+    event = RecentExecutionEventView(
+        event_id="btc-futures-dry-run-vps-000001-order_intent_created",
+        event_type=ExecutionEventType.ORDER_INTENT_CREATED,
+        occurred_at=NOW,
+        symbol="BTCUSDT",
+        payload={
+            "runtime_id": "btc-futures-dry-run-vps",
+            "intent_id": "intent-1",
+            free_text_key: "arbitrary free text that must never be re-emitted",
+        },
+    )
+    config = VpsExecutionStatusApiConfig(runtime_id="vps-runtime-1")
+    repository = FakeExecutionStatusRepository(status=_status(recent_events=(event,)))
+
+    response = handle_vps_execution_status_request(
+        "GET", config=config, repository=repository, now=NOW
+    )
+
+    payload = response.body["recent_events"][0]["payload"]
+    assert payload is not None
+    assert free_text_key not in payload
+    assert "arbitrary free text" not in str(response.body)
 
 
 def test_unexpected_field_on_the_status_view_is_never_emitted() -> None:
