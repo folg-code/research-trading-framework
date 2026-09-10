@@ -78,8 +78,11 @@ Catalog of `docs/planning/`. For taxonomy and reading paths see **[../README.md]
 | [sprints/S013_WAVE0_DECISIONS.md](sprints/S013_WAVE0_DECISIONS.md) | Sprint 013 binding decisions (D-S013-01 … D-S013-16) |
 | [sprints/S004_MTF_SPIKE_AND_DECISIONS.md](sprints/S004_MTF_SPIKE_AND_DECISIONS.md) | Sprint 004 T001 spike outcomes |
 | [sprints/S003_WAVE0_*.md](sprints/) | Sprint 003 wave 0 artefacts |
-| [sprints/SPRINT_059.md](sprints/SPRINT_059.md) | Portfolio Publication Foundation (draft; not opened) |
-| [sprints/SPRINT_060.md](sprints/SPRINT_060.md) | Signal Quality Portfolio Evidence (draft; not opened) |
+| [sprints/SPRINT_059.md](sprints/SPRINT_059.md) | Portfolio Publication Foundation (completed on main #490) |
+| [sprints/SPRINT_060.md](sprints/SPRINT_060.md) | Signal Quality Portfolio Evidence (completed on main #498) |
+| [sprints/SPRINT_061.md](sprints/SPRINT_061.md) | Portfolio Story, Content and Direction Completion (draft; approval required) |
+| [sprints/SPRINT_062.md](sprints/SPRINT_062.md) | BTC Futures Dry-Run on VPS and Dashboard Status Card (draft; approval required) |
+| [sprints/SPRINT_063.md](sprints/SPRINT_063.md) | Reproducible Strategy Simulation Series (draft; approval required) |
 
 ### Sprint document policy (new sprints only)
 
