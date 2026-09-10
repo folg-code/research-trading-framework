@@ -1,3 +1,22 @@
+# Network segmentation (ADR-0035 SS1.4): `frontend` joins caddy + dashboard, `status` joins
+# dashboard + dry-run-status only (caddy is never on it, so the public edge cannot reach the
+# status service even by misconfiguration), and `worker-egress` is dry-run-worker's own network
+# with no other members -- it needs only default outbound egress to the public Binance feed and
+# must stay unreachable from every other service.
+networks:
+  frontend:
+  status:
+    internal: true
+  worker-egress:
+
+# Bounded logging shared by every service that runs continuously on the VPS (ADR-0035 SS4.7):
+# explicit driver, size and file-count caps so an unattended demo stack cannot fill the disk.
+x-bounded-logging: &bounded-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 services:
   dashboard:
     build:
@@ -6,12 +25,18 @@ services:
     image: trading-dashboard:local
     environment:
       DASHBOARD_STORAGE_ROOT: /data
-      DASHBOARD_STATUS_URL: ${DASHBOARD_STATUS_URL:-}
+      # Internal Compose DNS name (ADR-0035 SS1 rule 3) -- never a public URL. dashboard does not
+      # `depends_on` dry-run-status: it must stay up and show an explicit offline state if the
+      # status service is down (ADR-0035 SS4.5).
+      DASHBOARD_STATUS_URL: ${DASHBOARD_STATUS_URL:-http://dry-run-status:8090/status}
     volumes:
       - type: bind
         source: ${DASHBOARD_STORAGE_HOST_PATH:-../../user_data}
         target: /data
         read_only: true
+    networks:
+      - frontend
+      - status
     expose:
       - "8501"
     healthcheck:
@@ -27,14 +52,103 @@ services:
       retries: 3
       start_period: 20s
     restart: unless-stopped
+    logging: *bounded-logging
 
   caddy:
     image: caddy:2.9-alpine
     depends_on:
       dashboard:
         condition: service_healthy
+    networks:
+      - frontend
     ports:
       - "${DASHBOARD_HTTP_PORT:-8080}:80"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
     restart: unless-stopped
+    logging: *bounded-logging
+
+  # ADR-0035 SS1: provider-neutral BTCUSDT dry-run worker. Outbound-only (public Binance market
+  # data); publishes and exposes no port at all, and joins no network shared with caddy/dashboard.
+  dry-run-worker:
+    build:
+      # Repo root, unlike `dashboard`/`caddy` above: the worker Dockerfile reuses
+      # top-level `src/` and `scripts/` unchanged (ADR-0035 SS1.6), not the `apps/dashboard`
+      # subtree.
+      context: ../../..
+      dockerfile: deploy/vps/dry-run-worker/Dockerfile
+    image: trading-dry-run-worker:local
+    environment:
+      TRADING_FRAMEWORK_VPS_RUNTIME_ID: ${DRY_RUN_RUNTIME_ID:-btc-futures-dry-run-vps}
+      TRADING_FRAMEWORK_VPS_SYMBOL: ${DRY_RUN_SYMBOL:-BTCUSDT}
+      TRADING_FRAMEWORK_VPS_STARTING_EQUITY: ${DRY_RUN_STARTING_EQUITY:-10000}
+      TRADING_FRAMEWORK_VPS_QUANTITY: ${DRY_RUN_QUANTITY:-0.001}
+      TRADING_FRAMEWORK_VPS_HEARTBEAT_SECONDS: ${DRY_RUN_HEARTBEAT_SECONDS:-30}
+    volumes:
+      - type: volume
+        source: dry_run_execution_state
+        target: /var/lib/trading-framework/btc-futures-dry-run
+    networks:
+      - worker-egress
+    healthcheck:
+      test: ["CMD", "python", "-m", "scripts.execution.vps_worker_healthcheck"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    # Bounded restarts (ADR-0035 SS4.6): a deterministic configuration error (e.g. refuse-to-start
+    # on incompatible persisted state, exit code 2) must not hide behind an unbounded crash loop.
+    # Exhausted retries leave the container stopped/unhealthy and visible to `docker compose ps`
+    # and the status card, not only in `docker logs` (see the VPS dry-run runbook note).
+    restart: on-failure:5
+    # Must exceed the worst-case graceful-shutdown flush (persisting a final STOPPED status)
+    # so SIGKILL never truncates the final write (ADR-0035 SS4.2).
+    stop_grace_period: 30s
+    mem_limit: 256m
+    cpus: 0.5
+    logging: *bounded-logging
+
+  # ADR-0035 SS1/SS3: GET-only status service. `expose`-only -- never a host port, never
+  # reachable from the internet; only `dashboard` can reach it, over the `status` network.
+  dry-run-status:
+    build:
+      # Repo root, same reasoning as dry-run-worker above.
+      context: ../../..
+      dockerfile: deploy/vps/dry-run-status/Dockerfile
+    image: trading-dry-run-status:local
+    environment:
+      # Same volume as dry-run-worker, mounted read-only below; the state subdirectory matches
+      # the worker's own default `state_repository_path` (ADR-0035 SS2.3).
+      TRADING_FRAMEWORK_STATUS_STATE_PATH: /var/lib/trading-framework/btc-futures-dry-run/state
+      TRADING_FRAMEWORK_STATUS_RUNTIME_ID: ${DRY_RUN_RUNTIME_ID:-btc-futures-dry-run-vps}
+    volumes:
+      - type: volume
+        source: dry_run_execution_state
+        target: /var/lib/trading-framework/btc-futures-dry-run
+        read_only: true
+    networks:
+      - status
+    expose:
+      - "8090"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8090/healthz')",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    restart: on-failure:5
+    mem_limit: 128m
+    cpus: 0.25
+    logging: *bounded-logging
+
+volumes:
+  # Dedicated execution-state volume (ADR-0035 SS2.1): RW in dry-run-worker (the single writer),
+  # read-only in dry-run-status, absent from dashboard. Separate lifecycle from `user_data`
+  # research storage -- not backed up, reset is a documented manual operator action (T007).
+  dry_run_execution_state:
