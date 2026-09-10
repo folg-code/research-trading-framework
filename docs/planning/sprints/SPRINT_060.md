@@ -1,14 +1,15 @@
 # Sprint 060: Signal Quality Portfolio Evidence (Phase 16, increment 16D)
 
-Status: OPEN — the maintainer approved Decisions D060-01 and D060-03 at
-sprint opening (2026-09-09); D060-02 was already inherited from the
-accepted Sprint 059 / DASHBOARD_DEVELOPMENT_DIRECTION.md direction. T001 is
-Done (field inventory frozen, one STOP-and-report finding resolved); T002
-is Done; T003 (study view + charts, consuming a real committed
-public-projection bundle) is Done (#493); T004 (routing and `Explore
-Evidence` navigation) is Done (#494); T005 (contract/regression tests) is
-Done (#495); T006 (visual QA, maintainer walkthrough, doc reconciliation)
-is In review.
+Status: 6/6 tasks Done — the maintainer approved Decisions D060-01 and
+D060-03 at sprint opening (2026-09-09); D060-02 was already inherited from
+the accepted Sprint 059 / DASHBOARD_DEVELOPMENT_DIRECTION.md direction.
+T001 is Done (field inventory frozen, one STOP-and-report finding
+resolved, #491); T002 is Done (#492); T003 (study view + charts, consuming
+a real committed public-projection bundle) is Done (#493); T004 (routing
+and `Explore Evidence` navigation) is Done (#494); T005
+(contract/regression tests) is Done (#495); T006 (visual QA, maintainer
+walkthrough, doc reconciliation) is Done (#496). Pending the final
+integration PR into `main`.
 Goal: Deliver the first complete portfolio story from Signal/Predictive
 Research context through living methodology and the BTC Signal Quality study
 to simplified persisted evidence and the existing technical view.
@@ -93,7 +94,7 @@ Out of scope:
 | T003 | Implement the simplified study view and its three persisted-fact charts with neutral metric definitions, explicit assumptions, warnings and unavailable-state behavior | T001, T002 | `apps/dashboard` study view/charts | high | Done | [#493](https://github.com/folg-code/research-trading-framework/pull/493) |
 | T004 | Connect stable overview, workflow, methodology and study routes; add one-action `Explore Evidence` navigation to the existing Predictive and Strategy Research details without duplicating them | T003 | `apps/dashboard` navigation/evidence integration | standard | Done | [#494](https://github.com/folg-code/research-trading-framework/pull/494) |
 | T005 | Add contract and regression tests for traceability, negative/`INCONCLUSIVE` evidence, absent optional artifacts, no dashboard-side verdict/metric logic and unchanged technical/live-paper surfaces | T003, T004 | dashboard tests | high | Done | [#495](https://github.com/folg-code/research-trading-framework/pull/495) |
-| T006 | Run desktop visual QA and the maintainer-observed success walkthrough; reconcile dashboard/reference/planning docs and record remaining portfolio outcomes outside this PRD | T002–T005 | visual acceptance + documentation | standard | In review | pending |
+| T006 | Run desktop visual QA and the maintainer-observed success walkthrough; reconcile dashboard/reference/planning docs and record remaining portfolio outcomes outside this PRD | T002–T005 | visual acceptance + documentation | standard | Done | [#496](https://github.com/folg-code/research-trading-framework/pull/496) |
 
 ## Acceptance criteria
 
