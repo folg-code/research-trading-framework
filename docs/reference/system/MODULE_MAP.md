@@ -103,10 +103,16 @@ apps/dashboard/src/dashboard_app/
     views/predictive.py             # Predictive Research picker/leaderboard/detail view models
     pages/6_Predictive_Research.py  # Predictive Research page
     views/study.py                  # BTC Signal Quality study view + charts (Sprint 060 T003)
-    views/portfolio_content.py      # Workflow-context/methodology pages + overview entry point (Sprint 060 T004)
+    views/portfolio_content.py      # Version-controlled portfolio pages and direction entries (Sprints 060-061)
     pages/7_Signal_Quality_Workflow.py     # Signal/Predictive workflow context (Sprint 060 T004)
     pages/8_Signal_Quality_Methodology.py  # Signal Quality methodology (Sprint 060 T004)
     pages/9_BTC_Signal_Quality_Study.py    # BTC Signal Quality study + Explore Evidence (Sprint 060 T004)
+    pages/10_Architecture.py               # Stable public architecture narrative (Sprint 061 T002-T004)
+    pages/11_Engineering.py                # Cross-cutting engineering evidence (Sprint 061 T002-T004)
+    pages/12_Future_Direction.py           # Future Ideas index (Sprint 061 T003-T004)
+    pages/13_AI_Research_Infrastructure.py # AI Research Infrastructure Future Idea (Sprint 061 T003)
+    pages/14_Research_Application.py       # Research Application Future Idea (Sprint 061 T003)
+    pages/15_Research_and_Engineering_Notes.py # Selected evidence/decision notes (Sprint 061 T004)
 
 scripts/dashboard/
     generate_btc_signal_quality_projection.py  # Build-time public-projection generator (Sprint 060 T003);

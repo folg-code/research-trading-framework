@@ -2,7 +2,7 @@
 slug: portfolio-overview
 title: Portfolio Overview
 status: AS_BUILT
-updated: 2026-09-09
+updated: 2026-09-10
 order: 1
 links: apps/dashboard/docs/ARCHITECTURE.md, docs/vision/PRODUCT_DIRECTION.md
 ---
@@ -10,6 +10,12 @@ links: apps/dashboard/docs/ARCHITECTURE.md, docs/vision/PRODUCT_DIRECTION.md
 A modular Python framework for market-data processing, declarative market
 and signal models, strategy backtesting, robustness analysis, predictive
 research, and paper-runtime observability.
+
+The project exists to make trading research inspectable rather than hide it
+inside a monolithic strategy class. Data preparation, analytical components,
+research methods, simulation assumptions and runtime operation have separate
+owners. That separation makes a negative result reusable evidence instead of
+an experiment that disappears when it fails to support a hypothesis.
 
 This public dashboard is a **read-only** view of persisted research
 artifacts and live paper status. It does not run research engines and does

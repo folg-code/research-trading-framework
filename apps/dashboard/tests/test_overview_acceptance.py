@@ -80,9 +80,10 @@ def test_overview_names_all_six_workflows_with_maturity_badges() -> None:
         for markdown_element in app.markdown
         for match in _BADGE_PATTERN.finditer(markdown_element.value)
     ]
-    badge_labels = {label for _color, label in badges}
+    workflow_badges = badges[: len(WORKFLOW_ENTRIES)]
+    badge_labels = {label for _color, label in workflow_badges}
     assert badge_labels == {"AS BUILT", "IN DEVELOPMENT"}
-    assert len(badges) == len(WORKFLOW_ENTRIES)
+    assert len(workflow_badges) == len(WORKFLOW_ENTRIES)
 
 
 def test_overview_shared_domain_diagram_is_a_star_not_a_chain() -> None:

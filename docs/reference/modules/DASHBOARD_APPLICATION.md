@@ -24,10 +24,11 @@ PRB-022) — a page file is checked exactly like a `src/` module.
 ## Public portfolio publication boundary (ADR-0034, Sprint 059)
 
 A second, stricter boundary sits inside the one above, for the public
-portfolio path: `Project_Overview.py` plus `pages/7_Signal_Quality_Workflow.py`,
-`pages/8_Signal_Quality_Methodology.py` and `pages/9_BTC_Signal_Quality_Study.py`
-(Sprint 060 T004). See `docs/adr/ADR-0034-portfolio-publication-boundary.md`
-for the full decision record.
+portfolio path: `Project_Overview.py`, the Signal Quality pages 7–9, and the
+version-controlled Architecture, Engineering, Future Direction and Notes
+pages 10–15 added by Sprint 061 T002–T004. See
+`docs/adr/ADR-0034-portfolio-publication-boundary.md` for the full decision
+record.
 
 | Package | Role |
 |---|---|
@@ -143,9 +144,29 @@ The first real consumer of the ADR-0034 publication boundary. Extends
   absent optional role degrades gracefully, and that the verdict badge's
   color is a source-level literal.
 
+## Portfolio story and Future Direction (Sprint 061 T002–T004)
+
+- Home now follows the portfolio sequence after its thesis and shared-domain
+  map: six workflow entries, two real featured studies, three selected
+  Research & Engineering Notes, exactly two `FUTURE IDEAS` cards, and the
+  complete catalog entry.
+- `views.overview` owns the small structural entry tuples and renders links;
+  factual narrative remains in validated files under
+  `apps/dashboard/content/`.
+- `views.portfolio_content.render_static_content_page` provides the shared
+  fail-closed renderer for stable Architecture, Engineering, Future Direction,
+  AI Research Infrastructure, Research Application and Notes pages
+  (`pages/10_*.py` through `pages/15_*.py`).
+- The two Future Ideas are explicitly non-as-built. The AI page treats the
+  maintainer's Polish direction note as editorial input and publishes English
+  copy; the Research Application page remains subordinate to the Draft product
+  vision. Neither page approves a provider, UI stack, architecture or sprint.
+- `apps/dashboard/tests/test_sprint061_content.py` validates source links,
+  maturity, mandatory disclaimers, Home cardinality and section order.
+
 ## Adding a page
 
-1. Add `pages/N_Name.py` using `configure_page` + `render_sidebar_storage_root`.
+1. Add `pages/N_Name.py` using `configure_page` + `render_app_chrome`.
 2. Prefer `DashboardQueryService` / catalog helpers over ad-hoc filesystem walks.
 3. Use `dashboard_app.caching.streamlit.cached_*` helpers with `storage_fingerprint` for expensive reads.
 4. Keep engines out of the page — only read mounted artifacts (or read-only HTTP status).

@@ -78,6 +78,15 @@ class WorkflowEntry:
     description: str
 
 
+@dataclass(frozen=True, slots=True)
+class PortfolioEntry:
+    """One stable Home-page entry backed by reviewed content or evidence."""
+
+    title: str
+    page_path: str
+    description: str
+
+
 #: The six independent workflows (docs/planning/DASHBOARD_DEVELOPMENT_DIRECTION.md
 #: §3: "Market Data, Signal Research, Strategy Research, Robustness Research,
 #: Predictive Research and Strategy Execution are separate workflows. Market
@@ -137,6 +146,62 @@ WORKFLOW_ENTRIES: tuple[WorkflowEntry, ...] = (
     ),
 )
 
+FEATURED_STUDIES: tuple[PortfolioEntry, ...] = (
+    PortfolioEntry(
+        title="BTC Signal Quality Study",
+        page_path="pages/9_BTC_Signal_Quality_Study.py",
+        description=(
+            "A persisted INCONCLUSIVE predictive verdict followed into a baseline-versus-"
+            "score-filtered strategy comparison, including the negative downstream result."
+        ),
+    ),
+    PortfolioEntry(
+        title="Real-Data BTC Predictive Study",
+        page_path="pages/6_Predictive_Research.py",
+        description=(
+            "A six-fold BTCUSDT.P study comparing linear, logistic and conditionally triggered "
+            "tree evidence without turning a metric into trading approval."
+        ),
+    ),
+)
+
+RECENT_NOTES: tuple[PortfolioEntry, ...] = (
+    PortfolioEntry(
+        title="Publishing evidence without publishing the workspace",
+        page_path="pages/15_Research_and_Engineering_Notes.py",
+        description="Why the public dashboard consumes an allowlisted projection.",
+    ),
+    PortfolioEntry(
+        title="Why negative results stay visible",
+        page_path="pages/15_Research_and_Engineering_Notes.py",
+        description="What the BTC studies demonstrate about stopping rules and honest reporting.",
+    ),
+    PortfolioEntry(
+        title="Live data is not live trading",
+        page_path="pages/15_Research_and_Engineering_Notes.py",
+        description="How the dry-run boundary separates market observation from real orders.",
+    ),
+)
+
+FUTURE_IDEAS: tuple[PortfolioEntry, ...] = (
+    PortfolioEntry(
+        title="AI Research Infrastructure",
+        page_path="pages/13_AI_Research_Infrastructure.py",
+        description=(
+            "A proposed AI control plane over deterministic research compute, with explicit "
+            "roles, budgets and anti-data-mining guardrails."
+        ),
+    ),
+    PortfolioEntry(
+        title="Research Application",
+        page_path="pages/14_Research_Application.py",
+        description=(
+            "A draft local-first Workbench direction that coordinates existing workflows "
+            "without becoming a second research engine."
+        ),
+    ),
+)
+
 
 def render_product_thesis() -> None:
     """Render the version-controlled overview thesis (ADR-0034 content pipeline).
@@ -162,6 +227,7 @@ def render_shared_domain_map() -> None:
         f"[architecture one-pager]({ARCHITECTURE_ONE_PAGER_URL}) for the full picture."
     )
     st.mermaid_chart(SHARED_DOMAIN_MERMAID)
+    st.page_link("pages/10_Architecture.py", label="Explore Architecture")
 
 
 def render_workflow_entries() -> None:
@@ -180,5 +246,48 @@ def render_workflow_entries() -> None:
                 st.write(entry.description)
                 st.page_link(entry.page_path, label=f"Open {entry.title}")
 
-    st.divider()
+
+def _render_portfolio_entries(entries: tuple[PortfolioEntry, ...]) -> None:
+    columns = st.columns(len(entries))
+    for entry, column in zip(entries, columns, strict=True):
+        with column:
+            st.subheader(entry.title)
+            st.write(entry.description)
+            st.page_link(entry.page_path, label=f"Open {entry.title}")
+
+
+def render_featured_studies() -> None:
+    """Render two reviewed, real-evidence study entry points."""
+    st.header("Featured studies")
+    st.caption("Persisted evidence, including results that did not support the hypothesis.")
+    _render_portfolio_entries(FEATURED_STUDIES)
+
+
+def render_recent_notes() -> None:
+    """Render the three selected Research & Engineering Note entries."""
+    st.header("Research & Engineering Notes")
+    _render_portfolio_entries(RECENT_NOTES)
+    st.page_link("pages/11_Engineering.py", label="Explore Engineering")
+
+
+def render_future_ideas() -> None:
+    """Render exactly the two maintainer-approved Future Ideas cards."""
+    st.header("Future direction")
+    columns = st.columns(len(FUTURE_IDEAS))
+    for entry, column in zip(FUTURE_IDEAS, columns, strict=True):
+        with column:
+            st.subheader(entry.title)
+            st.badge("FUTURE IDEAS", color="gray")
+            st.write(entry.description)
+            st.page_link(entry.page_path, label=f"Explore {entry.title}")
+    st.page_link("pages/12_Future_Direction.py", label="Open Future Direction")
+
+
+def render_catalog_entry() -> None:
+    """Keep the complete catalog as the final Home information block."""
+    st.header("Complete research catalog")
+    st.caption(
+        "Inspect the available persisted results. Catalog migration to the sanitized public "
+        "projection is in development during Sprint 061."
+    )
     st.page_link("pages/1_Research_Catalog.py", label="Browse Research Catalog")
