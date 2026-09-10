@@ -1,12 +1,15 @@
 # Sprint 062: BTC Futures Dry-Run on VPS and Dashboard Status Card
 
-Status: Draft — requires maintainer approval before implementation and deployment
+Status: Approved (2026-09-10) — implementation may proceed; the actual VPS
+deploy/rollback in T007 requires a separate explicit maintainer go-ahead before
+it is executed.
 Goal: Run the existing BTCUSDT live-market/simulated-execution `DRY_RUN` safely
 on the dashboard VPS, expose one private-network GET-only status service, and
 show an unmistakably simulated current-status card in the public dashboard.
 Sources:
 
 - `docs/adr/ADR-0021-live-dry-run-execution-demo.md`
+- `docs/adr/ADR-0035-vps-dry-run-runtime-and-status-boundary.md` (T001 output)
 - `docs/reference/workflows/STRATEGY_EXECUTION.md`
 - `docs/reference/runbooks/LOCAL_BTC_FUTURES_DRY_RUN.md`
 - `docs/reference/runbooks/AWS_BTC_FUTURES_DRY_RUN.md`
@@ -51,21 +54,29 @@ Out of scope:
 | Decision | Recommendation | Status |
 |---|---|---|
 | D062-01 — runtime mode | Reuse ADR-0021 `DRY_RUN`: live public Binance BTCUSDT data, `PaperBroker`, simulated orders/fills/positions/PnL, no exchange account and no accepted credentials. | Inherited; non-negotiable |
-| D062-02 — VPS adapter | Add a provider-neutral VPS config/entry point over the existing application runtime and `JsonExecutionStateRepository`; do not rename or overload the AWS-specific config as the permanent VPS API. | Pending maintainer approval; blocks T002 |
-| D062-03 — status exposure | Run a dedicated GET-only status service on the private Compose network. The dashboard calls it internally; do not publish a mutation endpoint or expose raw state files. | Pending maintainer approval; blocks T003/T004 |
-| D062-04 — lifecycle | Support an explicit service lifetime suitable for Compose and preserve graceful `STOPPED`/hard-error `FAILED`. Restart must restore compatible paper state or fail visibly; it must never silently reset an open paper position. | Pending maintainer approval; blocks T002 |
+| D062-02 — VPS adapter | Add a provider-neutral VPS config/entry point over the existing application runtime and `JsonExecutionStateRepository`; do not rename or overload the AWS-specific config as the permanent VPS API. | Approved by maintainer (2026-09-10) |
+| D062-03 — status exposure | Run a dedicated GET-only status service on the private Compose network. The dashboard calls it internally; do not publish a mutation endpoint or expose raw state files. | Approved by maintainer (2026-09-10) |
+| D062-04 — lifecycle | Support an explicit service lifetime suitable for Compose and preserve graceful `STOPPED`/hard-error `FAILED`. Restart must restore compatible paper state or fail visibly; it must never silently reset an open paper position. | Approved by maintainer (2026-09-10) |
+
+Detailed freeze of topology, state ownership, public status schema v1,
+lifecycle/recovery and threat model: `docs/adr/ADR-0035-vps-dry-run-runtime-and-status-boundary.md`
+(ACCEPTED by maintainer 2026-09-10 — T002/T003 unblocked).
 
 ## Tasks
 
 | Task | Outcome | Dependencies | Ownership | Risk | Status | PR |
 |---|---|---|---|---|---|---|
-| T001 | Freeze VPS topology, public status schema, volume ownership, lifecycle/recovery behavior and threat model in an ADR; inventory VPS prerequisites without recording secrets | approved sprint | architecture + ops | high | Blocked by D062-02/03/04 | — |
-| T002 | Implement and test the VPS runtime config/entry point, durable JSON repository wiring, continuous service lifetime and graceful recovery semantics while reusing existing execution logic unchanged | T001 | `application/execution`, `scripts/execution`, storage adapter | high | Ready after T001 | — |
-| T003 | Implement a bounded GET-only status service over `ExecutionStateReadRepository`, with a sanitized versioned response, freshness semantics, health endpoint and no file-path/infrastructure leakage | T001; parallel with T002 after schema freeze | status application/service + tests | high | Ready after T001 | — |
+| T001 | Freeze VPS topology, public status schema, volume ownership, lifecycle/recovery behavior and threat model in an ADR; inventory VPS prerequisites without recording secrets | approved sprint | architecture + ops | high | Done — `docs/adr/ADR-0035-vps-dry-run-runtime-and-status-boundary.md` (ACCEPTED 2026-09-10) | — |
+| T002 | Implement and test the VPS runtime config/entry point, durable JSON repository wiring, continuous service lifetime and graceful recovery semantics while reusing existing execution logic unchanged | T001 (ADR-0035 ACCEPTED) | `application/execution`, `scripts/execution`, storage adapter | high | In progress | — |
+| T003 | Implement a bounded GET-only status service over the `ExecutionStateReader` port, with a sanitized versioned response, freshness semantics, health endpoint and no file-path/infrastructure leakage | T001 (ADR-0035 ACCEPTED); parallel with T002 after schema freeze | status application/service + tests | high | In progress | — |
 | T004 | Package worker and status services and extend VPS Compose with private networking, read/write state volume only for the worker, read-only state access for status, health checks, restart policy and bounded logs/resources | T002–T003 | deploy + infrastructure | high | Ready after T003 | — |
 | T005 | Add a current dry-run status card and link to the Live Paper page; remove migration placeholder when configured and preserve explicit stale/offline/failed states and `NO REAL ORDERS` copy | T003; parallel with T004 | dashboard data source + views/content | standard | Ready after T003 | — |
 | T006 | Add unit, integration and container smoke tests for restart, stale feed, invalid/corrupt state, status unavailability, schema compatibility and dashboard regression | T002–T005 | tests | high | Ready after implementation | — |
 | T007 | Update runbooks and deploy/rollback the stack to the existing VPS; verify public dashboard behavior and observe at least 24 continuous hours or one documented restart cycle | T004–T006 | operations + acceptance | high | Requires explicit sprint/deploy approval | — |
+
+Note (T001): the sprint text originally named `ExecutionStateReadRepository`;
+the actual read port in the codebase is `ExecutionStateReader`
+(`src/trading_framework/execution/repositories/protocols.py`). T003 targets that.
 
 ## Acceptance criteria
 
