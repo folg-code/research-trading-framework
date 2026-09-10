@@ -5,6 +5,7 @@ from __future__ import annotations
 import streamlit as st
 
 from dashboard_app.ui import configure_page, render_app_chrome
+from dashboard_app.views.dry_run_status_card import render_dry_run_status_card
 from dashboard_app.views.overview import (
     render_product_thesis,
     render_shared_domain_map,
@@ -23,6 +24,8 @@ if settings is None:
         "Storage is not configured. Set `DASHBOARD_STORAGE_ROOT` for deployment, "
         "or open **System diagnostics** in the sidebar for local use."
     )
+
+render_dry_run_status_card(settings)
 
 st.divider()
 render_shared_domain_map()

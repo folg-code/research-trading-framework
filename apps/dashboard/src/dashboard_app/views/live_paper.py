@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
-from typing import Any
+from typing import Any, Literal
 
 import plotly.graph_objects as go
 
@@ -73,10 +73,12 @@ def live_paper_health(
         effective_status = status_raw
 
     reconnect_raw = snapshot.get("feed_reconnect_count", 0)
-    try:
-        reconnect_count = int(reconnect_raw) if reconnect_raw is not None else 0
-    except (TypeError, ValueError):
-        reconnect_count = 0
+    reconnect_count = 0
+    if isinstance(reconnect_raw, (int, float, str)):
+        try:
+            reconnect_count = int(reconnect_raw)
+        except (TypeError, ValueError):
+            reconnect_count = 0
     feed_state = snapshot.get("feed_connection_state")
     feed_error = snapshot.get("feed_last_error")
     return LivePaperHealth(
@@ -89,6 +91,92 @@ def live_paper_health(
         feed_connection_state=str(feed_state) if isinstance(feed_state, str) else None,
         feed_reconnect_count=max(reconnect_count, 0),
         feed_last_error=str(feed_error) if isinstance(feed_error, str) and feed_error else None,
+    )
+
+
+#: The honest state vocabulary the home-page dry-run card must distinguish
+#: (SPRINT_062.md T005 acceptance criteria): a fresh snapshot is ``current``;
+#: an explicitly stale one (``stale: true`` or a heartbeat older than the
+#: threshold) is ``stale``; a worker-reported ``FAILED`` status is ``failed``;
+#: an unreachable status API is ``offline``; ``404`` (no runtime started/wiped)
+#: is ``not_found``; any other error (e.g. ``503``) is ``unavailable``; and an
+#: unconfigured ``DASHBOARD_STATUS_URL`` is ``not_configured`` -- the card must
+#: never render as if it were ``current`` under any other state.
+DryRunCardKind = Literal[
+    "not_configured",
+    "offline",
+    "not_found",
+    "unavailable",
+    "failed",
+    "stale",
+    "current",
+]
+
+
+#: The closed vocabulary ADR-0035 SS3.2 allows for the `status` field. Any
+#: other value (including a missing field) is treated as an untrustworthy
+#: response, not as an implicit "current" state.
+_RECOGNIZED_STATUSES = frozenset({"running", "degraded", "stale", "stopped", "failed"})
+
+
+@dataclass(frozen=True, slots=True)
+class DryRunStatusCard:
+    """Presentation state for the home-page BTC dry-run status card."""
+
+    kind: DryRunCardKind
+    health: LivePaperHealth | None = None
+    snapshot: Mapping[str, object] | None = None
+    detail: str | None = None
+
+
+def build_dry_run_status_card(
+    *,
+    status_url: str | None,
+    snapshot: Mapping[str, object] | None,
+    error: str | None,
+    now: datetime | None = None,
+    stale_after: timedelta = DEFAULT_STALE_AFTER,
+) -> DryRunStatusCard:
+    """Classify a status API call's outcome into an honest card state.
+
+    ``error`` is the ``str(ValueError)`` raised by
+    :class:`~dashboard_app.datasources.live_paper_http.HttpLivePaperStatusDataSource`
+    (never both ``error`` and ``snapshot`` set). This never presents an old
+    snapshot as current: callers pass the snapshot from the *current* call
+    only, never a cached one from a prior successful call.
+    """
+    if status_url is None or not status_url.strip():
+        return DryRunStatusCard(kind="not_configured")
+    if error is not None:
+        lowered = error.lower()
+        if "http 404" in lowered:
+            return DryRunStatusCard(kind="not_found", detail=error)
+        if "unreachable" in lowered:
+            return DryRunStatusCard(kind="offline", detail=error)
+        return DryRunStatusCard(kind="unavailable", detail=error)
+    if snapshot is None:
+        return DryRunStatusCard(kind="offline", detail="status API returned no data")
+
+    status_raw = str(snapshot.get("status") or "").strip().lower()
+    if status_raw not in _RECOGNIZED_STATUSES:
+        # A missing/unrecognized `status` (ADR-0035 SS3.2's closed vocabulary:
+        # RUNNING/DEGRADED/STALE/STOPPED/FAILED) means the response cannot be
+        # trusted as a health signal. Never fall through to "current" here --
+        # that would silently present an unhealthy/malformed payload as good.
+        raw_value = snapshot.get("status")
+        detail = f"status API response has a missing or unrecognized `status` value: {raw_value!r}"
+        return DryRunStatusCard(kind="unavailable", detail=detail)
+
+    health = live_paper_health(snapshot, now=now, stale_after=stale_after)
+    if status_raw == "failed":
+        return DryRunStatusCard(kind="failed", health=health, snapshot=snapshot)
+    if status_raw == "stale":
+        return DryRunStatusCard(kind="stale", health=health, snapshot=snapshot)
+    is_stale = bool(snapshot.get("stale")) or health.is_stale
+    return DryRunStatusCard(
+        kind="stale" if is_stale else "current",
+        health=health,
+        snapshot=snapshot,
     )
 
 
