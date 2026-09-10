@@ -14,6 +14,8 @@ COPY pyproject.toml README.md ./
 COPY Project_Overview.py ./
 COPY pages ./pages
 COPY src ./src
+COPY content ./content
+COPY publication_data ./publication_data
 
 # Workspace lock lives at the monorepo root; package-context builds resolve deps from pyproject.
 RUN uv sync --no-dev
