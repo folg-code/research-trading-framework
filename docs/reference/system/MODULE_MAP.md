@@ -99,6 +99,7 @@ apps/dashboard/src/dashboard_app/
     catalog/ query/ views/ charts/ caching/ datasources/
     publication/                     # Public projection + PortfolioStudyManifest (ADR-0034/0035)
         catalog.py                   # Safe research_catalog_entry identities (Sprint 061 T005)
+        catalog_index.py             # Projection-only study -> experiment -> run catalog (Sprint 061 T006)
         identity.py                  # Conservative projection-local identifier syntax
         workspace.py                 # Build-time-only workspace discovery; never a page dependency
     content/                         # Version-controlled content loader + slug routing (ADR-0034, Sprint 059)
@@ -122,6 +123,11 @@ apps/dashboard/src/dashboard_app/
     pages/19_Robustness_Research_Workflow.py # Robustness publication before evidence (Sprint 061)
     pages/20_Predictive_Research_Workflow.py # Predictive publication before evidence (Sprint 061)
     pages/21_Strategy_Execution_Workflow.py # DRY_RUN architecture before status evidence (Sprint 061)
+
+`pages/1_Research_Catalog.py` now consumes `publication/catalog_index.py`
+exclusively. Its public hierarchy is manifest-first with a deterministic
+workflow/DatasetRef fallback and contains no `storage_path`; scanner-backed
+technical evidence remains temporarily limited to pages 2–6.
 
 Catalog presentation resolves research time ranges from Predictive Dataset
 manifests or the immutable metadata behind `source_dataset_ref`. Strategy runs
