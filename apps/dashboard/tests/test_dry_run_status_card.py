@@ -218,6 +218,46 @@ def test_failed_worker_status_shows_a_failed_state_not_current(
     assert "failed" in error_text.lower()
 
 
+@pytest.mark.parametrize(
+    ("label", "source_kwargs"),
+    [
+        ("current", {"snapshot": _FRESH_SNAPSHOT}),
+        ("stale", {"snapshot": dict(_FRESH_SNAPSHOT, stale=True)}),
+        (
+            "offline",
+            {"error": "status API unreachable: [Errno 111] Connection refused"},
+        ),
+        ("not_found", {"error": "status API HTTP 404: {}"}),
+        ("unavailable", {"error": "status API HTTP 503: {}"}),
+        ("failed", {"snapshot": dict(_FRESH_SNAPSHOT, status="FAILED")}),
+        (
+            "unrecognized_status",
+            {"snapshot": dict(_FRESH_SNAPSHOT, status="SOMETHING_WEIRD")},
+        ),
+    ],
+)
+def test_three_part_simulation_label_renders_in_every_non_unconfigured_state(
+    monkeypatch: pytest.MonkeyPatch,
+    label: str,
+    source_kwargs: dict[str, Any],
+) -> None:
+    """SPRINT_062.md T005: the ``LIVE MARKET DATA`` / ``SIMULATED EXECUTION`` /
+    ``NO REAL ORDERS`` label must appear regardless of which honest state the
+    card lands in -- current, stale, offline, not-found, unavailable or
+    failed -- not only the happy path. It only disappears entirely when the
+    status URL itself is unconfigured (covered separately)."""
+    monkeypatch.setattr(
+        dry_run_status_card_module,
+        "HttpLivePaperStatusDataSource",
+        lambda status_url: _FakeSource(**source_kwargs),
+    )
+    app = _run_overview(status_url="http://dry-run-status:8090/status")
+
+    assert not app.exception, label
+    caption_text = " · ".join(entry.value for entry in app.caption)
+    assert all(part in caption_text for part in DRY_RUN_SIMULATION_LABELS), label
+
+
 def test_format_position_includes_side_and_quantity() -> None:
     assert _format_position({"side": "long", "quantity": "0.001"}) == "LONG 0.001"
     assert _format_position({"side": "short", "quantity": "0.25"}) == "SHORT 0.25"
