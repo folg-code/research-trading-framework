@@ -10,6 +10,9 @@
     "threshold_sensitivity": "predictive-threshold-sensitivity-2ef6426b3cc06463",
     "promoted_artifact": "promoted-artifact-00e919cc8f950eb8da7217b9e00f8bfb463642c4f2e114d325372404b9b368a3",
     "strategy_baseline": "strategy-research-run-8d050f623a034a58",
-    "strategy_scored": "strategy-research-run-4dbf98822e6ae591"
+    "strategy_scored": "strategy-research-run-4dbf98822e6ae591",
+    "catalog_predictive": "catalog-predictive-2ef6426b3cc06463",
+    "catalog_strategy_baseline": "catalog-strategy-8d050f623a034a58",
+    "catalog_strategy_scored": "catalog-strategy-4dbf98822e6ae591"
   }
 }

@@ -30,6 +30,9 @@ def test_load_btc_signal_quality_evidence_resolves_the_real_committed_bundle() -
         "promoted_artifact",
         "strategy_baseline",
         "strategy_scored",
+        "catalog_predictive",
+        "catalog_strategy_baseline",
+        "catalog_strategy_scored",
     }
     assert evidence.resolved_artifacts["verdict"].fields["verdict"] == "INCONCLUSIVE"
 
