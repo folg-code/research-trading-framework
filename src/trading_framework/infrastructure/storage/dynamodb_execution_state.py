@@ -205,6 +205,9 @@ class DynamoDbExecutionStateRepository:
             paper_equity=account.equity if account is not None else None,
             realized_pnl=account.realized_pnl if account is not None else None,
             unrealized_pnl=account.unrealized_pnl if account is not None else None,
+            account_id=account.account_id if account is not None else None,
+            currency=account.currency if account is not None else None,
+            starting_equity=account.starting_equity if account is not None else None,
             recent_orders=tuple(
                 _order_view_from_json(item)
                 for item in _tail(list(state["orders"]), query.recent_order_limit)

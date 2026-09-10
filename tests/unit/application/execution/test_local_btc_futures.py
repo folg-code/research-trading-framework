@@ -1,5 +1,6 @@
 """Tests for local BTC futures dry-run runtime assembly."""
 
+import json
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from pathlib import Path
@@ -14,17 +15,24 @@ from trading_framework.application.execution import (
     run_local_btc_futures_closed_bar_step,
     run_local_btc_futures_dry_run,
 )
-from trading_framework.core.exceptions import ValidationError
+from trading_framework.core.exceptions import IncompatibleExecutionStateError, ValidationError
 from trading_framework.core.types import Price, Volume
 from trading_framework.execution import (
     BestBidAskSnapshot,
     ExecutionEventType,
+    ExecutionMode,
     ExecutionReadModelQuery,
     OrderIntent,
     OrderSide,
     OrderType,
+    PaperAccountSnapshot,
+    PaperPosition,
+    PositionSide,
+    RuntimeHealth,
+    RuntimeStatusSnapshot,
 )
 from trading_framework.infrastructure.storage.execution_events import read_jsonl_execution_events
+from trading_framework.infrastructure.storage.execution_state import JsonExecutionStateRepository
 from trading_framework.market.models import MarketBar
 from trading_framework.strategy import BtcFuturesDemoStrategyConfig
 from trading_framework.time.clocks.fixed import FixedClock
@@ -360,3 +368,203 @@ def test_local_btc_futures_config_rejects_invalid_values(tmp_path: Path) -> None
             config=LocalBtcFuturesDryRunConfig(event_log_path=tmp_path / "events.jsonl"),
             duration_minutes=-1,
         )
+
+
+def _seed_status(repository: JsonExecutionStateRepository, runtime_id: str) -> None:
+    repository.save_runtime_status(
+        RuntimeStatusSnapshot(
+            runtime_id=runtime_id,
+            mode=ExecutionMode.DRY_RUN,
+            status=RuntimeHealth.RUNNING,
+            provider="binance_usdm",
+            symbol="BTCUSDT",
+            last_heartbeat_at=NOW,
+        )
+    )
+
+
+def _seed_open_position_state(
+    repository: JsonExecutionStateRepository,
+    *,
+    runtime_id: str,
+    account_id: str = "paper-btc-futures",
+    currency: str = "USDT",
+    starting_equity: Decimal = Decimal("10000"),
+) -> None:
+    _seed_status(repository, runtime_id)
+    repository.save_position(
+        runtime_id,
+        PaperPosition(
+            symbol="BTCUSDT",
+            side=PositionSide.LONG,
+            quantity=Decimal("0.001"),
+            average_entry_price=Price(Decimal("100")),
+            mark_price=Price(Decimal("100")),
+            unrealized_pnl=Decimal("0"),
+            updated_at=NOW,
+        ),
+    )
+    repository.save_account(
+        runtime_id,
+        PaperAccountSnapshot(
+            account_id=account_id,
+            currency=currency,
+            starting_equity=starting_equity,
+            realized_pnl=Decimal("0"),
+            unrealized_pnl=Decimal("0"),
+            equity=starting_equity,
+            updated_at=NOW,
+        ),
+    )
+
+
+def test_restore_refuses_to_start_on_account_id_mismatch(tmp_path: Path) -> None:
+    state_repository_path = tmp_path / "state"
+    repository = JsonExecutionStateRepository(state_repository_path)
+    config = LocalBtcFuturesDryRunConfig(
+        event_log_path=tmp_path / "events.jsonl",
+        state_repository_path=state_repository_path,
+        account_id="a-different-account",
+    )
+    _seed_open_position_state(repository, runtime_id=config.runtime_id)
+
+    with pytest.raises(IncompatibleExecutionStateError, match="account_id mismatch"):
+        create_local_btc_futures_dry_run_runtime(config, clock=FixedClock(NOW))
+
+
+def test_restore_refuses_to_start_on_currency_mismatch(tmp_path: Path) -> None:
+    state_repository_path = tmp_path / "state"
+    repository = JsonExecutionStateRepository(state_repository_path)
+    config = LocalBtcFuturesDryRunConfig(
+        event_log_path=tmp_path / "events.jsonl",
+        state_repository_path=state_repository_path,
+        currency="EUR",
+    )
+    _seed_open_position_state(repository, runtime_id=config.runtime_id)
+
+    with pytest.raises(IncompatibleExecutionStateError, match="currency mismatch"):
+        create_local_btc_futures_dry_run_runtime(config, clock=FixedClock(NOW))
+
+
+def test_restore_refuses_to_start_on_symbol_mismatch(tmp_path: Path) -> None:
+    state_repository_path = tmp_path / "state"
+    repository = JsonExecutionStateRepository(state_repository_path)
+    config = LocalBtcFuturesDryRunConfig(
+        event_log_path=tmp_path / "events.jsonl",
+        state_repository_path=state_repository_path,
+        runtime_id="btc-futures-dry-run-local",
+        symbol="ETHUSDT",
+    )
+    repository.save_runtime_status(
+        RuntimeStatusSnapshot(
+            runtime_id=config.runtime_id,
+            mode=ExecutionMode.DRY_RUN,
+            status=RuntimeHealth.RUNNING,
+            provider="binance_usdm",
+            symbol="BTCUSDT",
+            last_heartbeat_at=NOW,
+        )
+    )
+    repository.save_position(
+        config.runtime_id,
+        PaperPosition(
+            symbol="BTCUSDT",
+            side=PositionSide.FLAT,
+            quantity=Decimal("0"),
+            average_entry_price=None,
+            mark_price=None,
+            unrealized_pnl=Decimal("0"),
+            updated_at=NOW,
+        ),
+    )
+    repository.save_account(
+        config.runtime_id,
+        PaperAccountSnapshot(
+            account_id=config.account_id,
+            currency=config.currency,
+            starting_equity=config.starting_equity,
+            realized_pnl=Decimal("0"),
+            unrealized_pnl=Decimal("0"),
+            equity=config.starting_equity,
+            updated_at=NOW,
+        ),
+    )
+
+    with pytest.raises(IncompatibleExecutionStateError, match="symbol mismatch"):
+        create_local_btc_futures_dry_run_runtime(config, clock=FixedClock(NOW))
+
+
+def test_restore_refuses_to_start_on_starting_equity_mismatch_with_open_position(
+    tmp_path: Path,
+) -> None:
+    state_repository_path = tmp_path / "state"
+    repository = JsonExecutionStateRepository(state_repository_path)
+    config = LocalBtcFuturesDryRunConfig(
+        event_log_path=tmp_path / "events.jsonl",
+        state_repository_path=state_repository_path,
+        starting_equity=Decimal("25000"),
+    )
+    _seed_open_position_state(
+        repository,
+        runtime_id=config.runtime_id,
+        starting_equity=Decimal("10000"),
+    )
+
+    with pytest.raises(IncompatibleExecutionStateError, match="starting_equity mismatch"):
+        create_local_btc_futures_dry_run_runtime(config, clock=FixedClock(NOW))
+
+
+def test_restore_refuses_to_start_on_incomplete_state(tmp_path: Path) -> None:
+    state_repository_path = tmp_path / "state"
+    repository = JsonExecutionStateRepository(state_repository_path)
+    config = LocalBtcFuturesDryRunConfig(
+        event_log_path=tmp_path / "events.jsonl",
+        state_repository_path=state_repository_path,
+    )
+    # Status persisted but position/account never followed (e.g. a crash
+    # between the two writes) -- must refuse, not silently start fresh.
+    _seed_status(repository, config.runtime_id)
+
+    with pytest.raises(IncompatibleExecutionStateError, match="incomplete"):
+        create_local_btc_futures_dry_run_runtime(config, clock=FixedClock(NOW))
+
+
+def test_restore_refuses_to_start_on_corrupt_state_file(tmp_path: Path) -> None:
+    state_repository_path = tmp_path / "state"
+    config = LocalBtcFuturesDryRunConfig(
+        event_log_path=tmp_path / "events.jsonl",
+        state_repository_path=state_repository_path,
+    )
+    state_path = state_repository_path / config.runtime_id / "state.json"
+    state_path.parent.mkdir(parents=True, exist_ok=True)
+    state_path.write_text("{not valid json", encoding="utf-8")
+
+    with pytest.raises(IncompatibleExecutionStateError, match="unreadable"):
+        create_local_btc_futures_dry_run_runtime(config, clock=FixedClock(NOW))
+
+
+def test_restore_refuses_to_start_on_unsupported_state_version(tmp_path: Path) -> None:
+    state_repository_path = tmp_path / "state"
+    config = LocalBtcFuturesDryRunConfig(
+        event_log_path=tmp_path / "events.jsonl",
+        state_repository_path=state_repository_path,
+    )
+    state_path = state_repository_path / config.runtime_id / "state.json"
+    state_path.parent.mkdir(parents=True, exist_ok=True)
+    state_path.write_text(json.dumps({"version": 999}), encoding="utf-8")
+
+    with pytest.raises(IncompatibleExecutionStateError, match="unreadable"):
+        create_local_btc_futures_dry_run_runtime(config, clock=FixedClock(NOW))
+
+
+def test_restore_starts_fresh_when_no_state_exists(tmp_path: Path) -> None:
+    state_repository_path = tmp_path / "state"
+    config = LocalBtcFuturesDryRunConfig(
+        event_log_path=tmp_path / "events.jsonl",
+        state_repository_path=state_repository_path,
+    )
+
+    runtime = create_local_btc_futures_dry_run_runtime(config, clock=FixedClock(NOW))
+
+    assert runtime.initial_state.account.equity == Decimal("10000")
+    assert runtime.initial_state.position.quantity == Decimal("0")

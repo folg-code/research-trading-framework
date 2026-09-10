@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -154,6 +155,9 @@ class JsonExecutionStateRepository:
             paper_equity=account.equity if account is not None else None,
             realized_pnl=account.realized_pnl if account is not None else None,
             unrealized_pnl=account.unrealized_pnl if account is not None else None,
+            account_id=account.account_id if account is not None else None,
+            currency=account.currency if account is not None else None,
+            starting_equity=account.starting_equity if account is not None else None,
             recent_orders=tuple(
                 _order_view_from_json(item)
                 for item in _tail(list(state["orders"]), query.recent_order_limit)
@@ -208,7 +212,12 @@ class JsonExecutionStateRepository:
         path.parent.mkdir(parents=True, exist_ok=True)
         temporary_path = path.with_suffix(f"{path.suffix}.tmp")
         text = json.dumps(state, indent=2, sort_keys=True)
-        temporary_path.write_text(f"{text}\n", encoding="utf-8")
+        # Flush and fsync the temp file before the atomic rename so a power
+        # loss cannot leave a renamed-but-empty document (ADR-0035 S2.5).
+        with temporary_path.open("w", encoding="utf-8") as handle:
+            handle.write(f"{text}\n")
+            handle.flush()
+            os.fsync(handle.fileno())
         temporary_path.replace(path)
 
     def _state_path(self, runtime_id: str) -> Path:
