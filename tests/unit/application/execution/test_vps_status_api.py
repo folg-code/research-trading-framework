@@ -343,6 +343,61 @@ def test_restart_identity_fields_added_for_incompatible_state_detection_never_le
     assert "paper-account-1" not in str(response.body)
 
 
+def test_allowlist_covers_every_field_the_dashboard_http_datasource_reads() -> None:
+    """Schema-compatibility guard (SPRINT_062.md T006): a future accidental narrowing of the v1
+    allowlist should fail *here*, not be discovered later as a silently blank dashboard field.
+
+    ``apps/dashboard`` is a separate Python environment (ADR-0022 rule 2 forbids it importing
+    ``trading_framework``), so this cannot import the dashboard package directly. Instead it
+    hard-codes the exact key set the two known consumers read, as of this writing:
+
+    - ``dashboard_app.datasources.live_paper_http._summary_from_snapshot``: ``runtime_id``,
+      ``symbol``, ``status``, ``last_heartbeat_at``, ``generated_at``, ``mode``.
+    - ``dashboard_app.views.live_paper.live_paper_health`` /
+      ``dashboard_app.views.live_paper.build_dry_run_status_card`` /
+      ``dashboard_app.views.dry_run_status_card``: ``last_heartbeat_at``, ``status``, ``stale``,
+      ``simulated``, ``feed_connection_state``, ``feed_reconnect_count``, ``feed_last_error``
+      (deliberately absent from v1 -- see below), ``symbol``, ``current_position``,
+      ``paper_equity``, ``realized_pnl``, ``unrealized_pnl``, ``recent_bars``, ``recent_fills``,
+      ``recent_events``.
+
+    If a dashboard change starts reading a new top-level key, update this set *and* confirm the
+    key is genuinely in the v1 allowlist (or add it there deliberately, per ADR-0035 SS3.8).
+    """
+    dashboard_read_keys = {
+        "runtime_id",
+        "symbol",
+        "status",
+        "last_heartbeat_at",
+        "generated_at",
+        "mode",
+        "stale",
+        "simulated",
+        "feed_connection_state",
+        "feed_reconnect_count",
+        "current_position",
+        "paper_equity",
+        "realized_pnl",
+        "unrealized_pnl",
+        "recent_bars",
+        "recent_fills",
+        "recent_events",
+    }
+    # `feed_last_error` is a deliberate ADR-0035 SS3.4 narrowing (replaced by
+    # `feed_last_error_code`): the dashboard tolerates its absence via `.get(...)`, so it is
+    # excluded from the required set rather than asserted present.
+
+    config = VpsExecutionStatusApiConfig(runtime_id="vps-runtime-1")
+    repository = FakeExecutionStatusRepository(status=_status())
+
+    response = handle_vps_execution_status_request(
+        "GET", config=config, repository=repository, now=NOW
+    )
+
+    missing = dashboard_read_keys - set(response.body.keys())
+    assert not missing, f"dashboard-read fields missing from the v1 response: {missing}"
+
+
 def test_health_check_reports_healthy_when_no_state_exists() -> None:
     config = VpsExecutionStatusApiConfig(runtime_id="vps-runtime-1")
     repository = FakeExecutionStatusRepository(status=None)
