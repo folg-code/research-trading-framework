@@ -5,13 +5,14 @@
 > (`docs/reference` system/workflows/runbooks/modules split). Content
 > unchanged.
 
-Read-only Streamlit + DuckDB consumer of persisted research artifacts.
+Read-only Streamlit consumer of a versioned, immutable public projection.
 
 ## Boundary
 
 ```text
-mounted workspace (market_data/ + research/)
-  → DashboardQueryService (DuckDB / Parquet)
+private workspace (build/deploy time only)
+  → deny-by-default publication generator
+  → immutable public projection release (read-only)
   → Streamlit pages in apps/dashboard
 ```
 
@@ -23,8 +24,8 @@ PRB-022) — a page file is checked exactly like a `src/` module.
 
 ## Public portfolio publication boundary (ADR-0034 / ADR-0035)
 
-A second, stricter boundary sits inside the one above, for the public
-portfolio path: `Project_Overview.py`, the Signal Quality pages 7–9, the
+A strict publication boundary defines the public portfolio path:
+`Project_Overview.py`, pages 1–6, the Signal Quality pages 7–9, the
 version-controlled Architecture, Engineering, Future Direction and Notes
 pages 10–15, and the workflow publications on pages 16–21 added by Sprint
 061 T002–T004. See
@@ -70,7 +71,7 @@ then by persisted `experiment_id` (or `run_id` when absent). Automatic groups
 are labelled `no editorial study manifest`; a missing persisted verdict is
 shown as `NO VERDICT` and is never derived from metrics. The committed demo
 bundle contains seven path-free real-workspace entries; production generation
-and immutable release selection remain T007.
+and immutable release selection are implemented by the T007 release workflow.
 
 ## Projected workflow evidence (Sprint 061 T006)
 
@@ -235,9 +236,9 @@ The first real consumer of the ADR-0034 publication boundary. Extends
 - Run time ranges resolve from the immutable metadata of the referenced
   published DatasetRef. Predictive Dataset manifests expose their own explicit
   research time range. Both are displayed separately from timeframe.
-- `DASHBOARD_STORAGE_ROOT` must name the actual workspace root. For the current
-  development evidence this is `user_data/workspace`, not its parent
-  `user_data`.
+- Public pages do not accept or require `DASHBOARD_STORAGE_ROOT`. The private
+  workspace is available only to the one-shot release generator and is never
+  mounted into the serving container.
 - The two Future Ideas are explicitly non-as-built. The AI page treats the
   maintainer's Polish direction note as editorial input and publishes English
   copy; the Research Application page remains subordinate to the Draft product
@@ -248,9 +249,11 @@ The first real consumer of the ADR-0034 publication boundary. Extends
 ## Adding a page
 
 1. Add `pages/N_Name.py` using `configure_page` + `render_app_chrome`.
-2. Prefer `DashboardQueryService` / catalog helpers over ad-hoc filesystem walks.
-3. Use `dashboard_app.caching.streamlit.cached_*` helpers with `storage_fingerprint` for expensive reads.
-4. Keep engines out of the page — only read mounted artifacts (or read-only HTTP status).
+2. Read facts through `dashboard_app.publication` and version-controlled content.
+3. Keep engines, scanners, filesystem paths and private-workspace configuration
+   out of the page.
+4. Live operational views may use an explicitly configured read-only HTTP
+   status source; research pages use only the selected public release.
 
 ## Enforced quality boundary (Sprint 061 T007)
 
@@ -270,20 +273,22 @@ The first real consumer of the ADR-0034 publication boundary. Extends
 
 ## Publishing runs to a VPS
 
-1. Produce research artifacts locally (or on a worker) under a workspace root.
-2. Optionally run `scripts/ops/backfill_dashboard_analytics_parquet.py` for older runs.
-3. Rsync the workspace to the VPS host path used by Compose (`user_data` sync is
-   operator-managed — not part of CI/CD).
-4. Follow `apps/dashboard/docs/RUNBOOK.md` (read-only mount + Compose on `:8080`).
-5. App code deploy: merges to `main` under `apps/dashboard/**` trigger
+1. Produce research artifacts locally or on a trusted worker.
+2. Run `scripts/dashboard/deploy_public_dashboard.sh`; its one-shot generator
+   reads the private workspace through a read-only build-time mount, validates a
+   new immutable release and atomically advances `CURRENT`.
+3. Follow `apps/dashboard/docs/RUNBOOK.md`; the serving container mounts only
+   the selected public release read-only and listens on `:8080`.
+4. App code deploy: merges to `main` under `apps/dashboard/**` trigger
    `.github/workflows/deploy-dashboard.yml` (SSH → `git pull --ff-only` →
    `docker compose up --build -d`). Secrets and VPS prep are documented in the
    RUNBOOK **CI/CD** section.
-6. Public TLS for the dashboard hostname belongs to a shared VPS edge proxy
+5. Public TLS for the dashboard hostname belongs to a shared VPS edge proxy
    (outside this repo), not to another application Compose stack.
 
-## Cache / size limits
+## Legacy query cache / size limits
 
-- Streamlit cache keys include a storage fingerprint (top-level `research/` / `market_data/` mtimes).
-- OHLCV reads are windowed with `max_bars` (default 5000).
-- Generic Parquet reads are capped by `max_parquet_rows` (default 50_000).
+The scanner/query compatibility layer retains storage-fingerprint cache keys,
+windowed OHLCV reads (`max_bars=5000`) and capped generic Parquet reads
+(`max_parquet_rows=50_000`). These controls are not part of the public render
+path, which reads the bounded immutable projection.

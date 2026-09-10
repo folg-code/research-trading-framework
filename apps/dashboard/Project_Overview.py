@@ -17,16 +17,10 @@ from dashboard_app.views.overview import (
 from dashboard_app.views.portfolio_content import render_portfolio_evidence_entry_point
 
 configure_page(title="Project Overview")
-settings = render_app_chrome()
+render_app_chrome()
 
 st.title("Trading Research Framework")
 render_product_thesis()
-
-if settings is None:
-    st.warning(
-        "Storage is not configured. Set `DASHBOARD_STORAGE_ROOT` for deployment, "
-        "or open **System diagnostics** in the sidebar for local use."
-    )
 
 st.divider()
 render_shared_domain_map()

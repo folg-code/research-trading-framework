@@ -38,8 +38,8 @@ Active Sprint: SPRINT_061 — Portfolio Story, Content and Direction
   Completion. Decisions D061-01 through D061-04 were accepted by the
   maintainer on 2026-09-10. T001 is Done (#503). T002–T004 are Done (#506)
   after the maintainer accepted the rendered content and architecture.
-  T005 is Done (#510, #511); T006 is Done (#512–#515); T007 is in progress
-  and T008 remains.
+  T005 is Done (#510, #511); T006 is Done (#512–#515); T007 is Done
+  (#516, #517), and T008 awaits final maintainer acceptance after green QA.
 Last Completed Sprint: SPRINT_060 — Signal Quality Portfolio Evidence
   (Phase 16D), 6/6 tasks, merged to `main` via #498 (2026-09-10). It shipped
   the first real Signal Quality publication and persisted-evidence path over
@@ -55,15 +55,18 @@ Full sprint-by-sprint history: §12 below (compact index) and each sprint's
 
 ## 3. Work in Progress
 
-**SPRINT_061 is active.** T001's claim/evidence matrix is merged (#503).
+**SPRINT_061 is active at its final acceptance gate.** T001's claim/evidence
+matrix is merged (#503).
 T002–T004 are merged to the sprint branch (#506) after maintainer acceptance:
 the dashboard now explains the modular data/research architecture, six
 independent workflows, backtester, temporal correctness, Predictive Research
 and the two explicitly future-only directions. T005 extended the safe
 projection to every supported, safely identifiable catalog run and recorded
-the approved visibility/grouping/release decisions (#510, #511). T006–T008 cover the
-projection-backed grouped catalog, technical-page migration, production
-release wiring and final acceptance.
+the approved visibility/grouping/release decisions (#510, #511). T006 shipped
+the projection-backed grouped catalog and technical-page migration (#512–#515).
+T007 shipped immutable production release wiring and root quality coverage
+(#516, #517). T008 automated, independent and desktop QA are green; only final
+maintainer factual/editorial acceptance remains.
 
 SPRINT_057 (Analyst Verdict Artifact, Phase
 16 increment 16A) — 7/7 tasks, working PRs #464 (ADR-0032), #465 (rule
@@ -195,7 +198,7 @@ These have their own canonical owners — this file does not duplicate them:
 | 058 | Signal Quality Scoring (Phase 16, increment 16C) | COMPLETED | 6 / 6 tasks; working PRs #472-#479; integrated to `main` via #480; real-data worked example produced a complete negative result — see `docs/planning/sprints/SPRINT_058.md` Closeout and `docs/reference/BTC_SIGNAL_QUALITY_STUDY.md` |
 | 059 | Portfolio Publication Foundation (Phase 16, increment 16D) | COMPLETED | 6 / 6 tasks; working PRs #484-#489; integrated to `main` via #490 — see `docs/planning/sprints/SPRINT_059.md` §Closeout |
 | 060 | Signal Quality Portfolio Evidence (Phase 16, increment 16D) | COMPLETED | 6/6 tasks; working PRs #491-#496; integrated to `main` via #498 — see `docs/planning/sprints/SPRINT_060.md` |
-| 061 | Portfolio Story, Content and Direction Completion (Phase 16, increment 16D) | IN PROGRESS | T001 Done (#503); T002–T004 Done (#506); T005 Done (#510, #511); T006 Done (#512–#515); T007 in progress; T008 remains — see `docs/planning/sprints/SPRINT_061.md` |
+| 061 | Portfolio Story, Content and Direction Completion (Phase 16, increment 16D) | IN PROGRESS | T001–T007 Done (#503, #506, #510–#517); T008 QA green, maintainer acceptance pending — see `docs/planning/sprints/SPRINT_061.md` |
 
 Sprint numbering has no gap at 050 — it is reserved for Phase 14B and not yet
 opened (see `docs/planning/sprints/SPRINT_053.md` metadata for the numbering

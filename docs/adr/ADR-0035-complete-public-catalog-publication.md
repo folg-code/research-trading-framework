@@ -4,8 +4,8 @@
 
 ACCEPTED
 
-Date: 2026-09-10  
-Owner: Portfolio Dashboard, Sprint 061 T005  
+Date: 2026-09-10
+Owner: Portfolio Dashboard, Sprint 061 T005
 Approved-by: Filip Folga, 2026-09-10 — approval of Sprint 061 decisions
 D061-01 through D061-04 and authorization to proceed after accepting the
 content outcome.

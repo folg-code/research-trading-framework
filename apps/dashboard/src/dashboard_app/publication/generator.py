@@ -112,3 +112,37 @@ def extend_projection_bundle(
         generated_at_utc=generated_at_utc,
         artifacts={**base_bundle.artifacts, **extension.artifacts},
     )
+
+
+def refresh_catalog_projection_bundle(
+    base_bundle: PublicProjectionBundle,
+    raw_artifacts: list[RawArtifactInput],
+    *,
+    generated_at_utc: datetime,
+) -> PublicProjectionBundle:
+    """Refresh stable catalog entries while preserving curated evidence.
+
+    Re-running production publication against the same workspace necessarily
+    rediscovers stable catalog artifact ids.  Only a catalog entry may replace
+    an earlier artifact with the same id and role.  Any cross-role or curated
+    artifact collision remains a fail-closed error.
+    """
+    from dashboard_app.publication.catalog import RESEARCH_CATALOG_ENTRY_ROLE
+
+    extension = build_projection_bundle(raw_artifacts, generated_at_utc=generated_at_utc)
+    artifacts = dict(base_bundle.artifacts)
+    for artifact_id, artifact in extension.artifacts.items():
+        existing = artifacts.get(artifact_id)
+        if existing is not None and (
+            existing.artifact_role != RESEARCH_CATALOG_ENTRY_ROLE
+            or artifact.artifact_role != RESEARCH_CATALOG_ENTRY_ROLE
+        ):
+            msg = f"duplicate public artifact_id {artifact_id!r} across projection bundles"
+            raise DuplicateArtifactIdError(msg)
+        artifacts[artifact_id] = artifact
+    return PublicProjectionBundle(
+        schema_version=PUBLIC_PROJECTION_SCHEMA_VERSION,
+        generator_version=GENERATOR_VERSION,
+        generated_at_utc=generated_at_utc,
+        artifacts=artifacts,
+    )

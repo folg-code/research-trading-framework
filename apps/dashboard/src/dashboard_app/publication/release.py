@@ -16,7 +16,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 
-from dashboard_app.publication.generator import extend_projection_bundle
+from dashboard_app.publication.generator import refresh_catalog_projection_bundle
 from dashboard_app.publication.paths import STUDY_MANIFESTS_ROOT, projection_bundle_path
 from dashboard_app.publication.projection import PublicProjectionBundle
 from dashboard_app.publication.validation import (
@@ -67,7 +67,7 @@ def prepare_public_projection_release(
     base_bundle = _load_bundle(base_bundle_path, label="base")
     raw_inputs, skipped_count = discover_catalog_inputs(storage_root)
     generated_at = generated_at_utc or datetime.now(UTC)
-    bundle = extend_projection_bundle(
+    bundle = refresh_catalog_projection_bundle(
         base_bundle,
         raw_inputs,
         generated_at_utc=generated_at,

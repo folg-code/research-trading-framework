@@ -15,9 +15,7 @@ that acceptance check.
 
 from __future__ import annotations
 
-import os
 import re
-import tempfile
 from pathlib import Path
 
 from streamlit.testing.v1 import AppTest
@@ -36,13 +34,8 @@ _PROJECT_OVERVIEW_PATH = str(Path(__file__).resolve().parents[1] / "Project_Over
 
 
 def _run_overview_app() -> AppTest:
-    with tempfile.TemporaryDirectory() as storage_root:
-        os.environ["DASHBOARD_STORAGE_ROOT"] = storage_root
-        try:
-            app = AppTest.from_file(_PROJECT_OVERVIEW_PATH)
-            app.run(timeout=30)
-        finally:
-            del os.environ["DASHBOARD_STORAGE_ROOT"]
+    app = AppTest.from_file(_PROJECT_OVERVIEW_PATH)
+    app.run(timeout=30)
     return app
 
 
@@ -50,6 +43,9 @@ def test_overview_renders_without_exception() -> None:
     app = _run_overview_app()
 
     assert not app.exception
+    assert not app.warning
+    assert not app.error
+    assert not app.text_input
 
 
 def test_overview_title_and_thesis_render_before_workflow_detail() -> None:

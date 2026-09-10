@@ -28,7 +28,7 @@ if str(_DASHBOARD_SRC) not in sys.path:
 
 from dashboard_app.publication.generator import (  # noqa: E402
     build_projection_bundle,
-    extend_projection_bundle,
+    refresh_catalog_projection_bundle,
 )
 from dashboard_app.publication.paths import projection_bundle_path  # noqa: E402
 from dashboard_app.publication.projection import PublicProjectionBundle  # noqa: E402
@@ -92,7 +92,7 @@ def main() -> int:
     if args.without_base_bundle:
         bundle = build_projection_bundle(raw_inputs, generated_at_utc=generated_at)
     else:
-        bundle = extend_projection_bundle(
+        bundle = refresh_catalog_projection_bundle(
             _load_base_bundle(args.base_bundle),
             raw_inputs,
             generated_at_utc=generated_at,

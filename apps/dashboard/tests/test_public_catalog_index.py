@@ -165,7 +165,7 @@ def test_path_loader_fails_closed_for_invalid_catalog_entry(tmp_path: Path) -> N
     result = load_public_catalog_from_paths(bundle_path, tmp_path / "manifests")
 
     assert isinstance(result, PublicationUnavailable)
-    assert result.reason == "catalog_invalid"
+    assert result.reason == "schema_mismatch"
 
 
 def test_path_loader_fails_closed_for_dangling_study_reference(tmp_path: Path) -> None:
