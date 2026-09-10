@@ -1,15 +1,17 @@
 # Sprint 060: Signal Quality Portfolio Evidence (Phase 16, increment 16D)
 
-Status: 6/6 tasks Done — the maintainer approved Decisions D060-01 and
-D060-03 at sprint opening (2026-09-09); D060-02 was already inherited from
-the accepted Sprint 059 / DASHBOARD_DEVELOPMENT_DIRECTION.md direction.
+Status: COMPLETED — 6/6 tasks Done, integrated to `main` via #498
+(2026-09-10). The maintainer approved Decisions D060-01 and D060-03 at
+sprint opening (2026-09-09); D060-02 was already inherited from the
+accepted Sprint 059 / DASHBOARD_DEVELOPMENT_DIRECTION.md direction.
 T001 is Done (field inventory frozen, one STOP-and-report finding
 resolved, #491); T002 is Done (#492); T003 (study view + charts, consuming
 a real committed public-projection bundle) is Done (#493); T004 (routing
 and `Explore Evidence` navigation) is Done (#494); T005
 (contract/regression tests) is Done (#495); T006 (visual QA, maintainer
-walkthrough, doc reconciliation) is Done (#496). Pending the final
-integration PR into `main`.
+walkthrough, doc reconciliation) is Done (#496). Two post-review fixes
+(#499, #500 — see §Closeout) landed on the sprint branch before the final
+integration PR (#498) merged to `main`.
 Goal: Deliver the first complete portfolio story from Signal/Predictive
 Research context through living methodology and the BTC Signal Quality study
 to simplified persisted evidence and the existing technical view.
