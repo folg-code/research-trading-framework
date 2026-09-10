@@ -138,7 +138,7 @@ Out of scope:
   single-file-scoped, per PRB-023) `mypy` reports no new errors from this
   sprint's diff; it still reports 3 pre-existing `import-untyped` errors
   for `plotly`/`plotly.subplots` in `charts/builders.py` (present since
-  Sprint 044, unrelated to this sprint) that this sprint did not
+  Sprint 028, unrelated to this sprint) that this sprint did not
   introduce and does not fix.
 - Documentation reconciliation: `docs/reference/modules/DASHBOARD_APPLICATION.md`
   gained a "BTC Signal Quality study and evidence path (Sprint 060)"
