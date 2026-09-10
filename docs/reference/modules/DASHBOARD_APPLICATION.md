@@ -52,7 +52,9 @@ fail or are skipped before sanitization. Missing persisted verdicts stay absent
 so the UI can show `NO VERDICT` without inference. The build-time
 `scripts/dashboard/generate_public_projection.py` command can append these
 entries to the committed study fixture and writes atomically to an explicit
-output path. Production versioning and deployment selection remain T007.
+output path. Sprint 061 T007 adds immutable production releases under a host
+publication root. Generation validates a candidate before atomically replacing
+the `CURRENT` release-id pointer; an existing release is never overwritten.
 
 ## Projection-backed Research Catalog (Sprint 061 T006)
 

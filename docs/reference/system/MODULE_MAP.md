@@ -101,6 +101,7 @@ apps/dashboard/src/dashboard_app/
         catalog.py                   # Safe research_catalog_entry identities (Sprint 061 T005)
         catalog_index.py             # Projection-only study -> experiment -> run catalog (Sprint 061 T006)
         identity.py                  # Conservative projection-local identifier syntax
+        release.py                   # Validated immutable release + atomic CURRENT selection
         workspace.py                 # Build-time-only workspace discovery; never a page dependency
     content/                         # Version-controlled content loader + slug routing (ADR-0034, Sprint 059)
     catalog/predictive_quality.py   # Predictive Research quality flags (Sprint 044)
@@ -140,6 +141,7 @@ scripts/dashboard/
     generate_btc_signal_quality_projection.py  # Build-time public-projection generator (Sprint 060 T003);
                                                 # output is committed to apps/dashboard/publication_data/
     generate_public_projection.py              # Every safe research run -> catalog projection (Sprint 061 T005)
+    deploy_public_dashboard.sh                 # One-shot generation, selection and Compose deploy (T007)
 
 apps/cli/src/trading_cli/
     cli.py              # argparse subparser tree + dispatch
