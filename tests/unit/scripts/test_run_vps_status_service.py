@@ -160,9 +160,56 @@ def test_status_endpoint_returns_503_for_corrupt_state(tmp_path: Path) -> None:
     assert body["schema_version"] == SCHEMA_VERSION
 
 
+def test_status_endpoint_supports_head_request(tmp_path: Path) -> None:
+    """The wildcard ``/status`` route must still honor HEAD, not only GET, at the real
+    aiohttp transport layer (the pure handler is covered separately in
+    ``test_vps_status_api.py``, but wiring could still break HEAD end-to-end)."""
+    _write_raw_state(tmp_path, "vps-runtime-1", {})
+    app = run_vps_status_service.create_app(_config(tmp_path, "vps-runtime-1"))
+
+    status, headers, _raw_body = _request(app, "/status", method="HEAD")
+
+    assert status == 200
+    assert headers["Cache-Control"] == "no-store"
+
+
+def test_status_endpoint_sets_no_cors_headers(tmp_path: Path) -> None:
+    """ADR-0035 section 3.7: no CORS wildcard is needed or set; the only caller is
+    server-side on the private network."""
+    _write_raw_state(tmp_path, "vps-runtime-1", {})
+    app = run_vps_status_service.create_app(_config(tmp_path, "vps-runtime-1"))
+
+    _status, headers, _raw_body = _request(app, "/status")
+
+    assert not any(name.lower().startswith("access-control") for name in headers)
+    assert "origin" not in {name.lower() for name in headers}
+
+
 def test_load_service_runtime_config_requires_state_path() -> None:
     with pytest.raises(ConfigurationError):
         run_vps_status_service.load_service_runtime_config({})
+
+
+def test_load_service_runtime_config_rejects_invalid_port(tmp_path: Path) -> None:
+    with pytest.raises(ConfigurationError):
+        run_vps_status_service.load_service_runtime_config(
+            {
+                "TRADING_FRAMEWORK_STATUS_STATE_PATH": str(tmp_path),
+                "TRADING_FRAMEWORK_STATUS_PORT": "not-a-port",
+            }
+        )
+
+
+def test_main_returns_1_and_prints_error_when_state_path_missing(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    monkeypatch.delenv("TRADING_FRAMEWORK_STATUS_STATE_PATH", raising=False)
+
+    exit_code = run_vps_status_service.main([])
+
+    assert exit_code == 1
+    captured = capsys.readouterr()
+    assert "TRADING_FRAMEWORK_STATUS_STATE_PATH" in captured.err
 
 
 def test_load_service_runtime_config_from_env(tmp_path: Path) -> None:
