@@ -112,3 +112,26 @@ def test_vps_btc_futures_worker_cli_exits_distinctly_on_refuse_to_start(
     captured = capsys.readouterr()
     assert exit_code == 2
     assert "incompatible" in captured.err
+
+
+def test_vps_btc_futures_worker_cli_reports_unrecoverable_non_framework_error(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """A non-TradingFrameworkError failure (e.g. network/OS error) must still exit
+
+    non-zero with a single clean stderr line, not an uncaught traceback that
+    could print internal container paths (ADR-0035 SS4.3, SS4.7).
+    """
+    monkeypatch.delenv("TRADING_FRAMEWORK_VPS_QUANTITY", raising=False)
+
+    def fake_run(config: Any) -> FakeResult:
+        raise ConnectionError("simulated feed connection failure")
+
+    with patch.object(run_vps_btc_futures_worker, "run_vps_btc_futures_dry_run_sync", fake_run):
+        exit_code = run_vps_btc_futures_worker.main()
+
+    captured = capsys.readouterr()
+    assert exit_code == 1
+    assert "simulated feed connection failure" in captured.err
+    assert "Traceback" not in captured.err

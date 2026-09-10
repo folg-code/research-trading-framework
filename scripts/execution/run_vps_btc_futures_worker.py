@@ -48,6 +48,15 @@ def main() -> int:
     except TradingFrameworkError as exc:
         print(str(exc), file=sys.stderr)
         return 1
+    except Exception as exc:  # last-resort unrecoverable-failure boundary
+        # The reused runtime loop already persisted FAILED (best-effort) and
+        # re-raised whatever it caught, which need not be a
+        # TradingFrameworkError (e.g. a feed/network/OS error). Report a
+        # single-line message here instead of letting an uncaught traceback
+        # print unbounded internal detail, including container-local
+        # absolute paths, to stderr (ADR-0035 SS4.7).
+        print(f"unrecoverable worker failure: {exc}", file=sys.stderr)
+        return 1
 
     print(
         json.dumps(
