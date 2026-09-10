@@ -105,6 +105,7 @@ apps/dashboard/src/dashboard_app/
     content/                         # Version-controlled content loader + slug routing (ADR-0034, Sprint 059)
     catalog/predictive_quality.py   # Predictive Research quality flags (Sprint 044)
     views/predictive.py             # Predictive Research picker/leaderboard/detail view models
+    views/workflow_evidence.py      # Projection-only representative workflow evidence (Sprint 061 T006)
     pages/6_Predictive_Research.py  # Predictive Research page
     views/study.py                  # BTC Signal Quality study view + charts (Sprint 060 T003)
     views/portfolio_content.py      # Version-controlled portfolio pages and direction entries (Sprints 060-061)
@@ -127,7 +128,8 @@ apps/dashboard/src/dashboard_app/
 `pages/1_Research_Catalog.py` now consumes `publication/catalog_index.py`
 exclusively. Its public hierarchy is manifest-first with a deterministic
 workflow/DatasetRef fallback and contains no `storage_path`; scanner-backed
-technical evidence remains temporarily limited to pages 2–6.
+technical evidence remains temporarily limited to page 6. Pages 2–4 use the
+public projection; Live Paper uses its read-only HTTP status source.
 
 Catalog presentation resolves research time ranges from Predictive Dataset
 manifests or the immutable metadata behind `source_dataset_ref`. Strategy runs
