@@ -133,6 +133,7 @@ below).
 | [ADR-0032](ADR-0032-predictive-run-verdict-artifact.md) | Predictive Run Verdict Artifact: Vocabulary, Rule Set, and Sidecar Schema | ACCEPTED | Sprint 057 |
 | [ADR-0033](ADR-0033-predictive-score-delivery-boundary.md) | Predictive Score Delivery Boundary for Strategy Research (16C) | ACCEPTED | Sprint 058 |
 | [ADR-0034](ADR-0034-portfolio-publication-boundary.md) | Public Portfolio Publication Boundary: Projection, Study Identity, Content and Routing (16D) | ACCEPTED | Sprint 059 |
+| [ADR-0035](ADR-0035-complete-public-catalog-publication.md) | Complete Public Catalog Publication and Immutable Releases | ACCEPTED | Sprint 061 |
 | ADR-0004 | Independent Research and Execution Workflows | PLANNED | TBD |
 | ADR-0009 | Batch Backtest vs Replay Execution | PLANNED | TBD |
 | ADR-0010 | Working Component and Model Fingerprints | PLANNED | TBD |

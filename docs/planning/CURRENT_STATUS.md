@@ -26,35 +26,23 @@ below. Detailed task state belongs in `docs/planning/sprints/`.
 ## 2. Status Metadata
 
 ```text
-Status Date: 2026-09-09
+Status Date: 2026-09-10
 Current Phase: Phase 16 — Quant Research Workbench. Increments 16A–16C are
-  COMPLETE. Sprint 058 (Signal Quality Scoring, 6/6) was merged to `main`
-  via #480 on 2026-09-09 and produced the real BTC Signal Quality evidence
-  used by the next dashboard increment.
+  COMPLETE. Increment 16D — Portfolio Dashboard — is in progress.
 Current Increment: 16D — Portfolio Dashboard, IN PROGRESS. The accepted
   `DASHBOARD_DEVELOPMENT_DIRECTION.md` is authoritative for this increment
   and replaces the former Quant Lab framing. The feature PRD is ACCEPTED.
-  Sprint 059 (publication foundation) is COMPLETE; Sprint 060 (Signal
-  Quality portfolio evidence) is 6/6 tasks Done, pending the final
-  integration PR into `main`.
-Active Sprint: SPRINT_060 — Signal Quality Portfolio Evidence, 6/6 tasks
-  Done, pending the final integration PR into `main`. Decisions D060-01 and
-  D060-03 were approved by the maintainer at sprint opening (2026-09-09);
-  D060-02 was inherited from the accepted direction. T001 is Done (#491) —
-  see `SPRINT_060_T001_FIELD_INVENTORY.md` for the frozen field inventory
-  and its STOP-and-report resolution (rejected-trade counts are
-  narrative-sourced, not persisted). T002 is Done (#492); T003 (study view
-  + charts, real committed public-projection bundle) is Done (#493); T004
-  (routing + `Explore Evidence` navigation) is Done (#494); T005
-  (contract/regression tests) is Done (#495); T006 (visual QA, maintainer
-  walkthrough, doc reconciliation) is Done (#496).
-Last Completed Sprint: SPRINT_059 — Portfolio Publication Foundation
-  (Phase 16D), 6/6 tasks, merged to `main` via #490 (2026-09-09). ADR-0034
-  records the accepted publication boundary; `dashboard_app.publication`
-  and `dashboard_app.content` implement it; the dashboard import-boundary
-  test now covers `apps/dashboard/pages/*.py` (PRB-022 resolved); the
-  Project Overview names all six independent workflows with accurate
-  maturity labels. See `docs/planning/sprints/SPRINT_059.md` §Closeout.
+  Sprints 059 and 060 are COMPLETE; Sprint 061 completes the public story,
+  catalog migration and production publication lifecycle.
+Active Sprint: SPRINT_061 — Portfolio Story, Content and Direction
+  Completion. Decisions D061-01 through D061-04 were accepted by the
+  maintainer on 2026-09-10. T001 is Done (#503). T002–T004 are Done (#506)
+  after the maintainer accepted the rendered content and architecture.
+  T005 is Done (#510, #511); T006 is in progress and T007–T008 remain.
+Last Completed Sprint: SPRINT_060 — Signal Quality Portfolio Evidence
+  (Phase 16D), 6/6 tasks, merged to `main` via #498 (2026-09-10). It shipped
+  the first real Signal Quality publication and persisted-evidence path over
+  ADR-0034's deny-by-default projection.
 Parallel state: Phase 15 is COMPLETE. Phase 14A is COMPLETE; Phase 14B /
   reserved Sprint 050 remains not planned and not started.
 Overall Status: STABLE
@@ -66,27 +54,15 @@ Full sprint-by-sprint history: §12 below (compact index) and each sprint's
 
 ## 3. Work in Progress
 
-**SPRINT_060 is 6/6 tasks Done, pending the final integration PR into `main`.**
-Sprint 059 (Portfolio Publication Foundation) is
-complete: safe public projection (`dashboard_app.publication`), a
-version-controlled content loader and slug-routing contract
-(`dashboard_app.content`), a strengthened `apps/dashboard/pages/*.py`
-import boundary, and a refreshed overview naming all six independent
-workflows with accurate maturity labels.
-
-Sprint 060 — Signal Quality Portfolio Evidence: methodology, the simplified
-BTC Signal Quality study, three persisted-fact charts and `Explore Evidence`
-navigation into the existing Predictive/Strategy Research detail pages.
-T001 (field inventory), T002 (workflow/methodology content), T003 (study
-view + charts) and T004 (routing: new `Signal Quality Workflow`, `Signal
-Quality Methodology` and `BTC Signal Quality Study` pages, linked overview
--> workflow -> methodology -> study in three navigation actions, plus
-`Explore Evidence` links into the existing Predictive/Strategy Research
-pages) and T005 (contract and regression tests for traceability,
-non-`INCONCLUSIVE` evidence, absent optional artifacts, and no
-dashboard-side verdict/metric logic) are Done. T006 (desktop visual QA,
-maintainer-observed walkthrough, doc reconciliation) is Done (#496) — the
-maintainer walked the rendered path locally on 2026-09-09 and accepted it.
+**SPRINT_061 is active.** T001's claim/evidence matrix is merged (#503).
+T002–T004 are merged to the sprint branch (#506) after maintainer acceptance:
+the dashboard now explains the modular data/research architecture, six
+independent workflows, backtester, temporal correctness, Predictive Research
+and the two explicitly future-only directions. T005 extended the safe
+projection to every supported, safely identifiable catalog run and recorded
+the approved visibility/grouping/release decisions (#510, #511). T006–T008 cover the
+projection-backed grouped catalog, technical-page migration, production
+release wiring and final acceptance.
 
 SPRINT_057 (Analyst Verdict Artifact, Phase
 16 increment 16A) — 7/7 tasks, working PRs #464 (ADR-0032), #465 (rule
@@ -133,12 +109,9 @@ the binary pass (run `faa6983acd03f846`, `sklearn.logistic`) — see
 `docs/planning/sprints/SPRINT_052.md` §13 Review. This closes Phase 15 as a
 whole.
 
-**Next planned capability:** Phase 16D — Portfolio Dashboard. Its accepted
-direction supersedes the earlier Quant Lab description for this increment
-only. The implementation proposal is split into DRAFT Sprints 059 and 060;
-the PRD and Sprint 059 architecture decisions still require maintainer
-approval. Increments 16E–16G remain directional and are not pulled into this
-plan.
+**Current capability:** Phase 16D — Portfolio Dashboard. Sprints 059 and 060
+are complete; Sprint 061 is the active completion sprint. Increments 16E–16G
+remain directional and are not pulled into this plan.
 
 ---
 
@@ -220,7 +193,8 @@ These have their own canonical owners — this file does not duplicate them:
 | 057 | Analyst Verdict Artifact (Phase 16, increment 16A) | COMPLETED | 7 / 7 tasks; working PRs #464-#469 into `sprint/analyst-verdict-artifact`; integrated to `main` via #471 — see `docs/planning/sprints/SPRINT_057.md` §13 Review |
 | 058 | Signal Quality Scoring (Phase 16, increment 16C) | COMPLETED | 6 / 6 tasks; working PRs #472-#479; integrated to `main` via #480; real-data worked example produced a complete negative result — see `docs/planning/sprints/SPRINT_058.md` Closeout and `docs/reference/BTC_SIGNAL_QUALITY_STUDY.md` |
 | 059 | Portfolio Publication Foundation (Phase 16, increment 16D) | COMPLETED | 6 / 6 tasks; working PRs #484-#489; integrated to `main` via #490 — see `docs/planning/sprints/SPRINT_059.md` §Closeout |
-| 060 | Signal Quality Portfolio Evidence (Phase 16, increment 16D) | OPEN | D060-01/D060-03 approved at opening (2026-09-09); 6/6 tasks Done (#491-#496), pending integration PR to `main` — see `docs/planning/sprints/SPRINT_060.md` |
+| 060 | Signal Quality Portfolio Evidence (Phase 16, increment 16D) | COMPLETED | 6/6 tasks; working PRs #491-#496; integrated to `main` via #498 — see `docs/planning/sprints/SPRINT_060.md` |
+| 061 | Portfolio Story, Content and Direction Completion (Phase 16, increment 16D) | IN PROGRESS | T001 Done (#503); T002–T004 Done (#506); T005 Done (#510, #511); T006 in progress; T007–T008 remain — see `docs/planning/sprints/SPRINT_061.md` |
 
 Sprint numbering has no gap at 050 — it is reserved for Phase 14B and not yet
 opened (see `docs/planning/sprints/SPRINT_053.md` metadata for the numbering

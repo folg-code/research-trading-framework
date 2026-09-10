@@ -1,10 +1,10 @@
 # Phase 16D — Portfolio Dashboard
 
 ```text
-Status: PLANNING
+Status: IN PROGRESS
 Product direction: ACCEPTED (maintainer, 2026-09-09)
-PRD: DRAFT
-Sprint plans: SPRINT_059 and SPRINT_060 are DRAFT; neither is opened
+PRD: ACCEPTED (maintainer, 2026-09-09)
+Sprint plans: SPRINT_059 and SPRINT_060 are COMPLETE; SPRINT_061 is ACTIVE
 ```
 
 This file is the detailed roadmap entry for Phase 16 increment 16D. The phase
@@ -33,6 +33,9 @@ upstream verdicts and evidence; it does not create an accept/reject opinion.
   Signal Quality study, a simplified persisted result and `Explore Evidence`.
 - Version-controlled public content and reusable presentation components that
   can support later workflow slices without implying one mandatory pipeline.
+- A complete study-grouped catalog over an automatically generated safe
+  projection, representative evidence for every workflow and an immutable,
+  recoverable production publication lifecycle (Sprint 061).
 
 ## Dependencies
 
@@ -67,22 +70,22 @@ upstream verdicts and evidence; it does not create an accept/reject opinion.
 
 ## Delivery slices
 
-- **Sprint 059 — Portfolio Publication Foundation (DRAFT):** settle the public
+- **Sprint 059 — Portfolio Publication Foundation (COMPLETE):** settle the public
   projection and study-identity boundary, strengthen the app boundary test,
   establish content/routing contracts and ship the portfolio overview.
-- **Sprint 060 — Signal Quality Portfolio Evidence (DRAFT):** publish the
+- **Sprint 060 — Signal Quality Portfolio Evidence (COMPLETE):** publish the
   methodology and the first simplified study view, connect it to the technical
   evidence, and validate the complete desktop walkthrough.
+- **Sprint 061 — Portfolio Story, Content and Direction Completion (ACTIVE):**
+  complete the public narrative, safe study-grouped catalog, representative
+  workflow evidence and immutable production publication lifecycle.
 
-Neither sprint is opened by this roadmap entry. Sprint 059 requires maintainer
-approval of its architecture decisions and the PRD. Sprint 060 depends on
-Sprint 059's accepted contracts and completed foundation.
+## Extended completion scope
 
-## Deferred beyond this PRD
-
-The complete study-grouped catalog, simplified result pages for all workflows,
-Engineering, Future Direction and Research & Engineering Notes remain under
-the accepted direction but require later product increments and PRDs.
+Sprint 061 pulls the remaining accepted Direction outcomes into the completion
+scope: the study-grouped catalog, one representative result per workflow,
+Engineering, Future Direction and Research & Engineering Notes. This extends
+beyond the first-slice PRD without changing the read-only product boundary.
 
 ## Main risks
 
