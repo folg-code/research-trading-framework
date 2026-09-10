@@ -25,8 +25,19 @@ import os
 import tempfile
 from collections.abc import Iterator
 from contextlib import contextmanager
+from pathlib import Path
 
 from streamlit.testing.v1 import AppTest
+
+#: Absolute, not "Project_Overview.py" -- AppTest.from_file resolves a
+#: relative path against the current working directory first (falling back
+#: to the calling test file's own directory), so a bare relative string
+#: only works when pytest happens to be invoked from apps/dashboard. CI
+#: invokes it from the repo root (`pytest apps/dashboard/tests -q`), where
+#: neither resolution finds this file. `AppTest.switch_page` below still
+#: resolves each `pages/...` target relative to this absolute path's own
+#: parent directory, so it is unaffected by this change.
+_PROJECT_OVERVIEW_PATH = str(Path(__file__).resolve().parents[1] / "Project_Overview.py")
 
 
 @contextmanager
@@ -41,7 +52,7 @@ def _unconfigured_storage() -> Iterator[None]:
 
 def _run_overview() -> AppTest:
     with _unconfigured_storage():
-        app = AppTest.from_file("Project_Overview.py")
+        app = AppTest.from_file(_PROJECT_OVERVIEW_PATH)
         app.run(timeout=30)
     return app
 

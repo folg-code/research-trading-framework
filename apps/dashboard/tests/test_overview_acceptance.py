@@ -17,6 +17,7 @@ from __future__ import annotations
 import os
 import re
 import tempfile
+from pathlib import Path
 
 from streamlit.testing.v1 import AppTest
 
@@ -24,12 +25,20 @@ from dashboard_app.views.overview import WORKFLOW_ENTRIES
 
 _BADGE_PATTERN = re.compile(r":(\w+)-badge\[([^\]]+)\]")
 
+#: Absolute, not "Project_Overview.py" -- AppTest.from_file resolves a
+#: relative path against the current working directory first (falling back
+#: to the calling test file's own directory), so a bare relative string
+#: only works when pytest happens to be invoked from apps/dashboard. CI
+#: invokes it from the repo root (`pytest apps/dashboard/tests -q`), where
+#: neither resolution finds this file.
+_PROJECT_OVERVIEW_PATH = str(Path(__file__).resolve().parents[1] / "Project_Overview.py")
+
 
 def _run_overview_app() -> AppTest:
     with tempfile.TemporaryDirectory() as storage_root:
         os.environ["DASHBOARD_STORAGE_ROOT"] = storage_root
         try:
-            app = AppTest.from_file("Project_Overview.py")
+            app = AppTest.from_file(_PROJECT_OVERVIEW_PATH)
             app.run(timeout=30)
         finally:
             del os.environ["DASHBOARD_STORAGE_ROOT"]
