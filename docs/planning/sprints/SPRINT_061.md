@@ -2,7 +2,7 @@
 
 Status: OPEN — maintainer approved Sprint 061 and Decisions D061-01 through
 D061-04 at sprint opening (2026-09-10). T001 is Done (#503); T002–T004 are
-in review.
+Done (#506); T005 is in progress.
 Goal: Make the public dashboard explain the project and its infrastructure
 accurately and convincingly, then complete the remaining Portfolio Dashboard
 direction with two explicit Future Ideas, a safe study-grouped catalog,
@@ -129,12 +129,12 @@ runtime decision requires separate discovery/architecture approval.
 | Task | Outcome | Dependencies | Ownership | Risk | Status | PR |
 |---|---|---|---|---|---|---|
 | T001 | Build a public-content evidence matrix mapping every project/infrastructure claim to as-built code, ADR, workflow reference, runbook or persisted evidence; mark stale, conflicting and future-only claims before authoring | approved sprint | product content + architecture/reference docs | high | Done | [#503](https://github.com/folg-code/research-trading-framework/pull/503) |
-| T002 | Author and review the core portfolio story: product purpose, shared-domain architecture, six independent workflows, deterministic research lifecycle, persisted evidence/provenance, application boundaries, CI/quality and deployment/runtime infrastructure | T001 | `apps/dashboard/content`, architecture and workflow pages | high | In review | pending |
-| T003 | Create the two `FUTURE IDEAS` cards and stable detail pages. Distill the attached AI-infrastructure note and the draft Research Application vision into accessible public copy, with current-state boundary, target idea, staged evolution and explicit non-as-built status | T001; parallel with T002 | dashboard content + Future Direction view | standard | In review | pending |
-| T004 | Rework Home and navigation around the reviewed content; add stable Architecture, Engineering, Future Direction and Research & Engineering Notes pages, 2–3 real featured studies and the two Future Ideas cards | T002–T003 | dashboard content/views/routes | high | In review | pending |
-| T005 | Reconcile `CURRENT_STATUS`, `ROADMAP`, Phase 16D and planning indexes; record approved D061-01–04 in ADR-0034 or a superseding ADR; then generalize public roles, safe identities and projection generation across supported research artifacts | T001; D061-01/02 approval | planning + architecture + `dashboard_app.publication` | high | Blocked by D061-01/02 | — |
+| T002 | Author and review the core portfolio story: product purpose, shared-domain architecture, six independent workflows, deterministic research lifecycle, persisted evidence/provenance, application boundaries, CI/quality and deployment/runtime infrastructure | T001 | `apps/dashboard/content`, architecture and workflow pages | high | Done | [#506](https://github.com/folg-code/research-trading-framework/pull/506) |
+| T003 | Create the two `FUTURE IDEAS` cards and stable detail pages. Distill the attached AI-infrastructure note and the draft Research Application vision into accessible public copy, with current-state boundary, target idea, staged evolution and explicit non-as-built status | T001; parallel with T002 | dashboard content + Future Direction view | standard | Done | [#506](https://github.com/folg-code/research-trading-framework/pull/506) |
+| T004 | Rework Home and navigation around the reviewed content; add stable Architecture, Engineering, Future Direction and Research & Engineering Notes pages, 2–3 real featured studies and the two Future Ideas cards | T002–T003 | dashboard content/views/routes | high | Done | [#506](https://github.com/folg-code/research-trading-framework/pull/506) |
+| T005 | Reconcile `CURRENT_STATUS`, `ROADMAP`, Phase 16D and planning indexes; record approved D061-01–04 in ADR-0034 or a superseding ADR; then generalize public roles, safe identities and projection generation across supported research artifacts | T001; D061-01/02 approval | planning + architecture + `dashboard_app.publication` | high | In progress | — |
 | T006 | Replace the scanner-backed catalog with projection-backed study → experiment → run grouping; migrate pages 2–6 away from public internal paths and add one representative persisted-evidence view per workflow | T005; can split by catalog/workflow ownership | dashboard catalog, data sources and technical pages | high | Ready after T005 | — |
-| T007 | Implement approved production bundle generation/deploy wiring; bring dashboard/scripts into root quality coverage, scan `scripts/dashboard/`, and resolve or re-scope PRB-023/024 | T004–T006; D061-03 approval | deploy + root quality config + tests | high | Blocked by D061-03 | — |
+| T007 | Implement approved production bundle generation/deploy wiring; bring dashboard/scripts into root quality coverage, scan `scripts/dashboard/`, and resolve or re-scope PRB-023/024 | T004–T006; D061-03 approval | deploy + root quality config + tests | high | Ready after T006 | — |
 | T008 | Run factual editorial review, contract/security/regression tests, desktop visual QA and a maintainer-observed walkthrough; reconcile module/reference docs | T002–T007 | independent content review + testing + documentation | high | Ready after implementation | — |
 
 ## Acceptance criteria
