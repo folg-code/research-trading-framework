@@ -22,7 +22,11 @@ touching the existing ones (ADR-0034 S5, additive).
 from __future__ import annotations
 
 from collections.abc import Callable, Mapping
+from datetime import datetime
 from typing import Any
+
+from dashboard_app.publication.errors import UnsafePublicIdentityError
+from dashboard_app.publication.identity import is_safe_identity_value, is_safe_public_text
 
 #: Top-level fields of a persisted ``verdict.json`` payload
 #: (`trading_framework.application.predictive_research.evaluate_run_verdict`)
@@ -100,6 +104,44 @@ _THRESHOLD_SENSITIVITY_FINANCE_ALLOWED_FIELDS: frozenset[str] = frozenset({"cove
 #: to copy.
 _STRATEGY_RUN_SUMMARY_ALLOWED_FIELDS: frozenset[str] = frozenset(
     {"run_id", "trade_count", "win_rate", "net_pnl"}
+)
+
+_RESEARCH_CATALOG_ENTRY_ALLOWED_FIELDS: frozenset[str] = frozenset(
+    {
+        "workflow",
+        "run_id",
+        "title",
+        "created_at_utc",
+        "source_dataset_ref",
+        "evaluation_timeframe",
+        "framework_version",
+        "artifact_schema_version",
+        "research_scope",
+        "experiment_id",
+        "time_range_start_utc",
+        "time_range_end_utc",
+        "verdict",
+    }
+)
+_RESEARCH_CATALOG_IDENTITY_FIELDS = frozenset(
+    {
+        "workflow",
+        "run_id",
+        "source_dataset_ref",
+        "evaluation_timeframe",
+        "framework_version",
+        "artifact_schema_version",
+        "research_scope",
+        "experiment_id",
+    }
+)
+_RESEARCH_CATALOG_TEXT_FIELDS = frozenset({"title", "verdict"})
+_RESEARCH_CATALOG_TIMESTAMP_FIELDS = frozenset(
+    {"created_at_utc", "time_range_start_utc", "time_range_end_utc"}
+)
+_RESEARCH_CATALOG_REQUIRED_FIELDS = frozenset({"workflow", "run_id", "title"})
+_RESEARCH_CATALOG_WORKFLOWS = frozenset(
+    {"market", "signal", "strategy", "robustness", "predictive"}
 )
 
 
@@ -188,6 +230,47 @@ def sanitize_strategy_research_run_summary(raw: Mapping[str, Any]) -> dict[str, 
     return {key: raw[key] for key in _STRATEGY_RUN_SUMMARY_ALLOWED_FIELDS if key in raw}
 
 
+def sanitize_research_catalog_entry(raw: Mapping[str, Any]) -> dict[str, Any]:
+    """Copy the reviewed public identity fields for one research catalog row."""
+    sanitized = {
+        key: raw[key]
+        for key in _RESEARCH_CATALOG_ENTRY_ALLOWED_FIELDS
+        if key in raw and raw[key] is not None
+    }
+    missing = _RESEARCH_CATALOG_REQUIRED_FIELDS.difference(sanitized)
+    if missing:
+        raise UnsafePublicIdentityError(
+            f"missing required public catalog fields: {', '.join(sorted(missing))}"
+        )
+    if sanitized["workflow"] not in _RESEARCH_CATALOG_WORKFLOWS:
+        raise UnsafePublicIdentityError(
+            f"unsupported public catalog workflow: {sanitized['workflow']!r}"
+        )
+    for key in _RESEARCH_CATALOG_IDENTITY_FIELDS:
+        value = sanitized.get(key)
+        if value is not None and (not isinstance(value, str) or not is_safe_identity_value(value)):
+            raise UnsafePublicIdentityError(f"unsafe public {key}: {value!r}")
+    for key in _RESEARCH_CATALOG_TEXT_FIELDS:
+        value = sanitized.get(key)
+        if value is not None and (not isinstance(value, str) or not is_safe_public_text(value)):
+            raise UnsafePublicIdentityError(f"unsafe public {key}: {value!r}")
+    for key in _RESEARCH_CATALOG_TIMESTAMP_FIELDS:
+        value = sanitized.get(key)
+        if value is not None and not _is_aware_iso_timestamp(value):
+            raise UnsafePublicIdentityError(f"unsafe public {key}: {value!r}")
+    return sanitized
+
+
+def _is_aware_iso_timestamp(value: Any) -> bool:
+    if not isinstance(value, str):
+        return False
+    try:
+        parsed = datetime.fromisoformat(value)
+    except ValueError:
+        return False
+    return parsed.utcoffset() is not None
+
+
 #: Registry: artifact_role name -> sanitizer function, used by generator.py.
 #: This is the seam Sprint 060 extends -- adding a role means adding one new
 #: function and one new entry here, never editing an existing pair.
@@ -197,6 +280,7 @@ _SANITIZERS: Mapping[str, Callable[[Mapping[str, Any]], dict[str, Any]]] = {
     "predictive_run_metrics": sanitize_predictive_run_metrics,
     "predictive_threshold_sensitivity": sanitize_predictive_threshold_sensitivity,
     "strategy_research_run_summary": sanitize_strategy_research_run_summary,
+    "research_catalog_entry": sanitize_research_catalog_entry,
 }
 
 

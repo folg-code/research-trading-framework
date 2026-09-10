@@ -18,3 +18,11 @@ class InvalidProjectionSchemaError(PublicationError):
     """Raised by ``PublicProjectionBundle.from_dict`` on a missing or
     major-version-mismatched ``schema_version``, or a malformed payload
     shape."""
+
+
+class UnsafePublicIdentityError(PublicationError):
+    """Raised when a projected identifier could encode a path or unsafe value."""
+
+
+class DuplicateArtifactIdError(PublicationError):
+    """Raised when two inputs would overwrite the same projected artifact."""

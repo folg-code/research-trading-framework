@@ -17,6 +17,7 @@ from types import MappingProxyType
 from typing import Any
 
 from dashboard_app.publication.errors import InvalidProjectionSchemaError
+from dashboard_app.publication.identity import is_safe_artifact_id
 
 #: The one schema version this module produces and accepts. There is no
 #: minor-version scheme yet (ADR-0034 S5: additive changes within a major
@@ -40,6 +41,9 @@ class ProjectedArtifact:
     fields: Mapping[str, Any]
 
     def __post_init__(self) -> None:
+        if not is_safe_artifact_id(self.artifact_id):
+            msg = f"unsafe public artifact_id {self.artifact_id!r}"
+            raise InvalidProjectionSchemaError(msg)
         object.__setattr__(self, "fields", MappingProxyType(dict(self.fields)))
 
     def to_dict(self) -> dict[str, Any]:
@@ -74,6 +78,13 @@ class PublicProjectionBundle:
     artifacts: Mapping[str, ProjectedArtifact]
 
     def __post_init__(self) -> None:
+        for key, artifact in self.artifacts.items():
+            if key != artifact.artifact_id:
+                msg = (
+                    f"projection artifact key {key!r} does not match "
+                    f"artifact_id {artifact.artifact_id!r}"
+                )
+                raise InvalidProjectionSchemaError(msg)
         object.__setattr__(self, "artifacts", MappingProxyType(dict(self.artifacts)))
 
     def to_dict(self) -> dict[str, Any]:

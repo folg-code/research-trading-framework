@@ -97,7 +97,10 @@ Separate app package (not under `trading_framework`):
 ```text
 apps/dashboard/src/dashboard_app/
     catalog/ query/ views/ charts/ caching/ datasources/
-    publication/                     # Public projection + PortfolioStudyManifest (ADR-0034, Sprint 059-060)
+    publication/                     # Public projection + PortfolioStudyManifest (ADR-0034/0035)
+        catalog.py                   # Safe research_catalog_entry identities (Sprint 061 T005)
+        identity.py                  # Conservative projection-local identifier syntax
+        workspace.py                 # Build-time-only workspace discovery; never a page dependency
     content/                         # Version-controlled content loader + slug routing (ADR-0034, Sprint 059)
     catalog/predictive_quality.py   # Predictive Research quality flags (Sprint 044)
     views/predictive.py             # Predictive Research picker/leaderboard/detail view models
@@ -128,6 +131,7 @@ Strategy catalog entries.
 scripts/dashboard/
     generate_btc_signal_quality_projection.py  # Build-time public-projection generator (Sprint 060 T003);
                                                 # output is committed to apps/dashboard/publication_data/
+    generate_public_projection.py              # Every safe research run -> catalog projection (Sprint 061 T005)
 
 apps/cli/src/trading_cli/
     cli.py              # argparse subparser tree + dispatch

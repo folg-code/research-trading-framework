@@ -21,7 +21,7 @@ The import-boundary test (`tests/unit/test_apps_boundaries.py`) scans both
 `apps/dashboard/src/` and `apps/dashboard/pages/*.py` (Sprint 059 T003,
 PRB-022) — a page file is checked exactly like a `src/` module.
 
-## Public portfolio publication boundary (ADR-0034, Sprint 059)
+## Public portfolio publication boundary (ADR-0034 / ADR-0035)
 
 A second, stricter boundary sits inside the one above, for the public
 portfolio path: `Project_Overview.py`, the Signal Quality pages 7–9, the
@@ -33,7 +33,7 @@ record.
 
 | Package | Role |
 |---|---|
-| `dashboard_app.publication` | A versioned, deny-by-default `PublicProjectionBundle` (`dashboard.public.v1`) built at build/deploy time from raw persisted artifacts, plus a dashboard-local `PortfolioStudyManifest` (`dashboard.study_manifest.v1`) grouping projected artifacts into a named study by explicit role. Never carries `storage_path` or any filesystem path. |
+| `dashboard_app.publication` | A versioned, deny-by-default `PublicProjectionBundle` (`dashboard.public.v1`) built at build/deploy time from raw persisted artifacts, plus a dashboard-local `PortfolioStudyManifest` (`dashboard.study_manifest.v1`) grouping projected artifacts into a named study by explicit role. `publication.catalog` creates safe `research_catalog_entry` inputs; `publication.workspace` is the sole build-time private-workspace reader. Projected output never carries `storage_path` or any filesystem path. |
 | `dashboard_app.content` | A hand-parsed frontmatter + restricted-Markdown content loader (`load_content_document`), required metadata (`slug`, `title`, `status`, `updated`, `order`, `links`), and a stable-slug routing contract (`is_valid_slug`, `resolve_query_slug`). Content files live under `apps/dashboard/content/*.md`, version-controlled like code. |
 
 Both packages fail closed: every load/validate function returns an explicit
@@ -41,8 +41,18 @@ Both packages fail closed: every load/validate function returns an explicit
 rather than raising into a page render or falling back to a raw workspace
 scan. The existing catalog scanner and its `storage_path`-carrying contracts
 (`RunSummary`, `PredictiveDatasetSummary`, `PredictiveRunSummary`) are
-grandfathered for the existing technical pages (`pages/1-6_*.py`) — they are
-not migrated onto the projection in this sprint.
+grandfathered for the existing technical pages (`pages/1-6_*.py`) until the
+Sprint 061 T006 migration.
+
+ADR-0035 extends the same `dashboard.public.v1` bundle additively. Every
+safely identifiable Market, Signal, Strategy, Robustness and Predictive run
+receives one `research_catalog_entry`. Its deterministic artifact id is
+`catalog-<workflow>-<run-id>`; duplicate, unsupported or path-like identities
+fail or are skipped before sanitization. Missing persisted verdicts stay absent
+so the UI can show `NO VERDICT` without inference. The build-time
+`scripts/dashboard/generate_public_projection.py` command can append these
+entries to the committed study fixture and writes atomically to an explicit
+output path. Production versioning and deployment selection remain T007.
 
 ## Contracts
 
