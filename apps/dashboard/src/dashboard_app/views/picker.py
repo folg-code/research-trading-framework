@@ -69,13 +69,21 @@ def select_catalog_run(
 
 def render_run_identity(summary: RunSummary, *, heading: str = "Identity") -> None:
     """Show human metadata prominently; tuck opaque ids into an expander."""
-    cols = st.columns(4)
+    cols = st.columns(5)
     cols[0].write(
         f"**created:** `{summary.created_at_utc.isoformat() if summary.created_at_utc else '—'}`"
     )
-    cols[1].write(f"**dataset:** `{humanize_dataset_ref(summary.source_dataset_ref)}`")
-    cols[2].write(f"**timeframe:** `{summary.evaluation_timeframe or '—'}`")
-    cols[3].write(f"**workflow:** `{summary.workflow.value}`")
+    start = summary.time_range_start_utc
+    end = summary.time_range_end_utc
+    time_range = (
+        f"{start.date().isoformat()} → {end.date().isoformat()}"
+        if start is not None and end is not None
+        else "—"
+    )
+    cols[1].write(f"**time range:** `{time_range}`")
+    cols[2].write(f"**dataset:** `{humanize_dataset_ref(summary.source_dataset_ref)}`")
+    cols[3].write(f"**timeframe:** `{summary.evaluation_timeframe or '—'}`")
+    cols[4].write(f"**workflow:** `{summary.workflow.value}`")
     with st.expander(heading, expanded=False):
         st.write(
             {

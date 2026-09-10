@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from dataclasses import dataclass
-from datetime import date, datetime
+from datetime import date
 
 from dashboard_app.contracts import RunSummary, WorkflowKind
 from dashboard_app.formatting import (
@@ -23,6 +23,7 @@ class CatalogRow:
     created: str
     instrument: str
     timeframe: str
+    time_range: str
     dataset: str
     model: str
     title: str
@@ -41,6 +42,7 @@ def build_catalog_row(summary: RunSummary) -> CatalogRow:
         created=format_created_at(summary.created_at_utc),
         instrument=instrument,
         timeframe=summary.evaluation_timeframe or "—",
+        time_range=_format_time_range(summary),
         dataset=humanize_dataset_ref(summary.source_dataset_ref),
         model=model,
         title=summary.title,
@@ -79,9 +81,7 @@ def filter_catalog_runs(
             created = item.created_at_utc
             if created is None:
                 continue
-            day = created.date() if isinstance(created, datetime) else None
-            if day is None:
-                continue
+            day = created.date()
             if date_from is not None and day < date_from:
                 continue
             if date_to is not None and day > date_to:
@@ -93,11 +93,9 @@ def filter_catalog_runs(
 def catalog_filter_options(runs: Sequence[RunSummary]) -> dict[str, tuple[str, ...]]:
     """Distinct instrument / timeframe values for filter widgets."""
     instruments = sorted(
-        {
-            instrument_from_dataset_ref(item.source_dataset_ref)
-            for item in runs
-            if instrument_from_dataset_ref(item.source_dataset_ref)
-        }
+        instrument
+        for item in runs
+        if (instrument := instrument_from_dataset_ref(item.source_dataset_ref)) is not None
     )
     timeframes = sorted({item.evaluation_timeframe for item in runs if item.evaluation_timeframe})
     return {
@@ -114,3 +112,11 @@ def _model_from_title(title: str) -> str:
     if len(parts) >= 2:
         return humanize_model_id(parts[1])
     return humanize_model_id(title)
+
+
+def _format_time_range(summary: RunSummary) -> str:
+    start = summary.time_range_start_utc
+    end = summary.time_range_end_utc
+    if start is None or end is None:
+        return "—"
+    return f"{start.date().isoformat()} → {end.date().isoformat()}"

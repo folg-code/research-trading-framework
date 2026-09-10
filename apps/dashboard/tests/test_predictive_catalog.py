@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from datetime import UTC, datetime
 from pathlib import Path
 
 from dashboard_app.caching.fingerprint import StorageFingerprint, cache_key_parts
@@ -130,6 +131,8 @@ def test_valid_dataset_and_run_with_metrics(tmp_path: Path) -> None:
     assert dataset.label_kind == "TRIPLE_BARRIER"
     assert dataset.horizon == "20b"
     assert dataset.run_count == 1
+    assert dataset.time_range_start_utc == datetime(2024, 1, 1, tzinfo=UTC)
+    assert dataset.time_range_end_utc == datetime(2024, 6, 1, tzinfo=UTC)
 
     assert len(catalog.runs) == 1
     run = catalog.runs[0]
@@ -227,13 +230,16 @@ def test_missing_predictive_research_dir_is_ignored(tmp_path: Path) -> None:
     assert catalog.issues == ()
 
 
-def test_list_runs_ignores_predictive_research_tree(tmp_path: Path) -> None:
+def test_list_runs_includes_predictive_research_tree(tmp_path: Path) -> None:
     _write_dataset(tmp_path)
     _write_run(tmp_path)
 
     catalog = list_runs(tmp_path)
 
-    assert catalog.runs == ()
+    assert len(catalog.runs) == 1
+    assert catalog.runs[0].workflow.value == "predictive"
+    assert catalog.runs[0].run_id == "r1"
+    assert catalog.runs[0].time_range_start_utc == datetime(2024, 1, 1, tzinfo=UTC)
     assert catalog.issues == ()
 
 

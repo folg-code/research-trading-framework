@@ -35,6 +35,11 @@ The research question, horizons and bounded experiment space are defined
 explicitly. Computation and analytics are separate: a new chart should query
 stored observations rather than silently rerun the experiment.
 
+Look-ahead bias is controlled by explicit event availability and forward
+outcome boundaries. A model can consume a higher-timeframe fact only after the
+source bar closes, and outcome horizons are measured after the occurrence—not
+fed back into the condition that selected it.
+
 ## Reuse and composition
 
 Signal occurrences and model identities can be reused by Strategy Research,

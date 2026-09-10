@@ -155,3 +155,53 @@ def test_list_runs_empty_storage(tmp_path: Path) -> None:
     catalog = list_runs(tmp_path)
     assert catalog.runs == ()
     assert catalog.issues == ()
+
+
+def test_strategy_children_of_robustness_experiment_are_not_top_level_runs(
+    tmp_path: Path,
+) -> None:
+    strategy_dir = tmp_path / "research" / "strategy_research" / "runs"
+    _write_manifest(
+        strategy_dir / "child" / "manifest.json",
+        {
+            "run_id": "child",
+            "schema_version": "strategy_research.v1",
+            "strategy_model_id": "candidate",
+            "experiment_id": "demo-robustness-nq-half-year",
+        },
+    )
+
+    assert list_runs(tmp_path).runs == ()
+
+
+def test_run_time_range_resolves_from_published_dataset_metadata(tmp_path: Path) -> None:
+    dataset_ref = "BTCUSDT.P|ohlcv|1m|binance|klines@1"
+    strategy_dir = tmp_path / "research" / "strategy_research" / "runs"
+    _write_manifest(
+        strategy_dir / "run" / "manifest.json",
+        {
+            "run_id": "run",
+            "schema_version": "strategy_research.v1",
+            "strategy_model_id": "candidate",
+            "source_dataset_ref": dataset_ref,
+        },
+    )
+    _write_manifest(
+        tmp_path
+        / "market_data"
+        / "metadata"
+        / "BTCUSDT.P"
+        / "ohlcv"
+        / "1m"
+        / "binance"
+        / "klines"
+        / "v1.json",
+        {
+            "start_at": "2024-01-01T00:00:00+00:00",
+            "end_at": "2024-06-30T23:59:00+00:00",
+        },
+    )
+
+    summary = list_runs(tmp_path).runs[0]
+    assert summary.time_range_start_utc == datetime(2024, 1, 1, tzinfo=UTC)
+    assert summary.time_range_end_utc == datetime(2024, 6, 30, 23, 59, tzinfo=UTC)

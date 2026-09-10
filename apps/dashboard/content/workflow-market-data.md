@@ -47,9 +47,9 @@ dataset boundary.
 
 ## Asset scope
 
-The architecture is not tied to BTC or crypto. The public studies use
-BTCUSDT.P because a free public API provides unusually accessible,
-high-quality historical OHLCV for reproducible examples. Futures, forex,
+The architecture is not tied to BTC or crypto. BTC is the development asset
+because crypto exchanges—and Binance in particular—provide unusually
+accessible, high-quality historical OHLCV through a free API. Futures, forex,
 equities, indices, commodities or other crypto assets can follow the same
 contracts once a suitable adapter maps their data and identity into a validated,
 published DatasetRef.

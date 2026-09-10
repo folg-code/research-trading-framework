@@ -7,7 +7,7 @@ order: 20
 links: docs/reference/workflows/RESEARCH_METHODOLOGIES.md, docs/adr/ADR-0023-predictive-research-boundary.md, docs/adr/ADR-0024-machine-learned-state-promotion.md, docs/reference/PREDICTIVE_VERDICT.md
 ---
 
-Predictive Research tests whether selected Market Analysis columns contain
+Predictive Research is implemented and tests whether selected Market Analysis columns contain
 out-of-sample information about a defined future outcome. It is research, not
 a trading strategy or an automatic model-promotion mechanism.
 
@@ -17,6 +17,13 @@ A study specification references a published `DatasetRef`, feature lineage,
 target definition, time range and chronological fold policy. Those inputs form
 a deterministic dataset fingerprint. Training libraries remain behind adapters;
 durable evidence is predictions and metrics, not a fitted binary.
+
+The estimator adapter layer supports scikit-learn baselines and
+linear/logistic models, gradient-boosted trees (XGBoost, LightGBM and CatBoost),
+and CPU PyTorch neural families. Neural research includes feedforward MLP plus
+LSTM/GRU sequence windows with persisted learning curves and window accounting.
+Optional dependency groups keep these libraries outside the core domain and
+the read-only dashboard.
 
 ## Workflow and methodology
 
@@ -33,6 +40,14 @@ Purged and embargoed rows retain explicit roles. Results are compared with
 simple baselines and interpreted across folds, sample sizes, calibration and
 train–test gaps. The dashboard displays the persisted verdict; it does not
 derive a new one from a chart.
+
+Look-ahead bias is treated as a contract failure, not a tuning detail. Features
+carry lineage and `available_at`; labels record future `label_end_at` values;
+chronological folds retain PURGED and EMBARGOED rows so overlapping label
+horizons cannot leak into training. Preprocessing is fit inside each training
+fold. Sequence windows cannot cross gaps or fold boundaries. The remaining
+inference-time availability and offline/runtime parity conditions are explicit
+promotion gates.
 
 ## Relationship to other workflows
 

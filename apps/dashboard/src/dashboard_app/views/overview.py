@@ -208,19 +208,20 @@ WORKFLOW_ENTRIES: tuple[WorkflowEntry, ...] = (
 
 FEATURED_STUDIES: tuple[PortfolioEntry, ...] = (
     PortfolioEntry(
-        title="BTC Signal Quality Study",
-        page_path="pages/9_BTC_Signal_Quality_Study.py",
+        title="Signal Quality Study",
+        page_path="pages/9_Signal_Quality_Study.py",
         description=(
             "A persisted INCONCLUSIVE predictive verdict followed into a baseline-versus-"
             "score-filtered strategy comparison, including the negative downstream result."
         ),
     ),
     PortfolioEntry(
-        title="Real-Data BTC Predictive Study",
+        title="Predictive Model Benchmark",
         page_path="pages/6_Predictive_Research.py",
         description=(
-            "A six-fold BTCUSDT.P study comparing linear, logistic and conditionally triggered "
-            "tree evidence without turning a metric into trading approval."
+            "A real-data benchmark comparing linear, logistic and conditionally triggered "
+            "tree evidence across temporal folds. BTCUSDT.P is the selected dataset, not "
+            "the scope of the method."
         ),
     ),
 )
@@ -321,10 +322,11 @@ def render_featured_studies() -> None:
     """Render two reviewed, real-evidence study entry points."""
     st.header("Featured studies")
     st.caption(
-        "BTCUSDT.P was selected for these public examples because high-quality historical "
-        "OHLCV is accessible through a free public API. That is an evidence-availability "
-        "choice, not a framework boundary: another asset can use the same research "
-        "contracts once its provider data is normalized and published as a DatasetRef."
+        "BTCUSDT.P is the development asset because crypto exchanges — Binance in "
+        "particular — provide the most practical access to high-quality historical OHLCV "
+        "through a free public API. It is not a framework boundary: adapter and repository "
+        "patterns let another provider and asset use the same contracts after normalization "
+        "and publication as a DatasetRef."
     )
     _render_portfolio_entries(FEATURED_STUDIES)
 
@@ -343,7 +345,7 @@ def render_future_ideas() -> None:
     for entry, column in zip(FUTURE_IDEAS, columns, strict=True):
         with column:
             st.subheader(entry.title)
-            st.badge("FUTURE IDEAS", color="gray")
+            st.badge("FUTURE IDEAS", color="violet")
             st.write(entry.description)
             st.page_link(entry.page_path, label=f"Explore {entry.title}")
     st.page_link("pages/12_Future_Direction.py", label="Open Future Direction")

@@ -43,6 +43,8 @@ class RunSummary:
     artifact_schema_version: str | None = None
     research_scope: str | None = None
     experiment_id: str | None = None
+    time_range_start_utc: datetime | None = None
+    time_range_end_utc: datetime | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -67,6 +69,8 @@ class PredictiveDatasetSummary:
     horizon: str | None
     storage_path: str
     run_count: int = 0
+    time_range_start_utc: datetime | None = None
+    time_range_end_utc: datetime | None = None
 
 
 @dataclass(frozen=True, slots=True)

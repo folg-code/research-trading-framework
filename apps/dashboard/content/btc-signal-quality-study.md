@@ -1,6 +1,6 @@
 ---
 slug: btc-signal-quality-study
-title: BTC Signal Quality Study
+title: Signal Quality Study
 status: AS_BUILT
 updated: 2026-09-09
 order: 4
@@ -8,7 +8,9 @@ links: docs/reference/BTC_SIGNAL_QUALITY_STUDY.md
 ---
 
 This study asks whether a signal quality classifier improves an existing
-BTC strategy. The strategy is a real, already-committed composition (an
+strategy. Its evidence happens to use BTCUSDT.P for the data-access reasons
+explained on the Architecture page; the method is asset-independent. The
+strategy is a real, already-committed composition (an
 RSI-oversold entry gated by a relative-volatility regime filter); the
 classifier is trained on the same strategy's occurrences to predict which
 ones are worth taking, and evaluated against a random-permutation baseline

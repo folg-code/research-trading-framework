@@ -46,6 +46,25 @@ Published DatasetRef + Strategy Model + simulation assumptions
   → analytics and reports
 ```
 
+The backtester is a deterministic historical simulator. It compiles aligned
+bars and signal occurrences into array-oriented inputs, applies Exit and Risk
+contracts, and simulates orders, fills, positions, cash, commissions, slippage
+and latency assumptions. Optimized kernels accelerate common exit shapes while
+a reference path supports behavioral verification. Raw trades and equity are
+persisted so KPIs remain reproducible views rather than the only record.
+
+Simulation uses only information legal at the decision timestamp. Signal and
+Market Analysis inputs align on `available_at`; higher-timeframe facts are
+joined backward from the last closed bar. This protects against look-ahead
+bias, while executor-level availability enforcement remains a documented gap
+for future generalized ML inference.
+
+The composition is also an extension point for ML/AI. A strategy may consume a
+controlled promoted score or Market Analysis State without moving training or
+an LLM into the simulation loop. Linear/logistic score conditions have a
+bounded path today; tree/neural gates require future promotion, serialization
+and offline/runtime parity work.
+
 Profitability, drawdown, exposure and stability are interpreted together; no
 single metric decides strategy quality. Unchanged data, component definitions,
 assumptions, engine version, configuration and seeds should reuse persisted

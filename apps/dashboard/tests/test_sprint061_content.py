@@ -81,6 +81,10 @@ def test_future_ideas_state_non_implementation_and_approval_limits() -> None:
     assert "provider selection" in ai_text and "undecided" in ai_text
     assert "no unofficial browser automation" in ai_text
     assert "never promote itself into live execution" in ai_text
+    assert "local research orchestrator" in ai_text
+    assert "subscription agent" in ai_text
+    assert "the research loop" in ai_text
+    assert "continue, escalate or stop" in ai_text
 
     app_text = app.body_markdown.lower()
     assert "draft" in app_text
@@ -103,6 +107,8 @@ def test_home_uses_two_featured_studies_three_notes_and_exactly_two_future_ideas
     assert all(entry.title in subheaders for entry in FEATURED_STUDIES)
     assert all(entry.title in subheaders for entry in RECENT_NOTES)
     assert all(entry.title in subheaders for entry in FUTURE_IDEAS)
+    badge_markup = "\n".join(element.value for element in app.markdown)
+    assert badge_markup.count(":violet-badge[FUTURE IDEAS]") == 2
 
 
 def test_home_section_order_keeps_catalog_after_studies_notes_and_future_direction() -> None:
@@ -166,6 +172,38 @@ def test_supporting_pages_render_with_stable_titles() -> None:
         app = _switch_to(page_path)
         assert not app.exception
         assert app.title[0].value == expected_title
+
+
+def test_architecture_page_repeats_map_and_explains_engineering_modules() -> None:
+    app = _switch_to("pages/10_Architecture.py")
+    assert not app.exception
+    assert any("flowchart" in element.value for element in app.markdown)
+    body = "\n".join(element.value for element in app.markdown).lower()
+    for expected in (
+        "directed acyclic graph",
+        "look-ahead bias",
+        "historical simulator / backtester",
+        "consume:",
+        "produce:",
+        "future ml/ai",
+    ):
+        assert expected in body
+
+
+def test_predictive_publication_names_implemented_estimator_families_and_leakage_controls() -> None:
+    document = load_content_document(content_document_path("workflow-predictive-research"))
+    assert not isinstance(document, ContentUnavailable)
+    text = document.body_markdown
+    for expected in (
+        "XGBoost",
+        "LightGBM",
+        "CatBoost",
+        "LSTM/GRU",
+        "Look-ahead bias",
+        "PURGED",
+        "EMBARGOED",
+    ):
+        assert expected in text
 
 
 def test_workflow_publications_offer_evidence_only_after_methodology() -> None:

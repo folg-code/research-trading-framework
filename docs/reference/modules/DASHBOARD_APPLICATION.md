@@ -108,6 +108,11 @@ Entry page: `Project_Overview.py` with helpers in `dashboard_app.views.overview`
   and limits before linking to the existing technical evidence page. Strategy
   Execution is `IN_DEVELOPMENT` and limited to `DRY_RUN` per ADR-0021.
 
+The Architecture page repeats the system map and documents every public-facing
+module as consume/process/produce. It covers the Market Analysis dependency
+DAG, cache identity, `available_at`/look-ahead controls, historical simulator,
+ML/AI extension boundaries, persistence and publication.
+
 ## BTC Signal Quality study and evidence path (Sprint 060)
 
 The first real consumer of the ADR-0034 publication boundary. Extends
@@ -125,7 +130,7 @@ The first real consumer of the ADR-0034 publication boundary. Extends
   generated at deploy time (maintainer decision, Sprint 060 T003) — the
   dashboard renders this study without the private workspace mounted.
 - `dashboard_app.views.study.render_btc_signal_quality_study` (page
-  `pages/9_BTC_Signal_Quality_Study.py`) resolves the manifest against the
+  `pages/9_Signal_Quality_Study.py`) resolves the manifest against the
   bundle, renders the study content document
   (`apps/dashboard/content/btc-signal-quality-study.md`), the persisted
   verdict verbatim (`st.badge(..., color="gray")` — a fixed literal, never
@@ -169,6 +174,18 @@ The first real consumer of the ADR-0034 publication boundary. Extends
   BTCUSDT.P studies were chosen for accessible, high-quality OHLCV from a free
   public API. BTC is not an asset boundary; additional assets require an
   adapter and a validated, published `DatasetRef`.
+
+## Catalog identity corrections (Sprint 061)
+
+- A Strategy Research run carrying an `experiment_id` is treated as a nested
+  child of its Robustness experiment and is omitted from top-level Strategy
+  listings; the parent experiment remains the catalog entry.
+- Run time ranges resolve from the immutable metadata of the referenced
+  published DatasetRef. Predictive Dataset manifests expose their own explicit
+  research time range. Both are displayed separately from timeframe.
+- `DASHBOARD_STORAGE_ROOT` must name the actual workspace root. For the current
+  development evidence this is `user_data/workspace`, not its parent
+  `user_data`.
 - The two Future Ideas are explicitly non-as-built. The AI page treats the
   maintainer's Polish direction note as editorial input and publishes English
   copy; the Research Application page remains subordinate to the Draft product
