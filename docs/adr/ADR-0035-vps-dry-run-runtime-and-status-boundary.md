@@ -466,8 +466,24 @@ non-committed env files (`apps/dashboard/docs/RUNBOOK.md`).
   can never quietly vanish across a redeploy.
 - Bounded restarts plus a visible `FAILED`/unavailable state address the
   "Compose restart loop hides a deterministic config failure" risk directly.
-- The AWS runtime, ECS/Lambda path and its runbook are untouched and remain
-  valid.
+- The AWS ECS/Lambda deployment topology, its infrastructure config and
+  runbook are untouched and remain valid.
+
+  **Addendum (2026-09-10, Sprint 062 T002 review):** `_restore_broker_state`
+  in `local_btc_futures.py` is shared code, used by both this VPS runtime and
+  the existing AWS runtime (`aws_btc_futures_runtime.py` calls the same
+  `run_local_btc_futures_binance_dry_run`). Closing the silent-reset path
+  above therefore also changes the AWS worker's restart behavior: an AWS
+  restart that previously started fresh on incomplete/incompatible persisted
+  state now refuses to start and exits non-zero, exactly as the VPS worker
+  does. This is intentional and strictly safer -- it does not touch AWS
+  topology, deployment config or the runbook, and D062-01..D062-04 do not
+  govern the AWS path -- but it is a real behavior change on a path this ADR
+  otherwise describes as untouched. Operators of the AWS runtime should be
+  aware that a restart after a config change (e.g. `account_id`, `currency`,
+  `symbol` or `starting_equity` with an open position) can now require the
+  same explicit operator action documented in `AWS_BTC_FUTURES_DRY_RUN.md` /
+  T007's provider-neutral runbook, rather than resetting automatically.
 
 ### Negative / trade-offs
 
