@@ -23,6 +23,38 @@ _STATUS_BADGES = {
     "error": "Failed",
 }
 
+_PUBLIC_STATUS_SCALARS = frozenset(
+    {
+        "status",
+        "simulated",
+        "last_heartbeat_at",
+        "feed_connection_state",
+        "feed_reconnect_count",
+        "symbol",
+        "current_signal",
+        "last_price",
+        "last_market_event_at",
+        "paper_equity",
+        "realized_pnl",
+        "unrealized_pnl",
+    }
+)
+_PUBLIC_POSITION_FIELDS = frozenset(
+    {
+        "side",
+        "position",
+        "quantity",
+        "qty",
+        "size",
+        "entry_price",
+        "avg_entry_price",
+        "mark_price",
+        "unrealized_pnl",
+    }
+)
+_PUBLIC_BAR_FIELDS = frozenset({"observed_at", "open", "high", "low", "close"})
+_PUBLIC_FILL_FIELDS = frozenset({"filled_at", "event_at", "price", "fill_price", "side"})
+
 
 @dataclass(frozen=True, slots=True)
 class LivePaperHealth:
@@ -37,6 +69,44 @@ class LivePaperHealth:
     feed_connection_state: str | None = None
     feed_reconnect_count: int = 0
     feed_last_error: str | None = None
+
+
+def sanitize_public_live_paper_snapshot(snapshot: Mapping[str, object]) -> dict[str, object]:
+    """Return the fixed public subset of a runtime status response.
+
+    Unknown fields, raw events, orders, trades and error details are omitted.
+    The public page can therefore never acquire a new field merely because the
+    private status API adds one.
+    """
+    public = {key: snapshot[key] for key in _PUBLIC_STATUS_SCALARS if key in snapshot}
+    position = snapshot.get("current_position")
+    if isinstance(position, Mapping):
+        public["current_position"] = {
+            key: position[key] for key in _PUBLIC_POSITION_FIELDS if key in position
+        }
+    bars = _allowlisted_rows(snapshot.get("recent_bars"), _PUBLIC_BAR_FIELDS, limit=300)
+    if bars:
+        public["recent_bars"] = bars
+    fills = _allowlisted_rows(snapshot.get("recent_fills"), _PUBLIC_FILL_FIELDS, limit=100)
+    if fills:
+        public["recent_fills"] = fills
+    return public
+
+
+def _allowlisted_rows(
+    value: object,
+    allowed_fields: frozenset[str],
+    *,
+    limit: int,
+) -> list[dict[str, object]]:
+    if not isinstance(value, list):
+        return []
+    rows = [
+        {key: item[key] for key in allowed_fields if key in item}
+        for item in value[-limit:]
+        if isinstance(item, Mapping)
+    ]
+    return [row for row in rows if row]
 
 
 def parse_utc_datetime(value: object) -> datetime | None:
@@ -74,7 +144,11 @@ def live_paper_health(
 
     reconnect_raw = snapshot.get("feed_reconnect_count", 0)
     try:
-        reconnect_count = int(reconnect_raw) if reconnect_raw is not None else 0
+        reconnect_count = (
+            int(reconnect_raw)
+            if isinstance(reconnect_raw, (str, bytes, bytearray, int, float))
+            else 0
+        )
     except (TypeError, ValueError):
         reconnect_count = 0
     feed_state = snapshot.get("feed_connection_state")
