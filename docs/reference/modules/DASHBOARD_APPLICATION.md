@@ -39,11 +39,10 @@ record.
 Both packages fail closed: every load/validate function returns an explicit
 `...Unavailable` result (`PublicationUnavailable`, `ContentUnavailable`)
 rather than raising into a page render or falling back to a raw workspace
-scan. The existing scanner and its `storage_path`-carrying contracts
-(`RunSummary`, `PredictiveDatasetSummary`, `PredictiveRunSummary`) are
-grandfathered only for the remaining Predictive page (`pages/6_*.py`) until
-its Sprint 061 T006 migration. Pages 1–4 read no workspace configuration;
-Live Paper uses only its read-only HTTP status source.
+scan. The legacy scanner and its `storage_path`-carrying contracts
+(`RunSummary`, `PredictiveDatasetSummary`, `PredictiveRunSummary`) remain for
+non-public compatibility tests, but pages 1–6 no longer import them or require
+workspace access. Live Paper uses only its read-only HTTP status source.
 
 ADR-0035 extends the same `dashboard.public.v1` bundle additively. Every
 safely identifiable Market, Signal, Strategy, Robustness and Predictive run
@@ -107,33 +106,35 @@ therefore render honest unavailable states.
 
 Schema version: `dashboard.presentation.v1`.
 
-## Live Paper (Sprint 031 / 025)
+## Live Paper / Strategy Execution evidence (Sprints 031, 061)
 
 Page: `pages/5_Live_Paper_Trading.py` with helpers in `dashboard_app.views.live_paper`.
 
-- Configure `DASHBOARD_STATUS_URL` or the sidebar (falls back to `DEFAULT_LIVE_PAPER_STATUS_URL`).
-- Shows simulated banner, stale-heartbeat warning, candlestick from `recent_bars`, fill markers.
-- Dashboard only GETs the status API — never starts the worker or submits orders.
+- Configure `DASHBOARD_STATUS_URL` (falls back to `DEFAULT_LIVE_PAPER_STATUS_URL`).
+- Shows the mandatory live-data/simulated-execution/no-real-orders banner,
+  stale-heartbeat warning and one representative bounded market/position view.
+- `sanitize_public_live_paper_snapshot` applies a fixed allowlist. Raw status,
+  orders, events, error details and unknown API fields are not rendered.
+- Dashboard only GETs the status API — it never starts the worker or submits
+  orders. When the endpoint is absent, no stale snapshot is substituted.
 - See `docs/reference/runbooks/LIVE_PAPER_PIPELINE_INSPECTION.md` and `apps/dashboard/docs/RUNBOOK.md`.
 
-## Predictive Research (Sprint 044)
+## Predictive Research evidence (Sprints 044, 061)
 
-Page: `pages/6_Predictive_Research.py` with helpers in
-`dashboard_app.views.predictive` and `dashboard_app.catalog.predictive_quality`.
+Page: `pages/6_Predictive_Research.py` resolves the representative run named by
+the Signal Quality study manifest. It renders one projected catalog identity,
+the allowlisted persisted fold/pooled ROC AUC comparison and the persisted
+analyst verdict.
 
-- Catalog scan reads `research/predictive_research/datasets/{dataset_id}/` and
-  `research/predictive_research/runs/{run_id}/` — the same directory tree
-  `scripts/predictive_research/*` writes (`docs/reference/workflows/RESEARCH_METHODOLOGIES.md` §8).
-- Study picker → leaderboard (sorted by baseline delta, not the raw metric) →
-  run detail (per-fold metrics, stability, buckets, calibration) → provenance
-  (dataset fingerprint, estimator spec, seeds, library versions) → link to the
-  offline `report.html`.
-- Never deserializes `models/fold_*.bin`; never imports
+- It never scans `research/predictive_research/`, opens `report.html`, or
+  constructs a path from a projected identity.
+- It never deserializes `models/fold_*.bin`; never imports
   `trading_framework.research`, `trading_framework.application.predictive_research`,
   `sklearn`, `xgboost` or `torch` — enforced by
   `tests/unit/test_apps_boundaries.py`.
-- Importance and calibration panels degrade gracefully when a run did not
-  persist that sidecar file.
+- Other projected predictive runs remain discoverable in Research Catalog;
+  deeper leaderboards, importance and calibration views are outside the one
+  representative-view limit accepted in D061-04.
 
 ## Project Overview (Sprint 059 T005)
 
@@ -193,7 +194,7 @@ The first real consumer of the ADR-0034 publication boundary. Extends
   (`pages/8_Signal_Quality_Methodology.py`) content documents and links the
   evidence path: overview → workflow context → methodology → study (three
   navigation actions), then `Explore Evidence` from the study into the
-  existing, grandfathered `pages/6_Predictive_Research.py` and
+  projection-backed `pages/6_Predictive_Research.py` and
   `pages/3_Strategy_Research.py` (ADR-0034 §6) — linked, never duplicated.
 - Contract tests (`apps/dashboard/tests/test_study_contract.py`, Sprint 060
   T005) assert traceability (every chart value equals a resolved artifact

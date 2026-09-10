@@ -128,8 +128,8 @@ apps/dashboard/src/dashboard_app/
 `pages/1_Research_Catalog.py` now consumes `publication/catalog_index.py`
 exclusively. Its public hierarchy is manifest-first with a deterministic
 workflow/DatasetRef fallback and contains no `storage_path`; scanner-backed
-technical evidence remains temporarily limited to page 6. Pages 2–4 use the
-public projection; Live Paper uses its read-only HTTP status source.
+pages 1–4 and 6 use the public projection; Live Paper uses a bounded allowlist
+over its read-only HTTP status source. No public page 1–6 reads the workspace.
 
 Catalog presentation resolves research time ranges from Predictive Dataset
 manifests or the immutable metadata behind `source_dataset_ref`. Strategy runs
@@ -168,7 +168,7 @@ apps/cli/src/trading_cli/
 | Predictive Research | `application/predictive_research/` | `research/predictive/`, `research/datasets/predictive.py`, `research/datasets/predictive_run.py`, `research/reporting/predictive/` | `infrastructure/ml/`, `infrastructure/storage/paths.py` | Dataset envelope; run envelope; offline HTML report |
 | Live Execution | `application/execution/` | `execution/` | `infrastructure/providers/`, `infrastructure/storage/` | Runtime state |
 | Visualization | Application view-model builders | `research/analytics/`, reporting packages | HTML, API and dashboard adapters; `apps/dashboard` | Dashboards and reports |
-| Predictive Research dashboard | — (read-only catalog scan, no application orchestration import) | `apps/dashboard/src/dashboard_app/catalog/`, `views/`, `caching/`, `contracts.py` | DuckDB/Parquet reads of `research/predictive_research/` | Study picker, leaderboard, run detail, provenance (`pages/6_Predictive_Research.py`) |
+| Predictive Research dashboard | — (read-only public projection, no application orchestration import) | `apps/dashboard/src/dashboard_app/publication/`, `views/study.py`, `views/workflow_evidence.py` | Immutable sanitized bundle; no private workspace mount | One manifest-selected run, fold/pooled comparison and persisted verdict (`pages/6_Predictive_Research.py`) |
 | Operator CLI | `apps/cli/src/trading_cli/commands/` (`data.py`, `research.py`, `dry_run.py`, `report.py`) call `application/market_data/`, `application/predictive_research/`, `application/strategy_research/`, `application/execution/` directly | `apps/cli/src/trading_cli/config.py`, `plan.py`, `errors.py` (CLI-local config/plan/error models, not domain packages) | none of its own — delegates entirely to the application layer it wraps | `DatasetRef` (data fetch), dataset/run identifiers + offline HTML (research run, report render), dry-run runtime state |
 
 ---
@@ -717,7 +717,7 @@ tests/integration/live_data/
 | Live dashboard state | execution read-model adapters |
 | Demo generation | `scripts/demo/` |
 | Live dashboard delivery | `scripts/portfolio_live/` (aiohttp); `apps/dashboard` Live Paper page (status GET) |
-| Predictive Research dashboard delivery | `apps/dashboard/src/dashboard_app/catalog/predictive_quality.py` (quality flags), `apps/dashboard/src/dashboard_app/views/predictive.py` (picker/leaderboard/detail/provenance view models); `pages/6_Predictive_Research.py` (Sprint 044) |
+| Predictive Research dashboard delivery | `apps/dashboard/src/dashboard_app/publication/` plus `views/study.py`; one projection-backed representative view in `pages/6_Predictive_Research.py` (Sprint 061) |
 
 ### Boundary
 
