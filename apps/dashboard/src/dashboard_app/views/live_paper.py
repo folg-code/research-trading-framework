@@ -113,6 +113,12 @@ DryRunCardKind = Literal[
 ]
 
 
+#: The closed vocabulary ADR-0035 SS3.2 allows for the `status` field. Any
+#: other value (including a missing field) is treated as an untrustworthy
+#: response, not as an implicit "current" state.
+_RECOGNIZED_STATUSES = frozenset({"running", "degraded", "stale", "stopped", "failed"})
+
+
 @dataclass(frozen=True, slots=True)
 class DryRunStatusCard:
     """Presentation state for the home-page BTC dry-run status card."""
@@ -151,10 +157,21 @@ def build_dry_run_status_card(
     if snapshot is None:
         return DryRunStatusCard(kind="offline", detail="status API returned no data")
 
-    health = live_paper_health(snapshot, now=now, stale_after=stale_after)
     status_raw = str(snapshot.get("status") or "").strip().lower()
+    if status_raw not in _RECOGNIZED_STATUSES:
+        # A missing/unrecognized `status` (ADR-0035 SS3.2's closed vocabulary:
+        # RUNNING/DEGRADED/STALE/STOPPED/FAILED) means the response cannot be
+        # trusted as a health signal. Never fall through to "current" here --
+        # that would silently present an unhealthy/malformed payload as good.
+        raw_value = snapshot.get("status")
+        detail = f"status API response has a missing or unrecognized `status` value: {raw_value!r}"
+        return DryRunStatusCard(kind="unavailable", detail=detail)
+
+    health = live_paper_health(snapshot, now=now, stale_after=stale_after)
     if status_raw == "failed":
         return DryRunStatusCard(kind="failed", health=health, snapshot=snapshot)
+    if status_raw == "stale":
+        return DryRunStatusCard(kind="stale", health=health, snapshot=snapshot)
     is_stale = bool(snapshot.get("stale")) or health.is_stale
     return DryRunStatusCard(
         kind="stale" if is_stale else "current",

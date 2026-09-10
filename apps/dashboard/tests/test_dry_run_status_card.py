@@ -23,6 +23,7 @@ from streamlit.testing.v1 import AppTest
 from dashboard_app.views import dry_run_status_card as dry_run_status_card_module
 from dashboard_app.views.dry_run_status_card import (
     DRY_RUN_SIMULATION_LABELS,
+    _format_position,
     render_dry_run_status_card,
 )
 
@@ -60,7 +61,15 @@ def _fresh_snapshot() -> dict[str, Any]:
         "paper_equity": 10010.0,
         "realized_pnl": 0.0,
         "unrealized_pnl": 10.0,
-        "current_position": {"quantity": "0.001"},
+        "current_position": {
+            "symbol": "BTCUSDT",
+            "side": "long",
+            "quantity": "0.001",
+            "average_entry_price": "60000.00",
+            "mark_price": "60010.00",
+            "unrealized_pnl": "10.00",
+            "simulated": True,
+        },
     }
 
 
@@ -207,6 +216,17 @@ def test_failed_worker_status_shows_a_failed_state_not_current(
     assert not app.exception
     error_text = " ".join(entry.value for entry in app.error)
     assert "failed" in error_text.lower()
+
+
+def test_format_position_includes_side_and_quantity() -> None:
+    assert _format_position({"side": "long", "quantity": "0.001"}) == "LONG 0.001"
+    assert _format_position({"side": "short", "quantity": "0.25"}) == "SHORT 0.25"
+
+
+def test_format_position_reports_flat_for_a_flat_or_absent_position() -> None:
+    assert _format_position({"side": "flat", "quantity": "0"}) == "Flat"
+    assert _format_position({"side": "long", "quantity": None}) == "Flat"
+    assert _format_position({}) == "Flat"
 
 
 def test_card_links_to_the_existing_live_paper_page() -> None:

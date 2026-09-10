@@ -197,6 +197,36 @@ def test_dry_run_status_card_unavailable_on_other_http_errors() -> None:
     assert card.kind == "unavailable"
 
 
+def test_dry_run_status_card_unavailable_when_status_field_is_missing() -> None:
+    """A snapshot missing `status` entirely must never be classified as
+    ``current`` -- ADR-0035 SS3.2's closed vocabulary is a required field, and
+    its absence signals an untrustworthy/malformed response, not a healthy one."""
+    now = datetime(2026, 7, 18, 12, 0, tzinfo=UTC)
+    snapshot = {
+        "stale": False,
+        "last_heartbeat_at": (now - timedelta(seconds=5)).isoformat(),
+        "symbol": "BTCUSDT",
+    }
+    card = build_dry_run_status_card(
+        status_url="http://dry-run-status:8090/status", snapshot=snapshot, error=None, now=now
+    )
+    assert card.kind == "unavailable"
+    assert card.health is None
+
+
+def test_dry_run_status_card_unavailable_when_status_field_is_unrecognized() -> None:
+    now = datetime(2026, 7, 18, 12, 0, tzinfo=UTC)
+    snapshot = {
+        "status": "banana",
+        "last_heartbeat_at": (now - timedelta(seconds=5)).isoformat(),
+        "symbol": "BTCUSDT",
+    }
+    card = build_dry_run_status_card(
+        status_url="http://dry-run-status:8090/status", snapshot=snapshot, error=None, now=now
+    )
+    assert card.kind == "unavailable"
+
+
 def test_dry_run_status_card_never_presents_a_prior_snapshot_as_current_on_error() -> None:
     """Callers pass only the current call's snapshot; an error always wins over
     any stale value a caller might mistakenly still be holding."""

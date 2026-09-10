@@ -97,13 +97,13 @@ def _render_card_body(card: DryRunStatusCard) -> None:
 
     heartbeat_text = health.heartbeat_at.isoformat() if health.heartbeat_at else "—"
     position = snapshot.get("current_position")
-    quantity = position.get("quantity") if isinstance(position, dict) else None
+    position_text = _format_position(position) if isinstance(position, dict) else "Flat"
 
     metrics = st.columns(4)
     metrics[0].metric("Runtime", health.badge)
     metrics[1].metric("Last heartbeat", heartbeat_text)
     metrics[2].metric("Symbol", str(snapshot.get("symbol") or "—"))
-    metrics[3].metric("Position", str(quantity) if quantity is not None else "Flat")
+    metrics[3].metric("Position", position_text)
 
     pnl_metrics = st.columns(3)
     pnl_metrics[0].metric("Equity", format_kpi("paper_equity", snapshot.get("paper_equity")))
@@ -111,3 +111,20 @@ def _render_card_body(card: DryRunStatusCard) -> None:
     pnl_metrics[2].metric(
         "Unrealized PnL", format_kpi("unrealized_pnl", snapshot.get("unrealized_pnl"))
     )
+
+
+def _format_position(position: dict[str, object]) -> str:
+    """Format ``current_position`` (ADR-0035 §3.2 nested shape) as ``SIDE quantity``.
+
+    ``dry_run_worker``/`dry-run-status` (``_position_to_json``) always names the
+    side field ``side`` and the size field ``quantity`` -- there is no other
+    field-name variant to defend against here (unlike the detailed Live Paper
+    page, which tolerates a looser/legacy shape).
+    """
+    side = position.get("side")
+    quantity = position.get("quantity")
+    if quantity is None or (isinstance(side, str) and side.strip().lower() == "flat"):
+        return "Flat"
+    if isinstance(side, str) and side.strip():
+        return f"{side.strip().upper()} {quantity}"
+    return str(quantity)
