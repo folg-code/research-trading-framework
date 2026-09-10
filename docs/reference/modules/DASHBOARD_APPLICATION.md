@@ -24,8 +24,9 @@ PRB-022) — a page file is checked exactly like a `src/` module.
 ## Public portfolio publication boundary (ADR-0034, Sprint 059)
 
 A second, stricter boundary sits inside the one above, for the public
-portfolio path only (the refreshed `Project_Overview.py` today; more pages
-in later 16D sprints). See `docs/adr/ADR-0034-portfolio-publication-boundary.md`
+portfolio path: `Project_Overview.py` plus `pages/7_Signal_Quality_Workflow.py`,
+`pages/8_Signal_Quality_Methodology.py` and `pages/9_BTC_Signal_Quality_Study.py`
+(Sprint 060 T004). See `docs/adr/ADR-0034-portfolio-publication-boundary.md`
 for the full decision record.
 
 | Package | Role |
@@ -101,6 +102,46 @@ Entry page: `Project_Overview.py` with helpers in `dashboard_app.views.overview`
   no page of its own today and shares `pages/2_Market_and_Signal_Research.py`
   with Signal Research; Strategy Execution is `IN_DEVELOPMENT` per
   ADR-0021 ("Strategy Execution remains a future capability").
+
+## BTC Signal Quality study and evidence path (Sprint 060)
+
+The first real consumer of the ADR-0034 publication boundary. Extends
+`dashboard_app.publication.sanitizers` with three additive roles
+(`predictive_run_metrics`, `predictive_threshold_sensitivity`,
+`strategy_research_run_summary`), each a `frozenset` allowlist frozen by
+`docs/planning/sprints/SPRINT_060_T001_FIELD_INVENTORY.md`.
+
+- `scripts/dashboard/generate_btc_signal_quality_projection.py` reads the
+  real Phase 16A–16C artifacts and writes the sanitized
+  `PublicProjectionBundle`; its output,
+  `apps/dashboard/publication_data/projection.json`, plus the
+  hand-authored `apps/dashboard/publication_data/manifests/btc-signal-quality.json`
+  (`PortfolioStudyManifest`), are committed to the repository rather than
+  generated at deploy time (maintainer decision, Sprint 060 T003) — the
+  dashboard renders this study without the private workspace mounted.
+- `dashboard_app.views.study.render_btc_signal_quality_study` (page
+  `pages/9_BTC_Signal_Quality_Study.py`) resolves the manifest against the
+  bundle, renders the study content document
+  (`apps/dashboard/content/btc-signal-quality-study.md`), the persisted
+  verdict verbatim (`st.badge(..., color="gray")` — a fixed literal, never
+  derived from the verdict text, D060-03), and the three accepted charts
+  (`dashboard_app.charts.builders.build_signal_quality_*`). Every load step
+  fails closed to an explicit `PublicationUnavailable`/`ContentUnavailable`
+  warning, section by section — an absent optional artifact role degrades
+  only its own chart, never the whole page.
+- `dashboard_app.views.portfolio_content` renders the workflow-context
+  (`pages/7_Signal_Quality_Workflow.py`) and methodology
+  (`pages/8_Signal_Quality_Methodology.py`) content documents and links the
+  evidence path: overview → workflow context → methodology → study (three
+  navigation actions), then `Explore Evidence` from the study into the
+  existing, grandfathered `pages/6_Predictive_Research.py` and
+  `pages/3_Strategy_Research.py` (ADR-0034 §6) — linked, never duplicated.
+- Contract tests (`apps/dashboard/tests/test_study_contract.py`, Sprint 060
+  T005) assert traceability (every chart value equals a resolved artifact
+  field verbatim, checked against both synthetic and the real committed
+  bundle), that a non-`INCONCLUSIVE` verdict renders the same way, that an
+  absent optional role degrades gracefully, and that the verdict badge's
+  color is a source-level literal.
 
 ## Adding a page
 
