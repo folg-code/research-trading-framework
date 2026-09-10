@@ -20,10 +20,6 @@ from dashboard_app.views.overview import (
 _POLISH_CHARS = re.compile(r"[ąćęłńóśźżĄĆĘŁŃÓŚŹŻ]")
 _DASHBOARD_ROOT = Path(__file__).resolve().parents[1]
 
-#: Workflow node ids in SHARED_DOMAIN_MERMAID, keyed by title, so the
-#: pipeline-shape check below can look each one up by name.
-_WORKFLOW_NODE_IDS = ("marketData", "signal", "strategy", "robustness", "predictive", "execution")
-
 
 def test_shared_domain_diagram_names_all_six_workflows() -> None:
     text = SHARED_DOMAIN_MERMAID
@@ -33,23 +29,28 @@ def test_shared_domain_diagram_names_all_six_workflows() -> None:
     assert "Robustness Research" in text
     assert "Predictive Research" in text
     assert "Strategy Execution" in text
-    assert "shared[" in text
+    assert "subgraph shared[Shared domain contracts]" in text
 
 
-def test_shared_domain_diagram_is_a_star_not_a_chain() -> None:
-    """No workflow node may point at another workflow node -- only the shared
-    node may point at a workflow, proving this is not one mandatory pipeline
-    (SPRINT_059.md acceptance criteria)."""
-    edge_lines = [line.strip() for line in SHARED_DOMAIN_MERMAID.splitlines() if "-->" in line]
-    assert edge_lines, "expected at least one edge in the diagram"
-    for line in edge_lines:
-        source, _, target = line.partition("-->")
-        source = source.strip()
-        target = target.strip()
-        assert source == "shared", f"unexpected edge source (not the shared hub): {line!r}"
-        assert any(target.startswith(node_id) for node_id in _WORKFLOW_NODE_IDS), (
-            f"unexpected edge target: {line!r}"
-        )
+def test_shared_domain_diagram_separates_data_models_workflows_and_evidence() -> None:
+    """Market Data publishes inputs; named consumers own their evidence."""
+    text = SHARED_DOMAIN_MERMAID
+    assert "sources --> adapters --> preparation --> dataset" in text
+    assert "dataset[Published DatasetRef]" in text
+    assert "strategyModel[Strategy Model: Market x Signal x Exit x Risk]" in text
+    assert "subgraph workflows[Independent workflow consumers]" in text
+    assert "subgraph evidence[Workflow-owned persisted evidence]" in text
+
+    market_data_block = text.split("subgraph marketData", maxsplit=1)[1].split("end", maxsplit=1)[0]
+    assert "Research" not in market_data_block
+    assert "Evidence" not in market_data_block
+    assert "Result" not in market_data_block
+
+    assert "signalResearch --> signalEvidence" in text
+    assert "strategyResearch --> strategyEvidence" in text
+    assert "robustness --> robustnessEvidence" in text
+    assert "predictive --> predictiveEvidence" in text
+    assert "execution --> executionState" in text
 
 
 def test_workflow_entries_cover_all_six_workflows_with_real_pages() -> None:

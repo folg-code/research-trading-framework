@@ -18,7 +18,7 @@ settings = render_app_chrome()
 
 st.title("Research Catalog")
 st.caption(
-    "Browse persisted market, signal, strategy and robustness research runs. "
+    "Browse persisted market, signal, strategy, robustness and predictive research runs. "
     "Live paper trading is on the **Live Paper Trading** page."
 )
 
@@ -32,11 +32,12 @@ catalog = cached_list_runs(str(settings.storage_root), fingerprint.token)
 counts = {kind: 0 for kind in WorkflowKind}
 for item in catalog.runs:
     counts[item.workflow] = counts.get(item.workflow, 0) + 1
-metric_cols = st.columns(4)
+metric_cols = st.columns(5)
 metric_cols[0].metric("Market", counts.get(WorkflowKind.MARKET, 0))
 metric_cols[1].metric("Signal", counts.get(WorkflowKind.SIGNAL, 0))
 metric_cols[2].metric("Strategy", counts.get(WorkflowKind.STRATEGY, 0))
 metric_cols[3].metric("Robustness", counts.get(WorkflowKind.ROBUSTNESS, 0))
+metric_cols[4].metric("Predictive", counts.get(WorkflowKind.PREDICTIVE, 0))
 
 options = catalog_filter_options(catalog.runs)
 workflow_labels = {
@@ -45,6 +46,7 @@ workflow_labels = {
     "Signal": WorkflowKind.SIGNAL,
     "Strategy": WorkflowKind.STRATEGY,
     "Robustness": WorkflowKind.ROBUSTNESS,
+    "Predictive": WorkflowKind.PREDICTIVE,
 }
 filter_cols = st.columns(5)
 with filter_cols[0]:
@@ -64,7 +66,7 @@ with filter_cols[2]:
 with filter_cols[3]:
     model_query = st.text_input("Strategy / model", key="catalog_model")
 with filter_cols[4]:
-    date_range = st.date_input("Created (UTC)", value=(), key="catalog_dates")
+    date_range = st.date_input("Created (UTC)", value=[], key="catalog_dates")
 
 date_from = date_range[0] if isinstance(date_range, tuple) and len(date_range) >= 1 else None
 date_to = date_range[1] if isinstance(date_range, tuple) and len(date_range) >= 2 else date_from
@@ -89,6 +91,7 @@ if filtered:
                 "workflow": row.workflow,
                 "instrument": row.instrument,
                 "timeframe": row.timeframe,
+                "time range": row.time_range,
                 "dataset": row.dataset,
                 "model": row.model,
                 "title": row.title,

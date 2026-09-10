@@ -42,13 +42,9 @@ settings = render_app_chrome()
 
 st.title("Predictive Research")
 st.caption(
-    "Browse persisted predictive-study datasets and runs. Read-only: numbers come from "
-    "`metrics.json` and its sidecars, never recomputed here."
-)
-st.info(
-    "Predictive Research is currently being rebuilt and republished. The public "
-    "refresh target is 2026-09-11. Existing artifacts may still appear below when "
-    "available, but this page should be treated as a release-in-progress preview."
+    "Implemented predictive research across linear/logistic ML, XGBoost/LightGBM/"
+    "CatBoost and neural MLP/LSTM/GRU families. Read-only: displayed numbers come "
+    "from persisted manifests, predictions, metrics and diagnostics."
 )
 
 if settings is None:
@@ -59,18 +55,17 @@ fingerprint = storage_fingerprint(settings.storage_root)
 catalog = cached_list_predictive_catalog(str(settings.storage_root), fingerprint.token)
 
 if not catalog.datasets:
-    st.subheader("Release status")
+    st.subheader("No published predictive evidence")
     st.write(
-        "The Predictive Research surface is being updated with refreshed studies, "
-        "diagnostics and public-facing artifacts. No completed predictive study is "
-        "currently published under this storage root."
+        "The workflow is implemented, but no Predictive Dataset was found under this "
+        "storage root. Point the dashboard at the workspace that contains "
+        "research/predictive_research."
     )
     st.write(
         {
-            "status": "rebuild in progress",
-            "target public refresh": "2026-09-11",
+            "status": "implemented",
             "dashboard": "available",
-            "research artifacts": "pending publication",
+            "research artifacts": "not found under selected storage root",
         }
     )
     if catalog.issues:
@@ -96,6 +91,19 @@ selected_label = st.selectbox(
 )
 dataset = dataset_options[selected_label]
 
+range_start = dataset.time_range_start_utc
+range_end = dataset.time_range_end_utc
+time_range = (
+    f"{range_start.date().isoformat()} → {range_end.date().isoformat()}"
+    if range_start is not None and range_end is not None
+    else "—"
+)
+identity_cols = st.columns(4)
+identity_cols[0].write(f"**time range:** `{time_range}`")
+identity_cols[1].write(f"**label:** `{dataset.label_kind or '—'}`")
+identity_cols[2].write(f"**horizon:** `{dataset.horizon or '—'}`")
+identity_cols[3].write(f"**runs:** `{dataset.run_count}`")
+
 with st.expander("Study identity", expanded=False):
     st.write(
         {
@@ -104,6 +112,7 @@ with st.expander("Study identity", expanded=False):
             "source_dataset_ref": dataset.source_dataset_ref,
             "label_kind": dataset.label_kind,
             "horizon": dataset.horizon,
+            "time_range": time_range,
             "run_count": dataset.run_count,
             "storage_path": dataset.storage_path,
         }

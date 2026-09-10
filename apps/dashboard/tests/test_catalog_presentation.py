@@ -33,6 +33,7 @@ def test_build_catalog_row_human_columns() -> None:
     row = build_catalog_row(_summary())
     assert row.instrument == "NQ"
     assert row.timeframe == "1m"
+    assert row.time_range == "—"
     assert "NQ continuous" in row.dataset
     assert "High Vol" in row.model or "High" in row.model
     assert "17 Jul 2026" in row.created

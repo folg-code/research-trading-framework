@@ -6,7 +6,11 @@ import streamlit as st
 
 from dashboard_app.ui import configure_page, render_app_chrome
 from dashboard_app.views.overview import (
+    render_catalog_entry,
+    render_featured_studies,
+    render_future_ideas,
     render_product_thesis,
+    render_recent_notes,
     render_shared_domain_map,
     render_workflow_entries,
 )
@@ -28,5 +32,13 @@ st.divider()
 render_shared_domain_map()
 st.divider()
 render_workflow_entries()
+st.divider()
+render_featured_studies()
+st.divider()
+render_recent_notes()
+st.divider()
+render_future_ideas()
+st.divider()
+render_catalog_entry()
 st.divider()
 render_portfolio_evidence_entry_point()

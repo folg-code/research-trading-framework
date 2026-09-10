@@ -24,10 +24,12 @@ PRB-022) — a page file is checked exactly like a `src/` module.
 ## Public portfolio publication boundary (ADR-0034, Sprint 059)
 
 A second, stricter boundary sits inside the one above, for the public
-portfolio path: `Project_Overview.py` plus `pages/7_Signal_Quality_Workflow.py`,
-`pages/8_Signal_Quality_Methodology.py` and `pages/9_BTC_Signal_Quality_Study.py`
-(Sprint 060 T004). See `docs/adr/ADR-0034-portfolio-publication-boundary.md`
-for the full decision record.
+portfolio path: `Project_Overview.py`, the Signal Quality pages 7–9, the
+version-controlled Architecture, Engineering, Future Direction and Notes
+pages 10–15, and the workflow publications on pages 16–21 added by Sprint
+061 T002–T004. See
+`docs/adr/ADR-0034-portfolio-publication-boundary.md` for the full decision
+record.
 
 | Package | Role |
 |---|---|
@@ -91,17 +93,25 @@ Entry page: `Project_Overview.py` with helpers in `dashboard_app.views.overview`
 - The product thesis is loaded from `apps/dashboard/content/portfolio-overview.md`
   through `dashboard_app.content.loader.load_content_document` — an absent or
   invalid content document renders an explicit `st.warning`, never a crash.
-- `SHARED_DOMAIN_MERMAID` is a hub-and-spoke diagram: one shared node
-  (Market Analysis, Time Model, Data Contracts) with six independent
-  workflow spokes and no edges between workflow nodes — deliberately not a
-  linear pipeline (`docs/planning/DASHBOARD_DEVELOPMENT_DIRECTION.md` §3).
+- `SHARED_DOMAIN_MERMAID` shows the provider-adapter boundary, Market Data
+  ending at a published `DatasetRef`, shared Market Analysis contracts,
+  explicit `Market × Signal × Exit × Risk` strategy composition, independent
+  workflow consumers, and workflow-owned persisted evidence. There is no edge
+  from Market Data to a research result and no mandatory research pipeline
+  (`docs/planning/DASHBOARD_DEVELOPMENT_DIRECTION.md` §3).
 - `WORKFLOW_ENTRIES` names all six workflows (Market Data, Signal Research,
   Strategy Research, Robustness Research, Predictive Research, Strategy
   Execution) with a `StudyMaturity` badge each — reused from
-  `dashboard_app.publication.manifest`, not a second enum. Market Data has
-  no page of its own today and shares `pages/2_Market_and_Signal_Research.py`
-  with Signal Research; Strategy Execution is `IN_DEVELOPMENT` per
-  ADR-0021 ("Strategy Execution remains a future capability").
+  `dashboard_app.publication.manifest`, not a second enum. Each card opens a
+  version-controlled workflow publication (`pages/16_*.py` through
+  `pages/21_*.py`) explaining purpose, architecture, workflow, methodology
+  and limits before linking to the existing technical evidence page. Strategy
+  Execution is `IN_DEVELOPMENT` and limited to `DRY_RUN` per ADR-0021.
+
+The Architecture page repeats the system map and documents every public-facing
+module as consume/process/produce. It covers the Market Analysis dependency
+DAG, cache identity, `available_at`/look-ahead controls, historical simulator,
+ML/AI extension boundaries, persistence and publication.
 
 ## BTC Signal Quality study and evidence path (Sprint 060)
 
@@ -120,7 +130,7 @@ The first real consumer of the ADR-0034 publication boundary. Extends
   generated at deploy time (maintainer decision, Sprint 060 T003) — the
   dashboard renders this study without the private workspace mounted.
 - `dashboard_app.views.study.render_btc_signal_quality_study` (page
-  `pages/9_BTC_Signal_Quality_Study.py`) resolves the manifest against the
+  `pages/9_Signal_Quality_Study.py`) resolves the manifest against the
   bundle, renders the study content document
   (`apps/dashboard/content/btc-signal-quality-study.md`), the persisted
   verdict verbatim (`st.badge(..., color="gray")` — a fixed literal, never
@@ -143,9 +153,49 @@ The first real consumer of the ADR-0034 publication boundary. Extends
   absent optional role degrades gracefully, and that the verdict badge's
   color is a source-level literal.
 
+## Portfolio story and Future Direction (Sprint 061 T002–T004)
+
+- Home now follows the portfolio sequence after its thesis and shared-domain
+  map: six workflow entries, two real featured studies, three selected
+  Research & Engineering Notes, exactly two `FUTURE IDEAS` cards, and the
+  complete catalog entry.
+- `views.overview` owns the small structural entry tuples and renders links;
+  factual narrative remains in validated files under
+  `apps/dashboard/content/`.
+- `views.portfolio_content.render_static_content_page` provides the shared
+  fail-closed renderer for stable Architecture, Engineering, Future Direction,
+  AI Research Infrastructure, Research Application and Notes pages
+  (`pages/10_*.py` through `pages/15_*.py`).
+- `views.portfolio_content.render_workflow_publication` adds the publication
+  layer for all six workflow cards (`pages/16_*.py` through `pages/21_*.py`):
+  visitors read methodology and architecture before choosing `Explore
+  Evidence` to enter a technical results/status page.
+- Home and the Architecture/Market Data publications explain that the public
+  BTCUSDT.P studies were chosen for accessible, high-quality OHLCV from a free
+  public API. BTC is not an asset boundary; additional assets require an
+  adapter and a validated, published `DatasetRef`.
+
+## Catalog identity corrections (Sprint 061)
+
+- A Strategy Research run carrying an `experiment_id` is treated as a nested
+  child of its Robustness experiment and is omitted from top-level Strategy
+  listings; the parent experiment remains the catalog entry.
+- Run time ranges resolve from the immutable metadata of the referenced
+  published DatasetRef. Predictive Dataset manifests expose their own explicit
+  research time range. Both are displayed separately from timeframe.
+- `DASHBOARD_STORAGE_ROOT` must name the actual workspace root. For the current
+  development evidence this is `user_data/workspace`, not its parent
+  `user_data`.
+- The two Future Ideas are explicitly non-as-built. The AI page treats the
+  maintainer's Polish direction note as editorial input and publishes English
+  copy; the Research Application page remains subordinate to the Draft product
+  vision. Neither page approves a provider, UI stack, architecture or sprint.
+- `apps/dashboard/tests/test_sprint061_content.py` validates source links,
+  maturity, mandatory disclaimers, Home cardinality and section order.
+
 ## Adding a page
 
-1. Add `pages/N_Name.py` using `configure_page` + `render_sidebar_storage_root`.
+1. Add `pages/N_Name.py` using `configure_page` + `render_app_chrome`.
 2. Prefer `DashboardQueryService` / catalog helpers over ad-hoc filesystem walks.
 3. Use `dashboard_app.caching.streamlit.cached_*` helpers with `storage_fingerprint` for expensive reads.
 4. Keep engines out of the page — only read mounted artifacts (or read-only HTTP status).

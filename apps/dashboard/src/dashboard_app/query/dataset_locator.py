@@ -74,6 +74,20 @@ class DatasetLocator:
             / "partitions"
         )
 
+    def metadata_path(self, storage_root: Path) -> Path:
+        """Return canonical metadata JSON for this dataset version."""
+        return (
+            storage_root
+            / "market_data"
+            / "metadata"
+            / self.instrument_id
+            / self.data_type
+            / self.timeframe
+            / self.provider
+            / self.source_id
+            / f"v{self.version}.json"
+        )
+
     def ohlcv_glob(self, storage_root: Path) -> str:
         """Return DuckDB ``read_parquet`` glob for session partitions."""
         partitions = self.ohlcv_partitions_dir(storage_root)

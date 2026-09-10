@@ -5,8 +5,9 @@ the actual script execution, not just a static read of its source -- and
 asserts the accepted-direction acceptance criteria that a screenshot
 review alone cannot pin down as a repeatable regression check: no
 exception, the thesis is readable before any workflow detail, all six
-workflows are named with a maturity badge, and the shared-domain diagram
-is a star (never a mandatory pipeline). A real desktop-viewport screenshot
+workflows are named with a maturity badge, and the architecture diagram
+keeps data preparation, shared composition and workflow-owned evidence
+separate. A real desktop-viewport screenshot
 was additionally reviewed by hand as part of this sprint's closeout (see
 SPRINT_059.md `## Closeout`); this test is the durable, automated half of
 that acceptance check.
@@ -80,29 +81,67 @@ def test_overview_names_all_six_workflows_with_maturity_badges() -> None:
         for markdown_element in app.markdown
         for match in _BADGE_PATTERN.finditer(markdown_element.value)
     ]
-    badge_labels = {label for _color, label in badges}
+    workflow_badges = badges[: len(WORKFLOW_ENTRIES)]
+    badge_labels = {label for _color, label in workflow_badges}
     assert badge_labels == {"AS BUILT", "IN DEVELOPMENT"}
-    assert len(badges) == len(WORKFLOW_ENTRIES)
+    assert len(workflow_badges) == len(WORKFLOW_ENTRIES)
 
 
-def test_overview_shared_domain_diagram_is_a_star_not_a_chain() -> None:
+def test_overview_diagram_preserves_modular_boundaries_and_composition() -> None:
     app = _run_overview_app()
 
     diagram_markdown = next(entry.value for entry in app.markdown if "flowchart" in entry.value)
-    edge_lines = [line.strip() for line in diagram_markdown.splitlines() if "-->" in line]
-    assert edge_lines, "expected the rendered diagram to contain edges"
-    for line in edge_lines:
-        source, _, _target = line.partition("-->")
-        assert source.strip() == "shared", f"unexpected edge source in rendered diagram: {line!r}"
+    for label in (
+        "Provider adapters",
+        "Published DatasetRef",
+        "Market Model",
+        "Signal Model",
+        "Exit Model",
+        "Risk Model",
+        "Strategy Model: Market x Signal x Exit x Risk",
+        "Workflow-owned persisted evidence",
+    ):
+        assert label in diagram_markdown
+
+    assert "preparation --> dataset" in diagram_markdown
+    assert "dataset --> analysis" in diagram_markdown
+    assert "market --> strategyModel" in diagram_markdown
+    assert "signalModel --> strategyModel" in diagram_markdown
+    assert "exit --> strategyModel" in diagram_markdown
+    assert "risk --> strategyModel" in diagram_markdown
+
+    # Market Data owns preparation and publication only. Each downstream
+    # result is produced by its named research or execution workflow.
+    market_data_block = diagram_markdown.split("subgraph marketData", maxsplit=1)[1].split(
+        "end", maxsplit=1
+    )[0]
+    assert "Research" not in market_data_block
+    assert "result" not in market_data_block.lower()
+    assert "signalResearch --> signalEvidence" in diagram_markdown
+    assert "predictive --> predictiveEvidence" in diagram_markdown
+    assert "strategyResearch --> strategyEvidence" in diagram_markdown
 
 
 def test_overview_does_not_render_legacy_linear_pipeline_language() -> None:
     app = _run_overview_app()
 
-    full_text = "\n".join(entry.value for entry in app.markdown)
+    full_text = "\n".join(
+        [entry.value for entry in app.markdown] + [entry.value for entry in app.caption]
+    )
     assert "Data provider" not in full_text
     assert "Framework normalization" not in full_text
     # The page explicitly denies being a mandatory pipeline; it must not
     # ALSO assert the positive framing anywhere.
     assert "not one mandatory pipeline" in full_text.lower()
     assert re.search(r"(?<!not )one mandatory pipeline", full_text.lower()) is None
+
+
+def test_overview_explains_btc_is_an_evidence_choice_not_an_asset_boundary() -> None:
+    app = _run_overview_app()
+
+    full_text = "\n".join(
+        [entry.value for entry in app.markdown] + [entry.value for entry in app.caption]
+    )
+    assert "free public API" in full_text
+    assert "not a framework boundary" in full_text
+    assert "published as a DatasetRef" in full_text
