@@ -35,6 +35,7 @@ if not runs:
         "research evidence."
     )
     st.stop()
+assert runs
 
 row = build_public_catalog_row(runs[0])
 st.write(

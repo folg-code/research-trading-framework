@@ -40,6 +40,7 @@ representative = (
 if representative is None:
     st.warning("The study manifest does not name a projected representative Predictive run.")
     st.stop()
+assert representative is not None
 
 row = build_public_catalog_row(representative)
 st.write(

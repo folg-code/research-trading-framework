@@ -39,6 +39,7 @@ runs = runs_for_workflow(catalog.runs, WorkflowKind.STRATEGY)
 if not runs:
     st.info("No safely projected Strategy Research run is included in this release.")
     st.stop()
+assert runs
 
 selected = runs[0]
 row = build_public_catalog_row(selected)

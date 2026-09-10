@@ -30,6 +30,7 @@ _DASHBOARD_SRC = _APPS_ROOT / "dashboard" / "src"
 #: pushback.
 _DASHBOARD_PAGES = _APPS_ROOT / "dashboard" / "pages"
 _DASHBOARD_SCAN_ROOTS = (_DASHBOARD_SRC, _DASHBOARD_PAGES)
+_DASHBOARD_PUBLICATION_SCRIPTS = _REPO_ROOT / "scripts" / "dashboard"
 
 _FORBIDDEN_PREFIXES = (
     "trading_framework.research",
@@ -153,6 +154,29 @@ def test_dashboard_scan_roots_include_pages_directory() -> None:
     on their own since today's `pages/` tree happens to be clean either way.
     """
     assert _DASHBOARD_PAGES in _DASHBOARD_SCAN_ROOTS
+
+
+def test_dashboard_publication_scripts_are_library_free() -> None:
+    """ADR-0034/0035: build-time publication scripts stay app-local."""
+    assert _DASHBOARD_PUBLICATION_SCRIPTS.is_dir(), "expected scripts/dashboard"
+    forbidden = ("trading_framework", *_FORBIDDEN_ML_LIBRARY_PREFIXES)
+
+    offenders = _scan_dashboard_offenders((_DASHBOARD_PUBLICATION_SCRIPTS,), forbidden)
+
+    assert offenders == []
+
+
+def test_publication_script_scan_detects_a_forbidden_import(tmp_path: Path) -> None:
+    """Regression for PRB-024: prove the script root scan can fail."""
+    scripts_dir = tmp_path / "scripts" / "dashboard"
+    scripts_dir.mkdir(parents=True)
+    (scripts_dir / "synthetic_generator.py").write_text(
+        "from trading_framework.research import predictive\n", encoding="utf-8"
+    )
+
+    offenders = _scan_dashboard_offenders((scripts_dir,), ("trading_framework",))
+
+    assert offenders == ["synthetic_generator.py:trading_framework.research"]
 
 
 # ---------------------------------------------------------------------------

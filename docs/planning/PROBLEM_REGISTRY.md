@@ -1220,12 +1220,12 @@ directly — it walks `_DASHBOARD_SRC`, never `apps/dashboard/pages/`.
 ## PRB-023 — Root `mypy`/`pytest` Never Check `apps/dashboard/` or `scripts/`
 
 ```text
-Status: OPEN
+Status: RESOLVED
 Severity: MEDIUM
 Domain: Tooling / CI Gates
 Owner: Unassigned
 Discovered: 2026-09-09 (Sprint 060 T003 QA)
-Last Updated: 2026-09-09
+Last Updated: 2026-09-10 (Sprint 061 T007)
 ```
 
 ### Description
@@ -1299,19 +1299,24 @@ regression.
 
 ### Related Tasks
 
-- None yet — discovered during Sprint 060 T003 QA, out of that task's scope.
+- Resolved by Sprint 061 T007. Root Mypy now includes dashboard source,
+  Streamlit pages and dashboard scripts. The pre-push hook also runs the full
+  dashboard pytest suite through the dashboard workspace package; CI retains
+  its dedicated dashboard job. The only scoped typing exception is for
+  Streamlit's untyped `cache_data` decorator, while the decorated functions
+  retain explicit annotations and tests.
 
 ---
 
 ## PRB-024 — `scripts/dashboard/` Is Not Covered by Any Import-Boundary Scan
 
 ```text
-Status: OPEN
+Status: RESOLVED
 Severity: LOW
 Domain: apps/dashboard / Architecture Boundaries
 Owner: Unassigned
 Discovered: 2026-09-10 (Sprint 060 close-out integration review)
-Last Updated: 2026-09-10
+Last Updated: 2026-09-10 (Sprint 061 T007)
 ```
 
 ### Description
@@ -1362,6 +1367,14 @@ was reviewed as a whole): `_DASHBOARD_SCAN_ROOTS` in
   manual review alone.
 - A regression test: a script with a deliberately-injected
   `trading_framework` or ML-library import should fail the widened scan.
+
+### Resolution
+
+Sprint 061 T007 adds a dedicated scan over every Python file under
+`scripts/dashboard/`. It rejects all `trading_framework.*` imports and the
+dashboard's forbidden ML training libraries. A synthetic generator carrying a
+forbidden framework import proves that the production root-iteration logic
+fails as intended.
 
 ### Related Documents
 

@@ -252,6 +252,16 @@ The first real consumer of the ADR-0034 publication boundary. Extends
 3. Use `dashboard_app.caching.streamlit.cached_*` helpers with `storage_fingerprint` for expensive reads.
 4. Keep engines out of the page — only read mounted artifacts (or read-only HTTP status).
 
+## Enforced quality boundary (Sprint 061 T007)
+
+- Root `uv run mypy` includes dashboard source, pages and
+  `scripts/dashboard`; Streamlit's untyped cache decorator has the sole scoped
+  dashboard override.
+- The pre-push hook runs both framework pytest and the dashboard package test
+  suite; CI retains its dedicated dashboard job.
+- `tests/unit/test_apps_boundaries.py` scans publication generators separately
+  and rejects any `trading_framework.*`, scikit-learn, XGBoost or Torch import.
+
 ## Adding an overlay renderer
 
 1. Register a kind on `OverlayKind` in `dashboard_app.charts.overlays`.
