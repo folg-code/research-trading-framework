@@ -154,7 +154,7 @@ def live_paper_health(
     feed_state = snapshot.get("feed_connection_state")
     feed_error = snapshot.get("feed_last_error")
     return LivePaperHealth(
-        simulated=bool(snapshot.get("simulated")),
+        simulated=snapshot.get("simulated") is True,
         heartbeat_at=heartbeat,
         is_stale=badge == "Stale" or effective_status == "stale",
         stale_after=stale_after,

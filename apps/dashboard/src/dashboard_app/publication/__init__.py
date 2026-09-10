@@ -39,6 +39,7 @@ from dashboard_app.publication.generator import (
     UnknownArtifactRoleError,
     build_projection_bundle,
     extend_projection_bundle,
+    refresh_catalog_projection_bundle,
 )
 from dashboard_app.publication.identity import is_safe_artifact_id
 from dashboard_app.publication.manifest import (
@@ -101,6 +102,7 @@ __all__ = [
     "load_study_manifest",
     "load_study_manifest_from_path",
     "projection_bundle_path",
+    "refresh_catalog_projection_bundle",
     "resolve_study_evidence",
     "select_public_catalog_studies",
     "study_manifest_path",

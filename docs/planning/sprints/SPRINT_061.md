@@ -2,8 +2,8 @@
 
 Status: OPEN — maintainer approved Sprint 061 and Decisions D061-01 through
 D061-04 at sprint opening (2026-09-10). T001 is Done (#503); T002–T004 are
-Done (#506); T005 is Done (#510, #511); T006 is Done (#512–#515). T007 is in
-progress.
+Done (#506); T005 is Done (#510, #511); T006 is Done (#512–#515); T007 is
+Done (#516, #517). T008 is in progress pending maintainer acceptance.
 Goal: Make the public dashboard explain the project and its infrastructure
 accurately and convincingly, then complete the remaining Portfolio Dashboard
 direction with two explicit Future Ideas, a safe study-grouped catalog,
@@ -135,8 +135,8 @@ runtime decision requires separate discovery/architecture approval.
 | T004 | Rework Home and navigation around the reviewed content; add stable Architecture, Engineering, Future Direction and Research & Engineering Notes pages, 2–3 real featured studies and the two Future Ideas cards | T002–T003 | dashboard content/views/routes | high | Done | [#506](https://github.com/folg-code/research-trading-framework/pull/506) |
 | T005 | Reconcile `CURRENT_STATUS`, `ROADMAP`, Phase 16D and planning indexes; record approved D061-01–04 in ADR-0034 or a superseding ADR; then generalize public roles, safe identities and projection generation across supported research artifacts | T001; D061-01/02 approval | planning + architecture + `dashboard_app.publication` | high | Done | [#510](https://github.com/folg-code/research-trading-framework/pull/510), [#511](https://github.com/folg-code/research-trading-framework/pull/511) |
 | T006 | Replace the scanner-backed catalog with projection-backed study → experiment → run grouping; migrate pages 2–6 away from public internal paths and add one representative persisted-evidence view per workflow | T005; can split by catalog/workflow ownership | dashboard catalog, data sources and technical pages | high | Done | [#512](https://github.com/folg-code/research-trading-framework/pull/512), [#513](https://github.com/folg-code/research-trading-framework/pull/513), [#514](https://github.com/folg-code/research-trading-framework/pull/514), [#515](https://github.com/folg-code/research-trading-framework/pull/515) |
-| T007 | Implement approved production bundle generation/deploy wiring; bring dashboard/scripts into root quality coverage, scan `scripts/dashboard/`, and resolve or re-scope PRB-023/024 | T004–T006; D061-03 approval | deploy + root quality config + tests | high | In progress | — |
-| T008 | Run factual editorial review, contract/security/regression tests, desktop visual QA and a maintainer-observed walkthrough; reconcile module/reference docs | T002–T007 | independent content review + testing + documentation | high | Ready after implementation | — |
+| T007 | Implement approved production bundle generation/deploy wiring; bring dashboard/scripts into root quality coverage, scan `scripts/dashboard/`, and resolve or re-scope PRB-023/024 | T004–T006; D061-03 approval | deploy + root quality config + tests | high | Done | [#516](https://github.com/folg-code/research-trading-framework/pull/516), [#517](https://github.com/folg-code/research-trading-framework/pull/517) |
+| T008 | Run factual editorial review, contract/security/regression tests, desktop visual QA and a maintainer-observed walkthrough; reconcile module/reference docs | T002–T007 | independent content review + testing + documentation | high | In progress — automated and independent QA passed; maintainer acceptance pending | — |
 
 ## Acceptance criteria
 
@@ -193,7 +193,19 @@ runtime decision requires separate discovery/architecture approval.
 
 ## Closeout
 
-- Integrated checks:
-- Documentation reconciliation:
-- Review:
-- Remaining work:
+- Integrated checks: root Ruff passed; dashboard pytest passed (252 tests);
+  application-boundary pytest passed (8 tests); root mypy passed (981 source
+  files); framework pytest passed (1721 tests, 25 expected dependency/network
+  skips). A real-workspace release generated 13 artifacts from 7 discovered
+  runs with no skips.
+- Documentation reconciliation: dashboard module and system overview now name
+  the immutable projection as the public read path and keep private-workspace
+  access inside the one-shot release generator.
+- Review: independent review and QA found a real-workspace refresh collision,
+  public workspace controls, permissive projected-field loading and string-like
+  simulation flags. The final QA branch fixes each issue and adds regression
+  coverage. Desktop QA passed Home, Architecture, Market Data, Predictive, Live
+  Paper, AI Research Infrastructure and Research Catalog checks on localhost.
+- Remaining work: maintainer acceptance of the final factual/editorial result;
+  actual VPS/SSH deployment and an external Live Paper endpoint remain
+  operational exercises rather than local sprint evidence.

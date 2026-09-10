@@ -355,7 +355,7 @@ def render_catalog_entry() -> None:
     """Keep the complete catalog as the final Home information block."""
     st.header("Complete research catalog")
     st.caption(
-        "Inspect the available persisted results. Catalog migration to the sanitized public "
-        "projection is in development during Sprint 061."
+        "Inspect every safely identifiable result in the immutable public projection, grouped "
+        "as study → experiment → run without exposing the private research workspace."
     )
     st.page_link("pages/1_Research_Catalog.py", label="Browse Research Catalog")

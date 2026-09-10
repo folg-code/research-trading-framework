@@ -23,6 +23,7 @@ from dashboard_app.publication.generator import (
     RawArtifactInput,
     build_projection_bundle,
     extend_projection_bundle,
+    refresh_catalog_projection_bundle,
 )
 from dashboard_app.publication.projection import (
     PUBLIC_PROJECTION_SCHEMA_VERSION,
@@ -134,6 +135,60 @@ def test_extension_rejects_collision_with_base_bundle() -> None:
 
     with pytest.raises(DuplicateArtifactIdError):
         extend_projection_bundle(
+            base,
+            [raw],
+            generated_at_utc=datetime(2026, 9, 10, tzinfo=UTC),
+        )
+
+
+def test_catalog_refresh_replaces_same_role_and_preserves_curated_evidence() -> None:
+    original = build_catalog_artifact_input(_summary())
+    updated = build_catalog_artifact_input(
+        replace(_summary(), title="Updated public title"), verdict="INCONCLUSIVE"
+    )
+    curated = ProjectedArtifact(
+        artifact_id="curated-verdict",
+        artifact_role="predictive_run_verdict",
+        fields={"verdict": "INCONCLUSIVE"},
+    )
+    base = PublicProjectionBundle(
+        schema_version=PUBLIC_PROJECTION_SCHEMA_VERSION,
+        generator_version="test",
+        generated_at_utc=datetime(2026, 9, 9, tzinfo=UTC),
+        artifacts={
+            original.artifact_id: build_projection_bundle(
+                [original], generated_at_utc=datetime(2026, 9, 9, tzinfo=UTC)
+            ).artifacts[original.artifact_id],
+            curated.artifact_id: curated,
+        },
+    )
+
+    refreshed = refresh_catalog_projection_bundle(
+        base,
+        [updated],
+        generated_at_utc=datetime(2026, 9, 10, tzinfo=UTC),
+    )
+
+    assert refreshed.artifacts[original.artifact_id].fields["title"] == "Updated public title"
+    assert refreshed.artifacts["curated-verdict"] is curated
+
+
+def test_catalog_refresh_rejects_collision_with_curated_role() -> None:
+    raw = build_catalog_artifact_input(_summary())
+    curated = ProjectedArtifact(
+        artifact_id=raw.artifact_id,
+        artifact_role="predictive_run_verdict",
+        fields={"verdict": "INCONCLUSIVE"},
+    )
+    base = PublicProjectionBundle(
+        schema_version=PUBLIC_PROJECTION_SCHEMA_VERSION,
+        generator_version="test",
+        generated_at_utc=datetime(2026, 9, 9, tzinfo=UTC),
+        artifacts={curated.artifact_id: curated},
+    )
+
+    with pytest.raises(DuplicateArtifactIdError):
+        refresh_catalog_projection_bundle(
             base,
             [raw],
             generated_at_utc=datetime(2026, 9, 10, tzinfo=UTC),
