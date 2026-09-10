@@ -174,3 +174,43 @@ class TradeView:
     quantity: float | None = None
     pnl: float | None = None
     bars_held: int | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class SignalQualityFoldRocAucRow:
+    """One fold's MODEL vs RANDOM_PERMUTATION pooled ROC AUC (Sprint 060 Chart 1).
+
+    Built only from the ``publication.predictive_run_metrics`` projected
+    artifact's already-sanitized fields -- never a raw ``metrics.json`` read.
+    """
+
+    fold_id: str
+    model_roc_auc: float | None
+    random_permutation_roc_auc: float | None
+
+
+@dataclass(frozen=True, slots=True)
+class SignalQualityThresholdPoint:
+    """One threshold-sensitivity point (Sprint 060 Chart 2).
+
+    Built only from the ``publication.predictive_threshold_sensitivity``
+    projected artifact's already-sanitized fields.
+    """
+
+    threshold: float
+    coverage: float | None
+    hit_rate: float | None
+
+
+@dataclass(frozen=True, slots=True)
+class SignalQualityTradeDispositionRow:
+    """One Strategy Research run's trade disposition, baseline or scored (Sprint 060 Chart 3).
+
+    Built only from a ``publication.strategy_research_run_summary``
+    projected artifact's already-sanitized fields.
+    """
+
+    label: str
+    trade_count: int | None
+    win_rate: float | None
+    net_pnl: float | None

@@ -97,11 +97,20 @@ Separate app package (not under `trading_framework`):
 ```text
 apps/dashboard/src/dashboard_app/
     catalog/ query/ views/ charts/ caching/ datasources/
-    publication/                     # Public projection + PortfolioStudyManifest (ADR-0034, Sprint 059)
+    publication/                     # Public projection + PortfolioStudyManifest (ADR-0034, Sprint 059-060)
     content/                         # Version-controlled content loader + slug routing (ADR-0034, Sprint 059)
     catalog/predictive_quality.py   # Predictive Research quality flags (Sprint 044)
     views/predictive.py             # Predictive Research picker/leaderboard/detail view models
     pages/6_Predictive_Research.py  # Predictive Research page
+    views/study.py                  # BTC Signal Quality study view + charts (Sprint 060 T003)
+    views/portfolio_content.py      # Workflow-context/methodology pages + overview entry point (Sprint 060 T004)
+    pages/7_Signal_Quality_Workflow.py     # Signal/Predictive workflow context (Sprint 060 T004)
+    pages/8_Signal_Quality_Methodology.py  # Signal Quality methodology (Sprint 060 T004)
+    pages/9_BTC_Signal_Quality_Study.py    # BTC Signal Quality study + Explore Evidence (Sprint 060 T004)
+
+scripts/dashboard/
+    generate_btc_signal_quality_projection.py  # Build-time public-projection generator (Sprint 060 T003);
+                                                # output is committed to apps/dashboard/publication_data/
 
 apps/cli/src/trading_cli/
     cli.py              # argparse subparser tree + dispatch
