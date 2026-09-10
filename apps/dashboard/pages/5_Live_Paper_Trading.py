@@ -149,11 +149,6 @@ def main() -> None:
         "Read-only view of paper-runtime status. Execution remains owned by the "
         "runtime worker; this page never submits orders."
     )
-    st.info(
-        "Live Paper telemetry is currently being migrated from the previous cloud "
-        "runtime to a new VPS deployment. During the migration this page is a status "
-        "notice rather than a live telemetry console."
-    )
 
     if settings is None:
         st.warning(
@@ -161,6 +156,11 @@ def main() -> None:
         )
         return
     if not settings.status_url:
+        st.info(
+            "Live Paper telemetry is currently being migrated from the previous cloud "
+            "runtime to a new VPS deployment. During the migration this page is a status "
+            "notice rather than a live telemetry console."
+        )
         st.subheader("Migration status")
         st.write(
             "The dashboard application remains online and read-only. The historical "
