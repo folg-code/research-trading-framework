@@ -41,9 +41,9 @@ Both packages fail closed: every load/validate function returns an explicit
 rather than raising into a page render or falling back to a raw workspace
 scan. The existing scanner and its `storage_path`-carrying contracts
 (`RunSummary`, `PredictiveDatasetSummary`, `PredictiveRunSummary`) are
-grandfathered only for the technical evidence pages (`pages/2-6_*.py`) until
-their Sprint 061 T006 migration. `pages/1_Research_Catalog.py` reads no
-workspace configuration.
+grandfathered only for the remaining Predictive page (`pages/6_*.py`) until
+its Sprint 061 T006 migration. Pages 1–4 read no workspace configuration;
+Live Paper uses only its read-only HTTP status source.
 
 ADR-0035 extends the same `dashboard.public.v1` bundle additively. Every
 safely identifiable Market, Signal, Strategy, Robustness and Predictive run
@@ -70,6 +70,28 @@ are labelled `no editorial study manifest`; a missing persisted verdict is
 shown as `NO VERDICT` and is never derived from metrics. The committed demo
 bundle contains seven path-free real-workspace entries; production generation
 and immutable release selection remain T007.
+
+## Projected workflow evidence (Sprint 061 T006)
+
+Pages 2–4 consume `PublicCatalogIndex` and the allowlisted projection instead
+of `DashboardQueryService`, Parquet tables or scanner summaries.
+
+- Market Data shows one persisted DatasetRef, timeframe and research range
+  exactly as referenced by the latest projected run. It does not open or chart
+  private OHLCV storage.
+- Signal Research shows one projected Signal run when the release contains
+  one. An absent run is explicit; Predictive or Strategy evidence is never
+  substituted for it.
+- Strategy Research shows one selected projected run plus the existing
+  `strategy_research_run_summary` fields when that role is available. It does
+  not run the backtester or derive rankings/verdicts.
+- Robustness Research follows the same representative-run rule. The legacy
+  `demo-robustness` material is explicitly excluded from portfolio evidence.
+
+`views.workflow_evidence` owns the small pure selectors and deterministic
+role-to-artifact lookup. The committed release currently has Strategy evidence
+and a DatasetRef but no safely projected Signal or Robustness run; those pages
+therefore render honest unavailable states.
 
 ## Contracts
 
