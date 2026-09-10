@@ -190,7 +190,13 @@ class RecentBarView:
 @final
 @dataclass(frozen=True, slots=True)
 class RuntimeStatusView:
-    """Dashboard-ready read model for one dry-run runtime."""
+    """Dashboard-ready read model for one dry-run runtime.
+
+    ``account_id``, ``currency`` and ``starting_equity`` are identity fields
+    used internally for restart compatibility checks (ADR-0035 S4.4); they
+    are not part of any public status allowlist and callers building a public
+    response must not pass them through unfiltered.
+    """
 
     runtime_id: str
     mode: ExecutionMode
@@ -206,6 +212,9 @@ class RuntimeStatusView:
     paper_equity: Decimal | None = None
     realized_pnl: Decimal | None = None
     unrealized_pnl: Decimal | None = None
+    account_id: str | None = None
+    currency: str | None = None
+    starting_equity: Decimal | None = None
     recent_orders: tuple[RecentOrderView, ...] = ()
     recent_fills: tuple[RecentFillView, ...] = ()
     recent_events: tuple[RecentExecutionEventView, ...] = ()
@@ -267,6 +276,24 @@ class RuntimeStatusView:
                 self,
                 "unrealized_pnl",
                 normalize_decimal(self.unrealized_pnl, "unrealized_pnl"),
+            )
+        if self.account_id is not None:
+            object.__setattr__(
+                self,
+                "account_id",
+                normalize_non_empty(self.account_id, "account_id"),
+            )
+        if self.currency is not None:
+            object.__setattr__(
+                self,
+                "currency",
+                normalize_non_empty(self.currency, "currency"),
+            )
+        if self.starting_equity is not None:
+            object.__setattr__(
+                self,
+                "starting_equity",
+                normalize_decimal(self.starting_equity, "starting_equity"),
             )
         if not self.simulated:
             msg = "RuntimeStatusView must be marked simulated"
