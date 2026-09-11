@@ -4,6 +4,7 @@ set -euo pipefail
 : "${DASHBOARD_STORAGE_HOST_PATH:?Set the private build-time workspace path}"
 : "${DASHBOARD_PUBLICATION_HOST_ROOT:?Set the host publication release root}"
 : "${DASHBOARD_PUBLICATION_RELEASE_ID:?Set a unique public release id}"
+DASHBOARD_RESEARCH_HOST_PATH="${DASHBOARD_RESEARCH_HOST_PATH:-${DASHBOARD_STORAGE_HOST_PATH}/../research}"
 
 case "${DASHBOARD_PUBLICATION_RELEASE_ID}" in
   *[!A-Za-z0-9._-]* | "")
@@ -22,10 +23,12 @@ mkdir -p "${DASHBOARD_PUBLICATION_HOST_ROOT}"
 docker run --rm \
   --user "$(id -u):$(id -g)" \
   --mount "type=bind,src=${DASHBOARD_STORAGE_HOST_PATH},dst=/workspace,readonly" \
+  --mount "type=bind,src=${DASHBOARD_RESEARCH_HOST_PATH},dst=/research,readonly" \
   --mount "type=bind,src=${DASHBOARD_PUBLICATION_HOST_ROOT},dst=/publication" \
   trading-dashboard:local \
   python -m dashboard_app.publication.release \
   --storage-root /workspace \
+  --evidence-root /research \
   --release-root /publication \
   --release-id "${DASHBOARD_PUBLICATION_RELEASE_ID}"
 

@@ -489,6 +489,18 @@ Used to evaluate:
 - statistical credibility,
 - sensitivity to execution assumptions.
 
+The public Robustness page reads a build-time, deny-by-default projection of
+one persisted experiment: its verdict and gates, walk-forward folds and sampled
+stitched equity, parameter sweep, stress tests and Monte Carlo summaries. Legacy
+demo evidence is labelled explicitly and excluded from Strategy catalog grouping.
+The serving dashboard does not mount research storage or calculate new evidence.
+
+The same boundary applies to Signal Research. Its public page renders projected
+summary and grouped metrics, forward-return distributions, conditional
+comparisons, histogram bins, quality warnings and join diagnostics. The
+one-shot publication generator may read the private research root read-only;
+the deployed application receives only the validated immutable projection.
+
 #### Predictive Research
 
 Used to state a learning problem over Market Analysis outputs and forward

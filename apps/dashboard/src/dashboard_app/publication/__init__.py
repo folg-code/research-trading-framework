@@ -33,6 +33,12 @@ from dashboard_app.publication.errors import (
     PublicationError,
     UnsafePublicIdentityError,
 )
+from dashboard_app.publication.evidence import (
+    LEGACY_ROBUSTNESS_EXPERIMENT_ID,
+    ROBUSTNESS_RESEARCH_EVIDENCE_ROLE,
+    SIGNAL_RESEARCH_EVIDENCE_ROLE,
+    discover_research_evidence_inputs,
+)
 from dashboard_app.publication.generator import (
     GENERATOR_VERSION,
     RawArtifactInput,
@@ -40,6 +46,7 @@ from dashboard_app.publication.generator import (
     build_projection_bundle,
     extend_projection_bundle,
     refresh_catalog_projection_bundle,
+    refresh_publication_projection_bundle,
 )
 from dashboard_app.publication.identity import is_safe_artifact_id
 from dashboard_app.publication.manifest import (
@@ -69,10 +76,13 @@ from dashboard_app.publication.validation import (
 
 __all__ = [
     "GENERATOR_VERSION",
+    "LEGACY_ROBUSTNESS_EXPERIMENT_ID",
     "PORTFOLIO_STUDY_MANIFEST_SCHEMA_VERSION",
     "PUBLICATION_DATA_ROOT",
     "PUBLIC_PROJECTION_SCHEMA_VERSION",
     "RESEARCH_CATALOG_ENTRY_ROLE",
+    "ROBUSTNESS_RESEARCH_EVIDENCE_ROLE",
+    "SIGNAL_RESEARCH_EVIDENCE_ROLE",
     "DuplicateArtifactIdError",
     "InvalidProjectionSchemaError",
     "PortfolioStudyManifest",
@@ -93,6 +103,7 @@ __all__ = [
     "build_projection_bundle",
     "build_public_catalog",
     "catalog_artifact_id",
+    "discover_research_evidence_inputs",
     "extend_projection_bundle",
     "group_public_catalog_runs",
     "is_safe_artifact_id",
@@ -103,6 +114,7 @@ __all__ = [
     "load_study_manifest_from_path",
     "projection_bundle_path",
     "refresh_catalog_projection_bundle",
+    "refresh_publication_projection_bundle",
     "resolve_study_evidence",
     "select_public_catalog_studies",
     "study_manifest_path",

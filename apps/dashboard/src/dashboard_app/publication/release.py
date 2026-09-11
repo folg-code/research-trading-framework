@@ -16,7 +16,11 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 
-from dashboard_app.publication.generator import refresh_catalog_projection_bundle
+from dashboard_app.publication.evidence import discover_research_evidence_inputs
+from dashboard_app.publication.generator import (
+    RawArtifactInput,
+    refresh_publication_projection_bundle,
+)
 from dashboard_app.publication.paths import STUDY_MANIFESTS_ROOT, projection_bundle_path
 from dashboard_app.publication.projection import PublicProjectionBundle
 from dashboard_app.publication.validation import (
@@ -47,6 +51,7 @@ def prepare_public_projection_release(
     release_root: Path,
     release_id: str,
     base_bundle_path: Path,
+    evidence_root: Path | None = None,
     manifests_root: Path = STUDY_MANIFESTS_ROOT,
     generated_at_utc: datetime | None = None,
 ) -> ProjectionRelease:
@@ -67,9 +72,13 @@ def prepare_public_projection_release(
     base_bundle = _load_bundle(base_bundle_path, label="base")
     raw_inputs, skipped_count = discover_catalog_inputs(storage_root)
     generated_at = generated_at_utc or datetime.now(UTC)
-    bundle = refresh_catalog_projection_bundle(
+    evidence_inputs: list[RawArtifactInput] = []
+    evidence_skipped = 0
+    if evidence_root is not None:
+        evidence_inputs, evidence_skipped = discover_research_evidence_inputs(evidence_root)
+    bundle = refresh_publication_projection_bundle(
         base_bundle,
-        raw_inputs,
+        [*raw_inputs, *evidence_inputs],
         generated_at_utc=generated_at,
     )
 
@@ -94,8 +103,8 @@ def prepare_public_projection_release(
         release_id=release_id,
         projection_path=final_directory / "projection.json",
         artifact_count=len(validated.artifacts),
-        discovered_count=len(raw_inputs),
-        skipped_count=skipped_count,
+        discovered_count=len(raw_inputs) + len(evidence_inputs),
+        skipped_count=skipped_count + evidence_skipped,
     )
 
 
@@ -166,6 +175,11 @@ def _select_release(release_root: Path, release_id: str) -> None:
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--storage-root", type=Path, required=True)
+    parser.add_argument(
+        "--evidence-root",
+        type=Path,
+        help="Private research root for projected Signal/Robustness analytics.",
+    )
     parser.add_argument("--release-root", type=Path, required=True)
     parser.add_argument("--release-id", required=True)
     parser.add_argument("--base-bundle", type=Path, default=projection_bundle_path())
@@ -180,6 +194,7 @@ def main() -> int:
         release_root=args.release_root,
         release_id=args.release_id,
         base_bundle_path=args.base_bundle,
+        evidence_root=args.evidence_root,
         manifests_root=args.manifests_root,
     )
     print(

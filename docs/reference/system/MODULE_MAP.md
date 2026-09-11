@@ -100,6 +100,7 @@ apps/dashboard/src/dashboard_app/
     publication/                     # Public projection + PortfolioStudyManifest (ADR-0034/0035)
         catalog.py                   # Safe research_catalog_entry identities (Sprint 061 T005)
         catalog_index.py             # Projection-only study -> experiment -> run catalog (Sprint 061 T006)
+        evidence.py                  # Build-time readers for allowlisted Signal/Robustness evidence
         identity.py                  # Conservative projection-local identifier syntax
         release.py                   # Validated immutable release + atomic CURRENT selection
         workspace.py                 # Build-time-only workspace discovery; never a page dependency
@@ -107,6 +108,7 @@ apps/dashboard/src/dashboard_app/
     catalog/predictive_quality.py   # Predictive Research quality flags (Sprint 044)
     views/predictive.py             # Predictive Research picker/leaderboard/detail view models
     views/workflow_evidence.py      # Projection-only representative workflow evidence (Sprint 061 T006)
+    views/projected_research.py     # Signal/Robustness tables, verdicts and charts from projected facts
     pages/6_Predictive_Research.py  # Predictive Research page
     views/study.py                  # BTC Signal Quality study view + charts (Sprint 060 T003)
     views/portfolio_content.py      # Version-controlled portfolio pages and direction entries (Sprints 060-061)
@@ -128,9 +130,11 @@ apps/dashboard/src/dashboard_app/
 
 `pages/1_Research_Catalog.py` now consumes `publication/catalog_index.py`
 exclusively. Its public hierarchy is manifest-first with a deterministic
-workflow/DatasetRef fallback and contains no `storage_path`; scanner-backed
-pages 1–4 and 6 use the public projection; Live Paper uses a bounded allowlist
-over its read-only HTTP status source. No public page 1–6 reads the workspace.
+workflow/DatasetRef fallback and contains no `storage_path`; pages 1–4 and 6
+use the public projection; Live Paper uses a bounded allowlist over its
+read-only HTTP status source. No public page 1–6 reads the workspace. Signal
+and Robustness evidence is copied by the build-time generator into dedicated,
+deny-by-default artifact roles and rendered without runtime recomputation.
 
 Catalog presentation resolves research time ranges from Predictive Dataset
 manifests or the immutable metadata behind `source_dataset_ref`. Strategy runs
@@ -140,8 +144,8 @@ Strategy catalog entries.
 scripts/dashboard/
     generate_btc_signal_quality_projection.py  # Build-time public-projection generator (Sprint 060 T003);
                                                 # output is committed to apps/dashboard/publication_data/
-    generate_public_projection.py              # Every safe research run -> catalog projection (Sprint 061 T005)
-    deploy_public_dashboard.sh                 # One-shot generation, selection and Compose deploy (T007)
+    generate_public_projection.py              # Safe catalog + Signal/Robustness evidence projection
+    deploy_public_dashboard.sh                 # One-shot build-time projection, selection and Compose deploy
 
 apps/cli/src/trading_cli/
     cli.py              # argparse subparser tree + dispatch

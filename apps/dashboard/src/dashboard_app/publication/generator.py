@@ -146,3 +146,45 @@ def refresh_catalog_projection_bundle(
         generated_at_utc=generated_at_utc,
         artifacts=artifacts,
     )
+
+
+def refresh_publication_projection_bundle(
+    base_bundle: PublicProjectionBundle,
+    raw_artifacts: list[RawArtifactInput],
+    *,
+    generated_at_utc: datetime,
+) -> PublicProjectionBundle:
+    """Refresh build-time artifacts while rejecting every cross-role collision.
+
+    Stable catalog and workflow-evidence ids are expected to recur in later
+    immutable releases.  Replacement is permitted only when the artifact id
+    and its explicit role both match; a role change remains fail-closed.
+    """
+    from dashboard_app.publication.catalog import RESEARCH_CATALOG_ENTRY_ROLE
+    from dashboard_app.publication.evidence import (
+        ROBUSTNESS_RESEARCH_EVIDENCE_ROLE,
+        SIGNAL_RESEARCH_EVIDENCE_ROLE,
+    )
+
+    refreshable_roles = {
+        RESEARCH_CATALOG_ENTRY_ROLE,
+        SIGNAL_RESEARCH_EVIDENCE_ROLE,
+        ROBUSTNESS_RESEARCH_EVIDENCE_ROLE,
+    }
+    extension = build_projection_bundle(raw_artifacts, generated_at_utc=generated_at_utc)
+    artifacts = dict(base_bundle.artifacts)
+    for artifact_id, artifact in extension.artifacts.items():
+        existing = artifacts.get(artifact_id)
+        if existing is not None and (
+            existing.artifact_role != artifact.artifact_role
+            or artifact.artifact_role not in refreshable_roles
+        ):
+            msg = f"duplicate public artifact_id {artifact_id!r} across projection bundles"
+            raise DuplicateArtifactIdError(msg)
+        artifacts[artifact_id] = artifact
+    return PublicProjectionBundle(
+        schema_version=PUBLIC_PROJECTION_SCHEMA_VERSION,
+        generator_version=GENERATOR_VERSION,
+        generated_at_utc=generated_at_utc,
+        artifacts=artifacts,
+    )

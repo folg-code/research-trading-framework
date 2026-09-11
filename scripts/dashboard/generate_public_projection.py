@@ -26,9 +26,12 @@ _DASHBOARD_SRC = _REPO_ROOT / "apps" / "dashboard" / "src"
 if str(_DASHBOARD_SRC) not in sys.path:
     sys.path.insert(0, str(_DASHBOARD_SRC))
 
+from dashboard_app.publication.evidence import (  # noqa: E402
+    discover_research_evidence_inputs,
+)
 from dashboard_app.publication.generator import (  # noqa: E402
     build_projection_bundle,
-    refresh_catalog_projection_bundle,
+    refresh_publication_projection_bundle,
 )
 from dashboard_app.publication.paths import projection_bundle_path  # noqa: E402
 from dashboard_app.publication.projection import PublicProjectionBundle  # noqa: E402
@@ -41,6 +44,12 @@ from dashboard_app.publication.workspace import discover_catalog_inputs  # noqa:
 
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--evidence-root",
+        type=Path,
+        default=_REPO_ROOT / "user_data" / "research",
+        help="Private research root read only during generation.",
+    )
     parser.add_argument(
         "--storage-root",
         type=Path,
@@ -62,7 +71,7 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--without-base-bundle",
         action="store_true",
-        help="Generate catalog entries only.",
+        help="Generate discovered catalog and workflow-evidence entries only.",
     )
     return parser
 
@@ -89,10 +98,12 @@ def main() -> int:
     args = _build_parser().parse_args()
     generated_at = datetime.now(UTC)
     raw_inputs, skipped = discover_catalog_inputs(args.storage_root)
+    evidence_inputs, evidence_skipped = discover_research_evidence_inputs(args.evidence_root)
+    raw_inputs.extend(evidence_inputs)
     if args.without_base_bundle:
         bundle = build_projection_bundle(raw_inputs, generated_at_utc=generated_at)
     else:
-        bundle = refresh_catalog_projection_bundle(
+        bundle = refresh_publication_projection_bundle(
             _load_base_bundle(args.base_bundle),
             raw_inputs,
             generated_at_utc=generated_at,
@@ -100,7 +111,8 @@ def main() -> int:
     _write_bundle_atomic(args.output, bundle)
     print(
         f"wrote {len(bundle.artifacts)} artifacts "
-        f"({len(raw_inputs)} catalog entries, {skipped} skipped) to {args.output}"
+        f"({len(raw_inputs)} projected inputs, "
+        f"{skipped + evidence_skipped} skipped) to {args.output}"
     )
     return 0
 
