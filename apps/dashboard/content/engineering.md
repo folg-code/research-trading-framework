@@ -2,13 +2,46 @@
 slug: engineering
 title: Engineering
 status: AS_BUILT
-updated: 2026-09-10
+updated: 2026-09-11
 order: 11
 links: .github/workflows/ci.yml, apps/dashboard/docs/RUNBOOK.md, docs/adr/ADR-0034-portfolio-publication-boundary.md, docs/planning/PROBLEM_REGISTRY.md
 ---
 
 Engineering quality in this project is expressed as boundaries that can fail
 loudly, not only as successful output.
+
+## Stack and key technical decisions
+
+Python 3.12, developed as a `uv` workspace (the core framework plus
+`apps/dashboard` and `apps/cli`), with Ruff and strict mypy enforced on every
+pull request.
+
+- **Polars**, not pandas, is the dataframe engine across Market Analysis,
+  research analytics and storage — used in over 80 modules. It was chosen for
+  lazy, columnar execution over the amount of history a backtest or
+  robustness run walks. **PyArrow** backs the persisted Parquet artifacts
+  (trades, predictions, metrics, diagnostics).
+- **NumPy** and **Numba** carry the performance-critical inner loop: the
+  historical simulator's exit kernels are `@njit`-compiled to run as native
+  code instead of a Python-level loop, because simulating fills one trade at
+  a time in pure Python does not scale to the fold counts robustness testing
+  needs. The semantics that kernel locks in — for example, a same-bar stop
+  always wins over a same-bar target, no heuristic — are pinned in an ADR,
+  not left to however the loop happens to behave.
+- **Pydantic v2** validates configuration and typed contracts at the
+  boundary rather than trusting raw YAML.
+- Provider adapters stay thin and swappable: **Databento** for
+  professional-grade historical data, a **Binance** REST/WebSocket
+  (`aiohttp`) adapter for the free public data behind the BTC studies and the
+  live paper feed. Both normalize into the same canonical bar contract, so
+  adding a provider means writing an adapter, not touching research code.
+- Optional extras (`ml`, `ml-trees`, `dl`) keep scikit-learn,
+  XGBoost/LightGBM/CatBoost and CPU-only PyTorch out of the base install —
+  Predictive Research pulls in an extra only when that method is actually
+  exercised.
+- This dashboard itself is **Streamlit** with **Plotly** charts, reading only
+  the persisted, allowlisted projection described below — never the research
+  engines or the private workspace.
 
 ## Data and research integrity
 

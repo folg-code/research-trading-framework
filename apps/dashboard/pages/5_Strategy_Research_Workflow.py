@@ -7,6 +7,6 @@ configure_page(title="Strategy Research Workflow")
 render_app_chrome()
 render_workflow_publication(
     "workflow-strategy-research",
-    evidence_page="pages/3_Strategy_Research.py",
+    evidence_page="pages/6_Strategy_Research.py",
     evidence_label="Open Strategy Research technical evidence",
 )

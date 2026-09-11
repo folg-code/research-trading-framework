@@ -1,0 +1,11 @@
+# A bare [theme] section locks the app to a single (light) mode, which is
+# what silently disabled dark mode after the first version of this file.
+# Defining both [theme.light] and [theme.dark] keeps the light/dark toggle
+# (and following the browser's preferred scheme) while still overriding
+# just linkColor in each, so in-page links (Markdown links and
+# st.page_link) read as a bright yellow instead of blending into body text.
+[theme.light]
+linkColor = "#FFEB3B"
+
+[theme.dark]
+linkColor = "#FFEB3B"

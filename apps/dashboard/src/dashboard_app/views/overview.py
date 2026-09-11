@@ -140,14 +140,14 @@ class PortfolioEntry:
 #: Analysis is shared). Each entry leads to a methodology/architecture
 #: publication before offering a link to technical evidence. Strategy
 #: Execution is IN_DEVELOPMENT because
-#: `pages/5_Live_Paper_Trading.py` is a dry-run monitor only (ADR-0021:
+#: `pages/12_Live_Paper_Trading.py` is a dry-run monitor only (ADR-0021:
 #: "Strategy Execution remains a future capability").
 WORKFLOW_ENTRIES: tuple[WorkflowEntry, ...] = (
     WorkflowEntry(
         title="Market Data",
         workflow=WorkflowKind.MARKET,
         maturity=StudyMaturity.AS_BUILT,
-        page_path="pages/16_Market_Data_Workflow.py",
+        page_path="pages/2_Market_Data_Workflow.py",
         description=(
             "Provider adapters turn OHLCV from APIs, archives or files into validated, "
             "versioned DatasetRefs. This workflow prepares inputs; it does not produce "
@@ -158,7 +158,7 @@ WORKFLOW_ENTRIES: tuple[WorkflowEntry, ...] = (
         title="Signal Research",
         workflow=WorkflowKind.SIGNAL,
         maturity=StudyMaturity.AS_BUILT,
-        page_path="pages/17_Signal_Research_Workflow.py",
+        page_path="pages/3_Signal_Research_Workflow.py",
         description=(
             "Methodology for Market Models, Signal Models or their composition, with "
             "persistent occurrence and forward-outcome evidence."
@@ -168,7 +168,7 @@ WORKFLOW_ENTRIES: tuple[WorkflowEntry, ...] = (
         title="Strategy Research",
         workflow=WorkflowKind.STRATEGY,
         maturity=StudyMaturity.AS_BUILT,
-        page_path="pages/18_Strategy_Research_Workflow.py",
+        page_path="pages/5_Strategy_Research_Workflow.py",
         description=(
             "Methodology for complete Market x Signal x Exit x Risk compositions under "
             "explicit historical and execution assumptions."
@@ -178,7 +178,7 @@ WORKFLOW_ENTRIES: tuple[WorkflowEntry, ...] = (
         title="Robustness Research",
         workflow=WorkflowKind.ROBUSTNESS,
         maturity=StudyMaturity.AS_BUILT,
-        page_path="pages/19_Robustness_Research_Workflow.py",
+        page_path="pages/7_Robustness_Research_Workflow.py",
         description=(
             "Methodology for challenging persisted strategy evidence with walk-forward, "
             "parameter, stress and Monte Carlo tests."
@@ -188,7 +188,7 @@ WORKFLOW_ENTRIES: tuple[WorkflowEntry, ...] = (
         title="Predictive Research",
         workflow=WorkflowKind.PREDICTIVE,
         maturity=StudyMaturity.AS_BUILT,
-        page_path="pages/20_Predictive_Research_Workflow.py",
+        page_path="pages/9_Predictive_Research_Workflow.py",
         description=(
             "Leakage-aware methodology for testing whether analysis columns contain "
             "out-of-sample predictive information."
@@ -198,7 +198,7 @@ WORKFLOW_ENTRIES: tuple[WorkflowEntry, ...] = (
         title="Strategy Execution",
         workflow=WorkflowKind.LIVE_PAPER,
         maturity=StudyMaturity.IN_DEVELOPMENT,
-        page_path="pages/21_Strategy_Execution_Workflow.py",
+        page_path="pages/11_Strategy_Execution_Workflow.py",
         description=(
             "Architecture for applying the same Strategy Model definitions to runtime data. "
             "Only simulated DRY_RUN execution is available today."
@@ -209,7 +209,7 @@ WORKFLOW_ENTRIES: tuple[WorkflowEntry, ...] = (
 FEATURED_STUDIES: tuple[PortfolioEntry, ...] = (
     PortfolioEntry(
         title="Signal Quality Study",
-        page_path="pages/9_Signal_Quality_Study.py",
+        page_path="pages/15_Signal_Quality_Study.py",
         description=(
             "A persisted INCONCLUSIVE predictive verdict followed into a baseline-versus-"
             "score-filtered strategy comparison, including the negative downstream result."
@@ -217,7 +217,7 @@ FEATURED_STUDIES: tuple[PortfolioEntry, ...] = (
     ),
     PortfolioEntry(
         title="Predictive Model Benchmark",
-        page_path="pages/6_Predictive_Research.py",
+        page_path="pages/10_Predictive_Research.py",
         description=(
             "A real-data benchmark comparing linear, logistic and conditionally triggered "
             "tree evidence across temporal folds. BTCUSDT.P is the selected dataset, not "
@@ -229,17 +229,17 @@ FEATURED_STUDIES: tuple[PortfolioEntry, ...] = (
 RECENT_NOTES: tuple[PortfolioEntry, ...] = (
     PortfolioEntry(
         title="Publishing evidence without publishing the workspace",
-        page_path="pages/15_Research_and_Engineering_Notes.py",
+        page_path="pages/21_Research_and_Engineering_Notes.py",
         description="Why the public dashboard consumes an allowlisted projection.",
     ),
     PortfolioEntry(
         title="Why negative results stay visible",
-        page_path="pages/15_Research_and_Engineering_Notes.py",
+        page_path="pages/21_Research_and_Engineering_Notes.py",
         description="What the BTC studies demonstrate about stopping rules and honest reporting.",
     ),
     PortfolioEntry(
         title="Live data is not live trading",
-        page_path="pages/15_Research_and_Engineering_Notes.py",
+        page_path="pages/21_Research_and_Engineering_Notes.py",
         description="How the dry-run boundary separates market observation from real orders.",
     ),
 )
@@ -247,7 +247,7 @@ RECENT_NOTES: tuple[PortfolioEntry, ...] = (
 FUTURE_IDEAS: tuple[PortfolioEntry, ...] = (
     PortfolioEntry(
         title="AI Research Infrastructure",
-        page_path="pages/13_AI_Research_Infrastructure.py",
+        page_path="pages/19_AI_Research_Infrastructure.py",
         description=(
             "A proposed AI control plane over deterministic research compute, with explicit "
             "roles, budgets and anti-data-mining guardrails."
@@ -255,13 +255,57 @@ FUTURE_IDEAS: tuple[PortfolioEntry, ...] = (
     ),
     PortfolioEntry(
         title="Research Application",
-        page_path="pages/14_Research_Application.py",
+        page_path="pages/20_Research_Application.py",
         description=(
             "A draft local-first Workbench direction that coordinates existing workflows "
             "without becoming a second research engine."
         ),
     ),
 )
+
+
+AUTHOR_NAME = "Filip Folga"
+AUTHOR_LINKEDIN_URL = "https://www.linkedin.com/in/filip-folga/"
+AUTHOR_EMAIL = "filip1folga@gmail.com"
+
+AUTHOR_SUMMARY = (
+    "Python engineer with commercial experience building backend services, REST "
+    "APIs and database-driven applications with Django, PostgreSQL and Redis, "
+    "including external API integration, time-series data processing, automated "
+    "testing and CI/CD-based deployment of containerized services. This dashboard "
+    "is the public projection of an independently built quantitative research "
+    "framework applying that same discipline — versioned data contracts, "
+    "reproducible pipelines, evidence kept even when a result is negative — to "
+    "market data, chosen here for its data availability rather than as a trading "
+    "product."
+)
+
+
+def render_author_intro() -> None:
+    """Render a short author identity block so the project is attributable.
+
+    Recruiter feedback on the public dashboard: the project reads as a
+    system, but nothing on it says who built it or how to reach them.
+    """
+    st.caption(
+        "TL;DR: a reproducible research system that turns time-indexed market "
+        "data into inspectable evidence — built solo, with results kept visible "
+        "even when they are negative."
+    )
+    with st.container(border=True):
+        st.markdown(f"**{AUTHOR_NAME}** — Python / Data Engineer")
+        st.write(AUTHOR_SUMMARY)
+        st.markdown(f"[LinkedIn]({AUTHOR_LINKEDIN_URL}) · [Email](mailto:{AUTHOR_EMAIL})")
+
+
+#: The lead (everything above the first `## ` heading) is jargon-light and
+#: meant to be read in full on landing; the rest is the denser architecture
+#: narrative (DAG, temporal-correctness rules, DatasetRef mechanics) that a
+#: recruiter or engineer unfamiliar with trading can skip without missing
+#: what the project is or who built it. Collapsing it behind an expander
+#: (Sprint feedback: the overview read as a "wall of text" on first load)
+#: keeps that detail one click away instead of removed.
+_THESIS_HEADING_MARKER = "\n## "
 
 
 def render_product_thesis() -> None:
@@ -275,7 +319,17 @@ def render_product_thesis() -> None:
         st.warning(f"Overview content unavailable ({document.reason}): {document.detail}")
         return
 
-    st.markdown(document.body_markdown)
+    body = document.body_markdown
+    split_index = body.find(_THESIS_HEADING_MARKER)
+    if split_index == -1:
+        st.markdown(body)
+        return
+
+    st.markdown(body[:split_index])
+    detail_body = body[split_index:].lstrip("\n")
+    _, _, detail_body = detail_body.partition("\n")  # drop the redundant "## ..." heading line
+    with st.expander("How it works under the hood (architecture, data pipeline, timing rules)"):
+        st.markdown(detail_body.lstrip("\n"))
 
 
 def render_shared_domain_map() -> None:
@@ -289,7 +343,7 @@ def render_shared_domain_map() -> None:
         f"[architecture one-pager]({ARCHITECTURE_ONE_PAGER_URL}) for repository detail."
     )
     st.mermaid_chart(SHARED_DOMAIN_MERMAID)
-    st.page_link("pages/10_Architecture.py", label="Explore Architecture")
+    st.page_link("pages/16_Architecture.py", label="Explore Architecture")
 
 
 def render_workflow_entries() -> None:
@@ -335,7 +389,7 @@ def render_recent_notes() -> None:
     """Render the three selected Research & Engineering Note entries."""
     st.header("Research & Engineering Notes")
     _render_portfolio_entries(RECENT_NOTES)
-    st.page_link("pages/11_Engineering.py", label="Explore Engineering")
+    st.page_link("pages/17_Engineering.py", label="Explore Engineering")
 
 
 def render_future_ideas() -> None:
@@ -348,7 +402,7 @@ def render_future_ideas() -> None:
             st.badge("FUTURE IDEAS", color="violet")
             st.write(entry.description)
             st.page_link(entry.page_path, label=f"Explore {entry.title}")
-    st.page_link("pages/12_Future_Direction.py", label="Open Future Direction")
+    st.page_link("pages/18_Future_Direction.py", label="Open Future Direction")
 
 
 def render_catalog_entry() -> None:

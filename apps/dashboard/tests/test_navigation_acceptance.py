@@ -76,7 +76,7 @@ def test_overview_links_to_the_workflow_context_page_in_one_action() -> None:
 
 
 def test_workflow_context_page_renders_and_links_to_methodology_in_one_action() -> None:
-    app = _switch_to(_run_overview(), "pages/7_Signal_Quality_Workflow.py")
+    app = _switch_to(_run_overview(), "pages/13_Signal_Quality_Workflow.py")
 
     assert not app.exception
     assert app.title[0].value == "Signal Research and Predictive Research"
@@ -84,7 +84,7 @@ def test_workflow_context_page_renders_and_links_to_methodology_in_one_action() 
 
 
 def test_methodology_page_renders_and_links_to_the_study_in_one_action() -> None:
-    app = _switch_to(_run_overview(), "pages/8_Signal_Quality_Methodology.py")
+    app = _switch_to(_run_overview(), "pages/14_Signal_Quality_Methodology.py")
 
     assert not app.exception
     assert app.title[0].value == "Signal Quality Methodology"
@@ -92,7 +92,7 @@ def test_methodology_page_renders_and_links_to_the_study_in_one_action() -> None
 
 
 def test_study_page_renders_and_links_methodology_and_explore_evidence_in_one_action() -> None:
-    app = _switch_to(_run_overview(), "pages/9_Signal_Quality_Study.py")
+    app = _switch_to(_run_overview(), "pages/15_Signal_Quality_Study.py")
 
     assert not app.exception
     targets = _page_link_targets(app)
@@ -106,8 +106,8 @@ def test_study_reachable_from_overview_in_no_more_than_three_navigation_actions(
     overview = _run_overview()
     assert "Signal_Quality_Workflow" in _page_link_targets(overview)  # action 1
 
-    workflow_context = _switch_to(overview, "pages/7_Signal_Quality_Workflow.py")
+    workflow_context = _switch_to(overview, "pages/13_Signal_Quality_Workflow.py")
     assert "Signal_Quality_Methodology" in _page_link_targets(workflow_context)  # action 2
 
-    methodology = _switch_to(overview, "pages/8_Signal_Quality_Methodology.py")
+    methodology = _switch_to(overview, "pages/14_Signal_Quality_Methodology.py")
     assert "Signal_Quality_Study" in _page_link_targets(methodology)  # action 3

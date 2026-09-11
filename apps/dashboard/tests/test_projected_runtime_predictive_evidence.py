@@ -61,7 +61,7 @@ def test_pages_5_and_6_render_without_workspace_configuration() -> None:
         app = AppTest.from_file(str(_DASHBOARD_ROOT / "Project_Overview.py"))
         app.run(timeout=30)
 
-        app.switch_page("pages/5_Live_Paper_Trading.py")
+        app.switch_page("pages/12_Live_Paper_Trading.py")
         app.run(timeout=30)
         assert not app.exception
         assert app.title[0].value == "Strategy Execution Evidence"
@@ -69,7 +69,7 @@ def test_pages_5_and_6_render_without_workspace_configuration() -> None:
             item.value for item in app.warning
         )
 
-        app.switch_page("pages/6_Predictive_Research.py")
+        app.switch_page("pages/10_Predictive_Research.py")
         app.run(timeout=30)
         assert not app.exception
         assert app.title[0].value == "Predictive Research Evidence"
@@ -95,7 +95,7 @@ def test_pages_5_and_6_have_no_private_artifact_read_path() -> None:
         "st.json",
         "Raw snapshot",
     )
-    for name in ("5_Live_Paper_Trading.py", "6_Predictive_Research.py"):
+    for name in ("12_Live_Paper_Trading.py", "10_Predictive_Research.py"):
         source = (_DASHBOARD_ROOT / "pages" / name).read_text(encoding="utf-8")
         for token in forbidden:
             assert token not in source

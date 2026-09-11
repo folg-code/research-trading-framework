@@ -2,12 +2,12 @@
 
 Renders a compact, honest current/stale/offline/failed status summary and
 links forward to the existing detailed Live Paper page
-(``pages/5_Live_Paper_Trading.py``) -- it never duplicates that page's
+(``pages/12_Live_Paper_Trading.py``) -- it never duplicates that page's
 content or builds a second detail/archive view.
 
 The card is opt-in: it only renders when ``DASHBOARD_STATUS_URL`` (resolved
 via :func:`~dashboard_app.config.resolve_status_url`) is configured,
-mirroring how ``pages/5_Live_Paper_Trading.py`` itself treats an
+mirroring how ``pages/12_Live_Paper_Trading.py`` itself treats an
 unconfigured status endpoint. When unconfigured, this module renders
 nothing -- no broken card, no placeholder -- so the dashboard stays
 available either way.
@@ -23,7 +23,7 @@ from dashboard_app.datasources.live_paper_http import HttpLivePaperStatusDataSou
 from dashboard_app.formatting import format_kpi
 from dashboard_app.views.live_paper import DryRunStatusCard, build_dry_run_status_card
 
-LIVE_PAPER_PAGE = "pages/5_Live_Paper_Trading.py"
+LIVE_PAPER_PAGE = "pages/12_Live_Paper_Trading.py"
 
 #: The mandatory three-part simulation label (ADR-0021 / SPRINT_062.md
 #: acceptance criteria). Rendered up front, before any state branching, so it

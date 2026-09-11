@@ -7,6 +7,6 @@ configure_page(title="Robustness Research Workflow")
 render_app_chrome()
 render_workflow_publication(
     "workflow-robustness-research",
-    evidence_page="pages/4_Robustness_Analysis.py",
+    evidence_page="pages/8_Robustness_Analysis.py",
     evidence_label="Open Robustness Research technical evidence",
 )

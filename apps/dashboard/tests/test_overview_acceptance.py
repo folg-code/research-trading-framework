@@ -52,9 +52,14 @@ def test_overview_title_and_thesis_render_before_workflow_detail() -> None:
     app = _run_overview_app()
 
     assert app.title[0].value == "Trading Research Framework"
-    thesis_markdown = app.markdown[0].value
-    assert "read-only" in thesis_markdown.lower()
-    assert "github.com/folg-code/research-trading-framework" in thesis_markdown
+    # The dense architecture narrative (DAG, DatasetRef, timing rules) lives
+    # in a collapsed expander so the landing view isn't a wall of text; the
+    # jargon-light lead and the linked detail can land in different
+    # markdown blocks, so check presence across all of them rather than
+    # requiring both substrings in one block.
+    all_markdown_text = "\n".join(block.value for block in app.markdown)
+    assert "read-only" in all_markdown_text.lower()
+    assert "github.com/folg-code/research-trading-framework" in all_markdown_text
 
     # Top-level page order (title -> thesis -> ... -> shared-domain map ->
     # workflow cards): the thesis markdown block must render before the

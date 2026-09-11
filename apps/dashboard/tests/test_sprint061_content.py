@@ -138,12 +138,12 @@ def test_home_links_every_stable_sprint061_page() -> None:
 
 def test_workflow_cards_lead_to_publications_before_technical_evidence() -> None:
     expected_pages = {
-        "Market Data": "pages/16_Market_Data_Workflow.py",
-        "Signal Research": "pages/17_Signal_Research_Workflow.py",
-        "Strategy Research": "pages/18_Strategy_Research_Workflow.py",
-        "Robustness Research": "pages/19_Robustness_Research_Workflow.py",
-        "Predictive Research": "pages/20_Predictive_Research_Workflow.py",
-        "Strategy Execution": "pages/21_Strategy_Execution_Workflow.py",
+        "Market Data": "pages/2_Market_Data_Workflow.py",
+        "Signal Research": "pages/3_Signal_Research_Workflow.py",
+        "Strategy Research": "pages/5_Strategy_Research_Workflow.py",
+        "Robustness Research": "pages/7_Robustness_Research_Workflow.py",
+        "Predictive Research": "pages/9_Predictive_Research_Workflow.py",
+        "Strategy Execution": "pages/11_Strategy_Execution_Workflow.py",
     }
     assert {entry.title: entry.page_path for entry in WORKFLOW_ENTRIES} == expected_pages
 
@@ -155,18 +155,18 @@ def test_workflow_cards_lead_to_publications_before_technical_evidence() -> None
 
 def test_supporting_pages_render_with_stable_titles() -> None:
     pages = {
-        "pages/10_Architecture.py": "Architecture",
-        "pages/11_Engineering.py": "Engineering",
-        "pages/12_Future_Direction.py": "Future Direction",
-        "pages/13_AI_Research_Infrastructure.py": "AI Research Infrastructure",
-        "pages/14_Research_Application.py": "Research Application",
-        "pages/15_Research_and_Engineering_Notes.py": "Research & Engineering Notes",
-        "pages/16_Market_Data_Workflow.py": "Market Data Workflow",
-        "pages/17_Signal_Research_Workflow.py": "Signal Research Workflow",
-        "pages/18_Strategy_Research_Workflow.py": "Strategy Research Workflow",
-        "pages/19_Robustness_Research_Workflow.py": "Robustness Research Workflow",
-        "pages/20_Predictive_Research_Workflow.py": "Predictive Research Workflow",
-        "pages/21_Strategy_Execution_Workflow.py": "Strategy Execution Workflow",
+        "pages/16_Architecture.py": "Architecture",
+        "pages/17_Engineering.py": "Engineering",
+        "pages/18_Future_Direction.py": "Future Direction",
+        "pages/19_AI_Research_Infrastructure.py": "AI Research Infrastructure",
+        "pages/20_Research_Application.py": "Research Application",
+        "pages/21_Research_and_Engineering_Notes.py": "Research & Engineering Notes",
+        "pages/2_Market_Data_Workflow.py": "Market Data Workflow",
+        "pages/3_Signal_Research_Workflow.py": "Signal Research Workflow",
+        "pages/5_Strategy_Research_Workflow.py": "Strategy Research Workflow",
+        "pages/7_Robustness_Research_Workflow.py": "Robustness Research Workflow",
+        "pages/9_Predictive_Research_Workflow.py": "Predictive Research Workflow",
+        "pages/11_Strategy_Execution_Workflow.py": "Strategy Execution Workflow",
     }
     for page_path, expected_title in pages.items():
         app = _switch_to(page_path)
@@ -175,7 +175,7 @@ def test_supporting_pages_render_with_stable_titles() -> None:
 
 
 def test_architecture_page_repeats_map_and_explains_engineering_modules() -> None:
-    app = _switch_to("pages/10_Architecture.py")
+    app = _switch_to("pages/16_Architecture.py")
     assert not app.exception
     assert any("flowchart" in element.value for element in app.markdown)
     body = "\n".join(element.value for element in app.markdown).lower()
@@ -208,12 +208,12 @@ def test_predictive_publication_names_implemented_estimator_families_and_leakage
 
 def test_workflow_publications_offer_evidence_only_after_methodology() -> None:
     evidence_targets = {
-        "pages/16_Market_Data_Workflow.py": "Market_and_Signal_Research",
-        "pages/17_Signal_Research_Workflow.py": "Market_and_Signal_Research",
-        "pages/18_Strategy_Research_Workflow.py": "Strategy_Research",
-        "pages/19_Robustness_Research_Workflow.py": "Robustness_Analysis",
-        "pages/20_Predictive_Research_Workflow.py": "Predictive_Research",
-        "pages/21_Strategy_Execution_Workflow.py": "Live_Paper_Trading",
+        "pages/2_Market_Data_Workflow.py": "Market_and_Signal_Research",
+        "pages/3_Signal_Research_Workflow.py": "Market_and_Signal_Research",
+        "pages/5_Strategy_Research_Workflow.py": "Strategy_Research",
+        "pages/7_Robustness_Research_Workflow.py": "Robustness_Analysis",
+        "pages/9_Predictive_Research_Workflow.py": "Predictive_Research",
+        "pages/11_Strategy_Execution_Workflow.py": "Live_Paper_Trading",
     }
     for publication_page, technical_target in evidence_targets.items():
         app = _switch_to(publication_page)

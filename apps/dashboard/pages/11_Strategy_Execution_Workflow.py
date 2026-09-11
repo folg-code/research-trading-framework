@@ -7,6 +7,6 @@ configure_page(title="Strategy Execution Workflow")
 render_app_chrome()
 render_workflow_publication(
     "workflow-strategy-execution",
-    evidence_page="pages/5_Live_Paper_Trading.py",
+    evidence_page="pages/12_Live_Paper_Trading.py",
     evidence_label="Open DRY_RUN operational evidence",
 )

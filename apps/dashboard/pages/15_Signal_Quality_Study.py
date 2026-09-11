@@ -21,10 +21,10 @@ st.caption(
 )
 evidence_columns = st.columns(2)
 evidence_columns[0].page_link(
-    "pages/6_Predictive_Research.py", label="Explore Predictive Research evidence"
+    "pages/10_Predictive_Research.py", label="Explore Predictive Research evidence"
 )
 evidence_columns[1].page_link(
-    "pages/3_Strategy_Research.py", label="Explore Strategy Research evidence"
+    "pages/6_Strategy_Research.py", label="Explore Strategy Research evidence"
 )
 
 st.page_link(METHODOLOGY_PAGE, label="Back to Signal Quality Methodology")

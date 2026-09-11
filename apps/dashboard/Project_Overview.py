@@ -8,6 +8,7 @@ from dashboard_app.config import resolve_status_url
 from dashboard_app.ui import configure_page, render_app_chrome
 from dashboard_app.views.dry_run_status_card import render_dry_run_status_card
 from dashboard_app.views.overview import (
+    render_author_intro,
     render_catalog_entry,
     render_featured_studies,
     render_future_ideas,
@@ -22,6 +23,7 @@ configure_page(title="Project Overview")
 render_app_chrome()
 
 st.title("Trading Research Framework")
+render_author_intro()
 render_product_thesis()
 
 render_dry_run_status_card(resolve_status_url())

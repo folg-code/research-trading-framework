@@ -19,9 +19,9 @@ from dashboard_app.content.paths import content_document_path
 #: Streamlit page routes). Kept as one tuple so the overview entry point,
 #: the workflow-context page and the methodology page all point at the
 #: same page files rather than each hard-coding its own copy.
-WORKFLOW_CONTEXT_PAGE = "pages/7_Signal_Quality_Workflow.py"
-METHODOLOGY_PAGE = "pages/8_Signal_Quality_Methodology.py"
-STUDY_PAGE = "pages/9_Signal_Quality_Study.py"
+WORKFLOW_CONTEXT_PAGE = "pages/13_Signal_Quality_Workflow.py"
+METHODOLOGY_PAGE = "pages/14_Signal_Quality_Methodology.py"
+STUDY_PAGE = "pages/15_Signal_Quality_Study.py"
 
 
 def render_static_content_page(
@@ -66,12 +66,12 @@ def render_future_direction_entries() -> None:
     entries = (
         (
             "AI Research Infrastructure",
-            "pages/13_AI_Research_Infrastructure.py",
+            "pages/19_AI_Research_Infrastructure.py",
             "A proposed AI control plane over deterministic framework operations.",
         ),
         (
             "Research Application",
-            "pages/14_Research_Application.py",
+            "pages/20_Research_Application.py",
             "A draft local-first interface for existing framework workflows.",
         ),
     )

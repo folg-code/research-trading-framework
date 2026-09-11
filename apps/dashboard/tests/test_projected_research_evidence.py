@@ -84,10 +84,10 @@ def test_absent_optional_evidence_root_produces_no_inputs(tmp_path: Path) -> Non
 
 
 def test_pages_restore_rich_evidence_sections() -> None:
-    signal_page = (_REPO_ROOT / "apps/dashboard/pages/2_Market_and_Signal_Research.py").read_text(
+    signal_page = (_REPO_ROOT / "apps/dashboard/pages/4_Market_and_Signal_Research.py").read_text(
         encoding="utf-8"
     )
-    robustness_page = (_REPO_ROOT / "apps/dashboard/pages/4_Robustness_Analysis.py").read_text(
+    robustness_page = (_REPO_ROOT / "apps/dashboard/pages/8_Robustness_Analysis.py").read_text(
         encoding="utf-8"
     )
 
@@ -129,7 +129,7 @@ def test_reader_rejects_unknown_nested_evidence_field() -> None:
 
 def test_signal_page_renders_projected_tables_and_charts() -> None:
     app = AppTest.from_file(
-        str(_REPO_ROOT / "apps/dashboard/pages/2_Market_and_Signal_Research.py")
+        str(_REPO_ROOT / "apps/dashboard/pages/4_Market_and_Signal_Research.py")
     ).run(timeout=30)
 
     assert not app.exception
@@ -139,7 +139,7 @@ def test_signal_page_renders_projected_tables_and_charts() -> None:
 
 
 def test_robustness_page_renders_demo_verdict_and_analytics() -> None:
-    app = AppTest.from_file(str(_REPO_ROOT / "apps/dashboard/pages/4_Robustness_Analysis.py")).run(
+    app = AppTest.from_file(str(_REPO_ROOT / "apps/dashboard/pages/8_Robustness_Analysis.py")).run(
         timeout=30
     )
 
