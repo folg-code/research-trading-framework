@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import os
+import stat
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -39,6 +41,47 @@ def test_prepare_release_validates_before_updating_current(tmp_path: Path) -> No
     loaded = load_projection_bundle_from_path(release.projection_path)
     assert not isinstance(loaded, PublicationUnavailable)
     assert release.artifact_count == len(loaded.artifacts)
+
+
+@pytest.mark.skipif(os.name != "posix", reason="POSIX permission bits only")
+def test_prepare_release_is_world_readable_for_a_different_container_user(tmp_path: Path) -> None:
+    """The deploy generator and the long-running dashboard container run as
+    different, unrelated users (build-time generator vs. the container's own
+    ``dashboard`` system user; see ``deploy_public_dashboard.sh``), sharing
+    the release tree only through a plain bind mount -- no common group.
+    ``tempfile.mkdtemp``/``mkstemp`` always create 0700/0600 regardless of
+    umask, which would otherwise make every release unreadable by anyone but
+    the user that generated it. Every directory/file in the release tree
+    must be world-readable (files) / world-traversable (directories).
+    """
+    storage_root = tmp_path / "workspace"
+    storage_root.mkdir()
+    release_root = tmp_path / "publication"
+
+    release = prepare_public_projection_release(
+        storage_root=storage_root,
+        release_root=release_root,
+        release_id="release-perm-001",
+        base_bundle_path=projection_bundle_path(),
+        generated_at_utc=datetime(2026, 9, 10, tzinfo=UTC),
+    )
+
+    def other_can_read(path: Path) -> bool:
+        return bool(path.stat().st_mode & stat.S_IROTH)
+
+    def other_can_traverse(path: Path) -> bool:
+        return bool(path.stat().st_mode & stat.S_IXOTH)
+
+    release_directory = release.projection_path.parent
+    assert other_can_traverse(release_root)
+    assert other_can_traverse(release_root / "releases")
+    assert other_can_traverse(release_directory)
+    assert other_can_read(release.projection_path)
+    manifests_directory = release_directory / "manifests"
+    assert other_can_traverse(manifests_directory)
+    for manifest_path in manifests_directory.iterdir():
+        assert other_can_read(manifest_path)
+    assert other_can_read(release_root / "CURRENT")
 
 
 def test_failed_generation_preserves_previous_selection(tmp_path: Path) -> None:

@@ -33,6 +33,19 @@ _SAFE_RELEASE_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
 CURRENT_RELEASE_FILE = "CURRENT"
 RELEASES_DIRECTORY = "releases"
 
+# The release tree is deliberately public data (a sanitized projection bundle
+# meant to be read by the long-running dashboard container), but the build-time
+# generator and the dashboard process run as different, unrelated host/container
+# users -- there is no shared group to rely on. `tempfile.mkdtemp`/`mkstemp`
+# always create with 0700/0600 regardless of umask (a private-by-default
+# security choice in CPython's tempfile module), which would otherwise leave
+# every release unreadable by anyone but the user that generated it. Every
+# directory/file in the release tree is explicitly widened after creation so
+# the released data matches its actual (public) sensitivity, not the
+# generator's private-temp-file default.
+_PUBLIC_DIR_MODE = 0o755
+_PUBLIC_FILE_MODE = 0o644
+
 
 @dataclass(frozen=True, slots=True)
 class ProjectionRelease:
@@ -83,16 +96,25 @@ def prepare_public_projection_release(
     )
 
     releases_root.mkdir(parents=True, exist_ok=True)
+    releases_root.chmod(_PUBLIC_DIR_MODE)
     candidate_directory = Path(tempfile.mkdtemp(prefix=f".{release_id}.", dir=releases_root))
     try:
         candidate_path = candidate_directory / "projection.json"
         _write_bundle(candidate_path, bundle)
+        candidate_path.chmod(_PUBLIC_FILE_MODE)
         validated = _load_bundle(candidate_path, label="generated")
         manifest_paths = _validate_manifests(manifests_root, validated)
         release_manifests = candidate_directory / "manifests"
         release_manifests.mkdir()
+        release_manifests.chmod(_PUBLIC_DIR_MODE)
         for manifest_path in manifest_paths:
-            shutil.copy2(manifest_path, release_manifests / manifest_path.name)
+            copied_path = release_manifests / manifest_path.name
+            shutil.copy2(manifest_path, copied_path)
+            copied_path.chmod(_PUBLIC_FILE_MODE)
+        # mkdtemp always creates 0700 regardless of umask; widen the directory
+        # itself last, once its contents are already public-mode, so there is
+        # no window where a public-mode file sits inside a private directory.
+        candidate_directory.chmod(_PUBLIC_DIR_MODE)
         os.replace(candidate_directory, final_directory)
     except Exception:
         shutil.rmtree(candidate_directory, ignore_errors=True)
@@ -161,11 +183,14 @@ def _validate_manifests(manifests_root: Path, bundle: PublicProjectionBundle) ->
 
 def _select_release(release_root: Path, release_id: str) -> None:
     release_root.mkdir(parents=True, exist_ok=True)
+    release_root.chmod(_PUBLIC_DIR_MODE)
     handle, temporary_name = tempfile.mkstemp(prefix=".CURRENT.", dir=release_root, text=True)
     temporary_path = Path(temporary_name)
     try:
         with os.fdopen(handle, "w", encoding="utf-8") as stream:
             stream.write(f"{release_id}\n")
+        # mkstemp always creates 0600 regardless of umask.
+        temporary_path.chmod(_PUBLIC_FILE_MODE)
         os.replace(temporary_path, release_root / CURRENT_RELEASE_FILE)
     except Exception:
         temporary_path.unlink(missing_ok=True)
