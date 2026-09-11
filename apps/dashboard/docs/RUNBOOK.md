@@ -158,7 +158,8 @@ Prefer attaching them to the `dashboard-vps` Environment (the workflow uses it).
    without interactive sudo.
 5. Create a deploy-only SSH keypair; put the **public** key in that user's
    `authorized_keys`; store the **private** key only as `DASHBOARD_VPS_SSH_KEY`.
-6. Put deployment env in `apps/dashboard/.env` (never commit it):
+6. Put deployment env in `apps/dashboard/.env` (never commit it — copy
+   `apps/dashboard/.env.example` as a starting point):
    `DASHBOARD_STORAGE_HOST_PATH`, `DASHBOARD_RESEARCH_HOST_PATH`,
    `DASHBOARD_PUBLICATION_HOST_ROOT`, optional
    `DASHBOARD_STATUS_URL`, and `DASHBOARD_HTTP_PORT`.
