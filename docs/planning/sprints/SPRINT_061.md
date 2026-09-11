@@ -211,6 +211,10 @@ runtime decision requires separate discovery/architecture approval.
   visible evidence. The follow-up restores projected tables, verdict gates and
   charts from existing persisted artifacts. Legacy Robustness demo evidence is
   labelled and remains excluded from Strategy catalog grouping.
+- The accepted single-file projection shortcut became materially visible after
+  that restoration. `TECHNICAL_DEBT.md` TD-034 records the monolithic bundle,
+  its safe operating boundary and the direction toward an indexed, structured
+  public artifact store without restoring runtime access to raw `user_data`.
 - Remaining work: maintainer acceptance of the final factual/editorial result;
   actual VPS/SSH deployment and an external Live Paper endpoint remain
   operational exercises rather than local sprint evidence.
