@@ -1,8 +1,8 @@
 # Sprint 062: BTC Futures Dry-Run on VPS and Dashboard Status Card
 
-Status: Approved (2026-09-10) — implementation may proceed; the actual VPS
-deploy/rollback in T007 requires a separate explicit maintainer go-ahead before
-it is executed.
+Status: T001-T006 merged to `main` via #522 (2026-09-11); T007 (runbook +
+actual VPS deploy/rollback + 24h observation) remains and requires a separate
+explicit maintainer go-ahead before it is executed.
 Goal: Run the existing BTCUSDT live-market/simulated-execution `DRY_RUN` safely
 on the dashboard VPS, expose one private-network GET-only status service, and
 show an unmistakably simulated current-status card in the public dashboard.
@@ -113,7 +113,30 @@ the actual read port in the codebase is `ExecutionStateReader`
 
 ## Closeout
 
-- Integrated checks:
-- Documentation reconciliation:
-- Review:
-- Remaining work:
+- Integrated checks: T001-T006 merged to `main` via #522 (2026-09-11). Dashboard
+  suite 288 passed; root suite 1919 passed, 19 skipped (pre-existing opt-in
+  network/torch/docker smoke tests). All 9 CI checks green on #522.
+- Documentation reconciliation: this sprint's ADR collided on the number
+  ADR-0035 with Sprint 061's `ADR-0035-complete-public-catalog-publication.md`
+  (already `ACCEPTED` on `main`), discovered when merging `main` into the
+  sprint branch. Renumbered to **ADR-0036** and updated all 27 references
+  across code, tests and docs; Sprint 061's ADR-0035 is unaffected.
+  Sprint 061 also independently rebuilt `pages/5_Live_Paper_Trading.py` and
+  `views/live_paper.py` as its representative Strategy Execution evidence
+  view, consuming the same `execution.status.v1` API this sprint built.
+  Resolved (maintainer-approved) by keeping Sprint 061's safety-hardened page
+  (public allowlist via `sanitize_public_live_paper_snapshot`, no raw-JSON
+  dump, renders without `DASHBOARD_STORAGE_ROOT`) as the base and layering
+  this sprint's extra richness (feed diagnostics, fuller metrics,
+  badge-specific warnings) on top, using only already-allowlisted fields.
+  `dry_run_status_card.py` was adapted to take `status_url` directly via
+  `resolve_status_url()` instead of `DashboardSettings`, matching the
+  now-current Home-page/page-5 pattern. See merge commit `6fa69a1` on
+  `sprint/btc-futures-vps-dry-run` for full detail.
+- Review: every task (T002-T006) passed independent `tester` + `reviewer`
+  passes before merging into the sprint branch; PR #505 required one fix
+  cycle after `reviewer` caught a raw-exception-text leak via
+  `recent_events[].payload` (fixed, re-tested, re-reviewed).
+- Remaining work: T007 (runbook update, actual VPS deploy/rollback, 24-hour
+  observation) — requires a separate explicit maintainer go-ahead before
+  execution, per this sprint's Architecture triage and Integration risks.

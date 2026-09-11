@@ -26,24 +26,31 @@ below. Detailed task state belongs in `docs/planning/sprints/`.
 ## 2. Status Metadata
 
 ```text
-Status Date: 2026-09-10
+Status Date: 2026-09-11
 Current Phase: Phase 16 — Quant Research Workbench. Increments 16A–16C are
   COMPLETE. Increment 16D — Portfolio Dashboard — is in progress.
 Current Increment: 16D — Portfolio Dashboard, IN PROGRESS. The accepted
   `DASHBOARD_DEVELOPMENT_DIRECTION.md` is authoritative for this increment
   and replaces the former Quant Lab framing. The feature PRD is ACCEPTED.
-  Sprints 059 and 060 are COMPLETE; Sprint 061 completes the public story,
-  catalog migration and production publication lifecycle.
-Active Sprint: SPRINT_061 — Portfolio Story, Content and Direction
-  Completion. Decisions D061-01 through D061-04 were accepted by the
-  maintainer on 2026-09-10. T001 is Done (#503). T002–T004 are Done (#506)
-  after the maintainer accepted the rendered content and architecture.
-  T005 is Done (#510, #511); T006 is Done (#512–#515); T007 is Done
-  (#516, #517), and T008 awaits final maintainer acceptance after green QA.
-Last Completed Sprint: SPRINT_060 — Signal Quality Portfolio Evidence
-  (Phase 16D), 6/6 tasks, merged to `main` via #498 (2026-09-10). It shipped
-  the first real Signal Quality publication and persisted-evidence path over
-  ADR-0034's deny-by-default projection.
+  Sprints 059, 060 and 061 are COMPLETE and merged to `main`.
+Active Sprint: SPRINT_062 — BTC Futures Dry-Run on VPS and Dashboard Status
+  Card. Decisions D062-01 through D062-04 were approved by the maintainer on
+  2026-09-10; ADR-0036 (renumbered from ADR-0035 during the merge into
+  `main` — see below) is ACCEPTED. T001-T006 are merged to `main` via #522
+  (2026-09-11); only T007 (runbook update, actual VPS deploy/rollback, 24h
+  observation) remains, and it requires a separate explicit maintainer
+  go-ahead before execution. See `docs/planning/sprints/SPRINT_062.md`.
+Last Completed Sprint: SPRINT_061 — Portfolio Story, Content and Direction
+  Completion, merged to `main` via #521 (2026-09-11). Replaced the sparse
+  project description with a full architecture/workflow/infrastructure
+  narrative, added `AI Research Infrastructure` and `Research Application`
+  Future Ideas pages, generalized safe public projection into a
+  study-grouped catalog, and added one representative persisted-evidence
+  view per workflow (including Strategy Execution / Live Paper, whose
+  public-safety design — a fixed allowlist via
+  `sanitize_public_live_paper_snapshot`, no raw internal-field dump, no
+  workspace-storage dependency — became the accepted baseline SPRINT_062's
+  Home-page status card had to build on top of, not replace).
 Parallel state: Phase 15 is COMPLETE. Phase 14A is COMPLETE; Phase 14B /
   reserved Sprint 050 remains not planned and not started.
 Overall Status: STABLE
@@ -55,7 +62,21 @@ Full sprint-by-sprint history: §12 below (compact index) and each sprint's
 
 ## 3. Work in Progress
 
-**SPRINT_061 is active at its final acceptance gate.** T001's claim/evidence
+**SPRINT_062 is merged to `main` (T001-T006); T007 remains.** ADR-0036 froze
+the VPS topology, `execution.status.v1` schema, lifecycle/recovery and threat
+model. A provider-neutral VPS runtime, a GET-only sanitized status service,
+Compose packaging with network/volume isolation, a Home-page dry-run status
+card, and cross-cutting integration/container-smoke tests all shipped and
+passed independent `tester`/`reviewer` review before merging via #522
+(2026-09-11). Merging required reconciling with SPRINT_061 (see Last
+Completed Sprint above): an ADR number collision (renumbered ADR-0035 →
+ADR-0036) and an independently-built duplicate Live Paper/Strategy Execution
+page, resolved by keeping SPRINT_061's already-accepted safety-hardened page
+as the base and layering SPRINT_062's richer diagnostics on top of it. T007
+(runbook update, actual VPS deploy/rollback, 24-hour observation) requires a
+separate explicit maintainer go-ahead before execution.
+
+**SPRINT_061 is COMPLETE, merged to `main` via #521.** T001's claim/evidence
 matrix is merged (#503).
 T002–T004 are merged to the sprint branch (#506) after maintainer acceptance:
 the dashboard now explains the modular data/research architecture, six
