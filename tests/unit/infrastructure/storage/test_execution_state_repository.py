@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
@@ -97,6 +98,9 @@ def test_json_execution_state_repository_round_trips_latest_status(tmp_path: Pat
     ]
     assert [event.event_id for event in view.recent_events] == ["event-2", "event-3"]
     assert all(event.simulated for event in view.recent_events)
+    assert view.account_id == "paper-btc"
+    assert view.currency == "USDT"
+    assert view.starting_equity == Decimal("10000")
 
 
 def test_json_execution_state_repository_upserts_orders_and_fills(tmp_path: Path) -> None:
@@ -154,6 +158,33 @@ def test_json_execution_state_repository_writes_explicit_state_document(
     assert payload["bars"][0]["close"] == "65010"
     assert payload["events"][0]["event_type"] == ExecutionEventType.HEARTBEAT_RECORDED.value
     assert payload["events"][0]["simulated"] is True
+
+
+def test_json_execution_state_repository_fsyncs_before_atomic_rename(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Regression for ADR-0036 SS2.5: the temp file must be fsynced before rename."""
+    repository = JsonExecutionStateRepository(tmp_path)
+    calls: list[str] = []
+    real_fsync = os.fsync
+
+    def _tracking_fsync(fd: int) -> None:
+        calls.append("fsync")
+        real_fsync(fd)
+
+    real_replace = Path.replace
+
+    def _tracking_replace(self: Path, target: str | Path) -> Path:
+        calls.append("replace")
+        return real_replace(self, target)
+
+    monkeypatch.setattr(os, "fsync", _tracking_fsync)
+    monkeypatch.setattr(Path, "replace", _tracking_replace)
+
+    repository.save_runtime_status(_status())
+
+    assert calls == ["fsync", "replace"]
 
 
 def _status() -> RuntimeStatusSnapshot:

@@ -9,7 +9,7 @@ from decimal import Decimal
 from pathlib import Path
 from typing import final
 
-from trading_framework.core.exceptions import ValidationError
+from trading_framework.core.exceptions import IncompatibleExecutionStateError, ValidationError
 from trading_framework.execution import (
     ExecutionReadModelQuery,
     ExecutionStateRepository,
@@ -37,6 +37,7 @@ from trading_framework.execution.models import (
     PaperPosition,
 )
 from trading_framework.execution.protocols import ExecutionEventSink
+from trading_framework.execution.repositories.read_models import RuntimeStatusView
 from trading_framework.infrastructure.storage.execution_events import JsonlExecutionEventSink
 from trading_framework.infrastructure.storage.execution_state import JsonExecutionStateRepository
 from trading_framework.market.models import MarketBar
@@ -450,17 +451,46 @@ def _restore_broker_state(
     repository: ExecutionStateRepository,
     config: LocalBtcFuturesDryRunConfig,
 ) -> PaperBrokerState | None:
+    """Restore broker state from persisted execution state, or refuse to start.
+
+    Restart semantics (ADR-0036 SS4.4): no persisted state for this
+    ``runtime_id`` is a normal first run (fresh start). Persisted-but-
+    incomplete or unreadable state, or persisted state that is incompatible
+    with the current configuration, must never be silently discarded --
+    those conditions raise ``IncompatibleExecutionStateError`` so the caller
+    refuses to start instead of quietly resetting an open paper position.
+    """
     if not config.restore_previous_state:
         return None
-    view = repository.latest_status_view(ExecutionReadModelQuery(runtime_id=config.runtime_id))
+    try:
+        view = repository.latest_status_view(ExecutionReadModelQuery(runtime_id=config.runtime_id))
+    except (ValidationError, LookupError, TypeError, ValueError) as exc:
+        msg = (
+            f"persisted execution state for runtime '{config.runtime_id}' is unreadable "
+            "or corrupt; refusing to start. Reset requires an explicit operator action."
+        )
+        raise IncompatibleExecutionStateError(msg) from exc
+    if view is None:
+        return None
     if (
-        view is None
-        or view.current_position is None
+        view.current_position is None
         or view.paper_equity is None
         or view.realized_pnl is None
         or view.unrealized_pnl is None
     ):
-        return None
+        msg = (
+            f"persisted execution state for runtime '{config.runtime_id}' is incomplete; "
+            "refusing to start. Reset requires an explicit operator action."
+        )
+        raise IncompatibleExecutionStateError(msg)
+    reasons = _incompatibility_reasons(view=view, config=config)
+    if reasons:
+        msg = (
+            f"persisted execution state for runtime '{config.runtime_id}' is incompatible "
+            f"with the current configuration ({'; '.join(reasons)}); refusing to start. "
+            "Reset requires an explicit operator action."
+        )
+        raise IncompatibleExecutionStateError(msg)
     account = PaperAccountSnapshot(
         account_id=config.account_id,
         currency=config.currency,
@@ -482,6 +512,39 @@ def _restore_broker_state(
             prefix="paper-fill-",
         ),
     )
+
+
+def _incompatibility_reasons(
+    *,
+    view: RuntimeStatusView,
+    config: LocalBtcFuturesDryRunConfig,
+) -> list[str]:
+    """Return a list of human-readable restart-compatibility mismatches, if any.
+
+    ``mode`` is not compared here: ``ExecutionMode`` currently has exactly one
+    supported member (``DRY_RUN``, ADR-0021), so persisted and configured
+    mode can never differ in practice. A future mode addition must extend
+    this check alongside the new mode.
+    """
+    reasons: list[str] = []
+    if view.provider != config.provider:
+        reasons.append("provider mismatch")
+    if view.symbol != config.symbol:
+        reasons.append("symbol mismatch")
+    if view.account_id is not None and view.account_id != config.account_id:
+        reasons.append("account_id mismatch")
+    if view.currency is not None and view.currency != config.currency:
+        reasons.append("currency mismatch")
+    has_open_position = (
+        view.current_position is not None and view.current_position.side is not PositionSide.FLAT
+    )
+    if (
+        has_open_position
+        and view.starting_equity is not None
+        and view.starting_equity != config.starting_equity
+    ):
+        reasons.append("starting_equity mismatch with an open position")
+    return reasons
 
 
 def _last_numeric_suffix(values: Iterable[str], *, prefix: str) -> int:

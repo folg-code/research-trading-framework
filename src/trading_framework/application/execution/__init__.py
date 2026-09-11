@@ -37,6 +37,13 @@ from trading_framework.application.execution.local_btc_futures import (
     run_local_btc_futures_dry_run,
 )
 from trading_framework.application.execution.status_json import runtime_status_view_to_json
+from trading_framework.application.execution.vps_status_api import (
+    StatusApiResponse,
+    VpsExecutionStatusApiConfig,
+    handle_vps_execution_status_request,
+    handle_vps_status_health_check,
+    load_vps_execution_status_api_config,
+)
 
 __all__ = [
     "AwsBtcFuturesRuntimeConfig",
@@ -53,12 +60,17 @@ __all__ = [
     "RunLocalBtcFuturesBinanceDryRunResult",
     "RunLocalBtcFuturesDryRunRequest",
     "RunLocalBtcFuturesDryRunResult",
+    "StatusApiResponse",
+    "VpsExecutionStatusApiConfig",
     "create_aws_execution_state_repository",
     "create_local_btc_futures_dry_run_runtime",
     "handle_aws_execution_status_api_request",
     "handle_local_btc_futures_binance_message",
+    "handle_vps_execution_status_request",
+    "handle_vps_status_health_check",
     "load_aws_btc_futures_runtime_config",
     "load_aws_execution_status_api_config",
+    "load_vps_execution_status_api_config",
     "run_aws_btc_futures_dry_run",
     "run_aws_btc_futures_dry_run_sync",
     "run_local_btc_futures_binance_dry_run",

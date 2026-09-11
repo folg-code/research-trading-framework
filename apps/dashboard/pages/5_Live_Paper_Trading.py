@@ -35,14 +35,43 @@ def _render_snapshot(snapshot: dict[str, object]) -> None:
         st.caption(
             f"Last heartbeat: {health.heartbeat_at.isoformat()} ({int(age.total_seconds())}s ago)"
         )
-    if health.is_stale:
-        st.warning("The runtime snapshot is stale; it is not presented as current operation.")
+
+    feed_bits: list[str] = []
+    if health.feed_connection_state:
+        feed_bits.append(f"feed={health.feed_connection_state}")
+    if health.feed_reconnect_count:
+        feed_bits.append(f"reconnects={health.feed_reconnect_count}")
+    if feed_bits:
+        st.caption(" · ".join(feed_bits))
+
+    if health.badge == "Degraded":
+        st.warning("Market feed is delayed or reconnecting; process heartbeat may still be fresh.")
+    elif health.is_stale:
+        st.warning(
+            f"The runtime snapshot is stale (heartbeat older than {health.stale_after} or "
+            "worker reported stale); it is not presented as current operation."
+        )
+    elif health.badge == "Failed":
+        st.error("Worker reported FAILED. Check runtime logs / runbook.")
 
     metrics = st.columns(4)
     metrics[0].metric("Symbol", str(snapshot.get("symbol") or "—"))
     metrics[1].metric("Signal", str(snapshot.get("current_signal") or "—"))
     metrics[2].metric("Last price", format_kpi("last_price", snapshot.get("last_price")))
-    metrics[3].metric("Paper equity", format_kpi("paper_equity", snapshot.get("paper_equity")))
+    metrics[3].metric("Last update", str(snapshot.get("last_market_event_at") or "—"))
+
+    metrics2 = st.columns(4)
+    metrics2[0].metric("Equity", format_kpi("paper_equity", snapshot.get("paper_equity")))
+    metrics2[1].metric("Realized PnL", format_kpi("realized_pnl", snapshot.get("realized_pnl")))
+    metrics2[2].metric(
+        "Unrealized PnL", format_kpi("unrealized_pnl", snapshot.get("unrealized_pnl"))
+    )
+    position = snapshot.get("current_position")
+    if isinstance(position, dict):
+        qty = position.get("quantity", position.get("qty", position.get("size")))
+        metrics2[3].metric("Position", str(qty if qty is not None else "Flat"))
+    else:
+        metrics2[3].metric("Position", "Flat")
 
     st.subheader("Representative runtime evidence")
     chart_col, position_col = st.columns([2, 1])
@@ -53,7 +82,6 @@ def _render_snapshot(snapshot: dict[str, object]) -> None:
             height=420,
         )
     with position_col:
-        position = snapshot.get("current_position")
         if isinstance(position, dict):
             st.write(
                 {
