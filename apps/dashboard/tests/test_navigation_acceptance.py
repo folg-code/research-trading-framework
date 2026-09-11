@@ -88,11 +88,11 @@ def test_methodology_page_renders_and_links_to_the_study_in_one_action() -> None
 
     assert not app.exception
     assert app.title[0].value == "Signal Quality Methodology"
-    assert "BTC_Signal_Quality_Study" in _page_link_targets(app)
+    assert "Signal_Quality_Study" in _page_link_targets(app)
 
 
 def test_study_page_renders_and_links_methodology_and_explore_evidence_in_one_action() -> None:
-    app = _switch_to(_run_overview(), "pages/9_BTC_Signal_Quality_Study.py")
+    app = _switch_to(_run_overview(), "pages/9_Signal_Quality_Study.py")
 
     assert not app.exception
     targets = _page_link_targets(app)
@@ -110,4 +110,4 @@ def test_study_reachable_from_overview_in_no_more_than_three_navigation_actions(
     assert "Signal_Quality_Methodology" in _page_link_targets(workflow_context)  # action 2
 
     methodology = _switch_to(overview, "pages/8_Signal_Quality_Methodology.py")
-    assert "BTC_Signal_Quality_Study" in _page_link_targets(methodology)  # action 3
+    assert "Signal_Quality_Study" in _page_link_targets(methodology)  # action 3

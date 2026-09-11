@@ -21,7 +21,66 @@ from dashboard_app.content.paths import content_document_path
 #: same page files rather than each hard-coding its own copy.
 WORKFLOW_CONTEXT_PAGE = "pages/7_Signal_Quality_Workflow.py"
 METHODOLOGY_PAGE = "pages/8_Signal_Quality_Methodology.py"
-STUDY_PAGE = "pages/9_BTC_Signal_Quality_Study.py"
+STUDY_PAGE = "pages/9_Signal_Quality_Study.py"
+
+
+def render_static_content_page(
+    slug: str,
+    *,
+    architecture_diagram: str | None = None,
+) -> None:
+    """Render one stable, version-controlled portfolio content page."""
+    document = load_content_document(content_document_path(slug))
+    if isinstance(document, ContentUnavailable):
+        st.warning(f"Content unavailable ({document.reason}): {document.detail}")
+        return
+
+    st.title(document.title)
+    status = document.status.value.replace("_", " ")
+    st.caption(f"{status} · Updated {document.updated.isoformat()}")
+    if architecture_diagram is not None:
+        st.subheader("System map")
+        st.caption(
+            "Arrows show data or contract consumption. Market Data stops at DatasetRef; "
+            "each workflow owns the evidence it produces."
+        )
+        st.mermaid_chart(architecture_diagram)
+    st.markdown(document.body_markdown)
+
+
+def render_workflow_publication(slug: str, *, evidence_page: str, evidence_label: str) -> None:
+    """Render workflow methodology first, then offer its technical evidence view."""
+    render_static_content_page(slug)
+    st.divider()
+    st.subheader("Explore Evidence")
+    st.caption(
+        "The technical view below reads persisted artifacts. It is evidence for this "
+        "workflow, not a substitute for its methodology and architecture."
+    )
+    st.page_link(evidence_page, label=evidence_label)
+
+
+def render_future_direction_entries() -> None:
+    """Link the Future Direction index to exactly its two approved ideas."""
+    columns = st.columns(2)
+    entries = (
+        (
+            "AI Research Infrastructure",
+            "pages/13_AI_Research_Infrastructure.py",
+            "A proposed AI control plane over deterministic framework operations.",
+        ),
+        (
+            "Research Application",
+            "pages/14_Research_Application.py",
+            "A draft local-first interface for existing framework workflows.",
+        ),
+    )
+    for (title, page_path, description), column in zip(entries, columns, strict=True):
+        with column:
+            st.subheader(title)
+            st.badge("FUTURE IDEAS", color="violet")
+            st.write(description)
+            st.page_link(page_path, label=f"Explore {title}")
 
 
 def _render_content_document_with_forward_link(
@@ -52,7 +111,7 @@ def render_signal_quality_methodology() -> None:
     _render_content_document_with_forward_link(
         "signal-quality-methodology",
         forward_page=STUDY_PAGE,
-        forward_label="Open the BTC Signal Quality study",
+        forward_label="Open the Signal Quality study",
     )
 
 

@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - "apps/dashboard/**"
+      - "scripts/dashboard/**"
       - ".github/workflows/deploy-dashboard.yml"
   workflow_dispatch:
 
@@ -50,6 +51,7 @@ jobs:
           DASHBOARD_VPS_USER: ${{ secrets.DASHBOARD_VPS_USER }}
           DASHBOARD_VPS_PORT: ${{ secrets.DASHBOARD_VPS_PORT }}
           DASHBOARD_VPS_REPO_PATH: ${{ secrets.DASHBOARD_VPS_REPO_PATH }}
+          DASHBOARD_PUBLICATION_RELEASE_ID: ${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
         run: |
           set -euo pipefail
           if [ -z "${DASHBOARD_VPS_HOST}" ] || [ -z "${DASHBOARD_VPS_USER}" ] || [ -z "${DASHBOARD_VPS_REPO_PATH}" ]; then
@@ -72,4 +74,6 @@ jobs:
                # (e.g. ad-hoc Dockerfile tweaks) that would block pull/reset.
                git reset --hard origin/main
                cd apps/dashboard
-               docker compose -f deploy/docker-compose.yml up --build -d"
+               if [ -f .env ]; then set -a; . ./.env; set +a; fi
+               export DASHBOARD_PUBLICATION_RELEASE_ID='${DASHBOARD_PUBLICATION_RELEASE_ID}'
+               ../../scripts/dashboard/deploy_public_dashboard.sh"

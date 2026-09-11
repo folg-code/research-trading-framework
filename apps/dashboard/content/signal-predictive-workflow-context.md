@@ -21,7 +21,7 @@ and Signal Research does not require Predictive Research either. A
 promotable model and a signal's own standalone performance are separate,
 explicitly recorded facts, not stages of one pipeline.
 
-The BTC Signal Quality study on this dashboard is one example that happens
+The Signal Quality study on this dashboard is one example that happens
 to touch both: a Signal Research occurrence set, evaluated separately by
 Predictive Research, then consulted by Strategy Research through an
 explicit, content-addressed artifact reference (a fingerprint identifying

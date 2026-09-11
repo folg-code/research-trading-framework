@@ -16,9 +16,13 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from dashboard_app.publication.errors import InvalidProjectionSchemaError
-from dashboard_app.publication.manifest import PortfolioStudyManifest
+from dashboard_app.publication.errors import InvalidProjectionSchemaError, PublicationError
+from dashboard_app.publication.manifest import (
+    PORTFOLIO_STUDY_MANIFEST_SCHEMA_VERSION,
+    PortfolioStudyManifest,
+)
 from dashboard_app.publication.projection import ProjectedArtifact, PublicProjectionBundle
+from dashboard_app.publication.sanitizers import sanitizer_for_role
 
 
 @dataclass(frozen=True, slots=True)
@@ -35,7 +39,7 @@ class PublicationUnavailable:
 
     ``reason`` is one of a small closed set of reason codes:
     ``"bundle_missing"``, ``"manifest_missing"``, ``"schema_mismatch"``,
-    ``"dangling_reference"``.
+    ``"dangling_reference"``, ``"catalog_invalid"``.
     """
 
     reason: str
@@ -59,9 +63,37 @@ def load_projection_bundle(
         )
 
     try:
-        return PublicProjectionBundle.from_dict(payload)
+        bundle = PublicProjectionBundle.from_dict(payload)
+        _validate_projected_fields(bundle)
+        return bundle
     except InvalidProjectionSchemaError as exc:
         return PublicationUnavailable(reason="schema_mismatch", detail=str(exc))
+
+
+def _validate_projected_fields(bundle: PublicProjectionBundle) -> None:
+    """Reject unknown roles and fields that are not a sanitizer fixed point."""
+    for artifact in bundle.artifacts.values():
+        sanitizer = sanitizer_for_role(artifact.artifact_role)
+        if sanitizer is None:
+            raise InvalidProjectionSchemaError(
+                f"unknown public artifact_role {artifact.artifact_role!r}"
+            )
+
+        projected_fields = dict(artifact.fields)
+        sanitizer_input = projected_fields
+        if artifact.artifact_role == "predictive_run_verdict" and "evaluations" in projected_fields:
+            sanitizer_input = dict(projected_fields)
+            sanitizer_input["rules"] = sanitizer_input.pop("evaluations")
+        try:
+            sanitized = sanitizer(sanitizer_input)
+        except PublicationError as exc:
+            raise InvalidProjectionSchemaError(
+                f"invalid projected fields for artifact {artifact.artifact_id!r}: {exc}"
+            ) from exc
+        if sanitized != projected_fields:
+            raise InvalidProjectionSchemaError(
+                f"artifact {artifact.artifact_id!r} contains non-allowlisted public fields"
+            )
 
 
 def load_projection_bundle_from_path(path: Path) -> PublicProjectionBundle | PublicationUnavailable:
@@ -98,6 +130,14 @@ def load_study_manifest(
     if payload is None:
         return PublicationUnavailable(
             reason="manifest_missing", detail="no study manifest payload was supplied"
+        )
+
+    if payload.get("schema_version") != PORTFOLIO_STUDY_MANIFEST_SCHEMA_VERSION:
+        return PublicationUnavailable(
+            reason="schema_mismatch",
+            detail=(
+                f"unsupported study manifest schema_version: {payload.get('schema_version')!r}"
+            ),
         )
 
     try:

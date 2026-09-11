@@ -10,13 +10,20 @@ repos:
     hooks:
       - id: mypy
         name: mypy
-        entry: uv run mypy
+        entry: uv run --all-packages mypy
         language: system
         pass_filenames: false
 
       - id: pytest
         name: pytest
         entry: uv run pytest
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
+
+      - id: dashboard-pytest
+        name: dashboard pytest
+        entry: uv run --package trading-dashboard pytest apps/dashboard/tests
         language: system
         pass_filenames: false
         stages: [pre-push]

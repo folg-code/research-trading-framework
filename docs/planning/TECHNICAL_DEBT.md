@@ -2086,6 +2086,102 @@ this, not a default assumed now.
 
 ---
 
+## TD-034 — Public Dashboard Projection Is a Monolithic JSON Bundle
+
+```text
+Status: ACCEPTED
+Priority: MEDIUM
+Domain: apps/dashboard/publication
+Introduced: Sprint 059; materially amplified by Sprint 061 rich evidence
+Target Review: Before the next material public-evidence expansion or when a
+  second consumer needs independently addressable public artifacts
+Owner: Unassigned
+```
+
+### Accepted Shortcut
+
+The dashboard publication contract serializes every selected, allowlisted
+public artifact into one pretty-printed `projection.json`. The committed file
+acts as the deterministic local/demo bundle and test fixture; production creates
+the same logical bundle inside an immutable, versioned release directory.
+
+This is not a copy of all private research artifacts. The build-time generator
+reads eligible sources from `user_data`, applies role-specific deny-by-default
+sanitizers, and writes only the approved public fields. Nevertheless, all
+selected public catalog and evidence records share one physical JSON document.
+
+### Reason
+
+The single-file layout made the first publication slice inexpensive and easy to
+reason about: one candidate can be validated completely, selected atomically,
+mounted read-only, cached by the dashboard and rolled back without partial or
+dangling artifact state. That trade-off was proportionate while the projection
+contained one small curated study.
+
+Sprint 061 restored rich Signal and Robustness evidence. The committed bundle is
+now about 948 KB and 23,600 pretty-printed lines, including a bounded 1,200-point
+walk-forward equity sample and multiple analytical tables. The safety boundary
+still works, but the physical representation no longer scales cleanly for review
+or continued evidence growth.
+
+### Consequences
+
+- A change to one projected run regenerates a large whole-file Git diff.
+- Readers parse the complete bundle even when a page needs one artifact.
+- Catalog identity, study evidence and larger chart-oriented tables are coupled
+  to one serialization and caching unit.
+- Keeping a representative committed demo risks continued repository growth as
+  more rich workflow evidence becomes public.
+- Line count exaggerates the logical size because the file is pretty-printed;
+  minification would reduce diff lines but would not solve coupling, eager loads
+  or artifact-level lifecycle concerns.
+
+### Safe Operating Boundary
+
+The public dashboard must not repay this debt by scanning or mounting raw
+`user_data` at runtime. Private research storage remains the source of truth and
+is read only by the build/deploy-time generator. The running application receives
+only a validated, immutable, read-only public release. Existing allowlists,
+schema checks, safe identities, fail-closed loading and atomic `CURRENT`
+selection remain mandatory while the monolithic representation is in use.
+
+### Repayment Trigger
+
+Review this debt before adding another materially large evidence family, when
+the committed projection makes normal code review impractical, when measured
+startup/load cost becomes relevant, or when another application needs to fetch
+public artifacts independently.
+
+### Repayment Direction
+
+Replace the physical single-file bundle with a versioned public artifact store,
+without weakening ADR-0034's publication boundary. A release should contain a
+small manifest/index plus separately sanitized files grouped by workflow,
+study/experiment and run. The index should carry explicit role, schema version,
+relative public path and integrity metadata; readers should validate and load an
+artifact on demand. Release generation must remain atomic and fail closed, and
+the dashboard must continue to mount only the selected public release read-only.
+
+Keep only a deliberately small representative fixture in Git. Full production
+releases should remain generated deployment artifacts outside the repository.
+The exact on-disk schema, compatibility and migration plan require an approved
+architecture task before implementation.
+
+### Related Documents
+
+- `docs/adr/ADR-0034-portfolio-publication-boundary.md`
+- `docs/planning/sprints/SPRINT_061.md`
+- `docs/reference/modules/DASHBOARD_APPLICATION.md`
+- `apps/dashboard/docs/RUNBOOK.md`
+
+### Related Tasks
+
+- PR #519 (`fix(dashboard): restore projected research evidence`) — expanded the
+  public bundle with the rich evidence that made this debt material
+- Maintainer review after Sprint 061 acceptance (2026-09-11)
+
+---
+
 # 6. Planned Debt Boundaries
 
 The following shortcuts may be accepted later but are not yet introduced:

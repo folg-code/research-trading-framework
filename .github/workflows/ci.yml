@@ -41,7 +41,7 @@ jobs:
           enable-cache: true
 
       - name: Install project
-        run: uv sync --locked --dev
+        run: uv sync --locked --dev --all-packages
 
       - name: Ruff lint
         run: uv run ruff check .
@@ -239,7 +239,7 @@ jobs:
         run: uv sync --locked --dev --all-packages
 
       - name: Dashboard ruff
-        run: uv run --package trading-dashboard ruff check apps/dashboard
+        run: uv run --package trading-dashboard ruff check apps/dashboard scripts/dashboard
 
       - name: Dashboard tests
         run: uv run --package trading-dashboard pytest apps/dashboard/tests -q

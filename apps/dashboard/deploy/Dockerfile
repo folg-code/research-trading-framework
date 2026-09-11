@@ -25,7 +25,6 @@ FROM python:3.12-slim AS runtime
 ENV PATH=/opt/dashboard/.venv/bin:$PATH \
     PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    DASHBOARD_STORAGE_ROOT=/data \
     STREAMLIT_SERVER_HEADLESS=true \
     STREAMLIT_SERVER_ADDRESS=0.0.0.0 \
     STREAMLIT_SERVER_PORT=8501 \
@@ -33,8 +32,7 @@ ENV PATH=/opt/dashboard/.venv/bin:$PATH \
 
 WORKDIR /opt/dashboard
 
-RUN addgroup --system dashboard && adduser --system --ingroup dashboard dashboard \
-    && mkdir -p /data && chown dashboard:dashboard /data
+RUN addgroup --system dashboard && adduser --system --ingroup dashboard dashboard
 
 COPY --from=builder /opt/dashboard /opt/dashboard
 

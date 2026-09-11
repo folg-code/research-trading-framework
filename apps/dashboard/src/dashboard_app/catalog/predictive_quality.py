@@ -144,11 +144,13 @@ def _small_test_sample_flags(per_fold: list[Any]) -> list[PredictiveQualityFlagV
 
 
 def _single_fold_dominance_flag(per_fold: list[Any]) -> list[PredictiveQualityFlagView]:
-    counts = [
-        (entry.get("fold_id"), entry.get("TEST"))
-        for entry in per_fold
-        if isinstance(entry, dict) and isinstance(entry.get("TEST"), (int, float))
-    ]
+    counts: list[tuple[object, float]] = []
+    for entry in per_fold:
+        if not isinstance(entry, dict):
+            continue
+        test_count = entry.get("TEST")
+        if isinstance(test_count, (int, float)):
+            counts.append((entry.get("fold_id"), float(test_count)))
     total = sum(count for _fold_id, count in counts)
     if total <= 0 or not counts:
         return []

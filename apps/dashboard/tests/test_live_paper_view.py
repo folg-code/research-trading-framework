@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
 
+import pytest
+
 from dashboard_app.charts.lightweight import candles_from_status_bars, markers_for_fills
 from dashboard_app.views.live_paper import (
     event_timeline_rows,
@@ -45,6 +47,13 @@ def test_live_paper_health_fresh_heartbeat() -> None:
     )
     assert health.is_stale is False
     assert health.badge == "Running"
+
+
+@pytest.mark.parametrize("simulated", ["false", "true", 1, 0, None])
+def test_live_paper_health_requires_literal_true_for_simulation(simulated: object) -> None:
+    health = live_paper_health({"simulated": simulated})
+
+    assert health.simulated is False
 
 
 def test_live_paper_health_uses_worker_degraded_and_feed_fields() -> None:

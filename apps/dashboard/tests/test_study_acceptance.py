@@ -46,7 +46,7 @@ def test_study_renders_without_exception() -> None:
 def test_study_shows_the_persisted_verdict_verbatim() -> None:
     app = _run_study_app()
 
-    assert app.title[0].value == "BTC Signal Quality Study"
+    assert app.title[0].value == "Signal Quality Study"
     badge_markdown = "\n".join(entry.value for entry in app.markdown)
     assert ":gray-badge[INCONCLUSIVE]" in badge_markdown
 

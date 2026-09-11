@@ -5,12 +5,11 @@ services:
       dockerfile: deploy/Dockerfile
     image: trading-dashboard:local
     environment:
-      DASHBOARD_STORAGE_ROOT: /data
       DASHBOARD_STATUS_URL: ${DASHBOARD_STATUS_URL:-}
     volumes:
       - type: bind
-        source: ${DASHBOARD_STORAGE_HOST_PATH:-../../user_data}
-        target: /data
+        source: ${DASHBOARD_PUBLICATION_HOST_PATH:-../publication_data}
+        target: /opt/dashboard/publication_data
         read_only: true
     expose:
       - "8501"

@@ -1,6 +1,9 @@
 # Sprint 061: Portfolio Story, Content and Direction Completion
 
-Status: Draft — requires maintainer approval before implementation
+Status: OPEN — maintainer approved Sprint 061 and Decisions D061-01 through
+D061-04 at sprint opening (2026-09-10). T001 is Done (#503); T002–T004 are
+Done (#506); T005 is Done (#510, #511); T006 is Done (#512–#515); T007 is
+Done (#516, #517). T008 is in progress pending maintainer acceptance.
 Goal: Make the public dashboard explain the project and its infrastructure
 accurately and convincingly, then complete the remaining Portfolio Dashboard
 direction with two explicit Future Ideas, a safe study-grouped catalog,
@@ -77,10 +80,10 @@ Out of scope:
 
 | Decision | Recommendation | Status |
 |---|---|---|
-| D061-01 — visibility | Automatically include every artifact that passes an allowlisted public role and safe identity check. Keep manual curation only for Home features and editorial notes; curation must not hide eligible negative, incomplete or `NO VERDICT` catalog entries. | Pending maintainer approval; blocks T005 |
-| D061-02 — catalog grouping | Use explicit study manifests when present. Group other eligible runs under a deterministic workflow/dataset/experiment identity and label the absence of an editorial study manifest rather than dropping the run. | Pending maintainer approval; blocks T005–T006 |
-| D061-03 — production bundle | Keep committed fixtures for tests/demo. In production, generate a versioned immutable projection into a VPS host directory as an explicit pre-deploy step and mount it read-only into the dashboard container. A failed generation must leave the previous bundle active or make the new release fail closed. | Pending maintainer approval; blocks T007 |
-| D061-04 — representative views | Exactly one representative persisted-evidence view per workflow in this sprint; deeper or alternative study views remain iterative. | Pending maintainer approval; blocks T006 |
+| D061-01 — visibility | Automatically include every artifact that passes an allowlisted public role and safe identity check. Keep manual curation only for Home features and editorial notes; curation must not hide eligible negative, incomplete or `NO VERDICT` catalog entries. | Accepted (maintainer, 2026-09-10); blocks removed |
+| D061-02 — catalog grouping | Use explicit study manifests when present. Group other eligible runs under a deterministic workflow/dataset/experiment identity and label the absence of an editorial study manifest rather than dropping the run. | Accepted (maintainer, 2026-09-10); blocks removed |
+| D061-03 — production bundle | Keep committed fixtures for tests/demo. In production, generate a versioned immutable projection into a VPS host directory as an explicit pre-deploy step and mount it read-only into the dashboard container. A failed generation must leave the previous bundle active or make the new release fail closed. | Accepted (maintainer, 2026-09-10); blocks removed |
+| D061-04 — representative views | Exactly one representative persisted-evidence view per workflow in this sprint; deeper or alternative study views remain iterative. | Accepted (maintainer, 2026-09-10); blocks removed |
 | D061-05 — content priority | Public content and infrastructure explanation are the first reviewable outcome and a sprint acceptance gate, not polish deferred behind catalog work. | Accepted by maintainer request; binding |
 | D061-06 — Future Ideas | Home shows exactly two new `FUTURE IDEAS` cards: `AI Research Infrastructure`, based on the maintainer-provided note, and `Research Application`, based on the draft product vision. Each links to a stable detail page and explicitly says that it is not as-built capability or implementation approval. | Accepted by maintainer request; binding |
 
@@ -126,14 +129,14 @@ runtime decision requires separate discovery/architecture approval.
 
 | Task | Outcome | Dependencies | Ownership | Risk | Status | PR |
 |---|---|---|---|---|---|---|
-| T001 | Build a public-content evidence matrix mapping every project/infrastructure claim to as-built code, ADR, workflow reference, runbook or persisted evidence; mark stale, conflicting and future-only claims before authoring | approved sprint | product content + architecture/reference docs | high | Ready | — |
-| T002 | Author and review the core portfolio story: product purpose, shared-domain architecture, six independent workflows, deterministic research lifecycle, persisted evidence/provenance, application boundaries, CI/quality and deployment/runtime infrastructure | T001 | `apps/dashboard/content`, architecture and workflow pages | high | Ready after T001 | — |
-| T003 | Create the two `FUTURE IDEAS` cards and stable detail pages. Distill the attached AI-infrastructure note and the draft Research Application vision into accessible public copy, with current-state boundary, target idea, staged evolution and explicit non-as-built status | T001; parallel with T002 | dashboard content + Future Direction view | standard | Ready after T001 | — |
-| T004 | Rework Home and navigation around the reviewed content; add stable Architecture, Engineering, Future Direction and Research & Engineering Notes pages, 2–3 real featured studies and the two Future Ideas cards | T002–T003 | dashboard content/views/routes | high | Ready after T003 | — |
-| T005 | Reconcile `CURRENT_STATUS`, `ROADMAP`, Phase 16D and planning indexes; record approved D061-01–04 in ADR-0034 or a superseding ADR; then generalize public roles, safe identities and projection generation across supported research artifacts | T001; D061-01/02 approval | planning + architecture + `dashboard_app.publication` | high | Blocked by D061-01/02 | — |
-| T006 | Replace the scanner-backed catalog with projection-backed study → experiment → run grouping; migrate pages 2–6 away from public internal paths and add one representative persisted-evidence view per workflow | T005; can split by catalog/workflow ownership | dashboard catalog, data sources and technical pages | high | Ready after T005 | — |
-| T007 | Implement approved production bundle generation/deploy wiring; bring dashboard/scripts into root quality coverage, scan `scripts/dashboard/`, and resolve or re-scope PRB-023/024 | T004–T006; D061-03 approval | deploy + root quality config + tests | high | Blocked by D061-03 | — |
-| T008 | Run factual editorial review, contract/security/regression tests, desktop visual QA and a maintainer-observed walkthrough; reconcile module/reference docs | T002–T007 | independent content review + testing + documentation | high | Ready after implementation | — |
+| T001 | Build a public-content evidence matrix mapping every project/infrastructure claim to as-built code, ADR, workflow reference, runbook or persisted evidence; mark stale, conflicting and future-only claims before authoring | approved sprint | product content + architecture/reference docs | high | Done | [#503](https://github.com/folg-code/research-trading-framework/pull/503) |
+| T002 | Author and review the core portfolio story: product purpose, shared-domain architecture, six independent workflows, deterministic research lifecycle, persisted evidence/provenance, application boundaries, CI/quality and deployment/runtime infrastructure | T001 | `apps/dashboard/content`, architecture and workflow pages | high | Done | [#506](https://github.com/folg-code/research-trading-framework/pull/506) |
+| T003 | Create the two `FUTURE IDEAS` cards and stable detail pages. Distill the attached AI-infrastructure note and the draft Research Application vision into accessible public copy, with current-state boundary, target idea, staged evolution and explicit non-as-built status | T001; parallel with T002 | dashboard content + Future Direction view | standard | Done | [#506](https://github.com/folg-code/research-trading-framework/pull/506) |
+| T004 | Rework Home and navigation around the reviewed content; add stable Architecture, Engineering, Future Direction and Research & Engineering Notes pages, 2–3 real featured studies and the two Future Ideas cards | T002–T003 | dashboard content/views/routes | high | Done | [#506](https://github.com/folg-code/research-trading-framework/pull/506) |
+| T005 | Reconcile `CURRENT_STATUS`, `ROADMAP`, Phase 16D and planning indexes; record approved D061-01–04 in ADR-0034 or a superseding ADR; then generalize public roles, safe identities and projection generation across supported research artifacts | T001; D061-01/02 approval | planning + architecture + `dashboard_app.publication` | high | Done | [#510](https://github.com/folg-code/research-trading-framework/pull/510), [#511](https://github.com/folg-code/research-trading-framework/pull/511) |
+| T006 | Replace the scanner-backed catalog with projection-backed study → experiment → run grouping; migrate pages 2–6 away from public internal paths and add one representative persisted-evidence view per workflow | T005; can split by catalog/workflow ownership | dashboard catalog, data sources and technical pages | high | Done | [#512](https://github.com/folg-code/research-trading-framework/pull/512), [#513](https://github.com/folg-code/research-trading-framework/pull/513), [#514](https://github.com/folg-code/research-trading-framework/pull/514), [#515](https://github.com/folg-code/research-trading-framework/pull/515) |
+| T007 | Implement approved production bundle generation/deploy wiring; bring dashboard/scripts into root quality coverage, scan `scripts/dashboard/`, and resolve or re-scope PRB-023/024 | T004–T006; D061-03 approval | deploy + root quality config + tests | high | Done | [#516](https://github.com/folg-code/research-trading-framework/pull/516), [#517](https://github.com/folg-code/research-trading-framework/pull/517) |
+| T008 | Run factual editorial review, contract/security/regression tests, desktop visual QA and a maintainer-observed walkthrough; reconcile module/reference docs | T002–T007 | independent content review + testing + documentation | high | In progress — automated and independent QA passed; maintainer acceptance pending | — |
 
 ## Acceptance criteria
 
@@ -190,7 +193,28 @@ runtime decision requires separate discovery/architecture approval.
 
 ## Closeout
 
-- Integrated checks:
-- Documentation reconciliation:
-- Review:
-- Remaining work:
+- Integrated checks: root Ruff passed; dashboard pytest passed (257 tests);
+  application-boundary coverage passed; root mypy passed (983 source files);
+  framework pytest passed (1721 tests, 25 expected dependency/network skips).
+  A real-workspace release generated 17 artifacts from 11 discovered catalog
+  and workflow-evidence inputs with no skips.
+- Documentation reconciliation: dashboard module and system overview now name
+  the immutable projection as the public read path and keep private-workspace
+  access inside the one-shot release generator.
+- Review: independent review and QA found a real-workspace refresh collision,
+  public workspace controls, permissive projected-field loading and string-like
+  simulation flags. The final QA branch fixes each issue and adds regression
+  coverage. Desktop QA passed Home, Architecture, Market Data, Predictive, Live
+  Paper, AI Research Infrastructure and Research Catalog checks on localhost.
+- Maintainer review identified that the first projection-backed Signal and
+  Robustness pages preserved the publication boundary but regressed the depth of
+  visible evidence. The follow-up restores projected tables, verdict gates and
+  charts from existing persisted artifacts. Legacy Robustness demo evidence is
+  labelled and remains excluded from Strategy catalog grouping.
+- The accepted single-file projection shortcut became materially visible after
+  that restoration. `TECHNICAL_DEBT.md` TD-034 records the monolithic bundle,
+  its safe operating boundary and the direction toward an indexed, structured
+  public artifact store without restoring runtime access to raw `user_data`.
+- Remaining work: maintainer acceptance of the final factual/editorial result;
+  actual VPS/SSH deployment and an external Live Paper endpoint remain
+  operational exercises rather than local sprint evidence.

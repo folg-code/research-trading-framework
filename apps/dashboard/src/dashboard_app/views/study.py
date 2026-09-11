@@ -144,7 +144,7 @@ def build_trade_disposition_rows(
 
 def render_btc_signal_quality_study() -> None:
     """Render the BTC Signal Quality study page: content, verdict, three charts."""
-    st.title("BTC Signal Quality Study")
+    st.title("Signal Quality Study")
 
     evidence = load_btc_signal_quality_evidence()
     if isinstance(evidence, PublicationUnavailable):

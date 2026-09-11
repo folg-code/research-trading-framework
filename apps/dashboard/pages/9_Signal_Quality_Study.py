@@ -1,8 +1,4 @@
-"""BTC Signal Quality study page: study view plus Explore Evidence (Sprint 060 T004).
-
-`Explore Evidence` links out to the existing, grandfathered technical pages
-(ADR-0034 S6) -- it never duplicates their detail on this page.
-"""
+"""Signal Quality study page: study view plus Explore Evidence."""
 
 from __future__ import annotations
 
@@ -12,7 +8,7 @@ from dashboard_app.ui import configure_page, render_app_chrome
 from dashboard_app.views.portfolio_content import METHODOLOGY_PAGE
 from dashboard_app.views.study import render_btc_signal_quality_study
 
-configure_page(title="BTC Signal Quality Study")
+configure_page(title="Signal Quality Study")
 render_app_chrome()
 
 render_btc_signal_quality_study()
