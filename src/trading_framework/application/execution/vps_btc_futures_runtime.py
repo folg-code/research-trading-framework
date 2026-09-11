@@ -4,7 +4,7 @@ Provider-neutral entry point over the existing local/Binance dry-run runtime
 (:mod:`trading_framework.application.execution.local_btc_futures` and
 :mod:`trading_framework.application.execution.binance_local_btc_futures`) and
 :class:`JsonExecutionStateRepository`. See
-``docs/adr/ADR-0035-vps-dry-run-runtime-and-status-boundary.md`` for the
+``docs/adr/ADR-0036-vps-dry-run-runtime-and-status-boundary.md`` for the
 binding contract this module implements (SS1.6, SS4.1, SS4.4).
 
 Unlike :mod:`trading_framework.application.execution.aws_btc_futures_runtime`,
@@ -44,7 +44,7 @@ from trading_framework.strategy import BtcFuturesDemoStrategyConfig
 VPS_RUNTIME_ENV_PREFIX = "TRADING_FRAMEWORK_VPS_"
 DEFAULT_VPS_RUNTIME_ID = "btc-futures-dry-run-vps"
 DEFAULT_VPS_SYMBOL = "BTCUSDT"
-# Dedicated execution-state volume path (ADR-0035 SS2: not /tmp, not user_data).
+# Dedicated execution-state volume path (ADR-0036 SS2: not /tmp, not user_data).
 DEFAULT_VPS_EVENT_LOG_PATH = Path("/var/lib/trading-framework/btc-futures-dry-run/events.jsonl")
 DEFAULT_VPS_STATE_REPOSITORY_PATH = Path("/var/lib/trading-framework/btc-futures-dry-run/state")
 
@@ -54,10 +54,10 @@ DEFAULT_VPS_STATE_REPOSITORY_PATH = Path("/var/lib/trading-framework/btc-futures
 class VpsBtcFuturesRuntimeConfig:
     """Validated environment-backed configuration for the VPS dry-run worker.
 
-    Provider-neutral (ADR-0035 D062-02): starting this configuration never
+    Provider-neutral (ADR-0036 D062-02): starting this configuration never
     requires an AWS-specific value. Defaults to a continuous/unbounded
     service lifetime (``duration_seconds=None``); a bounded duration remains
-    available for smoke testing only, never as the default (ADR-0035 SS4.1).
+    available for smoke testing only, never as the default (ADR-0036 SS4.1).
     """
 
     runtime_id: str = DEFAULT_VPS_RUNTIME_ID
@@ -130,7 +130,7 @@ class VpsBtcFuturesRuntimeConfig:
 def load_vps_btc_futures_runtime_config(env: Mapping[str, str]) -> VpsBtcFuturesRuntimeConfig:
     """Load VPS dry-run worker configuration from environment variables.
 
-    Requires no AWS-specific value (ADR-0035 D062-02): there is no
+    Requires no AWS-specific value (ADR-0036 D062-02): there is no
     ``AWS_REGION`` or ``EXECUTION_STATE_TABLE`` variable in this contract.
     Leaving ``TRADING_FRAMEWORK_VPS_DURATION_SECONDS`` unset selects the
     default continuous/unbounded service lifetime.
@@ -162,11 +162,11 @@ async def run_vps_btc_futures_dry_run(
 
     ``SIGTERM``/``SIGINT`` request graceful shutdown: the reused loop
     persists a final ``STOPPED`` status and this coroutine returns normally
-    (ADR-0035 SS4.2). An unrecoverable error persists ``FAILED`` on a
-    best-effort basis and re-raises (ADR-0035 SS4.3), so the synchronous
+    (ADR-0036 SS4.2). An unrecoverable error persists ``FAILED`` on a
+    best-effort basis and re-raises (ADR-0036 SS4.3), so the synchronous
     entry point can exit non-zero. Incompatible or unreadable persisted
     state raises ``IncompatibleExecutionStateError`` before the runtime
-    starts (ADR-0035 SS4.4); this coroutine does not catch it.
+    starts (ADR-0036 SS4.4); this coroutine does not catch it.
     """
     repository = create_vps_execution_state_repository(config)
     loop = asyncio.get_running_loop()

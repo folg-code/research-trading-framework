@@ -13,7 +13,7 @@ Each prior task already tests its own boundary in isolation:
   itself wrote.
 
 None of those tie the worker's actual write path to the status API's actual read path through one
-shared file, which is exactly the seam ADR-0035 depends on for restart, staleness and
+shared file, which is exactly the seam ADR-0036 depends on for restart, staleness and
 unavailability to behave consistently for an operator watching both `docker compose logs` and the
 public status card at the same time. These tests close that gap using real objects at every layer
 (no HTTP, no Docker -- just the same in-process objects a real deployment wires together).
@@ -147,7 +147,7 @@ def test_stale_heartbeat_written_by_the_worker_is_reported_stale_by_the_status_a
     assert response.body["stale"] is True
     assert response.body["last_heartbeat_at"] == old_heartbeat.isoformat()
     # Still labelled "running" by the worker -- the status API adds `stale` on top rather than
-    # overwriting the underlying health value (ADR-0035 SS3.5): the dashboard is what decides how
+    # overwriting the underlying health value (ADR-0036 SS3.5): the dashboard is what decides how
     # to badge a stale-but-nominally-running snapshot.
     assert response.body["status"] == "running"
 
@@ -155,7 +155,7 @@ def test_stale_heartbeat_written_by_the_worker_is_reported_stale_by_the_status_a
 def test_incompatible_state_refuses_restart_but_status_api_still_serves_the_last_known_snapshot(
     tmp_path: Path,
 ) -> None:
-    """Refuse-to-start (ADR-0035 SS4.4) does not touch the persisted document at all: it raises
+    """Refuse-to-start (ADR-0036 SS4.4) does not touch the persisted document at all: it raises
     before the runtime starts. An operator polling the status API during that window sees the
     worker's last known (and, given enough elapsed time, increasingly stale) status -- not a 503,
     not a fabricated FAILED -- because the file itself is perfectly readable, just semantically
@@ -318,7 +318,7 @@ def test_graceful_stop_persists_stopped_and_status_api_reports_it_honestly(tmp_p
 def test_failed_status_persisted_by_the_worker_is_reported_failed_by_the_status_api(
     tmp_path: Path,
 ) -> None:
-    """An unrecoverable-error ``FAILED`` snapshot (ADR-0035 SS4.3), once persisted through the
+    """An unrecoverable-error ``FAILED`` snapshot (ADR-0036 SS4.3), once persisted through the
     real repository, must surface through the real status handler as ``status: "failed"`` --
     closing the one worker-lifecycle terminal state the other integration tests in this file
     don't already exercise (fresh/restored/stale/stopped/incompatible/corrupt/absent)."""

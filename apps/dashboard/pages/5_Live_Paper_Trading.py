@@ -1,4 +1,4 @@
-"""Live Paper Trading — read-only dry-run status visualization."""
+"""Strategy Execution — bounded, read-only dry-run status evidence."""
 
 from __future__ import annotations
 
@@ -11,38 +11,36 @@ from dashboard_app.charts.lightweight import (
     markers_for_fills,
     render_lightweight_candlestick,
 )
+from dashboard_app.config import resolve_status_url
 from dashboard_app.datasources import HttpLivePaperStatusDataSource
 from dashboard_app.formatting import format_kpi
 from dashboard_app.ui import configure_page, render_app_chrome
 from dashboard_app.views.live_paper import (
-    event_timeline_rows,
     live_paper_health,
+    sanitize_public_live_paper_snapshot,
 )
 
 
 def _render_snapshot(snapshot: dict[str, object]) -> None:
     health = live_paper_health(snapshot)
     st.markdown(f"### Status: **{health.badge}**")
-    if health.simulated:
-        st.success("Simulated paper trading — broker abstraction only, no real orders.")
-    else:
-        st.warning("Status payload did not set `simulated: true`. Treat carefully.")
+    if not health.simulated:
+        st.warning("Status payload did not confirm simulated execution. Treat it as unavailable.")
+        return
 
-    now = datetime.now(tz=UTC)
-    if health.heartbeat_at is not None:
-        age = now - health.heartbeat_at
-        age_text = f"{int(age.total_seconds())}s ago"
-        st.caption(f"Last heartbeat: {health.heartbeat_at.isoformat()} ({age_text})")
-    else:
+    if health.heartbeat_at is None:
         st.caption("Last heartbeat: —")
+    else:
+        age = datetime.now(tz=UTC) - health.heartbeat_at
+        st.caption(
+            f"Last heartbeat: {health.heartbeat_at.isoformat()} ({int(age.total_seconds())}s ago)"
+        )
 
     feed_bits: list[str] = []
     if health.feed_connection_state:
         feed_bits.append(f"feed={health.feed_connection_state}")
     if health.feed_reconnect_count:
         feed_bits.append(f"reconnects={health.feed_reconnect_count}")
-    if health.feed_last_error:
-        feed_bits.append(f"last_error={health.feed_last_error}")
     if feed_bits:
         st.caption(" · ".join(feed_bits))
 
@@ -50,7 +48,8 @@ def _render_snapshot(snapshot: dict[str, object]) -> None:
         st.warning("Market feed is delayed or reconnecting; process heartbeat may still be fresh.")
     elif health.is_stale:
         st.warning(
-            f"Status is stale (heartbeat older than {health.stale_after} or worker reported stale)."
+            f"The runtime snapshot is stale (heartbeat older than {health.stale_after} or "
+            "worker reported stale); it is not presented as current operation."
         )
     elif health.badge == "Failed":
         st.error("Worker reported FAILED. Check runtime logs / runbook.")
@@ -74,24 +73,23 @@ def _render_snapshot(snapshot: dict[str, object]) -> None:
     else:
         metrics2[3].metric("Position", "Flat")
 
+    st.subheader("Representative runtime evidence")
     chart_col, position_col = st.columns([2, 1])
     with chart_col:
-        st.subheader("Recent market")
         render_lightweight_candlestick(
             candles_from_status_bars(snapshot.get("recent_bars")),
             markers=markers_for_fills(snapshot.get("recent_fills")),
             height=420,
         )
     with position_col:
-        st.subheader("Position")
         if isinstance(position, dict):
             st.write(
                 {
-                    "Position": position.get("side") or position.get("position") or "Flat",
-                    "Quantity": position.get("quantity", position.get("qty", position.get("size"))),
-                    "Entry": position.get("entry_price") or position.get("avg_entry_price"),
-                    "Mark": position.get("mark_price") or snapshot.get("last_price"),
-                    "Unrealized PnL": format_kpi(
+                    "position": position.get("side") or position.get("position") or "Flat",
+                    "quantity": position.get("quantity", position.get("qty", position.get("size"))),
+                    "entry": position.get("entry_price") or position.get("avg_entry_price"),
+                    "mark": position.get("mark_price") or snapshot.get("last_price"),
+                    "unrealized PnL": format_kpi(
                         "unrealized_pnl",
                         position.get("unrealized_pnl", snapshot.get("unrealized_pnl")),
                     ),
@@ -99,117 +97,63 @@ def _render_snapshot(snapshot: dict[str, object]) -> None:
             )
         else:
             st.caption("Flat / no open position in this snapshot.")
-
-    tabs = st.tabs(["Signals", "Orders", "Fills", "Trades", "Bars"])
-    with tabs[0]:
-        events = event_timeline_rows(snapshot.get("recent_events"))
-        signal_events = [
-            row for row in events if "signal" in str(row.get("event_type", "")).lower()
-        ]
-        rows = signal_events or list(events)
-        if rows:
-            st.dataframe(rows, use_container_width=True)
-        else:
-            st.caption("No recent signals.")
-    with tabs[1]:
-        orders = snapshot.get("recent_orders")
-        if isinstance(orders, list) and orders:
-            st.dataframe(orders, use_container_width=True)
-        else:
-            st.caption("No recent orders.")
-    with tabs[2]:
-        fills = snapshot.get("recent_fills")
-        if isinstance(fills, list) and fills:
-            st.dataframe(fills, use_container_width=True)
-        else:
-            st.caption("No recent fills.")
-    with tabs[3]:
-        trades = snapshot.get("recent_trades")
-        if isinstance(trades, list) and trades:
-            st.dataframe(trades, use_container_width=True)
-        else:
-            st.caption("No recent trades in this snapshot.")
-    with tabs[4]:
-        bars = snapshot.get("recent_bars")
-        if isinstance(bars, list) and bars:
-            st.dataframe(bars[-300:], use_container_width=True)
-        else:
-            st.caption("No recent bars.")
-
-    with st.expander("Raw snapshot", expanded=False):
-        st.json(snapshot)
+    st.caption(
+        "Only an explicit public allowlist is rendered. Raw status, orders, events, error "
+        "details and unknown API fields remain private."
+    )
 
 
 def main() -> None:
     configure_page(title="Live Paper Trading", icon="📡")
-    settings = render_app_chrome()
+    render_app_chrome()
 
-    st.title("Live Paper Trading")
+    st.title("Strategy Execution Evidence")
+    st.warning("LIVE MARKET DATA / SIMULATED EXECUTION / NO REAL ORDERS")
     st.caption(
-        "Read-only view of paper-runtime status. Execution remains owned by the "
-        "runtime worker; this page never submits orders."
+        "A bounded read-only view of one dry-run runtime. The dashboard cannot submit orders, "
+        "start a worker or modify execution state."
     )
 
-    if settings is None:
-        st.warning(
-            "Storage is not configured. Set `DASHBOARD_STORAGE_ROOT` or use System diagnostics."
-        )
-        return
-    if not settings.status_url:
-        st.info(
-            "Live Paper telemetry is currently being migrated from the previous cloud "
-            "runtime to a new VPS deployment. During the migration this page is a status "
-            "notice rather than a live telemetry console."
-        )
-        st.subheader("Migration status")
-        st.write(
-            "The dashboard application remains online and read-only. The historical "
-            "Live Paper status endpoint has been intentionally detached while the "
-            "runtime is moved to the VPS environment."
-        )
+    status_url = resolve_status_url()
+    if status_url is None:
+        st.subheader("Runtime status unavailable")
         st.write(
             {
                 "runtime": "migration in progress",
-                "dashboard": "available",
-                "status endpoint": "temporarily unavailable",
+                "status endpoint": "not configured",
                 "execution mode": "paper / simulated only",
             }
         )
         st.caption(
-            "Once the VPS status endpoint is published, `DASHBOARD_STATUS_URL` will "
-            "be configured again and this page will resume showing heartbeat, market "
-            "feed, signal, order, fill and position snapshots."
+            "No stale snapshot is substituted. Configure DASHBOARD_STATUS_URL when the VPS "
+            "read-only endpoint is available."
         )
         return
 
-    col_refresh, col_auto = st.columns([1, 3])
-    with col_refresh:
-        refresh = st.button("Refresh", type="secondary")
-    with col_auto:
-        st.caption("Refresh after worker heartbeats change — page stays read-only.")
-
-    if refresh or "live_paper_snapshot" not in st.session_state:
+    refresh = st.button("Refresh", type="secondary")
+    if refresh or "live_paper_public_snapshot" not in st.session_state:
         try:
-            source = HttpLivePaperStatusDataSource(status_url=settings.status_url)
-            snapshot = source.fetch_session_snapshot("")
-            st.session_state["live_paper_snapshot"] = snapshot
-            st.session_state["live_paper_error"] = None
+            source = HttpLivePaperStatusDataSource(status_url=status_url)
+            raw = source.fetch_session_snapshot("")
+            st.session_state["live_paper_public_snapshot"] = sanitize_public_live_paper_snapshot(
+                raw
+            )
+            st.session_state["live_paper_public_error"] = None
         except ValueError as exc:
-            st.session_state["live_paper_error"] = str(exc)
-            st.session_state["live_paper_snapshot"] = None
+            st.session_state["live_paper_public_error"] = str(exc)
+            st.session_state["live_paper_public_snapshot"] = None
 
-    error = st.session_state.get("live_paper_error")
-    snapshot = st.session_state.get("live_paper_snapshot")
+    error = st.session_state.get("live_paper_public_error")
+    snapshot = st.session_state.get("live_paper_public_snapshot")
     if error:
         st.error(error)
         st.info(
-            "If the worker is down, start/check the runtime host; the dashboard cannot recover "
-            "execution state by itself."
+            "The dashboard leaves execution state untouched; inspect the runtime host separately."
         )
     elif isinstance(snapshot, dict):
         _render_snapshot(snapshot)
     else:
-        st.info("No snapshot loaded yet — click Refresh.")
+        st.info("No public runtime snapshot is available.")
 
 
 main()

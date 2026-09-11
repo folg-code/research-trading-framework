@@ -1,6 +1,6 @@
 """Container entry point for the VPS BTCUSDT futures dry-run worker.
 
-Provider-neutral (ADR-0035 D062-02): unlike
+Provider-neutral (ADR-0036 D062-02): unlike
 ``scripts/execution/run_aws_btc_futures_worker.py``, this entry point never
 requires an AWS-specific environment value and defaults to a continuous
 service lifetime rather than a bounded one-hour task.
@@ -10,7 +10,7 @@ Exit codes:
 - ``0`` -- graceful stop (SIGTERM/SIGINT) or a bounded smoke run completed.
 - ``1`` -- configuration error or unrecoverable runtime failure.
 - ``2`` -- refuse-to-start: persisted execution state is incompatible with
-  the current configuration or is unreadable/incomplete (ADR-0035 SS4.4).
+  the current configuration or is unreadable/incomplete (ADR-0036 SS4.4).
   Deliberately discarding paper state is an explicit operator action; it is
   never automatic.
 """
@@ -54,7 +54,7 @@ def main() -> int:
         # TradingFrameworkError (e.g. a feed/network/OS error). Report a
         # single-line message here instead of letting an uncaught traceback
         # print unbounded internal detail, including container-local
-        # absolute paths, to stderr (ADR-0035 SS4.7).
+        # absolute paths, to stderr (ADR-0036 SS4.7).
         print(f"unrecoverable worker failure: {exc}", file=sys.stderr)
         return 1
 

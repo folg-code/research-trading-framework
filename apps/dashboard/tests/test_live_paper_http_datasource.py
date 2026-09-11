@@ -90,7 +90,7 @@ def test_http_source_maps_http_errors() -> None:
 
 
 def test_http_source_parses_vps_status_v1_response_unchanged() -> None:
-    """Regression: the VPS status service's execution.status.v1 shape (ADR-0035 section 3)
+    """Regression: the VPS status service's execution.status.v1 shape (ADR-0036 section 3)
     parses through this datasource without any code change, since it is a superset of the
     fields this client already reads."""
     payload = {

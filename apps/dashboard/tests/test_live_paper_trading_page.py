@@ -1,9 +1,10 @@
 """Regression tests for ``pages/5_Live_Paper_Trading.py`` (Sprint 062 T005).
 
-Guards against the "migration placeholder" copy being shown even when the
-status endpoint *is* configured -- SPRINT_062.md T005's acceptance criterion
-requires the placeholder to disappear once the endpoint is configured, and
-for stale/offline/failed states to still be shown honestly.
+Guards against the "runtime status unavailable" placeholder copy being shown
+even when the status endpoint *is* configured -- SPRINT_062.md T005's
+acceptance criterion requires the placeholder to disappear once the endpoint
+is configured, and for stale/offline/failed states to still be shown
+honestly.
 """
 
 from __future__ import annotations
@@ -23,7 +24,7 @@ import dashboard_app.datasources as datasources_module
 
 _PAGE_PATH = str(Path(__file__).resolve().parents[1] / "pages" / "5_Live_Paper_Trading.py")
 
-_MIGRATION_BANNER_TEXT = "status notice rather than a live telemetry console"
+_MIGRATION_BANNER_TEXT = "No stale snapshot is substituted"
 
 
 class _FakeSource:

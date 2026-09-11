@@ -1,15 +1,16 @@
-"""Home-page BTC futures dry-run status card (Sprint 062 T005; ADR-0035).
+"""Home-page BTC futures dry-run status card (Sprint 062 T005; ADR-0036).
 
 Renders a compact, honest current/stale/offline/failed status summary and
 links forward to the existing detailed Live Paper page
 (``pages/5_Live_Paper_Trading.py``) -- it never duplicates that page's
 content or builds a second detail/archive view.
 
-The card is opt-in: it only renders when ``DASHBOARD_STATUS_URL`` (via
-:class:`~dashboard_app.config.DashboardSettings`) is configured, mirroring
-how ``pages/5_Live_Paper_Trading.py`` itself treats an unconfigured status
-endpoint. When unconfigured, this module renders nothing -- no broken card,
-no placeholder -- so the dashboard stays available either way.
+The card is opt-in: it only renders when ``DASHBOARD_STATUS_URL`` (resolved
+via :func:`~dashboard_app.config.resolve_status_url`) is configured,
+mirroring how ``pages/5_Live_Paper_Trading.py`` itself treats an
+unconfigured status endpoint. When unconfigured, this module renders
+nothing -- no broken card, no placeholder -- so the dashboard stays
+available either way.
 """
 
 from __future__ import annotations
@@ -18,7 +19,6 @@ from typing import Protocol
 
 import streamlit as st
 
-from dashboard_app.config import DashboardSettings
 from dashboard_app.datasources.live_paper_http import HttpLivePaperStatusDataSource
 from dashboard_app.formatting import format_kpi
 from dashboard_app.views.live_paper import DryRunStatusCard, build_dry_run_status_card
@@ -38,18 +38,18 @@ class _StatusSnapshotSource(Protocol):
 
 
 def render_dry_run_status_card(
-    settings: DashboardSettings | None,
+    status_url: str | None,
     *,
     source: _StatusSnapshotSource | None = None,
 ) -> None:
     """Render the current dry-run status card, or nothing when unconfigured."""
-    if settings is None or not settings.status_url:
+    if status_url is None or not status_url.strip():
         return
 
     st.subheader("BTC Futures Dry-Run")
     st.caption(" · ".join(DRY_RUN_SIMULATION_LABELS))
 
-    active_source = source or HttpLivePaperStatusDataSource(status_url=settings.status_url)
+    active_source = source or HttpLivePaperStatusDataSource(status_url=status_url)
     snapshot: dict[str, object] | None = None
     error: str | None = None
     try:
@@ -57,7 +57,7 @@ def render_dry_run_status_card(
     except ValueError as exc:
         error = str(exc)
 
-    card = build_dry_run_status_card(status_url=settings.status_url, snapshot=snapshot, error=error)
+    card = build_dry_run_status_card(status_url=status_url, snapshot=snapshot, error=error)
     _render_card_body(card)
     st.page_link(LIVE_PAPER_PAGE, label="Open Live Paper Trading for full detail")
 
@@ -114,7 +114,7 @@ def _render_card_body(card: DryRunStatusCard) -> None:
 
 
 def _format_position(position: dict[str, object]) -> str:
-    """Format ``current_position`` (ADR-0035 §3.2 nested shape) as ``SIDE quantity``.
+    """Format ``current_position`` (ADR-0036 §3.2 nested shape) as ``SIDE quantity``.
 
     ``dry_run_worker``/`dry-run-status` (``_position_to_json``) always names the
     side field ``side`` and the size field ``quantity`` -- there is no other

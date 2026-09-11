@@ -208,7 +208,7 @@ def test_runtime_failed_event_payload_message_is_never_emitted() -> None:
     """`RUNTIME_FAILED`'s ``message`` payload value is raw exception text
     (``binance_local_btc_futures.py`` calls ``session.fail(message=str(exc)[:500])``), which
     ``LocalExecutionRuntimeSession.fail`` persists verbatim into the event payload. It must never
-    reach the public response, structurally, not merely be truncated (ADR-0035 section 3.3/3.4).
+    reach the public response, structurally, not merely be truncated (ADR-0036 section 3.3/3.4).
     """
     leaking_message = (
         "ConnectionError: wss://stream.binance.com:9443/ws/btcusdt@aggTrade "
@@ -321,7 +321,7 @@ def test_unexpected_field_on_the_status_view_is_never_emitted() -> None:
 
 def test_restart_identity_fields_added_for_incompatible_state_detection_never_leak() -> None:
     """``account_id``/``currency``/``starting_equity`` exist on ``RuntimeStatusView`` only to let
-    the worker refuse an incompatible restart (ADR-0035 section 4.4); they are restart-identity
+    the worker refuse an incompatible restart (ADR-0036 section 4.4); they are restart-identity
     fields, not public status fields, and must never appear in the public response.
     """
     config = VpsExecutionStatusApiConfig(runtime_id="vps-runtime-1")
@@ -362,7 +362,7 @@ def test_allowlist_covers_every_field_the_dashboard_http_datasource_reads() -> N
       ``recent_events``.
 
     If a dashboard change starts reading a new top-level key, update this set *and* confirm the
-    key is genuinely in the v1 allowlist (or add it there deliberately, per ADR-0035 SS3.8).
+    key is genuinely in the v1 allowlist (or add it there deliberately, per ADR-0036 SS3.8).
     """
     dashboard_read_keys = {
         "runtime_id",
@@ -383,7 +383,7 @@ def test_allowlist_covers_every_field_the_dashboard_http_datasource_reads() -> N
         "recent_fills",
         "recent_events",
     }
-    # `feed_last_error` is a deliberate ADR-0035 SS3.4 narrowing (replaced by
+    # `feed_last_error` is a deliberate ADR-0036 SS3.4 narrowing (replaced by
     # `feed_last_error_code`): the dashboard tolerates its absence via `.get(...)`, so it is
     # excluded from the required set rather than asserted present.
 

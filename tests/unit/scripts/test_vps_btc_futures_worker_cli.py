@@ -121,7 +121,7 @@ def test_vps_btc_futures_worker_cli_reports_unrecoverable_non_framework_error(
     """A non-TradingFrameworkError failure (e.g. network/OS error) must still exit
 
     non-zero with a single clean stderr line, not an uncaught traceback that
-    could print internal container paths (ADR-0035 SS4.3, SS4.7).
+    could print internal container paths (ADR-0036 SS4.3, SS4.7).
     """
     monkeypatch.delenv("TRADING_FRAMEWORK_VPS_QUANTITY", raising=False)
 

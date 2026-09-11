@@ -174,7 +174,7 @@ def test_status_endpoint_supports_head_request(tmp_path: Path) -> None:
 
 
 def test_status_endpoint_sets_no_cors_headers(tmp_path: Path) -> None:
-    """ADR-0035 section 3.7: no CORS wildcard is needed or set; the only caller is
+    """ADR-0036 section 3.7: no CORS wildcard is needed or set; the only caller is
     server-side on the private network."""
     _write_raw_state(tmp_path, "vps-runtime-1", {})
     app = run_vps_status_service.create_app(_config(tmp_path, "vps-runtime-1"))

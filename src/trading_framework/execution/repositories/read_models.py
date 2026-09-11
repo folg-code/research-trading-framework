@@ -193,7 +193,7 @@ class RuntimeStatusView:
     """Dashboard-ready read model for one dry-run runtime.
 
     ``account_id``, ``currency`` and ``starting_equity`` are identity fields
-    used internally for restart compatibility checks (ADR-0035 S4.4); they
+    used internally for restart compatibility checks (ADR-0036 S4.4); they
     are not part of any public status allowlist and callers building a public
     response must not pass them through unfiltered.
     """

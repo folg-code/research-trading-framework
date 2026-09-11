@@ -164,7 +164,7 @@ def test_json_execution_state_repository_fsyncs_before_atomic_rename(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Regression for ADR-0035 SS2.5: the temp file must be fsynced before rename."""
+    """Regression for ADR-0036 SS2.5: the temp file must be fsynced before rename."""
     repository = JsonExecutionStateRepository(tmp_path)
     calls: list[str] = []
     real_fsync = os.fsync

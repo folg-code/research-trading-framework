@@ -489,6 +489,18 @@ Used to evaluate:
 - statistical credibility,
 - sensitivity to execution assumptions.
 
+The public Robustness page reads a build-time, deny-by-default projection of
+one persisted experiment: its verdict and gates, walk-forward folds and sampled
+stitched equity, parameter sweep, stress tests and Monte Carlo summaries. Legacy
+demo evidence is labelled explicitly and excluded from Strategy catalog grouping.
+The serving dashboard does not mount research storage or calculate new evidence.
+
+The same boundary applies to Signal Research. Its public page renders projected
+summary and grouped metrics, forward-return distributions, conditional
+comparisons, histogram bins, quality warnings and join diagnostics. The
+one-shot publication generator may read the private research root read-only;
+the deployed application receives only the validated immutable projection.
+
 #### Predictive Research
 
 Used to state a learning problem over Market Analysis outputs and forward
@@ -503,9 +515,11 @@ the same estimator protocol, bounded candidate selection, native/permutation
 importance and a single-study leaderboard. Sprint 043 (Phase 10C) adds optional
 extra `dl` (CPU PyTorch): feedforward MLP and LSTM/GRU sequence estimators,
 learning-curve and window-accounting panels. Sprint 044 closes Phase 10 with a
-read-only Predictive Research page in `apps/dashboard` (reads the same
-persisted envelopes through a DuckDB catalog scan; never imports an estimator
-or `trading_framework.research`) and ADR-0024, the IDEA-014 promotion gate for
+read-only Predictive Research page in `apps/dashboard`; Sprint 061 moves its
+public render path to a representative run selected from the immutable,
+deny-by-default public projection. The page never scans the private workspace
+and never imports an estimator or `trading_framework.research`. ADR-0024 defines
+the IDEA-014 promotion gate for
 using a trained model as a Market Analysis State input.
 
 It does not produce signals. Fitted model blobs are opaque convenience artifacts;
@@ -518,7 +532,8 @@ PredictiveDatasetEnvelope
   → run_predictive_research (baseline / tree / neural estimator, per fold)
   → predictions.parquet + metrics.json + opaque models/fold_{n}.bin
   → render_predictive_research_report → report.html
-  → apps/dashboard Predictive Research page (read-only catalog scan)
+  → build-time sanitizer + immutable public projection
+  → apps/dashboard Predictive Research page (read-only projection consumer)
 ```
 
 Storage: `<workspace>/research/predictive_research/datasets/{dataset_id}/` and

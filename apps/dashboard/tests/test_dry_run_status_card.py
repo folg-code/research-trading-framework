@@ -116,10 +116,7 @@ def test_card_renders_the_three_part_simulation_label_directly(
     monkeypatch.setattr(st, "page_link", lambda *_a, **_kw: None)
     monkeypatch.setattr(st, "success", lambda *_a, **_kw: None)
 
-    from dashboard_app.config import DashboardSettings
-
-    settings = DashboardSettings(storage_root=Path("."), status_url="http://status/status")
-    render_dry_run_status_card(settings, source=_FakeSource(snapshot=_FRESH_SNAPSHOT))
+    render_dry_run_status_card("http://status/status", source=_FakeSource(snapshot=_FRESH_SNAPSHOT))
 
     assert any(set(DRY_RUN_SIMULATION_LABELS) <= set(text.split(" · ")) for text in calls)
 

@@ -97,20 +97,55 @@ Separate app package (not under `trading_framework`):
 ```text
 apps/dashboard/src/dashboard_app/
     catalog/ query/ views/ charts/ caching/ datasources/
-    publication/                     # Public projection + PortfolioStudyManifest (ADR-0034, Sprint 059-060)
+    publication/                     # Public projection + PortfolioStudyManifest (ADR-0034/0035)
+        catalog.py                   # Safe research_catalog_entry identities (Sprint 061 T005)
+        catalog_index.py             # Projection-only study -> experiment -> run catalog (Sprint 061 T006)
+        evidence.py                  # Build-time readers for allowlisted Signal/Robustness evidence
+        identity.py                  # Conservative projection-local identifier syntax
+        release.py                   # Validated immutable release + atomic CURRENT selection
+        workspace.py                 # Build-time-only workspace discovery; never a page dependency
     content/                         # Version-controlled content loader + slug routing (ADR-0034, Sprint 059)
     catalog/predictive_quality.py   # Predictive Research quality flags (Sprint 044)
     views/predictive.py             # Predictive Research picker/leaderboard/detail view models
+    views/workflow_evidence.py      # Projection-only representative workflow evidence (Sprint 061 T006)
+    views/projected_research.py     # Signal/Robustness tables, verdicts and charts from projected facts
     pages/6_Predictive_Research.py  # Predictive Research page
     views/study.py                  # BTC Signal Quality study view + charts (Sprint 060 T003)
-    views/portfolio_content.py      # Workflow-context/methodology pages + overview entry point (Sprint 060 T004)
+    views/portfolio_content.py      # Version-controlled portfolio pages and direction entries (Sprints 060-061)
     pages/7_Signal_Quality_Workflow.py     # Signal/Predictive workflow context (Sprint 060 T004)
     pages/8_Signal_Quality_Methodology.py  # Signal Quality methodology (Sprint 060 T004)
-    pages/9_BTC_Signal_Quality_Study.py    # BTC Signal Quality study + Explore Evidence (Sprint 060 T004)
+    pages/9_Signal_Quality_Study.py        # Asset-neutral public title; BTCUSDT.P evidence (Sprint 060-061)
+    pages/10_Architecture.py               # Stable public architecture narrative (Sprint 061 T002-T004)
+    pages/11_Engineering.py                # Cross-cutting engineering evidence (Sprint 061 T002-T004)
+    pages/12_Future_Direction.py           # Future Ideas index (Sprint 061 T003-T004)
+    pages/13_AI_Research_Infrastructure.py # AI Research Infrastructure Future Idea (Sprint 061 T003)
+    pages/14_Research_Application.py       # Research Application Future Idea (Sprint 061 T003)
+    pages/15_Research_and_Engineering_Notes.py # Selected evidence/decision notes (Sprint 061 T004)
+    pages/16_Market_Data_Workflow.py       # Market Data architecture/methodology before evidence (Sprint 061)
+    pages/17_Signal_Research_Workflow.py   # Signal Research publication before evidence (Sprint 061)
+    pages/18_Strategy_Research_Workflow.py # Strategy composition/methodology before evidence (Sprint 061)
+    pages/19_Robustness_Research_Workflow.py # Robustness publication before evidence (Sprint 061)
+    pages/20_Predictive_Research_Workflow.py # Predictive publication before evidence (Sprint 061)
+    pages/21_Strategy_Execution_Workflow.py # DRY_RUN architecture before status evidence (Sprint 061)
+
+`pages/1_Research_Catalog.py` now consumes `publication/catalog_index.py`
+exclusively. Its public hierarchy is manifest-first with a deterministic
+workflow/DatasetRef fallback and contains no `storage_path`; pages 1–4 and 6
+use the public projection; Live Paper uses a bounded allowlist over its
+read-only HTTP status source. No public page 1–6 reads the workspace. Signal
+and Robustness evidence is copied by the build-time generator into dedicated,
+deny-by-default artifact roles and rendered without runtime recomputation.
+
+Catalog presentation resolves research time ranges from Predictive Dataset
+manifests or the immutable metadata behind `source_dataset_ref`. Strategy runs
+with a parent `experiment_id` are Robustness child computations, not top-level
+Strategy catalog entries.
 
 scripts/dashboard/
     generate_btc_signal_quality_projection.py  # Build-time public-projection generator (Sprint 060 T003);
                                                 # output is committed to apps/dashboard/publication_data/
+    generate_public_projection.py              # Safe catalog + Signal/Robustness evidence projection
+    deploy_public_dashboard.sh                 # One-shot build-time projection, selection and Compose deploy
 
 apps/cli/src/trading_cli/
     cli.py              # argparse subparser tree + dispatch
@@ -139,7 +174,7 @@ apps/cli/src/trading_cli/
 | Predictive Research | `application/predictive_research/` | `research/predictive/`, `research/datasets/predictive.py`, `research/datasets/predictive_run.py`, `research/reporting/predictive/` | `infrastructure/ml/`, `infrastructure/storage/paths.py` | Dataset envelope; run envelope; offline HTML report |
 | Live Execution | `application/execution/` | `execution/` | `infrastructure/providers/`, `infrastructure/storage/` | Runtime state |
 | Visualization | Application view-model builders | `research/analytics/`, reporting packages | HTML, API and dashboard adapters; `apps/dashboard` | Dashboards and reports |
-| Predictive Research dashboard | — (read-only catalog scan, no application orchestration import) | `apps/dashboard/src/dashboard_app/catalog/`, `views/`, `caching/`, `contracts.py` | DuckDB/Parquet reads of `research/predictive_research/` | Study picker, leaderboard, run detail, provenance (`pages/6_Predictive_Research.py`) |
+| Predictive Research dashboard | — (read-only public projection, no application orchestration import) | `apps/dashboard/src/dashboard_app/publication/`, `views/study.py`, `views/workflow_evidence.py` | Immutable sanitized bundle; no private workspace mount | One manifest-selected run, fold/pooled comparison and persisted verdict (`pages/6_Predictive_Research.py`) |
 | Operator CLI | `apps/cli/src/trading_cli/commands/` (`data.py`, `research.py`, `dry_run.py`, `report.py`) call `application/market_data/`, `application/predictive_research/`, `application/strategy_research/`, `application/execution/` directly | `apps/cli/src/trading_cli/config.py`, `plan.py`, `errors.py` (CLI-local config/plan/error models, not domain packages) | none of its own — delegates entirely to the application layer it wraps | `DatasetRef` (data fetch), dataset/run identifiers + offline HTML (research run, report render), dry-run runtime state |
 
 ---
@@ -688,7 +723,7 @@ tests/integration/live_data/
 | Live dashboard state | execution read-model adapters |
 | Demo generation | `scripts/demo/` |
 | Live dashboard delivery | `scripts/portfolio_live/` (aiohttp); `apps/dashboard` Live Paper page (status GET) |
-| Predictive Research dashboard delivery | `apps/dashboard/src/dashboard_app/catalog/predictive_quality.py` (quality flags), `apps/dashboard/src/dashboard_app/views/predictive.py` (picker/leaderboard/detail/provenance view models); `pages/6_Predictive_Research.py` (Sprint 044) |
+| Predictive Research dashboard delivery | `apps/dashboard/src/dashboard_app/publication/` plus `views/study.py`; one projection-backed representative view in `pages/6_Predictive_Research.py` (Sprint 061) |
 
 ### Boundary
 

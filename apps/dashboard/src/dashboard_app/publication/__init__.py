@@ -4,23 +4,51 @@ The only path a new public portfolio page may use to read research facts: a
 pre-generated, deny-by-default
 :class:`~dashboard_app.publication.projection.PublicProjectionBundle` grouped
 into named studies by a
-:class:`~dashboard_app.publication.manifest.PortfolioStudyManifest`. Nothing
-in this package scans the private workspace or builds a filesystem path from
-a projected value.
+:class:`~dashboard_app.publication.manifest.PortfolioStudyManifest`. Public
+pages never scan the private workspace or build a filesystem path from a
+projected value. The explicit ``publication.workspace`` build-time helper is
+the sole exception and only produces sanitizer inputs before deployment.
 """
 
 from __future__ import annotations
 
+from dashboard_app.publication.catalog import (
+    RESEARCH_CATALOG_ENTRY_ROLE,
+    build_catalog_artifact_input,
+    catalog_artifact_id,
+)
+from dashboard_app.publication.catalog_index import (
+    PublicCatalogExperiment,
+    PublicCatalogIndex,
+    PublicCatalogRun,
+    PublicCatalogStudy,
+    build_public_catalog,
+    group_public_catalog_runs,
+    load_public_catalog_from_paths,
+    select_public_catalog_studies,
+)
 from dashboard_app.publication.errors import (
+    DuplicateArtifactIdError,
     InvalidProjectionSchemaError,
     PublicationError,
+    UnsafePublicIdentityError,
+)
+from dashboard_app.publication.evidence import (
+    LEGACY_ROBUSTNESS_EXPERIMENT_ID,
+    ROBUSTNESS_RESEARCH_EVIDENCE_ROLE,
+    SIGNAL_RESEARCH_EVIDENCE_ROLE,
+    discover_research_evidence_inputs,
 )
 from dashboard_app.publication.generator import (
     GENERATOR_VERSION,
     RawArtifactInput,
     UnknownArtifactRoleError,
     build_projection_bundle,
+    extend_projection_bundle,
+    refresh_catalog_projection_bundle,
+    refresh_publication_projection_bundle,
 )
+from dashboard_app.publication.identity import is_safe_artifact_id
 from dashboard_app.publication.manifest import (
     PORTFOLIO_STUDY_MANIFEST_SCHEMA_VERSION,
     PortfolioStudyManifest,
@@ -48,12 +76,21 @@ from dashboard_app.publication.validation import (
 
 __all__ = [
     "GENERATOR_VERSION",
+    "LEGACY_ROBUSTNESS_EXPERIMENT_ID",
     "PORTFOLIO_STUDY_MANIFEST_SCHEMA_VERSION",
     "PUBLICATION_DATA_ROOT",
     "PUBLIC_PROJECTION_SCHEMA_VERSION",
+    "RESEARCH_CATALOG_ENTRY_ROLE",
+    "ROBUSTNESS_RESEARCH_EVIDENCE_ROLE",
+    "SIGNAL_RESEARCH_EVIDENCE_ROLE",
+    "DuplicateArtifactIdError",
     "InvalidProjectionSchemaError",
     "PortfolioStudyManifest",
     "ProjectedArtifact",
+    "PublicCatalogExperiment",
+    "PublicCatalogIndex",
+    "PublicCatalogRun",
+    "PublicCatalogStudy",
     "PublicProjectionBundle",
     "PublicationError",
     "PublicationUnavailable",
@@ -61,12 +98,24 @@ __all__ = [
     "StudyEvidence",
     "StudyMaturity",
     "UnknownArtifactRoleError",
+    "UnsafePublicIdentityError",
+    "build_catalog_artifact_input",
     "build_projection_bundle",
+    "build_public_catalog",
+    "catalog_artifact_id",
+    "discover_research_evidence_inputs",
+    "extend_projection_bundle",
+    "group_public_catalog_runs",
+    "is_safe_artifact_id",
     "load_projection_bundle",
     "load_projection_bundle_from_path",
+    "load_public_catalog_from_paths",
     "load_study_manifest",
     "load_study_manifest_from_path",
     "projection_bundle_path",
+    "refresh_catalog_projection_bundle",
+    "refresh_publication_projection_bundle",
     "resolve_study_evidence",
+    "select_public_catalog_studies",
     "study_manifest_path",
 ]

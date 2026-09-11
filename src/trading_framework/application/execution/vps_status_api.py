@@ -1,7 +1,7 @@
 """Read-only VPS execution status API: transport-independent request handling.
 
 Implements the ``execution.status.v1`` public contract frozen in
-``docs/adr/ADR-0035-vps-dry-run-runtime-and-status-boundary.md`` section 3. This module never
+``docs/adr/ADR-0036-vps-dry-run-runtime-and-status-boundary.md`` section 3. This module never
 imports an HTTP framework: it only builds a versioned, allowlisted response from
 ``ExecutionStateReader``. Transport wiring (aiohttp, WSGI, etc.) lives in ``scripts/execution``.
 
@@ -58,7 +58,7 @@ _UNREADABLE_STATE_ERRORS: Final = (
     OSError,
 )
 
-# Allowlisted `ExecutionEvent.payload` keys (ADR-0035 section 3.2/3.3). `payload` is a free-form
+# Allowlisted `ExecutionEvent.payload` keys (ADR-0036 section 3.2/3.3). `payload` is a free-form
 # `Mapping[str, str]` (`trading_framework.execution.models.events.ExecutionEvent.payload`); unlike
 # the rest of this module, allowlisting the *field* "recent_events" is not enough, because the
 # *value* of "payload" within it is operator/exception-adjacent free text unless each key is
@@ -66,7 +66,7 @@ _UNREADABLE_STATE_ERRORS: Final = (
 # (`execution/runtime/session.py`) is enumerated below as either safe (closed vocabulary, an id, an
 # enum value, or a numeric value formatted as a string) or deliberately omitted. `message`,
 # `reason` and `feed_last_error` are free text that can carry raw exception text or embed a stream
-# URL/host -- the same category ADR-0035 section 3.4 closed for the top-level `feed_last_error`
+# URL/host -- the same category ADR-0036 section 3.4 closed for the top-level `feed_last_error`
 # field (e.g. `RUNTIME_FAILED`'s `message`, built from `str(exc)[:500]` in
 # `binance_local_btc_futures.py`, and persisted verbatim by `LocalExecutionRuntimeSession.fail`) --
 # and are never emitted, truncated or otherwise transformed here. A key not in this set, including
@@ -96,7 +96,7 @@ _SAFE_EVENT_PAYLOAD_KEYS: Final[frozenset[str]] = frozenset(
 )
 
 # Closed vocabulary for feed_last_error_code. The raw feed_last_error string is never passed
-# through: it can embed a stream URL or host (ADR-0035 section 3.4). Keyword matching is
+# through: it can embed a stream URL or host (ADR-0036 section 3.4). Keyword matching is
 # best-effort classification for operators; anything unmatched maps to "unknown", not omitted,
 # so the dashboard can still show that a feed error occurred without seeing raw text.
 _FEED_ERROR_KEYWORDS: Final[tuple[tuple[str, str], ...]] = (
@@ -148,7 +148,7 @@ class VpsExecutionStatusApiConfig:
 def load_vps_execution_status_api_config(env: Mapping[str, str]) -> VpsExecutionStatusApiConfig:
     """Load the read-only VPS status API configuration from environment variables.
 
-    No AWS-specific value is required (D062-02 / ADR-0035 section 6).
+    No AWS-specific value is required (D062-02 / ADR-0036 section 6).
     """
     return VpsExecutionStatusApiConfig(
         runtime_id=_optional(env, "STATUS_RUNTIME_ID", DEFAULT_RUNTIME_ID),
@@ -214,7 +214,7 @@ def handle_vps_status_health_check(
     repository: ExecutionStateReader,
     config: VpsExecutionStatusApiConfig,
 ) -> StatusApiResponse:
-    """Report process liveness and state-volume readability only (ADR-0035 section 4.5).
+    """Report process liveness and state-volume readability only (ADR-0036 section 4.5).
 
     Always returns 200: the fact this handler ran proves the process is alive. A missing runtime
     (``latest_status_view`` returning ``None``) is healthy — the worker may simply be stopped.

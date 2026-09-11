@@ -1,6 +1,6 @@
 """In-container liveness check for the VPS BTC futures dry-run worker.
 
-Docker ``HEALTHCHECK`` entry point (ADR-0035 section 4.5): the worker has no
+Docker ``HEALTHCHECK`` entry point (ADR-0036 section 4.5): the worker has no
 HTTP listener, so liveness is heartbeat freshness of its own persisted state,
 checked by reading the same execution-state volume the worker itself writes
 -- never "process running" alone. This mirrors the staleness pattern already
@@ -13,7 +13,7 @@ Exit codes:
 - ``0`` -- no persisted state yet (startup grace period; the worker has not
   written its first heartbeat) or the persisted heartbeat is fresh.
 - ``1`` -- persisted state exists but its heartbeat is stale, or the state is
-  unreadable/corrupt (fail closed, matching ADR-0035 section 2.6).
+  unreadable/corrupt (fail closed, matching ADR-0036 section 2.6).
 
 Configuration mirrors the worker's own environment, because this check reads
 the same volume the worker writes to:
@@ -52,7 +52,7 @@ from trading_framework.infrastructure.storage.execution_state import (
 )
 
 # Mirrors `vps_status_api._UNREADABLE_STATE_ERRORS`: an unreadable/corrupt persisted document is
-# fail-closed here too, never treated as "no state" (ADR-0035 section 2.6).
+# fail-closed here too, never treated as "no state" (ADR-0036 section 2.6).
 _UNREADABLE_STATE_ERRORS = (
     TradingFrameworkError,
     TfValidationError,

@@ -5,17 +5,19 @@ from __future__ import annotations
 import json
 import urllib.error
 import urllib.request
-from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from typing import Any, final
+from typing import Any, Protocol, final
 from urllib.parse import urlparse
 
 from dashboard_app.contracts import PRESENTATION_SCHEMA_VERSION, RunSummary, WorkflowKind
 from dashboard_app.datasources.live_paper_stub import LivePaperStatusDataSource
 
 DEFAULT_STATUS_TIMEOUT_SECONDS = 10.0
-_Urlopener = Callable[[urllib.request.Request, float | None], Any]
+
+
+class _Urlopener(Protocol):
+    def __call__(self, request: urllib.request.Request, *, timeout: float) -> Any: ...
 
 
 @final

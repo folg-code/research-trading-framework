@@ -396,6 +396,30 @@ def test_load_projection_bundle_invalid_schema_returns_unavailable() -> None:
     assert result.reason == "schema_mismatch"
 
 
+def test_load_projection_bundle_rejects_non_allowlisted_artifact_fields() -> None:
+    result = load_projection_bundle(
+        {
+            "schema_version": PUBLIC_PROJECTION_SCHEMA_VERSION,
+            "generator_version": "dashboard.publication.generator.v1",
+            "generated_at_utc": "2026-09-09T00:00:00+00:00",
+            "artifacts": {
+                "verdict-1": {
+                    "artifact_id": "verdict-1",
+                    "artifact_role": "predictive_run_verdict",
+                    "fields": {
+                        "verdict": "INCONCLUSIVE",
+                        "storage_path": "/private/research/run",
+                    },
+                }
+            },
+        }
+    )
+
+    assert isinstance(result, PublicationUnavailable)
+    assert result.reason == "schema_mismatch"
+    assert "non-allowlisted" in result.detail
+
+
 def test_load_projection_bundle_from_path_missing_file_returns_unavailable(
     tmp_path: Path,
 ) -> None:
@@ -440,6 +464,22 @@ def test_load_study_manifest_invalid_maturity_returns_unavailable() -> None:
             "slug": "btc-signal-quality",
             "title": "BTC Signal Quality",
             "maturity": "NOT_A_REAL_MATURITY",
+            "workflows": [],
+            "artifact_roles": {},
+        }
+    )
+
+    assert isinstance(result, PublicationUnavailable)
+    assert result.reason == "schema_mismatch"
+
+
+def test_load_study_manifest_rejects_unknown_schema_version() -> None:
+    result = load_study_manifest(
+        {
+            "schema_version": "dashboard.study_manifest.v2",
+            "slug": "future-study",
+            "title": "Future Study",
+            "maturity": "AS_BUILT",
             "workflows": [],
             "artifact_roles": {},
         }

@@ -1,7 +1,7 @@
 """Serve the read-only VPS BTC futures dry-run status API (aiohttp).
 
 Implements the GET-only ``execution.status.v1`` contract frozen in
-``docs/adr/ADR-0035-vps-dry-run-runtime-and-status-boundary.md``. This process only reads the
+``docs/adr/ADR-0036-vps-dry-run-runtime-and-status-boundary.md``. This process only reads the
 shared execution-state volume through ``JsonExecutionStateRepository`` / ``ExecutionStateReader``
 and never writes it. Per the ADR it is Compose-``expose``-only: not published to a host port and
 not reachable from the internet, with the dashboard as its only caller.

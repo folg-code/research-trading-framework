@@ -17,5 +17,5 @@ class IncompatibleExecutionStateError(TradingFrameworkError):
     """Raised when persisted execution state is incompatible or unreadable.
 
     A runtime that finds this on start must refuse to start rather than
-    silently discarding the persisted state (ADR-0035 S4.4).
+    silently discarding the persisted state (ADR-0036 S4.4).
     """

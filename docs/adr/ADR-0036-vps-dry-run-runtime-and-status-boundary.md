@@ -1,4 +1,4 @@
-# ADR-0035 — VPS Dry-Run Runtime Boundary: Topology, State Ownership, Public Status Schema, Lifecycle and Threat Model
+# ADR-0036 — VPS Dry-Run Runtime Boundary: Topology, State Ownership, Public Status Schema, Lifecycle and Threat Model
 
 ## Status
 

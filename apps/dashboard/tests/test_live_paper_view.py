@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
 
+import pytest
+
 from dashboard_app.charts.lightweight import candles_from_status_bars, markers_for_fills
 from dashboard_app.views.live_paper import (
     build_dry_run_status_card,
@@ -46,6 +48,13 @@ def test_live_paper_health_fresh_heartbeat() -> None:
     )
     assert health.is_stale is False
     assert health.badge == "Running"
+
+
+@pytest.mark.parametrize("simulated", ["false", "true", 1, 0, None])
+def test_live_paper_health_requires_literal_true_for_simulation(simulated: object) -> None:
+    health = live_paper_health({"simulated": simulated})
+
+    assert health.simulated is False
 
 
 def test_live_paper_health_uses_worker_degraded_and_feed_fields() -> None:
@@ -199,7 +208,7 @@ def test_dry_run_status_card_unavailable_on_other_http_errors() -> None:
 
 def test_dry_run_status_card_unavailable_when_status_field_is_missing() -> None:
     """A snapshot missing `status` entirely must never be classified as
-    ``current`` -- ADR-0035 SS3.2's closed vocabulary is a required field, and
+    ``current`` -- ADR-0036 SS3.2's closed vocabulary is a required field, and
     its absence signals an untrustworthy/malformed response, not a healthy one."""
     now = datetime(2026, 7, 18, 12, 0, tzinfo=UTC)
     snapshot = {

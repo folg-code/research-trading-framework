@@ -17,6 +17,6 @@ dry-run worker and status service).
 - Validate the file with `docker compose -f deploy/docker-compose.yml config
   --quiet` before assuming a YAML edit is correct; `tests/unit/deploy/
   test_dashboard_docker_compose.py` also asserts the port/volume/network
-  invariants ADR-0035 requires (no port on the worker, `expose`-only on the
+  invariants ADR-0036 requires (no port on the worker, `expose`-only on the
   status service, read-only vs. read-write state-volume mounts, no state
   volume on `dashboard`).

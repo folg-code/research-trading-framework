@@ -213,7 +213,7 @@ class JsonExecutionStateRepository:
         temporary_path = path.with_suffix(f"{path.suffix}.tmp")
         text = json.dumps(state, indent=2, sort_keys=True)
         # Flush and fsync the temp file before the atomic rename so a power
-        # loss cannot leave a renamed-but-empty document (ADR-0035 S2.5).
+        # loss cannot leave a renamed-but-empty document (ADR-0036 S2.5).
         with temporary_path.open("w", encoding="utf-8") as handle:
             handle.write(f"{text}\n")
             handle.flush()

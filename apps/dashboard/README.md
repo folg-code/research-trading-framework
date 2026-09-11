@@ -1,7 +1,8 @@
 # Trading Research Dashboard
 
-Read-only Streamlit + DuckDB application for browsing research artifacts under a
-workspace root (`market_data/` + `research/`).
+Read-only Streamlit application for presenting a sanitized, immutable public
+projection of persisted research evidence. Production never mounts the private
+research workspace into the long-running dashboard container.
 
 This package is intentionally **separate** from `trading-framework`: it must not
 import research engines, execution, or market-data providers (Sprint 028 /
@@ -9,13 +10,13 @@ import research engines, execution, or market-data providers (Sprint 028 /
 
 ## Run locally
 
-Prefer syncing from the **repository root** (uv workspace member):
+Prefer syncing from the **repository root** (uv workspace member). The committed
+projection is used automatically:
 
 ```powershell
 cd <repo-root>
 uv sync --all-packages
 cd apps/dashboard
-$env:DASHBOARD_STORAGE_ROOT = (Resolve-Path ..\..\user_data).Path
 uv run --package trading-dashboard streamlit run Project_Overview.py
 ```
 
@@ -23,11 +24,8 @@ Or from this directory after a root workspace sync:
 
 ```powershell
 cd apps/dashboard
-$env:DASHBOARD_STORAGE_ROOT = (Resolve-Path ..\..\user_data).Path
 uv run streamlit run Project_Overview.py
 ```
-
-Or paste the storage root path in System diagnostics (local only).
 
 ## Layout
 
@@ -48,3 +46,10 @@ apps/dashboard/
 See `docs/RUNBOOK.md` for Compose + read-only storage mount,
 `docs/ARCHITECTURE.md` for the public architecture one-pager, and
 `docs/reference/modules/DASHBOARD_APPLICATION.md` for architecture notes.
+
+## Quality gates
+
+From the repository root, `uv run mypy` covers framework code and tests plus
+`apps/dashboard/src`, every Streamlit page, and `scripts/dashboard`. The
+pre-push hook runs both the framework and dashboard pytest suites. CI repeats
+the dashboard Ruff and pytest checks in its dedicated dashboard job.

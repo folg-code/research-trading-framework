@@ -1,4 +1,4 @@
-"""Container smoke test for the VPS dry-run Compose stack (SPRINT_062.md T006, ADR-0035).
+"""Container smoke test for the VPS dry-run Compose stack (SPRINT_062.md T006, ADR-0036).
 
 T004's Compose topology (``apps/dashboard/deploy/docker-compose.yml``) is already checked
 structurally, without Docker, by ``tests/unit/deploy/test_dashboard_docker_compose.py`` (parses

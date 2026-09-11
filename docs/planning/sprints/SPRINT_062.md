@@ -9,7 +9,7 @@ show an unmistakably simulated current-status card in the public dashboard.
 Sources:
 
 - `docs/adr/ADR-0021-live-dry-run-execution-demo.md`
-- `docs/adr/ADR-0035-vps-dry-run-runtime-and-status-boundary.md` (T001 output)
+- `docs/adr/ADR-0036-vps-dry-run-runtime-and-status-boundary.md` (T001 output)
 - `docs/reference/workflows/STRATEGY_EXECUTION.md`
 - `docs/reference/runbooks/LOCAL_BTC_FUTURES_DRY_RUN.md`
 - `docs/reference/runbooks/AWS_BTC_FUTURES_DRY_RUN.md`
@@ -59,16 +59,16 @@ Out of scope:
 | D062-04 — lifecycle | Support an explicit service lifetime suitable for Compose and preserve graceful `STOPPED`/hard-error `FAILED`. Restart must restore compatible paper state or fail visibly; it must never silently reset an open paper position. | Approved by maintainer (2026-09-10) |
 
 Detailed freeze of topology, state ownership, public status schema v1,
-lifecycle/recovery and threat model: `docs/adr/ADR-0035-vps-dry-run-runtime-and-status-boundary.md`
+lifecycle/recovery and threat model: `docs/adr/ADR-0036-vps-dry-run-runtime-and-status-boundary.md`
 (ACCEPTED by maintainer 2026-09-10 — T002/T003 unblocked).
 
 ## Tasks
 
 | Task | Outcome | Dependencies | Ownership | Risk | Status | PR |
 |---|---|---|---|---|---|---|
-| T001 | Freeze VPS topology, public status schema, volume ownership, lifecycle/recovery behavior and threat model in an ADR; inventory VPS prerequisites without recording secrets | approved sprint | architecture + ops | high | Done — `docs/adr/ADR-0035-vps-dry-run-runtime-and-status-boundary.md` (ACCEPTED 2026-09-10) | — |
-| T002 | Implement and test the VPS runtime config/entry point, durable JSON repository wiring, continuous service lifetime and graceful recovery semantics while reusing existing execution logic unchanged | T001 (ADR-0035 ACCEPTED) | `application/execution`, `scripts/execution`, storage adapter | high | Done — merged into `sprint/btc-futures-vps-dry-run` (2026-09-10) | [#504](https://github.com/folg-code/research-trading-framework/pull/504) |
-| T003 | Implement a bounded GET-only status service over the `ExecutionStateReader` port, with a sanitized versioned response, freshness semantics, health endpoint and no file-path/infrastructure leakage | T001 (ADR-0035 ACCEPTED); parallel with T002 after schema freeze | status application/service + tests | high | Done — merged into `sprint/btc-futures-vps-dry-run` (2026-09-10) | [#505](https://github.com/folg-code/research-trading-framework/pull/505) |
+| T001 | Freeze VPS topology, public status schema, volume ownership, lifecycle/recovery behavior and threat model in an ADR; inventory VPS prerequisites without recording secrets | approved sprint | architecture + ops | high | Done — `docs/adr/ADR-0036-vps-dry-run-runtime-and-status-boundary.md` (ACCEPTED 2026-09-10) | — |
+| T002 | Implement and test the VPS runtime config/entry point, durable JSON repository wiring, continuous service lifetime and graceful recovery semantics while reusing existing execution logic unchanged | T001 (ADR-0036 ACCEPTED) | `application/execution`, `scripts/execution`, storage adapter | high | Done — merged into `sprint/btc-futures-vps-dry-run` (2026-09-10) | [#504](https://github.com/folg-code/research-trading-framework/pull/504) |
+| T003 | Implement a bounded GET-only status service over the `ExecutionStateReader` port, with a sanitized versioned response, freshness semantics, health endpoint and no file-path/infrastructure leakage | T001 (ADR-0036 ACCEPTED); parallel with T002 after schema freeze | status application/service + tests | high | Done — merged into `sprint/btc-futures-vps-dry-run` (2026-09-10) | [#505](https://github.com/folg-code/research-trading-framework/pull/505) |
 | T004 | Package worker and status services and extend VPS Compose with private networking, read/write state volume only for the worker, read-only state access for status, health checks, restart policy and bounded logs/resources | T002–T003 | deploy + infrastructure | high | Done — merged into `sprint/btc-futures-vps-dry-run` (2026-09-10) | [#507](https://github.com/folg-code/research-trading-framework/pull/507) |
 | T005 | Add a current dry-run status card and link to the Live Paper page; remove migration placeholder when configured and preserve explicit stale/offline/failed states and `NO REAL ORDERS` copy | T003; parallel with T004 | dashboard data source + views/content | standard | Done — merged into `sprint/btc-futures-vps-dry-run` (2026-09-10) | [#508](https://github.com/folg-code/research-trading-framework/pull/508) |
 | T006 | Add unit, integration and container smoke tests for restart, stale feed, invalid/corrupt state, status unavailability, schema compatibility and dashboard regression | T002–T005 | tests | high | Done — merged into `sprint/btc-futures-vps-dry-run` (2026-09-10) | [#509](https://github.com/folg-code/research-trading-framework/pull/509) |

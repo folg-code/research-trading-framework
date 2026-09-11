@@ -1,7 +1,7 @@
-"""Structural checks for the VPS dashboard Compose stack (ADR-0035 SS1, SS4.5-4.7).
+"""Structural checks for the VPS dashboard Compose stack (ADR-0036 SS1, SS4.5-4.7).
 
 Parses the YAML directly (no ``docker`` dependency, so this runs anywhere pytest does) and asserts
-the specific topology/isolation properties ADR-0035 requires: no port surface for the worker or
+the specific topology/isolation properties ADR-0036 requires: no port surface for the worker or
 status service, read-only vs. read-write state-volume ownership, and no state-volume access from
 ``dashboard``. Where the Docker CLI is available, an additional smoke test also runs
 ``docker compose config --quiet`` to catch YAML/structural errors the schema itself would reject.
@@ -99,7 +99,7 @@ def test_caddy_and_worker_do_not_share_a_network_with_status() -> None:
 
 
 def test_status_network_is_internal_blocking_its_own_outbound_egress() -> None:
-    # Stricter than ADR-0035's literal minimum (SS1.4 only requires caddy/worker isolation from
+    # Stricter than ADR-0036's literal minimum (SS1.4 only requires caddy/worker isolation from
     # `status`): a compromised dry-run-status container should not gain outbound internet access
     # either. Regression-guards the deliberate `internal: true` hardening.
     compose = _load_compose()

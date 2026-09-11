@@ -453,7 +453,7 @@ def _restore_broker_state(
 ) -> PaperBrokerState | None:
     """Restore broker state from persisted execution state, or refuse to start.
 
-    Restart semantics (ADR-0035 SS4.4): no persisted state for this
+    Restart semantics (ADR-0036 SS4.4): no persisted state for this
     ``runtime_id`` is a normal first run (fresh start). Persisted-but-
     incomplete or unreadable state, or persisted state that is incompatible
     with the current configuration, must never be silently discarded --

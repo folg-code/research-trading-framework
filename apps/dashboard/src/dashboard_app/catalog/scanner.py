@@ -30,6 +30,7 @@ from dashboard_app.contracts import (
     RunSummary,
     WorkflowKind,
 )
+from dashboard_app.query.dataset_locator import DatasetLocator
 
 
 @dataclass(frozen=True, slots=True)
@@ -79,18 +80,49 @@ def list_runs(storage_root: Path) -> RunCatalog:
         summaries=summaries,
         issues=issues,
     )
+
     _scan_run_tree(
         strategy_research_runs_dir(root),
         parser=_parse_strategy_manifest,
         summaries=summaries,
         issues=issues,
     )
+
     _scan_run_tree(
         robustness_experiments_dir(root),
         parser=_parse_robustness_manifest,
         summaries=summaries,
         issues=issues,
     )
+
+    summaries = [_with_dataset_time_range(item, root) for item in summaries]
+    predictive = list_predictive_catalog(root)
+    datasets_by_id = {item.dataset_id: item for item in predictive.datasets}
+    for run in predictive.runs:
+        dataset = datasets_by_id.get(run.dataset_id)
+        summaries.append(
+            RunSummary(
+                schema_version=PRESENTATION_SCHEMA_VERSION,
+                workflow=WorkflowKind.PREDICTIVE,
+                run_id=run.run_id,
+                created_at_utc=run.created_at_utc,
+                title=f"Predictive · {run.family or 'model'}",
+                storage_path=run.storage_path,
+                source_dataset_ref=dataset.source_dataset_ref if dataset is not None else None,
+                evaluation_timeframe=(
+                    _timeframe_from_dataset_ref(dataset.source_dataset_ref)
+                    if dataset is not None
+                    else None
+                ),
+                artifact_schema_version="predictive_run",
+                experiment_id=run.dataset_id,
+                time_range_start_utc=(
+                    dataset.time_range_start_utc if dataset is not None else None
+                ),
+                time_range_end_utc=(dataset.time_range_end_utc if dataset is not None else None),
+            )
+        )
+    issues.extend(predictive.issues)
 
     summaries.sort(
         key=lambda item: (
@@ -220,11 +252,11 @@ def load_predictive_run_identity(storage_root: Path, run_id: str) -> Mapping[str
     return {key: payload[key] for key in keys if key in payload}
 
 
-def _scan_run_tree(
+def _scan_run_tree[SummaryT: (RunSummary, PredictiveDatasetSummary)](
     runs_dir: Path,
     *,
-    parser: Callable[[dict[str, Any], Path], RunSummary],
-    summaries: list[RunSummary],
+    parser: Callable[[dict[str, Any], Path], SummaryT],
+    summaries: list[SummaryT],
     issues: list[CatalogIssue],
 ) -> None:
     if not runs_dir.is_dir():
@@ -248,6 +280,14 @@ def _scan_run_tree(
             summary = parser(payload, child)
         except (KeyError, TypeError, ValueError) as exc:
             issues.append(CatalogIssue(path=str(manifest_path), reason=str(exc)))
+            continue
+        # Strategy runs created as children of a robustness experiment are
+        # implementation detail. The parent experiment is the catalog entry.
+        if (
+            isinstance(summary, RunSummary)
+            and summary.workflow is WorkflowKind.STRATEGY
+            and summary.experiment_id
+        ):
             continue
         summaries.append(summary)
 
@@ -345,6 +385,7 @@ def _parse_predictive_dataset_manifest(
         if isinstance(label, dict):
             label_kind = _optional_str(label.get("kind"))
             horizon = _optional_str(label.get("horizon"))
+    range_start, range_end = _time_range_from_payload(payload)
     return PredictiveDatasetSummary(
         schema_version=PRESENTATION_SCHEMA_VERSION,
         dataset_id=dataset_id,
@@ -354,6 +395,42 @@ def _parse_predictive_dataset_manifest(
         label_kind=label_kind,
         horizon=horizon,
         storage_path=str(dataset_dir),
+        time_range_start_utc=range_start,
+        time_range_end_utc=range_end,
+    )
+
+
+def _with_dataset_time_range(summary: RunSummary, storage_root: Path) -> RunSummary:
+    if summary.time_range_start_utc is not None or not summary.source_dataset_ref:
+        return summary
+    try:
+        locator = DatasetLocator.parse(summary.source_dataset_ref)
+    except ValueError:
+        return summary
+    payload = _read_json_object(locator.metadata_path(storage_root))
+    if payload is None:
+        return summary
+    start = _parse_optional_datetime(payload.get("start_at"))
+    end = _parse_optional_datetime(payload.get("end_at"))
+    return replace(summary, time_range_start_utc=start, time_range_end_utc=end)
+
+
+def _timeframe_from_dataset_ref(dataset_ref: str | None) -> str | None:
+    if dataset_ref is None:
+        return None
+    try:
+        return DatasetLocator.parse(dataset_ref).timeframe
+    except ValueError:
+        return None
+
+
+def _time_range_from_payload(payload: Mapping[str, Any]) -> tuple[datetime | None, datetime | None]:
+    value = payload.get("time_range")
+    if not isinstance(value, Mapping):
+        return None, None
+    return (
+        _parse_optional_datetime(value.get("start")),
+        _parse_optional_datetime(value.get("end")),
     )
 
 

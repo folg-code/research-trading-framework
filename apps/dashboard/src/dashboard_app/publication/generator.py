@@ -9,10 +9,9 @@ This module must run at build/deploy time, never inside a Streamlit page
 render (ADR-0034 S1.2). It performs no file I/O of its own and imports
 nothing beyond stdlib and this package's own dataclasses -- no
 ``trading_framework`` research/execution/provider import, no ML library --
-so it trivially satisfies ``tests/unit/test_apps_boundaries.py``. Loading
-real raw artifacts off disk and the full Sprint 060 field inventory are
-explicitly out of scope for this generator today; a caller supplies
-already-parsed raw dicts keyed by artifact_id and role.
+so it trivially satisfies ``tests/unit/test_apps_boundaries.py``. The explicit
+build-time ``publication.workspace`` helper loads catalog identities; callers
+still supply already-parsed raw dicts keyed by artifact id and role here.
 """
 
 from __future__ import annotations
@@ -22,7 +21,12 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
 
-from dashboard_app.publication.errors import PublicationError
+from dashboard_app.publication.errors import (
+    DuplicateArtifactIdError,
+    PublicationError,
+    UnsafePublicIdentityError,
+)
+from dashboard_app.publication.identity import is_safe_artifact_id
 from dashboard_app.publication.projection import (
     PUBLIC_PROJECTION_SCHEMA_VERSION,
     ProjectedArtifact,
@@ -63,6 +67,12 @@ def build_projection_bundle(
     artifacts: dict[str, ProjectedArtifact] = {}
 
     for raw_input in raw_artifacts:
+        if not is_safe_artifact_id(raw_input.artifact_id):
+            msg = f"unsafe public artifact_id {raw_input.artifact_id!r}"
+            raise UnsafePublicIdentityError(msg)
+        if raw_input.artifact_id in artifacts:
+            msg = f"duplicate public artifact_id {raw_input.artifact_id!r}"
+            raise DuplicateArtifactIdError(msg)
         sanitizer = sanitizer_for_role(raw_input.artifact_role)
         if sanitizer is None:
             msg = f"no sanitizer registered for artifact_role {raw_input.artifact_role!r}"
@@ -75,6 +85,103 @@ def build_projection_bundle(
             fields=sanitized_fields,
         )
 
+    return PublicProjectionBundle(
+        schema_version=PUBLIC_PROJECTION_SCHEMA_VERSION,
+        generator_version=GENERATOR_VERSION,
+        generated_at_utc=generated_at_utc,
+        artifacts=artifacts,
+    )
+
+
+def extend_projection_bundle(
+    base_bundle: PublicProjectionBundle,
+    raw_artifacts: list[RawArtifactInput],
+    *,
+    generated_at_utc: datetime,
+) -> PublicProjectionBundle:
+    """Add freshly sanitized artifacts to an already validated base bundle."""
+    extension = build_projection_bundle(raw_artifacts, generated_at_utc=generated_at_utc)
+    duplicates = set(base_bundle.artifacts).intersection(extension.artifacts)
+    if duplicates:
+        duplicate = sorted(duplicates)[0]
+        msg = f"duplicate public artifact_id {duplicate!r} across projection bundles"
+        raise DuplicateArtifactIdError(msg)
+    return PublicProjectionBundle(
+        schema_version=PUBLIC_PROJECTION_SCHEMA_VERSION,
+        generator_version=GENERATOR_VERSION,
+        generated_at_utc=generated_at_utc,
+        artifacts={**base_bundle.artifacts, **extension.artifacts},
+    )
+
+
+def refresh_catalog_projection_bundle(
+    base_bundle: PublicProjectionBundle,
+    raw_artifacts: list[RawArtifactInput],
+    *,
+    generated_at_utc: datetime,
+) -> PublicProjectionBundle:
+    """Refresh stable catalog entries while preserving curated evidence.
+
+    Re-running production publication against the same workspace necessarily
+    rediscovers stable catalog artifact ids.  Only a catalog entry may replace
+    an earlier artifact with the same id and role.  Any cross-role or curated
+    artifact collision remains a fail-closed error.
+    """
+    from dashboard_app.publication.catalog import RESEARCH_CATALOG_ENTRY_ROLE
+
+    extension = build_projection_bundle(raw_artifacts, generated_at_utc=generated_at_utc)
+    artifacts = dict(base_bundle.artifacts)
+    for artifact_id, artifact in extension.artifacts.items():
+        existing = artifacts.get(artifact_id)
+        if existing is not None and (
+            existing.artifact_role != RESEARCH_CATALOG_ENTRY_ROLE
+            or artifact.artifact_role != RESEARCH_CATALOG_ENTRY_ROLE
+        ):
+            msg = f"duplicate public artifact_id {artifact_id!r} across projection bundles"
+            raise DuplicateArtifactIdError(msg)
+        artifacts[artifact_id] = artifact
+    return PublicProjectionBundle(
+        schema_version=PUBLIC_PROJECTION_SCHEMA_VERSION,
+        generator_version=GENERATOR_VERSION,
+        generated_at_utc=generated_at_utc,
+        artifacts=artifacts,
+    )
+
+
+def refresh_publication_projection_bundle(
+    base_bundle: PublicProjectionBundle,
+    raw_artifacts: list[RawArtifactInput],
+    *,
+    generated_at_utc: datetime,
+) -> PublicProjectionBundle:
+    """Refresh build-time artifacts while rejecting every cross-role collision.
+
+    Stable catalog and workflow-evidence ids are expected to recur in later
+    immutable releases.  Replacement is permitted only when the artifact id
+    and its explicit role both match; a role change remains fail-closed.
+    """
+    from dashboard_app.publication.catalog import RESEARCH_CATALOG_ENTRY_ROLE
+    from dashboard_app.publication.evidence import (
+        ROBUSTNESS_RESEARCH_EVIDENCE_ROLE,
+        SIGNAL_RESEARCH_EVIDENCE_ROLE,
+    )
+
+    refreshable_roles = {
+        RESEARCH_CATALOG_ENTRY_ROLE,
+        SIGNAL_RESEARCH_EVIDENCE_ROLE,
+        ROBUSTNESS_RESEARCH_EVIDENCE_ROLE,
+    }
+    extension = build_projection_bundle(raw_artifacts, generated_at_utc=generated_at_utc)
+    artifacts = dict(base_bundle.artifacts)
+    for artifact_id, artifact in extension.artifacts.items():
+        existing = artifacts.get(artifact_id)
+        if existing is not None and (
+            existing.artifact_role != artifact.artifact_role
+            or artifact.artifact_role not in refreshable_roles
+        ):
+            msg = f"duplicate public artifact_id {artifact_id!r} across projection bundles"
+            raise DuplicateArtifactIdError(msg)
+        artifacts[artifact_id] = artifact
     return PublicProjectionBundle(
         schema_version=PUBLIC_PROJECTION_SCHEMA_VERSION,
         generator_version=GENERATOR_VERSION,
