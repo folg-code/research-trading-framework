@@ -16,9 +16,16 @@ from dashboard_app.datasources import HttpLivePaperStatusDataSource
 from dashboard_app.formatting import format_kpi
 from dashboard_app.ui import configure_page, render_app_chrome
 from dashboard_app.views.live_paper import (
+    fills_history_rows,
     live_paper_health,
     sanitize_public_live_paper_snapshot,
 )
+
+#: How often the fragment below re-fetches and re-renders the status
+#: snapshot. Kept short enough that a viewer can see the heartbeat/price
+#: actually move without a manual click -- the whole point of this page is
+#: to demonstrate a running workflow, not a static screenshot.
+_AUTO_REFRESH_INTERVAL = "12s"
 
 
 def _render_snapshot(snapshot: dict[str, object]) -> None:
@@ -54,11 +61,10 @@ def _render_snapshot(snapshot: dict[str, object]) -> None:
     elif health.badge == "Failed":
         st.error("Worker reported FAILED. Check runtime logs / runbook.")
 
-    metrics = st.columns(4)
+    metrics = st.columns(3)
     metrics[0].metric("Symbol", str(snapshot.get("symbol") or "—"))
-    metrics[1].metric("Signal", str(snapshot.get("current_signal") or "—"))
-    metrics[2].metric("Last price", format_kpi("last_price", snapshot.get("last_price")))
-    metrics[3].metric("Last update", str(snapshot.get("last_market_event_at") or "—"))
+    metrics[1].metric("Last price", format_kpi("last_price", snapshot.get("last_price")))
+    metrics[2].metric("Last update", str(snapshot.get("last_market_event_at") or "—"))
 
     metrics2 = st.columns(4)
     metrics2[0].metric("Equity", format_kpi("paper_equity", snapshot.get("paper_equity")))
@@ -97,10 +103,52 @@ def _render_snapshot(snapshot: dict[str, object]) -> None:
             )
         else:
             st.caption("Flat / no open position in this snapshot.")
+
+    st.subheader("Position history")
+    history_rows = fills_history_rows(snapshot.get("recent_fills"))
+    if history_rows:
+        st.dataframe(history_rows, use_container_width=True, hide_index=True)
+    else:
+        st.caption("No simulated fills in this snapshot's recent window yet.")
+
     st.caption(
         "Only an explicit public allowlist is rendered. Raw status, orders, events, error "
         "details and unknown API fields remain private."
     )
+
+
+@st.fragment(run_every=_AUTO_REFRESH_INTERVAL)
+def _live_status_fragment(status_url: str) -> None:
+    """Fetch and render the current snapshot, auto-rerunning on its own timer.
+
+    Runs as an isolated fragment (not a full-page rerun) so the sidebar and
+    rest of the app stay put while this section refreshes -- the visible
+    heartbeat/price movement is the point, not a full page reload.
+    """
+    st.button("Refresh now", type="secondary")
+    st.caption(
+        f"Auto-refreshes every {_AUTO_REFRESH_INTERVAL} · "
+        f"last checked {datetime.now(tz=UTC).strftime('%H:%M:%S UTC')}"
+    )
+
+    try:
+        source = HttpLivePaperStatusDataSource(status_url=status_url)
+        raw = source.fetch_session_snapshot("")
+        snapshot: dict[str, object] | None = sanitize_public_live_paper_snapshot(raw)
+        error: str | None = None
+    except ValueError as exc:
+        error = str(exc)
+        snapshot = None
+
+    if error:
+        st.error(error)
+        st.info(
+            "The dashboard leaves execution state untouched; inspect the runtime host separately."
+        )
+    elif snapshot is not None:
+        _render_snapshot(snapshot)
+    else:
+        st.info("No public runtime snapshot is available.")
 
 
 def main() -> None:
@@ -112,6 +160,12 @@ def main() -> None:
     st.caption(
         "A bounded read-only view of one dry-run runtime. The dashboard cannot submit orders, "
         "start a worker or modify execution state."
+    )
+    st.info(
+        "This page exists to demonstrate a **working operational workflow** — a system that "
+        "stays connected, reacts to live data and records its own fills — not to demonstrate a "
+        "profitable strategy. The equity and PnL figures below reflect a small simulated "
+        "notional and are not evidence of trading edge."
     )
 
     status_url = resolve_status_url()
@@ -130,30 +184,7 @@ def main() -> None:
         )
         return
 
-    refresh = st.button("Refresh", type="secondary")
-    if refresh or "live_paper_public_snapshot" not in st.session_state:
-        try:
-            source = HttpLivePaperStatusDataSource(status_url=status_url)
-            raw = source.fetch_session_snapshot("")
-            st.session_state["live_paper_public_snapshot"] = sanitize_public_live_paper_snapshot(
-                raw
-            )
-            st.session_state["live_paper_public_error"] = None
-        except ValueError as exc:
-            st.session_state["live_paper_public_error"] = str(exc)
-            st.session_state["live_paper_public_snapshot"] = None
-
-    error = st.session_state.get("live_paper_public_error")
-    snapshot = st.session_state.get("live_paper_public_snapshot")
-    if error:
-        st.error(error)
-        st.info(
-            "The dashboard leaves execution state untouched; inspect the runtime host separately."
-        )
-    elif isinstance(snapshot, dict):
-        _render_snapshot(snapshot)
-    else:
-        st.info("No public runtime snapshot is available.")
+    _live_status_fragment(status_url)
 
 
 main()

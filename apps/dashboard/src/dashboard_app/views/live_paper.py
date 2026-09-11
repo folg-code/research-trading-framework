@@ -303,6 +303,34 @@ def fill_marker_points(recent_fills: object) -> tuple[list[datetime], list[float
     return xs, ys, texts
 
 
+def fills_history_rows(recent_fills: object) -> list[dict[str, object]]:
+    """Build a most-recent-first table of simulated fills for display.
+
+    Same allowlisted ``recent_fills`` rows the chart markers already read
+    (:func:`fill_marker_points`); this just presents them as a table so a
+    viewer can see the position history without decoding chart markers.
+    """
+    if not isinstance(recent_fills, list):
+        return []
+    rows: list[dict[str, object]] = []
+    for row in recent_fills:
+        if not isinstance(row, Mapping):
+            continue
+        filled_at = parse_utc_datetime(row.get("filled_at") or row.get("event_at"))
+        price = _as_float(row.get("price") or row.get("fill_price"))
+        if filled_at is None or price is None:
+            continue
+        rows.append(
+            {
+                "time": filled_at.strftime("%Y-%m-%d %H:%M:%S UTC"),
+                "side": str(row.get("side") or "fill").title(),
+                "price": price,
+            }
+        )
+    rows.sort(key=lambda row: str(row["time"]), reverse=True)
+    return rows
+
+
 def attach_fill_markers(figure: go.Figure, recent_fills: object) -> go.Figure:
     """Overlay simulated fill markers on a candlestick figure."""
     xs, ys, texts = fill_marker_points(recent_fills)
