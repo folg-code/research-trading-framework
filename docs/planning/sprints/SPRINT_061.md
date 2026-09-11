@@ -193,11 +193,11 @@ runtime decision requires separate discovery/architecture approval.
 
 ## Closeout
 
-- Integrated checks: root Ruff passed; dashboard pytest passed (252 tests);
-  application-boundary pytest passed (8 tests); root mypy passed (981 source
-  files); framework pytest passed (1721 tests, 25 expected dependency/network
-  skips). A real-workspace release generated 13 artifacts from 7 discovered
-  runs with no skips.
+- Integrated checks: root Ruff passed; dashboard pytest passed (257 tests);
+  application-boundary coverage passed; root mypy passed (983 source files);
+  framework pytest passed (1721 tests, 25 expected dependency/network skips).
+  A real-workspace release generated 17 artifacts from 11 discovered catalog
+  and workflow-evidence inputs with no skips.
 - Documentation reconciliation: dashboard module and system overview now name
   the immutable projection as the public read path and keep private-workspace
   access inside the one-shot release generator.
@@ -206,6 +206,11 @@ runtime decision requires separate discovery/architecture approval.
   simulation flags. The final QA branch fixes each issue and adds regression
   coverage. Desktop QA passed Home, Architecture, Market Data, Predictive, Live
   Paper, AI Research Infrastructure and Research Catalog checks on localhost.
+- Maintainer review identified that the first projection-backed Signal and
+  Robustness pages preserved the publication boundary but regressed the depth of
+  visible evidence. The follow-up restores projected tables, verdict gates and
+  charts from existing persisted artifacts. Legacy Robustness demo evidence is
+  labelled and remains excluded from Strategy catalog grouping.
 - Remaining work: maintainer acceptance of the final factual/editorial result;
   actual VPS/SSH deployment and an external Live Paper endpoint remain
   operational exercises rather than local sprint evidence.

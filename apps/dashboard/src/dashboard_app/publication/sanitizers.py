@@ -144,6 +144,237 @@ _RESEARCH_CATALOG_WORKFLOWS = frozenset(
     {"market", "signal", "strategy", "robustness", "predictive"}
 )
 
+_SIGNAL_EVIDENCE_ALLOWED_FIELDS = frozenset(
+    {
+        "run_id",
+        "schema_version",
+        "framework_version",
+        "created_at_utc",
+        "source_dataset_ref",
+        "evaluation_timeframe",
+        "signal_model_ids",
+        "market_model_ids",
+        "horizon_bars_requested",
+        "experiment_id",
+        "research_scope",
+        "research_question",
+    }
+)
+_SIGNAL_EVIDENCE_TABLE_COLUMNS: Mapping[str, frozenset[str]] = {
+    "summary_metrics": frozenset(
+        {
+            "run_id",
+            "research_scope",
+            "horizon_bars",
+            "sample_size_total",
+            "sample_size_complete",
+            "sample_size_incomplete",
+            "completion_rate",
+            "minimum_required",
+            "metrics_eligible",
+            "forward_return_mean",
+            "forward_return_median",
+            "hit_rate",
+            "mfe_mean",
+            "mfe_median",
+            "mae_mean",
+            "mae_median",
+        }
+    ),
+    "grouped_summaries": frozenset(
+        {
+            "run_id",
+            "research_scope",
+            "horizon_bars",
+            "group_dimension",
+            "group_value",
+            "sample_size_total",
+            "sample_size_complete",
+            "sample_size_incomplete",
+            "metrics_eligible",
+            "forward_return_mean",
+            "forward_return_median",
+            "hit_rate",
+            "mfe_mean",
+            "mfe_median",
+            "mae_mean",
+            "mae_median",
+        }
+    ),
+    "distribution_summaries": frozenset(
+        {
+            "run_id",
+            "horizon_bars",
+            "sample_size_complete",
+            "minimum_required",
+            "interpretation_minimum_required",
+            "metrics_computable",
+            "metrics_interpretable",
+            "forward_return_p10",
+            "forward_return_p25",
+            "forward_return_p75",
+            "forward_return_p90",
+            "forward_return_std",
+            "forward_return_min",
+            "forward_return_max",
+        }
+    ),
+    "conditional_comparison": frozenset(
+        {
+            "run_id",
+            "horizon_bars",
+            "context_true_sample_size",
+            "context_false_sample_size",
+            "context_missing_sample_size",
+            "comparison_status",
+            "status_reason",
+            "forward_return_mean_true",
+            "forward_return_mean_false",
+            "forward_return_mean_delta",
+            "forward_return_median_true",
+            "forward_return_median_false",
+            "forward_return_median_delta",
+            "hit_rate_true",
+            "hit_rate_false",
+            "hit_rate_delta",
+            "mfe_mean_true",
+            "mfe_mean_false",
+            "mfe_mean_delta",
+            "mfe_median_true",
+            "mfe_median_false",
+            "mfe_median_delta",
+            "mae_mean_true",
+            "mae_mean_false",
+            "mae_mean_delta",
+            "mae_median_true",
+            "mae_median_false",
+            "mae_median_delta",
+        }
+    ),
+    "join_diagnostics": frozenset(
+        {
+            "run_id",
+            "horizon_bars",
+            "entity_count",
+            "outcome_rows_total",
+            "outcome_rows_complete",
+            "outcome_rows_unmatched_entity",
+            "matched_context_rows",
+            "missing_context_rows",
+            "duplicate_context_matches",
+            "context_true_complete",
+            "context_false_complete",
+            "context_missing_complete",
+            "overlapping_outcome_windows",
+            "overlapping_outcome_rate",
+        }
+    ),
+    "metric_histograms": frozenset(
+        {
+            "run_id",
+            "horizon_bars",
+            "metric",
+            "bin_index",
+            "bin_start",
+            "bin_end",
+            "count",
+            "reference_mean",
+            "reference_median",
+        }
+    ),
+    "quality_warnings": frozenset({"code", "message", "horizon_bars"}),
+}
+
+_ROBUSTNESS_EVIDENCE_ALLOWED_FIELDS = frozenset(
+    {
+        "experiment_id",
+        "schema_version",
+        "framework_version",
+        "created_at_utc",
+        "source_dataset_ref",
+        "evaluation_timeframe",
+        "requested_range_start",
+        "requested_range_end",
+        "strategy_template_id",
+        "evidence_label",
+    }
+)
+_ROBUSTNESS_EVIDENCE_TABLE_COLUMNS: Mapping[str, frozenset[str]] = {
+    "parameter_sweep_rankings": frozenset(
+        {
+            "experiment_id",
+            "ranking_metric",
+            "rank",
+            "config_id",
+            "strategy_run_id",
+            "metric",
+            "metric_value",
+            "net_pnl",
+            "max_drawdown",
+            "win_rate",
+            "trade_count",
+        }
+    ),
+    "parameter_sweep_heatmap": frozenset(
+        {"experiment_id", "metric", "x_axis", "y_axis", "x_value", "y_value", "value"}
+    ),
+    "walk_forward_folds": frozenset(
+        {
+            "experiment_id",
+            "fold_id",
+            "fold_index",
+            "config_id",
+            "train_net_pnl",
+            "oos_strategy_run_id",
+            "oos_trade_count",
+            "oos_net_pnl",
+            "oos_max_drawdown",
+            "oos_final_equity",
+        }
+    ),
+    "walk_forward_equity": frozenset({"experiment_id", "observed_at", "equity", "drawdown"}),
+    "stress_comparison": frozenset(
+        {
+            "experiment_id",
+            "baseline_strategy_run_id",
+            "baseline_net_pnl",
+            "baseline_trade_count",
+            "scenario_id",
+            "mode",
+            "status",
+            "net_pnl",
+            "trade_count",
+            "delta_net_pnl",
+            "strategy_run_id",
+        }
+    ),
+    "monte_carlo_distributions": frozenset(
+        {
+            "experiment_id",
+            "method",
+            "path_count",
+            "mean_terminal_equity",
+            "p5_terminal_equity",
+            "p50_terminal_equity",
+            "p95_terminal_equity",
+        }
+    ),
+    "monte_carlo_tails": frozenset(
+        {
+            "experiment_id",
+            "method",
+            "probability_terminal_pnl_negative",
+            "probability_max_drawdown_exceeds_threshold",
+        }
+    ),
+}
+_ROBUSTNESS_VERDICT_ALLOWED_FIELDS = frozenset(
+    {"verdict", "summary", "strengths", "weaknesses", "blocking_issues"}
+)
+_ROBUSTNESS_GATE_ALLOWED_FIELDS = frozenset(
+    {"gate_id", "passed", "severity", "message", "observed_value"}
+)
+
 
 def _sanitize_metric_source_mapping(raw_source_group: Any) -> dict[str, Any]:
     """Allowlist one ``{"MODEL": {...}, "RANDOM_PERMUTATION": {...}, ...}`` mapping.
@@ -261,6 +492,103 @@ def sanitize_research_catalog_entry(raw: Mapping[str, Any]) -> dict[str, Any]:
     return sanitized
 
 
+def sanitize_signal_research_evidence(raw: Mapping[str, Any]) -> dict[str, Any]:
+    """Project rich Signal Research facts through explicit field/table allowlists."""
+    sanitized = {
+        key: raw[key]
+        for key in _SIGNAL_EVIDENCE_ALLOWED_FIELDS
+        if key in raw and raw[key] is not None
+    }
+    _require_safe_evidence_identity(sanitized, "run_id")
+    tables = _sanitize_evidence_tables(raw.get("tables"), _SIGNAL_EVIDENCE_TABLE_COLUMNS)
+    if "summary_metrics" not in tables:
+        raise UnsafePublicIdentityError("signal research evidence requires summary_metrics")
+    sanitized["tables"] = tables
+    _validate_public_tree(sanitized)
+    return sanitized
+
+
+def sanitize_robustness_research_evidence(raw: Mapping[str, Any]) -> dict[str, Any]:
+    """Project the approved legacy robustness demo without its private config."""
+    sanitized = {
+        key: raw[key]
+        for key in _ROBUSTNESS_EVIDENCE_ALLOWED_FIELDS
+        if key in raw and raw[key] is not None
+    }
+    _require_safe_evidence_identity(sanitized, "experiment_id")
+    if sanitized["experiment_id"] != "demo-robustness-nq-half-year":
+        raise UnsafePublicIdentityError("unsupported public robustness evidence")
+
+    raw_verdict = raw.get("verdict")
+    if isinstance(raw_verdict, Mapping):
+        verdict = {
+            key: raw_verdict[key]
+            for key in _ROBUSTNESS_VERDICT_ALLOWED_FIELDS
+            if key in raw_verdict
+        }
+        raw_gates = raw_verdict.get("gate_results")
+        if isinstance(raw_gates, list):
+            verdict["gate_results"] = [
+                {key: gate[key] for key in _ROBUSTNESS_GATE_ALLOWED_FIELDS if key in gate}
+                for gate in raw_gates
+                if isinstance(gate, Mapping)
+            ]
+        sanitized["verdict"] = verdict
+
+    tables = _sanitize_evidence_tables(raw.get("tables"), _ROBUSTNESS_EVIDENCE_TABLE_COLUMNS)
+    if "walk_forward_folds" not in tables:
+        raise UnsafePublicIdentityError("robustness evidence requires walk_forward_folds")
+    sanitized["tables"] = tables
+    _validate_public_tree(sanitized)
+    return sanitized
+
+
+def _sanitize_evidence_tables(
+    raw_tables: Any,
+    allowed_tables: Mapping[str, frozenset[str]],
+) -> dict[str, list[dict[str, Any]]]:
+    if not isinstance(raw_tables, Mapping):
+        return {}
+    sanitized: dict[str, list[dict[str, Any]]] = {}
+    for table_name, allowed_columns in allowed_tables.items():
+        raw_rows = raw_tables.get(table_name)
+        if not isinstance(raw_rows, list):
+            continue
+        sanitized[table_name] = [
+            {key: row[key] for key in allowed_columns if key in row}
+            for row in raw_rows
+            if isinstance(row, Mapping)
+        ]
+    return sanitized
+
+
+def _require_safe_evidence_identity(payload: Mapping[str, Any], key: str) -> None:
+    value = payload.get(key)
+    if not isinstance(value, str) or not is_safe_identity_value(value):
+        raise UnsafePublicIdentityError(f"unsafe public {key}: {value!r}")
+
+
+def _validate_public_tree(value: Any) -> None:
+    """Reject path-like or non-JSON values even when their field is allowlisted."""
+    if value is None or isinstance(value, bool | int | float):
+        return
+    if isinstance(value, str):
+        if value and not is_safe_public_text(value):
+            raise UnsafePublicIdentityError(f"unsafe path-like public evidence value: {value!r}")
+        return
+    if isinstance(value, Mapping):
+        for item in value.values():
+            _validate_public_tree(item)
+        return
+    if isinstance(value, list | tuple):
+        for item in value:
+            _validate_public_tree(item)
+        return
+    raise UnsafePublicIdentityError(
+        f"unsupported public evidence value type: {type(value).__name__}"
+    )
+
+
 def _is_aware_iso_timestamp(value: Any) -> bool:
     if not isinstance(value, str):
         return False
@@ -281,6 +609,8 @@ _SANITIZERS: Mapping[str, Callable[[Mapping[str, Any]], dict[str, Any]]] = {
     "predictive_threshold_sensitivity": sanitize_predictive_threshold_sensitivity,
     "strategy_research_run_summary": sanitize_strategy_research_run_summary,
     "research_catalog_entry": sanitize_research_catalog_entry,
+    "signal_research_evidence": sanitize_signal_research_evidence,
+    "robustness_research_evidence": sanitize_robustness_research_evidence,
 }
 
 

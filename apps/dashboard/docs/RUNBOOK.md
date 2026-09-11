@@ -15,6 +15,7 @@ the dashboard:
 
 ```powershell
 $env:DASHBOARD_STORAGE_HOST_PATH = (Resolve-Path user_data\workspace).Path
+$env:DASHBOARD_RESEARCH_HOST_PATH = (Resolve-Path user_data\research).Path
 $env:DASHBOARD_PUBLICATION_HOST_ROOT = (Resolve-Path artifacts).Path + "\dashboard-publication"
 $env:DASHBOARD_PUBLICATION_RELEASE_ID = "local-001"
 $env:DASHBOARD_HTTP_PORT = "8080"
@@ -31,8 +32,9 @@ when configured).
 
 ## Live Paper status URL
 
-Configure with env or the Streamlit sidebar once the runtime status endpoint is
-available. The dashboard **never** writes to execution storage or starts the worker.
+Configure `DASHBOARD_STATUS_URL` in the deployment environment once the runtime
+status endpoint is available. The dashboard **never** writes to execution
+storage or starts the worker.
 
 Operator check: `GET` the URL in a browser — expect JSON with `"simulated": true`
 and a fresh `last_heartbeat_at` when the worker is running.
@@ -52,6 +54,7 @@ and a fresh `last_heartbeat_at` when the worker is running.
 
 ```bash
 export DASHBOARD_STORAGE_HOST_PATH=/var/lib/trading-research/workspace
+export DASHBOARD_RESEARCH_HOST_PATH=/var/lib/trading-research/research
 export DASHBOARD_PUBLICATION_HOST_ROOT=/var/lib/trading-dashboard/publication
 export DASHBOARD_PUBLICATION_RELEASE_ID="$(git rev-parse HEAD)-manual-1"
 export DASHBOARD_HTTP_PORT=8080
@@ -116,7 +119,8 @@ Prefer attaching them to the `dashboard-vps` Environment (the workflow uses it).
 5. Create a deploy-only SSH keypair; put the **public** key in that user's
    `authorized_keys`; store the **private** key only as `DASHBOARD_VPS_SSH_KEY`.
 6. Put deployment env in `apps/dashboard/.env` (never commit it):
-   `DASHBOARD_STORAGE_HOST_PATH`, `DASHBOARD_PUBLICATION_HOST_ROOT`, optional
+   `DASHBOARD_STORAGE_HOST_PATH`, `DASHBOARD_RESEARCH_HOST_PATH`,
+   `DASHBOARD_PUBLICATION_HOST_ROOT`, optional
    `DASHBOARD_STATUS_URL`, and `DASHBOARD_HTTP_PORT`.
 7. Confirm a manual start works:
 

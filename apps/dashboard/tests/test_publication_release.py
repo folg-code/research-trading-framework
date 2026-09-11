@@ -102,6 +102,8 @@ def test_deployed_dashboard_mounts_only_selected_projection() -> None:
     assert "target: /opt/dashboard/publication_data" in compose
     assert "DASHBOARD_STORAGE_HOST_PATH" not in compose
     assert "dst=/workspace,readonly" in deploy_script
+    assert "dst=/research,readonly" in deploy_script
+    assert "--evidence-root /research" in deploy_script
     assert "dashboard_app.publication.release" in deploy_script
     assert "deploy_public_dashboard.sh" in workflow
     assert workflow.index("git reset --hard origin/main") < workflow.index(

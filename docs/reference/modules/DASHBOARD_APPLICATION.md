@@ -76,24 +76,32 @@ and immutable release selection are implemented by the T007 release workflow.
 ## Projected workflow evidence (Sprint 061 T006)
 
 Pages 2–4 consume `PublicCatalogIndex` and the allowlisted projection instead
-of `DashboardQueryService`, Parquet tables or scanner summaries.
+of `DashboardQueryService`, runtime Parquet reads or scanner summaries. The
+build-time publisher may read persisted Parquet analytics, but the serving
+application receives only JSON-safe projected rows.
 
 - Market Data shows one persisted DatasetRef, timeframe and research range
   exactly as referenced by the latest projected run. It does not open or chart
   private OHLCV storage.
-- Signal Research shows one projected Signal run when the release contains
-  one. An absent run is explicit; Predictive or Strategy evidence is never
-  substituted for it.
+- Signal Research publishes all three persisted historical runs through the
+  explicit `signal_research_evidence` role. The page restores summary,
+  grouped, distribution, conditional-comparison, histogram, warning and join
+  diagnostics tables plus the two persisted-fact charts.
 - Strategy Research shows one selected projected run plus the existing
   `strategy_research_run_summary` fields when that role is available. It does
   not run the backtester or derive rankings/verdicts.
-- Robustness Research follows the same representative-run rule. The legacy
-  `demo-robustness` material is explicitly excluded from portfolio evidence.
+- Robustness Research exposes the historical `demo-robustness-nq-half-year`
+  experiment through an explicit `robustness_research_evidence` role, labelled
+  `DEMO · LEGACY`. It restores the persisted verdict, walk-forward, parameter
+  sweep, stress and Monte Carlo views. Its large equity series is projected as
+  a deterministic ordered 1,200-point presentation sample retaining both
+  endpoints. The role is not a catalog entry, so it remains excluded from
+  Strategy Research/catalog grouping.
 
-`views.workflow_evidence` owns the small pure selectors and deterministic
-role-to-artifact lookup. The committed release currently has Strategy evidence
-and a DatasetRef but no safely projected Signal or Robustness run; those pages
-therefore render honest unavailable states.
+`views.workflow_evidence` owns the catalog selectors, while
+`views.projected_research` reconstructs read-only Arrow tables from the
+allowlisted JSON rows. Missing projected roles still render explicit unavailable
+states; the UI never substitutes another workflow's evidence.
 
 ## Contracts
 

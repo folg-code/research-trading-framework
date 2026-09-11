@@ -24,6 +24,7 @@ from dashboard_app.publication.generator import (
     build_projection_bundle,
     extend_projection_bundle,
     refresh_catalog_projection_bundle,
+    refresh_publication_projection_bundle,
 )
 from dashboard_app.publication.projection import (
     PUBLIC_PROJECTION_SCHEMA_VERSION,
@@ -191,6 +192,33 @@ def test_catalog_refresh_rejects_collision_with_curated_role() -> None:
         refresh_catalog_projection_bundle(
             base,
             [raw],
+            generated_at_utc=datetime(2026, 9, 10, tzinfo=UTC),
+        )
+
+
+def test_publication_refresh_cannot_replace_curated_same_role_artifact() -> None:
+    curated = ProjectedArtifact(
+        artifact_id="curated-verdict",
+        artifact_role="predictive_run_verdict",
+        fields={"verdict": "INCONCLUSIVE"},
+    )
+    base = PublicProjectionBundle(
+        schema_version=PUBLIC_PROJECTION_SCHEMA_VERSION,
+        generator_version="test",
+        generated_at_utc=datetime(2026, 9, 9, tzinfo=UTC),
+        artifacts={curated.artifact_id: curated},
+    )
+
+    with pytest.raises(DuplicateArtifactIdError):
+        refresh_publication_projection_bundle(
+            base,
+            [
+                RawArtifactInput(
+                    artifact_id=curated.artifact_id,
+                    artifact_role=curated.artifact_role,
+                    raw_payload={"verdict": "PASS"},
+                )
+            ],
             generated_at_utc=datetime(2026, 9, 10, tzinfo=UTC),
         )
 
