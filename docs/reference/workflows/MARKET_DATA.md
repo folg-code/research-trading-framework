@@ -3,7 +3,7 @@
 > Extracted from the former `docs/reference/modules/DATA_MODULE.md`'s
 > workflow-shaped sections by Sprint 055 T007, per the maintainer-approved
 > reversal of Sprint 054 T007's rejection in
-> `docs/planning/sprints/SPRINT_055_T004_DECISIONS.md` §1: after Sprint 054's
+> `docs/archive/phases/cross-cutting/SPRINT_055_T004_DECISIONS.md` §1: after Sprint 054's
 > `DATA_MODULE_CLASSIFICATION.md` follow-up stripped `DATA_MODULE.md`'s
 > future-tier content, what remained was one end-to-end pipeline (acquire →
 > import → normalize → validate → finalize → publish → query), not a
@@ -83,6 +83,19 @@ The Binance **live** adapter (`futures_rest.fetch_closed_klines`,
 `futures_websocket.py`) is a separate, unrelated path: it feeds the Sprint
 019/020 live dry-run runtime directly, not the dataset registry, and the
 historical import path does not modify or wrap it (ADR-0025).
+
+### Delivered bulk-path optimizations
+
+The Databento outright-contract path uses NumPy-backed `ContractChunkColumns`
+through chunk mapping, partition selection and Arrow table construction,
+avoiding the original per-column Python-list copies (Sprint 027, TD-019).
+Continuous-futures materialization parallelizes session work with
+`session_workers` and uses the optimized Parquet writer; its published
+continuous `price` column **still has string storage**, while contract-trade
+storage uses `price_nanos: int64` (TD-020, ADR-0018). These are distinct
+schemas and must not be silently unified. The accepted
+[representation policy](../system/DATA_REPRESENTATION_POLICY.md) distinguishes
+this current state from its fixed-point target.
 
 ---
 

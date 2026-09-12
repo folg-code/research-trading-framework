@@ -1,82 +1,33 @@
 # Documentation
 
-**Start here.** Single index — folder READMEs are catalogs only.
+Start here to understand the framework from product intent through system architecture, module ownership and implementation details. The same route serves a new developer and an agent; open deeper pages only for the topic at hand.
 
-For a **role-based entry point** (recruiter, data engineer, software engineer, new developer), see the table at the top of the repository **[README.md](../README.md#start-here--pick-your-path)**.
+## Learn the system
 
----
+1. [System Overview](reference/system/SYSTEM_OVERVIEW.md) — what the system does and how the major parts interact.
+2. [Module Map](reference/system/MODULE_MAP.md) — which package owns each responsibility.
+3. [Dependency Rules](reference/system/DEPENDENCY_RULES.md) — allowed directions and test-enforced boundaries.
+4. [Module guides](reference/modules/README.md) — package entry points and detailed contracts.
+5. [Workflows](reference/workflows/README.md) — end-to-end data, research and execution paths.
 
-## Folder Layout
+## Work on a change
 
-```text
-docs/
-├── README.md                 ← you are here
-├── onboarding/
-│   └── DEVELOPER_GUIDE.md    setup: install, quality checks, repo layout
-├── vision/                   assumptions, target architecture, binding decisions
-├── reference/                as-implemented: module map, flows, module docs
-│   └── modules/
-├── planning/                 roadmap, status, sprints
-├── adr/                      decision records (why)
-├── agents/                   AI agent module notes
-└── historical/               completed audits, closed investigations
-```
+Read [Current Status](planning/CURRENT_STATUS.md) and the active task, then open the affected module guide, workflow and ADR. Verify the concrete contracts in `src/` and `tests/`. For future capabilities, start at [Vision](vision/README.md) and [Roadmap](planning/ROADMAP.md) instead of inferring implementation from proposals.
 
----
+## Documentation layers
 
-## Two Layers (important)
+| Layer | Purpose | What it can prove |
+|---|---|---|
+| [Reference](reference/README.md) | Current system, modules, workflows, runbooks and examples | What is implemented, subject to code and tests |
+| [Vision](vision/README.md) | Future product and architecture directions | Intent, not implementation |
+| [Planning](planning/README.md) | Current status, active work, roadmap and open registries | What is planned or in progress |
+| [Product](product/) | PRDs and product requirements | Accepted requirement context |
+| [ADRs](adr/README.md) | Durable decisions and their rationale | Why a decision was made |
+| [Archive](archive/README.md) | Completed sprints, audits and superseded material | Historical evidence at the recorded time |
+| [Onboarding](onboarding/DEVELOPER_GUIDE.md) | Setup and development checks | How to work locally |
 
-| Layer | Folder | Answers | Trust for “is it built?” |
-|-------|--------|---------|--------------------------|
-| **Vision** | [vision/](vision/README.md) | What we assume, target design, binding decisions | No — may include future work |
-| **Reference** | [reference/](reference/README.md) | What exists in code, how data moves | **Yes** — with tests |
+`reference/` is organized by system view, capability-oriented module guides, workflows and operational runbooks. It follows source-code ownership without mirroring every source directory. Long historical records remain in the archive and are not part of the normal reading path.
 
-Planning ([planning/](planning/README.md)) defines **what we intend to build next**.  
-ADRs ([adr/](adr/README.md)) freeze **why** durable choices were made.
+## Maintenance
 
-Maintenance: `.cursor/rules/documentation.mdc`
-
----
-
-## Reading Paths
-
-| Role | Path |
-|------|------|
-| **Recruiter / hiring manager** | [README § In 60 seconds](../README.md#in-60-seconds) → [Scale & performance](../README.md#scale--performance-reference-run) → [Portfolio demo](../README.md#portfolio-demo-try-it-in-the-browser) |
-| **Data engineer** | [README § For data engineers](../README.md#for-data-engineers) → [MARKET_DATA.md](reference/workflows/MARKET_DATA.md) |
-| **Software engineer** | [README § For software engineers](../README.md#for-software-engineers) → [MODULE_MAP.md](reference/system/MODULE_MAP.md) → [adr/](adr/README.md) |
-| **New developer** | [Developer Guide](onboarding/DEVELOPER_GUIDE.md) → [MARKET_DATA.md](reference/workflows/MARKET_DATA.md) → [MODULE_MAP.md](reference/system/MODULE_MAP.md) |
-
-### Implementing a change
-
-1. [Current Status](planning/CURRENT_STATUS.md)
-2. [Module Map](reference/system/MODULE_MAP.md) — affected packages
-3. [Market Data workflow](reference/workflows/MARKET_DATA.md) — if data paths change
-4. [Vision](vision/README.md) — binding decisions for the domain
-5. `src/` and `tests/`
-
-### AI agent
-
-`AGENTS.md` at repository root.
-
----
-
-## Reference Trio (update per wave)
-
-| Doc | Owns |
-|-----|------|
-| [MODULE_MAP.md](reference/system/MODULE_MAP.md) | Packages and status |
-| [MARKET_DATA.md](reference/workflows/MARKET_DATA.md) | Data paths and diagrams |
-| [RESEARCH_METHODOLOGIES.md](reference/workflows/RESEARCH_METHODOLOGIES.md) | Research workflows — Signal, Model Research, Strategy, Robustness, Predictive |
-| [MARKET_ANALYSIS_MODULE.md](reference/modules/MARKET_ANALYSIS_MODULE.md) | MA entry points (thin) |
-| [MODEL_AUTHORING.md](reference/modules/MODEL_AUTHORING.md) | Authoring DSL copy-paste example |
-
----
-
-## Legend
-
-| Symbol | Meaning |
-|--------|---------|
-| ✅ | Implemented with tests |
-| 🟡 | Partial |
-| ⬜ | Skeleton |
+Each fact should have one current owner. Update the relevant module/workflow page and [Module Map](reference/system/MODULE_MAP.md) when paths or responsibilities change; update [System Overview](reference/system/SYSTEM_OVERVIEW.md) when the system-level story changes. Move a delivered future capability from Vision into Reference after verifying its current contract. Keep decision rationale in ADRs and completed task evidence in the Archive.

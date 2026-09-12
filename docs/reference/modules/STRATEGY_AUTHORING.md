@@ -7,7 +7,7 @@
 >
 > Trimmed by Sprint 055 T007 to §1-3/§6-8 plus the Sprint 048 Exit/Risk
 > semantics block, per
-> `docs/planning/sprints/SPRINT_055_T004_DECISIONS.md` §1. The former §4
+> `docs/archive/phases/cross-cutting/SPRINT_055_T004_DECISIONS.md` §1. The former §4
 > (per-component semantics — not specific to strategy authoring) moved to
 > [`ANALYSIS_COMPONENT_CATALOG.md`](ANALYSIS_COMPONENT_CATALOG.md); the
 > former §5 (worked examples) moved to
@@ -194,14 +194,14 @@ an oversight.
 - [`STRATEGY_EXAMPLES.md`](STRATEGY_EXAMPLES.md) — the worked examples
   (formerly this file's §5).
 - `apps/cli/CLAUDE.md` — module context for anyone editing `apps/cli`.
-- `docs/planning/sprints/SPRINT_048.md`, `S048_WAVE0_DECISIONS.md` — the
+- `docs/archive/phases/phase-13-exit-and-risk/SPRINT_048.md`, `S048_WAVE0_DECISIONS.md` — the
   sprint that shipped the three worked examples in `STRATEGY_EXAMPLES.md`'s
   second block.
-- `docs/planning/sprints/SPRINT_051.md`, `S051_WAVE0_DECISIONS.md` — the
+- `docs/archive/phases/phase-15-predictive-catalog/SPRINT_051.md`, `S051_WAVE0_DECISIONS.md` — the
   sprint that shipped the momentum/regime catalog in
   `ANALYSIS_COMPONENT_CATALOG.md`'s third block and the worked example in
   `STRATEGY_EXAMPLES.md`'s third block; §13 Review records the two warm-up
   text corrections referenced above.
-- `docs/planning/sprints/SPRINT_047.md`, `S047_WAVE0_DECISIONS.md` — sprint
+- `docs/archive/phases/phase-12-strategy-authoring/SPRINT_047.md`, `S047_WAVE0_DECISIONS.md` — sprint
   scope and binding decisions.
 - `docs/planning/TECHNICAL_DEBT.md` TD-025 — the boundary test's blind spot.

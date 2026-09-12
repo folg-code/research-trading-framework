@@ -4,7 +4,7 @@ title: Future Direction
 status: FUTURE_IDEAS
 updated: 2026-09-10
 order: 12
-links: docs/vision/RESEARCH_APPLICATION_PRODUCT_VISION.md, docs/planning/sprints/SPRINT_061.md
+links: docs/vision/RESEARCH_APPLICATION_PRODUCT_VISION.md, docs/archive/phases/phase-16-research-workbench/SPRINT_061.md
 ---
 
 This section separates proposed product directions from capabilities that are

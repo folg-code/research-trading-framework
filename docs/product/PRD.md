@@ -136,5 +136,5 @@ command group needs to wrap before committing to the wrapper-only approach.
 Architect: design the Binance ingestion (dataset registry integration, REST
 pagination/backoff, mode-selector shape) and the CLI (command structure, YAML
 schema, `apps/cli` vs. `scripts/` placement, credential handling) as a Wave 0
-decision set before implementation starts, per `docs/planning/PROJECT_MANAGEMENT.md`
+decision set before implementation starts, per `docs/archive/planning/PROJECT_MANAGEMENT.md`
 conventions this project already follows.

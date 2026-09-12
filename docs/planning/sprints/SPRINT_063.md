@@ -14,7 +14,7 @@ Sources:
 - `docs/planning/PROBLEM_REGISTRY.md` (`PRB-020`)
 - `apps/cli/examples/research_run_strategy*.yaml`
 - `scripts/strategy_research/run_strategy_research.py`
-- `docs/planning/sprints/SPRINT_061.md`
+- `docs/archive/phases/phase-16-research-workbench/SPRINT_061.md`
 
 Architecture triage: none if the sprint uses an explicit reviewed experiment
 matrix and existing Strategy Research contracts. If implementation requires a

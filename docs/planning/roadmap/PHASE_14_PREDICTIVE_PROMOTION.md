@@ -8,7 +8,7 @@ Full detail for `ROADMAP.md` §13F — this is the LIVE, canonically-updated loc
 phase; `ROADMAP.md` carries only a short pointer stub under the same section number.
 
 **This file is expected to keep changing** as the phase progresses (Wave 0 decisions, sprint
-openings, status flips). Unlike `docs/planning/ROADMAP_COMPLETED_PHASES.md` — which is
+openings, status flips). Unlike `docs/archive/planning/ROADMAP_COMPLETED_PHASES.md` — which is
 frozen history — edits to this phase's detail happen **HERE**, not by re-inflating the
 `ROADMAP.md` stub.
 
@@ -27,7 +27,7 @@ condition 4's offline half (Path A) built and passing at its locked bars
 (measured maximum `y_proba` deviation: `0.0`). **Sprint 050 (increment 14B)
 is NOT planned yet.** Phase 14 as a whole is **NOT complete** — 14A ships no
 Market Analysis component, no State, no executor change, and no dry-run
-session; see `docs/planning/sprints/SPRINT_049.md` §13 Review.
+session; see `docs/archive/phases/phase-14-predictive-promotion/SPRINT_049.md` §13 Review.
 **Product source:** `docs/product/PRD-ml-signal-promotion.md` — the maintainer's
 discovery record; authoritative on scope, format, fold selection and the parity
 bar.
@@ -37,7 +37,7 @@ and the narrow ADR-0023 §7 amendment) — **ACCEPTED 2026-09-02**. ADR-0030
 (inference-time availability enforcement) — the S049-T001 finding concluded
 the mechanism ADR-0024 condition 2 presupposes does not exist in the executor
 today; ADR-0030 is needed and sizes Sprint 050.
-**Gate:** `docs/planning/sprints/S044_GATE.md` — entry criteria and the parity
+**Gate:** `docs/archive/phases/phase-10-predictive-research/S044_GATE.md` — entry criteria and the parity
 test design sketch (§4).
 
 ## Purpose
@@ -230,9 +230,9 @@ Phase 13's Exit/Risk work (ADR-0028) is CONSUMED, never modified
   pooled but loses one of six folds, and the tree pass loses two of six
   folds with a pronounced train/test overfit gap — but that does not
   reopen this dependency, since the BINARY pass alone already satisfies
-  it. Full detail: `docs/reference/BTC_PREDICTIVE_STUDY.md`;
-  `docs/planning/sprints/SPRINT_052.md` (S052-T004/T005/T008 outcome
-  notes); `docs/planning/sprints/S052_WAVE0_DECISIONS.md` D-S052-09.
+  it. Full detail: `docs/reference/examples/BTC_PREDICTIVE_STUDY.md`;
+  `docs/archive/phases/phase-15-predictive-catalog/SPRINT_052.md` (S052-T004/T005/T008 outcome
+  notes); `docs/archive/phases/phase-15-predictive-catalog/S052_WAVE0_DECISIONS.md` D-S052-09.
 - **a named downstream robustness plan** (S044_GATE §1.5) — **does not exist**;
   same status: prerequisite outside Sprint 049, gates 14B,
 - **ADR-0030** (inference-time availability enforcement) — needed per

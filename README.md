@@ -10,6 +10,9 @@ research platform can be designed, tested and inspected responsibly. It does not
 sell strategies, publish proprietary strategy logic or make live-performance
 claims.
 
+To understand the implementation from architecture to modules, follow the
+[documentation reading path](docs/README.md#learn-the-system).
+
 Public dashboard:
 
 **https://dashboard.filipf.online**
@@ -27,16 +30,15 @@ Public dashboard:
 | Product surface | Public read-only dashboard over persisted research artifacts and live paper-runtime state |
 | Responsible framing | PnL and ROI are treated as simulation diagnostics under explicit assumptions, not as investment promises |
 
-The core idea is simple:
+The core capabilities share upstream contracts but remain independent:
 
 ```text
-market data
-  -> reusable market components
-  -> market and signal models
-  -> strategy simulation
-  -> robustness analysis
-  -> predictive ML research
-  -> dashboards and frozen reports
+market data -> reusable market components -> market and signal models
+                                              |-> Signal Research
+                                              |-> Strategy Research -> robustness
+                                              |-> Strategy Execution
+                                              |-> Predictive Research
+persisted research evidence / runtime read models -> dashboard and reports
 ```
 
 ---

@@ -8,7 +8,7 @@ Full detail for `ROADMAP.md` §8 — this is the LIVE, canonically-updated locat
 phase; `ROADMAP.md` carries only a short pointer stub under the same section number.
 
 **This file is expected to keep changing** as the phase progresses (Wave 0 decisions, sprint
-openings, status flips). Unlike `docs/planning/ROADMAP_COMPLETED_PHASES.md` — which is
+openings, status flips). Unlike `docs/archive/planning/ROADMAP_COMPLETED_PHASES.md` — which is
 frozen history — edits to this phase's detail happen **HERE**, not by re-inflating the
 `ROADMAP.md` stub.
 
@@ -47,7 +47,7 @@ Sprints 004–006 delivered Phase 4A. Sprints 007–010 belong to other phases (
 | 006 | Declarative models | DONE — `SPRINT_006.md` |
 | 007 | Research-enabling catalog (conditional) | SKIPPED — scope gate — `SPRINT_007.md` |
 
-**Direction (binding for 004–006):** `docs/planning/sprints/PHASE_4_5_SPRINT_DIRECTION.md`
+**Direction (binding for 004–006):** `docs/archive/phases/phase-04-market-analysis-and-models/PHASE_4_5_SPRINT_DIRECTION.md`
 
 ### Delivered capabilities
 

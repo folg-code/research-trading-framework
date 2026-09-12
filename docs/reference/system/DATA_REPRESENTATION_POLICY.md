@@ -1,9 +1,14 @@
 # Data Representation Policy
 
+This is an **accepted target policy**, not a claim that every carrier below is
+implemented. Read the [current implementation status](#current-implementation-status-reviewed-2026-09-12)
+before choosing an API or storage schema. In particular, ADR-MA-014 authorizes
+`MarketFrame`; it explicitly does not ship that class.
+
 > Extracted from the original `docs/reference/system/DATA_REPRESENTATION_AUDIT.md`
 > (former §4 "Target Representation Policy", §5.2 "Target primitives", §5.3
 > "Null semantics") by Sprint 055 T007, per
-> [`docs/planning/sprints/SPRINT_055_T004_DECISIONS.md`](../../planning/sprints/SPRINT_055_T004_DECISIONS.md)
+> [`docs/archive/phases/cross-cutting/SPRINT_055_T004_DECISIONS.md`](../../archive/phases/cross-cutting/SPRINT_055_T004_DECISIONS.md)
 > §1. This is the durable, binding half of that document — the canonical
 > carrier per kind of work, the directional rules and the target primitive
 > table constrain every module and do not decay with a code baseline.
@@ -13,7 +18,7 @@
 > register / refactoring-plan PR board (D-REP-01..10, Stage 0-6) are a
 > Sprint 036 planning artifact, not as-implemented reference — they now live
 > at
-> [`docs/planning/sprints/SPRINT_036_DATA_REPRESENTATION_AUDIT.md`](../../planning/sprints/SPRINT_036_DATA_REPRESENTATION_AUDIT.md),
+> [`docs/archive/phases/cross-cutting/SPRINT_036_DATA_REPRESENTATION_AUDIT.md`](../../archive/phases/cross-cutting/SPRINT_036_DATA_REPRESENTATION_AUDIT.md),
 > which this file cites as its evidence record. Where a rule below references
 > a `D-REP-##` decision, its status/history is recorded there.
 
@@ -28,7 +33,7 @@ oscillating between kinds?**
 
 ---
 
-## 1. Canonical carrier per kind of work
+## 1. Target carrier per kind of work
 
 | Kind of work | Canonical type | Rationale |
 |---|---|---|
@@ -45,6 +50,18 @@ oscillating between kinds?**
 | Configuration | frozen dataclass + explicit parsers | one mechanism for TOML and env |
 | Metadata and manifests | frozen dataclass ⇄ JSON via `to_dict`/`from_dict` | already consistent; `Decimal` as `str` |
 | Presentation DTOs | frozen dataclass with `float`/`str` | deliberate decoupling, already the case in `apps/` |
+
+## Current implementation status (reviewed 2026-09-12)
+
+| Topic | What exists now | Target still open |
+|---|---|---|
+| Bulk Market Analysis | `AnalysisDataView` and NumPy component adapters; Polars is used for resampling and alignment | No `MarketFrame` class or end-to-end lazy bulk component path has shipped ([ADR-MA-014](../../adr/ADR-MA-014-marketframe-polars-committed-bulk-engine.md), [TD-015](../../planning/registries/td-013-016.md#td-015)) |
+| Historical reads | `query_historical` returns `list[MarketBar]`; `query_historical_columnar` supplies a separate columnar read path | Object-returning callers have not all migrated ([TD-011](../../planning/registries/td-009-012.md#td-011)) |
+| Stored prices | Contract-trade storage has `price_nanos: int64`; canonical bars and continuous-trade Parquet still store `price` as a string | A universal fixed-point price schema is not implemented; changing existing published schemas needs its own compatibility decision ([ADR-0018](../../adr/ADR-0018-continuous-futures-materialization.md)) |
+
+The target table and rules below guide new design. They must not be cited as
+evidence that a current repository, component or persisted dataset already
+uses that target representation.
 
 ## 2. Directional rules
 
@@ -100,4 +117,4 @@ produces or consumes `OutputSeries`.
 For the measurement evidence behind these rules (representation map,
 transformation map, hot-path benchmarks) and the decision register that
 accepted them, see
-[`docs/planning/sprints/SPRINT_036_DATA_REPRESENTATION_AUDIT.md`](../../planning/sprints/SPRINT_036_DATA_REPRESENTATION_AUDIT.md).
+[`docs/archive/phases/cross-cutting/SPRINT_036_DATA_REPRESENTATION_AUDIT.md`](../../archive/phases/cross-cutting/SPRINT_036_DATA_REPRESENTATION_AUDIT.md).

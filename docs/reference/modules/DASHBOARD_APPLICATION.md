@@ -1,9 +1,4 @@
-# Research Dashboard Application (Sprint 028)
-
-> Moved from `docs/reference/DASHBOARD_APPLICATION.md` to
-> `docs/reference/modules/DASHBOARD_APPLICATION.md` by Sprint 054 T008
-> (`docs/reference` system/workflows/runbooks/modules split). Content
-> unchanged.
+# Dashboard Application — As-Built Reference
 
 Read-only Streamlit consumer of a versioned, immutable public projection.
 
@@ -25,10 +20,10 @@ PRB-022) — a page file is checked exactly like a `src/` module.
 ## Public portfolio publication boundary (ADR-0034 / ADR-0035)
 
 A strict publication boundary defines the public portfolio path:
-`Project_Overview.py`, pages 1–6, the Signal Quality pages 7–9, the
-version-controlled Architecture, Engineering, Future Direction and Notes
-pages 10–15, and the workflow publications on pages 16–21 added by Sprint
-061 T002–T004. See
+`Project_Overview.py` and the numbered pages under `apps/dashboard/pages/`.
+The current page filenames are the navigation source of truth; the public
+portfolio includes workflow context, selected evidence, Live Paper status and
+version-controlled editorial pages. See
 `docs/adr/ADR-0034-portfolio-publication-boundary.md` for the full decision
 record.
 
@@ -119,7 +114,7 @@ Schema version: `dashboard.presentation.v1`.
 
 ## Live Paper / Strategy Execution evidence (Sprints 031, 061)
 
-Page: `pages/5_Live_Paper_Trading.py` with helpers in `dashboard_app.views.live_paper`.
+Page: `pages/12_Live_Paper_Trading.py` with helpers in `dashboard_app.views.live_paper`.
 
 - Configure `DASHBOARD_STATUS_URL` (falls back to `DEFAULT_LIVE_PAPER_STATUS_URL`).
 - Shows the mandatory live-data/simulated-execution/no-real-orders banner,
@@ -132,7 +127,7 @@ Page: `pages/5_Live_Paper_Trading.py` with helpers in `dashboard_app.views.live_
 
 ## Predictive Research evidence (Sprints 044, 061)
 
-Page: `pages/6_Predictive_Research.py` resolves the representative run named by
+Page: `pages/10_Predictive_Research.py` resolves the representative run named by
 the Signal Quality study manifest. It renders one projected catalog identity,
 the allowlisted persisted fold/pooled ROC AUC comparison and the persisted
 analyst verdict.
@@ -180,7 +175,7 @@ The first real consumer of the ADR-0034 publication boundary. Extends
 `dashboard_app.publication.sanitizers` with three additive roles
 (`predictive_run_metrics`, `predictive_threshold_sensitivity`,
 `strategy_research_run_summary`), each a `frozenset` allowlist frozen by
-`docs/planning/sprints/SPRINT_060_T001_FIELD_INVENTORY.md`.
+`docs/archive/phases/phase-16-research-workbench/SPRINT_060_T001_FIELD_INVENTORY.md`.
 
 - `scripts/dashboard/generate_btc_signal_quality_projection.py` reads the
   real Phase 16A–16C artifacts and writes the sanitized
@@ -191,7 +186,7 @@ The first real consumer of the ADR-0034 publication boundary. Extends
   generated at deploy time (maintainer decision, Sprint 060 T003) — the
   dashboard renders this study without the private workspace mounted.
 - `dashboard_app.views.study.render_btc_signal_quality_study` (page
-  `pages/9_Signal_Quality_Study.py`) resolves the manifest against the
+  `pages/15_Signal_Quality_Study.py`) resolves the manifest against the
   bundle, renders the study content document
   (`apps/dashboard/content/btc-signal-quality-study.md`), the persisted
   verdict verbatim (`st.badge(..., color="gray")` — a fixed literal, never
@@ -201,12 +196,12 @@ The first real consumer of the ADR-0034 publication boundary. Extends
   warning, section by section — an absent optional artifact role degrades
   only its own chart, never the whole page.
 - `dashboard_app.views.portfolio_content` renders the workflow-context
-  (`pages/7_Signal_Quality_Workflow.py`) and methodology
-  (`pages/8_Signal_Quality_Methodology.py`) content documents and links the
+  (`pages/13_Signal_Quality_Workflow.py`) and methodology
+  (`pages/14_Signal_Quality_Methodology.py`) content documents and links the
   evidence path: overview → workflow context → methodology → study (three
   navigation actions), then `Explore Evidence` from the study into the
-  projection-backed `pages/6_Predictive_Research.py` and
-  `pages/3_Strategy_Research.py` (ADR-0034 §6) — linked, never duplicated.
+  projection-backed `pages/10_Predictive_Research.py` and
+  `pages/6_Strategy_Research.py` (ADR-0034 §6) — linked, never duplicated.
 - Contract tests (`apps/dashboard/tests/test_study_contract.py`, Sprint 060
   T005) assert traceability (every chart value equals a resolved artifact
   field verbatim, checked against both synthetic and the real committed

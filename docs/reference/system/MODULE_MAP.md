@@ -1,862 +1,96 @@
 # Module Map
 
-> Moved from `docs/reference/MODULE_MAP.md` to
-> `docs/reference/system/MODULE_MAP.md` by Sprint 054 T008 (`docs/reference`
-> system/workflows/runbooks/modules split). Content unchanged.
-
-This document maps the architectural modules and workflows described in `SYSTEM_OVERVIEW.md` to their implementation in the repository.
-
-Its purpose is to show:
-
-- which package owns a responsibility,
-- where workflow orchestration lives,
-- which domain contracts are involved,
-- which infrastructure adapters implement those contracts,
-- where tests and deeper documentation are located.
-
-It is a navigation layer between architecture and source code.
-
----
+This map answers **where a responsibility lives**. Read [System Overview](SYSTEM_OVERVIEW.md) for the big picture, then open one capability page below for package entry points. The [dependency rules](DEPENDENCY_RULES.md) state which directions are allowed and which are enforced by tests.
 
 ## 1. Repository Boundaries
 
-```text
-src/trading_framework/
-    reusable modular-monolith implementation (ADR-0001)
+| Root | Responsibility |
+|---|---|
+| `src/trading_framework/` | Reusable domain, application, and infrastructure code |
+| `apps/` | Separately deployable CLI and dashboard consumers (ADR-0022) |
+| `user_data/` | User-owned datasets, definitions, strategies, results, and runtime state |
+| `scripts/` | Thin invocations of application use cases |
+| `deploy/` | Deployment configuration |
+| `tests/` | Framework tests; apps may also have their own tests |
 
-apps/
-    deployable consumers outside the monolith (ADR-0022)
-    apps/dashboard/ — read-only Streamlit + DuckDB research dashboard (Sprint 028)
-    apps/cli/ — operator CLI, trading-cli, over application-layer workflows (Sprint 046 / ADR-0026)
-
-scripts/
-    thin CLIs over application use cases
-
-deploy/
-    containers / infra-as-code / local AWS runbook home
-    (app-specific Compose may stay under apps/<app>/deploy/)
-
-artifacts/artifacts/demo/
-    generated demo HTML (not docs/reference)
-
-scratch/
-    local-only logs and one-off probes (gitignored except README)
-
-tests/
-    framework test suite (apps may keep their own tests)
-
-docs/
-    vision, reference, planning, adr, agents, onboarding
-
-user_data/
-    user-owned datasets
-    component libraries
-    model definitions
-    strategies
-    research specifications
-    generated artifacts
-    runtime state
-```
-
-Core dependency rules:
-
-- `src/trading_framework/` never imports `user_data/` or `apps/`,
-- `apps/*` must not import research/execution engines or provider/importer adapters,
-- user-owned paths and configuration are passed at runtime,
-- users extend the framework through public contracts and the DSL,
-- infrastructure adapters implement framework ports,
-- domain packages do not depend on concrete infrastructure.
-
-See **ADR-0022** for the binding top-level layout.
-
----
+The framework never imports concrete `user_data` modules. The apps consume published application contracts and cannot import research or execution engines or provider adapters directly. See [ADR-0002](../../adr/ADR-0002-separate-src-and-user-data.md) and [ADR-0022](../../adr/ADR-0022-repository-top-level-layout.md).
 
 ## 2. Top-Level Package Map
 
-Framework packages under `src/trading_framework/`:
+| Package | Owns | Detail |
+|---|---|---|
+| `core/`, `time/`, `config/` | Shared identifiers, time contracts, configuration boundaries | [Shared foundations](../modules/SHARED_FOUNDATIONS.md) |
+| `market/` | Market facts, dataset identity and lifecycle, data-domain contracts | [Market Data](../modules/MARKET_DATA.md) |
+| `market_analysis/` | Components, dependency planning, computation and analytical outputs | [Market Analysis](../modules/MARKET_ANALYSIS.md) |
+| `model_expression/`, `model_authoring/`, `market_model/`, `signal_model/` | Declarative expressions, authoring, model definitions and evaluation | [Models and DSL](../modules/MODELS_AND_DSL.md) |
+| `strategy/` | Stateless strategy composition contracts | [Strategy](../modules/STRATEGY.md) |
+| `research/` | Research facts, simulation, analytics and persisted artifacts | [Research](../modules/RESEARCH.md) |
+| `execution/` | Runtime execution contracts, state and position management | [Execution](../modules/EXECUTION.md) |
+| `application/` | Use-case orchestration across domain contracts | [Applications](../modules/APPLICATIONS.md) |
+| `infrastructure/` | Provider, storage and delivery adapters implementing contracts | [Infrastructure](../modules/INFRASTRUCTURE.md) |
+| `events/` | Reserved stub; do not treat the future event system as implemented | [Future Event System](../../vision/EVENT_SYSTEM_FUTURE.md) |
+| `apps/cli/` | Operator CLI consumer | [Operator CLI](../modules/OPERATOR_CLI.md) |
+| `apps/dashboard/` | Read-only research and portfolio consumer | [Dashboard](../modules/DASHBOARD_APPLICATION.md) |
 
-```text
-application/          workflow orchestration
-market/               market-data domain contracts
-market_analysis/      analytical components, planning and execution
-model_expression/     internal declarative expression representation
-model_authoring/      user-facing DSL
-market_model/         Market Model definitions and evaluation
-signal_model/         Signal Model definitions and evaluation
-strategy/             strategy composition contracts
-research/             research facts, simulation, analytics and artifacts
-execution/            execution domain and runtime contracts
-infrastructure/       provider, storage and delivery adapters
-core/                 shared identifiers, types and errors
-time/                 timeframes, sessions and clock contracts
-config/               runtime configuration loading
-```
-
-Separate app package (not under `trading_framework`):
-
-```text
-apps/dashboard/src/dashboard_app/
-    catalog/ query/ views/ charts/ caching/ datasources/
-    publication/                     # Public projection + PortfolioStudyManifest (ADR-0034/0035)
-        catalog.py                   # Safe research_catalog_entry identities (Sprint 061 T005)
-        catalog_index.py             # Projection-only study -> experiment -> run catalog (Sprint 061 T006)
-        evidence.py                  # Build-time readers for allowlisted Signal/Robustness evidence
-        identity.py                  # Conservative projection-local identifier syntax
-        release.py                   # Validated immutable release + atomic CURRENT selection
-        workspace.py                 # Build-time-only workspace discovery; never a page dependency
-    content/                         # Version-controlled content loader + slug routing (ADR-0034, Sprint 059)
-    catalog/predictive_quality.py   # Predictive Research quality flags (Sprint 044)
-    views/predictive.py             # Predictive Research picker/leaderboard/detail view models
-    views/workflow_evidence.py      # Projection-only representative workflow evidence (Sprint 061 T006)
-    views/projected_research.py     # Signal/Robustness tables, verdicts and charts from projected facts
-    pages/6_Predictive_Research.py  # Predictive Research page
-    views/study.py                  # BTC Signal Quality study view + charts (Sprint 060 T003)
-    views/portfolio_content.py      # Version-controlled portfolio pages and direction entries (Sprints 060-061)
-    pages/7_Signal_Quality_Workflow.py     # Signal/Predictive workflow context (Sprint 060 T004)
-    pages/8_Signal_Quality_Methodology.py  # Signal Quality methodology (Sprint 060 T004)
-    pages/9_Signal_Quality_Study.py        # Asset-neutral public title; BTCUSDT.P evidence (Sprint 060-061)
-    pages/10_Architecture.py               # Stable public architecture narrative (Sprint 061 T002-T004)
-    pages/11_Engineering.py                # Cross-cutting engineering evidence (Sprint 061 T002-T004)
-    pages/12_Future_Direction.py           # Future Ideas index (Sprint 061 T003-T004)
-    pages/13_AI_Research_Infrastructure.py # AI Research Infrastructure Future Idea (Sprint 061 T003)
-    pages/14_Research_Application.py       # Research Application Future Idea (Sprint 061 T003)
-    pages/15_Research_and_Engineering_Notes.py # Selected evidence/decision notes (Sprint 061 T004)
-    pages/16_Market_Data_Workflow.py       # Market Data architecture/methodology before evidence (Sprint 061)
-    pages/17_Signal_Research_Workflow.py   # Signal Research publication before evidence (Sprint 061)
-    pages/18_Strategy_Research_Workflow.py # Strategy composition/methodology before evidence (Sprint 061)
-    pages/19_Robustness_Research_Workflow.py # Robustness publication before evidence (Sprint 061)
-    pages/20_Predictive_Research_Workflow.py # Predictive publication before evidence (Sprint 061)
-    pages/21_Strategy_Execution_Workflow.py # DRY_RUN architecture before status evidence (Sprint 061)
-
-`pages/1_Research_Catalog.py` now consumes `publication/catalog_index.py`
-exclusively. Its public hierarchy is manifest-first with a deterministic
-workflow/DatasetRef fallback and contains no `storage_path`; pages 1–4 and 6
-use the public projection; Live Paper uses a bounded allowlist over its
-read-only HTTP status source. No public page 1–6 reads the workspace. Signal
-and Robustness evidence is copied by the build-time generator into dedicated,
-deny-by-default artifact roles and rendered without runtime recomputation.
-
-Catalog presentation resolves research time ranges from Predictive Dataset
-manifests or the immutable metadata behind `source_dataset_ref`. Strategy runs
-with a parent `experiment_id` are Robustness child computations, not top-level
-Strategy catalog entries.
-
-scripts/dashboard/
-    generate_btc_signal_quality_projection.py  # Build-time public-projection generator (Sprint 060 T003);
-                                                # output is committed to apps/dashboard/publication_data/
-    generate_public_projection.py              # Safe catalog + Signal/Robustness evidence projection
-    deploy_public_dashboard.sh                 # One-shot build-time projection, selection and Compose deploy
-
-apps/cli/src/trading_cli/
-    cli.py              # argparse subparser tree + dispatch
-    config.py            # YAML config loader + strict validation (D-S046-07/08)
-    plan.py               # ResolvedPlan model, --dry-run / --json rendering
-    errors.py              # exit-code taxonomy (0 / 1 / 2, D-S046-09)
-    commands/               # one module per command group: data.py, research.py,
-                             # dry_run.py, report.py
-    strategy_loader.py       # Sprint 047 / ADR-0027: research.strategy.strategy_file
-                              # -- import-by-path + build_strategy() convention, full
-                              # error taxonomy, no sys.path mutation
-```
-
----
+The capability pages group related packages; they are intentionally not a one-file-per-source-directory mirror.
 
 ## 3. Workflow-to-Module Map
 
-| Workflow | Application orchestration | Domain packages | Infrastructure | Main outputs |
-|---|---|---|---|---|
-| Market Data | `application/market_data/` | `market/` | `infrastructure/importers/`, `infrastructure/providers/`, `infrastructure/storage/`, `infrastructure/validation/` | Published datasets |
-| Market Analysis | `application/market_analysis/` | `market_analysis/` | Numerical adapters and storage bridges | Features and states |
-| Model Evaluation | `application/model_evaluation/` | `model_expression/`, `model_authoring/`, `market_model/`, `signal_model/` | — | Evaluated models |
-| Signal / Model Research | `application/signal_research/` | `research/`, `strategy/` | Research repositories and report adapters | Research artifacts |
-| Strategy Research | `application/strategy_research/` | `strategy/`, `research/simulation/`, `research/datasets/` | Result storage and reporting adapters | Trades, equity, manifests |
-| Robustness Research | `application/robustness_research/` | `research/robustness/` | Experiment storage and reporting adapters | Experiment artifacts |
-| Predictive Research | `application/predictive_research/` | `research/predictive/`, `research/datasets/predictive.py`, `research/datasets/predictive_run.py`, `research/reporting/predictive/` | `infrastructure/ml/`, `infrastructure/storage/paths.py` | Dataset envelope; run envelope; offline HTML report |
-| Live Execution | `application/execution/` | `execution/` | `infrastructure/providers/`, `infrastructure/storage/` | Runtime state |
-| Visualization | Application view-model builders | `research/analytics/`, reporting packages | HTML, API and dashboard adapters; `apps/dashboard` | Dashboards and reports |
-| Predictive Research dashboard | — (read-only public projection, no application orchestration import) | `apps/dashboard/src/dashboard_app/publication/`, `views/study.py`, `views/workflow_evidence.py` | Immutable sanitized bundle; no private workspace mount | One manifest-selected run, fold/pooled comparison and persisted verdict (`pages/6_Predictive_Research.py`) |
-| Operator CLI | `apps/cli/src/trading_cli/commands/` (`data.py`, `research.py`, `dry_run.py`, `report.py`) call `application/market_data/`, `application/predictive_research/`, `application/strategy_research/`, `application/execution/` directly | `apps/cli/src/trading_cli/config.py`, `plan.py`, `errors.py` (CLI-local config/plan/error models, not domain packages) | none of its own — delegates entirely to the application layer it wraps | `DatasetRef` (data fetch), dataset/run identifiers + offline HTML (research run, report render), dry-run runtime state |
+| Workflow | Orchestration | Main domain packages | Reference |
+|---|---|---|---|
+| Market Data import and publication | `application/`, `market/` | `market/`, `infrastructure/` | [Market Data](../workflows/MARKET_DATA.md) |
+| Signal Research | `application/signal_research/` | `market_analysis/`, `market_model/`, `signal_model/`, `research/` | [Signal Research](../workflows/SIGNAL_RESEARCH.md) |
+| Strategy Research | `application/strategy_research/` | `strategy/`, `research/`, `market_analysis/` | [Strategy Research](../workflows/STRATEGY_RESEARCH.md) |
+| Strategy Execution | `application/` runtime use cases | `strategy/`, `execution/`, `market/` | [Strategy Execution](../workflows/STRATEGY_EXECUTION.md) |
+| Predictive Research | `application/predictive_research/` | `research/predictive/`, Market Analysis inputs | [Research](../modules/RESEARCH.md) |
+| Presentation | published projection and app queries | `apps/dashboard/`, `apps/cli/` | [Applications](../modules/APPLICATIONS.md) |
 
----
+These are independent workflows with shared upstream contracts. See [Research Methodologies](../workflows/RESEARCH_METHODOLOGIES.md) to choose a research path.
 
 ## 4. Shared Foundations
 
-### `core/`
-
-**Responsibility**
-
-- shared identifiers,
-- base value types,
-- framework exceptions,
-- profiling primitives.
-
-**Used by**
-
-All domain and application modules.
-
-**Typical paths**
-
-```text
-core/
-├── identifiers/
-├── types/
-├── exceptions.py
-└── profiling.py
-```
-
----
-
-### `time/`
-
-**Responsibility**
-
-- UTC time representation,
-- timeframes,
-- trading sessions,
-- clock contracts,
-- temporal alignment primitives.
-
-**Used by**
-
-- `market/`,
-- `market_analysis/`,
-- `research/`,
-- `execution/`.
-
----
-
-### `config/`
-
-**Responsibility**
-
-- framework configuration loading,
-- runtime path configuration,
-- environment-driven settings.
-
-**Used by**
-
-Application entry points and runtime assembly.
-
----
+[Shared foundations](../modules/SHARED_FOUNDATIONS.md) maps `core/`, `time/` and `config/`. [Time and Alignment](TIME_AND_ALIGNMENT.md) defines the temporal contract.
 
 ## 5. Market Data Implementation Map
 
-### Responsibilities
-
-| Responsibility | Package |
-|---|---|
-| Market-data domain types | `market/models/` |
-| Instrument and dataset identity | `market/datasets/` |
-| Dataset lifecycle | `market/datasets/` |
-| Repository protocols | `market/repositories/` |
-| Import and publication workflows | `application/market_data/` |
-| Continuous trades materialize | `application/market_data/materialize_continuous_trades.py` (`session_workers`) |
-| Provider adapters | `infrastructure/providers/` |
-| Binance historical klines reader (paginated REST, rate-limit governor) | `infrastructure/providers/binance/futures_klines_history.py` |
-| Binance historical OHLCV import workflow (validate, write, publish) | `application/market_data/import_binance_futures_ohlcv.py` |
-| Binance historical OHLCV CLI (thin, ADR-0022) | `scripts/market_data/import_binance_ohlcv.py` |
-| File and archive importers | `infrastructure/importers/` (Databento: NumPy `ContractChunkColumns`) |
-| Normalization | `infrastructure/normalization/` |
-| Validation | `infrastructure/validation/` |
-| Dataset persistence | `infrastructure/storage/` |
-
-### Public workflow surface
-
-The Market Data application layer owns workflows for:
-
-- importing external data,
-- validating and normalizing records,
-- publishing datasets,
-- querying historical data,
-- deriving new datasets,
-- resolving stable dataset references.
-
-### Dependency direction
-
-```text
-application/market_data
-    → market
-    → infrastructure adapters
-
-infrastructure
-    → market repository and domain contracts
-```
-
-### Tests
-
-```text
-tests/unit/market/
-tests/unit/infrastructure/
-tests/unit/application/market_data/
-tests/integration/market_data/
-```
-
-### Deep references
-
-- `SYSTEM_OVERVIEW.md`
-- market-data module reference
-- storage ADRs
-
----
+[Market Data](../modules/MARKET_DATA.md) maps canonical facts, imports, dataset lifecycle, continuous futures and adapters. Its end-to-end paths are in the [Market Data workflow](../workflows/MARKET_DATA.md).
 
 ## 6. Market Analysis Implementation Map
 
-### Responsibilities
-
-| Responsibility | Package |
-|---|---|
-| Component contracts | `market_analysis/protocols/` |
-| Component identity | `market_analysis/identity/` |
-| Component requests and outputs | `market_analysis/models/` |
-| Component registry | `market_analysis/registry/` |
-| Dependency planning | `market_analysis/planning/` |
-| Batch execution | `market_analysis/execution/` |
-| Analysis input data | `market_analysis/data/` |
-| Results and workspace | `market_analysis/storage/` |
-| Built-in components | `market_analysis/components/` — for the full catalog of built-in components (per-component semantics, warm-up, output fields, zero-denominator conventions), see [`../modules/ANALYSIS_COMPONENT_CATALOG.md`](../modules/ANALYSIS_COMPONENT_CATALOG.md) |
-| Frame assembly and alignment | `market_analysis/assembly/` |
-| Workflow orchestration | `application/market_analysis/` |
-
-### Workflow mapping
-
-```text
-Published Dataset
-  → application/market_analysis
-  → market_analysis/data
-  → market_analysis/planning
-  → market_analysis/execution
-  → market_analysis/storage
-  → features and states
-```
-
-### Public workflow surface
-
-The Market Analysis application layer is responsible for:
-
-- loading published market data,
-- resolving component requests,
-- building an execution plan,
-- executing shared computations,
-- assembling model-facing analytical outputs.
-
-### Tests
-
-```text
-tests/unit/market_analysis/
-tests/unit/application/market_analysis/
-tests/integration/market_analysis/
-```
-
-### Deep references
-
-- `SYSTEM_OVERVIEW.md`
-- Market Analysis module reference
-- Market Analysis ADRs
-
----
+[Market Analysis](../modules/MARKET_ANALYSIS.md) maps the component engine. See the [implementation guide](../modules/MARKET_ANALYSIS_MODULE.md), [engine architecture](MARKET_ANALYSIS_ARCHITECTURE.md) and [component catalog](../modules/ANALYSIS_COMPONENT_CATALOG.md).
 
 ## 7. Declarative Model Implementation Map
 
-### Responsibilities
-
-| Responsibility | Package |
-|---|---|
-| Expression tree and references | `model_expression/` |
-| Expression validation | `model_expression/` |
-| Expression evaluation | `model_expression/evaluation/` |
-| User-facing typed DSL | `model_authoring/` (incl. `references/candle.py` -- `candle.upper_wick_ratio`/`lower_wick_ratio`/`body_ratio`, and `references/structure.py`'s `distance_to_session_high`/`distance_to_session_low` -- both Sprint 047 / ADR-0027; and, Sprint 051 / Phase 15A: `references/momentum.py` -- `momentum.rsi`/`macd_line`/`macd_signal`/`macd_histogram`/`stochastic_k`/`stochastic_d`, and `references/statistics.py` -- `statistics.return_autocorrelation`/`return_skew`/`return_excess_kurtosis` (the new `statistics.` namespace)) |
-| Market Model contracts | `market_model/` |
-| Signal Model contracts | `signal_model/` |
-| Shared model evaluation workflow | `application/model_evaluation/` |
-
-### Layer distinction
-
-```text
-model_authoring/
-    user-facing DSL
-
-model_expression/
-    internal representation
-
-market_model/ and signal_model/
-    model definitions and evaluation contracts
-```
-
-`model_authoring/` is the layer users interact with.
-
-`model_expression/` is the internal representation executed by the framework.
-
-### Workflow mapping
-
-```text
-User DSL
-  → model_authoring
-  → model_expression
-  → application/model_evaluation
-  → Market Model and Signal Model results
-```
-
-### Tests
-
-```text
-tests/unit/model_authoring/
-tests/unit/model_expression/
-tests/unit/market_model/
-tests/unit/signal_model/
-tests/unit/application/model_evaluation/
-```
-
-### Deep references
-
-- `SYSTEM_OVERVIEW.md`
-- [Model authoring DSL](../modules/MODEL_AUTHORING.md)
-- model evaluation ADRs
-
----
+[Models and DSL](../modules/MODELS_AND_DSL.md) maps expression, authoring, Market Model and Signal Model packages. [Model Authoring](../modules/MODEL_AUTHORING.md) gives a runnable example.
 
 ## 8. Research Implementation Map
 
-Research workflows share analytical and model-evaluation foundations, but remain independent application workflows.
-
-### Signal and Model Research
-
-| Responsibility | Package |
-|---|---|
-| Workflow orchestration | `application/signal_research/` |
-| Research definitions | `research/signal_research/` |
-| Observations | `research/observations/` |
-| Context facts | `research/context/` |
-| Forward outcomes | `research/outcomes/` |
-| Run artifacts | `research/datasets/` |
-| Analytics | `research/analytics/` |
-| Reporting | `research/reporting/signal_research/` |
-
-Workflow:
-
-```text
-Published Dataset
-  → model evaluation
-  → research facts
-  → persisted run
-  → read-only analytics
-  → report
-```
-
----
-
-### Strategy Research
-
-| Responsibility | Package |
-|---|---|
-| Workflow orchestration | `application/strategy_research/` |
-| Shared OHLCV + model-eval cache | `application/strategy_research/shared_evaluation.py` |
-| Strategy contracts | `strategy/` |
-| Simulation engine | `research/simulation/` (incl. `simulation/kernels/fixed_bars.py` -- the original `@njit` fixed-bars kernel, unchanged since Sprint 013, and `simulation/kernels/bracket.py` -- the Sprint 048 / ADR-0028 `@njit` bracket kernel dispatched for `PriceBracketExit` models, with its own result dataclass and per-trade-reason materializers; no reference/non-njit counterpart, see TD-028) |
-| Run artifacts | `research/datasets/` |
-| Analytics | `research/analytics/` |
-| Reporting | strategy reporting packages |
-
-Workflow:
-
-```text
-Market Model + Signal Model + Strategy Definition
-  → strategy research workflow
-  → (optional SharedStrategyEvaluationContext)
-  → simulation
-  → persisted trades and equity
-  → read-only analytics
-  → dashboard
-```
-
-Robustness parameter / walk-forward / stress cells that share market and signal definitions reuse
-`SharedStrategyEvaluationCache` so OHLCV load and `evaluate_models` run once per unique pair.
-
----
-
-### Robustness Research
-
-| Responsibility | Package |
-|---|---|
-| Workflow orchestration | `application/robustness_research/` |
-| Experiment contracts | `research/robustness/` |
-| Experiment analytics | `research/robustness/analytics/` |
-| Experiment reports | robustness reporting packages |
-
-Workflow:
-
-```text
-Research Definition
-  → experiment variants
-  → repeated strategy research runs
-  → persisted experiment artifacts
-  → aggregate analysis
-  → verdict and report
-```
-
----
-
-### Predictive Research
-
-Phase 10A: dataset foundation (Sprint 039), baseline estimators (Sprint 040),
-and offline HTML report (Sprint 041). Phase 10B (Sprint 042) adds tree families
-(XGBoost, LightGBM, CatBoost), bounded inner-fold selection, permutation
-importance, a single-study leaderboard, and three report panels. Phase 10C
-(Sprint 043) adds extra `dl` (CPU PyTorch): feedforward MLP, LSTM/GRU sequence
-families, fold-contained windows, and learning-curve / window-accounting
-panels. This workflow states a learning problem, persists a fingerprinted
-labelled matrix, trains declared estimators per fold, and reviews one run as
-standalone HTML. It does **not** emit signals or import `strategy/` /
-`signal_model/`. `research/predictive/` stays library-free (polars, numpy,
-framework contracts). Report figures live in `research/reporting/predictive/`
-(plotly; no sklearn). ML libraries live behind optional extras `ml` /
-`ml-trees` / `dl` and `infrastructure/ml/` adapters.
-
-| Responsibility | Package |
-|---|---|
-| Study spec, features, labels, matrix, splits | `research/predictive/` |
-| Estimator protocol, `EstimatorSpec`, `TaskType` | `research/predictive/estimators.py` |
-| Fold-local preprocessing spec | `research/predictive/preprocessing.py` |
-| Statistical + finance-aware metrics | `research/predictive/metrics.py` |
-| Bounded candidate selection (`CandidateSetSpec`) | `research/predictive/selection.py` |
-| Native + permutation importance, train/test gap | `research/predictive/importance.py` |
-| Single-study leaderboard | `research/predictive/leaderboard.py` |
-| Inner-training learning curves | `research/predictive/learning_curves.py` |
-| Sequence windows + dropped-window accounting | `research/predictive/windows.py` |
-| Dataset envelope, fingerprint, repository | `research/datasets/predictive.py` |
-| Run envelope, fingerprint, repository | `research/datasets/predictive_run.py` |
-| Workflow orchestration (build, run, analyze, render) | `application/predictive_research/` |
-| Read-only HTML report | `research/reporting/predictive/` |
-| Family registry + sklearn / tree / torch adapters | `infrastructure/ml/` (`registry.py`, `sklearn/`, `trees/xgboost/`, `trees/lightgbm/`, `trees/catboost/`, `torch/`) |
-| Thin CLIs | `scripts/predictive_research/` |
-| Storage paths | `infrastructure/storage/paths.py` |
-| Promoted-artifact manifest, fingerprint, content-addressed repository (Phase 14A, Sprint 049) | `research/datasets/promoted_artifact.py` |
-| Pure-NumPy promoted-artifact evaluator, parameter payload schema, load-time guard (Phase 14A) | `research/predictive/promotion/` |
-| Promoted-artifact blob read, extraction, promotion-time version guard (Phase 14A) | `infrastructure/ml/promotion.py` |
-| `promote_predictive_run` workflow (Phase 14A) | `application/predictive_research/promote_predictive_run.py` |
-| Operator surface (Phase 14A) | `trading-cli research promote` (`apps/cli/`), `scripts/predictive_research/promote_predictive_run.py` |
-
-Workflow:
-
-```text
-Published DatasetRef + PredictiveStudySpec (YAML/JSON)
-  → run_analysis (declared FeatureSpec columns only)
-  → labelled matrix (one row per complete evaluation bar)
-  → purged + embargoed walk-forward fold roles
-  → PredictiveDatasetEnvelope (manifest + fingerprint)
-  → EstimatorSpec (family + hyperparameters + seed)
-      or CandidateSetSpec (declared, capped; inner TRAIN split, TEST once)
-  → run_predictive_research (fit on TRAIN per fold, predict on TEST;
-      sequence families: application builds windows before fit / predict)
-  → PredictiveRunEnvelope (predictions, metrics, opaque blobs)
-  → analyze_predictive_run (writes metrics.json from predictions; never deserializes model blobs)
-  → render_predictive_research_report (offline HTML; optional importance/selection/leaderboard/learning_curves/window_accounting sidecars; never fits or loads model blobs)
-```
-
-Samples are **evaluation bars**, not `SignalOccurrence` rows. Labels reuse
-`compute_forward_outcomes_for_horizons` on a synthetic long-only occurrence
-table (one row per bar). `FeatureTransform.RANK` is rejected at matrix build
-(cross-sectional vs expanding rank is ambiguous; a global rank would leak).
-Supported transforms this slice: `NONE`, `LOG`, `DIFF`, `PCT_CHANGE`.
-
-The dataset fingerprint hashes study spec (`definition_hash`) + `OutputRef`
-lineage + `DatasetRef` + time range. It never hashes materialized frame bytes.
-`dataset_id` is the first 16 hex characters of that fingerprint.
-
-Persisted fold roles: `TRAIN` / `TEST` / `PURGED` / `EMBARGOED`. Purged and
-embargoed rows are retained with a role label, not deleted. Preprocessing
-(`IMPUTE_MEDIAN`, `STANDARDIZE`) is fitted inside each fold on `TRAIN` rows
-only; `PURGED` and `EMBARGOED` never reach `fit()`.
-
-Estimator families this slice (registry ids): extra `ml` — `sklearn.ridge`,
-`sklearn.elastic_net`, `sklearn.logistic` (binary). Extra `ml-trees` —
-`xgboost.regressor`, `xgboost.classifier` (binary), `lightgbm.regressor`,
-`lightgbm.classifier` (binary), `catboost.regressor`, `catboost.classifier`
-(binary). Extra `dl` — `torch.feedforward.regressor`,
-`torch.feedforward.classifier` (binary), `torch.lstm.regressor`,
-`torch.lstm.classifier` (binary), `torch.gru.regressor`,
-`torch.gru.classifier` (binary). Unknown family ids raise
-`PredictiveSpecError`. Missing extra raises `PredictiveExtraError` naming the
-extra. Tree families also need extra `ml` for fold-local preprocessing.
-Neural families do **not** require extra `ml`; sequence families consume
-rank-3 windows built by application. Reference baselines (`CONSTANT_MEAN`,
-`MAJORITY_CLASS`, `RANDOM_PERMUTATION`)
-are metric-layer comparisons, not registry families. Metrics are reported per
-fold and pooled.
-
-Optional extras:
-`ml = ["scikit-learn>=1.6,<2.0"]`,
-`ml-trees = ["xgboost-cpu>=2.1,<4.0", "lightgbm>=4.5,<5.0", "catboost>=1.2,<2.0"]`,
-and `dl = ["torch>=2.6,<2.10"]` (CPU index).
-Not in the default `dev` group. Dedicated CI jobs `ml`, `ml_trees`, and `dl`.
-Standard unit CI stays extra-free (`uv sync --locked --dev`,
-`-m "not ml and not ml_trees and not torch"`).
-
-Storage:
-
-```text
-<workspace>/research/predictive_research/datasets/{dataset_id}/
-  manifest.json
-  features.parquet
-  folds.json
-<workspace>/research/predictive_research/runs/{run_id}/
-  manifest.json
-  predictions.parquet
-  metrics.json
-  report.html            # offline Plotly; first figure embeds JS inline
-  selection.json         # candidate scores per fold; absent on single-estimator runs
-  importance.json        # native + permutation importance and train/test gap
-  leaderboard.json       # optional; single-study comparison of run dirs
-  learning_curves.json   # optional; inner-train / inner-val loss per fold
-  window_accounting.json # optional; dropped windows and effective sample
-  models/fold_{n}.bin    # opaque; reproduce by re-fitting, not deserializing
-```
-
-**Promoted artifacts** (Phase 14A, Sprint 049) live in a separate,
-content-addressed store under
-`<workspace>/research/predictive_research/promoted/{artifact_fingerprint}/` —
-see `docs/reference/modules/PREDICTIVE_PROMOTION.md` §3 for the exact two-file
-layout, which is documented there only (not repeated here).
-
-CLIs:
-
-```text
-uv run python scripts/predictive_research/build_predictive_dataset.py --storage-root <workspace> --definition <spec.yaml>
-uv run python scripts/predictive_research/run_predictive_research.py --storage-root <workspace> --dataset-id <id> --estimator <spec.yaml>
-uv run python scripts/predictive_research/analyze_predictive_run.py --storage-root <workspace> --run-id <id>
-uv run python scripts/predictive_research/render_predictive_report.py --storage-root <workspace> --run-id <id>
-uv run python scripts/predictive_research/compare_predictive_runs.py --run-dir <run> [--run-dir <run> ...]
-```
-
-### Tests
-
-```text
-tests/unit/research/
-tests/unit/research/predictive/
-tests/unit/strategy/
-tests/unit/application/signal_research/
-tests/unit/application/strategy_research/
-tests/unit/application/robustness_research/
-tests/unit/research/reporting/predictive/
-tests/unit/application/predictive_research/
-tests/unit/infrastructure/ml/
-tests/integration/research/
-```
-
-### Deep references
-
-- `../workflows/RESEARCH_METHODOLOGIES.md`
-- `SYSTEM_OVERVIEW.md`
-- `../modules/PREDICTIVE_PROMOTION.md` — promoted-artifact schema, store layout, both
-  guards, the family restriction, and the two parity comparisons (Phase 14A)
-- research ADRs (Predictive Research: ADR-0023; promotion: ADR-0029)
-
----
+[Research](../modules/RESEARCH.md) maps Signal, Strategy, Robustness and Predictive Research packages, persisted artifacts and application entry points. The [workflow index](../workflows/README.md) explains their boundaries.
 
 ## 9. Execution Implementation Map
 
-### Responsibilities
-
-| Responsibility | Package |
-|---|---|
-| Execution modes and safety contracts | `execution/` |
-| Orders, fills, positions and account models | `execution/models/` |
-| Broker simulation | `execution/broker_sim/` |
-| Runtime state ports | `execution/repositories/` |
-| Runtime logic | `execution/runtime/` |
-| Workflow orchestration | `application/execution/` |
-| Live provider adapters | `infrastructure/providers/` |
-| Runtime-state persistence | `infrastructure/storage/` |
-| Status and monitoring delivery | application and infrastructure adapters |
-
-### Workflow mapping
-
-```text
-Live Provider Adapter
-  → normalized market facts
-  → application/execution
-  → execution/runtime
-  → broker abstraction
-  → runtime-state repository
-  → monitoring or dashboard
-```
-
-### Dependency direction
-
-```text
-execution
-    does not depend on research
-
-application/execution
-    orchestrates execution domain and adapters
-
-infrastructure
-    implements provider and persistence boundaries
-```
-
-### Tests
-
-```text
-tests/unit/execution/
-tests/unit/application/execution/
-tests/unit/infrastructure/
-tests/integration/live_data/
-```
-
-### Deep references
-
-- `SYSTEM_OVERVIEW.md`
-- execution runbooks
-- execution ADRs
-
----
+[Execution](../modules/EXECUTION.md) maps the runtime contracts and implementation. [Strategy Execution](../workflows/STRATEGY_EXECUTION.md) explains the operational flow.
 
 ## 10. Visualization and Reporting Map
 
-### Responsibilities
-
-| Responsibility | Package |
-|---|---|
-| Read-only analytics | `research/analytics/` |
-| Signal research reports | `research/reporting/signal_research/` |
-| Strategy dashboards | strategy analytics and reporting packages |
-| Robustness reports | `research/robustness/` reporting packages |
-| Live dashboard state | execution read-model adapters |
-| Demo generation | `scripts/demo/` |
-| Live dashboard delivery | `scripts/portfolio_live/` (aiohttp); `apps/dashboard` Live Paper page (status GET) |
-| Predictive Research dashboard delivery | `apps/dashboard/src/dashboard_app/publication/` plus `views/study.py`; one projection-backed representative view in `pages/6_Predictive_Research.py` (Sprint 061) |
-
-### Boundary
-
-Visualization reads:
-
-- persisted research artifacts,
-- persisted analytics,
-- runtime state.
-
-Visualization does not execute research or control execution.
-
----
+[Applications](../modules/APPLICATIONS.md) maps presentation boundaries. See [Dashboard](../modules/DASHBOARD_APPLICATION.md) and [Operator CLI](../modules/OPERATOR_CLI.md) for the two deployable consumers.
 
 ## 11. User Workspace Map
 
-The framework core is reusable, while each user maintains an independent workspace.
-
-Canonical layout (``--storage-root`` = workspace root, usually ``user_data/``):
-
-```text
-user_data/
-├── market_data/
-│   ├── raw/                 # immutable vendor archives
-│   ├── metadata/            # dataset registry JSON
-│   ├── normalized/          # published Parquet market facts
-│   └── continuous/          # roll schedules
-├── research/
-│   ├── market_research/     # Signal Research runs + family experiments
-│   ├── strategy_research/   # Strategy Research runs
-│   ├── strategy_robustness/ # robustness experiments
-│   └── predictive_research/ # Predictive Research datasets + runs (Phase 10)
-├── runtime/                 # execution dry-run state
-├── reports/                 # optional loose reports
-├── config/
-├── components/
-└── models/
-```
-
-| User-owned area | Purpose |
-|---|---|
-| `market_data/raw/` | vendor archives (DBN, CSV, …); never overwritten |
-| `market_data/metadata/` | dataset registry and lifecycle metadata |
-| `market_data/normalized/` | published Parquet market facts |
-| `market_data/continuous/` | roll schedules and related artifacts |
-| `research/market_research/` | Signal Research runs and model-family experiments |
-| `research/strategy_research/` | Strategy Research runs |
-| `research/strategy_robustness/` | robustness experiments |
-| `research/predictive_research/` | Predictive Research datasets (`datasets/{dataset_id}/`) and runs (`runs/{run_id}/`) |
-| `components/` | custom analytical components |
-| `models/` | Market Model and Signal Model definitions |
-| `runtime/` | local execution state and operational data |
-
-Path helpers: `src/trading_framework/infrastructure/storage/paths.py`.  
-Migration: `scripts/ops/migrate_user_data_workspace.py`.
-
-Users extend the system through:
-
-- public component contracts,
-- the model-authoring DSL,
-- research definition contracts,
-- strategy composition contracts,
-- runtime configuration.
-
-Users should not need to modify framework internals to:
-
-- add components,
-- compose models,
-- define strategies,
-- run research,
-- inspect results.
-
----
+[User Workspace](USER_WORKSPACE.md) maps the `user_data/` layout and its boundary from `src/`. It is distinct from the execution-scoped [AnalysisWorkspace](ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md).
 
 ## 12. Dependency Rules
 
-See [`DEPENDENCY_RULES.md`](DEPENDENCY_RULES.md) for the full allowed
-dependency direction (domain-to-domain and layer-to-layer), what is
-enforced by an automated test today versus spot-checked only, and the one
-known unenforced exception.
-
----
+[Dependency Rules](DEPENDENCY_RULES.md) is the canonical direction map. It distinguishes test-enforced boundaries from documented ones and records the known exception.
 
 ## 13. Test Map
 
-| Implementation area | Main test location |
-|---|---|
-| `market/` | `tests/unit/market/` |
-| `market_analysis/` | `tests/unit/market_analysis/` |
-| `model_*` | corresponding unit-test packages |
-| `application/` | `tests/unit/application/`, `tests/integration/` |
-| `research/` | `tests/unit/research/`, workflow integration tests |
-| `strategy/` | `tests/unit/strategy/` |
-| `execution/` | `tests/unit/execution/` |
-| `infrastructure/` | `tests/unit/infrastructure/`, opt-in integration tests |
-| `apps/cli/src/trading_cli/` | `apps/cli/tests/` (own CI job, own `--package trading-cli` pytest run) |
-| Architecture boundaries | dedicated architecture-boundary tests (`tests/unit/test_apps_boundaries.py`) |
-
-Tests should mirror module ownership and validate both:
-
-- local contracts,
-- cross-module workflow integration.
-
----
+Use the relevant module page for targeted tests. Cross-cutting import-boundary tests are listed in [Dependency Rules](DEPENDENCY_RULES.md#2-what-is-actually-enforced-by-a-test-today).
 
 ## 14. Detailed References
 
-Use this document to locate implementation.
-
-Use the following documents for deeper context:
-
-- `README.md` — project overview,
-- `SYSTEM_OVERVIEW.md` — architectural problems and workflow design,
-- `../workflows/RESEARCH_METHODOLOGIES.md` — research methodology,
-- module-specific reference documents,
-- Architecture Decision Records,
-- execution and deployment runbooks.
-
----
+The [reference index](../README.md) routes from the system view to workflows, modules, runbooks and worked examples. ADRs record decision rationale; [vision](../../vision/README.md) records future directions.
 
 ## Maintenance
 
-Update this document when:
-
-- package ownership changes,
-- a workflow moves between modules,
-- a public entry point changes,
-- a new top-level package is introduced,
-- dependency rules change.
-
-Do not add:
-
-- sprint history,
-- roadmap status,
-- benchmark narratives,
-- full workflow explanations,
-- low-level implementation details already covered in module references.
+When packages or ownership change, update this map and the affected module page in the same PR. Update the overview only when the system-level story changes.

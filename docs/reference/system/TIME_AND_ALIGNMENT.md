@@ -6,7 +6,7 @@
 > the former `docs/reference/system/MULTITIMEFRAME_MARKET_MODEL.md`
 > ("Multitimeframe Architecture", "Resampling", "Temporal Alignment and
 > Look-Ahead Protection") by Sprint 055 T007, per the maintainer-approved
-> merge in `docs/planning/sprints/SPRINT_055_T004_DECISIONS.md` §1. Per
+> merge in `docs/archive/phases/cross-cutting/SPRINT_055_T004_DECISIONS.md` §1. Per
 > T001's dedup policy, the longer/more-complete version of each duplicated
 > section (both files independently state `observed_at`/`available_at`
 > semantics) is kept verbatim as the body, with genuinely unique material
@@ -175,50 +175,13 @@ Market and Signal Models may compose these outputs without requiring separate mu
 
 ### Timeframe Is Part of Component Identity
 
-> As-built note: `market_analysis/identity/{computation.py,mtf.py}`
-> implement component-identity hashing including timeframe, confirming the
-> correct pattern (`ComponentId("volatility.state")`, not
-> `VolatilityState30m`). The full 11-field identity list below is not
-> literally reproduced as one dataclass — `resampling_policy`,
-> `alignment_policy`, and `calendar_version` specifically returned zero
-> matches in `src/` as of Sprint 054 T003; the identity concept is built but
-> narrower than the full dimension list proposed here.
-
-A single implementation should support multiple timeframe-specific instances.
-
-Correct:
-
-```text
-ATR(period=14, timeframe=30m)
-ATR(period=14, timeframe=1h)
-ATR(period=14, timeframe=4h)
-```
-
-Incorrect:
-
-```text
-ATR30m
-ATR1h
-ATR4h
-```
-
-The full identity of a calculated analytical node should include all material temporal inputs.
-
-Suggested dimensions:
-
-```text
-component_id
-component_version
-parameters
-instrument
-source_dataset
-source_timeframe
-computation_timeframe
-evaluation_timeframe
-resampling_policy
-alignment_policy
-calendar_version
-```
+Current computation identity includes material timeframe information; one
+component can be requested at multiple timeframes without creating a separate
+component class for each. `market_analysis/identity/computation.py` and
+`mtf.py` define the implemented keys. Resampling/alignment policy and calendar
+version are not all fields of one current public identity object; see
+[Market Analysis Future](../../vision/MARKET_ANALYSIS_FUTURE.md) for the
+proposed richer identity.
 
 ### Source, Computation and Evaluation Timeframe
 
@@ -442,8 +405,8 @@ reading data before its legal `available_at` at inference time** — and that
 claim is **not true today**. S049-T001 verified line-by-line that the
 executor does not enforce inference-time `available_at` rejection
 (`executor.py`, `planner.py`, `assembler.py` all checked; no such mechanism
-exists — see `docs/planning/ROADMAP.md` §13F and the full finding,
-`S049_AVAILABILITY_FINDING.md`). `docs/adr/README.md` tracks the fix as
+exists — see the [Sprint 049 finding](../../archive/phases/phase-14-predictive-promotion/S049_AVAILABILITY_FINDING.md)).
+The [ADR index](../../adr/README.md) tracks the fix as
 **ADR-0030 — Inference-Time Availability Enforcement (PLANNED)**.
 
 In short: alignment honours `available_at` for batch MTF joins; nothing
@@ -456,25 +419,17 @@ executor-level guarantee, until ADR-0030 lands.
 
 ## Time Model Rules
 
-> As-built note: rules 1–3, 6, 9–12 below are CURRENT. Rules touching
-> calendars/holidays (5) and full Clock coverage (8) inherit the
-> MIXED/AMBIGUOUS status of the Trading Calendars, Holidays, and Clock
-> Abstraction sections that remain in
-> `docs/vision/TIME_MODEL_FUTURE.md`. Rule 10 ("Temporal outputs
-> preserve legal availability semantics") is an alignment-time guarantee
-> only — see the G-04 note above for the inference-time gap.
+The current contracts require UTC-aware domain time, reject naive datetimes,
+normalize provider timestamps at boundaries, and use Clock abstractions in
+application/domain time-dependent logic. Market Analysis consumes session
+contracts without owning global time policy. Futures rolls have explicit
+identity and lineage. Batch higher-timeframe alignment respects
+`available_at` and does not expose an unfinished bar as a closed value;
+**inference-time availability rejection remains unimplemented** (G-04 above).
+Multitimeframe does not create a separate model type, and a list of research
+candidates does not imply logical `OR` or an unbounded Cartesian expansion.
 
-1. UTC is the canonical internal timezone.
-2. Naive datetimes are forbidden.
-3. Provider and broker time is normalized at boundaries.
-4. Sessions are configuration-driven.
-5. Calendars own market-open and holiday logic.
-6. Market Analysis consumes session definitions but does not define global time policy.
-7. Futures contract rolls are explicit and versioned.
-8. Time-dependent logic uses a Clock abstraction.
-9. Dataset and analytical metadata preserve time assumptions.
-10. Temporal outputs preserve legal availability semantics (alignment-time — see G-04).
-11. Higher-timeframe final values must not be visible before bar close.
-12. Time semantics must be reproducible across Research and Strategy Execution.
-13. Multitimeframe is not a special model type (Rule 13 of the former Multitimeframe Architectural Rules).
-14. Lists do not imply logical `OR` or unrestricted Cartesian expansion (Rule 16 of the former Multitimeframe Architectural Rules — a research-configuration rule retained here for completeness; see `workflows/SIGNAL_RESEARCH.md` for the full research-space rule set).
+Broader configurable sessions, exchange calendars, holidays and calendar
+versioning belong to [Time Model Future](../../vision/TIME_MODEL_FUTURE.md).
+A complete cross-workflow temporal-parity guarantee must be demonstrated by
+its own contract and tests rather than inferred from the batch alignment path.

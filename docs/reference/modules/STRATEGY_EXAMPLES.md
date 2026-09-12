@@ -2,7 +2,7 @@
 
 > Extracted from the former `docs/reference/modules/STRATEGY_AUTHORING.md`
 > §5 ("Worked examples") by Sprint 055 T007, per
-> `docs/planning/sprints/SPRINT_055_T004_DECISIONS.md` §1. Content is
+> `docs/archive/phases/cross-cutting/SPRINT_055_T004_DECISIONS.md` §1. Content is
 > reproduced verbatim — this extraction does not rewrite any example, it
 > only moves the cookbook out of the authoring convention document so that
 > document is readable at ~250 lines instead of 831. For the `strategy_file`

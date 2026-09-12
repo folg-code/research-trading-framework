@@ -160,18 +160,18 @@ prepared through the relevant framework lifecycle.
 
 ### 4.3 Public Portfolio
 
-The public portfolio presents only explicitly published research and dry-run
-facts.
+The current read-only public research catalog, selected studies, immutable
+projection releases, bounded Live Paper status view and simulated-execution
+labelling are described in the
+[Dashboard Application reference](../reference/modules/DASHBOARD_APPLICATION.md).
+This section covers the product surface still to be delivered beyond those
+implemented slices.
 
 Its direction includes:
 
-- curated, immutable publication versions for selected research runs,
 - stable public pages for explicitly published deployments,
 - immutable pages for individual completed dry-run sessions,
-- live, read-only dry-run status without artificial delay,
-- permanent visibility of an ended session as an ended historical record,
-- unmistakable `LIVE MARKET DATA / SIMULATED EXECUTION / NO REAL ORDERS`
-  labelling.
+- permanent visibility of an ended session as an ended historical record.
 
 Public projections exclude private configuration, strategy source, model
 artifacts, infrastructure identifiers, internal paths, operational logs,

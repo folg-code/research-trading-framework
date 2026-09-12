@@ -5,7 +5,7 @@
 > fields, zero-denominator conventions) and
 > [`MARKET_ANALYSIS_MODULE.md`](MARKET_ANALYSIS_MODULE.md)'s "MVP Components"
 > table by Sprint 055 T007, per
-> `docs/planning/sprints/SPRINT_055_T004_DECISIONS.md` §1. `system/MODULE_MAP.md`
+> `docs/archive/phases/cross-cutting/SPRINT_055_T004_DECISIONS.md` §1. `system/MODULE_MAP.md`
 > §6's inline component-catalog table cell now points here instead of
 > restating the list. This gives the component catalog one findable home —
 > previously a reader asking "what components exist, and what does

@@ -1,113 +1,43 @@
 # As-Implemented Reference
 
-Documentation of **what is built and how it works** in the current codebase.
+This layer describes current behavior. Start at the [System Overview](system/SYSTEM_OVERVIEW.md), then use the [Module Map](system/MODULE_MAP.md) to locate ownership. For future intentions see [Vision](../vision/README.md); for decision history see [ADRs](../adr/README.md).
 
-Update after merged sprint waves and contract changes.
-Index: [../README.md](../README.md). Vision docs: [../vision/README.md](../vision/README.md).
+| Area | Start here | When to read |
+|---|---|---|
+| System | [System index](system/README.md) | Architecture, domain ownership, dependencies, time and data contracts |
+| Modules | [Module guides](modules/README.md) | Package responsibilities and implementation entry points |
+| Workflows | [Workflow index](workflows/README.md) | End-to-end Market Data, Research and Execution paths |
+| Runbooks | [Runbook index](runbooks/README.md) | Operating the local/AWS dry-run and checking its pipeline |
+| Examples | [Predictive BTC study](examples/BTC_PREDICTIVE_STUDY.md), [Signal Quality BTC study](examples/BTC_SIGNAL_QUALITY_STUDY.md) | Worked evidence, not universal behavior |
 
-Layout: `system/` (cross-cutting architecture), `workflows/` (end-to-end
-research/operational workflows), `runbooks/` (operator how-to-run/deploy
-guides), `modules/` (per-package/per-app implementation reference). See
-`docs/planning/sprints/SPRINT_054_T007_REFERENCE_FOLDER_AUDIT.md` for the
-original rationale behind this split, and
-`docs/planning/sprints/SPRINT_055_T001_REFERENCE_TARGET_IA.md` /
-`SPRINT_055_T004_DECISIONS.md` for the Sprint 055 re-cut that produced the
-tree below (subject-based `system/` files instead of provenance-based ones,
-plus the four new `workflows/` files).
+The [Predictive Verdict](PREDICTIVE_VERDICT.md) explains the versioned analyst verdict artifact. Detailed authoring examples and the component catalog live under [Modules](modules/README.md).
 
----
+## Completed-phase coverage
 
-## System (cross-cutting architecture)
+This is the current-reference route for delivered phase outcomes. The
+[archive](../archive/README.md) keeps sprint evidence; an accepted ADR may
+authorize work without proving that its implementation shipped.
 
-Folder context-map (Sprint 055 T005): [system/README.md](system/README.md).
+| Delivered track | Current contract |
+|---|---|
+| Repository foundation and boundaries | [System overview](system/SYSTEM_OVERVIEW.md), [dependency rules](system/DEPENDENCY_RULES.md) |
+| Market Data: OHLCV, DBN trades, derived bars, continuous futures, Binance historical import | [Market Data workflow](workflows/MARKET_DATA.md) |
+| Market Analysis and multitimeframe model composition | [Market Analysis module](modules/MARKET_ANALYSIS.md), [implementation guide](modules/MARKET_ANALYSIS_MODULE.md), [time and alignment](system/TIME_AND_ALIGNMENT.md) |
+| Signal and Model Research | [Signal Research](workflows/SIGNAL_RESEARCH.md), [model methodology](workflows/methodologies/MODEL_RESEARCH.md) |
+| OHLCV Strategy and Robustness Research | [Strategy Research](workflows/STRATEGY_RESEARCH.md), [Robustness methodology](workflows/methodologies/ROBUSTNESS_RESEARCH.md) |
+| BTC futures dry-run execution and status | [Strategy Execution](workflows/STRATEGY_EXECUTION.md), [Execution module](modules/EXECUTION.md), [runbooks](runbooks/README.md) |
+| Predictive Research and model-family comparison | [Predictive methodology](workflows/methodologies/PREDICTIVE_RESEARCH.md), [Research module](modules/RESEARCH.md) |
+| Operator CLI, custom strategy authoring, bracket exit and sizing | [Operator CLI](modules/OPERATOR_CLI.md), [Strategy Authoring](modules/STRATEGY_AUTHORING.md), [Strategy Examples](modules/STRATEGY_EXAMPLES.md) |
+| Predictive artifact promotion and catalog components | [Predictive Promotion](modules/PREDICTIVE_PROMOTION.md), [component catalog](modules/ANALYSIS_COMPONENT_CATALOG.md) |
+| Analyst verdict, SampleSpec and Signal Quality | [Predictive Verdict](PREDICTIVE_VERDICT.md), [Predictive methodology](workflows/methodologies/PREDICTIVE_RESEARCH.md), [worked study](examples/BTC_SIGNAL_QUALITY_STUDY.md) |
+| Delivered public portfolio slices through Sprint 061 | [Dashboard Application](modules/DASHBOARD_APPLICATION.md), [Applications](modules/APPLICATIONS.md) |
 
-| File | Purpose |
-|------|---------|
-| [system/SYSTEM_OVERVIEW.md](system/SYSTEM_OVERVIEW.md) | Architectural modules, problems solved, workflow boundaries, future directions |
-| [system/DOMAIN_MODEL.md](system/DOMAIN_MODEL.md) | The five domains (Market, Market Analysis, Strategy, Research, Execution), their Owns/Does-Not-Own boundaries, domain relationships, framework/user space, accepted clarifications |
-| [system/ARCHITECTURE_PRINCIPLES.md](system/ARCHITECTURE_PRINCIPLES.md) | Cross-cutting build principles — priority order, separation of concerns, reproducibility, immutability, modular monolith |
-| [system/MARKET_ANALYSIS_ARCHITECTURE.md](system/MARKET_ANALYSIS_ARCHITECTURE.md) | The Market Analysis engine — component contract, registry, dependency graph, lazy execution, cache identity, execution context; includes the G-04 executor-enforcement note |
-| [system/TIME_AND_ALIGNMENT.md](system/TIME_AND_ALIGNMENT.md) | UTC/Clock policy, futures contract rolls, multitimeframe identity, resampling, temporal alignment and look-ahead protection, `observed_at`/`available_at` |
-| [system/DATA_REPRESENTATION_POLICY.md](system/DATA_REPRESENTATION_POLICY.md) | Canonical carrier per kind of work, six directional rules, target primitives, null semantics |
-| [system/ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md](system/ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md) | Analysis workspace, result store, and frame materialization — authoritative on derived analytical data (note: "workspace" here means the execution-scoped `AnalysisWorkspace`, not the `user_data/` storage root in `MODULE_MAP.md` §11) |
-| [system/MODULE_MAP.md](system/MODULE_MAP.md) | Packages, status ✅/🟡/⬜, entry points |
-| [system/DEPENDENCY_RULES.md](system/DEPENDENCY_RULES.md) | Allowed dependency direction, which boundaries are test-enforced vs. only documented, and one known unenforced exception |
+Phase 16D remains active; the table covers its delivered slices rather than
+the full future Research Application. The accepted `MarketFrame` decision in
+ADR-MA-014 is likewise not proof that a bulk `MarketFrame` implementation is
+present; the [Market Analysis implementation guide](modules/MARKET_ANALYSIS_MODULE.md)
+states the current boundary.
 
-The point-in-time Sprint 036 data-representation measurement record and
-decision register (superseded by `DATA_REPRESENTATION_POLICY.md` above) now
-live at
-[`docs/planning/sprints/SPRINT_036_DATA_REPRESENTATION_AUDIT.md`](../planning/sprints/SPRINT_036_DATA_REPRESENTATION_AUDIT.md).
+## Reading rule
 
-## Workflows (end-to-end, conceptual)
-
-Folder context-map (Sprint 055 T005), including the shared "not a
-pipeline" preamble: [workflows/README.md](workflows/README.md).
-
-| File | Purpose |
-|------|---------|
-| [workflows/RESEARCH_METHODOLOGIES.md](workflows/RESEARCH_METHODOLOGIES.md) | **Which methodology should I choose** — all research workflows, the questions they answer, choosing a path (Signal, Model, Strategy, Robustness, Predictive) |
-| [workflows/SIGNAL_RESEARCH.md](workflows/SIGNAL_RESEARCH.md) | Signal Research scopes, contracts, dependency plan and persisted outputs |
-| [workflows/STRATEGY_RESEARCH.md](workflows/STRATEGY_RESEARCH.md) | Strategy Research: Strategy Model composition, simulation, analytics, walk-forward, Monte Carlo, robustness |
-| [workflows/STRATEGY_EXECUTION.md](workflows/STRATEGY_EXECUTION.md) | Strategy Execution runtime flow, position management, strategy-risk vs. operational-risk separation, persistence |
-| [workflows/MARKET_DATA.md](workflows/MARKET_DATA.md) | Market Data: import paths, external dataset import, local historical access, partition finalization, dataset publication, futures contract identity, validation, prohibited designs |
-
-`RESEARCH_METHODOLOGIES.md` answers "which methodology and why"; the four
-workflow files above answer "what are this workflow's scopes, contracts and
-persisted outputs" — the two are deliberately not merged (see the reciprocal
-pointers at the top of each file).
-
-## Runbooks (operator how-to-run/deploy)
-
-Folder context-map (Sprint 055 T005): [runbooks/README.md](runbooks/README.md).
-
-| File | Purpose |
-|------|---------|
-| [runbooks/LOCAL_BTC_FUTURES_DRY_RUN.md](runbooks/LOCAL_BTC_FUTURES_DRY_RUN.md) | Local BTCUSDT live-data, simulated-execution operator notes |
-| [runbooks/AWS_BTC_FUTURES_DRY_RUN.md](runbooks/AWS_BTC_FUTURES_DRY_RUN.md) | AWS BTCUSDT dry-run worker container packaging and smoke checklist |
-| [runbooks/LIVE_PAPER_PIPELINE_INSPECTION.md](runbooks/LIVE_PAPER_PIPELINE_INSPECTION.md) | Live paper / AWS dry-run pipeline architecture verdict and operator checklist |
-
-All three cover one demo family (BTC futures dry-run: local / AWS / pipeline
-verification) with the same safety boundary (simulated only, no
-credentials, no real orders). There are no research-workflow runbooks —
-see `modules/OPERATOR_CLI.md` for the research-side CLI surface.
-
-## Modules (per-package/per-app reference)
-
-Folder context-map (Sprint 055 T005): [modules/README.md](modules/README.md).
-
-Implementation references:
-
-| File | Purpose |
-|------|---------|
-| [modules/MARKET_ANALYSIS_MODULE.md](modules/MARKET_ANALYSIS_MODULE.md) | Market Analysis — implementation guide (flow, key types, verification, design notes) |
-| [modules/ANALYSIS_COMPONENT_CATALOG.md](modules/ANALYSIS_COMPONENT_CATALOG.md) | The full built-in component catalog — per-component semantics, warm-up, output fields, zero-denominator conventions |
-| [modules/PREDICTIVE_PROMOTION.md](modules/PREDICTIVE_PROMOTION.md) | Predictive model promotion (`research/predictive/promotion/`) — parameter-file schema, store layout, fingerprint derivation, guards |
-| [PREDICTIVE_VERDICT.md](PREDICTIVE_VERDICT.md) | Analyst verdict artifact (`research/predictive/verdict.py`, `application/predictive_research/evaluate_run_verdict.py`) — the eight-value vocabulary, the versioned `verdict_rules.v1` rule set, the `verdict.json` sidecar, and the Sprint 052 worked example |
-| [BTC_SIGNAL_QUALITY_STUDY.md](BTC_SIGNAL_QUALITY_STUDY.md) | Phase 16 increment 16C (Sprint 058) worked example — a real BTCUSDT.P `SIGNAL_QUALITY` study, promoted scorer, and a baseline-vs-score-filtered Strategy Research comparison |
-| [modules/DASHBOARD_APPLICATION.md](modules/DASHBOARD_APPLICATION.md) | Research Dashboard (`apps/dashboard`) — boundary, contracts, pages, publishing runbook |
-
-Operator/author-facing guides:
-
-| File | Purpose |
-|------|---------|
-| [modules/MODEL_AUTHORING.md](modules/MODEL_AUTHORING.md) | Authoring DSL — one copy-pasteable market + signal model |
-| [modules/STRATEGY_AUTHORING.md](modules/STRATEGY_AUTHORING.md) | Custom strategy authoring (`strategy_file`) — loading contract, trust model, error table |
-| [modules/STRATEGY_EXAMPLES.md](modules/STRATEGY_EXAMPLES.md) | Worked example strategies (`build_strategy()`) using the catalog above |
-| [modules/OPERATOR_CLI.md](modules/OPERATOR_CLI.md) | Operator CLI (`trading-cli` / `apps/cli`) — command groups, config schema pointer, exit codes |
-
-Domain-level questions ("what does Market Analysis own?", "which package
-implements the Strategy domain?") belong in `system/DOMAIN_MODEL.md` and
-`system/MODULE_MAP.md`, not here — there is deliberately no
-`modules/SIGNALS.md`, `modules/STRATEGY.md`, `modules/EXECUTION.md` or
-`modules/DATA.md` (no module-level implementation reference exists for
-those; see `SPRINT_055_T001_REFERENCE_TARGET_IA.md` §5.4).
-
----
-
-## When to read
-
-- Onboarding and day-to-day implementation
-- Code review against actual behaviour
-- Updating docs after a merged PR
-
-If reference and vision disagree, **reference + tests** describe as-is behaviour.
+Use the smallest page that answers the question. A workflow explains how modules cooperate; a module guide explains what a package owns; an ADR explains why a durable decision was made. Check implementation claims against the relevant code and tests when changing behavior.

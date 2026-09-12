@@ -3,13 +3,13 @@
 > Extracted from the former `docs/reference/system/WORKFLOWS_ARCHITECTURE.md`
 > ("Signal Research" section) by Sprint 055 T007, per the maintainer-approved
 > reversal of Sprint 054 T007's rejection in
-> `docs/planning/sprints/SPRINT_055_T004_DECISIONS.md` §1 — this is a section
+> `docs/archive/phases/cross-cutting/SPRINT_055_T004_DECISIONS.md` §1 — this is a section
 > extraction with no new prose, not authoring. That source file's own content
 > originated in `docs/vision/WORKFLOWS_AI_ADR.md`, moved by Sprint 054 T006c.
 > The section was classified **CURRENT** (or is the current-behavior portion
 > of a section classified **MIXED**) against the codebase as of 2026-09-03.
 > See
-> `docs/planning/sprints/SPRINT_054_T003b_WORKFLOWS_AI_ADR_ARCHITECTURE_CLASSIFICATION.md`
+> `docs/archive/phases/cross-cutting/SPRINT_054_T003b_WORKFLOWS_AI_ADR_ARCHITECTURE_CLASSIFICATION.md`
 > for the full section-by-section classification, evidence, and code
 > references.
 >
@@ -383,6 +383,12 @@ Bullish Sweep Signal Model
 
 Each unique deterministic dependency is calculated once per computation identity.
 
+For persisted occurrence and outcome materialization, the current hot path
+builds reference-price lookup data once per materialization, joins occurrence
+and observation prices through Polars, and shares NumPy OHLCV arrays across
+forward-outcome horizons (Sprint 026, TD-017). This optimization does not
+change the research identities or the dependency-planning contract.
+
 The engine must not recalculate shared Market Analysis components independently for every:
 
 - model,
@@ -472,5 +478,5 @@ equivalent family concept in code — see
 > for the by-inheritance classification). The source document's §3.12
 > (planner telemetry), §3.14 (analytics coverage) and §3.16 (on-disk storage
 > layout) carry MIXED/AMBIGUOUS nuance not fully captured by this summary —
-> see [`docs/vision/WORKFLOWS_AI_ADR.md`](../../vision/WORKFLOWS_AI_ADR.md)
+> see [`docs/vision/RESEARCH_SPACE_AND_ANALYTICS.md`](../../vision/RESEARCH_SPACE_AND_ANALYTICS.md)
 > §3.12/§3.14/§3.16 for those caveats.

@@ -4,7 +4,7 @@ title: Signal Quality Study
 status: AS_BUILT
 updated: 2026-09-09
 order: 4
-links: docs/reference/BTC_SIGNAL_QUALITY_STUDY.md
+links: docs/reference/examples/BTC_SIGNAL_QUALITY_STUDY.md
 ---
 
 This study asks whether a signal quality classifier improves an existing
@@ -27,5 +27,5 @@ occurrences were filtered out by the score (one that would have won, one
 that would have lost); trade count, win rate and net PnL were otherwise
 effectively unchanged between the two runs. This comparison, including the
 declared threshold and the two filtered occurrences, is recorded in
-[the full study write-up](https://github.com/folg-code/research-trading-framework/blob/main/docs/reference/BTC_SIGNAL_QUALITY_STUDY.md)
+[the full study write-up](https://github.com/folg-code/research-trading-framework/blob/main/docs/reference/examples/BTC_SIGNAL_QUALITY_STUDY.md)
 — it is not recomputed by this dashboard.

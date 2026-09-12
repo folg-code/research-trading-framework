@@ -291,7 +291,7 @@ The tolerance table, from `predictions.parquet`'s separate `y_pred` /
 **Measured result (T010b, this sprint):** the observed maximum `y_proba`
 deviation was **`0.0`** — well under the `atol=1e-15` ceiling. Comparison 2
 Path A held exactly, with no measurable drift, even in the one place a
-tolerance was permitted. See `docs/planning/sprints/SPRINT_049.md` §6
+tolerance was permitted. See `docs/archive/phases/phase-14-predictive-promotion/SPRINT_049.md` §6
 (S049-T010b row) and its Sprint Review for the full record.
 
 **The tolerance is not inherited by Sprint 050.** If Comparison 1 is ever
@@ -347,7 +347,7 @@ refusal list.
 - `docs/adr/ADR-0024-machine-learned-state-promotion.md` — the five
   promotion conditions this mechanism partially closes (1 and 5, plus
   condition 4's offline half).
-- `docs/planning/sprints/SPRINT_049.md`, `S049_AVAILABILITY_FINDING.md` —
+- `docs/archive/phases/phase-14-predictive-promotion/SPRINT_049.md`, `S049_AVAILABILITY_FINDING.md` —
   the sprint plan and the condition-2 spike.
 - `docs/reference/modules/OPERATOR_CLI.md` — the `research promote` command
   reference.

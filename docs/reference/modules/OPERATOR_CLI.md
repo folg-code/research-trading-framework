@@ -295,7 +295,7 @@ error naming the offending config key instead.
   both guards, and the narrow ADR-0023 §7 amendment.
 - `docs/reference/modules/STRATEGY_AUTHORING.md` — the operator guide for writing
   and running your own strategy file.
-- `docs/planning/sprints/SPRINT_046.md` — sprint scope, thin-wrapper
+- `docs/archive/phases/phase-11-operator-cli/SPRINT_046.md` — sprint scope, thin-wrapper
   feasibility audit, task breakdown.
 - `apps/cli/CLAUDE.md` — module context for anyone editing `apps/cli`.
 - `apps/cli/examples/` — one runnable example config per command group.

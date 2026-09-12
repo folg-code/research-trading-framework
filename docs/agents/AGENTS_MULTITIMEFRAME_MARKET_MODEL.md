@@ -1,12 +1,24 @@
-# AGENTS_MULTITIMEFRAME_MARKET_MODEL.md
-
 # Multitimeframe, Market Analysis and Model Composition Contract
+
+This is a detailed contract for changes that touch multitimeframe analysis or
+model composition. Start with the [system map](../reference/system/MODULE_MAP.md)
+and the [Market Analysis module](../reference/modules/MARKET_ANALYSIS.md), then
+use the sections below that apply to the task. The full contract remains in one
+file because its temporal and dependency rules are closely coupled.
+
+Sections: [ownership](#2-domain-ownership) ·
+[analysis](#3-market-analysis-contract) ·
+[models](#4-market-and-signal-model-contract) ·
+[timeframes](#7-multitimeframe-contract) ·
+[research](#15-research-space-rules) ·
+[placement](#21-module-placement-rules) ·
+[tests](#22-testing-requirements) ·
+[completion](#25-completion-checklist).
 
 ## 1. Purpose
 
 This file defines mandatory rules for AI coding agents working on:
 
-- Market Analysis,
 - Market Analysis,
 - Market Models,
 - Market Analysis Engine,
@@ -15,13 +27,12 @@ This file defines mandatory rules for AI coding agents working on:
 - Signal Research,
 - large research spaces.
 
-The agent must read this file together with:
-
-1. `docs/vision/PRODUCT_DIRECTION.md`
-2. `docs/vision/MARKET_ANALYSIS_FUTURE.md`
-3. `docs/reference/workflows/SIGNAL_RESEARCH.md`
-4. `docs/reference/system/TIME_AND_ALIGNMENT.md`
-5. relevant contracts, tests and ADRs
+Follow the root `AGENTS.md` reading route. For an as-built change, consult the
+relevant [Signal Research workflow](../reference/workflows/SIGNAL_RESEARCH.md),
+[time and alignment contract](../reference/system/TIME_AND_ALIGNMENT.md),
+contracts, tests and ADRs. Consult
+[`MARKET_ANALYSIS_FUTURE.md`](../vision/MARKET_ANALYSIS_FUTURE.md) when assessing
+a future direction or changing the architecture.
 
 This contract overrides implementation convenience.
 
