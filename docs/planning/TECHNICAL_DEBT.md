@@ -2,6 +2,28 @@
 
 # TECHNICAL_DEBT.md
 
+## Entry index
+
+Open an ID to read the full entry:
+
+- [TD-001](registries/td-001-004.md#td-001) · [TD-002](registries/td-001-004.md#td-002)
+- [TD-003](registries/td-001-004.md#td-003) · [TD-004](registries/td-001-004.md#td-004)
+- [TD-005](registries/td-005-008.md#td-005) · [TD-006](registries/td-005-008.md#td-006)
+- [TD-007](registries/td-005-008.md#td-007) · [TD-008](registries/td-005-008.md#td-008)
+- [TD-009](registries/td-009-012.md#td-009) · [TD-010](registries/td-009-012.md#td-010)
+- [TD-011](registries/td-009-012.md#td-011) · [TD-012](registries/td-009-012.md#td-012)
+- [TD-013](registries/td-013-016.md#td-013) · [TD-014](registries/td-013-016.md#td-014)
+- [TD-015](registries/td-013-016.md#td-015) · [TD-016](registries/td-013-016.md#td-016)
+- [TD-017](registries/td-017-020.md#td-017) · [TD-018](registries/td-017-020.md#td-018)
+- [TD-019](registries/td-017-020.md#td-019) · [TD-020](registries/td-017-020.md#td-020)
+- [TD-021](registries/td-021-024.md#td-021) · [TD-022](registries/td-021-024.md#td-022)
+- [TD-023](registries/td-021-024.md#td-023) · [TD-024](registries/td-021-024.md#td-024)
+- [TD-025](registries/td-025-028.md#td-025) · [TD-026](registries/td-025-028.md#td-026)
+- [TD-027](registries/td-025-028.md#td-027) · [TD-028](registries/td-025-028.md#td-028)
+- [TD-029](registries/td-029-031.md#td-029) · [TD-030](registries/td-029-031.md#td-030)
+- [TD-031](registries/td-029-031.md#td-031) · [TD-032](registries/td-032-034.md#td-032)
+- [TD-033](registries/td-032-034.md#td-033) · [TD-034](registries/td-032-034.md#td-034)
+
 ## 1. Purpose
 
 This register records known implementation debt that has been consciously accepted.
@@ -96,111 +118,79 @@ Owner:
 
 ---
 
+Each technical debt title below links directly to its full entry. Stable ID headings remain here for existing links.
+
 # 5. Accepted Technical Debt
 
 Read one item by ID. Full entries are grouped below; stable ID headings remain here for existing links.
 
-## TD-001 — Architecture Decisions Are Consolidated Before Individual ADR Files Exist
-[Full entry](registries/td-001-004.md#td-001).
+## [TD-001 — Architecture Decisions Are Consolidated Before Individual ADR Files Exist](registries/td-001-004.md#td-001)
 
-## TD-002 — Planning State Is Maintained in Markdown Before GitHub Project Setup
-[Full entry](registries/td-001-004.md#td-002).
+## [TD-002 — Planning State Is Maintained in Markdown Before GitHub Project Setup](registries/td-001-004.md#td-002)
 
-## TD-003 — Initial Market Analysis Module Uses a Minimal Directory Structure
-[Full entry](registries/td-001-004.md#td-003).
+## [TD-003 — Initial Market Analysis Module Uses a Minimal Directory Structure](registries/td-001-004.md#td-003)
 
-## TD-004 — Version 1 Keeps Position Sizing Inside the Risk Model
-[Full entry](registries/td-001-004.md#td-004).
+## [TD-004 — Version 1 Keeps Position Sizing Inside the Risk Model](registries/td-001-004.md#td-004)
 
-## TD-005 — Version 1 Uses an In-Memory Event Bus
-[Full entry](registries/td-005-008.md#td-005).
+## [TD-005 — Version 1 Uses an In-Memory Event Bus](registries/td-005-008.md#td-005)
 
-## TD-006 — Historical Storage Uses Local Parquet Before a Dedicated Data Platform
-[Full entry](registries/td-005-008.md#td-006).
+## [TD-006 — Historical Storage Uses Local Parquet Before a Dedicated Data Platform](registries/td-005-008.md#td-006)
 
-## TD-007 — Initial Trading Calendar May Wrap an External Library
-[Full entry](registries/td-005-008.md#td-007).
+## [TD-007 — Initial Trading Calendar May Wrap an External Library](registries/td-005-008.md#td-007)
 
-## TD-008 — Initial Research Planner Uses Conservative Static Limits
-[Full entry](registries/td-005-008.md#td-008).
+## [TD-008 — Initial Research Planner Uses Conservative Static Limits](registries/td-005-008.md#td-008)
 
-## TD-009 — Initial Strategy Backtest Supports a Limited Fill Model
-[Full entry](registries/td-009-012.md#td-009).
+## [TD-009 — Initial Strategy Backtest Supports a Limited Fill Model](registries/td-009-012.md#td-009)
 
-## TD-010 — Documentation Consistency Is Reviewed Manually Before Automation
-[Full entry](registries/td-009-012.md#td-010).
+## [TD-010 — Documentation Consistency Is Reviewed Manually Before Automation](registries/td-009-012.md#td-010)
 
-## TD-011 — Historical Query Returns List of MarketBar Objects
-[Full entry](registries/td-009-012.md#td-011).
+## [TD-011 — Historical Query Returns List of MarketBar Objects](registries/td-009-012.md#td-011)
 
-## TD-012 — Decimal OHLCV in Market Data with float64 Analysis Conversion
-[Full entry](registries/td-009-012.md#td-012).
+## [TD-012 — Decimal OHLCV in Market Data with float64 Analysis Conversion](registries/td-009-012.md#td-012)
 
-## TD-013 — Multi-Implementation Registry Before Second Backend
-[Full entry](registries/td-013-016.md#td-013).
+## [TD-013 — Multi-Implementation Registry Before Second Backend](registries/td-013-016.md#td-013)
 
-## TD-014 — Separate ResultStore, Workspace and In-Plan ExecutionCache
-[Full entry](registries/td-013-016.md#td-014).
+## [TD-014 — Separate ResultStore, Workspace and In-Plan ExecutionCache](registries/td-013-016.md#td-014)
 
-## TD-015 — AnalysisDataView Map-of-Arrays Instead of Columnar Frame
-[Full entry](registries/td-013-016.md#td-015).
+## [TD-015 — AnalysisDataView Map-of-Arrays Instead of Columnar Frame](registries/td-013-016.md#td-015)
 
-## TD-016 — ComponentId and ImplementationId Dual Identity Axis
-[Full entry](registries/td-013-016.md#td-016).
+## [TD-016 — ComponentId and ImplementationId Dual Identity Axis](registries/td-013-016.md#td-016)
 
-## TD-017 — Signal / Market Research Occurrence and Outcome Materialization Is Row-Wise Python
-[Full entry](registries/td-017-020.md#td-017).
+## [TD-017 — Signal / Market Research Occurrence and Outcome Materialization Is Row-Wise Python](registries/td-017-020.md#td-017)
 
-## TD-018 — Robustness Child Runs Re-Execute Full Strategy Research Without Shared Evaluation
-[Full entry](registries/td-017-020.md#td-018).
+## [TD-018 — Robustness Child Runs Re-Execute Full Strategy Research Without Shared Evaluation](registries/td-017-020.md#td-018)
 
-## TD-019 — Databento Contract Import Chunk Buffers Use Python Lists
-[Full entry](registries/td-017-020.md#td-019).
+## [TD-019 — Databento Contract Import Chunk Buffers Use Python Lists](registries/td-017-020.md#td-019)
 
-## TD-020 — Continuous Trades Materialize Pays Per-Session Write + String Price Schema
-[Full entry](registries/td-017-020.md#td-020).
+## [TD-020 — Continuous Trades Materialize Pays Per-Session Write + String Price Schema](registries/td-017-020.md#td-020)
 
-## TD-021 — Predictive Research Has No Model Registry
-[Full entry](registries/td-021-024.md#td-021).
+## [TD-021 — Predictive Research Has No Model Registry](registries/td-021-024.md#td-021)
 
-## TD-022 — Fitted Predictive Artifacts Are Opaque and Not Portable
-[Full entry](registries/td-021-024.md#td-022).
+## [TD-022 — Fitted Predictive Artifacts Are Opaque and Not Portable](registries/td-021-024.md#td-022)
 
-## TD-023 — Binance Historical Import Only Works for 1m
-[Full entry](registries/td-021-024.md#td-023).
+## [TD-023 — Binance Historical Import Only Works for 1m](registries/td-021-024.md#td-023)
 
-## TD-024 — CLI Import Boundary Is Module-Level, Not Symbol-Level
-[Full entry](registries/td-021-024.md#td-024).
+## [TD-024 — CLI Import Boundary Is Module-Level, Not Symbol-Level](registries/td-021-024.md#td-024)
 
-## TD-025 — Boundary Test Is Structurally Blind to Dynamically Loaded Strategy Files
-[Full entry](registries/td-025-028.md#td-025).
+## [TD-025 — Boundary Test Is Structurally Blind to Dynamically Loaded Strategy Files](registries/td-025-028.md#td-025)
 
-## TD-026 — EquityPercentRiskModel Is Static, Authoring-Time Sizing Only
-[Full entry](registries/td-025-028.md#td-026).
+## [TD-026 — EquityPercentRiskModel Is Static, Authoring-Time Sizing Only](registries/td-025-028.md#td-026)
 
-## TD-027 — Robustness Delay Stress Rejects Bracket Exits
-[Full entry](registries/td-025-028.md#td-027).
+## [TD-027 — Robustness Delay Stress Rejects Bracket Exits](registries/td-025-028.md#td-027)
 
-## TD-028 — No Independent Reference Implementation for the Bracket Kernel
-[Full entry](registries/td-025-028.md#td-028).
+## [TD-028 — No Independent Reference Implementation for the Bracket Kernel](registries/td-025-028.md#td-028)
 
-## TD-029 — Tree and Neural Predictive Model Promotion Is Deferred to a Version-Pinned Joblib Path
-[Full entry](registries/td-029-031.md#td-029).
+## [TD-029 — Tree and Neural Predictive Model Promotion Is Deferred to a Version-Pinned Joblib Path](registries/td-029-031.md#td-029)
 
-## TD-030 — Root `.gitignore` Does Not Cover Nested `<subdir>/user_data/` Directories
-[Full entry](registries/td-029-031.md#td-030).
+## [TD-030 — Root `.gitignore` Does Not Cover Nested `<subdir>/user_data/` Directories](registries/td-029-031.md#td-030)
 
-## TD-031 — No Loader Turns a Declared `signal_model_file` Into a `SignalModelDefinition`
-[Full entry](registries/td-029-031.md#td-031).
+## [TD-031 — No Loader Turns a Declared `signal_model_file` Into a `SignalModelDefinition`](registries/td-029-031.md#td-031)
 
-## TD-032 — No CLI Support for `CandidateSetSpec` (Tree-Family Predictive Runs)
-[Full entry](registries/td-032-034.md#td-032).
+## [TD-032 — No CLI Support for `CandidateSetSpec` (Tree-Family Predictive Runs)](registries/td-032-034.md#td-032)
 
-## TD-033 — Verdict Rule Thresholds and the Primary-Metric Convention Are Independently Triplicated
-[Full entry](registries/td-032-034.md#td-033).
+## [TD-033 — Verdict Rule Thresholds and the Primary-Metric Convention Are Independently Triplicated](registries/td-032-034.md#td-033)
 
-## TD-034 — Public Dashboard Projection Is a Monolithic JSON Bundle
-[Full entry](registries/td-032-034.md#td-034).
+## [TD-034 — Public Dashboard Projection Is a Monolithic JSON Bundle](registries/td-032-034.md#td-034)
 
 # 6. Planned Debt Boundaries
 

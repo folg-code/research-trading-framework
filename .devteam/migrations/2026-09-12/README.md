@@ -40,7 +40,7 @@ reading-cost guide, not as a hard limit.
 
 ## Validation
 
-- `python scratch/validate_docs.py`: 932 local Markdown links checked across
+- `python scratch/validate_docs.py`: 1016 local Markdown links checked across
   338 files; no missing files or anchors. The script is a local, ignored
   migration helper, not a new project dependency.
 - The skill-prescribed `node .ai-toolkit/bin/devteam.mjs validate` could not
@@ -54,3 +54,7 @@ reading-cost guide, not as a hard limit.
 
 The migration intentionally preserved historical prose. Its links were
 rebased so archived records remain navigable from their new locations.
+
+After review, the three planning registers received a compact ID index at
+the top and direct links on each entry title. The detailed entries remain in
+`docs/planning/registries/`; all 84 index IDs match a detailed anchor.
