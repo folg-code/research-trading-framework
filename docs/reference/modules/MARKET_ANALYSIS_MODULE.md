@@ -3,9 +3,13 @@
 > **Reference doc** — [as-implemented layer](../README.md).  
 > Index: [docs/README.md](../../README.md).
 
-**Status:** Sprint 004 complete on `main`; Sprint 005 complete on `sprint/market-analysis-components`.  
-Binding decisions (vision): [../../vision/MARKET_ANALYSIS_DECISIONS.md](../../adr/MARKET_ANALYSIS_DECISIONS.md) (D-001–D-036, moved from `MARKET_ANALYSIS_WITH_DECISIONS.md` by Sprint 055 T008), future architecture: [../../vision/MARKET_ANALYSIS_FUTURE.md](../../vision/MARKET_ANALYSIS_FUTURE.md), [../../vision/RESEARCH_SPACE_AND_ANALYTICS.md](../../vision/RESEARCH_SPACE_AND_ANALYTICS.md) (moved from `MULTITIMEFRAME_MARKET_MODEL_ARCHITECTURE.md`).
-Accepted ADRs: [../../adr/README.md](../../adr/README.md) (ADR-MA-001–013).
+**Current status:** the Sprint 004/005 multitimeframe foundation is implemented;
+later component catalog and session-range slices also shipped. See the
+[component catalog](ANALYSIS_COMPONENT_CATALOG.md) for today's set.
+Binding decisions: [Market Analysis decision register](../../adr/MARKET_ANALYSIS_DECISIONS.md)
+and [ADR index](../../adr/README.md). Future extensions:
+[Market Analysis](../../vision/MARKET_ANALYSIS_FUTURE.md) and
+[Research Space](../../vision/RESEARCH_SPACE_AND_ANALYTICS.md).
 
 ---
 

@@ -4,7 +4,15 @@ This page describes possible extensions to research-space planning and analytics
 
 ## Bounded research spaces
 
-Research should make candidate count, estimated cost and pruning visible before computation. A request must not implicitly expand to the full Cartesian product of parameters, components, datasets and validation folds. Future planners may support explicit search constraints, staged expansion and conservative defaults, with an observable plan that can be reviewed before large runs.
+Signal Research already implements bounded family expansion, and Predictive
+Research supports a bounded `CandidateSetSpec`; see their
+[workflow](../reference/workflows/SIGNAL_RESEARCH.md) and
+[methodology](../reference/workflows/methodologies/PREDICTIVE_RESEARCH.md).
+The remaining direction is a cross-workflow preflight view of candidate count,
+estimated compute/storage cost and pruning before a large run. It must avoid
+implicit Cartesian expansion of parameters, components, datasets and folds.
+Future planners may support staged expansion and explicit search constraints
+without treating those two existing bounded paths as unimplemented.
 
 ## Staged methodology
 

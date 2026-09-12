@@ -13,6 +13,10 @@ Category: Strategy Execution
 Added: 2026-06-19
 ```
 
+### Review (2026-09-12)
+
+The current live-data dry-run has simulated orders, but replay, general paper and real-broker live modes do not share one completed mode-neutral runtime. This idea remains future direction; see [Execution Runtime Future](../../vision/EXECUTION_RUNTIME_FUTURE.md).
+
 ### Summary
 
 Use one runtime contract with mode-specific market feeds and broker adapters.

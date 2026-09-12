@@ -8,15 +8,22 @@ Return to the [Idea Inbox index](../IDEA_INBOX.md).
 ## IDEA-005 — Databento DBN Importer
 
 ```text
-Status: INBOX → candidate for Sprint 011 (Phase 2B)
+Status: IMPLEMENTED
 Category: Market Data
 Added: 2026-06-19
 Last reviewed: 2026-07-12
 ```
 
+### Review (2026-09-12)
+
+The DBN archive importer is implemented for the Databento `trades` schema via `import_databento_trades_archive`; derived OHLCV is a separate downstream workflow. The earlier "DBN OHLCV first" sequence below was superseded by the accepted trades-first slice. See the [Market Data workflow](../../reference/workflows/MARKET_DATA.md) and [Sprint 011 record](../../archive/phases/phase-02-market-data/SPRINT_011.md). Direct DBN OHLCV decoding is not implied by this disposition.
+
 ### Summary
 
-Import Databento DBN archives through provider-independent archive import contracts. First slice: **DBN OHLCV → canonical MarketBar** (Phase 2B). Later: trades (**Phase 2C.1**).
+Import Databento DBN archives through provider-independent archive import
+contracts. The delivered slice reads DBN `trades` into canonical trades;
+derived OHLCV is built by a separate workflow. The original direct DBN OHLCV
+first-slice proposal was superseded.
 
 ### Potential Value
 
@@ -29,9 +36,11 @@ High-quality futures data and efficient archive ingestion; validates archive wor
 - schema mapping to canonical models,
 - partitioned Parquet persistence.
 
-### Promotion Criteria
+### Delivery evidence
 
-Promote as Sprint 011 when Roadmap Revision / Phase Entry Review is complete. See `ROADMAP.md` §6, §15.4 and `SPRINT_011.md`.
+[Sprint 011](../../archive/phases/phase-02-market-data/SPRINT_011.md)
+delivered the DBN trades archive path. The [current Market Data workflow](../../reference/workflows/MARKET_DATA.md)
+states its supported schema and separate derived-OHLCV path.
 
 ---
 
@@ -43,6 +52,10 @@ Status: INBOX
 Category: Market Data
 Added: 2026-06-19
 ```
+
+### Review (2026-09-12)
+
+The Binance historical importer implements explicit paginated import, but there is no local-coverage resolver that fetches only missing ranges under a declared policy. This idea remains open; see [Market Data Future](../../vision/MARKET_DATA_FUTURE.md).
 
 ### Summary
 
@@ -69,11 +82,15 @@ Phase 2A (OHLCV MVP) completed; archive import foundation (2B) or provider sync 
 ## IDEA-007 — Continuous Futures Builder
 
 ```text
-Status: PROMOTED → Sprint 015
+Status: IMPLEMENTED
 Category: Market Data
 Added: 2026-06-19
 Promoted: 2026-07-14
 ```
+
+### Review (2026-09-12)
+
+The continuous-futures builder is delivered: contract trades, roll schedule, continuous trades and derived OHLCV have explicit lineage. See the [Market Data workflow](../../reference/workflows/MARKET_DATA.md), [ADR-0018](../../adr/ADR-0018-continuous-futures-materialization.md) and [Sprint 015](../../archive/phases/phase-02-market-data/SPRINT_015.md). Other roll/adjustment policies remain future work, not a reason to leave this original idea in the inbox.
 
 ### Summary
 
@@ -99,9 +116,11 @@ Supports long-term NQ, ES and other futures research.
 - roll policies,
 - derived dataset lineage.
 
-### Promotion Criteria
+### Delivery evidence
 
-Contract-level futures datasets are stable. — **Sprint 011 trades import on main satisfies input path; Sprint 015 extends to multi-contract materialization.**
+Sprint 011 supplied contract trades; [Sprint 015](../../archive/phases/phase-02-market-data/SPRINT_015.md)
+delivered multi-contract materialization. [ADR-0018](../../adr/ADR-0018-continuous-futures-materialization.md)
+records the accepted roll and lineage semantics.
 
 ---
 
@@ -113,6 +132,10 @@ Status: INBOX
 Category: Market Data / Observability
 Added: 2026-06-19
 ```
+
+### Review (2026-09-12)
+
+The existing public research dashboard can show selected dataset identity and coverage, but it is not a Market Data quality dashboard for gaps, duplicates, partition health and validation state. This idea remains open.
 
 ### Summary
 

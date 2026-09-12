@@ -13,6 +13,10 @@ Category: Research
 Added: 2026-06-19
 ```
 
+### Review (2026-09-12)
+
+`FamilyExperimentPlan` already reports generated, evaluated and skipped variants for bounded Signal Research families. It does not estimate cross-workflow storage, memory or runtime cost before execution. The cost-estimator idea remains open; see [Research Space Future](../../vision/RESEARCH_SPACE_AND_ANALYTICS.md).
+
 ### Summary
 
 Estimate before execution:

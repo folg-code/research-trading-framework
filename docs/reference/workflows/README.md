@@ -10,6 +10,6 @@ A workflow explains how modules cooperate end to end. It does not redefine modul
 | [Strategy Execution](STRATEGY_EXECUTION.md) | Runtime decisions, state, risk separation and persistence |
 | [Research Methodologies](RESEARCH_METHODOLOGIES.md) | Which research question to ask and how to evaluate it |
 
-The methodology chooser links to focused [Signal](methodologies/SIGNAL_RESEARCH.md), [Model](methodologies/MODEL_RESEARCH.md), [Strategy](methodologies/STRATEGY_RESEARCH.md), [Robustness](methodologies/ROBUSTNESS_RESEARCH.md), [Predictive](methodologies/PREDICTIVE_RESEARCH.md) and [Portfolio](methodologies/PORTFOLIO_RESEARCH.md) method pages.
+The methodology chooser links to focused [Signal](methodologies/SIGNAL_RESEARCH.md), [Model](methodologies/MODEL_RESEARCH.md), [Strategy](methodologies/STRATEGY_RESEARCH.md), [Robustness](methodologies/ROBUSTNESS_RESEARCH.md) and [Predictive](methodologies/PREDICTIVE_RESEARCH.md) method pages. [Portfolio Research](../../vision/PORTFOLIO_RESEARCH_FUTURE.md) remains a future direction.
 
 Signal Research, Strategy Research and Strategy Execution are independent workflows with shared upstream contracts, not stages of one mandatory pipeline.

@@ -11,7 +11,7 @@ Choose a methodology by the question and evidence it produces. This page is the 
 | How does a complete strategy perform under explicit fills and risk? | Strategy Research | [Strategy](methodologies/STRATEGY_RESEARCH.md) |
 | Does a strategy survive perturbation and regime changes? | Robustness Research | [Robustness](methodologies/ROBUSTNESS_RESEARCH.md) |
 | Does a predictive task generalize out of sample? | Predictive Research | [Predictive](methodologies/PREDICTIVE_RESEARCH.md) |
-| How do multiple strategies or exposures interact? | Portfolio Research direction | [Portfolio](methodologies/PORTFOLIO_RESEARCH.md) |
+| How do multiple strategies or exposures interact? | Future Portfolio Research | [Portfolio direction](../../vision/PORTFOLIO_RESEARCH_FUTURE.md) |
 
 ## 2. Shared Research Foundations
 
@@ -43,7 +43,8 @@ Declare the hypothesis, inputs, candidate space and evaluation policy before int
 
 ## 9. Portfolio Research
 
-[Portfolio methodology](methodologies/PORTFOLIO_RESEARCH.md) is directional where no current workflow contract exists. Do not infer an implemented Portfolio Research engine from this page.
+[Portfolio Research Future](../../vision/PORTFOLIO_RESEARCH_FUTURE.md) records
+the proposed method. There is no current Portfolio Research workflow contract.
 
 ## 10. Choosing a Methodology
 

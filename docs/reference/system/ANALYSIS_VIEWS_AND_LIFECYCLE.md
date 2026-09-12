@@ -169,196 +169,61 @@ Only outputs requested directly or through dependencies are included.
 
 ## 17. Memory Lifecycle
 
-### MVP behavior
-
-For the Market Analysis MVP:
-
-- results may remain materialized for the lifetime of one execution plan,
-- the executor uses an in-memory exact-match execution cache,
-- ConsumerViews are assembled after required outputs are computed,
-- aggressive column pruning is not required.
-
-### Future behavior
-
-The DAG should make future liveness analysis possible.
-
-A result may be released when:
-
-- all dependent nodes have completed,
-- it is not requested as a final output,
-- it is not required by the selected ConsumerView,
-- it is not retained by cache policy.
-
-Example:
-
-```text
-TrueRange
-    ↓
-ATR
-    ↓
-VolatilityState
-```
-
-If `TrueRange` is not a final output and no other node needs it, its data may be released after ATR is computed.
-
----
+The current executor scopes its workspace and exact-match execution cache to
+one plan. Required outputs remain materialized for that plan and consumer views
+are assembled after computation. There is no general dependency-liveness
+release policy. The [future Market Analysis direction](../../vision/MARKET_ANALYSIS_FUTURE.md)
+records the proposed release rules.
 
 ---
 
 ## 18. Column Pruning
 
-Column pruning is a future optimization, not an MVP requirement.
-
-The architecture must nevertheless preserve:
-
-- dependency-consumer counts,
-- final-output declarations,
-- view-output declarations,
-- cache retention policy,
-- clear ownership of arrays.
-
-The executor should eventually distinguish:
-
-```text
-required now
-required later
-required as final output
-cache-retained
-disposable
-```
-
-Pruning must never alter lineage or reproducibility.
-
----
+General dependency-aware column pruning is not implemented. The current
+workspace preserves requested outputs and explicit identity/lineage; see
+[Market Analysis Architecture](MARKET_ANALYSIS_ARCHITECTURE.md) for the current
+planner. Pruning and retention policy are future extensions.
 
 ---
 
 ## 19. Physical Representation
 
-The domain contract must not require that the workspace always be a pandas DataFrame.
-
-The physical representation may differ by backend.
-
-Recommended MVP direction:
-
-- NumPy arrays for efficient numerical computation,
-- pandas adapters for convenient research and display,
-- optional TA-Lib adapters operating on NumPy-compatible arrays,
-- future benchmarking of Arrow and Polars.
-
-The framework should minimize:
-
-- full dataset copies,
-- repeated Series-to-array conversions,
-- repeated dtype conversions,
-- repeated index reconstruction,
-- automatic DataFrame concatenation after every component.
-
-A flat DataFrame should be created when a consumer actually needs it.
-
----
+The current batch component path uses `AnalysisDataView` with tuple/NumPy
+columns. Polars supports resampling and alignment, then converts at the
+component boundary; `MarketFrame(pl.LazyFrame, metadata)` is an accepted
+**target**, not an implemented carrier. The
+[Data Representation Policy](DATA_REPRESENTATION_POLICY.md) separates this
+current state from its target.
 
 ---
 
 ## 20. Alignment and Index Contract
 
-All outputs in one single-timeframe AnalysisWorkspace must align to a shared time axis.
-
-The executor validates:
-
-- output length,
-- output ordering,
-- timestamp alignment,
-- valid range,
-- warm-up region,
-- availability metadata.
-
-For the MVP:
-
-```text
-source timeframe = computation timeframe = evaluation timeframe
-```
-
-Multitimeframe alignment is outside the MVP and must later use explicit resampling and availability-aware alignment nodes.
-
----
+Outputs on one evaluation grid have explicit length, order, availability and
+warm-up semantics. Multitimeframe computation is implemented: resampling and
+backward as-of alignment use each output's `available_at` and the default
+`LAST_CLOSED_BAR` policy. The old single-timeframe-only MVP statement is
+historical; see [Time and Alignment](TIME_AND_ALIGNMENT.md) for the actual
+contract and its inference-time enforcement limit.
 
 ---
 
 ## 21. Missing Values and Validity
 
-Derived columns may legitimately contain missing values caused by:
-
-- warm-up,
-- insufficient history,
-- unavailable session context,
-- delayed confirmation,
-- sparse event output,
-- causal availability constraints.
-
-Missing values must not be silently filled by the workspace.
-
-Each component defines its validity policy.
-
-The result should expose:
-
-```text
-valid_from
-valid_to
-warmup_length
-availability semantics
-missing-value semantics
-```
-
-ConsumerView assembly may apply an explicit policy such as:
-
-- preserve missing values,
-- drop rows before all required outputs are valid,
-- mask only a selected model output,
-- fail when a required output is unavailable.
-
-The policy must be explicit per workflow.
-
----
+`AnalysisResult.validity` carries `valid_from_index`, `valid_to_index` and
+missing-value semantics; `warmup` and `availability` carry their own metadata.
+`OutputSeries` uses `NaN` for missing float values and may expose
+`available_at` per value. Sparse event outputs have an explicit inactive fill
+under `EVENT_AT_AVAILABLE`. Consumers must preserve the declared validity and
+availability meaning rather than silently filling unavailable market facts.
 
 ---
 
 ## 22. Persistence of Derived Data
 
-Derived analytical data is not automatically part of Market Data storage.
-
-### Default
-
-AnalysisWorkspace and ConsumerViews are temporary and in-memory.
-
-### Optional materialization
-
-A workflow may explicitly materialize derived data for:
-
-- long-running research,
-- reproducible experiments,
-- feature-matrix reuse,
-- model training,
-- audit and diagnostics,
-- large backtest campaigns.
-
-Such data must be stored as a separate artifact class:
-
-```text
-DerivedAnalysisDataset
-```
-
-It must retain:
-
-- source `DatasetRef`,
-- requested outputs,
-- computation identities,
-- component and implementation versions,
-- parameter fingerprints,
-- alignment policy,
-- assembly policy,
-- lineage.
-
-It must not be published as canonical Market Data.
-
----
+The execution-scoped `AnalysisWorkspace` and consumer views are in-memory.
+They are not automatically published as Market Data. Predictive and other
+research workflows may persist their own versioned feature/result artifacts,
+but the proposed generic `DerivedAnalysisDataset` materialization contract is
+not implemented. Its lineage and retention requirements remain in
+[Market Analysis Future](../../vision/MARKET_ANALYSIS_FUTURE.md).

@@ -15,11 +15,11 @@ through the same estimator protocol, plus bounded candidate selection,
 permutation importance, a single-study leaderboard, and three report panels.
 Phase 10C (Sprint 043) adds optional extra `dl` (CPU PyTorch): feedforward
 MLP on tabular rows and LSTM/GRU on fold-contained sequence windows, plus
-learning-curve and window-accounting report panels. Sprint 044 closes Phase
-10 with a read-only Predictive Research page in `apps/dashboard` (study
-picker, leaderboard sorted by baseline delta, run detail, provenance, and a
-link out to the offline HTML report) and ADR-0024, the IDEA-014 promotion
-gate. Models do not trade.
+learning-curve and window-accounting report panels. Sprint 044 added a local
+read-only catalog view and ADR-0024, the IDEA-014 promotion gate. The current
+public dashboard path uses an explicit projection release and a representative
+Predictive Research view; the older private catalog scanner is a compatibility
+path, not the public serving contract. Models do not trade.
 
 ### Research Question
 
@@ -38,9 +38,8 @@ gate. Models do not trade.
 - reviewing one run as standalone offline HTML (fold timeline, baselines, calibration,
   native vs permutation importance, selection trace, study leaderboard,
   learning curves, window accounting),
-- browsing studies and runs side by side in the dashboard's Predictive
-  Research page (Sprint 044): study picker, baseline-delta leaderboard,
-  per-fold run detail, and provenance, all read from persisted facts.
+- browsing selected, explicitly published runs and study evidence in the
+  dashboard's Research Catalog and representative Predictive Research page.
 
 ### Not Suitable For
 
@@ -158,20 +157,21 @@ Published DatasetRef
   → analyze_predictive_run (writes metrics.json from predictions; never deserializes model blobs)
   → compare_predictive_runs (optional leaderboard.json on one dataset fingerprint)
   → render_predictive_research_report (read-only HTML; optional importance/selection/leaderboard/learning_curves/window_accounting sidecars)
-  → apps/dashboard Predictive Research page (DuckDB catalog scan of the same
-      persisted datasets/runs directory tree; study picker → leaderboard →
-      run detail → link to the offline HTML report)
+  → one-shot public projection generator (explicit allowlist and release)
+  → apps/dashboard Research Catalog and representative Predictive Research view
 ```
 
 CLIs: `scripts/predictive_research/build_predictive_dataset.py`,
 `run_predictive_research.py`, `analyze_predictive_run.py`,
 `compare_predictive_runs.py`, `render_predictive_report.py`.
 
-Dashboard: `apps/dashboard` (`pages/6_Predictive_Research.py`, Sprint 044) reads
-the same `manifest.json` / `metrics.json` / `predictions.parquet` facts through
-a read-only catalog scan and its own DTOs — it never imports
-`trading_framework.research` or an ML library (ADR-0022; enforced by
-`tests/unit/test_apps_boundaries.py`).
+Dashboard: `apps/dashboard/pages/10_Predictive_Research.py` consumes the
+selected, sanitized public projection. The private artifact scan runs only in
+the one-shot publication generator; serving pages do not scan private run
+directories or import `trading_framework.research` or ML libraries (ADR-0022;
+enforced by `tests/unit/test_apps_boundaries.py`). The older direct-scan
+compatibility layer is not the public publication path. See the
+[dashboard application](../../modules/DASHBOARD_APPLICATION.md).
 
 ### Fold roles
 

@@ -28,6 +28,15 @@ Open an ID to read the full entry:
 
 This register records known implementation debt that has been consciously accepted.
 
+Review of 2026-09-12: **26 accepted**, **6 repaid** and **2 obsolete
+unincurred shortcuts**. The index above retains all IDs for traceability.
+Repaid: [TD-001](registries/td-001-004.md#td-001),
+[TD-017–020](registries/td-017-020.md) and
+[TD-021](registries/td-021-024.md#td-021). Obsolete:
+[TD-005](registries/td-005-008.md#td-005) and
+[TD-007](registries/td-005-008.md#td-007). A delivered optimization does not
+repay a different still-public path; see TD-011's columnar-path note.
+
 Technical debt is different from:
 
 - an unresolved architectural problem,
@@ -120,7 +129,7 @@ Owner:
 
 Each technical debt title below links directly to its full entry. Stable ID headings remain here for existing links.
 
-# 5. Accepted Technical Debt
+# 5. Debt Entries and Dispositions
 
 Read one item by ID. Full entries are grouped below; stable ID headings remain here for existing links.
 

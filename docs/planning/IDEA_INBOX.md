@@ -24,6 +24,12 @@ Open an ID to read the full entry:
 
 This file stores unvalidated ideas for the Trading Research Framework.
 
+Review of 2026-09-12: [IDEA-005](registries/idea-market-data.md#idea-005)
+and [IDEA-007](registries/idea-market-data.md#idea-007) are implemented;
+[IDEA-024](registries/idea-infrastructure-and-interfaces.md#idea-024) is
+partially implemented. Their entries remain indexed for provenance, not as
+unstarted work. The other 23 ideas remain proposed, deferred or gated.
+
 An idea is not:
 
 - an approved feature,
@@ -53,6 +59,9 @@ Before promotion, an idea should be assessed for:
 INBOX
 UNDER_REVIEW
 PROMOTED
+PARTIALLY_IMPLEMENTED
+IMPLEMENTED
+GATED
 DEFERRED
 REJECTED
 ```

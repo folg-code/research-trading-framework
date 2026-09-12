@@ -55,8 +55,8 @@ tests/unit/application/model_evaluation/
 
 ### Deep references
 
-- `SYSTEM_OVERVIEW.md`
-- [Model authoring DSL](../modules/MODEL_AUTHORING.md)
-- model evaluation ADRs
+- [System Overview](../system/SYSTEM_OVERVIEW.md)
+- [Model authoring DSL](MODEL_AUTHORING.md)
+- [ADR-0006 declarative models](../../adr/ADR-0006-declarative-market-and-signal-models.md)
 
 ---

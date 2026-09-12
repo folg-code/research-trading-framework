@@ -18,6 +18,6 @@ Component output names and identities must be stable enough for model requests a
 
 - [Core contract](ANALYSIS_WORKSPACE_CORE.md): dataset/result identity, public outputs, workspace ownership, cache and result store.
 - [Views and lifecycle](ANALYSIS_VIEWS_AND_LIFECYCLE.md): consumer frames, pruning, memory and derived-data persistence.
-- [Data Representation Policy](DATA_REPRESENTATION_POLICY.md): canonical carriers.
+- [Data Representation Policy](DATA_REPRESENTATION_POLICY.md): accepted target carriers and current implementation status.
 - [Time and Alignment](TIME_AND_ALIGNMENT.md): temporal availability and joins.
 - [ADR-MA-007](../../adr/ADR-MA-007-analysis-workspace-and-derived-data.md): accepted decision rationale.

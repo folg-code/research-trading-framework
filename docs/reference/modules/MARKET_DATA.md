@@ -56,8 +56,9 @@ tests/integration/market_data/
 
 ### Deep references
 
-- `SYSTEM_OVERVIEW.md`
-- market-data module reference
-- storage ADRs
+- [System Overview](../system/SYSTEM_OVERVIEW.md)
+- [Market Data workflow](../workflows/MARKET_DATA.md)
+- [ADR-0007 dataset lifecycle](../../adr/ADR-0007-dataset-lifecycle-and-publication.md)
+- [ADR-0018 continuous futures](../../adr/ADR-0018-continuous-futures-materialization.md)
 
 ---

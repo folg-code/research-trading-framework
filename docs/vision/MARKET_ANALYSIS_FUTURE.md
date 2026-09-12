@@ -14,6 +14,29 @@ Partial higher-timeframe input should be available only through an explicit intr
 
 If resampled data is published as a reusable dataset, its lineage should identify source dataset and version, source/target timeframe, boundary rules, calendar version, resampling policy and checksum where appropriate. The exact user-workspace layout is not set by this proposal; use [User Workspace](../reference/system/USER_WORKSPACE.md) for the current layout.
 
+## Workspace lifecycle and column pruning
+
+The current executor keeps required analytical results for one plan. A future
+dependency-liveness policy could release an intermediate after its consumers
+finish, provided it is neither a requested final output nor retained by a
+declared cache policy. Dependency-consumer counts, view requests and lineage
+must make that choice explicit. General column pruning should remove
+unneeded physical columns without changing result identity, availability or
+reproducibility. These are optimizations to design and test, not current
+workspace behavior.
+
+A generic persisted `DerivedAnalysisDataset` is also future work. If research
+reuse justifies it, the artifact would identify its source `DatasetRef`,
+requested outputs, computation and implementation identities, parameters,
+alignment and assembly policy, plus lineage and retention. It must remain
+separate from canonical Market Data rather than silently publishing analysis
+outputs as market facts.
+
 ## Richer component request
 
 A future explicit request shape may name source, computation and evaluation timeframes plus resampling/alignment policies. Today's `ComponentRequest` and `ResolvedComponentRequest` are different, narrower contracts; see [ADR-MA-012](../adr/ADR-MA-012-batch-multitimeframe-computation-with-polars.md). Decorator syntax, if offered, must produce an explicit serializable request and must not hide dependencies, warm-up, availability or lineage.
+
+Future computation identity may also need explicit resampling policy,
+alignment policy and calendar version alongside component identity, parameters,
+instrument, source dataset and timeframes. The exact key must be justified by
+current consumers and cannot be inferred from the older 11-field proposal.

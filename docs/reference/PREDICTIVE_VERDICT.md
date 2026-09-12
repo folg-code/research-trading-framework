@@ -182,7 +182,7 @@ result).
 `min_minority_class_share=0.10` already exist in
 `PredictiveReportQualityRules` (`research/reporting/predictive/quality.py`)
 and its non-importing dashboard-local mirror
-(`apps/dashboard/.../catalog/predictive_quality.py`, ADR-0022). The verdict
+(`apps/dashboard/src/dashboard_app/catalog/predictive_quality.py`, ADR-0022). The verdict
 rule set declares a **third**, independent copy, and `verdict.py` never
 imports `research/reporting/` — a report-warning threshold changing must
 not silently change a persisted verdict. The same reasoning extends to one

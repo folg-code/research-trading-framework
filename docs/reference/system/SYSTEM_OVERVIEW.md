@@ -58,11 +58,17 @@ The built execution slice is a provider-neutral dry-run with simulated orders, r
 
 ## 10. Shared Domain Contracts
 
-[Domain Model](DOMAIN_MODEL.md) defines ownership; [Architecture Principles](ARCHITECTURE_PRINCIPLES.md) defines cross-cutting invariants; [Time and Alignment](TIME_AND_ALIGNMENT.md) defines clock and availability semantics; [Data Representation Policy](DATA_REPRESENTATION_POLICY.md) defines canonical carriers. [Analysis Workspace and Derived Data](ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md) provides the detailed execution-scoped analytical contract.
+[Domain Model](DOMAIN_MODEL.md) defines ownership; [Architecture Principles](ARCHITECTURE_PRINCIPLES.md) defines cross-cutting invariants; [Time and Alignment](TIME_AND_ALIGNMENT.md) defines clock and availability semantics; [Data Representation Policy](DATA_REPRESENTATION_POLICY.md) distinguishes accepted target carriers from the current implementation. [Analysis Workspace and Derived Data](ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md) provides the detailed execution-scoped analytical contract.
 
 ## 11. Technology Overview
 
-The core uses Python, Parquet-backed local datasets and a Polars-oriented analytical path. The dashboard is Streamlit with DuckDB-backed read-only queries. Technology belongs behind explicit adapters or consumer boundaries; dependency direction is more important than any particular library.
+The core uses Python and Parquet-backed local datasets. Polars serves current
+resampling/alignment and selected columnar reads; Market Analysis components
+still use `AnalysisDataView` and NumPy adapters rather than an implemented
+`MarketFrame` bulk engine. The Streamlit dashboard serves sanitized public
+projection releases and has a separate read-only query compatibility layer.
+Technology belongs behind explicit adapters or consumer boundaries; dependency
+direction is more important than any particular library.
 
 ## 12. Development Directions
 

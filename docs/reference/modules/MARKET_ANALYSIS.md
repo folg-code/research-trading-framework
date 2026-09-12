@@ -52,8 +52,8 @@ tests/integration/market_analysis/
 
 ### Deep references
 
-- `SYSTEM_OVERVIEW.md`
-- Market Analysis module reference
-- Market Analysis ADRs
+- [System Overview](../system/SYSTEM_OVERVIEW.md)
+- [Market Analysis implementation](MARKET_ANALYSIS_MODULE.md) and [architecture](../system/MARKET_ANALYSIS_ARCHITECTURE.md)
+- [Component catalog](ANALYSIS_COMPONENT_CATALOG.md) and [Market Analysis ADRs](../../adr/README.md)
 
 ---

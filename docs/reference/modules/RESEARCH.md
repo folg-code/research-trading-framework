@@ -53,7 +53,7 @@ Market Model + Signal Model + Strategy Definition
   → simulation
   → persisted trades and equity
   → read-only analytics
-  → dashboard
+  → explicit public projection for dashboard presentation
 ```
 
 Robustness parameter / walk-forward / stress cells that share market and signal definitions reuse
@@ -232,10 +232,10 @@ tests/integration/research/
 
 ### Deep references
 
-- `../workflows/RESEARCH_METHODOLOGIES.md`
-- `SYSTEM_OVERVIEW.md`
-- `../modules/PREDICTIVE_PROMOTION.md` — promoted-artifact schema, store layout, both
+- [Research Methodologies](../workflows/RESEARCH_METHODOLOGIES.md)
+- [System Overview](../system/SYSTEM_OVERVIEW.md)
+- [Predictive Promotion](PREDICTIVE_PROMOTION.md) — promoted-artifact schema, store layout, both
   guards, the family restriction, and the two parity comparisons (Phase 14A)
-- research ADRs (Predictive Research: ADR-0023; promotion: ADR-0029)
+- [ADR-0023 Predictive Research](../../adr/ADR-0023-predictive-research-boundary.md) and [ADR-0029 promotion](../../adr/ADR-0029-promoted-predictive-artifact.md)
 
 ---

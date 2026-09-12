@@ -11,7 +11,7 @@ The pre-review inventory found 247 files in `docs/`, including 83 documents
 over 250 nonempty lines. The final layout has 338 Markdown files because
 mixed documents and large registries were split into focused pages. Every
 file moved from an old path has an entry in [path-map.csv](path-map.csv):
-132 moves, mostly completed sprint evidence into `docs/archive/phases/`.
+133 moves, mostly completed sprint evidence into `docs/archive/phases/`.
 
 ## Classification and decisions
 
@@ -40,7 +40,7 @@ reading-cost guide, not as a hard limit.
 
 ## Validation
 
-- `python scratch/validate_docs.py`: 1016 local Markdown links checked across
+- `python scratch/validate_docs.py`: 1113 local Markdown links checked across
   338 files; no missing files or anchors. The script is a local, ignored
   migration helper, not a new project dependency.
 - The skill-prescribed `node .ai-toolkit/bin/devteam.mjs validate` could not
@@ -58,3 +58,9 @@ rebased so archived records remain navigable from their new locations.
 After review, the three planning registers received a compact ID index at
 the top and direct links on each entry title. The detailed entries remain in
 `docs/planning/registries/`; all 84 index IDs match a detailed anchor.
+
+A subsequent [status and reference review](STATUS_AND_REFERENCE_REVIEW.md)
+reclassified implemented/obsolete TD and Idea entries, checked Vision's
+future-only boundary and mapped all 60 numbered completed sprint records to
+current Reference or planning entry points in
+[completed-sprint-coverage.csv](completed-sprint-coverage.csv).

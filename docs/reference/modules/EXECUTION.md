@@ -6,6 +6,11 @@ This page records the existing packages and entry points for execution. Start wi
 
 ### Responsibilities
 
+The delivered mode is the BTC futures simulated-order dry-run. The broader
+replay, paper, real-broker and multi-account modes remain in
+[future runtime direction](../../vision/EXECUTION_RUNTIME_FUTURE.md); the
+package map below must not be read as support for all modes.
+
 | Responsibility | Package |
 |---|---|
 | Execution modes and safety contracts | `execution/` |
@@ -54,8 +59,9 @@ tests/integration/live_data/
 
 ### Deep references
 
-- `SYSTEM_OVERVIEW.md`
-- execution runbooks
-- execution ADRs
+- [System Overview](../system/SYSTEM_OVERVIEW.md)
+- [Strategy Execution workflow](../workflows/STRATEGY_EXECUTION.md)
+- [Runbooks](../runbooks/README.md)
+- [ADR-0021 dry-run execution](../../adr/ADR-0021-live-dry-run-execution-demo.md)
 
 ---

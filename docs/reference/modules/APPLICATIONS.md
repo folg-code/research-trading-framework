@@ -37,7 +37,7 @@ implement external ports consumed through these use cases.
 | Live dashboard state | execution read-model adapters |
 | Demo generation | `scripts/demo/` |
 | Live dashboard delivery | `scripts/portfolio_live/` (aiohttp); `apps/dashboard` Live Paper page (status GET) |
-| Predictive Research dashboard delivery | `apps/dashboard/src/dashboard_app/publication/` plus `views/study.py`; one projection-backed representative view in `pages/6_Predictive_Research.py` (Sprint 061) |
+| Predictive Research dashboard delivery | `apps/dashboard/src/dashboard_app/publication/` plus `views/study.py`; one projection-backed representative view in `pages/10_Predictive_Research.py` (Sprint 061) |
 
 ### Boundary
 

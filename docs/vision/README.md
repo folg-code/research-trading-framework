@@ -8,8 +8,9 @@ This directory is for product and architecture directions **not yet delivered in
 | Local-first research application and public/private boundaries | [Research Application Product Vision](RESEARCH_APPLICATION_PRODUCT_VISION.md) |
 | Calendar, holiday and broader session model | [Time Model Future](TIME_MODEL_FUTURE.md) |
 | Historical synchronization, quotes/options, live recording and replay | [Market Data Future](MARKET_DATA_FUTURE.md) |
-| State taxonomy, intrabar contract and expanded component requests | [Market Analysis Future](MARKET_ANALYSIS_FUTURE.md) |
+| State taxonomy, intrabar contract, richer requests and workspace lifecycle | [Market Analysis Future](MARKET_ANALYSIS_FUTURE.md) |
 | Bounded search and broader research-space analytics | [Research Space and Analytics](RESEARCH_SPACE_AND_ANALYTICS.md) |
+| Multi-strategy portfolio research and allocation | [Portfolio Research Future](PORTFOLIO_RESEARCH_FUTURE.md) |
 | Replay, paper/live modes and broker/reconciliation targets | [Execution Runtime Future](EXECUTION_RUNTIME_FUTURE.md) |
 | Event-system expansion | [Event System Future](EVENT_SYSTEM_FUTURE.md) |
 | Component promotion lifecycle | [Component Promotion Lifecycle](COMPONENT_PROMOTION_LIFECYCLE.md) |

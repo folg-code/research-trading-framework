@@ -383,6 +383,12 @@ Bullish Sweep Signal Model
 
 Each unique deterministic dependency is calculated once per computation identity.
 
+For persisted occurrence and outcome materialization, the current hot path
+builds reference-price lookup data once per materialization, joins occurrence
+and observation prices through Polars, and shares NumPy OHLCV arrays across
+forward-outcome horizons (Sprint 026, TD-017). This optimization does not
+change the research identities or the dependency-planning contract.
+
 The engine must not recalculate shared Market Analysis components independently for every:
 
 - model,

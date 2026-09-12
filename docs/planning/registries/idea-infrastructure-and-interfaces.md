@@ -8,10 +8,14 @@ Return to the [Idea Inbox index](../IDEA_INBOX.md).
 ## IDEA-024 — Web Research Dashboard
 
 ```text
-Status: DEFERRED
+Status: PARTIALLY_IMPLEMENTED
 Category: Interface
 Added: 2026-06-19
 ```
+
+### Review (2026-09-12)
+
+The read-only Streamlit dashboard now publishes a sanitized research catalog, workflow evidence, selected studies and reports. It does not provide a complete local data/run exploration workbench or unrestricted dataset browsing. See [Dashboard Application](../../reference/modules/DASHBOARD_APPLICATION.md) and the remaining [Research Application vision](../../vision/RESEARCH_APPLICATION_PRODUCT_VISION.md).
 
 ### Summary
 
@@ -50,6 +54,10 @@ Status: DEFERRED
 Category: Interface
 Added: 2026-06-19
 ```
+
+### Review (2026-09-12)
+
+The narrow read-only dry-run status HTTP endpoint is an operational view, not a general local Research API. This idea remains deferred; see [Strategy Execution](../../reference/workflows/STRATEGY_EXECUTION.md).
 
 ### Summary
 
