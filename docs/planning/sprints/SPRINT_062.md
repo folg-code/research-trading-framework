@@ -16,8 +16,8 @@ Sources:
 - `docs/reference/runbooks/LIVE_PAPER_PIPELINE_INSPECTION.md`
 - `apps/dashboard/docs/RUNBOOK.md`
 - `apps/dashboard/src/dashboard_app/datasources/live_paper_http.py`
-- `docs/planning/sprints/SPRINT_024.md`
-- `docs/planning/sprints/SPRINT_025.md`
+- `docs/archive/phases/phase-08-dry-run-execution/SPRINT_024.md`
+- `docs/archive/phases/phase-08-dry-run-execution/SPRINT_025.md`
 
 Architecture triage: required. This is a deployment/runtime adaptation across
 Execution, Infrastructure and Dashboard. It must reuse provider-independent

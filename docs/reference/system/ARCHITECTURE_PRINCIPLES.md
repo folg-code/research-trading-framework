@@ -1,13 +1,22 @@
 # Architecture Principles — As-Built Reference
 
+Use this detailed reference when a task changes an architectural boundary.
+For orientation, start with the [system overview](SYSTEM_OVERVIEW.md) and
+[module map](MODULE_MAP.md). This document stays together because the
+principles jointly define dependency and ownership rules.
+
+Jump to [core philosophy](#core-philosophy) or
+[architectural principles](#architectural-principles). Within those sections,
+the headings let you read only the principle relevant to the change.
+
 > Extracted from the former `docs/reference/system/ARCHITECTURE_FOUNDATIONS.md`
 > ("Core Philosophy", "Architectural Principles") by Sprint 055 T007
 > (execute `docs/reference/` target IA), per the maintainer-approved
 > `system/` re-cut in
-> `docs/planning/sprints/SPRINT_055_T004_DECISIONS.md` §1. That file's own
+> `docs/archive/phases/cross-cutting/SPRINT_055_T004_DECISIONS.md` §1. That file's own
 > content originated in `docs/vision/ARCHITECTURE_FOUNDATIONS.md`, moved by
 > Sprint 054 T004 (vision reclassification and reference layering) — see
-> `docs/planning/sprints/SPRINT_054_T001_ARCHITECTURE_FOUNDATIONS_CLASSIFICATION.md`
+> `docs/archive/phases/cross-cutting/SPRINT_054_T001_ARCHITECTURE_FOUNDATIONS_CLASSIFICATION.md`
 > for the original section-by-section classification and evidence. Content
 > is reproduced verbatim from that move — this extraction does not rewrite
 > any architectural decision, it only regroups by subject.

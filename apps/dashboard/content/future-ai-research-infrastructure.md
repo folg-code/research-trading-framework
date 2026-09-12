@@ -4,7 +4,7 @@ title: AI Research Infrastructure
 status: FUTURE_IDEAS
 updated: 2026-09-10
 order: 13
-links: docs/planning/sprints/SPRINT_061.md, docs/vision/PRODUCT_DIRECTION.md
+links: docs/archive/phases/phase-16-research-workbench/SPRINT_061.md, docs/vision/PRODUCT_DIRECTION.md
 ---
 
 This is a proposed direction, not implemented capability or approved

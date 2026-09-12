@@ -5,13 +5,13 @@
 > User Space", "Accepted Clarifications", "Final Architectural Statement")
 > by Sprint 055 T007 (execute `docs/reference/` target IA), per the
 > maintainer-approved `system/` re-cut in
-> `docs/planning/sprints/SPRINT_055_T004_DECISIONS.md` §1. That file's own
+> `docs/archive/phases/cross-cutting/SPRINT_055_T004_DECISIONS.md` §1. That file's own
 > content originated in `docs/vision/ARCHITECTURE_FOUNDATIONS.md`, moved by
 > Sprint 054 T004 (vision reclassification and reference layering). The
 > sections below were classified **CURRENT** (or are the current-behavior
 > portion of a section that was classified **MIXED**) against the codebase
 > as of 2026-09-03. See
-> `docs/planning/sprints/SPRINT_054_T001_ARCHITECTURE_FOUNDATIONS_CLASSIFICATION.md`
+> `docs/archive/phases/cross-cutting/SPRINT_054_T001_ARCHITECTURE_FOUNDATIONS_CLASSIFICATION.md`
 > for the full section-by-section classification, evidence, and code
 > references. Content is reproduced verbatim from that move — this
 > extraction does not rewrite any architectural decision, it only regroups
@@ -27,7 +27,7 @@
 > former §5.5, and the Replay/Live Execution runtime modes in former §6.5)
 > was dissolved by Sprint 055 T008 into
 > [`docs/vision/COMPONENT_PROMOTION_LIFECYCLE.md`](../../vision/COMPONENT_PROMOTION_LIFECYCLE.md)
-> (promotion lifecycle), `docs/historical/SUPERSEDED_LAYOUT_PROPOSALS.md`
+> (promotion lifecycle), `docs/archive/superseded/SUPERSEDED_LAYOUT_PROPOSALS.md`
 > (Composition Over Inheritance, pending a Cursor-side move), and
 > [`docs/vision/EXECUTION_RUNTIME_FUTURE.md`](../../vision/EXECUTION_RUNTIME_FUTURE.md)
 > (runtime modes).

@@ -6,7 +6,7 @@
 > the former `docs/reference/system/MULTITIMEFRAME_MARKET_MODEL.md`
 > ("Multitimeframe Architecture", "Resampling", "Temporal Alignment and
 > Look-Ahead Protection") by Sprint 055 T007, per the maintainer-approved
-> merge in `docs/planning/sprints/SPRINT_055_T004_DECISIONS.md` §1. Per
+> merge in `docs/archive/phases/cross-cutting/SPRINT_055_T004_DECISIONS.md` §1. Per
 > T001's dedup policy, the longer/more-complete version of each duplicated
 > section (both files independently state `observed_at`/`available_at`
 > semantics) is kept verbatim as the body, with genuinely unique material

@@ -5,7 +5,7 @@
 > `docs/reference/system/MULTITIMEFRAME_MARKET_MODEL.md` ("Market Analysis
 > Responsibilities", "Market Analysis Categories", "Features", "Structures")
 > by Sprint 055 T007, per the maintainer-approved merge in
-> `docs/planning/sprints/SPRINT_055_T004_DECISIONS.md` §1. Per T001's dedup
+> `docs/archive/phases/cross-cutting/SPRINT_055_T004_DECISIONS.md` §1. Per T001's dedup
 > policy, the longer/more-complete version of each duplicated section is kept
 > verbatim as the body, with genuinely unique material from the other copy
 > appended — no paraphrasing. Both source files originated in `docs/vision/`

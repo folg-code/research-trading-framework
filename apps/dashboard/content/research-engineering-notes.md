@@ -4,7 +4,7 @@ title: Research & Engineering Notes
 status: AS_BUILT
 updated: 2026-09-10
 order: 15
-links: docs/adr/ADR-0034-portfolio-publication-boundary.md, docs/reference/BTC_SIGNAL_QUALITY_STUDY.md, docs/reference/BTC_PREDICTIVE_STUDY.md, docs/adr/ADR-0021-live-dry-run-execution-demo.md
+links: docs/adr/ADR-0034-portfolio-publication-boundary.md, docs/reference/examples/BTC_SIGNAL_QUALITY_STUDY.md, docs/reference/examples/BTC_PREDICTIVE_STUDY.md, docs/adr/ADR-0021-live-dry-run-execution-demo.md
 ---
 
 These notes record meaningful changes in method, architecture and direction.

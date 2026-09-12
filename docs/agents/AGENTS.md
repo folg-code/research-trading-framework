@@ -2,14 +2,14 @@
 
 ## Required Reading
 
-Before modifying the Market Data Module, read:
-
-1. `docs/vision/PRODUCT_DIRECTION.md`
-2. `docs/vision/MARKET_DATA_FUTURE.md`
-3. `docs/reference/workflows/SIGNAL_RESEARCH.md`
-4. `docs/reference/workflows/MARKET_DATA.md`
-5. relevant contracts and tests
-6. relevant ADRs
+Follow the repository reading route in `AGENTS.md`. For Market Data changes,
+start with [`MARKET_DATA.md`](../reference/modules/MARKET_DATA.md) and the
+[`Market Data workflow`](../reference/workflows/MARKET_DATA.md), then inspect
+the relevant contracts, tests and ADRs. Read
+[`SIGNAL_RESEARCH.md`](../reference/workflows/SIGNAL_RESEARCH.md) when the
+change affects Signal Research. Read
+[`MARKET_DATA_FUTURE.md`](../vision/MARKET_DATA_FUTURE.md) only when the task
+concerns a future direction or a contract change.
 
 Do not implement the task only from the issue description when repository contracts already exist.
 

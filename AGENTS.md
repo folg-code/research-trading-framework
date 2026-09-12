@@ -2,35 +2,35 @@
 
 Read this file before modifying the repository.
 
-## Required Reading Order
+## Context Routing
 
-This is the single authoritative reading order for agents (supersedes any
-other list, including the one formerly in `docs/vision/WORKFLOWS_AI_ADR.md`
-§6.2, now dissolved — see `docs/vision/README.md`).
+Read this file first. Then start from the active task, PRD or sprint plan and
+follow its links. If no active artifact identifies the context, use the short
+entry points below. Read only the affected module, workflow, ADR and source
+contracts; do not load the whole roadmap or vision for an ordinary code change.
 
-1. `AGENTS.md` (this file)
-2. `docs/planning/CURRENT_STATUS.md`
-3. `docs/planning/ROADMAP.md`
-4. `docs/vision/PRODUCT_DIRECTION.md`
-5. `docs/vision/MARKET_ANALYSIS_FUTURE.md`, `docs/vision/MARKET_DATA_FUTURE.md`,
-   `docs/vision/TIME_MODEL_FUTURE.md` (target architecture, as relevant to the task)
-6. `docs/reference/workflows/SIGNAL_RESEARCH.md`,
-   `docs/reference/workflows/STRATEGY_RESEARCH.md`,
-   `docs/reference/workflows/STRATEGY_EXECUTION.md` (workflow architecture:
-   Signal Research, Strategy Research, Strategy Execution) — when the task
-   touches those workflows
-7. relevant docs under `docs/reference/` and `docs/agents/`
-8. relevant ADRs under `docs/adr/`
-9. existing contracts and tests in `src/` and `tests/`
+| Area | Entry point |
+|---|---|
+| Product | `docs/vision/README.md` for future direction; `docs/product/` for PRDs |
+| Architecture | `docs/reference/system/SYSTEM_OVERVIEW.md` |
+| Modules | `docs/reference/system/MODULE_MAP.md` → affected page in `docs/reference/modules/` |
+| Current work | `docs/planning/CURRENT_STATUS.md` → active sprint |
+| Planning | `docs/planning/ROADMAP.md` and `docs/planning/README.md` |
+| Engineering | `docs/onboarding/DEVELOPER_GUIDE.md` |
+| Operations | `docs/reference/runbooks/README.md` |
+| Reference | `docs/reference/README.md` |
+| User documentation | `README.md` and `docs/reference/modules/` authoring guides |
 
-Do not implement from an issue description alone when repository contracts already exist.
+Before implementing, inspect existing contracts and tests in `src/` and
+`tests/`; an issue description alone is not a contract. For architecture or
+contract changes, read the affected ADRs and relevant future-direction docs.
 
 ## Documentation
 
 Single index: **`docs/README.md`** (taxonomy, paths, folder layout).
 
 **Humans:** follow reading paths in `docs/README.md`.  
-**Agents:** required reading order below + deep references as needed.
+**Agents:** use the task and context-routing table above; open deep references only as needed.
 
 After each merged wave: update `docs/reference/system/MODULE_MAP.md` and `docs/reference/system/SYSTEM_OVERVIEW.md` if paths changed. After contract changes: update `docs/reference/` and `docs/vision/` as needed in the same PR.
 
@@ -73,7 +73,7 @@ Report failed checks. Do not hide or disable them.
 
 ## Planning
 
-- sprint tasks: `docs/planning/sprints/`
+- current sprint tasks: `docs/planning/sprints/`; completed records: `docs/archive/phases/`
 - problems: `docs/planning/PROBLEM_REGISTRY.md`
 - ideas: `docs/planning/IDEA_INBOX.md`
 - technical debt: `docs/planning/TECHNICAL_DEBT.md`
@@ -90,11 +90,12 @@ Report failed checks. Do not hide or disable them.
 - when the sprint is complete: one final PR from `sprint/<sprint-slug>` to `main`
 - the agent implements, pushes and opens the PR, then **stops before merge**
 
-See `.cursor/rules/sprint-git-workflow.mdc`.
+The branch/PR path above is the project-level delivery rule.
 
 ## Architecture Control
 
-Before cross-module or contract-changing work, read `.cursor/rules/ARCHITECTURE_CONTROL.md`.
+Before cross-module or contract-changing work, read the relevant
+`docs/reference/system/DEPENDENCY_RULES.md`, domain model and ADRs.
 
 Every task PR must preserve domain ownership, dependency direction and the `src/` / `user_data/` boundary.
 

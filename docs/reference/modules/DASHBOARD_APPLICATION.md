@@ -180,7 +180,7 @@ The first real consumer of the ADR-0034 publication boundary. Extends
 `dashboard_app.publication.sanitizers` with three additive roles
 (`predictive_run_metrics`, `predictive_threshold_sensitivity`,
 `strategy_research_run_summary`), each a `frozenset` allowlist frozen by
-`docs/planning/sprints/SPRINT_060_T001_FIELD_INVENTORY.md`.
+`docs/archive/phases/phase-16-research-workbench/SPRINT_060_T001_FIELD_INVENTORY.md`.
 
 - `scripts/dashboard/generate_btc_signal_quality_projection.py` reads the
   real Phase 16A–16C artifacts and writes the sanitized

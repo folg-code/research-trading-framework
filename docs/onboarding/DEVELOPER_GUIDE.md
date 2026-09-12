@@ -2,7 +2,7 @@
 
 Day-one setup for **developers joining the repo**.
 
-- **Role-based overview** (recruiter, data engineer, software engineer, …): **[README § Start here](../../README.md#start-here--pick-your-path)**
+- **System reading path** (developer or agent): **[Documentation § Learn the system](../README.md#learn-the-system)**
 - **Documentation index:** [docs/README.md](../README.md)
 - **AI agents:** `AGENTS.md` at the repository root
 
@@ -138,7 +138,7 @@ See [scripts/demo/README.md](../../scripts/demo/README.md).
 
 ## What to read next
 
-Depends on your focus — the README [Start here](../../README.md#start-here--pick-your-path) table links to the right depth.
+Depends on your focus — the [documentation reading path](../README.md#learn-the-system) links to the right depth.
 
 | Focus | Read next |
 |-------|-----------|

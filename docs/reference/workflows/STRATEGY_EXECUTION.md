@@ -3,13 +3,13 @@
 > Extracted from the former `docs/reference/system/WORKFLOWS_ARCHITECTURE.md`
 > ("Strategy Execution" section) by Sprint 055 T007, per the maintainer-approved
 > reversal of Sprint 054 T007's rejection ("group runbooks, don't merge-write")
-> in `docs/planning/sprints/SPRINT_055_T004_DECISIONS.md` §1 — this is a
+> in `docs/archive/phases/cross-cutting/SPRINT_055_T004_DECISIONS.md` §1 — this is a
 > section extraction with no new prose, not authoring. That source file's own
 > content originated in `docs/vision/WORKFLOWS_AI_ADR.md`, moved by Sprint 054
 > T006c. The section was classified **CURRENT** (or is the current-behavior
 > portion of a section classified **MIXED**) against the codebase as of
 > 2026-09-03. See
-> `docs/planning/sprints/SPRINT_054_T003b_WORKFLOWS_AI_ADR_ARCHITECTURE_CLASSIFICATION.md`
+> `docs/archive/phases/cross-cutting/SPRINT_054_T003b_WORKFLOWS_AI_ADR_ARCHITECTURE_CLASSIFICATION.md`
 > for the full section-by-section classification, evidence, and code
 > references.
 >
@@ -102,7 +102,7 @@ It does not define Signal Research or Strategy Research.
 > `execution/broker_sim/paper_broker.py` and `execution/models/{orders,positions}.py`.
 > "Broker Adapter" in the sense of a pluggable real-broker interface does not
 > exist — see §5.11 (Broker Abstraction, classified FUTURE) in
-> [`docs/vision/WORKFLOWS_AI_ADR.md`](../../vision/WORKFLOWS_AI_ADR.md).
+> [`docs/vision/EXECUTION_RUNTIME_FUTURE.md`](../../vision/EXECUTION_RUNTIME_FUTURE.md).
 
 ---
 
@@ -128,7 +128,7 @@ Internal state must be reconcilable with broker state.
 > "Reconcilable with broker state" has no code counterpart today, since no
 > external broker exists to reconcile against — see §5.12 (Reconciliation,
 > classified FUTURE) in
-> [`docs/vision/WORKFLOWS_AI_ADR.md`](../../vision/WORKFLOWS_AI_ADR.md).
+> [`docs/vision/EXECUTION_RUNTIME_FUTURE.md`](../../vision/EXECUTION_RUNTIME_FUTURE.md).
 
 ---
 
@@ -186,4 +186,4 @@ They are not Research Datasets.
 > `execution/models/events.py`), structurally separate from
 > `research/datasets/`. "Reconciliation results" cannot be persisted since
 > reconciliation itself does not exist yet — see §5.12 in
-> [`docs/vision/WORKFLOWS_AI_ADR.md`](../../vision/WORKFLOWS_AI_ADR.md).
+> [`docs/vision/EXECUTION_RUNTIME_FUTURE.md`](../../vision/EXECUTION_RUNTIME_FUTURE.md).

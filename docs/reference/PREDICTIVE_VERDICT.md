@@ -284,7 +284,7 @@ Re-evaluation determinism was checked directly: the ridge run's
 byte-for-byte identical to the first write.
 
 **These verdicts change nothing about Sprint 052's own conclusions**, which
-stand exactly as written in `docs/reference/BTC_PREDICTIVE_STUDY.md` — cited
+stand exactly as written in `docs/reference/examples/BTC_PREDICTIVE_STUDY.md` — cited
 here, never amended. A verdict is a second, coarser, mechanical read of the
 same persisted artifacts, reproducing by rule what `BTC_PREDICTIVE_STUDY.md`
 §5 already reported by hand; it discovers nothing new about that study, and
@@ -316,9 +316,9 @@ without a new or amending ADR (ADR-0032 Follow-up).
 
 - `docs/adr/ADR-0032-predictive-run-verdict-artifact.md` — the binding
   contract this document restates.
-- `docs/planning/sprints/SPRINT_057.md`, `S057_WAVE0_DECISIONS.md` — the
+- `docs/archive/phases/phase-16-research-workbench/SPRINT_057.md`, `S057_WAVE0_DECISIONS.md` — the
   sprint plan, findings, and Wave 0 decisions (D-S057-01 through -12).
-- `docs/reference/BTC_PREDICTIVE_STUDY.md` — the Sprint 052 study the
+- `docs/reference/examples/BTC_PREDICTIVE_STUDY.md` — the Sprint 052 study the
   worked example applies its rule set to, retrospectively; cited, never
   amended.
 - `src/trading_framework/research/predictive/verdict.py`,

@@ -10,7 +10,7 @@ Full detail for `ROADMAP.md` §13G — this is the LIVE, canonically-updated loc
 phase; `ROADMAP.md` carries only a short pointer stub under the same section number.
 
 **This file is expected to keep changing** as the phase progresses (Wave 0 decisions, sprint
-openings, status flips). Unlike `docs/planning/ROADMAP_COMPLETED_PHASES.md` — which is
+openings, status flips). Unlike `docs/archive/planning/ROADMAP_COMPLETED_PHASES.md` — which is
 frozen history — edits to this phase's detail happen **HERE**, not by re-inflating the
 `ROADMAP.md` stub.
 
@@ -34,7 +34,7 @@ every fold and pooled, clearing `S044_GATE.md` §1.4's strict bar; the
 REGRESSION pass (`sklearn.ridge`, and its triggered `lightgbm.regressor`
 tree pass) does not. **§13F's Q5 dependency is CLOSED by the binary pass**
 (`PHASE_14_PREDICTIVE_PROMOTION.md` §13F, updated 2026-09-08) — see
-`docs/reference/BTC_PREDICTIVE_STUDY.md` for the full write-up. **Phase 15
+`docs/reference/examples/BTC_PREDICTIVE_STUDY.md` for the full write-up. **Phase 15
 as a whole is now COMPLETE** — the real-data predictive study has run and
 its verdict is written down, positive and negative parts both.
 **Product source:** `docs/product/PRD-predictive-research-catalog-expansion.md`

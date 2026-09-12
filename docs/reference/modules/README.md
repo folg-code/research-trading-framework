@@ -1,37 +1,27 @@
-# Modules — Context Map
+# Module Guides
 
-Per-package/per-app implementation reference. This is Sprint 055 T005's
-context-map for the folder. This tree holds two different kinds of
-document, distinguished below — the filenames alone don't signal which.
+Read [System Overview](../system/SYSTEM_OVERVIEW.md) first, then [Module Map](../system/MODULE_MAP.md) to locate a responsibility. These guides group related packages by capability; they are not a file-for-file mirror of `src/`. Workflows describe end-to-end behavior separately.
 
-## Implementation references (what a package does and how)
+## Capability and package ownership
 
-| File | Purpose |
+| Guide | Packages and responsibility |
 |---|---|
-| [`MARKET_ANALYSIS_MODULE.md`](MARKET_ANALYSIS_MODULE.md) | Market Analysis implementation guide — flow, key types, verification, design notes |
-| [`ANALYSIS_COMPONENT_CATALOG.md`](ANALYSIS_COMPONENT_CATALOG.md) | The full built-in component catalog — per-component semantics, warm-up, output fields, zero-denominator conventions |
-| [`PREDICTIVE_PROMOTION.md`](PREDICTIVE_PROMOTION.md) | Predictive model promotion — parameter-file schema, store layout, fingerprint derivation, guards |
-| [`DASHBOARD_APPLICATION.md`](DASHBOARD_APPLICATION.md) | Research Dashboard (`apps/dashboard`) — boundary, contracts, pages, publishing runbook |
+| [Shared Foundations](SHARED_FOUNDATIONS.md) | `core/`, `time/`, `config/` — common types and boundaries |
+| [Market Data](MARKET_DATA.md) | `market/` and import/storage paths — canonical facts and datasets |
+| [Market Analysis](MARKET_ANALYSIS.md) | `market_analysis/` — analytical components and engine |
+| [Models and DSL](MODELS_AND_DSL.md) | `model_expression/`, `model_authoring/`, `market_model/`, `signal_model/` |
+| [Strategy](STRATEGY.md) | `strategy/` — stateless composition contract |
+| [Research](RESEARCH.md) | `research/` and research use cases — simulation, analytics, artifacts |
+| [Execution](EXECUTION.md) | `execution/` — runtime contracts and state |
+| [Applications](APPLICATIONS.md) | `application/` and presentation boundaries |
+| [Infrastructure](INFRASTRUCTURE.md) | `infrastructure/` — external adapters |
+| [Operator CLI](OPERATOR_CLI.md) | `apps/cli/` consumer and commands |
+| [Dashboard](DASHBOARD_APPLICATION.md) | `apps/dashboard/` consumer and public projection |
 
-## Operator/author-facing guides (how to use a package)
+## Detailed contracts and authoring
 
-| File | Purpose |
-|---|---|
-| [`MODEL_AUTHORING.md`](MODEL_AUTHORING.md) | Authoring DSL — one copy-pasteable market + signal model |
-| [`STRATEGY_AUTHORING.md`](STRATEGY_AUTHORING.md) | Custom strategy authoring (`strategy_file`) — loading contract, trust model, error table |
-| [`STRATEGY_EXAMPLES.md`](STRATEGY_EXAMPLES.md) | Worked example strategies (`build_strategy()`) using the catalog above |
-| [`OPERATOR_CLI.md`](OPERATOR_CLI.md) | Operator CLI (`trading-cli` / `apps/cli`) — command groups, config schema pointer, exit codes |
+- [Market Analysis implementation guide](MARKET_ANALYSIS_MODULE.md) and [component catalog](ANALYSIS_COMPONENT_CATALOG.md).
+- [Model Authoring](MODEL_AUTHORING.md), [Strategy Authoring](STRATEGY_AUTHORING.md) and [Strategy Examples](STRATEGY_EXAMPLES.md).
+- [Predictive Promotion](PREDICTIVE_PROMOTION.md) and [Predictive Verdict](../PREDICTIVE_VERDICT.md).
 
-## What's deliberately *not* here
-
-Domain-level questions ("what does Market Analysis own?", "which package
-implements the Strategy domain?") belong in
-[`../system/DOMAIN_MODEL.md`](../system/DOMAIN_MODEL.md) and
-[`../system/MODULE_MAP.md`](../system/MODULE_MAP.md), not here. There is
-deliberately no `modules/SIGNALS.md`, `modules/STRATEGY.md`,
-`modules/EXECUTION.md`, or `modules/DATA.md` — no module-level
-implementation reference exists for those (Market Data's is a workflow
-document at [`../workflows/MARKET_DATA.md`](../workflows/MARKET_DATA.md)
-instead). See
-`docs/planning/sprints/SPRINT_055_T001_REFERENCE_TARGET_IA.md` §5.4 for
-why each was rejected rather than fabricated.
+For execution-scoped analytical storage, see [Analysis Workspace and Derived Data](../system/ANALYSIS_WORKSPACE_AND_DERIVED_DATA.md). For user-owned files and results, see [User Workspace](../system/USER_WORKSPACE.md).

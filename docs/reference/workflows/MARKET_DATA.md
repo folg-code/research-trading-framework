@@ -3,7 +3,7 @@
 > Extracted from the former `docs/reference/modules/DATA_MODULE.md`'s
 > workflow-shaped sections by Sprint 055 T007, per the maintainer-approved
 > reversal of Sprint 054 T007's rejection in
-> `docs/planning/sprints/SPRINT_055_T004_DECISIONS.md` §1: after Sprint 054's
+> `docs/archive/phases/cross-cutting/SPRINT_055_T004_DECISIONS.md` §1: after Sprint 054's
 > `DATA_MODULE_CLASSIFICATION.md` follow-up stripped `DATA_MODULE.md`'s
 > future-tier content, what remained was one end-to-end pipeline (acquire →
 > import → normalize → validate → finalize → publish → query), not a

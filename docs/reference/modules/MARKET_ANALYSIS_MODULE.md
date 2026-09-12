@@ -4,7 +4,7 @@
 > Index: [docs/README.md](../../README.md).
 
 **Status:** Sprint 004 complete on `main`; Sprint 005 complete on `sprint/market-analysis-components`.  
-Binding decisions (vision): [../../vision/MARKET_ANALYSIS_DECISIONS.md](../../vision/MARKET_ANALYSIS_DECISIONS.md) (D-001–D-036, moved from `MARKET_ANALYSIS_WITH_DECISIONS.md` by Sprint 055 T008), future architecture: [../../vision/MARKET_ANALYSIS_FUTURE.md](../../vision/MARKET_ANALYSIS_FUTURE.md), [../../vision/RESEARCH_SPACE_AND_ANALYTICS.md](../../vision/RESEARCH_SPACE_AND_ANALYTICS.md) (moved from `MULTITIMEFRAME_MARKET_MODEL_ARCHITECTURE.md`).
+Binding decisions (vision): [../../vision/MARKET_ANALYSIS_DECISIONS.md](../../adr/MARKET_ANALYSIS_DECISIONS.md) (D-001–D-036, moved from `MARKET_ANALYSIS_WITH_DECISIONS.md` by Sprint 055 T008), future architecture: [../../vision/MARKET_ANALYSIS_FUTURE.md](../../vision/MARKET_ANALYSIS_FUTURE.md), [../../vision/RESEARCH_SPACE_AND_ANALYTICS.md](../../vision/RESEARCH_SPACE_AND_ANALYTICS.md) (moved from `MULTITIMEFRAME_MARKET_MODEL_ARCHITECTURE.md`).
 Accepted ADRs: [../../adr/README.md](../../adr/README.md) (ADR-MA-001–013).
 
 ---
@@ -167,5 +167,5 @@ Application: `load_analysis_data_view`, `run_analysis` (`RunAnalysisRequest.eval
 1. Source: `src/trading_framework/market_analysis/`
 2. Session resolver: `src/trading_framework/time/sessions/`
 3. ADR: [../../adr/ADR-MA-012-batch-multitimeframe-computation-with-polars.md](../../adr/ADR-MA-012-batch-multitimeframe-computation-with-polars.md), [../../adr/ADR-MA-013-cme-es-rth-session-and-swing-structure-mtf-projection.md](../../adr/ADR-MA-013-cme-es-rth-session-and-swing-structure-mtf-projection.md)
-4. Sprint plans: `docs/planning/sprints/SPRINT_004.md`, `docs/planning/sprints/SPRINT_005.md`
-5. Contracts: `docs/planning/sprints/S005_SWING_STRUCTURE_CONTRACT.md`
+4. Sprint plans: `docs/archive/phases/phase-04-market-analysis-and-models/SPRINT_004.md`, `docs/archive/phases/phase-04-market-analysis-and-models/SPRINT_005.md`
+5. Contracts: `docs/archive/phases/phase-04-market-analysis-and-models/S005_SWING_STRUCTURE_CONTRACT.md`

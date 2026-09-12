@@ -3,13 +3,13 @@
 > Extracted from the former `docs/reference/system/WORKFLOWS_ARCHITECTURE.md`
 > ("Strategy Research" section) by Sprint 055 T007, per the maintainer-approved
 > reversal of Sprint 054 T007's rejection in
-> `docs/planning/sprints/SPRINT_055_T004_DECISIONS.md` §1 — this is a section
+> `docs/archive/phases/cross-cutting/SPRINT_055_T004_DECISIONS.md` §1 — this is a section
 > extraction with no new prose, not authoring. That source file's own content
 > originated in `docs/vision/WORKFLOWS_AI_ADR.md`, moved by Sprint 054 T006c.
 > The section was classified **CURRENT** (or is the current-behavior portion
 > of a section classified **MIXED**) against the codebase as of 2026-09-03.
 > See
-> `docs/planning/sprints/SPRINT_054_T003b_WORKFLOWS_AI_ADR_ARCHITECTURE_CLASSIFICATION.md`
+> `docs/archive/phases/cross-cutting/SPRINT_054_T003b_WORKFLOWS_AI_ADR_ARCHITECTURE_CLASSIFICATION.md`
 > for the full section-by-section classification, evidence, and code
 > references.
 >

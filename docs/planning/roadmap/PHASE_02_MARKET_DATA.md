@@ -8,7 +8,7 @@ Full detail for `ROADMAP.md` §6 — this is the LIVE, canonically-updated locat
 phase; `ROADMAP.md` carries only a short pointer stub under the same section number.
 
 **This file is expected to keep changing** as the phase progresses (Wave 0 decisions, sprint
-openings, status flips). Unlike `docs/planning/ROADMAP_COMPLETED_PHASES.md` — which is
+openings, status flips). Unlike `docs/archive/planning/ROADMAP_COMPLETED_PHASES.md` — which is
 frozen history — edits to this phase's detail happen **HERE**, not by re-inflating the
 `ROADMAP.md` stub.
 
@@ -99,7 +99,7 @@ Query Through Repository
 Sprint 002 implemented the MVP vertical slice:
 
 ```text
-docs/planning/sprints/SPRINT_002.md
+docs/archive/phases/phase-02-market-data/SPRINT_002.md
 ```
 
 **Status:** COMPLETED on `main` (Sprint 002).

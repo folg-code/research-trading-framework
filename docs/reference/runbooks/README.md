@@ -22,5 +22,5 @@ execution only, no credentials, no real orders placed.
 runbook — their operator surface (commands, config schema, exit codes) is
 documented in [`../modules/OPERATOR_CLI.md`](../modules/OPERATOR_CLI.md)
 instead. This is a known gap (see
-`docs/planning/sprints/SPRINT_055_T001_REFERENCE_TARGET_IA.md` §5.3), not
+`docs/archive/phases/cross-cutting/SPRINT_055_T001_REFERENCE_TARGET_IA.md` §5.3), not
 something this sprint fills — stop looking here for it.
