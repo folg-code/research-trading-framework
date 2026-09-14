@@ -364,11 +364,73 @@ scope, not fixed here: tightening to symbol-level enforcement is logged as
 **TD-024** in `docs/planning/TECHNICAL_DEBT.md`, with a concrete repayment
 trigger, rather than silently left unaddressed.
 
+## Amendment 2 — Signal Research spec loader on the allow-list (Sprint 064 T002)
+
+**Status:** ACCEPTED (2026-09-14)
+
+**Approved-by:** Filip Folga (project maintainer), given directly in
+conversation with the orchestrating Claude Code session on 2026-09-14,
+choosing this mechanism (a formal ADR amendment reusing Amendment 1's
+"spec loaders" category) over an application-layer wrapper function that
+would have avoided widening the allow-list at the cost of deviating from
+this codebase's established convention for spec loading.
+
+### What happened
+
+Sprint 064 T002 (`docs/planning/sprints/SPRINT_064.md`) adds
+`trading-cli research run signal` as ADR-0038's canonical non-UI entry
+point for Signal Research. `resolve_signal_research_definition()`
+(`trading_framework.application.signal_research`) takes an already-parsed
+`SignalResearchDefinitionSpec`, not a file path — loading the YAML/JSON
+definition file named by `research.signal.definition` requires
+`load_signal_research_definition()`
+(`trading_framework.research.signal_research.loader`), which sits outside
+`trading_framework.application.*` and was not on Amendment 1's list. Per
+this ADR's own rule and `apps/cli/CLAUDE.md`, an import outside the
+allow-list is a STOP requiring a fresh amendment, not a test-file edit —
+flagged during implementation rather than silently added.
+
+### The addition, categorized under Amendment 1's existing "spec loaders" category
+
+```text
+trading_framework.research.signal_research.loader
+    load_signal_research_definition -- SignalResearchDefinitionSpec's own
+    path loader (parses YAML/JSON, delegates to from_dict). Same shape as
+    the already-approved research.predictive.spec /
+    load_predictive_study_spec: referenced by path, never re-parsed by the
+    CLI (ADR-0038 section 1: "apps/workbench must not define a second
+    study schema" -- the same rule applies to apps/cli).
+```
+
+`SignalResearchDefinitionSpec` itself (`trading_framework.research.
+signal_research.definition`) is deliberately **not** on the allow-list: the
+implementation needed only the loader function's return value, never an
+explicit type annotation naming the spec class, so no import was added for
+it. Widening stays scoped to exactly what a working implementation used, not
+what seemed plausible in advance.
+
+`load_signal_research_definition`'s exceptions
+(`SignalResearchDefinitionError`, `UnsupportedSignalResearchDefinitionSchemaError`,
+`SignalResearchDefinitionLoadError`) subclass the already-imported
+`trading_framework.core.exceptions.ValidationError`, so no additional
+exception-type import was needed — `research.py`'s existing
+`except (ValidationError, ...)` clause already catches them.
+
+### What did not change
+
+Amendment 1's five-category structure, its accepted module-granularity
+residual risk (TD-024, which now also covers this module), and every other
+module on the list are untouched. This amendment adds exactly one module to
+one existing category; it does not reopen or relax any other part of the
+boundary.
+
 ## Related
 
 - `docs/adr/ADR-0022-repository-top-level-layout.md`
 - `docs/adr/ADR-0025-binance-usdm-historical-klines-import.md`
+- `docs/adr/ADR-0038-canonical-signal-research-configuration-and-templates.md`
 - `docs/product/PRD.md`
 - `docs/planning/sprints/SPRINT_046.md`
+- `docs/planning/sprints/SPRINT_064.md`
 - `docs/planning/sprints/S046_WAVE0_DECISIONS.md`
 - `docs/planning/TECHNICAL_DEBT.md` TD-024 (module-granularity boundary gap)

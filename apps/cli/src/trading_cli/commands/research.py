@@ -25,6 +25,18 @@ and executes at import (ADR-0027 Sec4). The simulation assumptions and
 session resolver remain hardcoded (the other two thirds of finding 2,
 unchanged this sprint).
 
+``research run signal`` (Sprint 064 T002, ADR-0026 Amendment 2, ADR-0038
+section 3) is the canonical non-UI entry point for Signal Research: it loads
+and resolves the `SignalResearchDefinitionSpec` named by
+`research.signal.definition` during `resolve_plan` -- before any framework
+side effect -- so `--dry-run` prints the fully resolved study (dataset,
+scope, models, horizons, `definition_hash`) and a real run reuses that SAME
+resolved object rather than re-loading or re-resolving the file. This module
+never defines a second study schema or reimplements validation/hashing
+(ADR-0038 section 1): `SignalResearchDefinitionSpec.from_dict` /
+`compute_definition_hash` / `validate_signal_research_definition` are all
+called, never re-encoded here.
+
 ``research promote`` (S049-T009, D-S049-15) is a separate subcommand of the
 same `research` group -- not a `research.kind` value -- that promotes the
 last walk-forward fold of an existing Predictive Research run
@@ -53,6 +65,11 @@ from trading_framework.application.predictive_research import (
     render_predictive_research_report,
     run_predictive_research,
 )
+from trading_framework.application.signal_research import (
+    map_definition_to_run_request,
+    resolve_signal_research_definition,
+    run_signal_research,
+)
 from trading_framework.application.strategy_research import (
     RunStrategyResearchRequest,
     run_strategy_research,
@@ -73,6 +90,7 @@ from trading_framework.research.datasets.predictive_run import PredictiveRunRef
 from trading_framework.research.predictive.errors import PredictiveSpecError
 from trading_framework.research.predictive.estimators import EstimatorSpec
 from trading_framework.research.predictive.spec import load_predictive_study_spec
+from trading_framework.research.signal_research.loader import load_signal_research_definition
 from trading_framework.research.simulation import SimulationAssumptions
 from trading_framework.strategy import CANONICAL_STRATEGY_MODEL_ID, build_canonical_strategy_model
 from trading_framework.time.models.timeframe import Timeframe
@@ -83,7 +101,7 @@ from trading_cli.errors import ConfigError, WorkflowError
 from trading_cli.plan import ResolvedPlan
 from trading_cli.strategy_loader import load_strategy_definition
 
-_SUPPORTED_KINDS = ("predictive", "strategy")
+_SUPPORTED_KINDS = ("predictive", "strategy", "signal")
 
 
 def resolve_plan(config: CliConfig) -> ResolvedPlan:
@@ -99,9 +117,12 @@ def resolve_plan(config: CliConfig) -> ResolvedPlan:
     if kind == "predictive":
         _require(kind_args, "definition", "research.predictive")
         _require(kind_args, "estimator", "research.predictive")
-    else:
+    elif kind == "strategy":
         _require(kind_args, "dataset_ref", "research.strategy")
         _resolve_strategy_source(kind_args, runtime_context)
+    else:
+        _require(kind_args, "definition", "research.signal")
+        _resolve_signal_definition(kind_args, runtime_context)
     output_path = str(Path(config.storage_root) / "research" / kind)
     return ResolvedPlan(
         group="research",
@@ -184,13 +205,50 @@ def _resolve_strategy_source(kind_args: dict[str, Any], runtime_context: dict[st
     runtime_context["strategy_model"] = loaded.definition
 
 
+def _resolve_signal_definition(kind_args: dict[str, Any], runtime_context: dict[str, Any]) -> None:
+    """Load and resolve the ``SignalResearchDefinitionSpec`` named by
+    ``research.signal.definition``.
+
+    Resolution (model lookup, lineage hashing) happens here -- during
+    `resolve_plan`, before any framework side effect -- the same pre-flight
+    shape ADR-0027's `strategy_file` already uses (ADR-0038 section 3): so
+    `--dry-run` proves the definition loads and resolves and can print its
+    resolved dataset/scope/models/range/horizons, and a real run reuses this
+    SAME resolved object via `runtime_context` rather than re-loading or
+    re-resolving the file a second time.
+    """
+    definition_path = kind_args["definition"]
+    if not isinstance(definition_path, str):
+        raise ConfigError(
+            "'research.signal.definition' must be a string path; got "
+            f"{type(definition_path).__name__}"
+        )
+    try:
+        spec = load_signal_research_definition(Path(definition_path))
+        resolved = resolve_signal_research_definition(spec)
+    except ValidationError as exc:
+        raise ConfigError(f"'research.signal.definition' failed to resolve: {exc}") from exc
+    kind_args["research_id"] = resolved.spec.research_id
+    kind_args["research_scope"] = resolved.spec.research_scope.value
+    kind_args["dataset_ref"] = str(resolved.spec.dataset_ref)
+    kind_args["horizons"] = list(resolved.spec.horizons)
+    kind_args["definition_hash"] = resolved.spec.definition_hash
+    if resolved.spec.market_model_id is not None:
+        kind_args["market_model_id"] = resolved.spec.market_model_id
+    if resolved.spec.signal_model_id is not None:
+        kind_args["signal_model_id"] = resolved.spec.signal_model_id
+    runtime_context["resolved_definition"] = resolved
+
+
 def run(plan: ResolvedPlan) -> dict[str, Any]:
     kind = plan.arguments["kind"]
     storage_root = Path(plan.storage_root)
     try:
         if kind == "predictive":
             return _run_predictive(plan.arguments, storage_root)
-        return _run_strategy(plan.arguments, plan.runtime_context, storage_root)
+        if kind == "strategy":
+            return _run_strategy(plan.arguments, plan.runtime_context, storage_root)
+        return _run_signal(plan.arguments, plan.runtime_context, storage_root)
     except (ValidationError, PredictiveSpecError, FileNotFoundError, FileExistsError) as exc:
         raise WorkflowError(f"'research run {kind}' failed: {exc}") from exc
 
@@ -275,6 +333,32 @@ def _run_strategy(
         "strategy_model_id": result.manifest.strategy_model_id,
         "trade_count": len(result.trades),
         "equity_points": len(result.equity),
+    }
+
+
+def _run_signal(
+    arguments: dict[str, Any], runtime_context: dict[str, Any], storage_root: Path
+) -> dict[str, Any]:
+    """Run one Signal Research study from its already-resolved definition.
+
+    `resolve_plan` already loaded and resolved the definition -- this reuses
+    that SAME `ResolvedSignalResearchDefinition` via `runtime_context` rather
+    than re-loading or re-resolving the file a second time (ADR-0038 section
+    3's round-trip guarantee: the resolved plan `--dry-run` prints is exactly
+    what a real run executes).
+    """
+    resolved = runtime_context["resolved_definition"]
+    persist = bool(arguments.get("persist", True))
+    run_request = map_definition_to_run_request(
+        resolved,
+        storage_root=storage_root,
+        persist=persist,
+    )
+    result = run_signal_research(run_request)
+    return {
+        "run_id": result.run_id,
+        "research_id": resolved.spec.research_id,
+        "definition_hash": resolved.spec.definition_hash,
     }
 
 
