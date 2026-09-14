@@ -23,16 +23,30 @@ JOB_STATE_SCHEMA_VERSION = "workbench.job_state.v1"
 
 
 class JobState(StrEnum):
-    """ADR-0041 section 4's state machine. CANCELLED/INTERRUPTED are T007's."""
+    """ADR-0041 section 4's state machine, now complete (Sprint 064 T007)."""
 
     QUEUED = "QUEUED"
     RUNNING = "RUNNING"
     SUCCEEDED = "SUCCEEDED"
     FAILED = "FAILED"
+    CANCELLED = "CANCELLED"
+    INTERRUPTED = "INTERRUPTED"
+
+
+#: ADR-0041 section 4: "Terminal states are terminal." Enforced by
+#: `write_job_record` below, not left to callers to remember.
+TERMINAL_JOB_STATES = frozenset(
+    {JobState.SUCCEEDED, JobState.FAILED, JobState.CANCELLED, JobState.INTERRUPTED}
+)
 
 
 class JobNotFoundError(LookupError):
     """Raised when a `job_id` has no `job.json` under the jobs root."""
+
+
+class JobStateTransitionError(ValueError):
+    """Raised by `write_job_record` when a write would move a job's state
+    away from an already-terminal one (ADR-0041 section 4)."""
 
 
 @dataclass(slots=True)
@@ -48,8 +62,12 @@ class JobRecord:
     started_at: datetime | None = None
     finished_at: datetime | None = None
     pid: int | None = None
+    process_start_time: int | None = None
     exit_code: int | None = None
     latest_phase: dict[str, Any] | None = None
+    cancel_requested: bool = False
+    termination_path: str | None = None
+    interrupted_reason: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -63,8 +81,12 @@ class JobRecord:
             "started_at": self.started_at.isoformat() if self.started_at else None,
             "finished_at": self.finished_at.isoformat() if self.finished_at else None,
             "pid": self.pid,
+            "process_start_time": self.process_start_time,
             "exit_code": self.exit_code,
             "latest_phase": self.latest_phase,
+            "cancel_requested": self.cancel_requested,
+            "termination_path": self.termination_path,
+            "interrupted_reason": self.interrupted_reason,
         }
 
     @classmethod
@@ -79,8 +101,12 @@ class JobRecord:
             started_at=_parse_optional_datetime(data.get("started_at")),
             finished_at=_parse_optional_datetime(data.get("finished_at")),
             pid=data.get("pid"),
+            process_start_time=data.get("process_start_time"),
             exit_code=data.get("exit_code"),
             latest_phase=data.get("latest_phase"),
+            cancel_requested=bool(data.get("cancel_requested", False)),
+            termination_path=data.get("termination_path"),
+            interrupted_reason=data.get("interrupted_reason"),
         )
 
 
@@ -110,8 +136,22 @@ def stdout_log_path(jobs_root: Path, job_id: str) -> Path:
 
 def write_job_record(jobs_root: Path, record: JobRecord) -> None:
     """Overwrite `job.json` with `record`'s current state, creating the job's
-    directory if this is its first write."""
+    directory if this is its first write.
+
+    Refuses a write that would move a job OUT of an already-terminal state
+    (ADR-0041 section 4: "Terminal states are terminal. No automatic retry,
+    no resume, no requeue.") -- a same-state terminal rewrite (e.g. updating
+    `updated_at`) is still allowed.
+    """
     path = job_json_path(jobs_root, record.job_id)
+    if path.is_file():
+        existing = JobRecord.from_dict(json.loads(path.read_text(encoding="utf-8")))
+        if existing.state in TERMINAL_JOB_STATES and record.state != existing.state:
+            msg = (
+                f"job {record.job_id!r} is already terminal ({existing.state.value}); "
+                f"refusing to write state={record.state.value}"
+            )
+            raise JobStateTransitionError(msg)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(record.to_dict(), indent=2, sort_keys=True), encoding="utf-8")
 

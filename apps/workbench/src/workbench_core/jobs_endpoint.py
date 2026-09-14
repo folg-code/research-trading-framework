@@ -1,4 +1,4 @@
-"""Job submit/get/list/log endpoint bodies (Sprint 064 T006).
+"""Job submit/get/list/log/cancel endpoint bodies (Sprint 064 T006/T007).
 
 Transport-independent by design, same pattern as `datasets_endpoint.py`:
 builds plain JSON-serializable payloads from `JobRecord`; `app.py` is the
@@ -48,6 +48,13 @@ def build_list_jobs_response(runner: JobRunner) -> dict[str, Any]:
     }
 
 
+def build_cancel_job_response(runner: JobRunner, job_id: str) -> dict[str, Any]:
+    """Raises `JobNotFoundError` as-is (maps to 404) and `JobCancellationError`
+    as-is (maps to 409) -- unlike the other builders, the caller needs to
+    tell these two apart to pick the right HTTP status."""
+    return _job_to_json(runner.cancel_job(job_id))
+
+
 def _job_to_json(record: JobRecord) -> dict[str, Any]:
     return {
         "schema_version": WORKBENCH_API_VERSION,
@@ -64,4 +71,6 @@ def _job_to_json(record: JobRecord) -> dict[str, Any]:
         "finished_at": record.finished_at.isoformat() if record.finished_at else None,
         "exit_code": record.exit_code,
         "latest_phase": record.latest_phase,
+        "termination_path": record.termination_path,
+        "interrupted_reason": record.interrupted_reason,
     }

@@ -23,7 +23,7 @@ from workbench_core.job_runner import (
     SubmitSignalResearchJobRequest,
     read_job_log,
 )
-from workbench_core.job_store import JobState
+from workbench_core.job_store import JobRecord, JobState
 
 _SUCCEEDING_CHILD = textwrap.dedent(
     """
@@ -145,12 +145,6 @@ def test_fifo_ordering_at_concurrency_one(tmp_path: Path) -> None:
         cli_command=cli_command,
         max_concurrent_jobs=1,
     )
-    first = runner.submit_signal_research_job(
-        SubmitSignalResearchJobRequest(definition_path="a.yaml")
-    )
-    second = runner.submit_signal_research_job(
-        SubmitSignalResearchJobRequest(definition_path="b.yaml")
-    )
 
     async def _wait_terminal(job_id: str) -> None:
         for _attempt in range(200):
@@ -159,15 +153,26 @@ def test_fifo_ordering_at_concurrency_one(tmp_path: Path) -> None:
             await asyncio.sleep(0.02)
         pytest.fail(f"job {job_id} did not reach a terminal state in time")
 
-    async def _drive_worker_for_two_jobs() -> None:
+    async def _drive_worker_for_two_jobs() -> tuple[JobRecord, JobRecord]:
+        # `start()` first, matching real usage (app.py starts the runner
+        # before accepting any submission) -- restart reconciliation only
+        # applies to jobs left over from a PRIOR incarnation, not ones
+        # submitted after this one is already running.
         runner.start()
         try:
+            first = runner.submit_signal_research_job(
+                SubmitSignalResearchJobRequest(definition_path="a.yaml")
+            )
+            second = runner.submit_signal_research_job(
+                SubmitSignalResearchJobRequest(definition_path="b.yaml")
+            )
             await _wait_terminal(first.job_id)
             await _wait_terminal(second.job_id)
+            return first, second
         finally:
             await runner.stop()
 
-    asyncio.run(_drive_worker_for_two_jobs())
+    first, second = asyncio.run(_drive_worker_for_two_jobs())
 
     first_final = runner.get_job(first.job_id)
     second_final = runner.get_job(second.job_id)
@@ -175,5 +180,6 @@ def test_fifo_ordering_at_concurrency_one(tmp_path: Path) -> None:
     assert second_final.state is JobState.SUCCEEDED
     assert first_final.started_at is not None
     assert second_final.started_at is not None
+    assert first_final.finished_at is not None
     # the second job never starts before the first one finishes
     assert second_final.started_at >= first_final.finished_at
