@@ -95,4 +95,5 @@ def _variant_spec(
         quality_rules=base.quality_rules,
         candidate_bounds=base.candidate_bounds,
         model_family=None,
+        schema_version=base.schema_version,
     )
