@@ -339,6 +339,8 @@ def test_cli_boundary_allow_list_matches_recorded_snapshot() -> None:
         "_CLI_ALLOWED_TRADING_FRAMEWORK_MODULES_SNAPSHOT above in the SAME "
         "commit as the amendment, never as a silent edit."
     )
+
+
 # ---------------------------------------------------------------------------
 # apps/workbench -- ADR-0037 section 2/3: `workbench_core` and `workbench_ui`
 # get two DIFFERENT, independently enforced import boundaries, not one rule
