@@ -10,6 +10,7 @@ from trading_framework.market.datasets import (
     InMemoryDatasetVersionAllocator,
     MaterialChangeReason,
 )
+from trading_framework.market.models.instrument import AssetClass
 from trading_framework.time.models.timeframe import Timeframe
 
 
@@ -26,6 +27,43 @@ def _sample_dataset_id() -> DatasetId:
 def test_dataset_ref_round_trip() -> None:
     dataset_ref = DatasetRef(_sample_dataset_id(), version=3)
     assert DatasetRef.parse(str(dataset_ref)) == dataset_ref
+
+
+def test_dataset_id_asset_class_defaults_to_none_legacy_identity() -> None:
+    assert _sample_dataset_id().asset_class is None
+
+
+def test_dataset_ref_round_trip_with_asset_class() -> None:
+    dataset_id = DatasetId(
+        instrument_id=Identifier("BTCUSDT.P"),
+        data_type="ohlcv",
+        timeframe=Timeframe("1m"),
+        provider="binance",
+        source_id="binance-usdm-klines-v1",
+        asset_class=AssetClass.CRYPTO,
+    )
+    dataset_ref = DatasetRef(dataset_id, version=1)
+
+    assert str(dataset_ref) == "BTCUSDT.P|ohlcv|1m|binance|binance-usdm-klines-v1|crypto@1"
+    parsed = DatasetRef.parse(str(dataset_ref))
+    assert parsed == dataset_ref
+    assert parsed.dataset_id.asset_class is AssetClass.CRYPTO
+
+
+def test_dataset_ref_parse_rejects_unknown_asset_class() -> None:
+    from trading_framework.core.exceptions import ValidationError
+
+    with pytest.raises(ValidationError):
+        DatasetRef.parse("BTCUSDT.P|ohlcv|1m|binance|src|not-a-real-asset-class@1")
+
+
+def test_dataset_ref_parse_rejects_wrong_field_count() -> None:
+    from trading_framework.core.exceptions import ValidationError
+
+    with pytest.raises(ValidationError):
+        DatasetRef.parse("a|b|c|d@1")
+    with pytest.raises(ValidationError):
+        DatasetRef.parse("a|b|c|d|e|f|g@1")
 
 
 def test_version_allocator_increments_per_dataset_id() -> None:

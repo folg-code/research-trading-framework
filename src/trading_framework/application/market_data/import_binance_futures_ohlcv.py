@@ -67,6 +67,7 @@ from trading_framework.market.datasets import (
     ValidationStatus,
 )
 from trading_framework.market.models import MarketBar
+from trading_framework.market.models.instrument import AssetClass
 from trading_framework.market.repositories import DatasetRepository
 from trading_framework.market.validation import OhlcvValidator, ValidationResult
 from trading_framework.time.clocks.protocol import Clock
@@ -309,6 +310,10 @@ def import_binance_futures_ohlcv(
         timeframe=Timeframe(request.interval),
         provider=request.provider,
         source_id=request.source_id,
+        # Binance USD-M perpetuals are a crypto derivative, not "futures" in
+        # the traditional-exchange sense (market-data directory-layout
+        # simplification ticket's own worked example).
+        asset_class=AssetClass.CRYPTO,
     )
 
     fetch_kwargs: dict[str, Any] = {}

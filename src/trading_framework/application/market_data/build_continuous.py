@@ -59,6 +59,7 @@ from trading_framework.market.derivation import (
     DERIVED_OHLCV_PROVIDER,
     DerivedContinuousOhlcvConfig,
 )
+from trading_framework.market.models.instrument import AssetClass
 from trading_framework.time.clocks.protocol import Clock
 from trading_framework.time.clocks.system import SystemClock
 from trading_framework.time.models.timeframe import Timeframe
@@ -217,6 +218,9 @@ def _continuous_ohlcv_dataset_id(product: str, policy_slug: str) -> DatasetId:
         timeframe=Timeframe("1m"),
         provider=DERIVED_OHLCV_PROVIDER,
         source_id=policy_slug,
+        # Continuous futures (e.g. NQ.c.0, ES.c.0) are genuinely futures
+        # instruments (market-data directory-layout simplification ticket).
+        asset_class=AssetClass.FUTURES,
     )
 
 
