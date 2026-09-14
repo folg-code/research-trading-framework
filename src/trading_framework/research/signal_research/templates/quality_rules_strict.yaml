@@ -1,0 +1,25 @@
+# Framework-owned Signal Research template (ADR-0038 section 4, D-S064-06).
+# Never edited in place across a template_version -- bump the version and
+# keep the old body if this template's shape ever needs to change.
+template_id: quality-rules-strict
+template_version: 1
+title: Quality Rules (Strict)
+description: >-
+  The same shape as multi-horizon-baseline, with SignalResearchQualityRules
+  tightened -- makes the quality-rules concept discoverable rather than a
+  field nobody finds.
+
+definition:
+  research_scope: SIGNAL_MODEL_ONLY
+  signal_model: higher_low_long
+  baseline:
+    type: AFTER_SIGNAL
+  horizons:
+    - 5m
+    - 15m
+    - 1h
+  quality_rules:
+    minimum_sample_size: 300
+    maximum_single_period_contribution: 0.25
+    minimum_positive_period_share: 0.75
+    maximum_incomplete_outcome_share: 0.02

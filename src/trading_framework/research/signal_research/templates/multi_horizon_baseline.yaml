@@ -1,0 +1,19 @@
+# Framework-owned Signal Research template (ADR-0038 section 4, D-S064-06).
+# Never edited in place across a template_version -- bump the version and
+# keep the old body if this template's shape ever needs to change.
+template_id: multi-horizon-baseline
+template_version: 1
+title: Multi-Horizon Baseline
+description: >-
+  One signal evaluated across several horizons with the baseline comparison
+  configured -- the representative shape of a real study.
+
+definition:
+  research_scope: SIGNAL_MODEL_ONLY
+  signal_model: higher_low_long
+  baseline:
+    type: AFTER_SIGNAL
+  horizons:
+    - 5m
+    - 15m
+    - 1h

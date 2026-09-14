@@ -586,9 +586,12 @@ REASON       Three covers: the trivial case, the realistic case, and one
              to maintain. The third is first in SPRINT_064.md's descope order.
 
 MAINTAINER NOTE (2026-09-14): the collision rule (framework wins, user
-template listed as SHADOWED) is APPROVED. The exact initial template set is
-explicitly NOT decided yet — revisit before S064-T003 starts, not blocking
-the rest of Sprint 064's approval.
+template listed as SHADOWED) is APPROVED. The exact initial template set was
+left open pending revisit before S064-T003 starts.
+
+MAINTAINER NOTE (2026-09-14, revisited before T003): the proposed initial
+set (minimal-single-signal, multi-horizon-baseline, quality-rules-strict) is
+CONFIRMED as-is. T003 implements exactly these three.
 ```
 
 ```text
@@ -652,7 +655,7 @@ refuse to start S064-T001 while any box is unchecked.
 - [x] **D-S064-03 confirmed** — concurrency 1 FIFO (configurable, capped at 4), **20 s** graceful window (raised from the 10 s starting proposal at the maintainer's request) then hard kill, and the Windows process-tree kill verified by a real test in T007. A new dependency for process-tree termination would be a STOP. Approved 2026-09-14.
 - [x] **D-S064-04 confirmed.** `workbench.phase_event.v1`, the three phase lists (only `research.run.signal` is emitted this sprint), and specifically that **no percentage is ever interpolated within a phase** and no number is ever derived from prose stdout. Approved 2026-09-14.
 - [x] **D-S064-05 confirmed, with an addition** — `finding_key` bucketing at 10,000 rows, the message-template requirement on validators, the 1,000-finding verbatim cap, and the accepted coarsening (two different findings of the same template within one bucket share one acknowledgement) all stand. PLUS: `validation.json` (17C) must also carry an aggregate `summary` (gap count, % missing bars, longest gap), and gap/missing-bar detection must be session-aware — CFD/Futures instruments have trading hours (a bar missing outside the session is not a gap), crypto is 24/7 (any missing expected bar is a gap). No trading-calendar/session module exists in the framework today; 17C's own design work resolves where this logic lives and whether it needs its own ADR. Approved 2026-09-14.
-- [x] **D-S064-06 confirmed (collision rule only)** — framework wins on collision with the user template listed as `SHADOWED` and not selectable. The initial template set is explicitly NOT yet decided — revisit before S064-T003 starts. No `model_family` and no `USER_FILE` model in any template, either way. Approved 2026-09-14.
+- [x] **D-S064-06 confirmed in full** — framework wins on collision with the user template listed as `SHADOWED` and not selectable; the three-template initial set (`minimal-single-signal`, `multi-horizon-baseline`, `quality-rules-strict`) confirmed before T003 started. No `model_family` and no `USER_FILE` model in any template. Approved 2026-09-14.
 - [x] **D-S064-07 acknowledged** — the `definition_hash` break against historical run manifests is documented, never patched, and no past manifest is rewritten. Approved 2026-09-14.
 - [x] **T007 is confirmed non-descopable.** Cancellation and interrupted-on-restart are the honesty guarantees; the descope order in `SPRINT_064.md` is approved as written. Approved 2026-09-14.
 - [x] **No ADR amendment is anticipated.** If `apps/cli`'s or `apps/workbench`'s import allow-list needs widening for T002 or T004, that is a STOP-AND-REPORT for a fresh ADR-0026 amendment, not a test-file edit. Approved 2026-09-14.
