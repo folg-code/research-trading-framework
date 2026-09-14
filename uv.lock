@@ -2818,6 +2818,7 @@ version = "0.1.0"
 source = { editable = "apps/workbench" }
 dependencies = [
     { name = "aiohttp" },
+    { name = "pyyaml" },
     { name = "trading-framework" },
 ]
 
@@ -2831,6 +2832,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "aiohttp", specifier = ">=3.14.1" },
+    { name = "pyyaml", specifier = ">=6.0.0" },
     { name = "trading-framework", editable = "." },
 ]
 
