@@ -35,7 +35,9 @@ resolved object rather than re-loading or re-resolving the file. This module
 never defines a second study schema or reimplements validation/hashing
 (ADR-0038 section 1): `SignalResearchDefinitionSpec.from_dict` /
 `compute_definition_hash` / `validate_signal_research_definition` are all
-called, never re-encoded here.
+called, never re-encoded here. In `--json` mode (Sprint 064 T005, D-S064-04),
+a real run also emits `workbench.phase_event.v1` lines on stdout for the
+workbench job runner to parse -- see `trading_cli/phase_events.py`.
 
 ``research promote`` (S049-T009, D-S049-15) is a separate subcommand of the
 same `research` group -- not a `research.kind` value -- that promotes the
@@ -98,6 +100,7 @@ from trading_framework.time.sessions import CmeEsRthSessionResolver
 
 from trading_cli.config import CliConfig
 from trading_cli.errors import ConfigError, WorkflowError
+from trading_cli.phase_events import emit_signal_research_phase
 from trading_cli.plan import ResolvedPlan
 from trading_cli.strategy_loader import load_strategy_definition
 
@@ -346,15 +349,31 @@ def _run_signal(
     than re-loading or re-resolving the file a second time (ADR-0038 section
     3's round-trip guarantee: the resolved plan `--dry-run` prints is exactly
     what a real run executes).
+
+    Also emits `workbench.phase_event.v1` lines on stdout (Sprint 064 T005,
+    D-S064-04) when invoked with `--json`: `load-definition` and
+    `resolve-models` cover the pre-flight work `resolve_plan` already did
+    (emitted here, at the start of the real run, since a `--dry-run` never
+    reaches this function); `load-dataset` covers
+    `map_definition_to_run_request`; `evaluate` and `persist` bracket
+    `run_signal_research`, which bundles model evaluation and persistence
+    with no observable boundary between them this sprint.
     """
+    json_mode = bool(runtime_context.get("json_mode", False))
     resolved = runtime_context["resolved_definition"]
     persist = bool(arguments.get("persist", True))
+
+    emit_signal_research_phase("load-definition", json_mode=json_mode)
+    emit_signal_research_phase("resolve-models", json_mode=json_mode)
+    emit_signal_research_phase("load-dataset", json_mode=json_mode)
     run_request = map_definition_to_run_request(
         resolved,
         storage_root=storage_root,
         persist=persist,
     )
+    emit_signal_research_phase("evaluate", json_mode=json_mode)
     result = run_signal_research(run_request)
+    emit_signal_research_phase("persist", json_mode=json_mode)
     return {
         "run_id": result.run_id,
         "research_id": resolved.spec.research_id,

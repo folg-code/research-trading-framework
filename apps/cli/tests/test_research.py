@@ -40,6 +40,22 @@ def _write_config(tmp_path: Path, *, storage_root: Path, text: str) -> Path:
     return path
 
 
+def _strip_phase_event_lines(stdout: str) -> str:
+    """Drop `research run signal`'s compact phase-event lines (T005), leaving
+    the pretty-printed `--json` summary `dump_json` prints alongside them."""
+    remaining_lines = []
+    for line in stdout.splitlines():
+        try:
+            payload = json.loads(line)
+        except json.JSONDecodeError:
+            remaining_lines.append(line)
+            continue
+        if isinstance(payload, dict) and payload.get("event") == "phase":
+            continue
+        remaining_lines.append(line)
+    return "\n".join(remaining_lines)
+
+
 def _write_published_dataset(storage_root: Path, *, csv_path: Path) -> str:
     from trading_framework.application.market_data import (
         ImportExternalDatasetRequest,
@@ -555,7 +571,9 @@ def test_research_run_signal_end_to_end(
     exit_code = main(["research", "run", "--config", str(config_path), "--json"])
 
     assert exit_code == EXIT_SUCCESS
-    payload = json.loads(capsys.readouterr().out)
+    # T005: 5 compact phase-event lines precede the pretty-printed result
+    # blob in --json mode; see test_phase_events.py for their own coverage.
+    payload = json.loads(_strip_phase_event_lines(capsys.readouterr().out))
     result = payload["result"]
     assert result["run_id"]
     assert result["research_id"] == "cli_research_run_signal_test"
@@ -633,7 +651,7 @@ def test_research_run_signal_round_trips_definition_hash(
     dry_run_hash = dry_run_payload["plan"]["arguments"]["definition_hash"]
 
     run_exit = main(["research", "run", "--config", str(config_path), "--json"])
-    run_payload = json.loads(capsys.readouterr().out)
+    run_payload = json.loads(_strip_phase_event_lines(capsys.readouterr().out))
     assert run_exit == EXIT_SUCCESS
     assert run_payload["result"]["definition_hash"] == dry_run_hash
 
