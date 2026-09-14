@@ -183,6 +183,10 @@ def _dispatch(args: argparse.Namespace) -> int:
 
     config = load_config(args.config)
     plan = resolve_plan_fn(config)
+    # `research run signal`'s structured phase events (Sprint 064 T005) are
+    # gated on --json; set generically here, like the config -> typed request
+    # flow every other command already ignores in runtime_context.
+    plan.runtime_context["json_mode"] = args.json
 
     if args.dry_run:
         _print_plan(plan, json_mode=args.json)
