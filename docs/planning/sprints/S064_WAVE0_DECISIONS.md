@@ -127,6 +127,193 @@ NOT DECIDED HERE   the preview's column-inference rules, the mapping-form
 
 ---
 
+## D-S064-01 amendment — T009 measurement results (2026-09-14)
+
+```text
+REFERENCE DATASET
+    user_data/workspace/market_data/normalized/BTCUSDT.P/ohlcv/1m/binance/
+    binance-usdm-klines-v1/v1/bars.parquet -- 1,311,840 rows, 41.6 MB as
+    Parquet on disk. This IS the dataset the PRD's "~1.3M rows / 42.5 MB"
+    success metric names (row count matches almost exactly; the "42.5 MB"
+    figure is the Parquet form's size, not any CSV re-encoding of it -- see
+    the CSV-only finding below).
+
+ENVIRONMENT
+    Windows, Python 3.12, uv 0.11.14, polars 1.42.1, maintainer's machine.
+    Peak memory measured via GetProcessMemoryInfo (PeakWorkingSetSize) --
+    the Windows analogue of POSIX peak RSS -- through a small ctypes helper,
+    NOT a new dependency (psutil was considered and deliberately not added
+    for a one-off spike). Each number below is from a fresh process running
+    exactly one operation, so it is not inflated by unrelated prior work in
+    the same process.
+
+REPRODUCE
+    scratch/s064_t009/prepare_csv.py     -- builds the CSV fixture once
+    scratch/s064_t009/measure_preview.py -- preview cost at 3 head limits
+    scratch/s064_t009/measure_import.py  -- the real, unmodified
+                                             import_external_dataset() call
+    (scratch/ is gitignored; these files are not committed -- paste them
+    back from this repo's working tree, or from this PR's diff before merge,
+    to reproduce. Run each with `uv run python scratch/s064_t009/<file>.py`
+    from the repo root.)
+
+RESULTS -- import_external_dataset (2 runs, both against the same 88.3 MB
+           CSV re-encoding of the reference dataset -- see finding below for
+           why CSV, not the smaller Parquet form)
+    wall time         53.4 s / 54.4 s   -- <= 120 s target: MET, ~2.2x margin
+    peak working set   2100 MB / 2099 MB -- <= 2 GB target: MISSED by ~5%
+    validation         0 issues, all 1,311,840 rows valid, both runs
+
+RESULTS -- preview (pl.scan_csv(path).head(N).collect(), fresh process,
+           3 head limits against the same 88.3 MB CSV)
+    head=100      9.8 ms  (cold-start dominated)
+    head=1,000    1.7 ms
+    head=5,000    2.5 ms
+    peak working set for the whole preview process: 80.6 MB
+    verdict: the proposed <=1,000-row lazy-scan preview is met with a huge
+    margin -- single-digit milliseconds regardless of file size, because
+    Polars' lazy CSV scan genuinely only reads the requested head, not the
+    file. NOT a source of memory or latency risk at any measured scale.
+
+NEW FINDING, not anticipated at Wave 0 -- CSV-only import path
+    import_external_dataset() / CsvOhlcvImporter only accept CSV today:
+    CsvFileInspector.inspect() raises ValidationError for any other detected
+    format, and iter_rows() re-raises before reading a single row. A Parquet
+    source file is REFUSED outright, not merely slower. This means:
+      - the reference dataset's own natural form (Parquet, 41.6 MB) could
+        not be measured through this path at all; it had to be re-encoded to
+        CSV first, which is 88.3 MB -- roughly 2.1x larger as uncompressed
+        text than the Parquet source the PRD's "42.5 MB" figure describes.
+      - 17C's PRD requirement ("a local CSV or Parquet file") is NOT
+        currently satisfied by any existing code path -- a Parquet importer
+        is new work for 17C, not a wire-up of something that already exists.
+      - the measured numbers above are for the CSV path only. A Parquet
+        import path may have a materially different profile (Parquet is
+        already columnar and compressed; polars can stream it), but that is
+        unmeasured and out of this spike's scope.
+
+RECOMMENDATION TO THE MAINTAINER
+    1. Preview design: CONFIRM as proposed, no change. Head-limit lazy scan
+       has essentially unmeasurable cost against this reference scale.
+    2. Import wall-time envelope: CONFIRM <= 120 s, no change (met at 54 s,
+       plenty of margin even accounting for a slower operator machine).
+    3. Import peak-RSS envelope: the current, UNMODIFIED CSV import path
+       misses the proposed <= 2 GB target by roughly 100 MB (~5%) for the
+       reference dataset. Per this decision's own "if the measurement
+       misses the envelope" clause: recorded here as a finding, NOT acted on
+       by refactoring inside Sprint 064. Two honest options for 17C, not
+       decided here:
+           (a) raise the accepted MVP envelope to ~2.5 GB and treat the two
+               full in-memory materializations in import_external_dataset()
+               (list(iter_rows(...)) then a second list[MarketBar]) as a
+               named, logged technical-debt item with 17C as its repayment
+               trigger, or
+           (b) require a bounded/streaming rewrite of those two
+               materializations before 17C ships, which is real scope, not
+               a formatting fix.
+       This spike takes no position between (a) and (b) -- that trade-off
+       belongs to the maintainer, not to the person who ran the measurement.
+    4. NEW decision needed for 17C, not previously identified: whether to
+       build a Parquet import path (a real new capability, not a config
+       flag) or explicitly narrow the MVP's "CSV or Parquet" PRD language to
+       CSV-only for the first 17C increment, with Parquet as a stated
+       follow-up. Recorded here so 17C's own Wave 0 inherits this rather
+       than rediscovering it.
+
+STATUS: measurement complete. Points 1 and 2 confirmed as proposed (numbers
+        already clear the bar). Points 3 and 4 decided by the maintainer in
+        conversation, 2026-09-14 -- see the bound 17C technical direction
+        immediately below. This amendment is now CLOSED; further refinement
+        of the streaming design belongs to 17C's own Wave 0, not here.
+```
+
+---
+
+## D-S064-01 amendment, part 2 — bound 17C technical direction (2026-09-14)
+
+The maintainer chose **option (b)** from the recommendation above: the
+bounded/streaming rewrite is **required before 17C ships an import feature**,
+not deferred as accepted technical debt. The maintainer also confirmed 17C
+must build a **real Parquet import path**, not narrow the PRD's "CSV or
+Parquet" language to CSV-only.
+
+Discussed and refined in conversation into a concrete design, recorded here
+so 17C's own Wave 0 inherits it rather than re-deriving it from scratch:
+
+```text
+REJECTED APPROACH   manual batch-loop chunking exposed as business logic
+                     inside import_external_dataset() (e.g. "read 50k rows,
+                     validate, write, repeat"). Correct in spirit but pushes
+                     an implementation detail into use-case code.
+
+CHOSEN APPROACH      single forward pass + writer-internal batching +
+                     temp-file/atomic-rename publish. Concretely:
+
+  1. iter_rows() is already a lazy generator -- unchanged.
+  2. Normalize NormalizedBarRow -> MarketBar lazily (a generator expression,
+     not a list comprehension) -- replaces
+     `bars = [_market_bar_from_row(row) for row in normalized_rows]`.
+  3. OhlcvBarValidator gains a streaming-compatible entry point that
+     consumes an Iterable[MarketBar] instead of requiring a materialized
+     Sequence. Low risk: the existing algorithm (ohlcv_validator.py) is
+     ALREADY single-pass -- one `seen_observed_at` set for duplicate
+     detection anywhere in the file, one `previous_observed_at` scalar for
+     ordering. No algorithmic change, only the input type and iteration
+     style change.
+  4. ParquetBarWriter gains a NEW incremental write method that batches
+     internally (pyarrow row groups every N rows -- Parquet's own columnar
+     format makes some internal batching unavoidable; this is an
+     implementation detail of the writer, never exposed as chunking logic
+     to callers). ADDITIVE: the existing `write()` / `write_table()` API is
+     UNCHANGED, so the two other current callers
+     (import_binance_futures_ohlcv.py, derive_ohlcv_from_trades.py) are not
+     touched and need no re-testing.
+  5. The incremental write targets a TEMPORARY path. Only if validation is
+     clean at the end of the single pass does the temp path get atomically
+     renamed into place; otherwise it is discarded. This preserves today's
+     invariant (never write invalid/partial data as the published artifact)
+     WITHOUT a second read pass over the source file -- validate and write
+     happen in the same forward pass, not two separate passes.
+  6. start_at/end_at (today read from bars[0]/bars[-1]) become "first bar
+     seen" (trivial) and "last bar seen so far" (an O(1) running variable),
+     available identically at the end of a single forward pass.
+
+MEMORY FLOOR AFTER THIS REFACTOR   not zero. `seen_observed_at` remains
+     O(n) -- a set of timestamps, needed because a duplicate can appear
+     anywhere in an operator-supplied file, not just adjacently. This is
+     far cheaper per row than today's full MarketBar list (a timestamp vs.
+     four Price(Decimal)-wrapped fields plus two datetimes), but 17C must
+     MEASURE the actual peak after implementing, not assume a number --
+     this decision does not pre-commit to a new RSS target.
+
+BLAST RADIUS   import_external_dataset.py (rewritten), OhlcvBarValidator
+     (new streaming-compatible method added), ParquetBarWriter (new
+     incremental method added). NOT touched: the existing bulk write()
+     path or its two other current callers.
+
+PARQUET IMPORT PATH   a genuinely new component for 17C, not a wire-up of
+     existing code -- CsvFileInspector today refuses any non-CSV format
+     outright (confirmed by T009). The streaming design above should be
+     written provider-agnostically where practical (e.g., the incremental
+     writer and validator changes benefit both a future Parquet importer
+     and the existing CSV one), but the actual Parquet reader/importer
+     itself is unstarted, separate work.
+
+NOT DECIDED HERE   the exact row-group / batch size for the incremental
+     writer, the temp-file naming/location convention, and whether the
+     Parquet importer reuses polars' own streaming CSV/Parquet engine or a
+     hand-rolled reader. All are 17C implementation decisions, not bound by
+     this conversation.
+```
+
+**Binding scope for 17C**, not Sprint 064. No code changes in this sprint;
+`docs/planning/roadmap/PHASE_17_RESEARCH_APPLICATION.md`'s 17C increment
+description is updated to reference this direction.
+
+---
+
+---
+
 ## D-S064-02 — Catalog index storage format (ADR-0042 §1)
 
 **Proposed:** JSON files, not SQLite.

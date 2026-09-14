@@ -29,7 +29,7 @@ Signal Research workflows directly. Phase 17 does not depend on Phase
 |---|---|---|
 | 17A Canonical config + CLI entry point + workbench skeleton | Planned (Sprint 064 draft) | ADR-0037, ADR-0038 |
 | 17B Job runner + first end-to-end Signal Research run | Planned (Sprint 064 draft) | ADR-0041 |
-| 17C Data Manager (import, preview, validation/acknowledgement, Binance form) | Directional | ADR-0039, ADR-0040 |
+| 17C Data Manager (import, preview, validation/acknowledgement, Binance form) | Directional; bound technical direction for the import path — see below | ADR-0039, ADR-0040 |
 | 17D Run catalog + comparison | Directional | ADR-0042 |
 
 ## Governing ADRs
@@ -44,6 +44,30 @@ Signal Research workflows directly. Phase 17 does not depend on Phase
 ## Related technical debt
 
 - [TD-035](../TECHNICAL_DEBT.md) — Trusted local model lineage hash covers only the entry file (ADR-0039 §6)
+
+## 17C bound technical direction: bounded/streaming import (2026-09-14)
+
+Sprint 064's T009 measurement spike found the current, unmodified
+`import_external_dataset()` path peaks at ~2.10 GB working set against the
+~1.3M-row reference dataset — missing the MVP's proposed ≤2 GB target by
+~5% — because it materializes two full in-memory lists (normalized rows,
+then `MarketBar` objects) before validation runs. It also found the current
+path is **CSV-only**: a Parquet source file is refused outright by
+`CsvFileInspector`, so the PRD's "CSV or Parquet" requirement has no
+existing Parquet code path to build on.
+
+The maintainer decided, in conversation: **17C may not ship an import
+feature on the current unbounded path**, and **17C must build a real
+Parquet importer**, not narrow the PRD to CSV-only. The concrete technical
+direction — single forward pass, writer-internal batching (not manual
+chunking exposed as business logic), temp-file + atomic-rename publish to
+preserve the existing "never write invalid/partial data" invariant without
+a second read pass — is recorded in full, including the specific call-site
+changes and blast radius, in
+[`S064_WAVE0_DECISIONS.md`](../sprints/S064_WAVE0_DECISIONS.md)'s D-S064-01
+amendment part 2. 17C's own Wave 0 must treat that direction as bound
+rather than re-deriving it, though the exact batch/row-group size, temp-file
+convention, and Parquet reader implementation remain 17C's own decisions.
 
 ## Sequencing
 
