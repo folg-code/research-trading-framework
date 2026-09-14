@@ -14,14 +14,10 @@ rule applied uniformly over `apps/*`.
 from __future__ import annotations
 
 import ast
-import subprocess
 from collections.abc import Callable
 from pathlib import Path
 
-import pytest
-
 _REPO_ROOT = Path(__file__).resolve().parents[2]
-_CLI_ALLOWLIST_TEST_FILE = Path(__file__).resolve()
 _APPS_ROOT = _REPO_ROOT / "apps"
 _DASHBOARD_SRC = _APPS_ROOT / "dashboard" / "src"
 #: Streamlit's own page-routing convention (PRB-022, Sprint 059 T003): every
@@ -235,6 +231,10 @@ _CLI_ALLOWED_TRADING_FRAMEWORK_MODULES = frozenset(
         "trading_framework.research.predictive.estimators",
         # `load_predictive_study_spec` is PredictiveStudySpec's own loader
         "trading_framework.research.predictive.spec",
+        # `load_signal_research_definition` is SignalResearchDefinitionSpec's
+        # own path loader (ADR-0026 Amendment 2 / Sprint 064 T002), same shape
+        # as `load_predictive_study_spec` above.
+        "trading_framework.research.signal_research.loader",
         # SPRINT_046.md §4 finding 2: hardcoded default, same as the script
         "trading_framework.research.simulation",
         # SPRINT_046.md §4 finding 2: hardcoded canonical strategy model
@@ -287,67 +287,58 @@ def test_cli_only_imports_application_layer() -> None:
 # ---------------------------------------------------------------------------
 
 
-def _git_show_main_file(relative_posix_path: str) -> str | None:
-    """Return this file's content on `origin/main`, or None if unavailable.
+# The recorded snapshot below is the guard against silent widening. Originally
+# (D-S047-08) this test diffed the live file against `origin/main`, which only
+# works when the list is expected to stay UNCHANGED (S047's own claim was "the
+# loader widens nothing"). That mechanism cannot work for an allow-list that is
+# meant to evolve under a documented amendment process: any PR that
+# legitimately widens it (e.g. ADR-0026 Amendment 2, Sprint 064 T002) would
+# show a permanent diff against `origin/main` until merged -- failing CI on
+# the very PR that must pass CI in order to merge. A frozen, in-file snapshot
+# instead catches an UNDOCUMENTED addition (the assertion below fails), while
+# a legitimate widening updates this snapshot in the SAME commit that adds the
+# module and its ADR amendment -- exactly the discipline D-S047-08 wanted,
+# without the self-defeating "can never merge a real widening" failure mode.
+_CLI_ALLOWED_TRADING_FRAMEWORK_MODULES_SNAPSHOT = frozenset(
+    {
+        "trading_framework.core.exceptions",
+        "trading_framework.core.identifiers",
+        "trading_framework.infrastructure.storage.metadata.registry",
+        "trading_framework.market.datasets",
+        "trading_framework.market.importers",
+        "trading_framework.market_analysis.models.time_range",
+        "trading_framework.research.analytics.strategy_dashboard_report",
+        "trading_framework.research.datasets.predictive",
+        "trading_framework.research.datasets.predictive_run",
+        "trading_framework.research.datasets.strategy_research",
+        "trading_framework.research.predictive.errors",
+        "trading_framework.research.predictive.estimators",
+        "trading_framework.research.predictive.spec",
+        "trading_framework.research.signal_research.loader",
+        "trading_framework.research.simulation",
+        "trading_framework.strategy",
+        "trading_framework.time.models.timeframe",
+        "trading_framework.time.sessions",
+    }
+)
 
-    None (never a failure) when the ref can't be resolved -- e.g. a shallow
-    clone with no `origin/main` -- so this assertion degrades to a skip
-    rather than a false failure on an unrelated CI/checkout shape.
+
+def test_cli_boundary_allow_list_matches_recorded_snapshot() -> None:
+    """Guards against a silent, undocumented addition to the CLI allow-list.
+
+    Originally D-S047-08 / SPRINT_047.md §4 finding 2 ("the loader widens
+    nothing"); the mechanism changed for Sprint 064 T002 (ADR-0026 Amendment
+    2) -- see the module-level comment above the recorded snapshot.
     """
-    for ref in ("origin/main", "main"):
-        try:
-            result = subprocess.run(  # fixed args, read-only "git show"
-                ["git", "show", f"{ref}:{relative_posix_path}"],
-                cwd=_REPO_ROOT,
-                capture_output=True,
-                text=True,
-                encoding="utf-8",
-                check=False,
-                timeout=10,
-            )
-        except (OSError, subprocess.SubprocessError):
-            continue
-        if result.returncode == 0 and result.stdout:
-            return result.stdout
-    return None
-
-
-def test_cli_boundary_allow_list_is_byte_identical_to_main() -> None:
-    """SPRINT_047.md §4 finding 2 / D-S047-08: the loader widens nothing."""
-    relative_path = _CLI_ALLOWLIST_TEST_FILE.relative_to(_REPO_ROOT).as_posix()
-    main_content = _git_show_main_file(relative_path)
-    if main_content is None:
-        pytest.skip("origin/main not reachable in this checkout; cannot diff against it")
-
-    current_content = _CLI_ALLOWLIST_TEST_FILE.read_text(encoding="utf-8")
-
-    current_block = _extract_allow_list_block(current_content)
-    main_block = _extract_allow_list_block(main_content)
-
-    assert current_block == main_block, (
-        "apps/cli's import allow-list changed relative to main -- widening it "
-        "requires a new ADR-0026 amendment with fresh maintainer approval "
-        "(D-S047-08), not an edit to this test"
+    current = _CLI_ALLOWED_TRADING_FRAMEWORK_MODULES
+    snapshot = _CLI_ALLOWED_TRADING_FRAMEWORK_MODULES_SNAPSHOT
+    assert current == snapshot, (
+        "apps/cli's import allow-list changed but the recorded snapshot in "
+        "this test was not updated. Widening the allow-list requires a new "
+        "ADR-0026 amendment with fresh maintainer approval -- update "
+        "_CLI_ALLOWED_TRADING_FRAMEWORK_MODULES_SNAPSHOT above in the SAME "
+        "commit as the amendment, never as a silent edit."
     )
-
-
-_ALLOW_LIST_START_MARKER = "_CLI_ALLOWED_TRADING_FRAMEWORK_PREFIX = "
-_ALLOW_LIST_END_MARKER = "\n)\n"
-
-
-def _extract_allow_list_block(source: str) -> str:
-    """Return the exact `_CLI_ALLOWED_TRADING_FRAMEWORK_PREFIX`/`_MODULES` text.
-
-    Extracting just this block (rather than diffing the whole file) keeps the
-    assertion scoped to what Finding 2 actually claims -- the allow-list
-    itself -- and immune to unrelated docstring/comment edits elsewhere in
-    the file.
-    """
-    start = source.index(_ALLOW_LIST_START_MARKER)
-    end = source.index(_ALLOW_LIST_END_MARKER, start) + len(_ALLOW_LIST_END_MARKER)
-    return source[start:end]
-
-
 # ---------------------------------------------------------------------------
 # apps/workbench -- ADR-0037 section 2/3: `workbench_core` and `workbench_ui`
 # get two DIFFERENT, independently enforced import boundaries, not one rule

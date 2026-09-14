@@ -101,7 +101,9 @@ def build_parser() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
 
-    research_parser = groups.add_parser("research", help="run predictive or strategy research")
+    research_parser = groups.add_parser(
+        "research", help="run predictive, strategy or signal research"
+    )
     research_commands = research_parser.add_subparsers(
         dest="command", required=True, metavar="{run,promote}"
     )
@@ -110,8 +112,8 @@ def build_parser() -> argparse.ArgumentParser:
         parents=[common],
         help="run a research workflow",
         description=(
-            "Run Predictive or Strategy Research, selected by 'research.kind' in "
-            "--config.\n\n"
+            "Run Predictive, Strategy or Signal Research, selected by "
+            "'research.kind' in --config.\n\n"
             "'predictive' is composed: build dataset -> run -> render report, in one "
             "call, with identifiers passed as typed values between steps.\n\n"
             "'strategy' runs a single Strategy Research simulation on a published "
@@ -124,7 +126,13 @@ def build_parser() -> argparse.ArgumentParser:
             "LIMITATION: the simulation assumptions and session resolver remain "
             "hardcoded (same as scripts/strategy_research/run_strategy_research.py). "
             "See docs/reference/modules/OPERATOR_CLI.md (Sprint 047 adds a "
-            "strategy-authoring guide)."
+            "strategy-authoring guide).\n\n"
+            "'signal' runs one Signal Research study from a "
+            "SignalResearchDefinitionSpec file ('research.signal.definition' in "
+            "--config, ADR-0038) -- the same schema/loader/validation the "
+            "framework already owns, never re-encoded here. --dry-run proves the "
+            "definition loads and resolves, printing the resolved dataset, scope, "
+            "models, horizons and definition_hash before any side effect."
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
