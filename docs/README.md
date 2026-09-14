@@ -12,7 +12,8 @@ Start here to understand the framework from product intent through system archit
 
 ## Work on a change
 
-Read [Current Status](planning/CURRENT_STATUS.md) and the active task, then open the affected module guide, workflow and ADR. Verify the concrete contracts in `src/` and `tests/`. For future capabilities, start at [Vision](vision/README.md) and [Roadmap](planning/ROADMAP.md) instead of inferring implementation from proposals.
+Choose the delivery path and risk using [Delivery paths](onboarding/DEVELOPER_GUIDE.md#delivery-paths).
+Read [Current Status](planning/CURRENT_STATUS.md) when the change belongs to a sprint, then open the active task and affected module guide, workflow and ADR. Verify the concrete contracts in `src/` and `tests/`. For future capabilities, start at [Vision](vision/README.md) and [Roadmap](planning/ROADMAP.md) instead of inferring implementation from proposals.
 
 ## Documentation layers
 

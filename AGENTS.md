@@ -78,16 +78,18 @@ Report failed checks. Do not hide or disable them.
 - ideas: `docs/planning/IDEA_INBOX.md`
 - technical debt: `docs/planning/TECHNICAL_DEBT.md`
 
-## Sprint Git Workflow
+## Git Delivery Workflow
 
+- classify the work using [Delivery paths](docs/onboarding/DEVELOPER_GUIDE.md#delivery-paths); delivery path and risk are separate decisions
 - one integration branch per sprint: `sprint/<sprint-slug>` (for example `sprint/market-analysis-mvp`)
 - working branches use separate prefixes: `feat/`, `fix/`, `docs/`, `test/`, `refactor/` — not `sprint/<sprint-slug>/<task>`
-- one PR per coherent, reviewable outcome into the sprint branch — not into `main`
+- one PR per coherent, reviewable outcome: sprint work targets the sprint branch; standalone work outside a sprint targets `main`
 - target PR size: 100–400 meaningful lines; split if larger than ~600–800
 - branch, PR and commit names describe the work — not sprint task IDs
 - sprint docs define **what** to deliver; they do not mandate PR boundaries
-- mandatory path: working branch → commit → push → PR to sprint branch → review / CI → squash merge → delete branch
+- mandatory path: working branch → commit → push → PR to the applicable target branch → review / CI → squash merge → delete branch
 - when the sprint is complete: one final PR from `sprint/<sprint-slug>` to `main`
+- a hotfix keeps PR, CI, and review; bypassing a specific gate requires explicit maintainer approval for that incident
 - the agent implements, pushes and opens the PR, then **stops before merge**
 
 The branch/PR path above is the project-level delivery rule.

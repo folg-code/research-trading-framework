@@ -47,6 +47,49 @@ TRADING_FRAMEWORK_RUN_TORCH_TESTS=1 uv run pytest -m torch
 
 ---
 
+## Delivery paths
+
+Every change follows intake, context and risk classification, planning or
+approval, implementation, verification, review, documentation impact check,
+and delivery. Choose the path from the outcome and urgency; classify risk
+separately. Neither a small diff nor a high-risk label alone requires a PRD,
+roadmap, phase, or sprint.
+
+| Path | Use when | Starting context |
+|---|---|---|
+| Sprint capability | A product outcome needs coordinated tasks or capability sequencing. | Approved PRD or roadmap outcome and sprint plan. |
+| Standalone fix or small change | One bounded correction or change has a clear outcome. | A clear request or ticket, scope, and acceptance criteria. |
+| Standalone high-risk task | One bounded outcome has material risk but needs no new product decision or coordinated sprint. | An approved ticket with objective, acceptance criteria, scope, dependencies, risk, relevant context, verification plan, and rollback plan when data or production may be affected. |
+| Hotfix | An ongoing incident or critical regression needs prompt restoration. A deadline or high risk alone does not qualify. | Incident or regression evidence, restoration objective, affected scope, and verification/rollback approach. |
+| Maintenance | Documentation, tests, refactoring, or debt repayment has a clear bounded outcome. | A clear request or ticket and scope; acceptance criteria where behavior or contracts may change. |
+
+Risk determines the checks and approvals on every path:
+
+| Risk | Planning | Verification | Review |
+|---|---|---|---|
+| Low: local, reversible, covered by existing validation, with no public-behavior, architecture, dependency, data, security, permission, or infrastructure impact | Implicit when obvious | Targeted checks | Self-review |
+| Standard: everything else, including uncertain classification | Short explicit plan | Targeted and affected integration checks | Independent review in a fresh context |
+| High: material data, security, privacy, permission, cross-cutting architecture, public-contract, production, rollback, or requirements risk | Explicit plan and human approval before implementation | Expanded risk-based checks | Independent review in a fresh context |
+
+Use the high-risk task requirements for any standalone change classified high,
+including a hotfix or maintenance task. Triage architecture impact before
+approving a PRD or high-risk standalone plan and whenever work crosses module
+or contract boundaries. Cross-cutting decisions require human approval.
+If requirements are unresolved or the work grows into coordinated outcomes,
+recommend discovery, a PRD, roadmap, or sprint plan and obtain the human's
+decision before that transition.
+
+A hotfix restores service with the smallest safe scope. It keeps PR, CI, and
+review; bypassing any one gate requires separate explicit maintainer approval
+for that incident. Record cause, verification, and follow-up work in the issue
+or PR instead of silently expanding the emergency change. Outside a sprint,
+the PR may be the only completion record, but required planning and approvals
+still apply, and affected behavior documentation must be updated. See
+[Git Delivery Workflow](../../AGENTS.md#git-delivery-workflow)
+for target branches and merge rules.
+
+---
+
 ## Credentials
 
 The default install and the standard test suite need no credentials.
