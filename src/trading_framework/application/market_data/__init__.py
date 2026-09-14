@@ -41,6 +41,10 @@ from trading_framework.application.market_data.import_external_dataset import (
     ImportExternalDatasetResult,
     import_external_dataset,
 )
+from trading_framework.application.market_data.list_published_datasets import (
+    PublishedDatasetSummary,
+    list_published_datasets,
+)
 from trading_framework.application.market_data.materialize_continuous_trades import (
     MaterializeContinuousTradesRequest,
     MaterializeContinuousTradesResult,
@@ -74,6 +78,7 @@ __all__ = [
     "ImportExternalDatasetResult",
     "MaterializeContinuousTradesRequest",
     "MaterializeContinuousTradesResult",
+    "PublishedDatasetSummary",
     "QueryHistoricalRequest",
     "QueryTradesRequest",
     "build_continuous",
@@ -85,6 +90,7 @@ __all__ = [
     "import_databento_contract_trades_archive",
     "import_databento_trades_archive",
     "import_external_dataset",
+    "list_published_datasets",
     "materialize_continuous_trades",
     "publish_dataset",
     "query_historical",
