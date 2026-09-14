@@ -18,6 +18,7 @@ from trading_framework.research.analytics.dimensions import GroupDimension
 from trading_framework.research.datasets import RunDatasetRef
 from trading_framework.research.scope import ResearchScope
 from trading_framework.research.signal_research.definition import (
+    SIGNAL_RESEARCH_DEFINITION_SCHEMA_V1,
     BaselineType,
     CandidateBounds,
     ModelFamilySpec,
@@ -26,6 +27,7 @@ from trading_framework.research.signal_research.definition import (
     ResearchGroupingDimension,
     SignalResearchDefinitionError,
     SignalResearchDefinitionSpec,
+    UnsupportedSignalResearchDefinitionSchemaError,
     compute_definition_hash,
 )
 from trading_framework.research.signal_research.horizons import horizon_to_bars
@@ -160,6 +162,56 @@ def test_definition_to_dict_round_trip() -> None:
     assert restored.research_scope == original.research_scope
     assert restored.market_model_id == original.market_model_id
     assert restored.signal_model_id == original.signal_model_id
+
+
+def test_schema_version_defaults_to_v1() -> None:
+    spec = _combined_spec()
+    assert spec.schema_version == SIGNAL_RESEARCH_DEFINITION_SCHEMA_V1
+    assert spec.to_dict()["schema_version"] == SIGNAL_RESEARCH_DEFINITION_SCHEMA_V1
+
+
+def test_from_dict_treats_absent_schema_version_as_v1() -> None:
+    payload = _combined_spec().to_dict()
+    del payload["schema_version"]
+    restored = SignalResearchDefinitionSpec.from_dict(payload)
+    assert restored.schema_version == SIGNAL_RESEARCH_DEFINITION_SCHEMA_V1
+
+
+def test_from_dict_refuses_unknown_schema_version() -> None:
+    payload = _combined_spec().to_dict()
+    payload["schema_version"] = "signal_research.definition.v2"
+    with pytest.raises(UnsupportedSignalResearchDefinitionSchemaError) as exc_info:
+        SignalResearchDefinitionSpec.from_dict(payload)
+    message = str(exc_info.value)
+    assert "signal_research.definition.v2" in message
+    assert SIGNAL_RESEARCH_DEFINITION_SCHEMA_V1 in message
+
+
+def test_definition_hash_is_stable_within_v1() -> None:
+    spec = _combined_spec()
+    restored = SignalResearchDefinitionSpec.from_dict(spec.to_dict())
+    assert compute_definition_hash(spec) == compute_definition_hash(restored)
+
+
+def test_definition_hash_changes_across_schema_version() -> None:
+    base = _combined_spec()
+
+    # Constructed directly (not via from_dict, which refuses an unsupported
+    # version): schema_version must be a material hash input, per ADR-0038 §2.
+    hash_v1 = compute_definition_hash(base)
+    other_spec = SignalResearchDefinitionSpec(
+        research_id=base.research_id,
+        research_scope=base.research_scope,
+        dataset_ref=base.dataset_ref,
+        time_range=base.time_range,
+        horizons=base.horizons,
+        market_model_id=base.market_model_id,
+        signal_model_id=base.signal_model_id,
+        baseline=base.baseline,
+        grouping=base.grouping,
+        schema_version="signal_research.definition.other",
+    )
+    assert compute_definition_hash(other_spec) != hash_v1
 
 
 def test_signal_family_definition_without_root_signal_model() -> None:
