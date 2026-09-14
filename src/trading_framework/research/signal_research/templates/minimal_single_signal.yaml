@@ -1,0 +1,19 @@
+# Framework-owned Signal Research template (ADR-0038 section 4, D-S064-06).
+# Never edited in place across a template_version -- bump the version and
+# keep the old body if this template's shape ever needs to change.
+template_id: minimal-single-signal
+template_version: 1
+title: Minimal Single Signal
+description: >-
+  The smallest valid Signal Research study: one built-in market model, one
+  built-in signal model, one horizon. Confirms a local setup works before
+  building a real study.
+
+definition:
+  research_scope: MARKET_AND_SIGNAL
+  market_model: high_volatility
+  signal_model: higher_low_long
+  baseline:
+    type: SIGNAL_ONLY
+  horizons:
+    - 5m
