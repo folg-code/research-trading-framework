@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import ast
 import subprocess
+from collections.abc import Callable
 from pathlib import Path
 
 import pytest
@@ -345,3 +346,94 @@ def _extract_allow_list_block(source: str) -> str:
     start = source.index(_ALLOW_LIST_START_MARKER)
     end = source.index(_ALLOW_LIST_END_MARKER, start) + len(_ALLOW_LIST_END_MARKER)
     return source[start:end]
+
+
+# ---------------------------------------------------------------------------
+# apps/workbench -- ADR-0037 section 2/3: `workbench_core` and `workbench_ui`
+# get two DIFFERENT, independently enforced import boundaries, not one rule
+# applied to the whole app.
+#
+# `workbench_core` inherits ADR-0026 Amendment 1's allow-list AS-IS (ADR-0037
+# section 2) -- it is deliberately the exact same allow-list `apps/cli` uses,
+# reused rather than duplicated, so the two can never silently drift apart.
+# Widening it requires a fresh ADR amendment with maintainer approval, exactly
+# as it does for `apps/cli` -- never a test-file edit.
+#
+# `workbench_ui` gets the dashboard's total ban: it MUST NOT import
+# `trading_framework` at all, and talks to `workbench_core` only over the
+# loopback `workbench.api.v1` JSON API (ADR-0037 section 4).
+# ---------------------------------------------------------------------------
+
+_WORKBENCH_CORE_SRC = _APPS_ROOT / "workbench" / "src" / "workbench_core"
+_WORKBENCH_UI_SRC = _APPS_ROOT / "workbench" / "src" / "workbench_ui"
+
+
+def _is_workbench_core_boundary_violation(module_name: str) -> bool:
+    return _is_cli_boundary_violation(module_name)
+
+
+def _scan_predicate_offenders(
+    scan_roots: tuple[Path, ...], predicate: Callable[[str], bool]
+) -> list[str]:
+    """Like `_scan_dashboard_offenders`, but for a predicate (e.g. an allow-list check)
+    instead of a simple forbidden-prefix match.
+
+    Shared by `test_workbench_core_only_imports_application_layer` and its own regression
+    test below, so the regression test exercises the EXACT root-iteration logic the real
+    test uses -- not a hand-duplicated copy. PRB-022 (see this file's header comment) was
+    exactly this category of bug: a scan whose regression test drifted from the production
+    root-iteration logic and stopped proving anything.
+    """
+    offenders: list[str] = []
+    for scan_root in scan_roots:
+        for path in _python_files(scan_root):
+            try:
+                relative = path.relative_to(_REPO_ROOT).as_posix()
+            except ValueError:
+                relative = path.name
+            for module in _imported_modules(path):
+                if predicate(module):
+                    offenders.append(f"{relative}:{module}")
+    return offenders
+
+
+def test_workbench_core_only_imports_application_layer() -> None:
+    assert _WORKBENCH_CORE_SRC.is_dir(), "expected apps/workbench/src/workbench_core (ADR-0037)"
+
+    offenders = _scan_predicate_offenders(
+        (_WORKBENCH_CORE_SRC,), _is_workbench_core_boundary_violation
+    )
+
+    assert offenders == []
+
+
+def test_workbench_core_boundary_scan_detects_a_forbidden_import(tmp_path: Path) -> None:
+    """Regression: prove the workbench_core scan can fail, not just pass (ADR-0037 acceptance)."""
+    package_dir = tmp_path / "workbench_core"
+    package_dir.mkdir()
+    (package_dir / "synthetic_module.py").write_text(
+        "import trading_framework.research.predictive.verdict\n", encoding="utf-8"
+    )
+
+    offenders = _scan_predicate_offenders((package_dir,), _is_workbench_core_boundary_violation)
+
+    assert offenders == ["synthetic_module.py:trading_framework.research.predictive.verdict"]
+
+
+def test_workbench_ui_does_not_import_trading_framework() -> None:
+    assert _WORKBENCH_UI_SRC.is_dir(), "expected apps/workbench/src/workbench_ui (ADR-0037)"
+
+    offenders = _scan_dashboard_offenders((_WORKBENCH_UI_SRC,), ("trading_framework",))
+
+    assert offenders == []
+
+
+def test_workbench_ui_boundary_scan_detects_a_forbidden_import(tmp_path: Path) -> None:
+    """Regression: prove the workbench_ui scan can fail, not just pass (ADR-0037 acceptance)."""
+    package_dir = tmp_path / "workbench_ui"
+    package_dir.mkdir()
+    (package_dir / "synthetic_view.py").write_text("import trading_framework\n", encoding="utf-8")
+
+    offenders = _scan_dashboard_offenders((package_dir,), ("trading_framework",))
+
+    assert offenders == ["synthetic_view.py:trading_framework"]

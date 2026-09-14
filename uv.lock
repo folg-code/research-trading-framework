@@ -20,6 +20,7 @@ members = [
     "trading-cli",
     "trading-dashboard",
     "trading-framework",
+    "trading-workbench",
 ]
 
 [[package]]
@@ -2808,6 +2809,35 @@ dev = [
     { name = "pre-commit", specifier = ">=4.6.0" },
     { name = "pytest", specifier = ">=9.1.0" },
     { name = "pytest-cov", specifier = ">=7.1.0" },
+    { name = "ruff", specifier = ">=0.15.18" },
+]
+
+[[package]]
+name = "trading-workbench"
+version = "0.1.0"
+source = { editable = "apps/workbench" }
+dependencies = [
+    { name = "aiohttp" },
+    { name = "trading-framework" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "mypy" },
+    { name = "pytest" },
+    { name = "ruff" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "aiohttp", specifier = ">=3.14.1" },
+    { name = "trading-framework", editable = "." },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "mypy", specifier = ">=2.1.0" },
+    { name = "pytest", specifier = ">=9.1.0" },
     { name = "ruff", specifier = ">=0.15.18" },
 ]
 
