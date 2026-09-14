@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import ast
 import subprocess
+from collections.abc import Callable
 from pathlib import Path
 
 import pytest
@@ -371,15 +372,37 @@ def _is_workbench_core_boundary_violation(module_name: str) -> bool:
     return _is_cli_boundary_violation(module_name)
 
 
+def _scan_predicate_offenders(
+    scan_roots: tuple[Path, ...], predicate: Callable[[str], bool]
+) -> list[str]:
+    """Like `_scan_dashboard_offenders`, but for a predicate (e.g. an allow-list check)
+    instead of a simple forbidden-prefix match.
+
+    Shared by `test_workbench_core_only_imports_application_layer` and its own regression
+    test below, so the regression test exercises the EXACT root-iteration logic the real
+    test uses -- not a hand-duplicated copy. PRB-022 (see this file's header comment) was
+    exactly this category of bug: a scan whose regression test drifted from the production
+    root-iteration logic and stopped proving anything.
+    """
+    offenders: list[str] = []
+    for scan_root in scan_roots:
+        for path in _python_files(scan_root):
+            try:
+                relative = path.relative_to(_REPO_ROOT).as_posix()
+            except ValueError:
+                relative = path.name
+            for module in _imported_modules(path):
+                if predicate(module):
+                    offenders.append(f"{relative}:{module}")
+    return offenders
+
+
 def test_workbench_core_only_imports_application_layer() -> None:
     assert _WORKBENCH_CORE_SRC.is_dir(), "expected apps/workbench/src/workbench_core (ADR-0037)"
-    offenders: list[str] = []
 
-    for path in _python_files(_WORKBENCH_CORE_SRC):
-        relative = path.relative_to(_REPO_ROOT).as_posix()
-        for module in _imported_modules(path):
-            if _is_workbench_core_boundary_violation(module):
-                offenders.append(f"{relative}:{module}")
+    offenders = _scan_predicate_offenders(
+        (_WORKBENCH_CORE_SRC,), _is_workbench_core_boundary_violation
+    )
 
     assert offenders == []
 
@@ -392,12 +415,7 @@ def test_workbench_core_boundary_scan_detects_a_forbidden_import(tmp_path: Path)
         "import trading_framework.research.predictive.verdict\n", encoding="utf-8"
     )
 
-    offenders = [
-        f"{path.name}:{module}"
-        for path in _python_files(package_dir)
-        for module in _imported_modules(path)
-        if _is_workbench_core_boundary_violation(module)
-    ]
+    offenders = _scan_predicate_offenders((package_dir,), _is_workbench_core_boundary_violation)
 
     assert offenders == ["synthetic_module.py:trading_framework.research.predictive.verdict"]
 
