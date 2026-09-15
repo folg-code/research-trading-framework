@@ -99,15 +99,15 @@ Binding detail, rationale and the maintainer checklist:
 
 | Task | Outcome | Dependencies | Ownership | Risk | Status | PR |
 |---|---|---|---|---|---|---|
-| T001 | `SignalResearchDefinitionSpec` carries `schema_version`; a file without one still loads as v1, a file with an unknown/newer one is refused with a message naming the version and the supported set, and the `definition_hash` break is documented in `docs/reference/` and `TECHNICAL_DEBT.md` rather than patched | Approved sprint + D-S064-07 | `research/signal_research` + docs | standard | Done | PR TBD |
-| T002 | `uv run trading-cli research run signal --config <f> --dry-run` prints a resolved plan (dataset, scope, models, range, horizons, intended output location) with zero side effects; without `--dry-run` it produces a persisted run and prints its `run_id`; `from_dict(to_dict(spec)) == spec` and `compute_definition_hash` are stable across a save/reload cycle | T001 | `apps/cli` + `application/signal_research` | high | Done | PR TBD |
-| T003 | Three framework-owned templates ship in the package and a listing API returns framework + user templates with `template_id`, `template_version`, title, description, source (`FRAMEWORK`/`USER`) and shadowing status; applying one yields an editable payload that validates and runs through T002 | T001; D-S064-06 | `research/signal_research/templates` | standard | Done | PR TBD |
-| T004 | `apps/workbench` exists as a uv workspace member; `workbench-api` starts on loopback, serves `workbench.api.v1`, and answers one read-only endpoint listing already-published datasets; `tests/unit/test_apps_boundaries.py` scans `workbench_core` and `workbench_ui` as two scopes with two rule sets and fails on a forbidden import | Approved sprint (parallel with T001) | `apps/workbench` + boundary tests | high | Done | PR TBD |
-| T005 | `trading-cli` emits newline-delimited `workbench.phase_event.v1` events on stdout for `research run signal`, following the phase list bound in D-S064-04; human-readable output is unchanged for an operator reading the terminal | T002; D-S064-04 | `apps/cli` | standard | Done | PR TBD |
-| T006 | Submitting a job through the API spawns one `trading-cli` subprocess against a written `config.yaml`, records `QUEUED -> RUNNING -> SUCCEEDED/FAILED` in `job.json`, surfaces the latest parsed phase and verbatim logs, and survives the client disconnecting; the operator can rerun the same study by hand from the written `config.yaml` | T004, T005; D-S064-03 | `apps/workbench` (`workbench_core`) | high | Done | PR TBD |
-| T007 | Cancelling a queued or running job yields terminal `CANCELLED` on Windows (graceful signal then hard kill) and leaves no readable run manifest and nothing FINALIZED/PUBLISHED; restarting `workbench-api` marks a previously active job `INTERRUPTED` with its stored reason — never running, failed, cancelled, or auto-resumed | T006; D-S064-03 | `apps/workbench` (`workbench_core`) + Windows tests | high | Done | PR TBD |
-| T008 | A human opens the workbench, picks a template, sees and edits the generated YAML, runs preflight validation and sees the framework's own error text on a bad value, starts the study, watches phase/elapsed/logs update, cancels or lets it finish, and opens the result — all without a terminal | T003, T004, T007 | `apps/workbench` (`workbench_ui`) + `workbench_core` API | high | Done | PR TBD |
-| T009 | A recorded measurement of the reference ~1.3M-row / 42.5 MB dataset on the maintainer's machine: wall time, peak RSS and the bounded-preview cost for the current import path, written up as a proposed amendment to D-S064-01 with a named recommendation | Approved sprint (parallel with T001/T004) | measurement + docs | standard | Done — see `S064_WAVE0_DECISIONS.md` D-S064-01 amendment. Import: 54s / 2.10GB peak (misses the 2GB target by ~5%); preview: <10ms, no risk; new finding: import path is CSV-only today, no Parquet support | PR TBD |
+| T001 | `SignalResearchDefinitionSpec` carries `schema_version`; a file without one still loads as v1, a file with an unknown/newer one is refused with a message naming the version and the supported set, and the `definition_hash` break is documented in `docs/reference/` and `TECHNICAL_DEBT.md` rather than patched | Approved sprint + D-S064-07 | `research/signal_research` + docs | standard | Done | [#526](https://github.com/folg-code/research-trading-framework/pull/526) |
+| T002 | `uv run trading-cli research run signal --config <f> --dry-run` prints a resolved plan (dataset, scope, models, range, horizons, intended output location) with zero side effects; without `--dry-run` it produces a persisted run and prints its `run_id`; `from_dict(to_dict(spec)) == spec` and `compute_definition_hash` are stable across a save/reload cycle | T001 | `apps/cli` + `application/signal_research` | high | Done | [#529](https://github.com/folg-code/research-trading-framework/pull/529) |
+| T003 | Three framework-owned templates ship in the package and a listing API returns framework + user templates with `template_id`, `template_version`, title, description, source (`FRAMEWORK`/`USER`) and shadowing status; applying one yields an editable payload that validates and runs through T002 | T001; D-S064-06 | `research/signal_research/templates` | standard | Done | [#530](https://github.com/folg-code/research-trading-framework/pull/530) |
+| T004 | `apps/workbench` exists as a uv workspace member; `workbench-api` starts on loopback, serves `workbench.api.v1`, and answers one read-only endpoint listing already-published datasets; `tests/unit/test_apps_boundaries.py` scans `workbench_core` and `workbench_ui` as two scopes with two rule sets and fails on a forbidden import | Approved sprint (parallel with T001) | `apps/workbench` + boundary tests | high | Done | [#527](https://github.com/folg-code/research-trading-framework/pull/527) |
+| T005 | `trading-cli` emits newline-delimited `workbench.phase_event.v1` events on stdout for `research run signal`, following the phase list bound in D-S064-04; human-readable output is unchanged for an operator reading the terminal | T002; D-S064-04 | `apps/cli` | standard | Done | [#532](https://github.com/folg-code/research-trading-framework/pull/532) |
+| T006 | Submitting a job through the API spawns one `trading-cli` subprocess against a written `config.yaml`, records `QUEUED -> RUNNING -> SUCCEEDED/FAILED` in `job.json`, surfaces the latest parsed phase and verbatim logs, and survives the client disconnecting; the operator can rerun the same study by hand from the written `config.yaml` | T004, T005; D-S064-03 | `apps/workbench` (`workbench_core`) | high | Done | [#533](https://github.com/folg-code/research-trading-framework/pull/533) |
+| T007 | Cancelling a queued or running job yields terminal `CANCELLED` on Windows (graceful signal then hard kill) and leaves no readable run manifest and nothing FINALIZED/PUBLISHED; restarting `workbench-api` marks a previously active job `INTERRUPTED` with its stored reason — never running, failed, cancelled, or auto-resumed | T006; D-S064-03 | `apps/workbench` (`workbench_core`) + Windows tests | high | Done | [#534](https://github.com/folg-code/research-trading-framework/pull/534) (flaky-test follow-up [#535](https://github.com/folg-code/research-trading-framework/pull/535)) |
+| T008 | A human opens the workbench, picks a template, sees and edits the generated YAML, runs preflight validation and sees the framework's own error text on a bad value, starts the study, watches phase/elapsed/logs update, cancels or lets it finish, and opens the result — all without a terminal | T003, T004, T007 | `apps/workbench` (`workbench_ui`) + `workbench_core` API | high | Done | [#537](https://github.com/folg-code/research-trading-framework/pull/537), [#538](https://github.com/folg-code/research-trading-framework/pull/538), [#539](https://github.com/folg-code/research-trading-framework/pull/539), [#540](https://github.com/folg-code/research-trading-framework/pull/540), [#541](https://github.com/folg-code/research-trading-framework/pull/541); frontend framework decision [ADR-0044](../../adr/ADR-0044-workbench-ui-frontend-framework.md) ([#536](https://github.com/folg-code/research-trading-framework/pull/536)); post-acceptance click-through usability pass [#543](https://github.com/folg-code/research-trading-framework/pull/543) + result-capture fix [#544](https://github.com/folg-code/research-trading-framework/pull/544) |
+| T009 | A recorded measurement of the reference ~1.3M-row / 42.5 MB dataset on the maintainer's machine: wall time, peak RSS and the bounded-preview cost for the current import path, written up as a proposed amendment to D-S064-01 with a named recommendation | Approved sprint (parallel with T001/T004) | measurement + docs | standard | Done — see `S064_WAVE0_DECISIONS.md` D-S064-01 amendment. Import: 54s / 2.10GB peak (misses the 2GB target by ~5%); preview: <10ms, no risk; new finding: import path is CSV-only today, no Parquet support | [#528](https://github.com/folg-code/research-trading-framework/pull/528) |
 
 Task detail (goal, explicit scope/out-of-scope, acceptance criteria, expected
 tests, referenced documents) is in the per-task sections below. Operational
@@ -424,7 +424,33 @@ is the reason ADR-0041 exists.
 
 ## Closeout
 
-- Integrated checks:
-- Documentation reconciliation:
-- Review:
-- Remaining work:
+- **Integrated checks:** T001–T007 and T009 merged to `sprint/research-application-mvp`
+  and, via the sprint branch's final integration, to `main` (`sprint/research-application-mvp`
+  and `main` both point at `a6ff0a0`). T008's own PRs (#537–#542) landed the
+  same way. All merges passed the full CI matrix (build, CLI/unit/integration/
+  dashboard/workbench tests, ruff+mypy quality, ML/DL extras). A follow-up
+  usability pass — click-through tiles for `market_model`/`signal_model`/
+  `research_scope`/`baseline`/`horizons`/`time_range` instead of hand-typed
+  YAML, plus a `GET /api/v1/models` listing endpoint (PR
+  [#543](https://github.com/folg-code/research-trading-framework/pull/543))
+  — and a bugfix found during that pass's live QA — `job_runner.py` parsed
+  `trading_cli.plan.dump_json`'s pretty-printed (`indent=2`) final summary
+  one stdout line at a time, so a job's `result` was silently never captured
+  (PR [#544](https://github.com/folg-code/research-trading-framework/pull/544))
+  — round out T008 pending merge.
+- **Documentation reconciliation:** this file's task table now carries real
+  PR links in place of `PR TBD`; [PHASE_17](../roadmap/PHASE_17_RESEARCH_APPLICATION.md)'s
+  increment table should be updated to mark 17A/17B **Done** with this sprint
+  as the closing record; [CURRENT_STATUS.md](../CURRENT_STATUS.md) should
+  move Sprint 064 out of "Active sprint" once #543/#544 merge.
+- **Review:** live end-to-end demo run through the T008 flow (template pick
+  -> click-through fields -> dataset tile -> preflight validate -> run ->
+  live phase/log -> result) against the maintainer's real `user_data/`,
+  `2026-09-15`; a `SUCCEEDED` job correctly showed `run_id`,
+  `research_id` and `definition_hash` in the Result view after #544's fix.
+- **Remaining work:** 17C (Data Manager: bounded/streaming Parquet import,
+  preview, validation findings, acknowledgement, Binance form — blocked on
+  the D-S064-01 amendment's streaming-importer direction, not yet built) and
+  17D (run catalog + comparison, ADR-0042) are out of scope for this sprint
+  and open as the next increments; see
+  [PHASE_17](../roadmap/PHASE_17_RESEARCH_APPLICATION.md) for sequencing.

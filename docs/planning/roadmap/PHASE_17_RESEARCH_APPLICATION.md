@@ -1,10 +1,10 @@
 # Phase 17 — Research Application (Local Workbench)
 
-Status: **ACCEPTED**. Architecture triage complete (ADR-0037 through ADR-0042,
-accepted by the maintainer 2026-09-14). [Sprint 064](../sprints/SPRINT_064.md)
-is approved (Wave 0 sign-off 2026-09-14) and open. This is the index for the
-accepted phase; [Current Status](../CURRENT_STATUS.md) is authoritative for
-active sprint work.
+Status: **ACCEPTED**; 17A/17B **closed** 2026-09-15 via
+[Sprint 064](../sprints/SPRINT_064.md) (see that sprint's Closeout section).
+17C/17D remain directional and unplanned. This is the index for the accepted
+phase; [Current Status](../CURRENT_STATUS.md) is authoritative for active
+sprint work.
 
 ## Purpose
 
@@ -27,8 +27,8 @@ Signal Research workflows directly. Phase 17 does not depend on Phase
 
 | Increment | State | Detail |
 |---|---|---|
-| 17A Canonical config + CLI entry point + workbench skeleton | Planned (Sprint 064 draft) | ADR-0037, ADR-0038 |
-| 17B Job runner + first end-to-end Signal Research run | Planned (Sprint 064 draft) | ADR-0041 |
+| 17A Canonical config + CLI entry point + workbench skeleton | **Done** (Sprint 064, closed) | ADR-0037, ADR-0038 |
+| 17B Job runner + first end-to-end Signal Research run | **Done** (Sprint 064, closed) | ADR-0041 |
 | 17C Data Manager (import, preview, validation/acknowledgement, Binance form) | Directional; bound technical direction for the import path — see below | ADR-0039, ADR-0040 |
 | 17D Run catalog + comparison | Directional | ADR-0042 |
 
