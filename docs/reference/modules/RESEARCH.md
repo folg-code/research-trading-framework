@@ -1,12 +1,21 @@
 # Research — implementation map
 
-This page records the existing packages and entry points for research. Start with the [module map](../system/MODULE_MAP.md) for system-wide placement and follow the links below for contracts and workflows.
+This page records the existing packages and entry points for research. Start
+with the [module map](../system/MODULE_MAP.md) for system-wide placement and
+[Terminology](../system/TERMINOLOGY.md) for the distinction between
+methodology, workflow, definition, experiment, run and artifact.
 
 ## Packages and entry points
 
 Research workflows share analytical and model-evaluation foundations, but remain independent application workflows.
 
-### Signal and Model Research
+### Signal Research (product: Market & Signal Study)
+
+Signal Research is the stable technical workflow name. Workbench presents this
+capability as a Market & Signal Study and always exposes whether the definition
+uses Market Model-only, Signal Model-only or both. Model Research is a
+methodology applied within this capability, not a separate orchestration
+package.
 
 | Responsibility | Package |
 |---|---|
@@ -23,7 +32,7 @@ Workflow:
 
 ```text
 Published Dataset
-  → model evaluation
+  → Market Model and/or Signal Model evaluation
   → research facts
   → persisted run
   → read-only analytics
@@ -37,7 +46,7 @@ Published Dataset
 | Responsibility | Package |
 |---|---|
 | Workflow orchestration | `application/strategy_research/` |
-| Shared OHLCV + model-eval cache | `application/strategy_research/shared_evaluation.py` |
+| Shared open, high, low, close and volume (OHLCV) + model-evaluation cache | `application/strategy_research/shared_evaluation.py` |
 | Strategy contracts | `strategy/` |
 | Simulation engine | `research/simulation/` (incl. `simulation/kernels/fixed_bars.py` -- the original `@njit` fixed-bars kernel, unchanged since Sprint 013, and `simulation/kernels/bracket.py` -- the Sprint 048 / ADR-0028 `@njit` bracket kernel dispatched for `PriceBracketExit` models, with its own result dataclass and per-trade-reason materializers; no reference/non-njit counterpart, see TD-028) |
 | Run artifacts | `research/datasets/` |

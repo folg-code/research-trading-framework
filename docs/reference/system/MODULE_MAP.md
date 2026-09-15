@@ -1,6 +1,6 @@
 # Module Map
 
-This map answers **where a responsibility lives**. Read [System Overview](SYSTEM_OVERVIEW.md) for the big picture, then open one capability page below for package entry points. The [dependency rules](DEPENDENCY_RULES.md) state which directions are allowed and which are enforced by tests.
+This map answers **where a responsibility lives**. Read [System Overview](SYSTEM_OVERVIEW.md) for the big picture and [Terminology](TERMINOLOGY.md) for vocabulary, then open one capability page below for package entry points. The [dependency rules](DEPENDENCY_RULES.md) state which directions are allowed and which are enforced by tests.
 
 ## 1. Repository Boundaries
 
@@ -39,7 +39,7 @@ The capability pages group related packages; they are intentionally not a one-fi
 | Workflow | Orchestration | Main domain packages | Reference |
 |---|---|---|---|
 | Market Data import and publication | `application/`, `market/` | `market/`, `infrastructure/` | [Market Data](../workflows/MARKET_DATA.md) |
-| Signal Research | `application/signal_research/` | `market_analysis/`, `market_model/`, `signal_model/`, `research/` | [Signal Research](../workflows/SIGNAL_RESEARCH.md) |
+| Signal Research (product: Market & Signal Study) | `application/signal_research/` | `market_analysis/`, `market_model/`, `signal_model/`, `research/` | [Signal Research](../workflows/SIGNAL_RESEARCH.md) |
 | Strategy Research | `application/strategy_research/` | `strategy/`, `research/`, `market_analysis/` | [Strategy Research](../workflows/STRATEGY_RESEARCH.md) |
 | Strategy Execution | `application/` runtime use cases | `strategy/`, `execution/`, `market/` | [Strategy Execution](../workflows/STRATEGY_EXECUTION.md) |
 | Predictive Research | `application/predictive_research/` | `research/predictive/`, Market Analysis inputs | [Research](../modules/RESEARCH.md) |

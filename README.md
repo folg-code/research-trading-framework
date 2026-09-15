@@ -28,7 +28,7 @@ Public dashboard:
 | ML / AI research | Predictive-study contracts, feature matrices, baselines, tree models, neural models, walk-forward evaluation and model diagnostics |
 | Software architecture | Modular boundaries, dependency inversion, typed contracts, reproducible artifacts and isolated application consumers |
 | Product surface | Public read-only dashboard over persisted research artifacts and live paper-runtime state |
-| Responsible framing | PnL and ROI are treated as simulation diagnostics under explicit assumptions, not as investment promises |
+| Responsible framing | Profit and loss (PnL) and return on investment (ROI) are treated as simulation diagnostics under explicit assumptions, not as investment promises |
 
 The core capabilities share upstream contracts but remain independent:
 
@@ -85,9 +85,8 @@ research workflows that can be used independently or combined.
 
 | Workflow | Question it answers |
 |---|---|
-| Market Research | How does a market state behave under specific conditions? |
-| Signal Research | What happens after a signal appears, before adding full strategy mechanics? |
-| Strategy Research | How does a complete entry / exit / risk model behave in simulation? |
+| Market & Signal Study | How does a Market Model, Signal Model or their combination behave? Technically executed by the Signal Research workflow. |
+| Strategy Research | How does a complete Strategy Definition, including its Exit Policy and Risk Policy, behave in simulation? |
 | Robustness Research | Is the result stable across parameters, windows, stress tests and resampling? |
 | Predictive Research | Is there predictable structure in declared features under honest validation? |
 | Strategy Execution | Can selected logic run in an isolated dry-run runtime with observable state? |
@@ -98,6 +97,7 @@ artifacts; they do not rerun research engines.
 Methodology reference:
 
 - [`docs/reference/workflows/RESEARCH_METHODOLOGIES.md`](docs/reference/workflows/RESEARCH_METHODOLOGIES.md)
+- [`docs/reference/system/TERMINOLOGY.md`](docs/reference/system/TERMINOLOGY.md)
 
 ---
 
@@ -294,7 +294,7 @@ A reference NQ research run demonstrates the system on non-trivial data volumes:
 
 - 45M+ normalized Databento trades,
 - 44M+ continuous futures trades,
-- 177k+ derived one-minute OHLCV bars,
+- 177k+ derived one-minute open, high, low, close and volume (OHLCV) bars,
 - 1,400+ simulated strategy trades.
 
 Expensive preprocessing is materialized once. Downstream research consumes

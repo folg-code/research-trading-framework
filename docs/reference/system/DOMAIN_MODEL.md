@@ -22,6 +22,9 @@
 > "Architectural Principles") now lives in
 > [`ARCHITECTURE_PRINCIPLES.md`](ARCHITECTURE_PRINCIPLES.md).
 >
+> Current product labels and their mapping to the stable technical capability
+> names on this page are defined in [`TERMINOLOGY.md`](TERMINOLOGY.md).
+>
 > Future-facing, ambiguous-status, and not-yet-built content (the promotion
 > lifecycle in former §4.12, the "Composition Over Inheritance" style rule in
 > former §5.5, and the Replay/Live Execution runtime modes in former §6.5)
@@ -33,6 +36,12 @@
 > (runtime modes).
 
 ---
+
+Terminology note: this current-state contract preserves technical names such as
+Signal Research, `ExitModel`, `RiskModel` and `StrategyModelDefinition`.
+[Terminology](TERMINOLOGY.md) defines their product-facing or explanatory names
+and distinguishes methodology, workflow, definition, experiment, run and
+artifact.
 
 ## System Capabilities
 
@@ -233,15 +242,20 @@ Research and Execution may wrap a Signal Occurrence with workflow-specific metad
 
 #### Exit Model
 
-Defines when exposure should be reduced or closed.
+Defines when exposure should be reduced or closed. Maintained explanatory copy
+calls this role the **Exit Policy**; `ExitModel` remains the technical contract.
 
 #### Risk Model
 
-Defines how much exposure or capital the strategy may request.
+Defines how much exposure or capital the strategy may request. Maintained
+explanatory copy calls this role the **Risk Policy**; `RiskModel` remains the
+technical contract.
 
 #### Strategy Model
 
-Represents:
+Represents the complete composition described in maintained explanatory copy as
+a **Strategy Definition**. `StrategyModelDefinition` remains the technical
+contract. The composition is:
 
 ```text
 Market Model
@@ -280,7 +294,7 @@ What can be learned from model definitions and historical data?
 - Signal Research Datasets,
 - Strategy Research Datasets,
 - forward-return analysis,
-- MFE and MAE analysis,
+- maximum favorable excursion (MFE) and maximum adverse excursion (MAE) analysis,
 - event studies,
 - conditional analysis,
 - historical strategy simulation,
@@ -293,7 +307,9 @@ What can be learned from model definitions and historical data?
 
 #### Signal Research
 
-Signal Research evaluates reusable analytical hypotheses without requiring both model types.
+Signal Research is the stable technical workflow behind the product-facing
+**Market & Signal Study**. It evaluates reusable analytical hypotheses without
+requiring both model types.
 
 Supported research scopes include:
 

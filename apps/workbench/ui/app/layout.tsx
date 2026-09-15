@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Research Workbench",
-  description: "Local operator control surface for Signal Research (Phase 17)",
+  description: "Local operator control surface for Market & Signal Studies",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

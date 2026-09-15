@@ -1,6 +1,6 @@
 # As-Implemented Reference
 
-This layer describes current behavior. Start at the [System Overview](system/SYSTEM_OVERVIEW.md), then use the [Module Map](system/MODULE_MAP.md) to locate ownership. For future intentions see [Vision](../vision/README.md); for decision history see [ADRs](../adr/README.md).
+This layer describes current behavior. Start at the [System Overview](system/SYSTEM_OVERVIEW.md), use the [Terminology](system/TERMINOLOGY.md) page for canonical vocabulary, then use the [Module Map](system/MODULE_MAP.md) to locate ownership. For future intentions see [Vision](../vision/README.md); for decision history see [ADRs](../adr/README.md).
 
 | Area | Start here | When to read |
 |---|---|---|
@@ -21,9 +21,9 @@ authorize work without proving that its implementation shipped.
 | Delivered track | Current contract |
 |---|---|
 | Repository foundation and boundaries | [System overview](system/SYSTEM_OVERVIEW.md), [dependency rules](system/DEPENDENCY_RULES.md) |
-| Market Data: OHLCV, DBN trades, derived bars, continuous futures, Binance historical import | [Market Data workflow](workflows/MARKET_DATA.md) |
+| Market Data: open, high, low, close and volume (OHLCV) bars, DBN trades, derived bars, continuous futures, Binance historical import | [Market Data workflow](workflows/MARKET_DATA.md) |
 | Market Analysis and multitimeframe model composition | [Market Analysis module](modules/MARKET_ANALYSIS.md), [implementation guide](modules/MARKET_ANALYSIS_MODULE.md), [time and alignment](system/TIME_AND_ALIGNMENT.md) |
-| Signal and Model Research | [Signal Research](workflows/SIGNAL_RESEARCH.md), [model methodology](workflows/methodologies/MODEL_RESEARCH.md) |
+| Market & Signal Study (technical Signal Research workflow) and model-comparison methodology | [Signal Research](workflows/SIGNAL_RESEARCH.md), [model methodology](workflows/methodologies/MODEL_RESEARCH.md) |
 | OHLCV Strategy and Robustness Research | [Strategy Research](workflows/STRATEGY_RESEARCH.md), [Robustness methodology](workflows/methodologies/ROBUSTNESS_RESEARCH.md) |
 | BTC futures dry-run execution and status | [Strategy Execution](workflows/STRATEGY_EXECUTION.md), [Execution module](modules/EXECUTION.md), [runbooks](runbooks/README.md) |
 | Predictive Research and model-family comparison | [Predictive methodology](workflows/methodologies/PREDICTIVE_RESEARCH.md), [Research module](modules/RESEARCH.md) |

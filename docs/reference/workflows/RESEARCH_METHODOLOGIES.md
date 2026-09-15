@@ -1,13 +1,18 @@
 # Research Methodologies
 
-Choose a methodology by the question and evidence it produces. This page is the entry point; topic pages carry detail, while [workflow references](README.md) define contracts and persisted outputs. The [pre-review snapshot](../../archive/snapshots/RESEARCH_METHODOLOGIES_pre_review.md) preserves the earlier combined narrative.
+Choose a methodology by the question and evidence it produces. A methodology
+guides evaluation; it does not itself imply an executable workflow or mandatory
+pipeline. This page is the entry point; topic pages carry detail, while
+[workflow references](README.md) define executable orchestration, contracts and
+persisted outputs. See [Terminology](../system/TERMINOLOGY.md) for the canonical
+lifecycle. The [pre-review snapshot](../../archive/snapshots/RESEARCH_METHODOLOGIES_pre_review.md) preserves the earlier combined narrative.
 
 ## 1. Methodology Overview
 
 | Question | Methodology | Detailed method |
 |---|---|---|
-| Does a market condition precede an outcome? | Signal Research | [Signal](methodologies/SIGNAL_RESEARCH.md) |
-| Which reusable model composition explains that condition? | Model Research | [Model](methodologies/MODEL_RESEARCH.md) |
+| Does a market condition or signal precede an outcome? | Condition and occurrence analysis | [Signal Research method](methodologies/SIGNAL_RESEARCH.md) |
+| Which reusable Market Model or Signal Model composition explains that condition? | Model-comparison analysis | [Model Research method](methodologies/MODEL_RESEARCH.md) |
 | How does a complete strategy perform under explicit fills and risk? | Strategy Research | [Strategy](methodologies/STRATEGY_RESEARCH.md) |
 | Does a strategy survive perturbation and regime changes? | Robustness Research | [Robustness](methodologies/ROBUSTNESS_RESEARCH.md) |
 | Does a predictive task generalize out of sample? | Predictive Research | [Predictive](methodologies/PREDICTIVE_RESEARCH.md) |
@@ -15,19 +20,30 @@ Choose a methodology by the question and evidence it produces. This page is the 
 
 ## 2. Shared Research Foundations
 
-All methods use published market data, explicit model/component identities, time and availability semantics, bounded experiments and persisted artifacts. Analytics reads evidence instead of silently rerunning computation. See [Market Data](MARKET_DATA.md), [Research module](../modules/RESEARCH.md) and [Time and Alignment](../system/TIME_AND_ALIGNMENT.md).
+All methods use published market data, explicit Market Model, Signal Model,
+Estimator or component identities as applicable, time and availability
+semantics, bounded comparisons and persisted artifacts. Analytics reads
+evidence instead of silently rerunning computation. A method need not define an
+Experiment contract. See [Market Data](MARKET_DATA.md), [Research
+module](../modules/RESEARCH.md) and [Time and
+Alignment](../system/TIME_AND_ALIGNMENT.md).
 
 ## 3. Shared Research Principles
 
 Declare the hypothesis, inputs, candidate space and evaluation policy before interpreting outcomes. Make missing data, look-ahead protection, cost assumptions and failure cases visible. A result is evidence for a bounded question, not permission to trade.
 
-## 4. Signal Research
+## 4. Condition and Occurrence Methodology
 
-[Signal methodology](methodologies/SIGNAL_RESEARCH.md) covers occurrence and forward-outcome questions. [Signal workflow](SIGNAL_RESEARCH.md) specifies scopes, contracts and persisted outputs.
+[Signal Research methodology](methodologies/SIGNAL_RESEARCH.md) covers
+condition, occurrence and forward-outcome questions. The executable [Signal
+Research workflow](SIGNAL_RESEARCH.md) backs the product-facing **Market &
+Signal Study** and specifies its scopes, contracts and persisted outputs.
 
-## 5. Model Research Methodology
+## 5. Model-Comparison Methodology
 
-[Model methodology](methodologies/MODEL_RESEARCH.md) compares reusable model compositions without turning them into complete strategies.
+[Model Research methodology](methodologies/MODEL_RESEARCH.md) compares reusable
+Market Model and Signal Model compositions without turning them into complete
+Strategy Definitions.
 
 ## 6. Strategy Research
 
@@ -48,7 +64,13 @@ the proposed method. There is no current Portfolio Research workflow contract.
 
 ## 10. Choosing a Methodology
 
-Start with the narrowest question that can falsify the hypothesis. If the question is about a condition, use Signal/Model Research; if it includes entries, exits and sizing, use Strategy Research; if it concerns stability, use Robustness; if it predicts a declared target, use Predictive Research. Cross-workflow progression is optional, not a mandatory pipeline.
+Start with the narrowest question that can falsify the hypothesis. For a
+condition or occurrence, use the Signal Research method; for reusable Market
+Model or Signal Model composition, use the model-comparison method. If the
+question includes entries, Exit Policy and Risk Policy, use Strategy Research;
+if it concerns stability, use Robustness; if it predicts a declared target,
+use Predictive Research. Cross-workflow progression is optional, not a
+mandatory pipeline.
 
 ## 11. Optional Research Progression
 

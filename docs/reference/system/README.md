@@ -4,6 +4,7 @@ Start with [System Overview](SYSTEM_OVERVIEW.md), then [Module Map](MODULE_MAP.m
 
 | Question | Document |
 |---|---|
+| Which terms are canonical, and which names are compatibility identifiers? | [Terminology](TERMINOLOGY.md) |
 | What does each domain own? | [Domain Model](DOMAIN_MODEL.md) |
 | Which principles constrain implementation? | [Architecture Principles](ARCHITECTURE_PRINCIPLES.md) |
 | How does the analytical engine plan and compute? | [Market Analysis Architecture](MARKET_ANALYSIS_ARCHITECTURE.md) |

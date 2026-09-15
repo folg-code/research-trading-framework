@@ -145,6 +145,7 @@ This is the single ADR index. `Area` names the primary owning capability; cross-
 | [ADR-0042](ADR-0042-workbench-catalog-index-and-comparison-facts.md) | Workbench Catalog Index, Artifact Support Classification, and Comparison Compatibility Facts | ACCEPTED | Sprint 064 (planned) | Applications |
 | [ADR-0043](ADR-0043-market-data-directory-layout-simplification.md) | Market-Data Directory Layout Simplification and Asset-Class-Qualified Dataset Identity | PROPOSED | Standalone | Market Data |
 | [ADR-0044](ADR-0044-workbench-ui-frontend-framework.md) | Workbench UI Frontend: React + Next.js, Static Export | ACCEPTED | Sprint 064 | Applications |
+| [ADR-0045](ADR-0045-layered-research-terminology.md) | Layered Research Terminology and Compatibility Boundary | ACCEPTED | Standalone | Foundation / cross-cutting |
 | ADR-0004 | Independent Research and Execution Workflows | PLANNED | TBD | Foundation / cross-cutting |
 | ADR-0009 | Batch Backtest vs Replay Execution | PLANNED | TBD | Execution |
 | ADR-0010 | Working Component and Model Fingerprints | PLANNED | TBD | Market Analysis |

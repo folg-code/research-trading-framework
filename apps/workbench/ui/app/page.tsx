@@ -45,7 +45,7 @@ export default function HomePage() {
       <header>
         <h1 className="text-2xl font-semibold">Research Workbench</h1>
         <p className="text-gray-600 mt-1">
-          Signal Research, start to finish, without a terminal.
+          Configure and run Market & Signal Studies without a terminal.
         </p>
       </header>
 
@@ -57,7 +57,7 @@ export default function HomePage() {
 
       <section>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-medium">Start a new study</h2>
+          <h2 className="text-lg font-medium">Start a Market & Signal Study</h2>
         </div>
         {templates === null ? (
           <p className="text-gray-500 text-sm">Loading templates…</p>

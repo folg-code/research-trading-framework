@@ -20,7 +20,9 @@ External sources → Infrastructure adapters → Market datasets
                                  CLI / Dashboard consumers
 ```
 
-The [Module Map](MODULE_MAP.md) names packages. [Dependency Rules](DEPENDENCY_RULES.md) names allowed and forbidden directions.
+The [Module Map](MODULE_MAP.md) names packages. [Terminology](TERMINOLOGY.md)
+defines the vocabulary used across product and technical layers. [Dependency
+Rules](DEPENDENCY_RULES.md) names allowed and forbidden directions.
 
 ## 2. Framework Core and User Workspace
 
@@ -34,15 +36,25 @@ Package placement: [Market Data module](../modules/MARKET_DATA.md). Future synch
 
 ## 4. Market Analysis
 
-Market Analysis turns market facts into reusable Features, Structures and States. A component request resolves dependencies, plans a DAG, computes outputs and applies timeframe/availability rules. Component identity and cache scope make reuse explicit. See [Market Analysis module](../modules/MARKET_ANALYSIS.md), [engine architecture](MARKET_ANALYSIS_ARCHITECTURE.md), [component catalog](../modules/ANALYSIS_COMPONENT_CATALOG.md), and [time alignment](TIME_AND_ALIGNMENT.md).
+Market Analysis turns market facts into reusable Features, Structures and States. A component request resolves dependencies, plans a directed acyclic graph (DAG), computes outputs and applies timeframe/availability rules. Component identity and cache scope make reuse explicit. See [Market Analysis module](../modules/MARKET_ANALYSIS.md), [engine architecture](MARKET_ANALYSIS_ARCHITECTURE.md), [component catalog](../modules/ANALYSIS_COMPONENT_CATALOG.md), and [time alignment](TIME_AND_ALIGNMENT.md).
 
-## 5. Declarative Models and DSL
+## 5. Declarative Models and Domain-Specific Language (DSL)
 
 Model authoring produces explicit Market Model and Signal Model definitions over controlled expressions and analytical component requests. Definitions are reusable across research and runtime consumers without arbitrary data-frame access. See [Models and DSL](../modules/MODELS_AND_DSL.md) and the [authoring example](../modules/MODEL_AUTHORING.md).
 
 ## 6. Research and Simulation
 
-Signal, Strategy, Robustness and Predictive Research answer different questions and persist their own evidence. Strategy simulation uses the Strategy contract, but does not become Execution state. Analytics and reporting read persisted results. See [Research module](../modules/RESEARCH.md), [methodology chooser](../workflows/RESEARCH_METHODOLOGIES.md), [Signal Research](../workflows/SIGNAL_RESEARCH.md) and [Strategy Research](../workflows/STRATEGY_RESEARCH.md).
+Signal Research and Strategy Research provide independent executable workflows.
+Robustness and Predictive Research answer distinct questions through their
+documented methods and contracts. Each capability persists its own evidence.
+The product presents authoring and execution of Signal Research as a **Market &
+Signal Study**, with its Market Model-only, Signal Model-only or combined scope
+shown explicitly. Strategy simulation uses the Strategy contract, but does not
+become Execution state. Analytics and reporting read persisted results. See
+[Terminology](TERMINOLOGY.md), [Research module](../modules/RESEARCH.md),
+[methodology chooser](../workflows/RESEARCH_METHODOLOGIES.md), [Signal
+Research](../workflows/SIGNAL_RESEARCH.md) and [Strategy
+Research](../workflows/STRATEGY_RESEARCH.md).
 
 ## 7. Results and Visualization
 
