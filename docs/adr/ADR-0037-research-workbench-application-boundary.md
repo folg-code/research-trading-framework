@@ -180,7 +180,8 @@ workbench" action is a separate decision and is out of this ADR's scope.
 
 ## Follow-up
 
-- The UI framework choice is a separate decision, gated on this ADR.
+- The UI framework choice is a separate decision, gated on this ADR. **Resolved
+  by ADR-0044** (React + Next.js, static export, 2026-09-15).
 - `tests/unit/test_apps_boundaries.py` must gain `apps/workbench/src/**` as two
   distinct scan scopes with two distinct rule sets.
 - TD-024 (module- vs symbol-granularity in the allow-list) now applies to a
@@ -193,6 +194,7 @@ workbench" action is a separate decision and is out of this ADR's scope.
 - `docs/adr/ADR-0034-portfolio-publication-boundary.md`
 - `docs/adr/ADR-0035-complete-public-catalog-publication.md`
 - `docs/adr/ADR-0041-workbench-local-job-runner.md`
+- `docs/adr/ADR-0044-workbench-ui-frontend-framework.md` (resolves the deferred UI framework choice)
 - `docs/product/PRD-research-workbench-mvp.md`
 - `docs/vision/RESEARCH_APPLICATION_PRODUCT_VISION.md` §3.5, §4.1
 - `docs/reference/modules/DASHBOARD_APPLICATION.md`
