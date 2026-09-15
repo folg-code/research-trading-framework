@@ -16,6 +16,12 @@ from aiohttp import web
 
 from workbench_core.config import WorkbenchApiConfig
 from workbench_core.datasets_endpoint import build_datasets_response
+from workbench_core.definitions_endpoint import (
+    DefinitionRequestError,
+    build_list_definitions_response,
+    build_load_definition_response,
+    build_save_definition_response,
+)
 from workbench_core.job_runner import (
     DEFAULT_CLI_COMMAND,
     DEFAULT_GRACEFUL_TERMINATION_SECONDS,
@@ -78,6 +84,9 @@ def create_app(
     app.router.add_get("/api/v1/templates", _handle_templates)
     app.router.add_post("/api/v1/templates/{template_id}/apply", _handle_apply_template)
     app.router.add_post("/api/v1/validate", _handle_validate)
+    app.router.add_get("/api/v1/definitions", _handle_list_definitions)
+    app.router.add_post("/api/v1/definitions", _handle_save_definition)
+    app.router.add_get("/api/v1/definitions/{name}", _handle_load_definition)
     app.router.add_post("/api/v1/jobs", _handle_submit_job)
     app.router.add_get("/api/v1/jobs", _handle_list_jobs)
     app.router.add_get("/api/v1/jobs/{job_id}", _handle_get_job)
@@ -126,6 +135,35 @@ async def _handle_validate(request: web.Request) -> web.Response:
         payload = await build_validate_response(config, body)
     except ValidateRequestError as exc:
         return web.json_response({"error": str(exc)}, status=400)
+    return web.json_response(payload)
+
+
+async def _handle_list_definitions(request: web.Request) -> web.Response:
+    config = request.app[_CONFIG_KEY]
+    return web.json_response(build_list_definitions_response(config))
+
+
+async def _handle_save_definition(request: web.Request) -> web.Response:
+    config = request.app[_CONFIG_KEY]
+    try:
+        body = await request.json()
+    except ValueError:
+        return web.json_response({"error": "request body must be JSON"}, status=400)
+    if not isinstance(body, dict):
+        return web.json_response({"error": "request body must be a JSON object"}, status=400)
+    try:
+        payload = build_save_definition_response(config, body)
+    except DefinitionRequestError as exc:
+        return web.json_response({"error": str(exc)}, status=400)
+    return web.json_response(payload, status=201)
+
+
+async def _handle_load_definition(request: web.Request) -> web.Response:
+    config = request.app[_CONFIG_KEY]
+    try:
+        payload = build_load_definition_response(config, request.match_info["name"])
+    except DefinitionRequestError as exc:
+        return web.json_response({"error": str(exc)}, status=404)
     return web.json_response(payload)
 
 
