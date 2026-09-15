@@ -1,8 +1,13 @@
-# Signal Research — methodology
+# Signal Research — methodology and workflow mapping
 
 Return to the [methodology chooser](../RESEARCH_METHODOLOGIES.md). This page explains the research question and evaluation method; the workflow reference owns contracts and persisted outputs.
 
 ## 4. Signal Research
+
+This methodology can be applied within studies run through the technical
+Signal Research workflow. In product-facing surfaces, that workflow is
+presented as a **Market & Signal Study** with an explicit Market Model-only,
+Signal Model-only or combined scope.
 
 ### Research Question
 
@@ -15,7 +20,7 @@ Return to the [methodology chooser](../RESEARCH_METHODOLOGIES.md). This page exp
 - signal research,
 - conditional behaviour analysis,
 - forward returns,
-- MFE and MAE,
+- maximum favorable excursion (MFE) and maximum adverse excursion (MAE),
 - occurrence distributions,
 - context-aware comparisons.
 
@@ -27,16 +32,16 @@ Return to the [methodology chooser](../RESEARCH_METHODOLOGIES.md). This page exp
 - transaction costs,
 - drawdown,
 - equity curves,
-- simulated PnL.
+- simulated profit and loss (PnL).
 
 These belong to Strategy Research.
 
-### Workflow
+### Method outline
 
 ```text
 Published Dataset
   → Analytical Components
-  → Market or Signal Model
+  → Market Model or Signal Model
   → Occurrences or Observations
   → Forward Outcomes
   → Persisted Research Facts
@@ -46,7 +51,7 @@ Published Dataset
 ### Main Outputs
 
 - signal occurrences,
-- market-model observations,
+- Market Model observations,
 - contextual facts,
 - forward outcomes,
 - grouped metrics,

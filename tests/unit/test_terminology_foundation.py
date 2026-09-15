@@ -11,6 +11,7 @@ _WORKBENCH_COPY = (
     _ROOT / "apps/workbench/ui/app/page.tsx",
     _ROOT / "apps/workbench/ui/app/new/page.tsx",
 )
+_METHODOLOGY_PAGES = tuple(sorted((_ROOT / "docs/reference/workflows/methodologies").glob("*.md")))
 
 
 def test_canonical_terminology_defines_lifecycle_and_compatibility_boundary() -> None:
@@ -83,3 +84,52 @@ def test_root_readme_uses_technical_name_for_signal_research_workflow() -> None:
     assert "| Signal Research | Amortized reference-price lookup" in readme
     assert "MM --> MR[Market Research]" not in readme
     assert "| Signal / Market Research |" not in readme
+
+
+def test_detailed_methodologies_use_qualified_explanatory_terms() -> None:
+    copy = "\n".join(path.read_text(encoding="utf-8") for path in _METHODOLOGY_PAGES)
+
+    for expanded_term in (
+        "maximum favorable excursion (MFE)",
+        "maximum adverse excursion (MAE)",
+        "profit and loss (PnL)",
+        "Market Model or Signal Model",
+        "fitted estimator",
+        "### Executable Predictive Research workflow",
+    ):
+        assert expanded_term in copy
+
+    for retired_copy in (
+        "### Workflow",
+        "Market or Signal Model",
+        "trained model",
+        "Models do not trade",
+        "methodology is executed",
+        "methodological layer executed by",
+    ):
+        assert retired_copy not in copy
+
+
+def test_strategy_authoring_maps_policy_terms_to_stable_contracts() -> None:
+    copy = (_ROOT / "docs/reference/modules/STRATEGY_AUTHORING.md").read_text(encoding="utf-8")
+
+    for explanatory_term in (
+        "Strategy Definition",
+        "Exit Policy",
+        "Risk Policy",
+    ):
+        assert explanatory_term in copy
+
+    for stable_boundary in (
+        "StrategyModelDefinition",
+        "ExitModel",
+        "RiskModel",
+        "trading-cli research run strategy",
+        "research.strategy.strategy_file",
+    ):
+        assert stable_boundary in copy
+
+    assert "writing your own Strategy Model" not in copy
+    assert "unsupported Exit/Risk model combination" not in copy
+    assert "Policy/Risk Policy" not in copy
+    assert "ExitModel/RiskModel" not in copy

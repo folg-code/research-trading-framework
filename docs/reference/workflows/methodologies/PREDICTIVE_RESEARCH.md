@@ -6,7 +6,7 @@ Return to the [methodology chooser](../RESEARCH_METHODOLOGIES.md). This page exp
 
 Predictive Research is a methodology **alongside** Signal, Strategy and Robustness research.
 It answers a learning question. It does **not** produce signals, extend Strategy Research,
-or promote a trained model to a tradable component.
+or promote a fitted estimator to a tradable component.
 
 Phase 10A now covers the dataset foundation (Sprint 039), baseline estimators
 (Sprint 040), and the offline HTML report (Sprint 041). Linear and logistic
@@ -19,7 +19,7 @@ learning-curve and window-accounting report panels. Sprint 044 added a local
 read-only catalog view and ADR-0024, the IDEA-014 promotion gate. The current
 public dashboard path uses an explicit projection release and a representative
 Predictive Research view; the older private catalog scanner is a compatibility
-path, not the public serving contract. Models do not trade.
+path, not the public serving contract. Estimators do not trade.
 
 ### Research Question
 
@@ -29,7 +29,7 @@ path, not the public serving contract. Models do not trade.
 
 - declaring a supervised learning problem over Market Analysis outputs,
 - labelling evaluation bars from reused forward outcomes,
-- proving absence of temporal leakage before any model is fit,
+- proving absence of temporal leakage before any estimator is fit,
 - training declared baselines (ridge, elastic net, logistic) per fold,
 - training declared tree families (XGBoost, LightGBM, CatBoost) per fold,
 - training declared neural families (feedforward MLP; LSTM/GRU on sequence windows) per fold,
@@ -44,10 +44,10 @@ path, not the public serving contract. Models do not trade.
 ### Not Suitable For
 
 - emitting tradable signals,
-- Strategy Research (trades, equity, PnL),
+- Strategy Research (trades, equity, profit and loss (PnL)),
 - Robustness Research (parameter / stress verdicts),
 - computing metrics inside the dashboard (it reads persisted facts only; ADR-0022),
-- promoting a trained model to Market Analysis (IDEA-014 → ADR-0024, gated, not implemented).
+- promoting a fitted estimator to Market Analysis (IDEA-014 → ADR-0024, gated, not implemented).
 
 ### Samples
 
@@ -140,7 +140,7 @@ Preprocessing that must be fitted (scaling, imputation) is **not** part of the
 dataset builder. Sprint 040 fits `IMPUTE_MEDIAN` then `STANDARDIZE` inside each
 fold on `TRAIN` rows only. `PURGED` and `EMBARGOED` rows never reach `fit()`.
 
-### Workflow
+### Executable Predictive Research workflow
 
 ```text
 Published DatasetRef
@@ -154,7 +154,7 @@ Published DatasetRef
   → run_predictive_research (per-fold fit on TRAIN, predict on TEST;
       sequence families: application builds windows, then fit / predict)
   → PredictiveRunEnvelope (predictions.parquet, metrics.json, opaque blobs)
-  → analyze_predictive_run (writes metrics.json from predictions; never deserializes model blobs)
+  → analyze_predictive_run (writes metrics.json from predictions; never deserializes estimator blobs)
   → compare_predictive_runs (optional leaderboard.json on one dataset fingerprint)
   → render_predictive_research_report (read-only HTML; optional importance/selection/leaderboard/learning_curves/window_accounting sidecars)
   → one-shot public projection generator (explicit allowlist and release)
