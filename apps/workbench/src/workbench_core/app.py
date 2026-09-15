@@ -38,6 +38,7 @@ from workbench_core.jobs_endpoint import (
     build_list_jobs_response,
     build_submit_signal_research_job_response,
 )
+from workbench_core.models_endpoint import build_models_response
 from workbench_core.templates_endpoint import (
     TemplateRequestError,
     build_apply_template_response,
@@ -94,6 +95,7 @@ def create_app(
     )
     app.router.add_get("/api/v1/datasets", _handle_datasets)
     app.router.add_get("/api/v1/templates", _handle_templates)
+    app.router.add_get("/api/v1/models", _handle_models)
     app.router.add_post("/api/v1/templates/{template_id}/apply", _handle_apply_template)
     app.router.add_post("/api/v1/validate", _handle_validate)
     app.router.add_get("/api/v1/definitions", _handle_list_definitions)
@@ -122,6 +124,11 @@ async def _handle_datasets(request: web.Request) -> web.Response:
 async def _handle_templates(request: web.Request) -> web.Response:
     config = request.app[_CONFIG_KEY]
     return web.json_response(build_templates_response(config))
+
+
+async def _handle_models(request: web.Request) -> web.Response:
+    del request
+    return web.json_response(build_models_response())
 
 
 async def _handle_apply_template(request: web.Request) -> web.Response:

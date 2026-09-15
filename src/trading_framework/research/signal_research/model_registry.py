@@ -67,6 +67,18 @@ def is_known_signal_model_alias(alias: str) -> bool:
     return alias in _SIGNAL_MODEL_BUILDERS
 
 
+def list_known_market_model_aliases() -> tuple[str, ...]:
+    """List every built-in market model alias, sorted. Membership-only, same
+    as `is_known_market_model_alias` -- never builds or imports a model."""
+    return tuple(sorted(_MARKET_MODEL_BUILDERS))
+
+
+def list_known_signal_model_aliases() -> tuple[str, ...]:
+    """List every built-in signal model alias, sorted. Membership-only, same
+    as `is_known_signal_model_alias` -- never builds or imports a model."""
+    return tuple(sorted(_SIGNAL_MODEL_BUILDERS))
+
+
 @dataclass(frozen=True, slots=True)
 class ResolvedModels:
     """Concrete model definitions and lineage metadata for one study."""

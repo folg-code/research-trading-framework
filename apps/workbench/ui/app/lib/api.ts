@@ -113,6 +113,15 @@ export function listDatasets(): Promise<{ datasets: DatasetSummary[] }> {
   return apiFetch("/api/v1/datasets");
 }
 
+export interface ModelAliases {
+  market_models: string[];
+  signal_models: string[];
+}
+
+export function listModels(): Promise<ModelAliases> {
+  return apiFetch("/api/v1/models");
+}
+
 export function validateDefinition(
   definition: Record<string, unknown>,
 ): Promise<ValidateResult> {
