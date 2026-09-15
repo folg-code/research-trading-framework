@@ -47,6 +47,38 @@ class UnknownModelAliasError(ValidationError):
     """Raised when a definition references an unsupported model alias."""
 
 
+def is_known_market_model_alias(alias: str) -> bool:
+    """Return whether ``alias`` resolves to a built-in market model.
+
+    Membership-only: never builds or imports the model. Used by template
+    listing (ADR-0038 §4) to flag an unresolvable model reference without
+    executing anything.
+    """
+    return alias in _MARKET_MODEL_BUILDERS
+
+
+def is_known_signal_model_alias(alias: str) -> bool:
+    """Return whether ``alias`` resolves to a built-in signal model.
+
+    Membership-only: never builds or imports the model. Used by template
+    listing (ADR-0038 §4) to flag an unresolvable model reference without
+    executing anything.
+    """
+    return alias in _SIGNAL_MODEL_BUILDERS
+
+
+def list_known_market_model_aliases() -> tuple[str, ...]:
+    """List every built-in market model alias, sorted. Membership-only, same
+    as `is_known_market_model_alias` -- never builds or imports a model."""
+    return tuple(sorted(_MARKET_MODEL_BUILDERS))
+
+
+def list_known_signal_model_aliases() -> tuple[str, ...]:
+    """List every built-in signal model alias, sorted. Membership-only, same
+    as `is_known_signal_model_alias` -- never builds or imports a model."""
+    return tuple(sorted(_SIGNAL_MODEL_BUILDERS))
+
+
 @dataclass(frozen=True, slots=True)
 class ResolvedModels:
     """Concrete model definitions and lineage metadata for one study."""

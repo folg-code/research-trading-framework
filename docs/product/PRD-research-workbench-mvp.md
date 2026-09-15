@@ -1,9 +1,13 @@
 # PRD — Data Manager + Signal Research Workbench MVP
 
 ```text
-Status: DRAFT
+Status: ACCEPTED
 Discovery: maintainer Q&A completed 2026-09-09
-Approval gate: architecture triage required before maintainer approval
+Architecture triage: completed 2026-09-14 (ADR-0037 through ADR-0042)
+Approved-by: Filip Folga (folga33@gmail.com), 2026-09-14 — approved this PRD
+             scope and the six architecture-triage ADRs, including the
+             process-topology, template-location, execution-model and
+             definition_hash-break resolutions to their respective forks.
 ```
 
 Feature-level PRD for the first increment of

@@ -40,6 +40,22 @@ def _write_config(tmp_path: Path, *, storage_root: Path, text: str) -> Path:
     return path
 
 
+def _strip_phase_event_lines(stdout: str) -> str:
+    """Drop `research run signal`'s compact phase-event lines (T005), leaving
+    the pretty-printed `--json` summary `dump_json` prints alongside them."""
+    remaining_lines = []
+    for line in stdout.splitlines():
+        try:
+            payload = json.loads(line)
+        except json.JSONDecodeError:
+            remaining_lines.append(line)
+            continue
+        if isinstance(payload, dict) and payload.get("event") == "phase":
+            continue
+        remaining_lines.append(line)
+    return "\n".join(remaining_lines)
+
+
 def _write_published_dataset(storage_root: Path, *, csv_path: Path) -> str:
     from trading_framework.application.market_data import (
         ImportExternalDatasetRequest,
@@ -503,3 +519,198 @@ def test_research_run_predictive_missing_definition_is_config_error(tmp_path: Pa
     exit_code = main(["research", "run", "--config", str(config_path)])
 
     assert exit_code == EXIT_CONFIG_ERROR
+
+
+# ---------------------------------------------------------------------------
+# `research run signal` (Sprint 064 T002, ADR-0026 Amendment 2, ADR-0038
+# section 3). Like `research run strategy`, this never needs an ML extra, so
+# it is exercised end to end against a real published dataset -- the CLI's
+# own coverage is the seam (config -> loader -> resolve -> typed request ->
+# typed result), not Signal Research's own analytics, which already has its
+# own coverage under tests/unit/research/signal_research/.
+# ---------------------------------------------------------------------------
+
+
+def _write_signal_definition(path: Path, *, dataset_ref: str) -> None:
+    definition_text = (
+        "research_id: cli_research_run_signal_test\n"
+        "research_scope: SIGNAL_MODEL_ONLY\n"
+        f"dataset_ref: '{dataset_ref}'\n"
+        "time_range:\n"
+        "  start: '2018-12-31'\n"
+        "  end: '2018-12-31'\n"
+        "horizons:\n"
+        "  - 5m\n"
+        "signal_model: higher_low_long\n"
+        "baseline:\n"
+        "  type: AFTER_SIGNAL\n"
+    )
+    path.write_text(definition_text, encoding="utf-8")
+
+
+def test_research_run_signal_end_to_end(
+    tmp_path: Path, ohlcv_sample_1m_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    storage_root = tmp_path / "workspace"
+    dataset_ref = _write_published_dataset(storage_root, csv_path=ohlcv_sample_1m_path)
+    definition_path = tmp_path / "signal_definition.yaml"
+    _write_signal_definition(definition_path, dataset_ref=dataset_ref)
+    config_path = _write_config(
+        tmp_path,
+        storage_root=storage_root,
+        text=(
+            "version: 1\n"
+            "storage_root: {storage_root}\n\n"
+            "research:\n"
+            "  kind: signal\n"
+            "  signal:\n"
+            f"    definition: {definition_path.as_posix()}\n"
+        ),
+    )
+
+    exit_code = main(["research", "run", "--config", str(config_path), "--json"])
+
+    assert exit_code == EXIT_SUCCESS
+    # T005: 5 compact phase-event lines precede the pretty-printed result
+    # blob in --json mode; see test_phase_events.py for their own coverage.
+    payload = json.loads(_strip_phase_event_lines(capsys.readouterr().out))
+    result = payload["result"]
+    assert result["run_id"]
+    assert result["research_id"] == "cli_research_run_signal_test"
+    assert result["definition_hash"]
+
+
+def test_research_run_signal_dry_run_has_no_side_effect(
+    tmp_path: Path, ohlcv_sample_1m_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """ADR-0038 section 3: `--dry-run` performs no write anywhere under storage_root."""
+    storage_root = tmp_path / "workspace"
+    dataset_ref = _write_published_dataset(storage_root, csv_path=ohlcv_sample_1m_path)
+    definition_path = tmp_path / "signal_definition.yaml"
+    _write_signal_definition(definition_path, dataset_ref=dataset_ref)
+    config_path = _write_config(
+        tmp_path,
+        storage_root=storage_root,
+        text=(
+            "version: 1\n"
+            "storage_root: {storage_root}\n\n"
+            "research:\n"
+            "  kind: signal\n"
+            "  signal:\n"
+            f"    definition: {definition_path.as_posix()}\n"
+        ),
+    )
+    research_root = storage_root / "research"
+    files_before = (
+        sorted(p.as_posix() for p in research_root.rglob("*")) if research_root.exists() else []
+    )
+
+    exit_code = main(["research", "run", "--config", str(config_path), "--dry-run", "--json"])
+
+    assert exit_code == EXIT_SUCCESS
+    files_after = (
+        sorted(p.as_posix() for p in research_root.rglob("*")) if research_root.exists() else []
+    )
+    assert files_after == files_before
+
+    payload = json.loads(capsys.readouterr().out)
+    plan_arguments = payload["plan"]["arguments"]
+    assert plan_arguments["research_id"] == "cli_research_run_signal_test"
+    assert plan_arguments["research_scope"] == "signal_model_only"
+    assert plan_arguments["dataset_ref"] == dataset_ref
+    assert plan_arguments["horizons"] == ["5m"]
+    assert plan_arguments["signal_model_id"] == "higher_low_long"
+    assert plan_arguments["definition_hash"]
+
+
+def test_research_run_signal_round_trips_definition_hash(
+    tmp_path: Path, ohlcv_sample_1m_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """ADR-0038 section 3's round-trip guarantee: --dry-run's definition_hash
+    matches a real run's persisted definition_hash for the identical input."""
+    storage_root = tmp_path / "workspace"
+    dataset_ref = _write_published_dataset(storage_root, csv_path=ohlcv_sample_1m_path)
+    definition_path = tmp_path / "signal_definition.yaml"
+    _write_signal_definition(definition_path, dataset_ref=dataset_ref)
+    config_path = _write_config(
+        tmp_path,
+        storage_root=storage_root,
+        text=(
+            "version: 1\n"
+            "storage_root: {storage_root}\n\n"
+            "research:\n"
+            "  kind: signal\n"
+            "  signal:\n"
+            f"    definition: {definition_path.as_posix()}\n"
+        ),
+    )
+
+    dry_run_exit = main(["research", "run", "--config", str(config_path), "--dry-run", "--json"])
+    dry_run_payload = json.loads(capsys.readouterr().out)
+    assert dry_run_exit == EXIT_SUCCESS
+    dry_run_hash = dry_run_payload["plan"]["arguments"]["definition_hash"]
+
+    run_exit = main(["research", "run", "--config", str(config_path), "--json"])
+    run_payload = json.loads(_strip_phase_event_lines(capsys.readouterr().out))
+    assert run_exit == EXIT_SUCCESS
+    assert run_payload["result"]["definition_hash"] == dry_run_hash
+
+
+def test_research_run_signal_missing_definition_is_config_error(tmp_path: Path) -> None:
+    storage_root = tmp_path / "workspace"
+    config_path = _write_config(
+        tmp_path,
+        storage_root=storage_root,
+        text=("version: 1\nstorage_root: {storage_root}\n\nresearch:\n  kind: signal\n"),
+    )
+
+    exit_code = main(["research", "run", "--config", str(config_path)])
+
+    assert exit_code == EXIT_CONFIG_ERROR
+
+
+def test_research_run_signal_bad_definition_path_is_config_error(tmp_path: Path) -> None:
+    storage_root = tmp_path / "workspace"
+    missing = tmp_path / "does_not_exist.yaml"
+    config_path = _write_config(
+        tmp_path,
+        storage_root=storage_root,
+        text=(
+            "version: 1\n"
+            "storage_root: {storage_root}\n\n"
+            "research:\n"
+            "  kind: signal\n"
+            "  signal:\n"
+            f"    definition: {missing.as_posix()}\n"
+        ),
+    )
+
+    exit_code = main(["research", "run", "--config", str(config_path), "--dry-run"])
+
+    assert exit_code == EXIT_CONFIG_ERROR
+
+
+def test_research_run_signal_unknown_config_key_names_offending_key(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    storage_root = tmp_path / "workspace"
+    config_path = _write_config(
+        tmp_path,
+        storage_root=storage_root,
+        text=(
+            "version: 1\n"
+            "storage_root: {storage_root}\n\n"
+            "research:\n"
+            "  kind: signal\n"
+            "  signal:\n"
+            "    definition: does_not_matter.yaml\n"
+            "    unknown_key: oops\n"
+        ),
+    )
+
+    exit_code = main(["research", "run", "--config", str(config_path), "--dry-run"])
+
+    assert exit_code == EXIT_CONFIG_ERROR
+    err = capsys.readouterr().err
+    assert "unknown_key" in err
+    assert "research.signal" in err

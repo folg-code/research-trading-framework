@@ -30,6 +30,7 @@ Build small vertical slices in a modular monolith. Published market facts feed r
 | 14A Predictive artifact promotion | Complete; 14B not planned | [Phase 14](roadmap/PHASE_14_PREDICTIVE_PROMOTION.md) |
 | 15 Predictive catalog and real-data study | Complete | [Phase 15](roadmap/PHASE_15_PREDICTIVE_CATALOG.md) |
 | 16 Quant Research Workbench | Active: 16A–16C complete, 16D in progress | [Phase 16](roadmap/PHASE_16_QUANT_WORKBENCH.md), [16D dashboard](roadmap/PHASE_16D_PORTFOLIO_DASHBOARD.md) |
+| 17 Research Application (Local Workbench) | Active: architecture triage complete (ADR-0037–0042); Sprint 064 approved and open | [Phase 17](roadmap/PHASE_17_RESEARCH_APPLICATION.md) |
 
 A completed phase remains in the index for orientation, not as an instruction to reread its delivery history. The [archive phase index](../archive/README.md) locates each completed sprint and its companion artifacts.
 
@@ -44,6 +45,8 @@ A completed phase remains in the index for orientation, not as an instruction to
 ```
 
 Phase 16 consumes existing research runners and the common analytical catalog. Phase 14B does not open automatically after 14A. A positive backtest alone does not open the paid live-data gate. See [research data strategy](roadmap/RESEARCH_DATA_STRATEGY.md) and [cross-phase standards and gates](roadmap/CROSS_PHASE_STANDARDS_AND_GATES.md).
+
+Phase 17 is a separate product surface, not a Phase 16 increment: it is the private local operator control plane (`apps/workbench`) over existing Market Data and Signal Research workflows, defined by `docs/vision/RESEARCH_APPLICATION_PRODUCT_VISION.md` and `docs/product/PRD-research-workbench-mvp.md`, independent of Phase 16E–16G. It does not depend on 16D or later Phase 16 increments, but is sequenced after Sprint 062/T007 closes so the maintainer is not running a live VPS deploy and opening a new application surface at the same time.
 
 ## Deferred directions
 

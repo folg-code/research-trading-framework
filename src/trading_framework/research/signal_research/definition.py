@@ -44,6 +44,22 @@ class SignalResearchDefinitionError(ValidationError):
     """Raised when a research definition fails validation."""
 
 
+SIGNAL_RESEARCH_DEFINITION_SCHEMA_V1 = "signal_research.definition.v1"
+"""The only schema version this application currently loads."""
+
+SUPPORTED_SIGNAL_RESEARCH_DEFINITION_SCHEMA_VERSIONS = frozenset(
+    {SIGNAL_RESEARCH_DEFINITION_SCHEMA_V1}
+)
+
+
+class UnsupportedSignalResearchDefinitionSchemaError(SignalResearchDefinitionError):
+    """Raised when a definition file declares an unknown/newer schema_version.
+
+    Per ADR-0038 §2, an unsupported schema_version is refused outright and the
+    artifact is never migrated or rewritten to match a supported version.
+    """
+
+
 @dataclass(frozen=True, slots=True)
 class OccurrencePolicy:
     """How overlapping detections are treated for sample accounting."""
@@ -234,6 +250,7 @@ class SignalResearchDefinitionSpec:
     resolved_parameters: dict[str, Any] = field(default_factory=dict)
     component_lineage_hashes: dict[str, str] = field(default_factory=dict)
     definition_hash: str | None = None
+    schema_version: str = SIGNAL_RESEARCH_DEFINITION_SCHEMA_V1
 
     def __post_init__(self) -> None:
         normalized_id = self.research_id.strip()
@@ -272,6 +289,7 @@ class SignalResearchDefinitionSpec:
             resolved_parameters=resolved_parameters,
             component_lineage_hashes=component_lineage_hashes,
             definition_hash=None,
+            schema_version=self.schema_version,
         )
         object.__setattr__(
             resolved,
@@ -282,6 +300,7 @@ class SignalResearchDefinitionSpec:
 
     def to_dict(self) -> dict[str, Any]:
         payload: dict[str, Any] = {
+            "schema_version": self.schema_version,
             "research_id": self.research_id,
             "research_scope": self.research_scope.value,
             "dataset_ref": {
@@ -321,6 +340,7 @@ class SignalResearchDefinitionSpec:
     @classmethod
     def from_dict(cls, payload: dict[str, Any]) -> SignalResearchDefinitionSpec:
         normalized = _normalize_definition_payload(payload)
+        schema_version = _resolve_schema_version(normalized)
         dataset_payload = normalized["dataset_ref"]
         if isinstance(dataset_payload, dict):
             dataset_ref = DatasetRef.parse(
@@ -409,6 +429,7 @@ class SignalResearchDefinitionSpec:
                 if normalized.get("definition_hash") is not None
                 else None
             ),
+            schema_version=schema_version,
         )
 
 
@@ -526,6 +547,26 @@ def _parse_research_scope(value: str) -> ResearchScope:
     if normalized in aliases:
         return aliases[normalized]
     return ResearchScope(normalized)
+
+
+def _resolve_schema_version(normalized: dict[str, Any]) -> str:
+    """Absent schema_version is treated as v1; anything unknown is refused.
+
+    Never migrated or rewritten (ADR-0038 §2): an unsupported version is a
+    hard refusal, not a silent upgrade or downgrade.
+    """
+    declared = normalized.get("schema_version")
+    if declared is None:
+        return SIGNAL_RESEARCH_DEFINITION_SCHEMA_V1
+    version = str(declared)
+    if version not in SUPPORTED_SIGNAL_RESEARCH_DEFINITION_SCHEMA_VERSIONS:
+        supported = ", ".join(sorted(SUPPORTED_SIGNAL_RESEARCH_DEFINITION_SCHEMA_VERSIONS))
+        msg = (
+            f"unsupported signal research definition schema_version {version!r}; "
+            f"this application supports: {supported}"
+        )
+        raise UnsupportedSignalResearchDefinitionSchemaError(msg)
+    return version
 
 
 def _normalize_definition_payload(payload: dict[str, Any]) -> dict[str, Any]:

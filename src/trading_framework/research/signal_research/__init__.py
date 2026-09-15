@@ -1,6 +1,8 @@
 """Signal Research methodology contracts — definition spec and loaders."""
 
 from trading_framework.research.signal_research.definition import (
+    SIGNAL_RESEARCH_DEFINITION_SCHEMA_V1,
+    SUPPORTED_SIGNAL_RESEARCH_DEFINITION_SCHEMA_VERSIONS,
     BaselineType,
     CandidateBounds,
     OccurrencePolicy,
@@ -8,6 +10,7 @@ from trading_framework.research.signal_research.definition import (
     ResearchGroupingDimension,
     SignalResearchDefinitionSpec,
     SignalResearchQualityRules,
+    UnsupportedSignalResearchDefinitionSchemaError,
     compute_definition_hash,
     validate_signal_research_definition,
 )
@@ -17,10 +20,24 @@ from trading_framework.research.signal_research.loader import (
 )
 from trading_framework.research.signal_research.model_registry import (
     ResolvedModels,
+    is_known_market_model_alias,
+    is_known_signal_model_alias,
+    list_known_market_model_aliases,
+    list_known_signal_model_aliases,
     resolve_models_from_definition,
+)
+from trading_framework.research.signal_research.template_catalog import (
+    SignalResearchTemplateSummary,
+    TemplateApplicationError,
+    TemplateSource,
+    TemplateStatus,
+    apply_signal_research_template,
+    list_signal_research_templates,
 )
 
 __all__ = [
+    "SIGNAL_RESEARCH_DEFINITION_SCHEMA_V1",
+    "SUPPORTED_SIGNAL_RESEARCH_DEFINITION_SCHEMA_VERSIONS",
     "BaselineType",
     "CandidateBounds",
     "OccurrencePolicy",
@@ -29,7 +46,18 @@ __all__ = [
     "ResolvedModels",
     "SignalResearchDefinitionSpec",
     "SignalResearchQualityRules",
+    "SignalResearchTemplateSummary",
+    "TemplateApplicationError",
+    "TemplateSource",
+    "TemplateStatus",
+    "UnsupportedSignalResearchDefinitionSchemaError",
+    "apply_signal_research_template",
     "compute_definition_hash",
+    "is_known_market_model_alias",
+    "is_known_signal_model_alias",
+    "list_known_market_model_aliases",
+    "list_known_signal_model_aliases",
+    "list_signal_research_templates",
     "load_signal_research_definition",
     "load_signal_research_definition_from_dict",
     "resolve_models_from_definition",

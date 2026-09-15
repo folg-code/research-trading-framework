@@ -137,6 +137,13 @@ This is the single ADR index. `Area` names the primary owning capability; cross-
 | [ADR-0034](ADR-0034-portfolio-publication-boundary.md) | Public Portfolio Publication Boundary: Projection, Study Identity, Content and Routing (16D) | ACCEPTED | Sprint 059 | Applications |
 | [ADR-0035](ADR-0035-complete-public-catalog-publication.md) | Complete Public Catalog Publication and Immutable Releases | ACCEPTED | Sprint 061 | Applications |
 | [ADR-0036](ADR-0036-vps-dry-run-runtime-and-status-boundary.md) | VPS Dry-Run Runtime Boundary: Topology, State Ownership, Public Status Schema, Lifecycle and Threat Model | ACCEPTED | Sprint 062 | Execution |
+| [ADR-0037](ADR-0037-research-workbench-application-boundary.md) | Research Workbench Application Boundary and Control Surface | ACCEPTED | Sprint 064 (planned) | Applications |
+| [ADR-0038](ADR-0038-canonical-signal-research-configuration-and-templates.md) | Canonical Signal Research Configuration Schema and Templates | ACCEPTED | Sprint 064 (planned) | Research |
+| [ADR-0039](ADR-0039-trusted-local-model-discovery.md) | Trusted Local Model Discovery and Resolution | ACCEPTED | Sprint 064 (planned) | Applications |
+| [ADR-0040](ADR-0040-import-validation-findings-and-acknowledgement.md) | Import Validation Findings: Fatal, Acknowledgeable, and Where Acknowledgement Lives | ACCEPTED | Sprint 064 (planned) | Market Data |
+| [ADR-0041](ADR-0041-workbench-local-job-runner.md) | Workbench Local Job Runner: Process Boundary, Cancellation, Progress and Interruption | ACCEPTED | Sprint 064 (planned) | Applications |
+| [ADR-0042](ADR-0042-workbench-catalog-index-and-comparison-facts.md) | Workbench Catalog Index, Artifact Support Classification, and Comparison Compatibility Facts | ACCEPTED | Sprint 064 (planned) | Applications |
+| [ADR-0044](ADR-0044-workbench-ui-frontend-framework.md) | Workbench UI Frontend: React + Next.js, Static Export | ACCEPTED | Sprint 064 | Applications |
 | ADR-0004 | Independent Research and Execution Workflows | PLANNED | TBD | Foundation / cross-cutting |
 | ADR-0009 | Batch Backtest vs Replay Execution | PLANNED | TBD | Execution |
 | ADR-0010 | Working Component and Model Fingerprints | PLANNED | TBD | Market Analysis |

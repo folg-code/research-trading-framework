@@ -1,8 +1,8 @@
 # Sprint 062: BTC Futures Dry-Run on VPS and Dashboard Status Card
 
 Status: T001-T006 merged to `main` via #522 (2026-09-11); T007 (runbook +
-actual VPS deploy/rollback + 24h observation) remains and requires a separate
-explicit maintainer go-ahead before it is executed.
+actual VPS deploy/rollback + 24h observation) confirmed complete by the
+maintainer in conversation, 2026-09-14. Sprint closed.
 Goal: Run the existing BTCUSDT live-market/simulated-execution `DRY_RUN` safely
 on the dashboard VPS, expose one private-network GET-only status service, and
 show an unmistakably simulated current-status card in the public dashboard.
@@ -72,7 +72,7 @@ lifecycle/recovery and threat model: `docs/adr/ADR-0036-vps-dry-run-runtime-and-
 | T004 | Package worker and status services and extend VPS Compose with private networking, read/write state volume only for the worker, read-only state access for status, health checks, restart policy and bounded logs/resources | T002–T003 | deploy + infrastructure | high | Done — merged into `sprint/btc-futures-vps-dry-run` (2026-09-10) | [#507](https://github.com/folg-code/research-trading-framework/pull/507) |
 | T005 | Add a current dry-run status card and link to the Live Paper page; remove migration placeholder when configured and preserve explicit stale/offline/failed states and `NO REAL ORDERS` copy | T003; parallel with T004 | dashboard data source + views/content | standard | Done — merged into `sprint/btc-futures-vps-dry-run` (2026-09-10) | [#508](https://github.com/folg-code/research-trading-framework/pull/508) |
 | T006 | Add unit, integration and container smoke tests for restart, stale feed, invalid/corrupt state, status unavailability, schema compatibility and dashboard regression | T002–T005 | tests | high | Done — merged into `sprint/btc-futures-vps-dry-run` (2026-09-10) | [#509](https://github.com/folg-code/research-trading-framework/pull/509) |
-| T007 | Update runbooks and deploy/rollback the stack to the existing VPS; verify public dashboard behavior and observe at least 24 continuous hours or one documented restart cycle | T004–T006 | operations + acceptance | high | Requires explicit sprint/deploy approval | — |
+| T007 | Update runbooks and deploy/rollback the stack to the existing VPS; verify public dashboard behavior and observe at least 24 continuous hours or one documented restart cycle | T004–T006 | operations + acceptance | high | Done — confirmed complete by the maintainer in conversation, 2026-09-14 | — |
 
 Note (T001): the sprint text originally named `ExecutionStateReadRepository`;
 the actual read port in the codebase is `ExecutionStateReader`
@@ -137,6 +137,7 @@ the actual read port in the codebase is `ExecutionStateReader`
   passes before merging into the sprint branch; PR #505 required one fix
   cycle after `reviewer` caught a raw-exception-text leak via
   `recent_events[].payload` (fixed, re-tested, re-reviewed).
-- Remaining work: T007 (runbook update, actual VPS deploy/rollback, 24-hour
-  observation) — requires a separate explicit maintainer go-ahead before
-  execution, per this sprint's Architecture triage and Integration risks.
+- T007 (runbook update, actual VPS deploy/rollback, 24-hour observation) —
+  confirmed complete by the maintainer in conversation, 2026-09-14. No
+  detailed execution record was captured in this file at the time; if a
+  runbook update or incident note exists separately, link it here.

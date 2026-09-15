@@ -46,6 +46,43 @@ It does not require:
 
 ---
 
+## Definition Schema Versioning
+
+`SignalResearchDefinitionSpec`
+(`src/trading_framework/research/signal_research/definition.py`) carries an
+explicit `schema_version` field, added in Sprint 064 T001 per ADR-0038 §2:
+
+```text
+absent         → treated as schema_version "signal_research.definition.v1"
+                 (every definition file committed before Sprint 064 keeps
+                 working unchanged)
+known          → loaded
+unknown/newer  → refused (UnsupportedSignalResearchDefinitionSchemaError);
+                 never migrated or rewritten
+```
+
+`schema_version` is a material input to `compute_definition_hash` for v1 — it
+is serialized by `to_dict()` and hashed like any other field. This was a
+deliberate, accepted trade-off (ADR-0038 §2), not an oversight:
+
+> **`definition_hash` break.** Every `definition_hash` recorded in a Signal
+> Research run manifest persisted *before* Sprint 064 was computed from a
+> payload that had no `schema_version` key at all. The same logical study,
+> re-serialized today, now hashes differently because `schema_version` is
+> present and included. Past run manifests are immutable and are **not**
+> rewritten, backfilled, or migrated — by a script, by the workbench, or by a
+> "one-time fix". `run_id` is unaffected (it derives from
+> `derive_run_id_v2`'s material-input tuple, not from `definition_hash`), so
+> historical runs remain discoverable and comparable; only the
+> configuration-level fingerprint's meaning changed. A repository scan at
+> Sprint 064 Wave 0 found no committed `SignalResearchDefinitionSpec` YAML
+> files under `apps/cli/examples/` or `configs/` — the practical surface is
+> test fixtures, documentation examples, and any operator's uncommitted
+> `user_data/` files. See
+> [TD-036](../../planning/registries/td-036.md#td-036) for the logged entry.
+
+---
+
 ## Core Questions
 
 Signal Research may answer:

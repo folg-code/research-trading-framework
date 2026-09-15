@@ -14,13 +14,10 @@ rule applied uniformly over `apps/*`.
 from __future__ import annotations
 
 import ast
-import subprocess
+from collections.abc import Callable
 from pathlib import Path
 
-import pytest
-
 _REPO_ROOT = Path(__file__).resolve().parents[2]
-_CLI_ALLOWLIST_TEST_FILE = Path(__file__).resolve()
 _APPS_ROOT = _REPO_ROOT / "apps"
 _DASHBOARD_SRC = _APPS_ROOT / "dashboard" / "src"
 #: Streamlit's own page-routing convention (PRB-022, Sprint 059 T003): every
@@ -234,6 +231,10 @@ _CLI_ALLOWED_TRADING_FRAMEWORK_MODULES = frozenset(
         "trading_framework.research.predictive.estimators",
         # `load_predictive_study_spec` is PredictiveStudySpec's own loader
         "trading_framework.research.predictive.spec",
+        # `load_signal_research_definition` is SignalResearchDefinitionSpec's
+        # own path loader (ADR-0026 Amendment 2 / Sprint 064 T002), same shape
+        # as `load_predictive_study_spec` above.
+        "trading_framework.research.signal_research.loader",
         # SPRINT_046.md §4 finding 2: hardcoded default, same as the script
         "trading_framework.research.simulation",
         # SPRINT_046.md §4 finding 2: hardcoded canonical strategy model
@@ -286,62 +287,160 @@ def test_cli_only_imports_application_layer() -> None:
 # ---------------------------------------------------------------------------
 
 
-def _git_show_main_file(relative_posix_path: str) -> str | None:
-    """Return this file's content on `origin/main`, or None if unavailable.
+# The recorded snapshot below is the guard against silent widening. Originally
+# (D-S047-08) this test diffed the live file against `origin/main`, which only
+# works when the list is expected to stay UNCHANGED (S047's own claim was "the
+# loader widens nothing"). That mechanism cannot work for an allow-list that is
+# meant to evolve under a documented amendment process: any PR that
+# legitimately widens it (e.g. ADR-0026 Amendment 2, Sprint 064 T002) would
+# show a permanent diff against `origin/main` until merged -- failing CI on
+# the very PR that must pass CI in order to merge. A frozen, in-file snapshot
+# instead catches an UNDOCUMENTED addition (the assertion below fails), while
+# a legitimate widening updates this snapshot in the SAME commit that adds the
+# module and its ADR amendment -- exactly the discipline D-S047-08 wanted,
+# without the self-defeating "can never merge a real widening" failure mode.
+_CLI_ALLOWED_TRADING_FRAMEWORK_MODULES_SNAPSHOT = frozenset(
+    {
+        "trading_framework.core.exceptions",
+        "trading_framework.core.identifiers",
+        "trading_framework.infrastructure.storage.metadata.registry",
+        "trading_framework.market.datasets",
+        "trading_framework.market.importers",
+        "trading_framework.market_analysis.models.time_range",
+        "trading_framework.research.analytics.strategy_dashboard_report",
+        "trading_framework.research.datasets.predictive",
+        "trading_framework.research.datasets.predictive_run",
+        "trading_framework.research.datasets.strategy_research",
+        "trading_framework.research.predictive.errors",
+        "trading_framework.research.predictive.estimators",
+        "trading_framework.research.predictive.spec",
+        "trading_framework.research.signal_research.loader",
+        "trading_framework.research.simulation",
+        "trading_framework.strategy",
+        "trading_framework.time.models.timeframe",
+        "trading_framework.time.sessions",
+    }
+)
 
-    None (never a failure) when the ref can't be resolved -- e.g. a shallow
-    clone with no `origin/main` -- so this assertion degrades to a skip
-    rather than a false failure on an unrelated CI/checkout shape.
+
+def test_cli_boundary_allow_list_matches_recorded_snapshot() -> None:
+    """Guards against a silent, undocumented addition to the CLI allow-list.
+
+    Originally D-S047-08 / SPRINT_047.md §4 finding 2 ("the loader widens
+    nothing"); the mechanism changed for Sprint 064 T002 (ADR-0026 Amendment
+    2) -- see the module-level comment above the recorded snapshot.
     """
-    for ref in ("origin/main", "main"):
-        try:
-            result = subprocess.run(  # fixed args, read-only "git show"
-                ["git", "show", f"{ref}:{relative_posix_path}"],
-                cwd=_REPO_ROOT,
-                capture_output=True,
-                text=True,
-                encoding="utf-8",
-                check=False,
-                timeout=10,
-            )
-        except (OSError, subprocess.SubprocessError):
-            continue
-        if result.returncode == 0 and result.stdout:
-            return result.stdout
-    return None
-
-
-def test_cli_boundary_allow_list_is_byte_identical_to_main() -> None:
-    """SPRINT_047.md §4 finding 2 / D-S047-08: the loader widens nothing."""
-    relative_path = _CLI_ALLOWLIST_TEST_FILE.relative_to(_REPO_ROOT).as_posix()
-    main_content = _git_show_main_file(relative_path)
-    if main_content is None:
-        pytest.skip("origin/main not reachable in this checkout; cannot diff against it")
-
-    current_content = _CLI_ALLOWLIST_TEST_FILE.read_text(encoding="utf-8")
-
-    current_block = _extract_allow_list_block(current_content)
-    main_block = _extract_allow_list_block(main_content)
-
-    assert current_block == main_block, (
-        "apps/cli's import allow-list changed relative to main -- widening it "
-        "requires a new ADR-0026 amendment with fresh maintainer approval "
-        "(D-S047-08), not an edit to this test"
+    current = _CLI_ALLOWED_TRADING_FRAMEWORK_MODULES
+    snapshot = _CLI_ALLOWED_TRADING_FRAMEWORK_MODULES_SNAPSHOT
+    assert current == snapshot, (
+        "apps/cli's import allow-list changed but the recorded snapshot in "
+        "this test was not updated. Widening the allow-list requires a new "
+        "ADR-0026 amendment with fresh maintainer approval -- update "
+        "_CLI_ALLOWED_TRADING_FRAMEWORK_MODULES_SNAPSHOT above in the SAME "
+        "commit as the amendment, never as a silent edit."
     )
 
 
-_ALLOW_LIST_START_MARKER = "_CLI_ALLOWED_TRADING_FRAMEWORK_PREFIX = "
-_ALLOW_LIST_END_MARKER = "\n)\n"
+# ---------------------------------------------------------------------------
+# apps/workbench -- ADR-0037 section 2/3: `workbench_core` and `workbench_ui`
+# get two DIFFERENT, independently enforced import boundaries, not one rule
+# applied to the whole app.
+#
+# `workbench_core` inherits ADR-0026 Amendment 1's allow-list AS-IS (ADR-0037
+# section 2) -- it is deliberately the exact same allow-list `apps/cli` uses,
+# reused rather than duplicated, so the two can never silently drift apart.
+# Widening it requires a fresh ADR amendment with maintainer approval, exactly
+# as it does for `apps/cli` -- never a test-file edit.
+#
+# `workbench_ui` gets the dashboard's total ban: it MUST NOT import
+# `trading_framework` at all, and talks to `workbench_core` only over the
+# loopback `workbench.api.v1` JSON API (ADR-0037 section 4). Since ADR-0044
+# (Sprint 064 T008), `workbench_ui` is a React/Next.js app at
+# apps/workbench/ui/, not a Python package -- the AST-based scan below no
+# longer applies (a .ts/.tsx file cannot import a Python module at all, so
+# the rule is true at the language level, ADR-0044 decision 2). What remains
+# testable, and is: that no Python file has crept into that directory as a
+# server-side escape hatch.
+# ---------------------------------------------------------------------------
+
+_WORKBENCH_CORE_SRC = _APPS_ROOT / "workbench" / "src" / "workbench_core"
+_WORKBENCH_UI_SRC = _APPS_ROOT / "workbench" / "ui"
 
 
-def _extract_allow_list_block(source: str) -> str:
-    """Return the exact `_CLI_ALLOWED_TRADING_FRAMEWORK_PREFIX`/`_MODULES` text.
+def _is_workbench_core_boundary_violation(module_name: str) -> bool:
+    return _is_cli_boundary_violation(module_name)
 
-    Extracting just this block (rather than diffing the whole file) keeps the
-    assertion scoped to what Finding 2 actually claims -- the allow-list
-    itself -- and immune to unrelated docstring/comment edits elsewhere in
-    the file.
+
+def _scan_predicate_offenders(
+    scan_roots: tuple[Path, ...], predicate: Callable[[str], bool]
+) -> list[str]:
+    """Like `_scan_dashboard_offenders`, but for a predicate (e.g. an allow-list check)
+    instead of a simple forbidden-prefix match.
+
+    Shared by `test_workbench_core_only_imports_application_layer` and its own regression
+    test below, so the regression test exercises the EXACT root-iteration logic the real
+    test uses -- not a hand-duplicated copy. PRB-022 (see this file's header comment) was
+    exactly this category of bug: a scan whose regression test drifted from the production
+    root-iteration logic and stopped proving anything.
     """
-    start = source.index(_ALLOW_LIST_START_MARKER)
-    end = source.index(_ALLOW_LIST_END_MARKER, start) + len(_ALLOW_LIST_END_MARKER)
-    return source[start:end]
+    offenders: list[str] = []
+    for scan_root in scan_roots:
+        for path in _python_files(scan_root):
+            try:
+                relative = path.relative_to(_REPO_ROOT).as_posix()
+            except ValueError:
+                relative = path.name
+            for module in _imported_modules(path):
+                if predicate(module):
+                    offenders.append(f"{relative}:{module}")
+    return offenders
+
+
+def test_workbench_core_only_imports_application_layer() -> None:
+    assert _WORKBENCH_CORE_SRC.is_dir(), "expected apps/workbench/src/workbench_core (ADR-0037)"
+
+    offenders = _scan_predicate_offenders(
+        (_WORKBENCH_CORE_SRC,), _is_workbench_core_boundary_violation
+    )
+
+    assert offenders == []
+
+
+def test_workbench_core_boundary_scan_detects_a_forbidden_import(tmp_path: Path) -> None:
+    """Regression: prove the workbench_core scan can fail, not just pass (ADR-0037 acceptance)."""
+    package_dir = tmp_path / "workbench_core"
+    package_dir.mkdir()
+    (package_dir / "synthetic_module.py").write_text(
+        "import trading_framework.research.predictive.verdict\n", encoding="utf-8"
+    )
+
+    offenders = _scan_predicate_offenders((package_dir,), _is_workbench_core_boundary_violation)
+
+    assert offenders == ["synthetic_module.py:trading_framework.research.predictive.verdict"]
+
+
+def test_workbench_ui_contains_no_python() -> None:
+    """ADR-0044: `workbench_ui` is React/Next.js, static export only, no
+    Next.js server -- a Python file here would be a server-side escape
+    hatch nothing else in this repo's tooling would run or lint, and the
+    clearest possible sign the static-export boundary had been abandoned."""
+    assert _WORKBENCH_UI_SRC.is_dir(), "expected apps/workbench/ui (ADR-0044)"
+
+    python_files = [
+        path.relative_to(_REPO_ROOT).as_posix()
+        for path in _WORKBENCH_UI_SRC.rglob("*.py")
+        if "node_modules" not in path.parts
+    ]
+
+    assert python_files == []
+
+
+def test_workbench_ui_python_scan_detects_a_stray_file(tmp_path: Path) -> None:
+    """Regression: prove the scan can fail, not just pass."""
+    package_dir = tmp_path / "ui"
+    package_dir.mkdir()
+    (package_dir / "server.py").write_text("import trading_framework\n", encoding="utf-8")
+
+    python_files = [path.name for path in package_dir.rglob("*.py")]
+
+    assert python_files == ["server.py"]
