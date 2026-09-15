@@ -16,10 +16,11 @@ from aiohttp import web
 
 from workbench_core.config import WorkbenchApiConfig
 from workbench_core.datasets_endpoint import build_datasets_response
-from workbench_core.job_runner import JobRunner, read_job_log
+from workbench_core.job_runner import JobCancellationError, JobRunner, read_job_log
 from workbench_core.job_store import JobNotFoundError
 from workbench_core.jobs_endpoint import (
     JobRequestError,
+    build_cancel_job_response,
     build_get_job_response,
     build_list_jobs_response,
     build_submit_signal_research_job_response,
@@ -57,6 +58,7 @@ def create_app(
     app.router.add_get("/api/v1/jobs", _handle_list_jobs)
     app.router.add_get("/api/v1/jobs/{job_id}", _handle_get_job)
     app.router.add_get("/api/v1/jobs/{job_id}/log", _handle_get_job_log)
+    app.router.add_post("/api/v1/jobs/{job_id}/cancel", _handle_cancel_job)
     app.on_startup.append(_start_job_runner)
     app.on_cleanup.append(_stop_job_runner)
     return app
@@ -108,6 +110,17 @@ async def _handle_get_job_log(request: web.Request) -> web.Response:
     jobs_root = config.storage_root / _WORKBENCH_NAMESPACE / _JOBS_ROOT_NAME
     stdout = read_job_log(jobs_root, job_id)
     return web.json_response({"job_id": job_id, "stdout": stdout})
+
+
+async def _handle_cancel_job(request: web.Request) -> web.Response:
+    runner = request.app[_JOB_RUNNER_KEY]
+    try:
+        payload = build_cancel_job_response(runner, request.match_info["job_id"])
+    except JobNotFoundError as exc:
+        return web.json_response({"error": str(exc)}, status=404)
+    except JobCancellationError as exc:
+        return web.json_response({"error": str(exc)}, status=409)
+    return web.json_response(payload)
 
 
 async def _start_job_runner(app: web.Application) -> None:

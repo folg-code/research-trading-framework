@@ -24,6 +24,7 @@ Open an ID to read the full entry:
 - [TD-031](registries/td-029-031.md#td-031) · [TD-032](registries/td-032-034.md#td-032)
 - [TD-033](registries/td-032-034.md#td-033) · [TD-034](registries/td-032-034.md#td-034)
 - [TD-035](registries/td-035.md#td-035) · [TD-036](registries/td-036.md#td-036)
+- [TD-037](registries/td-037.md#td-037)
 
 ## 1. Purpose
 
@@ -205,6 +206,8 @@ Read one item by ID. Full entries are grouped below; stable ID headings remain h
 ## [TD-035 — Trusted Local Model Lineage Hash Covers Only the Entry File](registries/td-035.md#td-035)
 
 ## [TD-036 — `definition_hash` Is Not Comparable Across the `schema_version` Introduction](registries/td-036.md#td-036)
+
+## [TD-037 — `apps/cli` and `apps/workbench` Are Not Mypy-Checked by CI or Pre-Commit](registries/td-037.md#td-037)
 
 # 6. Planned Debt Boundaries
 

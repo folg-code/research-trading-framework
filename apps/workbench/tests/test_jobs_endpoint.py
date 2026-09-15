@@ -1,4 +1,5 @@
-"""HTTP contract tests for the job submit/get/list/log endpoints (Sprint 064 T006).
+"""HTTP contract tests for the job submit/get/list/log/cancel endpoints
+(Sprint 064 T006/T007).
 
 Same pattern as `test_datasets_endpoint.py`: `aiohttp.test_utils`, no
 `pytest-asyncio` dependency, a real (stub) child process rather than an
@@ -13,11 +14,21 @@ import sys
 import textwrap
 from pathlib import Path
 
+import pytest
 from aiohttp.test_utils import TestClient, TestServer
 
 from workbench_core.app import create_app
 from workbench_core.config import WorkbenchApiConfig
 from workbench_core.job_store import JobState
+from workbench_core.windows_process import IS_WINDOWS
+
+_LONG_RUNNING_CHILD = textwrap.dedent(
+    """
+    import time
+    print("running", flush=True)
+    time.sleep(30)
+    """
+)
 
 _SUCCEEDING_CHILD = textwrap.dedent(
     """
@@ -32,9 +43,11 @@ _SUCCEEDING_CHILD = textwrap.dedent(
 )
 
 
-def _write_stub(tmp_path: Path) -> tuple[str, ...]:
-    path = tmp_path / "succeeding_child.py"
-    path.write_text(_SUCCEEDING_CHILD, encoding="utf-8")
+def _write_stub(
+    tmp_path: Path, name: str = "succeeding_child.py", script: str = _SUCCEEDING_CHILD
+) -> tuple[str, ...]:
+    path = tmp_path / name
+    path.write_text(script, encoding="utf-8")
     return (sys.executable, str(path))
 
 
@@ -115,6 +128,93 @@ def test_submit_job_missing_definition_path_is_400(tmp_path: Path) -> None:
         try:
             response = await client.post("/api/v1/jobs", json={})
             assert response.status == 400
+        finally:
+            await client.close()
+
+    asyncio.run(_run())
+
+
+def test_cancel_unknown_job_is_404(tmp_path: Path) -> None:
+    config = WorkbenchApiConfig(storage_root=tmp_path)
+
+    async def _run() -> None:
+        app = create_app(config)
+        client = TestClient(TestServer(app))
+        await client.start_server()
+        try:
+            response = await client.post("/api/v1/jobs/does-not-exist/cancel")
+            assert response.status == 404
+        finally:
+            await client.close()
+
+    asyncio.run(_run())
+
+
+def test_cancel_already_succeeded_job_is_409(tmp_path: Path) -> None:
+    cli_command = _write_stub(tmp_path)
+    config = WorkbenchApiConfig(storage_root=tmp_path)
+
+    async def _run() -> None:
+        app = create_app(config, cli_command=cli_command)
+        client = TestClient(TestServer(app))
+        await client.start_server()
+        try:
+            submit_response = await client.post(
+                "/api/v1/jobs", json={"definition_path": "signal_definition.yaml"}
+            )
+            job_id = (await submit_response.json())["job_id"]
+            for _attempt in range(200):
+                payload = await (await client.get(f"/api/v1/jobs/{job_id}")).json()
+                if payload["state"] == JobState.SUCCEEDED.value:
+                    break
+                await asyncio.sleep(0.02)
+            else:
+                pytest.fail("job did not reach SUCCEEDED in time")
+
+            cancel_response = await client.post(f"/api/v1/jobs/{job_id}/cancel")
+            assert cancel_response.status == 409
+        finally:
+            await client.close()
+
+    asyncio.run(_run())
+
+
+@pytest.mark.skipif(
+    not IS_WINDOWS, reason="process-tree cancellation is Windows-only this sprint (ADR-0041 §6)"
+)
+def test_cancel_running_job_via_http(tmp_path: Path) -> None:
+    cli_command = _write_stub(tmp_path, "long_running_child.py", _LONG_RUNNING_CHILD)
+    config = WorkbenchApiConfig(storage_root=tmp_path)
+
+    async def _run() -> None:
+        app = create_app(config, cli_command=cli_command)
+        client = TestClient(TestServer(app))
+        await client.start_server()
+        try:
+            submit_response = await client.post(
+                "/api/v1/jobs", json={"definition_path": "signal_definition.yaml"}
+            )
+            job_id = (await submit_response.json())["job_id"]
+            for _attempt in range(200):
+                payload = await (await client.get(f"/api/v1/jobs/{job_id}")).json()
+                if payload["state"] == JobState.RUNNING.value:
+                    break
+                await asyncio.sleep(0.02)
+            else:
+                pytest.fail("job did not reach RUNNING in time")
+
+            cancel_response = await client.post(f"/api/v1/jobs/{job_id}/cancel")
+            assert cancel_response.status == 200
+
+            final_state = None
+            for _attempt in range(500):
+                payload = await (await client.get(f"/api/v1/jobs/{job_id}")).json()
+                if payload["state"] == JobState.CANCELLED.value:
+                    final_state = payload
+                    break
+                await asyncio.sleep(0.02)
+            assert final_state is not None, "job did not reach CANCELLED in time"
+            assert final_state["termination_path"] in ("graceful", "killed")
         finally:
             await client.close()
 
