@@ -16,7 +16,13 @@ from aiohttp import web
 
 from workbench_core.config import WorkbenchApiConfig
 from workbench_core.datasets_endpoint import build_datasets_response
-from workbench_core.job_runner import JobCancellationError, JobRunner, read_job_log
+from workbench_core.job_runner import (
+    DEFAULT_CLI_COMMAND,
+    DEFAULT_GRACEFUL_TERMINATION_SECONDS,
+    JobCancellationError,
+    JobRunner,
+    read_job_log,
+)
 from workbench_core.job_store import JobNotFoundError
 from workbench_core.jobs_endpoint import (
     JobRequestError,
@@ -34,7 +40,10 @@ _WORKBENCH_NAMESPACE = "workbench"
 
 
 def create_app(
-    config: WorkbenchApiConfig, *, cli_command: Sequence[str] | None = None
+    config: WorkbenchApiConfig,
+    *,
+    cli_command: Sequence[str] | None = None,
+    graceful_termination_seconds: float | None = None,
 ) -> web.Application:
     """Create the aiohttp app exposing workbench-api.
 
@@ -42,17 +51,23 @@ def create_app(
     `("uv", "run", "trading-cli")`) -- a test-only seam so contract tests can
     substitute a stub child process instead of a real `uv run` (JobRunner's
     own docstring explains why the subprocess itself is never faked
-    in-process).
+    in-process). `graceful_termination_seconds` overrides D-S064-03's default
+    20s grace window -- also test-only, so a cancellation contract test does
+    not need a 20s+ budget just to observe a hard-kill escalation.
     """
     app = web.Application()
     app[_CONFIG_KEY] = config
     jobs_root = config.storage_root / _WORKBENCH_NAMESPACE / _JOBS_ROOT_NAME
-    if cli_command is not None:
-        app[_JOB_RUNNER_KEY] = JobRunner(
-            jobs_root=jobs_root, storage_root=config.storage_root, cli_command=cli_command
-        )
-    else:
-        app[_JOB_RUNNER_KEY] = JobRunner(jobs_root=jobs_root, storage_root=config.storage_root)
+    app[_JOB_RUNNER_KEY] = JobRunner(
+        jobs_root=jobs_root,
+        storage_root=config.storage_root,
+        cli_command=cli_command if cli_command is not None else DEFAULT_CLI_COMMAND,
+        graceful_termination_seconds=(
+            graceful_termination_seconds
+            if graceful_termination_seconds is not None
+            else DEFAULT_GRACEFUL_TERMINATION_SECONDS
+        ),
+    )
     app.router.add_get("/api/v1/datasets", _handle_datasets)
     app.router.add_post("/api/v1/jobs", _handle_submit_job)
     app.router.add_get("/api/v1/jobs", _handle_list_jobs)

@@ -96,12 +96,18 @@ def test_cancel_running_job_terminates_gracefully(tmp_path: Path) -> None:
     CTRL_BREAK -- well within the grace window, so the graceful path is
     taken, never escalating to a hard kill."""
     cli_command = _write_stub(tmp_path, "child.py", _LONG_RUNNING_CHILD)
+    # A generous grace window that is still comfortably smaller than
+    # `_wait_for_state`'s own ~10s polling budget below -- equal (or larger)
+    # budgets on both sides race each other on any timing hiccup, which is
+    # exactly what made this test flake once (job never observed reaching a
+    # terminal state in time even though the mechanism itself was fine).
     runner = JobRunner(
         jobs_root=tmp_path / "jobs",
         storage_root=tmp_path / "workspace",
         cli_command=cli_command,
-        graceful_termination_seconds=10.0,
+        graceful_termination_seconds=3.0,
     )
+    jobs_root = tmp_path / "jobs"
 
     async def _scenario() -> str:
         runner.start()
@@ -110,6 +116,12 @@ def test_cancel_running_job_terminates_gracefully(tmp_path: Path) -> None:
                 SubmitSignalResearchJobRequest(definition_path="a.yaml")
             )
             await _wait_for_state(runner, record.job_id, (JobState.RUNNING,))
+            # As in the hard-kill test below: `JobState.RUNNING` only means
+            # the OS process object exists, not that the new process group
+            # is fully set up to receive a console control event yet -- a
+            # CTRL_BREAK sent too early can be silently dropped. Waiting for
+            # the child's own first print is a real readiness signal.
+            await _wait_for_log_line(jobs_root, record.job_id, "running")
             runner.cancel_job(record.job_id)
             await _wait_for_state(
                 runner, record.job_id, (JobState.CANCELLED, JobState.FAILED, JobState.SUCCEEDED)
@@ -173,11 +185,13 @@ def test_cancel_queued_job_is_immediate_with_no_subprocess(tmp_path: Path) -> No
     terminal, and spawns nothing -- proven here by a concurrency-1 runner
     whose first job blocks the queue for the whole test."""
     cli_command = _write_stub(tmp_path, "child.py", _LONG_RUNNING_CHILD)
+    jobs_root = tmp_path / "jobs"
     runner = JobRunner(
-        jobs_root=tmp_path / "jobs",
+        jobs_root=jobs_root,
         storage_root=tmp_path / "workspace",
         cli_command=cli_command,
         max_concurrent_jobs=1,
+        graceful_termination_seconds=3.0,
     )
 
     async def _scenario() -> tuple[str, str]:
@@ -187,6 +201,9 @@ def test_cancel_queued_job_is_immediate_with_no_subprocess(tmp_path: Path) -> No
                 SubmitSignalResearchJobRequest(definition_path="blocking.yaml")
             )
             await _wait_for_state(runner, blocking.job_id, (JobState.RUNNING,))
+            # Readiness, not just RUNNING -- see the graceful-termination
+            # test above for why an immediate CTRL_BREAK can be dropped.
+            await _wait_for_log_line(jobs_root, blocking.job_id, "running")
             queued = runner.submit_signal_research_job(
                 SubmitSignalResearchJobRequest(definition_path="queued.yaml")
             )
