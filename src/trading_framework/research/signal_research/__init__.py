@@ -22,6 +22,8 @@ from trading_framework.research.signal_research.model_registry import (
     ResolvedModels,
     is_known_market_model_alias,
     is_known_signal_model_alias,
+    list_known_market_model_aliases,
+    list_known_signal_model_aliases,
     resolve_models_from_definition,
 )
 from trading_framework.research.signal_research.template_catalog import (
@@ -53,6 +55,8 @@ __all__ = [
     "compute_definition_hash",
     "is_known_market_model_alias",
     "is_known_signal_model_alias",
+    "list_known_market_model_aliases",
+    "list_known_signal_model_aliases",
     "list_signal_research_templates",
     "load_signal_research_definition",
     "load_signal_research_definition_from_dict",
