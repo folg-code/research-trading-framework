@@ -299,3 +299,22 @@ jobs:
 
       - name: Workbench tests
         run: uv run --package trading-workbench pytest apps/workbench/tests -q
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: apps/workbench/ui/package-lock.json
+
+      - name: Install workbench_ui dependencies
+        working-directory: apps/workbench/ui
+        run: npm ci
+
+      - name: workbench_ui lint
+        working-directory: apps/workbench/ui
+        run: npm run lint
+
+      - name: workbench_ui build (static export, ADR-0044)
+        working-directory: apps/workbench/ui
+        run: npm run build
