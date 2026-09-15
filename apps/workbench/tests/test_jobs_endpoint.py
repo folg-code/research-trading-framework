@@ -37,7 +37,11 @@ _SUCCEEDING_CHILD = textwrap.dedent(
 
     for index, name in enumerate(["load-definition", "resolve-models"], start=1):
         print(json.dumps({"event": "phase", "name": name, "index": index, "of": 2}))
-    print(json.dumps({"status": "success", "result": {"run_id": "synthetic-run"}}))
+    # trading_cli.plan.dump_json pretty-prints with indent=2 -- matching that
+    # here (not a single compact line) is what T006/T007's own test caught a
+    # real job_runner.py bug with: a line-by-line JSON parser cannot see a
+    # multi-line summary at all.
+    print(json.dumps({"status": "success", "result": {"run_id": "synthetic-run"}}, indent=2))
     sys.exit(0)
     """
 )
