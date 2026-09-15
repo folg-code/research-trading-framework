@@ -272,7 +272,7 @@ class JobRunner:
             "--config",
             record.config_path,
             "--json",
-            cwd=str(_repo_root()),
+            cwd=str(repo_root()),
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.STDOUT,
             creationflags=_CREATE_NEW_PROCESS_GROUP,
@@ -413,6 +413,8 @@ def _parse_phase_event(line: str) -> dict[str, Any] | None:
     return payload
 
 
-def _repo_root() -> Path:
+def repo_root() -> Path:
+    """The repo root `trading-cli` must be spawned from -- shared with
+    `validate_definition.py`'s synchronous `--dry-run` invocation."""
     # apps/workbench/src/workbench_core/job_runner.py -> repo root
     return Path(__file__).resolve().parents[4]
