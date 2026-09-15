@@ -187,7 +187,13 @@ def test_cancel_running_job_via_http(tmp_path: Path) -> None:
     config = WorkbenchApiConfig(storage_root=tmp_path)
 
     async def _run() -> None:
-        app = create_app(config, cli_command=cli_command)
+        # A short, explicit grace window with real margin under this test's
+        # own ~10s polling budget below -- and, before cancelling, waiting
+        # for the child's own first print rather than just JobState.RUNNING
+        # (which only means the OS process object exists): a CTRL_BREAK sent
+        # the instant the process object exists, before its new process
+        # group has finished setting up, can be silently dropped.
+        app = create_app(config, cli_command=cli_command, graceful_termination_seconds=3.0)
         client = TestClient(TestServer(app))
         await client.start_server()
         try:
@@ -202,6 +208,14 @@ def test_cancel_running_job_via_http(tmp_path: Path) -> None:
                 await asyncio.sleep(0.02)
             else:
                 pytest.fail("job did not reach RUNNING in time")
+
+            for _attempt in range(200):
+                log_payload = await (await client.get(f"/api/v1/jobs/{job_id}/log")).json()
+                if "running" in log_payload["stdout"]:
+                    break
+                await asyncio.sleep(0.02)
+            else:
+                pytest.fail("child's readiness line never appeared in the log in time")
 
             cancel_response = await client.post(f"/api/v1/jobs/{job_id}/cancel")
             assert cancel_response.status == 200

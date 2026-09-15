@@ -66,12 +66,15 @@ from workbench_core.windows_process import (
 #: silent widening.
 _SUPPORTED_JOB_KINDS = ("research.run.signal",)
 
-_DEFAULT_CLI_COMMAND: tuple[str, ...] = ("uv", "run", "trading-cli")
+#: Public (not underscore-prefixed): `app.py`'s `create_app` references this
+#: directly to resolve its own optional override parameter to the same
+#: default `JobRunner` itself would use.
+DEFAULT_CLI_COMMAND: tuple[str, ...] = ("uv", "run", "trading-cli")
 
 #: D-S064-03, approved 2026-09-14 (raised from a 10s starting proposal at the
 #: maintainer's request): SIGTERM/CTRL_BREAK, then this long to unwind, then
-#: a hard kill.
-_DEFAULT_GRACEFUL_TERMINATION_SECONDS = 20.0
+#: a hard kill. Public for the same reason as `DEFAULT_CLI_COMMAND` above.
+DEFAULT_GRACEFUL_TERMINATION_SECONDS = 20.0
 
 _INTERRUPTED_REASON = "the application or worker restarted while this job was active"
 
@@ -110,8 +113,8 @@ class JobRunner:
         jobs_root: Path,
         storage_root: Path,
         max_concurrent_jobs: int = 1,
-        cli_command: Sequence[str] = _DEFAULT_CLI_COMMAND,
-        graceful_termination_seconds: float = _DEFAULT_GRACEFUL_TERMINATION_SECONDS,
+        cli_command: Sequence[str] = DEFAULT_CLI_COMMAND,
+        graceful_termination_seconds: float = DEFAULT_GRACEFUL_TERMINATION_SECONDS,
     ) -> None:
         self._jobs_root = jobs_root
         self._storage_root = storage_root
