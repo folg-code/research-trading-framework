@@ -68,6 +68,7 @@ class JobRecord:
     cancel_requested: bool = False
     termination_path: str | None = None
     interrupted_reason: str | None = None
+    result: dict[str, Any] | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -87,6 +88,7 @@ class JobRecord:
             "cancel_requested": self.cancel_requested,
             "termination_path": self.termination_path,
             "interrupted_reason": self.interrupted_reason,
+            "result": self.result,
         }
 
     @classmethod
@@ -107,6 +109,7 @@ class JobRecord:
             cancel_requested=bool(data.get("cancel_requested", False)),
             termination_path=data.get("termination_path"),
             interrupted_reason=data.get("interrupted_reason"),
+            result=data.get("result"),
         )
 
 

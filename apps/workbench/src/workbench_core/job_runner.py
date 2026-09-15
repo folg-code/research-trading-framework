@@ -302,6 +302,12 @@ class JobRunner:
                         record.latest_phase = phase
                         record.updated_at = datetime.now(tz=UTC)
                         write_job_record(self._jobs_root, record)
+                        continue
+                    result = _parse_success_result(line)
+                    if result is not None:
+                        record.result = result
+                        record.updated_at = datetime.now(tz=UTC)
+                        write_job_record(self._jobs_root, record)
 
             exit_code = await process.wait()
         finally:
@@ -398,9 +404,29 @@ def _render_signal_research_config_yaml(*, storage_root: Path, definition_path: 
 
 
 def _parse_phase_event(line: str) -> dict[str, Any] | None:
-    """Parse one `workbench.phase_event.v1` line (D-S064-04); anything else on
-    stdout -- including the CLI's own final `--json` summary -- is left as an
-    ordinary logged line, not derived from."""
+    """Parse one `workbench.phase_event.v1` line (D-S064-04)."""
+    payload = _parse_json_object(line)
+    if payload is None or payload.get("event") != "phase":
+        return None
+    return payload
+
+
+def _parse_success_result(line: str) -> dict[str, Any] | None:
+    """Parse the CLI's own final `--json` summary line (`{"status":"success",
+    "result":{...}}`, `trading_cli.cli._print_result`) to capture e.g.
+    `run_id` for the UI's result view. This is not the "deriving a fact by
+    parsing human-readable stdout" ADR-0041 section 7 forbids -- it is
+    consuming `--json`'s own structured, versioned-by-convention output,
+    exactly the machine-readable contract that flag exists for; nothing here
+    parses prose."""
+    payload = _parse_json_object(line)
+    if payload is None or payload.get("status") != "success":
+        return None
+    result = payload.get("result")
+    return result if isinstance(result, dict) else None
+
+
+def _parse_json_object(line: str) -> dict[str, Any] | None:
     stripped = line.strip()
     if not stripped:
         return None
@@ -408,9 +434,7 @@ def _parse_phase_event(line: str) -> dict[str, Any] | None:
         payload = json.loads(stripped)
     except json.JSONDecodeError:
         return None
-    if not isinstance(payload, dict) or payload.get("event") != "phase":
-        return None
-    return payload
+    return payload if isinstance(payload, dict) else None
 
 
 def repo_root() -> Path:

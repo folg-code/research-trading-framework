@@ -73,4 +73,5 @@ def _job_to_json(record: JobRecord) -> dict[str, Any]:
         "latest_phase": record.latest_phase,
         "termination_path": record.termination_path,
         "interrupted_reason": record.interrupted_reason,
+        "result": record.result,
     }

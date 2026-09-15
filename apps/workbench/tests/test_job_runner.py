@@ -109,6 +109,7 @@ def test_run_job_succeeds_and_records_phases_and_log(tmp_path: Path) -> None:
     assert final.started_at is not None
     assert final.finished_at is not None
     assert final.latest_phase == {"event": "phase", "name": "persist", "index": 5, "of": 5}
+    assert final.result == {"run_id": "synthetic-run"}
 
     log = read_job_log(tmp_path / "jobs", record.job_id)
     assert '"name": "load-definition"' in log

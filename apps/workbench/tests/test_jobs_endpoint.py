@@ -85,6 +85,7 @@ def test_job_submit_get_list_and_log_contract(tmp_path: Path) -> None:
             assert final_state["exit_code"] == 0
             assert final_state["config_path"]
             assert final_state["latest_phase"]["name"] == "resolve-models"
+            assert final_state["result"] == {"run_id": "synthetic-run"}
 
             list_response = await client.get("/api/v1/jobs")
             assert list_response.status == 200
