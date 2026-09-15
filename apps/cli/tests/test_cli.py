@@ -40,6 +40,21 @@ def test_help_lists_all_four_command_groups(capsys: pytest.CaptureFixture[str]) 
         assert group in out
 
 
+def test_research_run_help_maps_product_name_to_signal_workflow(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    parser = build_parser()
+
+    with pytest.raises(SystemExit) as exc_info:
+        parser.parse_args(["research", "run", "--help"])
+
+    assert exc_info.value.code == 0
+    out = capsys.readouterr().out
+    assert "Market & Signal Study" in out
+    assert "technically named Signal Research workflow" in out
+    assert "Market Model-only, Signal Model-only or combined scope" in out
+
+
 def test_missing_subcommand_exits_with_config_error_code() -> None:
     with pytest.raises(SystemExit) as exc_info:
         main([])

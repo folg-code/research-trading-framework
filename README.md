@@ -28,7 +28,7 @@ Public dashboard:
 | ML / AI research | Predictive-study contracts, feature matrices, baselines, tree models, neural models, walk-forward evaluation and model diagnostics |
 | Software architecture | Modular boundaries, dependency inversion, typed contracts, reproducible artifacts and isolated application consumers |
 | Product surface | Public read-only dashboard over persisted research artifacts and live paper-runtime state |
-| Responsible framing | PnL and ROI are treated as simulation diagnostics under explicit assumptions, not as investment promises |
+| Responsible framing | Profit and loss (PnL) and return on investment (ROI) are treated as simulation diagnostics under explicit assumptions, not as investment promises |
 
 The core capabilities share upstream contracts but remain independent:
 
@@ -85,9 +85,8 @@ research workflows that can be used independently or combined.
 
 | Workflow | Question it answers |
 |---|---|
-| Market Research | How does a market state behave under specific conditions? |
-| Signal Research | What happens after a signal appears, before adding full strategy mechanics? |
-| Strategy Research | How does a complete entry / exit / risk model behave in simulation? |
+| Signal Research (product: Market & Signal Study) | How does a Market Model, Signal Model or their combination behave? |
+| Strategy Research | How does a complete Strategy Definition, including its Exit Policy and Risk Policy, behave in simulation? |
 | Robustness Research | Is the result stable across parameters, windows, stress tests and resampling? |
 | Predictive Research | Is there predictable structure in declared features under honest validation? |
 | Strategy Execution | Can selected logic run in an isolated dry-run runtime with observable state? |
@@ -98,6 +97,7 @@ artifacts; they do not rerun research engines.
 Methodology reference:
 
 - [`docs/reference/workflows/RESEARCH_METHODOLOGIES.md`](docs/reference/workflows/RESEARCH_METHODOLOGIES.md)
+- [`docs/reference/system/TERMINOLOGY.md`](docs/reference/system/TERMINOLOGY.md)
 
 ---
 
@@ -226,8 +226,8 @@ flowchart LR
     C --> SM[Signal Model]
     C --> FM[Predictive Feature Matrix]
 
-    MM --> MR[Market Research]
-    SM --> SR[Signal Research]
+    MM --> SR[Signal Research]
+    SM --> SR
     MM --> STR[Strategy Research]
     SM --> STR
 
@@ -294,7 +294,7 @@ A reference NQ research run demonstrates the system on non-trivial data volumes:
 
 - 45M+ normalized Databento trades,
 - 44M+ continuous futures trades,
-- 177k+ derived one-minute OHLCV bars,
+- 177k+ derived one-minute open, high, low, close and volume (OHLCV) bars,
 - 1,400+ simulated strategy trades.
 
 Expensive preprocessing is materialized once. Downstream research consumes
@@ -305,7 +305,7 @@ Example compute baselines on a laptop-class machine:
 | Workflow | Hot path | Scale note |
 |---|---|---|
 | Strategy Research | Columnar OHLCV, shared Polars evaluation and Numba fixed-bars kernel | About 6 seconds for a half-year run |
-| Signal / Market Research | Amortized reference-price lookup, Polars joins and NumPy forward outcomes | Avoids occurrence-by-bar scans on the reference-price path |
+| Signal Research | Amortized reference-price lookup, Polars joins and NumPy forward outcomes | Avoids occurrence-by-bar scans on the reference-price path |
 | Robustness Research | Shared strategy evaluation cache | Child cells reuse loaded OHLCV and model evaluation where possible |
 
 ---

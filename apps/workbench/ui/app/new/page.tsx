@@ -34,38 +34,39 @@ const BLANK_DEFINITION: Record<string, unknown> = {
 const SCOPE_TILES: Tile[] = [
   {
     value: "SIGNAL_MODEL_ONLY",
-    label: "Signal only",
-    description: "Evaluate a signal model against forward outcomes",
+    label: "Signal Model-only",
+    description: "Evaluate a Signal Model against forward outcomes",
   },
   {
     value: "MARKET_MODEL_ONLY",
-    label: "Market only",
-    description: "Observe a market-state model, no signal",
+    label: "Market Model-only",
+    description: "Evaluate a Market Model without requiring a signal",
   },
   {
     value: "MARKET_AND_SIGNAL",
-    label: "Market + signal",
-    description: "A signal, in the context of a market-state model",
+    label: "Market Model and Signal Model",
+    description: "Evaluate a Signal Model in selected Market Model context",
   },
 ];
 
-const BASELINE_TILES: Tile[] = [
-  {
+const BASELINE_BY_SCOPE: Record<string, Tile> = {
+  SIGNAL_MODEL_ONLY: {
     value: "AFTER_SIGNAL",
-    label: "After signal",
-    description: "Compare to the period right after a signal",
+    label: "After Signal Model occurrence",
+    description: "Compare forward outcomes after the Signal Model occurs",
   },
-  {
+  MARKET_AND_SIGNAL: {
     value: "SIGNAL_ONLY",
-    label: "Signal only",
-    description: "No baseline comparison",
+    label: "Signal Model-only comparison",
+    description:
+      "Compare with the same Signal Model without Market Model context",
   },
-  {
+  MARKET_MODEL_ONLY: {
     value: "MODEL_ACTIVE",
-    label: "Model active",
-    description: "Compare to the market model's active windows",
+    label: "Market Model active",
+    description: "Compare to the Market Model's active windows",
   },
-];
+};
 
 const HORIZON_PRESETS = ["1m", "5m", "15m", "30m", "1h", "4h", "1d"];
 
@@ -174,6 +175,7 @@ function NewStudyPage() {
     scope === "MARKET_MODEL_ONLY" || scope === "MARKET_AND_SIGNAL";
   const showsSignal =
     scope === "SIGNAL_MODEL_ONLY" || scope === "MARKET_AND_SIGNAL";
+  const baselineTile = BASELINE_BY_SCOPE[scope];
   const timeRange = asRecord(definition.time_range);
   const horizons = asStringArray(definition.horizons);
   const baseline = asRecord(definition.baseline);
@@ -198,11 +200,10 @@ function NewStudyPage() {
   function setScope(value: string) {
     setDefinition((prev) => {
       const next: Record<string, unknown> = { ...prev, research_scope: value };
+      const baselineTile = BASELINE_BY_SCOPE[value];
+      if (baselineTile) next.baseline = { type: baselineTile.value };
       if (value === "SIGNAL_MODEL_ONLY") delete next.market_model;
-      if (value === "MARKET_MODEL_ONLY") {
-        delete next.signal_model;
-        delete next.baseline;
-      }
+      if (value === "MARKET_MODEL_ONLY") delete next.signal_model;
       return next;
     });
   }
@@ -303,7 +304,7 @@ function NewStudyPage() {
             ← Home
           </Link>
           <h1 className="text-2xl font-semibold mt-1">
-            New Signal Research study
+            New Market & Signal Study
           </h1>
         </div>
         <button
@@ -365,7 +366,7 @@ function NewStudyPage() {
             )}
 
             <section>
-              <h2 className="font-medium text-sm mb-2">Name</h2>
+              <h2 className="font-medium text-sm mb-2">Study name</h2>
               <input
                 type="text"
                 value={
@@ -382,7 +383,7 @@ function NewStudyPage() {
             </section>
 
             <section>
-              <h2 className="font-medium text-sm mb-2">Scope</h2>
+              <h2 className="font-medium text-sm mb-2">Study scope</h2>
               <TilePicker
                 tiles={SCOPE_TILES}
                 selected={scope}
@@ -393,7 +394,7 @@ function NewStudyPage() {
 
             {showsMarket && (
               <section>
-                <h2 className="font-medium text-sm mb-2">Market model</h2>
+                <h2 className="font-medium text-sm mb-2">Market Model</h2>
                 {models === null ? (
                   <p className="text-gray-500 text-sm">Loading…</p>
                 ) : (
@@ -412,37 +413,39 @@ function NewStudyPage() {
             )}
 
             {showsSignal && (
-              <>
-                <section>
-                  <h2 className="font-medium text-sm mb-2">Signal model</h2>
-                  {models === null ? (
-                    <p className="text-gray-500 text-sm">Loading…</p>
-                  ) : (
-                    <TilePicker
-                      tiles={signalTiles}
-                      selected={
-                        typeof definition.signal_model === "string"
-                          ? definition.signal_model
-                          : null
-                      }
-                      onSelect={(value) => setField("signal_model", value)}
-                      columns={3}
-                    />
-                  )}
-                </section>
-
-                <section>
-                  <h2 className="font-medium text-sm mb-2">Baseline</h2>
+              <section>
+                <h2 className="font-medium text-sm mb-2">Signal Model</h2>
+                {models === null ? (
+                  <p className="text-gray-500 text-sm">Loading…</p>
+                ) : (
                   <TilePicker
-                    tiles={BASELINE_TILES}
+                    tiles={signalTiles}
                     selected={
-                      typeof baseline.type === "string" ? baseline.type : null
+                      typeof definition.signal_model === "string"
+                        ? definition.signal_model
+                        : null
                     }
-                    onSelect={(value) => setField("baseline", { type: value })}
+                    onSelect={(value) => setField("signal_model", value)}
                     columns={3}
                   />
-                </section>
-              </>
+                )}
+              </section>
+            )}
+
+            {baselineTile && (
+              <section>
+                <h2 className="font-medium text-sm mb-2">
+                  Comparison baseline
+                </h2>
+                <TilePicker
+                  tiles={[baselineTile]}
+                  selected={
+                    typeof baseline.type === "string" ? baseline.type : null
+                  }
+                  onSelect={(value) => setField("baseline", { type: value })}
+                  columns={2}
+                />
+              </section>
             )}
 
             <section>
@@ -585,7 +588,9 @@ function NewStudyPage() {
             </section>
 
             <section>
-              <h2 className="font-medium text-sm mb-2">Saved definitions</h2>
+              <h2 className="font-medium text-sm mb-2">
+                Saved study definitions
+              </h2>
               {savedDefinitions === null ? (
                 <p className="text-gray-500 text-sm">Loading…</p>
               ) : savedDefinitions.length === 0 ? (

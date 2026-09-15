@@ -127,12 +127,15 @@ def build_parser() -> argparse.ArgumentParser:
             "hardcoded (same as scripts/strategy_research/run_strategy_research.py). "
             "See docs/reference/modules/OPERATOR_CLI.md (Sprint 047 adds a "
             "strategy-authoring guide).\n\n"
-            "'signal' runs one Signal Research study from a "
+            "'signal' runs one Market & Signal Study through the technically "
+            "named Signal Research workflow, from a "
             "SignalResearchDefinitionSpec file ('research.signal.definition' in "
             "--config, ADR-0038) -- the same schema/loader/validation the "
             "framework already owns, never re-encoded here. --dry-run proves the "
-            "definition loads and resolves, printing the resolved dataset, scope, "
-            "models, horizons and definition_hash before any side effect."
+            "definition loads and resolves, printing the resolved dataset, explicit "
+            "Market Model-only, Signal Model-only or combined scope, qualified "
+            "Market Model and Signal Model identifiers, horizons and definition_hash "
+            "before any side effect."
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
