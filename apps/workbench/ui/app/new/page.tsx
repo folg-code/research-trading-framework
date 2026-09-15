@@ -443,7 +443,7 @@ function NewStudyPage() {
                     typeof baseline.type === "string" ? baseline.type : null
                   }
                   onSelect={(value) => setField("baseline", { type: value })}
-                  columns={1}
+                  columns={2}
                 />
               </section>
             )}
