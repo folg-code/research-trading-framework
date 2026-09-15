@@ -72,3 +72,14 @@ def test_workbench_scope_selects_its_compatible_comparison_baseline() -> None:
 
     assert "next.baseline = { type: baselineTile.value }" in page
     assert "tiles={[baselineTile]}" in page
+
+
+def test_root_readme_uses_technical_name_for_signal_research_workflow() -> None:
+    readme = (_ROOT / "README.md").read_text(encoding="utf-8")
+
+    assert "| Signal Research (product: Market & Signal Study) |" in readme
+    assert "MM --> SR[Signal Research]" in readme
+    assert "SM --> SR" in readme
+    assert "| Signal Research | Amortized reference-price lookup" in readme
+    assert "MM --> MR[Market Research]" not in readme
+    assert "| Signal / Market Research |" not in readme

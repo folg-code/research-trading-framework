@@ -85,7 +85,7 @@ research workflows that can be used independently or combined.
 
 | Workflow | Question it answers |
 |---|---|
-| Market & Signal Study | How does a Market Model, Signal Model or their combination behave? Technically executed by the Signal Research workflow. |
+| Signal Research (product: Market & Signal Study) | How does a Market Model, Signal Model or their combination behave? |
 | Strategy Research | How does a complete Strategy Definition, including its Exit Policy and Risk Policy, behave in simulation? |
 | Robustness Research | Is the result stable across parameters, windows, stress tests and resampling? |
 | Predictive Research | Is there predictable structure in declared features under honest validation? |
@@ -226,8 +226,8 @@ flowchart LR
     C --> SM[Signal Model]
     C --> FM[Predictive Feature Matrix]
 
-    MM --> MR[Market Research]
-    SM --> SR[Signal Research]
+    MM --> SR[Signal Research]
+    SM --> SR
     MM --> STR[Strategy Research]
     SM --> STR
 
@@ -305,7 +305,7 @@ Example compute baselines on a laptop-class machine:
 | Workflow | Hot path | Scale note |
 |---|---|---|
 | Strategy Research | Columnar OHLCV, shared Polars evaluation and Numba fixed-bars kernel | About 6 seconds for a half-year run |
-| Signal / Market Research | Amortized reference-price lookup, Polars joins and NumPy forward outcomes | Avoids occurrence-by-bar scans on the reference-price path |
+| Signal Research | Amortized reference-price lookup, Polars joins and NumPy forward outcomes | Avoids occurrence-by-bar scans on the reference-price path |
 | Robustness Research | Shared strategy evaluation cache | Child cells reuse loaded OHLCV and model evaluation where possible |
 
 ---
