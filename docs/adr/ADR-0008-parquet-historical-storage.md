@@ -2,7 +2,9 @@
 
 ## Status
 
-ACCEPTED
+ACCEPTED (directory layout for OHLCV datasets updated by ADR-0043; the
+format decision — Parquet, `ParquetBarWriter`, `DatasetRef`-derived paths —
+is unchanged)
 
 ## Context
 
@@ -40,6 +42,14 @@ user_data/data/
 ```
 
 The path segments come from `DatasetId` fields and version; identity remains independent from physical location.
+
+> **Note (ADR-0043):** the layout above (and the root name shown, which had
+> already drifted to `market_data/` in the implementation before this note
+> was added) is superseded for OHLCV datasets by ADR-0043's simplified
+> `{asset_class}/{provider}/{instrument}/{timeframe}/` layout. This section
+> is left otherwise unedited per this project's ADR convention; see
+> ADR-0043 for the current OHLCV layout and its backward-compatibility
+> rules for datasets already stored under the layout shown here.
 
 ## Consequences
 

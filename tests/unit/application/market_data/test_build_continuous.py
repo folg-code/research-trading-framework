@@ -129,7 +129,7 @@ def test_build_continuous_publishes_trades_and_ohlcv(tmp_path: Path) -> None:
     assert trades_metadata.lifecycle_status is DatasetLifecycleState.PUBLISHED
     assert ohlcv_metadata.lifecycle_status is DatasetLifecycleState.PUBLISHED
     assert str(result.continuous_ohlcv_dataset_ref).startswith(
-        "NQ.c.0|ohlcv|1m|derived|volume-rth-close@"
+        "NQ.c.0|ohlcv|1m|derived|volume-rth-close|futures@"
     )
 
 

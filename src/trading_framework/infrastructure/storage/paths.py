@@ -9,6 +9,27 @@ Canonical workspace root (``--storage-root`` / operator workspace)::
         normalized/       # published Parquet market facts
         continuous/       # roll schedules and related artifacts
       research/
+
+  Market-data metadata/normalized layout (``DatasetId.asset_class`` set -- every
+  newly constructed identity, market-data directory-layout simplification):
+
+      market_data/{metadata|normalized}/{asset_class}/{provider}/{instrument_id}/{timeframe}/
+        {data_type}.{source_id}.v{version}.{json|parquet}
+
+  e.g.
+  ``market_data/normalized/crypto/binance/BTCUSDT.P/1m/ohlcv.binance-usdm-klines-v1.v1.parquet``.
+  No ``v{version}`` *directory* and no bare ``data_type``/``provider`` segment
+  chain between instrument and file; the filename alone disambiguates data
+  type, source series and version when a provider supplies more than one
+  series for the same instrument/timeframe.
+
+  Legacy layout (``DatasetId.asset_class`` unset -- every identity persisted
+  before the simplification; ``DatasetRef.parse()`` still resolves these):
+
+      market_data/{metadata|normalized}/{instrument_id}/{data_type}/{timeframe}/{provider}/{source_id}/v{version}/...
+
+  Never migrated or rewritten by this layer; only a dedicated migration
+  moves a legacy dataset onto the new layout.
         market_research/
           runs/{run_id}/              # Signal Research envelopes
           experiments/{experiment_id}/
@@ -42,6 +63,7 @@ Canonical workspace root (``--storage-root`` / operator workspace)::
 subdirectory. Dataset helpers always resolve under ``market_data/``.
 """
 
+import re
 from collections.abc import Sequence
 from datetime import date, datetime, timedelta
 from pathlib import Path
@@ -52,6 +74,8 @@ from trading_framework.time.models.utc_instant import require_utc_aware
 # Exchange session_date can differ from the UTC calendar day of observed_at by one
 # day (CME Globex overnight). Prune with this buffer; observed_at still filters rows.
 _OHLCV_SESSION_DATE_UTC_BUFFER_DAYS = 1
+
+_SAFE_FILENAME_PART = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]*\Z")
 
 _MARKET_DATA = "market_data"
 _RESEARCH = "research"
@@ -200,51 +224,102 @@ def promoted_artifact_payload_path(root: Path, artifact_fingerprint: str) -> Pat
     return promoted_artifact_dir(root, artifact_fingerprint) / "artifact.json"
 
 
-def dataset_metadata_path(root: Path, dataset_ref: DatasetRef) -> Path:
-    """Return the metadata file path for a dataset version."""
+def _new_layout_dataset_dir(root: Path, dataset_ref: DatasetRef, *, kind: str) -> Path:
+    """Directory for a NEW-layout dataset (``asset_class`` set). ``kind`` is
+    ``"metadata"`` or ``"normalized"``. No version segment -- version is
+    encoded in the filename (``_dataset_filename``)."""
+    dataset_id = dataset_ref.dataset_id
+    assert dataset_id.asset_class is not None  # caller-checked; narrows for mypy
+    for part in (dataset_id.provider, dataset_id.instrument_id.value, dataset_id.source_id):
+        if part in (".", "..") or _SAFE_FILENAME_PART.fullmatch(part) is None:
+            msg = f"unsafe market-data path component: {part!r}"
+            raise ValueError(msg)
+    return (
+        market_data_root(root)
+        / kind
+        / dataset_id.asset_class.value
+        / dataset_id.provider
+        / dataset_id.instrument_id.value
+        / dataset_id.timeframe.value
+    )
+
+
+def _legacy_layout_identity_dir(root: Path, dataset_ref: DatasetRef, *, kind: str) -> Path:
+    """Identity directory for a LEGACY-layout dataset (``asset_class`` unset),
+    WITHOUT a version segment -- the legacy metadata layout always named the
+    version straight into the leaf filename (``v{version}.json``), never a
+    directory. Never used for a newly constructed identity; exists only so an
+    old ``DatasetRef`` still resolves."""
     dataset_id = dataset_ref.dataset_id
     return (
         market_data_root(root)
-        / "metadata"
+        / kind
         / dataset_id.instrument_id.value
         / dataset_id.data_type
         / dataset_id.timeframe.value
         / dataset_id.provider
         / dataset_id.source_id
-        / f"v{dataset_ref.version}.json"
     )
+
+
+def _legacy_layout_dataset_dir(root: Path, dataset_ref: DatasetRef, *, kind: str) -> Path:
+    """Directory for a LEGACY-layout dataset (``asset_class`` unset), including
+    the ``v{version}`` segment the legacy normalized layout always used (bars,
+    partitions, manifests). Never used for a newly constructed identity;
+    exists only so an old ``DatasetRef`` still resolves."""
+    return _legacy_layout_identity_dir(root, dataset_ref, kind=kind) / f"v{dataset_ref.version}"
+
+
+def _dataset_stem(dataset_ref: DatasetRef) -> str:
+    """New-layout filename stem: ``{data_type}.{source_id}.v{version}``.
+
+    Disambiguates data type, source series and version in the filename
+    itself, so two source series for the same instrument/timeframe never
+    collide in one directory.
+    """
+    dataset_id = dataset_ref.dataset_id
+    return f"{dataset_id.data_type}.{dataset_id.source_id}.v{dataset_ref.version}"
+
+
+def _dataset_filename(dataset_ref: DatasetRef, extension: str) -> str:
+    """New-layout filename: ``{_dataset_stem(dataset_ref)}.{extension}``."""
+    return f"{_dataset_stem(dataset_ref)}.{extension}"
+
+
+def dataset_metadata_path(root: Path, dataset_ref: DatasetRef) -> Path:
+    """Return the metadata file path for a dataset version."""
+    dataset_id = dataset_ref.dataset_id
+    if dataset_id.asset_class is not None:
+        return _new_layout_dataset_dir(root, dataset_ref, kind="metadata") / _dataset_filename(
+            dataset_ref, "json"
+        )
+    legacy_dir = _legacy_layout_identity_dir(root, dataset_ref, kind="metadata")
+    return legacy_dir / f"v{dataset_ref.version}.json"
 
 
 def dataset_bars_path(root: Path, dataset_ref: DatasetRef) -> Path:
     """Return the Parquet bars path for a dataset version."""
     dataset_id = dataset_ref.dataset_id
-    return (
-        market_data_root(root)
-        / "normalized"
-        / dataset_id.instrument_id.value
-        / dataset_id.data_type
-        / dataset_id.timeframe.value
-        / dataset_id.provider
-        / dataset_id.source_id
-        / f"v{dataset_ref.version}"
-        / "bars.parquet"
-    )
+    if dataset_id.asset_class is not None:
+        return _new_layout_dataset_dir(root, dataset_ref, kind="normalized") / _dataset_filename(
+            dataset_ref, "parquet"
+        )
+    return _legacy_layout_dataset_dir(root, dataset_ref, kind="normalized") / "bars.parquet"
 
 
 def dataset_ohlcv_partitions_dir(root: Path, dataset_ref: DatasetRef) -> Path:
-    """Return the session-date partition root for a partitioned OHLCV dataset version."""
+    """Return the session-date partition root for a partitioned OHLCV dataset version.
+
+    Partitioned datasets keep a directory either way (one file per session
+    date); the new layout names it after the dataset's own disambiguated
+    stem instead of a bare ``partitions`` segment, since the new layout has
+    no per-version directory to hold it.
+    """
     dataset_id = dataset_ref.dataset_id
-    return (
-        market_data_root(root)
-        / "normalized"
-        / dataset_id.instrument_id.value
-        / dataset_id.data_type
-        / dataset_id.timeframe.value
-        / dataset_id.provider
-        / dataset_id.source_id
-        / f"v{dataset_ref.version}"
-        / "partitions"
-    )
+    if dataset_id.asset_class is not None:
+        dirname = f"{_dataset_stem(dataset_ref)}.partitions"
+        return _new_layout_dataset_dir(root, dataset_ref, kind="normalized") / dirname
+    return _legacy_layout_dataset_dir(root, dataset_ref, kind="normalized") / "partitions"
 
 
 def dataset_ohlcv_partition_path(
@@ -293,15 +368,11 @@ def ohlcv_session_dates_overlapping_range(
 def continuous_ohlcv_manifest_path(root: Path, dataset_ref: DatasetRef) -> Path:
     """Return the continuous OHLCV manifest path for one dataset version."""
     dataset_id = dataset_ref.dataset_id
+    if dataset_id.asset_class is not None:
+        filename = f"{_dataset_stem(dataset_ref)}.continuous_ohlcv_manifest.json"
+        return _new_layout_dataset_dir(root, dataset_ref, kind="normalized") / filename
     return (
-        market_data_root(root)
-        / "normalized"
-        / dataset_id.instrument_id.value
-        / dataset_id.data_type
-        / dataset_id.timeframe.value
-        / dataset_id.provider
-        / dataset_id.source_id
-        / f"v{dataset_ref.version}"
+        _legacy_layout_dataset_dir(root, dataset_ref, kind="normalized")
         / "continuous_ohlcv_manifest.json"
     )
 

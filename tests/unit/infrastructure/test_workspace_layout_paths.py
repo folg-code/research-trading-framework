@@ -24,6 +24,7 @@ from trading_framework.infrastructure.storage.paths import (
     strategy_research_run_dir,
 )
 from trading_framework.market.datasets import DatasetId, DatasetRef
+from trading_framework.market.models.instrument import AssetClass
 from trading_framework.time.models.timeframe import Timeframe
 
 
@@ -129,6 +130,102 @@ def test_dataset_paths_live_under_market_data(tmp_path: Path) -> None:
         / "v1"
         / "bars.parquet"
     )
+
+
+# ---------------------------------------------------------------------------
+# Market-data directory layout simplification (ADR-0008 update): a NEW
+# identity (asset_class set) resolves through the simplified
+# {asset_class}/{provider}/{instrument}/{timeframe}/ layout with no
+# ohlcv/source-id/version directories between instrument and file; a LEGACY
+# identity (asset_class unset, produced by DatasetRef.parse() on an old
+# 5-field canonical string) keeps resolving through the old layout unchanged.
+# ---------------------------------------------------------------------------
+
+
+def _new_layout_ref(*, source_id: str = "binance-usdm-klines-v1") -> DatasetRef:
+    return DatasetRef(
+        dataset_id=DatasetId(
+            instrument_id=Identifier("BTCUSDT.P"),
+            data_type="ohlcv",
+            timeframe=Timeframe("1m"),
+            provider="binance",
+            source_id=source_id,
+            asset_class=AssetClass.CRYPTO,
+        ),
+        version=1,
+    )
+
+
+def test_new_layout_dataset_paths_use_asset_class_provider_instrument_timeframe(
+    tmp_path: Path,
+) -> None:
+    workspace = tmp_path / "user_data"
+    dataset_ref = _new_layout_ref()
+
+    assert dataset_metadata_path(workspace, dataset_ref) == (
+        workspace
+        / "market_data"
+        / "metadata"
+        / "crypto"
+        / "binance"
+        / "BTCUSDT.P"
+        / "1m"
+        / "ohlcv.binance-usdm-klines-v1.v1.json"
+    )
+    assert dataset_bars_path(workspace, dataset_ref) == (
+        workspace
+        / "market_data"
+        / "normalized"
+        / "crypto"
+        / "binance"
+        / "BTCUSDT.P"
+        / "1m"
+        / "ohlcv.binance-usdm-klines-v1.v1.parquet"
+    )
+
+
+def test_legacy_five_field_dataset_ref_still_resolves_the_old_layout(tmp_path: Path) -> None:
+    """Acceptance criterion: reads through an existing DatasetRef keep working."""
+    workspace = tmp_path / "user_data"
+    legacy_ref = DatasetRef.parse("ES.c.0|ohlcv|1m|csv|sample-file@1")
+
+    assert legacy_ref.dataset_id.asset_class is None
+    assert dataset_metadata_path(workspace, legacy_ref) == (
+        workspace
+        / "market_data"
+        / "metadata"
+        / "ES.c.0"
+        / "ohlcv"
+        / "1m"
+        / "csv"
+        / "sample-file"
+        / "v1.json"
+    )
+
+
+def test_dataset_ref_round_trips_through_str_and_parse_for_both_layouts() -> None:
+    legacy = DatasetRef.parse("ES.c.0|ohlcv|1m|csv|sample-file@1")
+    assert DatasetRef.parse(str(legacy)) == legacy
+
+    new_layout = _new_layout_ref()
+    assert str(new_layout) == "BTCUSDT.P|ohlcv|1m|binance|binance-usdm-klines-v1|crypto@1"
+    assert DatasetRef.parse(str(new_layout)) == new_layout
+
+
+def test_two_source_series_same_instrument_timeframe_do_not_collide(tmp_path: Path) -> None:
+    """Acceptance criterion: two source series for one instrument/timeframe
+    coexist in one directory without a path collision."""
+    workspace = tmp_path / "user_data"
+    series_a = _new_layout_ref(source_id="binance-usdm-klines-v1")
+    series_b = _new_layout_ref(source_id="binance-usdm-klines-v2-backfill")
+
+    path_a = dataset_bars_path(workspace, series_a)
+    path_b = dataset_bars_path(workspace, series_b)
+
+    assert path_a != path_b
+    assert path_a.parent == path_b.parent  # same instrument/timeframe directory
+    assert path_a.name == "ohlcv.binance-usdm-klines-v1.v1.parquet"
+    assert path_b.name == "ohlcv.binance-usdm-klines-v2-backfill.v1.parquet"
 
 
 def test_ohlcv_session_dates_overlapping_range_keeps_adjacent_utc_days() -> None:

@@ -12,12 +12,19 @@ _MAX_METADATA_ITEMS = 16
 
 
 class AssetClass(StrEnum):
-    """Supported asset classes for MVP market data."""
+    """Supported asset classes for MVP market data.
+
+    Explicit, never inferred, at every call site that classifies an
+    instrument or a dataset (``DatasetId.asset_class``) -- e.g. a Dukascopy
+    CFD instrument must be classified ``CFD``, never fall back to
+    ``FUTURES`` by omission or copy-pasted default.
+    """
 
     FUTURES = "futures"
     EQUITY = "equity"
     CRYPTO = "crypto"
     FX = "fx"
+    CFD = "cfd"
 
 
 @final

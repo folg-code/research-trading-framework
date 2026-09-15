@@ -114,4 +114,4 @@ def test_build_continuous_cli_json_output(
     captured = capsys.readouterr()
     assert exit_code == 0
     assert "continuous_ohlcv_dataset_ref" in captured.out
-    assert "NQ.c.0|ohlcv|1m|derived|volume-rth-close@" in captured.out
+    assert "NQ.c.0|ohlcv|1m|derived|volume-rth-close|futures@" in captured.out
