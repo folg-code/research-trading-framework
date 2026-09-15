@@ -143,6 +143,7 @@ This is the single ADR index. `Area` names the primary owning capability; cross-
 | [ADR-0040](ADR-0040-import-validation-findings-and-acknowledgement.md) | Import Validation Findings: Fatal, Acknowledgeable, and Where Acknowledgement Lives | ACCEPTED | Sprint 064 (planned) | Market Data |
 | [ADR-0041](ADR-0041-workbench-local-job-runner.md) | Workbench Local Job Runner: Process Boundary, Cancellation, Progress and Interruption | ACCEPTED | Sprint 064 (planned) | Applications |
 | [ADR-0042](ADR-0042-workbench-catalog-index-and-comparison-facts.md) | Workbench Catalog Index, Artifact Support Classification, and Comparison Compatibility Facts | ACCEPTED | Sprint 064 (planned) | Applications |
+| [ADR-0044](ADR-0044-workbench-ui-frontend-framework.md) | Workbench UI Frontend: React + Next.js, Static Export | ACCEPTED | Sprint 064 | Applications |
 | ADR-0004 | Independent Research and Execution Workflows | PLANNED | TBD | Foundation / cross-cutting |
 | ADR-0009 | Batch Backtest vs Replay Execution | PLANNED | TBD | Execution |
 | ADR-0010 | Working Component and Model Fingerprints | PLANNED | TBD | Market Analysis |
