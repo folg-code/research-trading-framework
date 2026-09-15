@@ -31,6 +31,11 @@ from workbench_core.jobs_endpoint import (
     build_list_jobs_response,
     build_submit_signal_research_job_response,
 )
+from workbench_core.templates_endpoint import (
+    TemplateRequestError,
+    build_apply_template_response,
+    build_templates_response,
+)
 
 _CONFIG_KEY = web.AppKey("config", WorkbenchApiConfig)
 _JOB_RUNNER_KEY = web.AppKey("job_runner", JobRunner)
@@ -69,6 +74,8 @@ def create_app(
         ),
     )
     app.router.add_get("/api/v1/datasets", _handle_datasets)
+    app.router.add_get("/api/v1/templates", _handle_templates)
+    app.router.add_post("/api/v1/templates/{template_id}/apply", _handle_apply_template)
     app.router.add_post("/api/v1/jobs", _handle_submit_job)
     app.router.add_get("/api/v1/jobs", _handle_list_jobs)
     app.router.add_get("/api/v1/jobs/{job_id}", _handle_get_job)
@@ -83,6 +90,26 @@ async def _handle_datasets(request: web.Request) -> web.Response:
     config = request.app[_CONFIG_KEY]
     body = build_datasets_response(config)
     return web.json_response(body)
+
+
+async def _handle_templates(request: web.Request) -> web.Response:
+    config = request.app[_CONFIG_KEY]
+    return web.json_response(build_templates_response(config))
+
+
+async def _handle_apply_template(request: web.Request) -> web.Response:
+    config = request.app[_CONFIG_KEY]
+    try:
+        body = await request.json()
+    except ValueError:
+        return web.json_response({"error": "request body must be JSON"}, status=400)
+    if not isinstance(body, dict):
+        return web.json_response({"error": "request body must be a JSON object"}, status=400)
+    try:
+        payload = build_apply_template_response(config, request.match_info["template_id"], body)
+    except TemplateRequestError as exc:
+        return web.json_response({"error": str(exc)}, status=404)
+    return web.json_response(payload)
 
 
 async def _handle_submit_job(request: web.Request) -> web.Response:

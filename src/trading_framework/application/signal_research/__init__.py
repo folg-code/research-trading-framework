@@ -6,6 +6,15 @@ from trading_framework.application.signal_research.analyze_signal_research impor
     AnalyzeSignalResearchResult,
     analyze_signal_research_run,
 )
+from trading_framework.application.signal_research.list_signal_research_templates import (
+    ApplySignalResearchTemplateRequest,
+    SignalResearchTemplateNotFoundError,
+    SignalResearchTemplateSummary,
+    TemplateSource,
+    TemplateStatus,
+    apply_signal_research_template,
+    list_signal_research_templates,
+)
 from trading_framework.application.signal_research.map_definition import (
     DefinitionMappingError,
     ResolvedSignalResearchDefinition,
@@ -44,6 +53,7 @@ __all__ = [
     "AnalyzeSignalResearchError",
     "AnalyzeSignalResearchRequest",
     "AnalyzeSignalResearchResult",
+    "ApplySignalResearchTemplateRequest",
     "DefinitionMappingError",
     "FamilyVariantResult",
     "PersistSignalResearchAnalyticsError",
@@ -59,7 +69,13 @@ __all__ = [
     "RunSignalResearchResult",
     "SignalResearchError",
     "SignalResearchQualityWarning",
+    "SignalResearchTemplateNotFoundError",
+    "SignalResearchTemplateSummary",
+    "TemplateSource",
+    "TemplateStatus",
     "analyze_signal_research_run",
+    "apply_signal_research_template",
+    "list_signal_research_templates",
     "load_signal_research_analytics",
     "map_definition_to_analyze_request",
     "map_definition_to_run_request",
