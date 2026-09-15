@@ -4,13 +4,19 @@ Return to the [methodology chooser](../RESEARCH_METHODOLOGIES.md). This page exp
 
 ## 5. Model Research Methodology
 
-Model Research Methodology is a methodological layer built on Signal Research.
+Model Research Methodology defines how Market Model and Signal Model studies
+are framed. It guides studies run through the technical Signal Research
+workflow; it is not a separate executable workflow.
 
-Its purpose is not to create another independent compute engine. It defines how a model study should be specified, bounded, diagnosed and reported.
+Its purpose is not to create another independent compute engine. It defines
+how a Market Model or Signal Model study should be specified, bounded,
+diagnosed and reported. Statistical and machine-learning estimators belong to
+Predictive Research instead.
 
 ### Research Question
 
-> Is the model study well-defined, reproducible, bounded and diagnostically credible?
+> Is the Market Model or Signal Model study well-defined, reproducible,
+> bounded and diagnostically credible?
 
 ### Adds to Signal Research
 
@@ -20,11 +26,11 @@ Its purpose is not to create another independent compute engine. It defines how 
 - grouping rules,
 - occurrence policies,
 - quality rules,
-- bounded model-family comparison,
+- bounded Market Model or Signal Model family comparison,
 - persisted analytics,
 - standardized reporting.
 
-### Workflow
+### Method outline and workflow mapping
 
 ```text
 Study Definition
@@ -48,10 +54,10 @@ Study Definition
 
 ### Recommended Boundaries
 
-A model study should define in advance:
+A Market Model or Signal Model study should define in advance:
 
 - the hypothesis,
-- the studied model or model family,
+- the studied Market Model or Signal Model and its family,
 - the dataset and time range,
 - the evaluation horizons,
 - the occurrence policy,

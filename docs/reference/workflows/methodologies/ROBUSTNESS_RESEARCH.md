@@ -8,7 +8,7 @@ Return to the [methodology chooser](../RESEARCH_METHODOLOGIES.md). This page exp
 
 > Does the apparent strategy edge survive variation in parameters, time, regimes and execution assumptions?
 
-### Workflow
+### Method outline
 
 ```text
 Strategy Definition

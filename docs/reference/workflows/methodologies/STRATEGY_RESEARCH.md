@@ -14,18 +14,18 @@ Return to the [methodology chooser](../RESEARCH_METHODOLOGIES.md). This page exp
 Market Model
   × Signal Model
   × Entry
-  × Risk
-  × Exit
+  × Risk Policy
+  × Exit Policy
 ```
 
 A strategy is treated as a composition of independent lower-level elements rather than one monolithic implementation.
 
-### Workflow
+### Method outline
 
 ```text
 Published Dataset
   → Shared Analysis
-  → Model Evaluation
+  → Market Model and Signal Model Evaluation
   → Entry Decisions
   → Sequential Simulation
   → Trades and Equity

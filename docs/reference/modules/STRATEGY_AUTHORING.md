@@ -13,10 +13,11 @@
 > former §5 (worked examples) moved to
 > [`STRATEGY_EXAMPLES.md`](STRATEGY_EXAMPLES.md).
 
-This is the operator-facing how-to guide for writing your own Strategy Model
-and running it through `trading-cli research run strategy` (Phase 12,
-Sprint 047). The design record — why one config key, why no sandbox, the
-full loading mechanism — lives in
+This is the operator-facing how-to guide for writing your own Strategy
+Definition (the technical contract is `StrategyModelDefinition`) and running
+it through `trading-cli research run strategy` (Phase 12, Sprint 047). The
+design record — why one config key, why no sandbox, the full loading
+mechanism — lives in
 `docs/adr/ADR-0027-operator-authored-strategy-loading.md`. This document
 does not repeat that reasoning; it explains how to author, run and debug a
 strategy file as an operator.
@@ -35,7 +36,8 @@ def build_strategy() -> StrategyModelDefinition:
 ```text
 Name        build_strategy           fixed, conventional, NOT configurable
 Signature   zero required arguments  (optional/defaulted parameters are fine)
-Returns     StrategyModelDefinition  Market x Signal x Exit x Risk (ADR-0016)
+Returns     StrategyModelDefinition
+Meaning     Strategy Definition: Market Model x Signal Model x Exit Policy x Risk Policy (ADR-0016)
 ```
 
 Point a config at it with the `strategy_file` key, and run it exactly like
@@ -121,7 +123,7 @@ exception your own `build_strategy()` body raises is a workflow failure
 | `build_strategy` requires one or more arguments | `ConfigError` naming those parameter names | 2 |
 | `build_strategy()` itself raises | `WorkflowError`, chained from your original exception | 1 |
 | `build_strategy()` returns something that isn't a `StrategyModelDefinition` | `ConfigError` naming the actual returned type | 2 |
-| The returned `StrategyModelDefinition` fails the framework's own validation (e.g. an unsupported Exit/Risk model combination) | `ConfigError` carrying the framework's own validation message | 2 |
+| The returned `StrategyModelDefinition` fails the framework's own validation (e.g. an unsupported Exit Policy and Risk Policy combination) | `ConfigError` carrying the framework's own validation message | 2 |
 
 No exception is ever swallowed: every chained error keeps `__cause__`, so
 `--verbose` always shows you your own stack, not just the CLI's summary.
@@ -144,14 +146,14 @@ need:
 
 ```text
 trading_framework.model_authoring        the DSL (market_model, signal_model, price, ...)
-trading_framework.strategy.*             StrategyModelDefinition, Exit/Risk models
+trading_framework.strategy.*             StrategyModelDefinition, ExitModel and RiskModel contracts
 trading_framework.time.models.timeframe  Timeframe
 ```
 
 Reaching deeper — into `research.*`, `infrastructure.*`, or an application
 workflow — is legal and will work, but it's a smell: it usually means the
-strategy is trying to do something a Market/Signal Model should express
-instead. This is **advisory only, never checked at runtime.** Breaking it
+Strategy Definition is trying to do something a Market Model or Signal Model
+should express instead. This is **advisory only, never checked at runtime.** Breaking it
 costs you portability; it costs the framework nothing, which is exactly why
 nothing enforces it.
 
@@ -185,9 +187,9 @@ an oversight.
 
 - `docs/adr/ADR-0027-operator-authored-strategy-loading.md` — the design
   record: loading mechanism, the two import boundaries, error taxonomy.
-- `docs/adr/ADR-0028-bracket-exit-and-equity-relative-sizing.md` — the
-  Exit/Risk expansion: declined for Sprint 047, resumed and accepted for
-  Sprint 048 (`BracketExitModel`, `EquityPercentRiskModel`).
+- `docs/adr/ADR-0028-bracket-exit-and-equity-relative-sizing.md` — the Exit
+  Policy and Risk Policy expansion: declined for Sprint 047, resumed and
+  accepted for Sprint 048 (`BracketExitModel`, `EquityPercentRiskModel`).
 - `docs/reference/modules/OPERATOR_CLI.md` — the full CLI operator guide.
 - [`ANALYSIS_COMPONENT_CATALOG.md`](ANALYSIS_COMPONENT_CATALOG.md) — per-component
   semantics for every component named below (formerly this file's §4).
