@@ -354,11 +354,17 @@ def test_cli_boundary_allow_list_matches_recorded_snapshot() -> None:
 #
 # `workbench_ui` gets the dashboard's total ban: it MUST NOT import
 # `trading_framework` at all, and talks to `workbench_core` only over the
-# loopback `workbench.api.v1` JSON API (ADR-0037 section 4).
+# loopback `workbench.api.v1` JSON API (ADR-0037 section 4). Since ADR-0044
+# (Sprint 064 T008), `workbench_ui` is a React/Next.js app at
+# apps/workbench/ui/, not a Python package -- the AST-based scan below no
+# longer applies (a .ts/.tsx file cannot import a Python module at all, so
+# the rule is true at the language level, ADR-0044 decision 2). What remains
+# testable, and is: that no Python file has crept into that directory as a
+# server-side escape hatch.
 # ---------------------------------------------------------------------------
 
 _WORKBENCH_CORE_SRC = _APPS_ROOT / "workbench" / "src" / "workbench_core"
-_WORKBENCH_UI_SRC = _APPS_ROOT / "workbench" / "src" / "workbench_ui"
+_WORKBENCH_UI_SRC = _APPS_ROOT / "workbench" / "ui"
 
 
 def _is_workbench_core_boundary_violation(module_name: str) -> bool:
@@ -413,20 +419,28 @@ def test_workbench_core_boundary_scan_detects_a_forbidden_import(tmp_path: Path)
     assert offenders == ["synthetic_module.py:trading_framework.research.predictive.verdict"]
 
 
-def test_workbench_ui_does_not_import_trading_framework() -> None:
-    assert _WORKBENCH_UI_SRC.is_dir(), "expected apps/workbench/src/workbench_ui (ADR-0037)"
+def test_workbench_ui_contains_no_python() -> None:
+    """ADR-0044: `workbench_ui` is React/Next.js, static export only, no
+    Next.js server -- a Python file here would be a server-side escape
+    hatch nothing else in this repo's tooling would run or lint, and the
+    clearest possible sign the static-export boundary had been abandoned."""
+    assert _WORKBENCH_UI_SRC.is_dir(), "expected apps/workbench/ui (ADR-0044)"
 
-    offenders = _scan_dashboard_offenders((_WORKBENCH_UI_SRC,), ("trading_framework",))
+    python_files = [
+        path.relative_to(_REPO_ROOT).as_posix()
+        for path in _WORKBENCH_UI_SRC.rglob("*.py")
+        if "node_modules" not in path.parts
+    ]
 
-    assert offenders == []
+    assert python_files == []
 
 
-def test_workbench_ui_boundary_scan_detects_a_forbidden_import(tmp_path: Path) -> None:
-    """Regression: prove the workbench_ui scan can fail, not just pass (ADR-0037 acceptance)."""
-    package_dir = tmp_path / "workbench_ui"
+def test_workbench_ui_python_scan_detects_a_stray_file(tmp_path: Path) -> None:
+    """Regression: prove the scan can fail, not just pass."""
+    package_dir = tmp_path / "ui"
     package_dir.mkdir()
-    (package_dir / "synthetic_view.py").write_text("import trading_framework\n", encoding="utf-8")
+    (package_dir / "server.py").write_text("import trading_framework\n", encoding="utf-8")
 
-    offenders = _scan_dashboard_offenders((package_dir,), ("trading_framework",))
+    python_files = [path.name for path in package_dir.rglob("*.py")]
 
-    assert offenders == ["synthetic_view.py:trading_framework"]
+    assert python_files == ["server.py"]

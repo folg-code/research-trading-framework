@@ -11,6 +11,7 @@ import asyncio
 import signal
 from collections.abc import Sequence
 from contextlib import suppress
+from pathlib import Path
 
 from aiohttp import web
 
@@ -46,9 +47,15 @@ from workbench_core.validate_endpoint import ValidateRequestError, build_validat
 
 _CONFIG_KEY = web.AppKey("config", WorkbenchApiConfig)
 _JOB_RUNNER_KEY = web.AppKey("job_runner", JobRunner)
+_UI_DIST_DIR_KEY = web.AppKey("ui_dist_dir", Path)
 
 _JOBS_ROOT_NAME = "jobs"
 _WORKBENCH_NAMESPACE = "workbench"
+
+#: apps/workbench/src/workbench_core/app.py -> apps/workbench/ui/out
+#: (ADR-0044 decision 3/4: `workbench_ui`'s static export, built separately
+#: by `npm run build` in apps/workbench/ui/).
+_DEFAULT_UI_DIST_DIR = Path(__file__).resolve().parents[2] / "ui" / "out"
 
 
 def create_app(
@@ -56,6 +63,7 @@ def create_app(
     *,
     cli_command: Sequence[str] | None = None,
     graceful_termination_seconds: float | None = None,
+    ui_dist_dir: Path | None = None,
 ) -> web.Application:
     """Create the aiohttp app exposing workbench-api.
 
@@ -66,9 +74,13 @@ def create_app(
     in-process). `graceful_termination_seconds` overrides D-S064-03's default
     20s grace window -- also test-only, so a cancellation contract test does
     not need a 20s+ budget just to observe a hard-kill escalation.
+    `ui_dist_dir` overrides where the built `workbench_ui` static export is
+    served from (default `apps/workbench/ui/out`) -- a test-only seam so
+    contract tests do not depend on a real `npm run build` having run.
     """
     app = web.Application()
     app[_CONFIG_KEY] = config
+    app[_UI_DIST_DIR_KEY] = ui_dist_dir if ui_dist_dir is not None else _DEFAULT_UI_DIST_DIR
     jobs_root = config.storage_root / _WORKBENCH_NAMESPACE / _JOBS_ROOT_NAME
     app[_JOB_RUNNER_KEY] = JobRunner(
         jobs_root=jobs_root,
@@ -92,6 +104,10 @@ def create_app(
     app.router.add_get("/api/v1/jobs/{job_id}", _handle_get_job)
     app.router.add_get("/api/v1/jobs/{job_id}/log", _handle_get_job_log)
     app.router.add_post("/api/v1/jobs/{job_id}/cancel", _handle_cancel_job)
+    # Registered last: aiohttp's UrlDispatcher tries resources in the order
+    # they were added, so every /api/v1/* route above is matched first --
+    # this catch-all only ever serves the static workbench_ui build.
+    app.router.add_get("/{path:.*}", _handle_static)
     app.on_startup.append(_start_job_runner)
     app.on_cleanup.append(_stop_job_runner)
     return app
@@ -218,6 +234,41 @@ async def _handle_cancel_job(request: web.Request) -> web.Response:
     except JobCancellationError as exc:
         return web.json_response({"error": str(exc)}, status=409)
     return web.json_response(payload)
+
+
+async def _handle_static(request: web.Request) -> web.StreamResponse:
+    """Serve `workbench_ui`'s static export (ADR-0044 decisions 2/3): no
+    Next.js server, no API routes -- `workbench-api` is the only thing
+    serving this build, over plain files."""
+    ui_dist_dir = request.app[_UI_DIST_DIR_KEY]
+    if not ui_dist_dir.is_dir():
+        return web.Response(
+            status=404,
+            text=(
+                "workbench_ui build not found at "
+                f"{ui_dist_dir} -- run `npm run build` in apps/workbench/ui first"
+            ),
+        )
+    candidate = _resolve_static_file(ui_dist_dir, request.match_info["path"])
+    if candidate is None:
+        return web.Response(status=404, text="not found")
+    return web.FileResponse(candidate)
+
+
+def _resolve_static_file(dist_dir: Path, requested_path: str) -> Path | None:
+    resolved_root = dist_dir.resolve()
+    candidate = (dist_dir / requested_path).resolve()
+    if candidate != resolved_root and resolved_root not in candidate.parents:
+        return None  # path traversal attempt (e.g. "../../etc/passwd")
+    if candidate.is_file():
+        return candidate
+    # Next.js static export with the default trailingSlash: false renders a
+    # route with no extension to "<route>.html" (e.g. GET /jobs -> jobs.html)
+    # rather than "<route>/index.html".
+    html_candidate = (
+        dist_dir / "index.html" if not requested_path else dist_dir / f"{requested_path}.html"
+    )
+    return html_candidate if html_candidate.is_file() else None
 
 
 async def _start_job_runner(app: web.Application) -> None:
