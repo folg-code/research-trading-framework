@@ -292,6 +292,13 @@ class JobRunner:
         try:
             log_path = stdout_log_path(self._jobs_root, job_id)
             assert process.stdout is not None
+            # `trading-cli --json`'s final summary is pretty-printed (multi-
+            # line, `dump_json`'s `indent=2`) -- unlike a phase event, it
+            # cannot be parsed one line at a time. Every line since the last
+            # phase event (or the start) is buffered instead, and the whole
+            # buffer is tried as one JSON blob once the stream ends -- a
+            # single-line summary still parses fine as a one-line buffer.
+            trailing_lines: list[str] = []
             with log_path.open("w", encoding="utf-8") as log_file:
                 async for raw_line in process.stdout:
                     line = raw_line.decode("utf-8", errors="replace")
@@ -302,12 +309,15 @@ class JobRunner:
                         record.latest_phase = phase
                         record.updated_at = datetime.now(tz=UTC)
                         write_job_record(self._jobs_root, record)
+                        trailing_lines.clear()
                         continue
-                    result = _parse_success_result(line)
-                    if result is not None:
-                        record.result = result
-                        record.updated_at = datetime.now(tz=UTC)
-                        write_job_record(self._jobs_root, record)
+                    trailing_lines.append(line)
+
+            result = _parse_success_result("".join(trailing_lines))
+            if result is not None:
+                record.result = result
+                record.updated_at = datetime.now(tz=UTC)
+                write_job_record(self._jobs_root, record)
 
             exit_code = await process.wait()
         finally:
@@ -411,23 +421,28 @@ def _parse_phase_event(line: str) -> dict[str, Any] | None:
     return payload
 
 
-def _parse_success_result(line: str) -> dict[str, Any] | None:
-    """Parse the CLI's own final `--json` summary line (`{"status":"success",
-    "result":{...}}`, `trading_cli.cli._print_result`) to capture e.g.
-    `run_id` for the UI's result view. This is not the "deriving a fact by
-    parsing human-readable stdout" ADR-0041 section 7 forbids -- it is
-    consuming `--json`'s own structured, versioned-by-convention output,
-    exactly the machine-readable contract that flag exists for; nothing here
-    parses prose."""
-    payload = _parse_json_object(line)
+def _parse_success_result(text: str) -> dict[str, Any] | None:
+    """Parse the CLI's own final `--json` summary (`{"status":"success",
+    "result":{...}}`, `trading_cli.cli._print_result` / `plan.dump_json`) to
+    capture e.g. `run_id` for the UI's result view. This is not the
+    "deriving a fact by parsing human-readable stdout" ADR-0041 section 7
+    forbids -- it is consuming `--json`'s own structured, versioned-by-
+    convention output, exactly the machine-readable contract that flag
+    exists for; nothing here parses prose.
+
+    `text` may span several lines: `dump_json` pretty-prints with
+    `indent=2`, so the caller accumulates every stdout line since the last
+    phase event into one buffer and passes the whole thing here, rather
+    than trying (and failing) to parse it one line at a time."""
+    payload = _parse_json_object(text)
     if payload is None or payload.get("status") != "success":
         return None
     result = payload.get("result")
     return result if isinstance(result, dict) else None
 
 
-def _parse_json_object(line: str) -> dict[str, Any] | None:
-    stripped = line.strip()
+def _parse_json_object(text: str) -> dict[str, Any] | None:
+    stripped = text.strip()
     if not stripped:
         return None
     try:

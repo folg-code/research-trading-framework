@@ -33,8 +33,18 @@ _SUCCEEDING_CHILD = textwrap.dedent(
     phases = ["load-definition", "resolve-models", "load-dataset", "evaluate", "persist"]
     for index, name in enumerate(phases, start=1):
         print(json.dumps({"event": "phase", "name": name, "index": index, "of": len(phases)}))
-    print("ordinary human-readable log line")
-    print(json.dumps({"status": "success", "result": {"run_id": "synthetic-run"}}))
+        if name == "load-definition":
+            # An ordinary human-readable line between two phase events (not
+            # right before the final summary, which real trading-cli never
+            # interleaves text into) -- proves such a line is surfaced as a
+            # log without being misparsed as a phase event or breaking the
+            # final summary's own parse.
+            print("ordinary human-readable log line")
+
+    # trading_cli.plan.dump_json pretty-prints with indent=2 -- this final
+    # summary is deliberately multi-line, matching the real CLI, not the
+    # single compact line an earlier version of this stub used.
+    print(json.dumps({"status": "success", "result": {"run_id": "synthetic-run"}}, indent=2))
     sys.exit(0)
     """
 )
