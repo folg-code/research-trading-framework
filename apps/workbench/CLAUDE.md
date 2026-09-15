@@ -4,8 +4,20 @@ Responsibility: the private, local operator control surface for the Research
 Workbench (Sprint 064, Phase 17 — Research Application). Invokes Market Data
 and Signal Research workflows through a loopback-only JSON API
 (`workbench.api.v1`). See `docs/adr/ADR-0037-research-workbench-application-boundary.md`
-for the full decision and `docs/planning/roadmap/PHASE_17_RESEARCH_APPLICATION.md`
-for phase context.
+for the full decision, `docs/adr/ADR-0041-workbench-local-job-runner.md` for
+the job runner (spawn/state/cancel/restart-reconciliation, T006/T007),
+`docs/adr/ADR-0044-workbench-ui-frontend-framework.md` for the frontend
+(T008), and `docs/planning/roadmap/PHASE_17_RESEARCH_APPLICATION.md` for
+phase context.
+
+`workbench_core`'s job runner (`job_runner.py`, `job_store.py`,
+`windows_process.py`) spawns **one `trading-cli` subprocess per job**
+(ADR-0041 §2) — never calls `run_signal_research` or any research workflow
+in-process for a job. `windows_process.py` is pure `ctypes` against
+`kernel32` (no new dependency, D-S064-03) for the Windows-only process-tree
+kill and pid/start-time restart reconciliation; it has a real effect only on
+Windows (CI runs `ubuntu-latest`) — see `tests/test_job_cancellation.py`'s
+own docstring for how that's handled.
 
 ## Conventions specific to this module
 
@@ -16,7 +28,8 @@ for phase context.
 - **`workbench-api` binds to loopback only** (`127.0.0.1`/`localhost`/`::1`). `WorkbenchApiConfig.__post_init__` refuses any other host at construction time — this is not a runtime firewall rule, it is a structural refusal. No authentication, no authorization roles, no TLS; exposing this port publicly is unsupported (ADR-0037 §4).
 - **The API returns no filesystem path the operator did not supply.** `PublishedDatasetSummary` (`trading_framework.application.market_data.list_published_datasets`) deliberately excludes `checksum`, `lineage`, and any storage path — only fields an operator already knows about a dataset (identity, instrument, timeframe, range, row count).
 - **Transport-independent handler, separate from the aiohttp wiring** — same pattern as `trading_framework.application.execution.vps_status_api` / `scripts/execution/run_vps_status_service.py`: `datasets_endpoint.py` builds a plain dict; `app.py` is the only file that imports `aiohttp`.
-- **`workbench_ui` is deliberately a near-empty stub in this sprint.** The frontend framework choice is out of scope (PRD non-goal; ADR-0037 Follow-up) — do not add a UI dependency or framework import here without a separate decision.
+- **`workbench_ui` is React + Next.js (App Router), static export only — ADR-0044.** No Next.js server process ever runs; there are no API routes, no SSR, no middleware. `next.config` sets `output: 'export'`, and `workbench-api` serves the built `out/` directory itself at `/`, alongside `/api/v1/*`, on the same loopback origin/port. This is deliberate, not incidental: it makes "`workbench_ui` MUST NOT import `trading_framework`" (ADR-0037 §2) true at the language level — there is no Node server at runtime that could ever be handed a Python import. Do not add `next start`/a live Next.js server, API routes, or SSR data-fetching without a fresh ADR amendment to ADR-0044; that would reopen exactly the failure mode this decision closed. `workbench_ui` lives at `apps/workbench/ui/` (its own `package.json`/toolchain, not a uv workspace member) — not `apps/workbench/src/workbench_ui/`, which was T004's Python placeholder, retired by ADR-0044.
+- **Template listing goes through `trading_framework.application.signal_research`, never the research-layer catalog directly.** `list_signal_research_templates`/`apply_signal_research_template` live at `trading_framework.research.signal_research.template_catalog` (ADR-0038 §4) — off-limits to `workbench_core` per the boundary above. `apps/workbench/src/workbench_core/templates_endpoint.py` calls the application-layer wrapper (`trading_framework.application.signal_research.list_signal_research_templates`, Sprint 064 T008) instead, the same pattern T004 already used for `PublishedDatasetSummary`. If a future workbench feature needs another research-layer capability, add another thin application-layer wrapper — do not widen `workbench_core`'s allow-list to reach into `trading_framework.research.*` directly.
 
 ## Never
 
