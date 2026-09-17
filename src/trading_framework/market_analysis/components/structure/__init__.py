@@ -1,5 +1,9 @@
 """Structure-related Market Analysis components."""
 
+from trading_framework.market_analysis.components.structure.close_reversal_level import (
+    CloseReversalLevelComponent,
+    NumpyCloseReversalLevelImplementation,
+)
 from trading_framework.market_analysis.components.structure.impulse_follow_through import (
     ImpulseFollowThroughComponent,
     NumpyImpulseFollowThroughImplementation,
@@ -11,6 +15,18 @@ from trading_framework.market_analysis.components.structure.impulse_origin_range
 from trading_framework.market_analysis.components.structure.level_distance import (
     LevelDistanceComponent,
     NumpyLevelDistanceImplementation,
+)
+from trading_framework.market_analysis.components.structure.level_role_reversal import (
+    LevelRoleReversalComponent,
+    NumpyLevelRoleReversalImplementation,
+)
+from trading_framework.market_analysis.components.structure.level_sweep_rejection import (
+    LevelSweepRejectionComponent,
+    NumpyLevelSweepRejectionImplementation,
+)
+from trading_framework.market_analysis.components.structure.matched_extreme_pair import (
+    MatchedExtremePairComponent,
+    NumpyMatchedExtremePairImplementation,
 )
 from trading_framework.market_analysis.components.structure.opening_gap import (
     NumpyOpeningGapImplementation,
@@ -30,12 +46,20 @@ from trading_framework.market_analysis.components.structure.swing import (
 )
 
 __all__ = [
+    "CloseReversalLevelComponent",
     "ImpulseFollowThroughComponent",
     "ImpulseOriginRangeComponent",
     "LevelDistanceComponent",
+    "LevelRoleReversalComponent",
+    "LevelSweepRejectionComponent",
+    "MatchedExtremePairComponent",
+    "NumpyCloseReversalLevelImplementation",
     "NumpyImpulseFollowThroughImplementation",
     "NumpyImpulseOriginRangeImplementation",
     "NumpyLevelDistanceImplementation",
+    "NumpyLevelRoleReversalImplementation",
+    "NumpyLevelSweepRejectionImplementation",
+    "NumpyMatchedExtremePairImplementation",
     "NumpyOpeningGapImplementation",
     "NumpyRangeDiscontinuityImplementation",
     "NumpySessionRangeImplementation",

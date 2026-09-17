@@ -27,12 +27,20 @@ from trading_framework.market_analysis.components.statistics import (
     ReturnDistributionComponent,
 )
 from trading_framework.market_analysis.components.structure import (
+    CloseReversalLevelComponent,
     ImpulseFollowThroughComponent,
     ImpulseOriginRangeComponent,
     LevelDistanceComponent,
+    LevelRoleReversalComponent,
+    LevelSweepRejectionComponent,
+    MatchedExtremePairComponent,
+    NumpyCloseReversalLevelImplementation,
     NumpyImpulseFollowThroughImplementation,
     NumpyImpulseOriginRangeImplementation,
     NumpyLevelDistanceImplementation,
+    NumpyLevelRoleReversalImplementation,
+    NumpyLevelSweepRejectionImplementation,
+    NumpyMatchedExtremePairImplementation,
     NumpyOpeningGapImplementation,
     NumpyRangeDiscontinuityImplementation,
     NumpySessionRangeImplementation,
@@ -231,6 +239,42 @@ def register_impulse_follow_through_component(registry: ComponentRegistry) -> No
     )
 
 
+def register_matched_extreme_pair_component(registry: ComponentRegistry) -> None:
+    """Register the Matched Extreme Pair component."""
+    registry.register(
+        MatchedExtremePairComponent(),
+        NumpyMatchedExtremePairImplementation(),
+        default=True,
+    )
+
+
+def register_close_reversal_level_component(registry: ComponentRegistry) -> None:
+    """Register the Close Reversal Level component."""
+    registry.register(
+        CloseReversalLevelComponent(),
+        NumpyCloseReversalLevelImplementation(),
+        default=True,
+    )
+
+
+def register_level_sweep_rejection_component(registry: ComponentRegistry) -> None:
+    """Register the Level Sweep Rejection component."""
+    registry.register(
+        LevelSweepRejectionComponent(),
+        NumpyLevelSweepRejectionImplementation(),
+        default=True,
+    )
+
+
+def register_level_role_reversal_component(registry: ComponentRegistry) -> None:
+    """Register the Level Role Reversal component."""
+    registry.register(
+        LevelRoleReversalComponent(),
+        NumpyLevelRoleReversalImplementation(),
+        default=True,
+    )
+
+
 def register_mvp_components(registry: ComponentRegistry) -> None:
     """Register Sprint 003 MVP feature and state components."""
     register_volatility_components(registry)
@@ -255,6 +299,10 @@ def register_mvp_components(registry: ComponentRegistry) -> None:
     register_impulse_origin_range_component(registry)
     register_range_discontinuity_component(registry)
     register_impulse_follow_through_component(registry)
+    register_matched_extreme_pair_component(registry)
+    register_close_reversal_level_component(registry)
+    register_level_sweep_rejection_component(registry)
+    register_level_role_reversal_component(registry)
 
 
 def default_mvp_registry() -> ComponentRegistry:
@@ -267,12 +315,16 @@ def default_mvp_registry() -> ComponentRegistry:
 __all__ = [
     "default_mvp_registry",
     "register_candle_wick_component",
+    "register_close_reversal_level_component",
     "register_current_period_extreme_component",
     "register_ema_component",
     "register_ema_distance_component",
     "register_impulse_follow_through_component",
     "register_impulse_origin_range_component",
     "register_level_distance_component",
+    "register_level_role_reversal_component",
+    "register_level_sweep_rejection_component",
+    "register_matched_extreme_pair_component",
     "register_momentum_macd_component",
     "register_momentum_rsi_component",
     "register_momentum_stochastic_component",
