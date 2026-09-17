@@ -328,3 +328,24 @@ invented, per D-S055-04's no-new-prose discipline.
   are the raw bar's own high/low widened (never narrowed) to also contain
   the smoothed open/close. No dependency, no external period parameter, so
   no warm-up — every bar is valid from bar 0.
+- **`volume.rolling_weighted_price`** — `volume.rolling_weighted_price(period=20,
+  band_multiplier=2.0)`. A fixed ``period``-bar rolling window only —
+  explicitly NOT a session-anchored VWAP (deferred to Wave B).
+  `typical_price = (high + low + close) / 3`; `value` is the
+  volume-weighted average of `typical_price` over the window;
+  `deviation` is the volume-weighted standard deviation of `typical_price`
+  around that same `value`; `upper_band`/`lower_band` are `value +/-
+  band_multiplier * deviation`. Zero-volume-window convention: a window
+  with no volume at all leaves every output `NaN` — a deliberate
+  divergence from this catalog's usual "0.0 on zero-denominator"
+  convention, since these outputs are raw price levels, not ratios. No
+  dependency. Warm-up: `period - 1` bars.
+- **`volume.cumulative_trend`** — `volume.cumulative_trend()` (no
+  parameters; formerly "Price Volume Trend"). `value[0] = 0.0`; `value[i]
+  = value[i-1] + volume[i] * (close[i] - close[i-1]) / close[i-1]` —
+  volume added on up bars, subtracted on down bars, scaled by the bar's
+  own percent price change (not a flat sign, unlike its simpler cousin
+  On-Balance Volume). Zero-denominator convention: `close[i-1] == 0.0`
+  defines that bar's percent change as `0.0` (this catalog's ordinary
+  convention). No dependency, no external period parameter, so no
+  warm-up.
