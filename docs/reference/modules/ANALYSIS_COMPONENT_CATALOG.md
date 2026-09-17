@@ -370,6 +370,27 @@ invented, per D-S055-04's no-new-prose discipline.
   catalog's ordinary zero-denominator convention), from which the
   `"normal"` percentile falls out as `0.5`. Warm-up: the source ATR's own
   `valid_from_index` plus `window - 1` further bars.
+- **`trend.normalized_slope`** — `trend.normalized_slope(slope_period=20,
+  volatility_period=20, baseline_period=100)` (IDEA-029). `value =
+  trend.slope(slope_period) / volatility.relative_volatility(
+  volatility_period, baseline_period).value` — the shared normalizer
+  decided once for the whole IDEA-029 pack (D-P19-02), comparable across
+  volatility regimes unlike `trend.slope`'s raw price-per-bar units.
+  Depends on `trend.slope` and `volatility.relative_volatility`.
+  Zero-denominator convention: this catalog's ordinary convention — a
+  flat volatility window (`value == 0.0`) defines `value = 0.0` (a flat
+  close window also makes the slope itself `0.0`). Warm-up: the later of
+  the two dependencies' own `valid_from_index`.
+- **`momentum.normalized_rate_of_change`** — `momentum.normalized_rate_of_change(
+  lookback=10, volatility_period=20, baseline_period=100)` (IDEA-029).
+  `raw = ln(close[i] / close[i - lookback])`, computed directly (no
+  `momentum.rate_of_change` component exists to depend on); `value = raw
+  / volatility.relative_volatility(volatility_period,
+  baseline_period).value`, the same shared normalizer as
+  `trend.normalized_slope`. Depends on `volatility.relative_volatility`
+  only. Zero-denominator convention: this catalog's ordinary convention —
+  a flat volatility window defines `value = 0.0`. Warm-up: the later of
+  `lookback` bars and the volatility dependency's own `valid_from_index`.
 - **`structure.distance_to_level`** — `structure.distance_to_level(period=14,
   pivot_range=2, tolerance_atr_multiple=0.1)` (IDEA-032, D-P19-03).
   Generalizes `structure.level_distance` (kept exactly as-is, single
