@@ -10,7 +10,9 @@ from trading_framework.market_analysis.components.candle import (
 )
 from trading_framework.market_analysis.components.momentum import (
     MacdComponent,
+    NormalizedRateOfChangeComponent,
     NumpyMacdImplementation,
+    NumpyNormalizedRateOfChangeImplementation,
     NumpyRsiImplementation,
     NumpyStochasticImplementation,
     RsiComponent,
@@ -59,8 +61,10 @@ from trading_framework.market_analysis.components.structure import (
 from trading_framework.market_analysis.components.trend import (
     EmaComponent,
     EmaDistanceComponent,
+    NormalizedSlopeComponent,
     NumpyEmaDistanceImplementation,
     NumpyEmaImplementation,
+    NumpyNormalizedSlopeImplementation,
     NumpySlopeImplementation,
     SlopeComponent,
 )
@@ -375,6 +379,24 @@ def register_rolling_window_position_component(registry: ComponentRegistry) -> N
     )
 
 
+def register_normalized_slope_component(registry: ComponentRegistry) -> None:
+    """Register the Normalized Slope component."""
+    registry.register(
+        NormalizedSlopeComponent(),
+        NumpyNormalizedSlopeImplementation(),
+        default=True,
+    )
+
+
+def register_normalized_rate_of_change_component(registry: ComponentRegistry) -> None:
+    """Register the Normalized Rate Of Change component."""
+    registry.register(
+        NormalizedRateOfChangeComponent(),
+        NumpyNormalizedRateOfChangeImplementation(),
+        default=True,
+    )
+
+
 def register_mvp_components(registry: ComponentRegistry) -> None:
     """Register Sprint 003 MVP feature and state components."""
     register_volatility_components(registry)
@@ -413,6 +435,8 @@ def register_mvp_components(registry: ComponentRegistry) -> None:
     register_rolling_weighted_price_component(registry)
     register_cumulative_trend_component(registry)
     register_rolling_window_position_component(registry)
+    register_normalized_slope_component(registry)
+    register_normalized_rate_of_change_component(registry)
 
 
 def default_mvp_registry() -> ComponentRegistry:
@@ -443,6 +467,8 @@ __all__ = [
     "register_momentum_rsi_component",
     "register_momentum_stochastic_component",
     "register_mvp_components",
+    "register_normalized_rate_of_change_component",
+    "register_normalized_slope_component",
     "register_opening_gap_component",
     "register_overlap_window_component",
     "register_previous_period_extreme_component",
