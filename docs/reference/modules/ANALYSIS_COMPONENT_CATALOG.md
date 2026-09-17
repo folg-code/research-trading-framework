@@ -349,3 +349,18 @@ invented, per D-S055-04's no-new-prose discipline.
   defines that bar's percent change as `0.0` (this catalog's ordinary
   convention). No dependency, no external period parameter, so no
   warm-up.
+- **`statistics.rolling_window_position`** — `statistics.rolling_window_position(source_period=14,
+  window=20, method="normal")` (IDEA-030). A generic building block:
+  position of another component's output within its own trailing
+  ``window``-bar window. This v1 depends on `volatility.atr` (keyed by
+  `source_period`), the same fixed-target-dependency pattern already used
+  by `momentum.macd`/`trend.ema_distance`/`volatility.regime_state`, to
+  demonstrate the composition. `z_score = (source - mean(source, window))
+  / stdev(source, window)` (population stdev). `percentile` is kept
+  separate from `z_score` per `method`: `"normal"` (default) is the
+  standard-normal CDF of `z_score`; `"empirical"` is the fraction of the
+  window's values `<= source`, no distributional assumption. Zero-variance
+  convention: a perfectly flat window defines `z_score = 0.0` (this
+  catalog's ordinary zero-denominator convention), from which the
+  `"normal"` percentile falls out as `0.5`. Warm-up: the source ATR's own
+  `valid_from_index` plus `window - 1` further bars.

@@ -27,8 +27,10 @@ from trading_framework.market_analysis.components.session import (
 from trading_framework.market_analysis.components.statistics import (
     NumpyReturnAutocorrelationImplementation,
     NumpyReturnDistributionImplementation,
+    NumpyRollingWindowPositionImplementation,
     ReturnAutocorrelationComponent,
     ReturnDistributionComponent,
+    RollingWindowPositionComponent,
 )
 from trading_framework.market_analysis.components.structure import (
     CloseReversalLevelComponent,
@@ -364,6 +366,15 @@ def register_cumulative_trend_component(registry: ComponentRegistry) -> None:
     )
 
 
+def register_rolling_window_position_component(registry: ComponentRegistry) -> None:
+    """Register the Rolling Window Position component."""
+    registry.register(
+        RollingWindowPositionComponent(),
+        NumpyRollingWindowPositionImplementation(),
+        default=True,
+    )
+
+
 def register_mvp_components(registry: ComponentRegistry) -> None:
     """Register Sprint 003 MVP feature and state components."""
     register_volatility_components(registry)
@@ -401,6 +412,7 @@ def register_mvp_components(registry: ComponentRegistry) -> None:
     register_smoothed_ohlc_component(registry)
     register_rolling_weighted_price_component(registry)
     register_cumulative_trend_component(registry)
+    register_rolling_window_position_component(registry)
 
 
 def default_mvp_registry() -> ComponentRegistry:
@@ -441,6 +453,7 @@ __all__ = [
     "register_relative_volatility_component",
     "register_reversal_pattern_component",
     "register_rolling_weighted_price_component",
+    "register_rolling_window_position_component",
     "register_session_range_component",
     "register_slope_component",
     "register_smoothed_ohlc_component",

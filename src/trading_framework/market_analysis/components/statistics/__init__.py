@@ -1,4 +1,4 @@
-"""Regime/statistics-related Market Analysis components."""
+"""Statistics-related Market Analysis components."""
 
 from trading_framework.market_analysis.components.statistics.return_autocorrelation import (
     NumpyReturnAutocorrelationImplementation,
@@ -8,10 +8,16 @@ from trading_framework.market_analysis.components.statistics.return_distribution
     NumpyReturnDistributionImplementation,
     ReturnDistributionComponent,
 )
+from trading_framework.market_analysis.components.statistics.rolling_window_position import (
+    NumpyRollingWindowPositionImplementation,
+    RollingWindowPositionComponent,
+)
 
 __all__ = [
     "NumpyReturnAutocorrelationImplementation",
     "NumpyReturnDistributionImplementation",
+    "NumpyRollingWindowPositionImplementation",
     "ReturnAutocorrelationComponent",
     "ReturnDistributionComponent",
+    "RollingWindowPositionComponent",
 ]
