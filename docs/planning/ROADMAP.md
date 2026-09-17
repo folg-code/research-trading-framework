@@ -48,6 +48,29 @@ Phase 16 consumes existing research runners and the common analytical catalog. P
 
 Phase 17 is a separate product surface, not a Phase 16 increment: it is the private local operator control plane (`apps/workbench`) over existing Market Data and Signal Research workflows, defined by `docs/vision/RESEARCH_APPLICATION_PRODUCT_VISION.md` and `docs/product/PRD-research-workbench-mvp.md`, independent of Phase 16E–16G. It does not depend on 16D or later Phase 16 increments, but is sequenced after Sprint 062/T007 closes so the maintainer is not running a live VPS deploy and opening a new application surface at the same time.
 
+## Terminology follow-up increments
+
+The two Terminology Foundation waves establish product and reference language
+without changing technical identities or persisted artifacts. Their scope and
+compatibility boundary are fixed by the [Terminology Foundation PRD](../product/PRD-terminology-foundation.md)
+and [ADR-0045](../adr/ADR-0045-layered-research-terminology.md). The following
+directions do not hold up the foundation's final integration to `main` and do
+not authorize implementation on their own.
+
+| Direction | Outcome and completion signal | Dependency or gate |
+|---|---|---|
+| Typed Research Catalog — separate, unplanned increment | Applicable private Workbench and public dashboard catalog views use explicit, qualified research subjects (Market Model, Signal Model or Estimator) rather than a bare `model` inferred from a title. Missing or legacy subject evidence stays visibly unclassified; existing artifacts and identities remain readable. | Establish the owning persisted source of subject identity; review [ADR-0042](../adr/ADR-0042-workbench-catalog-index-and-comparison-facts.md)'s manifest-as-truth index and framework-owned comparison facts, plus [ADR-0034](../adr/ADR-0034-portfolio-publication-boundary.md)/[ADR-0035](../adr/ADR-0035-complete-public-catalog-publication.md)'s deny-by-default public projection and immutable release. Approve any new or versioned presentation contract and public allowlist separately, before expanding the Phase 17D catalog/comparison surface or changing the public `model` filter. |
+| Code-contract terminology — conditional, not scheduled | Consider `ExitModel`, `RiskModel` or `StrategyModelDefinition` aliases or renames only if concrete user or integration friction remains after explanatory copy adopts Exit Policy, Risk Policy and Strategy Definition. | A separate contract decision must define versioning, compatibility readers or aliases, and deprecation policy. No automatic follow-on from ADR-0045. |
+
+Historical schema and storage renames, including
+`user_data/research/market_research/`, are not planned. Reconsider them only
+for a demonstrated need with an approved migration and preservation of
+historical hashes and evidence. The main Typed Research Catalog risks are
+ambiguous legacy manifests, inconsistent private/public subject typing,
+accidental identity or artifact migration, and leakage through the public
+projection. Neither direction introduces a shared framework-level Study
+aggregate or inferred cross-workflow lineage.
+
 ## Deferred directions
 
 Microservices, distributed processing, a dedicated feature store, full event sourcing, full DOM as primary storage and automated feature-engineering search remain deferred until a demonstrated need and architecture decision justify them. The full recorded list and gates are in [Cross-Phase Standards and Gates](roadmap/CROSS_PHASE_STANDARDS_AND_GATES.md); future designs belong in [Vision](../vision/README.md).
