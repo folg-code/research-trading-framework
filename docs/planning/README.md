@@ -6,8 +6,9 @@
 
 No sprint is currently active. See [Current Status](CURRENT_STATUS.md) for the next candidate (17C — Data Manager).
 
-- [Sprint 063](sprints/SPRINT_063.md): draft reproducible strategy simulation series (unapproved).
 - [Phase 17](roadmap/PHASE_17_RESEARCH_APPLICATION.md): 17A/17B complete; 17C/17D directional.
+- [Phase 18](roadmap/PHASE_18_DASHBOARD_RESEARCH_EVIDENCE.md): dashboard research evidence views, fully directional, no PRD/ADR/sprint yet.
+- [IDEA-027](IDEA_INBOX.md): Price-Structure and Session Context Component Pack, plus its Validation Approach (the successor to the now-superseded [Sprint 063](../archive/superseded/SPRINT_063_STRATEGY_SIMULATION_SERIES.md) draft).
 
 ## Open registers
 
