@@ -3,6 +3,8 @@
 from datetime import UTC, datetime
 from decimal import Decimal
 
+import numpy as np
+
 from trading_framework.core.identifiers import Identifier
 from trading_framework.core.types import Price, Volume
 from trading_framework.market.datasets import DatasetId, DatasetRef
@@ -123,7 +125,12 @@ def test_matched_extreme_pair_component_declares_shape() -> None:
     assert component.kind is ComponentKind.FEATURE
     assert component.causality is Causality.CAUSAL
     output_ids = {field.output_id.value for field in component.output_schema.outputs}
-    assert output_ids == {"matched_high_event", "matched_low_event"}
+    assert output_ids == {
+        "matched_high_event",
+        "matched_low_event",
+        "latest_matched_high_level",
+        "latest_matched_low_level",
+    }
 
 
 def test_first_swing_never_matches_and_second_matches_within_generous_tolerance() -> None:
@@ -134,6 +141,22 @@ def test_first_swing_never_matches_and_second_matches_within_generous_tolerance(
     assert matched_high[2] == 0.0
     # Bar 5 confirms the second swing high (115): within a huge tolerance of 110.
     assert matched_high[5] == 1.0
+
+
+def test_latest_matched_high_level_forward_fills_from_the_match_event() -> None:
+    result = _run(tolerance_atr_multiple=1000.0, source_id="matched-latest-level-forward-fill")
+    latest_matched_high_level = result.outputs[OutputId("latest_matched_high_level")].values
+
+    # With pivot_range=1 this fixture confirms three swing highs (110 at
+    # bar 2, 106 at bar 3, 115 at bar 5); bar 2 has nothing to compare
+    # against yet, but bars 3 and 5 both match within a generous tolerance.
+    for index in range(3):
+        assert np.isnan(latest_matched_high_level[index])
+    # Bar 3's match carries its own swing price (106) forward until bar 5's
+    # match overwrites it with 115.
+    assert latest_matched_high_level[3] == 106.0
+    assert latest_matched_high_level[4] == 106.0
+    assert latest_matched_high_level[5] == 115.0
 
 
 def test_matched_extreme_pair_does_not_match_outside_tolerance() -> None:
