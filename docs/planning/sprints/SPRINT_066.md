@@ -192,9 +192,62 @@ sprint must shrink further than the order above.
 
 ## Closeout
 
-To be completed when this sprint closes: integrated checks (test counts,
-`check_promotion_readiness.py` output for all 20 components), review
-notes per PR, documentation reconciliation
-(`PHASE_19_MARKET_ANALYSIS_CATALOG_EXPANSION.md`'s sprint table,
-`CURRENT_STATUS.md`, `ROADMAP.md`, `planning/README.md`), and remaining
-work (opening Sprint N+2 — Wave B).
+**Status: DONE.** All 9 tasks (T001-T009) merged to
+`sprint/market-analysis-wave-a`, no descoping needed.
+
+**Integrated checks** (run on `sprint/market-analysis-wave-a` after the
+T009 merge, commit `a539188`):
+
+- `uv run pytest tests/unit` — **1976 passed, 16 skipped** (skips are all
+  pre-existing optional ML dependencies not installed in this
+  environment: `sklearn`/`torch`/`lightgbm`/`xgboost`). `market_analysis`
+  alone: **372 passed** (up from 279 before this sprint — 93 new tests).
+- `check_promotion_readiness.py` — **PASS on all applicable checks for
+  all 20 components** (`registered`, `tested`, `catalog_entry`,
+  `output_schema`, `dependencies_declared`, and `causal_only_gate` where
+  applicable). The 3 `session.*` components (T002) report
+  `dependencies_declared: NEEDS-REVIEW` — an accepted, pre-existing tool
+  limitation (no-default required parameters, e.g. `session_a`/`period`,
+  that the tool cannot guess values for to canonicalize), not a defect;
+  their `causal_only_gate` is a clean PASS, which is the acceptance
+  criterion that actually matters for `session.*`.
+- `ruff check`, `ruff format --check`, `mypy` — clean across
+  `market_analysis`, `time/sessions`, and their test suites.
+
+**Review notes per PR** (squash-merged to `sprint/market-analysis-wave-a`
+in order):
+
+- [#557](https://github.com/folg-code/research-trading-framework/pull/557) T001 — session-calendar module. Architecture-triage found the
+  single-resolver-per-run model couldn't support simultaneous
+  multi-session membership; resolved via
+  [ADR-MA-015](../../adr/ADR-MA-015-multi-session-trading-calendar-composition.md)
+  (ACCEPTED), implemented as `GlobalSessionCalendarResolver` +
+  `TradingSessionMetadata.named_session()`.
+- [#558](https://github.com/folg-code/research-trading-framework/pull/558) T002 — `session.*` components. Self-review fixed a
+  wrong-exception-type bug in `overlap_window` (a generic `ValidationError`
+  leaking instead of `ComponentValidationError`).
+- [#559](https://github.com/folg-code/research-trading-framework/pull/559) T003 — `structure.*` gap/impulse components. Fixed a real tooling
+  bug: the catalog duplicate-entry check false-positived on a mere prose
+  mention rather than a bolded catalog entry.
+- [#560](https://github.com/folg-code/research-trading-framework/pull/560) T004 — `structure.*` level/reversal components. All four build on
+  `structure.swing` for level bookkeeping.
+- [#561](https://github.com/folg-code/research-trading-framework/pull/561) T005 — `volatility.*` estimator components (Parkinson/Garman-Klass
+  range-based variance, directional asymmetry, ATR acceleration).
+- [#562](https://github.com/folg-code/research-trading-framework/pull/562) T006 — `volatility.*` regime components (choppiness index,
+  fast/slow-ATR regime state).
+- [#563](https://github.com/folg-code/research-trading-framework/pull/563) T007 — `candle.*` pattern components (D-P19-05's four-pattern
+  priority rule set, Heikin-Ashi transform).
+- [#564](https://github.com/folg-code/research-trading-framework/pull/564) T008 — new `volume` pack (rolling weighted price with deviation
+  bands, cumulative trend).
+- [#565](https://github.com/folg-code/research-trading-framework/pull/565) T009 — `statistics.rolling_window_position`. Self-review caught a
+  real bug: the kernel's own NaN handling didn't cover the source
+  series' own upstream warmup for the `empirical` method's `<=`
+  comparisons; fixed by explicit masking in the component.
+
+**Documentation reconciliation**: see the accompanying commits updating
+`PHASE_19_MARKET_ANALYSIS_CATALOG_EXPANSION.md`'s sprint table,
+`CURRENT_STATUS.md`, `ROADMAP.md`, and `planning/README.md`.
+
+**Remaining work**: open Sprint N+2 (Phase 19 Wave B — IDEA-029,
+IDEA-032, IDEA-031's VWAP variant) as a separate, numbered sprint once
+this sprint's integration PR to `main` is merged.
