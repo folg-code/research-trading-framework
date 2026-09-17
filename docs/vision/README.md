@@ -5,6 +5,7 @@ This directory is for product and architecture directions **not yet delivered in
 | Direction | Document |
 |---|---|
 | Product-level direction and design principles | [Product Direction](PRODUCT_DIRECTION.md) |
+| Future public Signal and Strategy Research evidence views | [Research Evidence Views](DASHBOARD_RESEARCH_VIEWS_FUTURE.md) |
 | Local-first research application and public/private boundaries | [Research Application Product Vision](RESEARCH_APPLICATION_PRODUCT_VISION.md) |
 | Calendar, holiday and broader session model | [Time Model Future](TIME_MODEL_FUTURE.md) |
 | Historical synchronization, quotes/options, live recording and replay | [Market Data Future](MARKET_DATA_FUTURE.md) |
