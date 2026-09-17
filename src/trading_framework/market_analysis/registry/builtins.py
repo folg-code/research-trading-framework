@@ -37,6 +37,8 @@ from trading_framework.market_analysis.components.statistics import (
 from trading_framework.market_analysis.components.structure import (
     CloseReversalLevelComponent,
     DistanceToLevelComponent,
+    FibonacciExtensionLevelComponent,
+    FibonacciRetracementLevelComponent,
     ImpulseFollowThroughComponent,
     ImpulseOriginRangeComponent,
     LevelDistanceComponent,
@@ -45,6 +47,8 @@ from trading_framework.market_analysis.components.structure import (
     MatchedExtremePairComponent,
     NumpyCloseReversalLevelImplementation,
     NumpyDistanceToLevelImplementation,
+    NumpyFibonacciExtensionLevelImplementation,
+    NumpyFibonacciRetracementLevelImplementation,
     NumpyImpulseFollowThroughImplementation,
     NumpyImpulseOriginRangeImplementation,
     NumpyLevelDistanceImplementation,
@@ -408,6 +412,24 @@ def register_distance_to_level_component(registry: ComponentRegistry) -> None:
     )
 
 
+def register_fibonacci_retracement_level_component(registry: ComponentRegistry) -> None:
+    """Register the Fibonacci Retracement Level component."""
+    registry.register(
+        FibonacciRetracementLevelComponent(),
+        NumpyFibonacciRetracementLevelImplementation(),
+        default=True,
+    )
+
+
+def register_fibonacci_extension_level_component(registry: ComponentRegistry) -> None:
+    """Register the Fibonacci Extension Level component."""
+    registry.register(
+        FibonacciExtensionLevelComponent(),
+        NumpyFibonacciExtensionLevelImplementation(),
+        default=True,
+    )
+
+
 def register_mvp_components(registry: ComponentRegistry) -> None:
     """Register Sprint 003 MVP feature and state components."""
     register_volatility_components(registry)
@@ -449,6 +471,8 @@ def register_mvp_components(registry: ComponentRegistry) -> None:
     register_normalized_slope_component(registry)
     register_normalized_rate_of_change_component(registry)
     register_distance_to_level_component(registry)
+    register_fibonacci_retracement_level_component(registry)
+    register_fibonacci_extension_level_component(registry)
 
 
 def default_mvp_registry() -> ComponentRegistry:
@@ -470,6 +494,8 @@ __all__ = [
     "register_distance_to_level_component",
     "register_ema_component",
     "register_ema_distance_component",
+    "register_fibonacci_extension_level_component",
+    "register_fibonacci_retracement_level_component",
     "register_impulse_follow_through_component",
     "register_impulse_origin_range_component",
     "register_level_distance_component",

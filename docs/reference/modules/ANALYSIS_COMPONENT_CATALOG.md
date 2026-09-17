@@ -413,3 +413,26 @@ invented, per D-S055-04's no-new-prose discipline.
   session) stays `NaN` regardless of ATR, never conflated with the
   zero-ATR case. Warm-up: the latest of all five dependencies' own
   `valid_from_index`.
+- **`structure.fibonacci_retracement_level`** — `structure.fibonacci_retracement_level(pivot_range=2,
+  ratio=0.618)` (IDEA-032). The "active leg" runs between
+  `structure.swing`'s latest confirmed swing high/low, in whichever
+  direction was confirmed most recently (compared by their own
+  `latest_swing_*_observed_index`): an up-leg (`low -> high`) or a
+  down-leg (`high -> low`). `range = high - low`; `value = high - ratio *
+  range` on an up-leg (pulls back toward the low), `value = low + ratio *
+  range` on a down-leg (pulls back toward the high). No zero-denominator
+  case — a linear interpolation, never a division. `NaN` until both a
+  swing high and a swing low have been confirmed at least once. Depends on
+  `structure.swing` (keyed by `pivot_range`). Warm-up: the dependency's
+  own `valid_from_index`.
+- **`structure.fibonacci_extension_level`** — `structure.fibonacci_extension_level(pivot_range=2,
+  ratio=1.618)` (IDEA-032). Same active-leg definition as
+  `structure.fibonacci_retracement_level`, but projecting BEYOND the
+  leg's own most recent extreme in its original direction rather than
+  pulling back into it — the same two formulas, swapped by direction:
+  `value = low + ratio * range` on an up-leg (projects beyond the high),
+  `value = high - ratio * range` on a down-leg (projects beyond the low).
+  `ratio > 1.0` is the conventional usage (not enforced as a minimum). No
+  zero-denominator case. `NaN` until both extremes have been confirmed at
+  least once. Depends on `structure.swing` (keyed by `pivot_range`).
+  Warm-up: the dependency's own `valid_from_index`.
