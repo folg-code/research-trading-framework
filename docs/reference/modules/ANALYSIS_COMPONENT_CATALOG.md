@@ -224,7 +224,13 @@ invented, per D-S055-04's no-new-prose discipline.
   if that swing high's price is within `tolerance_atr_multiple * atr` of
   the *previous* confirmed swing high's level. `matched_low_event` is the
   mirror. The first swing of either type has nothing to compare against
-  and never matches. Depends on `structure.swing` (keyed by `pivot_range`)
+  and never matches. `latest_matched_high_level`/`latest_matched_low_level`
+  (added Sprint 067 T002, `ComponentVersion` bumped to `1.1.0`, additive —
+  existing fields unchanged) carry the matching swing's own price forward
+  from each match event until the next one (`NaN` before the first match),
+  giving a consumer (e.g. `structure.distance_to_level`) an actual
+  continuous level to measure distance to, not just a boolean event.
+  Depends on `structure.swing` (keyed by `pivot_range`)
   and `volatility.atr` (keyed by `period`). Warm-up: `max(0, period - 1)`
   bars (the ATR's own warmup; a bar within `structure.swing`'s own warmup
   simply has no swing event to test).
@@ -385,3 +391,25 @@ invented, per D-S055-04's no-new-prose discipline.
   only. Zero-denominator convention: this catalog's ordinary convention —
   a flat volatility window defines `value = 0.0`. Warm-up: the later of
   `lookback` bars and the volatility dependency's own `valid_from_index`.
+- **`structure.distance_to_level`** — `structure.distance_to_level(period=14,
+  pivot_range=2, tolerance_atr_multiple=0.1)` (IDEA-032, D-P19-03).
+  Generalizes `structure.level_distance` (kept exactly as-is, single
+  source) to six always-present, fixed named `distance_to_<source>_atr`
+  fields — **not** a caller-configurable `level_sources` subset as
+  originally proposed: architecture triage found the registry has no
+  mechanism for a component's `OutputSchema` to vary per `ComponentRequest`
+  (one singleton instance per `component_id`, `output_schema` a plain
+  property with no parameters), so all six fields are always declared and
+  computed. `distance_to_<source>_atr = (source_high - close) / atr` for a
+  "high" source, `(close - source_low) / atr` for a "low" source, matching
+  `structure.level_distance`'s sign convention. Sources: `session_high`/
+  `session_low` (`structure.session_range`), `previous_day_high`/
+  `previous_day_low` (`session.previous_period_extreme(period="day",
+  ...)`), `matched_extreme_pair_high`/`matched_extreme_pair_low`
+  (`structure.matched_extreme_pair`'s `latest_matched_*_level`, added in
+  this same task). Zero-denominator convention: `atr == 0.0` defines a
+  distance as `0.0` **only when the level itself is a real number** — a
+  `NaN` level (no previous day closed yet, no match yet, outside the
+  session) stays `NaN` regardless of ATR, never conflated with the
+  zero-ATR case. Warm-up: the latest of all five dependencies' own
+  `valid_from_index`.

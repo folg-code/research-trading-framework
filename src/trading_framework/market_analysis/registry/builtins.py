@@ -36,6 +36,7 @@ from trading_framework.market_analysis.components.statistics import (
 )
 from trading_framework.market_analysis.components.structure import (
     CloseReversalLevelComponent,
+    DistanceToLevelComponent,
     ImpulseFollowThroughComponent,
     ImpulseOriginRangeComponent,
     LevelDistanceComponent,
@@ -43,6 +44,7 @@ from trading_framework.market_analysis.components.structure import (
     LevelSweepRejectionComponent,
     MatchedExtremePairComponent,
     NumpyCloseReversalLevelImplementation,
+    NumpyDistanceToLevelImplementation,
     NumpyImpulseFollowThroughImplementation,
     NumpyImpulseOriginRangeImplementation,
     NumpyLevelDistanceImplementation,
@@ -397,6 +399,15 @@ def register_normalized_rate_of_change_component(registry: ComponentRegistry) ->
     )
 
 
+def register_distance_to_level_component(registry: ComponentRegistry) -> None:
+    """Register the Distance To Level component."""
+    registry.register(
+        DistanceToLevelComponent(),
+        NumpyDistanceToLevelImplementation(),
+        default=True,
+    )
+
+
 def register_mvp_components(registry: ComponentRegistry) -> None:
     """Register Sprint 003 MVP feature and state components."""
     register_volatility_components(registry)
@@ -437,6 +448,7 @@ def register_mvp_components(registry: ComponentRegistry) -> None:
     register_rolling_window_position_component(registry)
     register_normalized_slope_component(registry)
     register_normalized_rate_of_change_component(registry)
+    register_distance_to_level_component(registry)
 
 
 def default_mvp_registry() -> ComponentRegistry:
@@ -455,6 +467,7 @@ __all__ = [
     "register_cumulative_trend_component",
     "register_current_period_extreme_component",
     "register_directional_asymmetry_component",
+    "register_distance_to_level_component",
     "register_ema_component",
     "register_ema_distance_component",
     "register_impulse_follow_through_component",
