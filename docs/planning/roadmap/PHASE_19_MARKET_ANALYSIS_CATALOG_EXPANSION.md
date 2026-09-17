@@ -4,7 +4,11 @@
 Status: APPROVED (maintainer, 2026-09-17). Wave 0 COMPLETE — all decisions
 ACCEPTED (maintainer, 2026-09-17). Sprint 065 (Tooling) CLOSED and merged
 to main (#552-#556). Sprint 066 (Wave A, 20 components) CLOSED and
-merged to main (#557-#566). Sprint 067 (Wave B, 6 components) OPEN.
+merged to main (#557-#566). Sprint 067 (Wave B, 6 components) CLOSED —
+all 4 tasks (T001-T004) merged to `sprint/market-analysis-wave-b`
+(#567-#570); pending final integration PR to main. All 26+1 components
+of this PRD are now implemented (trend.movement_efficiency deliberately
+excepted, see SPRINT_067.md's Closeout).
 ```
 
 **Product source:** [`docs/product/PRD-market-analysis-catalog-expansion-2026-09.md`](../../product/PRD-market-analysis-catalog-expansion-2026-09.md)
@@ -46,7 +50,7 @@ Three sprints, all now opened and numbered:
 |---|---|---|
 | **Sprint 065 — Tooling** | [IDEA-010](../registries/idea-market-analysis.md#idea-010) Component Scaffolding CLI (`scripts/market_analysis/scaffold_component.py`) + [IDEA-011](../registries/idea-market-analysis.md#idea-011) Promotion Readiness Report (`scripts/market_analysis/check_promotion_readiness.py`), piloted against `structure.opening_gap` | **Closed, merged to main** — T001-T005 done, see [SPRINT_065.md](../sprints/SPRINT_065.md) |
 | **Sprint 066 — Wave A (20 remaining components)** | [IDEA-027](../registries/idea-market-analysis.md#idea-027) (10 remaining `structure.*`/`session.*` — `structure.opening_gap` already delivered as Sprint 065's pilot), [IDEA-028](../registries/idea-market-analysis.md#idea-028) (5 `volatility.*`), [IDEA-031](../registries/idea-market-analysis.md#idea-031) base components (`candle.reversal_pattern`, `candle.smoothed_ohlc`, `volume.rolling_weighted_price` fixed-window, `volume.cumulative_trend`), [IDEA-030](../registries/idea-market-analysis.md#idea-030) (`statistics.rolling_window_position`) — built in parallel, using Sprint 065's tooling | **Closed, merged to main** — all 20 components done, T001-T009, see [SPRINT_066.md](../sprints/SPRINT_066.md) (Closeout) |
-| **Sprint 067 — Wave B (6 components)** | [IDEA-029](../registries/idea-market-analysis.md#idea-029) (`trend.normalized_slope`, `momentum.normalized_rate_of_change`, normalized against `volatility.relative_volatility.value` per D-P19-02), [IDEA-032](../registries/idea-market-analysis.md#idea-032) (`structure.distance_to_level` + two Fibonacci-level components, per D-P19-03), [IDEA-031](../registries/idea-market-analysis.md#idea-031)'s deferred session-anchored VWAP variant | **Open** — see [SPRINT_067.md](../sprints/SPRINT_067.md) |
+| **Sprint 067 — Wave B (6 components)** | [IDEA-029](../registries/idea-market-analysis.md#idea-029) (`trend.normalized_slope`, `momentum.normalized_rate_of_change`, normalized against `volatility.relative_volatility.value` per D-P19-02), [IDEA-032](../registries/idea-market-analysis.md#idea-032) (`structure.distance_to_level` + two Fibonacci-level components, per D-P19-03), [IDEA-031](../registries/idea-market-analysis.md#idea-031)'s deferred session-anchored VWAP variant | **Closed** — all 6 components done, T001-T004 merged to the sprint branch, see [SPRINT_067.md](../sprints/SPRINT_067.md) (Closeout) |
 
 Opening any of these as a numbered sprint is a separate governance gate
 from this phase's approval and from Wave 0's acceptance — it requires its

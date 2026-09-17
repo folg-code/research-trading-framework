@@ -188,10 +188,77 @@ dropped if the sprint must shrink further than the order above.
 
 ## Closeout
 
-To be completed when this sprint closes: integrated checks (test counts,
-`check_promotion_readiness.py` output for all 6 components), review
-notes per PR, documentation reconciliation
-(`PHASE_19_MARKET_ANALYSIS_CATALOG_EXPANSION.md`'s sprint table,
-`CURRENT_STATUS.md`, `ROADMAP.md`, `planning/README.md`), and a decision
-on `trend.movement_efficiency`'s disposition (a follow-up sprint, or
-folded into a future batch).
+**Status: DONE.** All 4 tasks (T001-T004) merged to
+`sprint/market-analysis-wave-b`, no descoping needed.
+
+**Integrated checks** (run on `sprint/market-analysis-wave-b` after the
+T004 merge, commit `38fe11e`):
+
+- `uv run pytest tests/unit` — **2002 passed, 16 skipped** (skips are all
+  pre-existing optional dependencies not installed in this environment:
+  `sklearn`/`torch`/`lightgbm`/`xgboost`). `market_analysis` alone: **398
+  passed** (up from 372 before this sprint).
+- `check_promotion_readiness.py` — **PASS on all applicable checks for
+  all 6 components** (`registered`, `tested`, `catalog_entry`,
+  `output_schema`, `dependencies_declared`; `causal_only_gate` is N/A for
+  all six — none is a `session.*`-packaged component, even though
+  `volume.session_weighted_price` is itself session-aware).
+- `ruff check`, `ruff format --check`, `mypy` — clean across
+  `market_analysis`, `time/sessions`, and their test suites.
+
+**Review notes per PR** (squash-merged to `sprint/market-analysis-wave-b`
+in order landed):
+
+- [#568](https://github.com/folg-code/research-trading-framework/pull/568) T002 — `structure.distance_to_level`. **Architecture-triage
+  finding**: the registry cannot vary a component's `OutputSchema` per
+  `ComponentRequest` (one singleton instance per `component_id`,
+  `output_schema` a plain property with no parameter access), so
+  D-P19-03's caller-configurable `level_sources` subset is not
+  implementable as specified. Flagged to the maintainer mid-task; decided
+  to always declare and compute all six `distance_to_<source>_atr`
+  fields instead of a configurable subset. Also an additive change to
+  `structure.matched_extreme_pair` (`ComponentVersion` 1.0.0 → 1.1.0):
+  added `latest_matched_high_level`/`latest_matched_low_level` outputs,
+  since the component previously only exposed boolean match-event flags
+  with no continuous level for a consumer to depend on. Self-review
+  caught a real bug: the zero-ATR-defines-`0.0` convention was
+  overriding a `NaN` level (no previous day/match yet) into a fabricated
+  `0.0`.
+- [#567](https://github.com/folg-code/research-trading-framework/pull/567) T001 — `trend.normalized_slope`, `momentum.normalized_rate_of_change`.
+  Both depend on `volatility.relative_volatility.value` per D-P19-02's
+  shared-normalizer decision. Needed a merge-conflict resolution against
+  `sprint/market-analysis-wave-b` after T002/T003 landed first (three
+  files: the sprint doc, the catalog doc, `registry/builtins.py` — all
+  clean unions of independent additions).
+- [#569](https://github.com/folg-code/research-trading-framework/pull/569) T003 — `structure.fibonacci_retracement_level`,
+  `structure.fibonacci_extension_level`. The "active leg" is chosen by
+  comparing `structure.swing`'s `latest_swing_*_observed_index`;
+  retracement and extension share the same two linear formulas, swapped
+  by direction. Hand-computed test values cross-checked via a debug run
+  against the exact swing structure the shared fixture (reused from
+  `test_matched_extreme_pair.py`) produces.
+- [#570](https://github.com/folg-code/research-trading-framework/pull/570) T004 — `volume.session_weighted_price`, the deferred
+  session-anchored VWAP variant. Reuses `structure.session_range`'s exact
+  session-boundary convention rather than inventing a new one. No
+  component dependency — reads OHLCV and the run's own session metadata
+  directly.
+
+**Documentation reconciliation**: see the accompanying commit updating
+`PHASE_19_MARKET_ANALYSIS_CATALOG_EXPANSION.md`'s sprint table,
+`CURRENT_STATUS.md`, `ROADMAP.md`, and `planning/README.md`.
+
+**`trend.movement_efficiency` disposition**: stays out of scope, per this
+sprint's own Scope section — it needs no shared-normalizer decision (a
+self-contained ratio, unlike this sprint's other two IDEA-029
+components) and was never part of the Phase 19 roadmap doc's stated
+6-component Wave B count. It can ship independently, as a small
+follow-up task, whenever prioritized — no new sprint required for one
+component.
+
+**Remaining work**: this sprint completes all three sprints planned for
+Phase 19 (Tooling, Wave A, Wave B) — the full 26+1-component PRD scope
+is now implemented. Phase 19 itself can move toward closure once this
+sprint's integration PR to `main` is merged; any further Market Analysis
+catalog work (e.g. `trend.movement_efficiency`, IDEA-012's Order-Flow
+pack, or anything newly proposed) starts as a fresh idea-registry entry
+and Wave 0 pass, not a continuation of this PRD's existing scope.
