@@ -1,8 +1,20 @@
 """Volatility-related Market Analysis components."""
 
+from trading_framework.market_analysis.components.volatility.acceleration import (
+    AccelerationComponent,
+    NumpyAccelerationImplementation,
+)
 from trading_framework.market_analysis.components.volatility.atr import (
     AtrComponent,
     NumpyAtrImplementation,
+)
+from trading_framework.market_analysis.components.volatility.directional_asymmetry import (
+    DirectionalAsymmetryComponent,
+    NumpyDirectionalAsymmetryImplementation,
+)
+from trading_framework.market_analysis.components.volatility.range_based_variance import (
+    NumpyRangeBasedVarianceImplementation,
+    RangeBasedVarianceComponent,
 )
 from trading_framework.market_analysis.components.volatility.range_expansion import (
     NumpyRangeExpansionImplementation,
@@ -22,12 +34,18 @@ from trading_framework.market_analysis.components.volatility.true_range import (
 )
 
 __all__ = [
+    "AccelerationComponent",
     "AtrComponent",
+    "DirectionalAsymmetryComponent",
+    "NumpyAccelerationImplementation",
     "NumpyAtrImplementation",
+    "NumpyDirectionalAsymmetryImplementation",
+    "NumpyRangeBasedVarianceImplementation",
     "NumpyRangeExpansionImplementation",
     "NumpyRelativeVolatilityImplementation",
     "NumpyTrueRangeImplementation",
     "NumpyVolatilityStateImplementation",
+    "RangeBasedVarianceComponent",
     "RangeExpansionComponent",
     "RelativeVolatilityComponent",
     "TrueRangeComponent",
