@@ -499,19 +499,24 @@ specific, recurring pattern.
 
 ### Main Questions
 
-- Component composition mechanics: does the registry/DSL support a
+- ~~Component composition mechanics: does the registry/DSL support a
   component taking another component's `OutputRef` as its input today, or
-  does this require new registry capability? This must be answered before
-  the idea can be scoped as implementation work, not just a proposal.
+  does this require new registry capability?~~ **RESOLVED (Phase 19 Wave 0,
+  2026-09-17): already supported.** `structure.level_distance`,
+  `trend.ema_distance` and `momentum.macd` already consume another
+  component's output via `ComponentDependency`/`ComponentOutputRef`
+  (`src/trading_framework/market_analysis/models/dependencies.py:26-33`).
+  No new registry capability needed.
 - Whether the empirical-rank variant's warm-up/window-size defaults should
   differ from the normal-approximation variant's, given they have different
   statistical assumptions.
 
 ### Dependencies
 
-- Needs the registry's component-composition capability confirmed or built
-  first (see Main Questions) — this is likely the larger part of the work,
-  not the statistics itself.
+- ~~Needs the registry's component-composition capability confirmed or
+  built first~~ — resolved; none blocking. See
+  [Phase 19](../roadmap/PHASE_19_MARKET_ANALYSIS_CATALOG_EXPANSION.md),
+  which moved this idea into its Wave A (parallel, independent) increment.
 
 ### Promotion Criteria
 
@@ -622,11 +627,18 @@ correct than several.
 
 ### Main Questions
 
-- Whether `structure.level_distance`'s existing output shape (a single
+- ~~Whether `structure.level_distance`'s existing output shape (a single
   ATR-normalized distance) generalizes cleanly to multiple simultaneous
-  level sources, or whether it needs a breaking output-shape change —
-  worth a design pass before committing to "extend" over "add a new
-  component."
+  level sources, or whether it needs a breaking output-shape change~~ —
+  **RESOLVED (Phase 19 Wave 0, 2026-09-17): it does not generalize.**
+  `structure.level_distance`'s `OutputSchema` is a fixed two-field shape
+  hardcoded to one level source
+  (`src/trading_framework/market_analysis/components/structure/level_distance.py:61-66,120-132`).
+  Maintainer decision: build a new, generic multi-level-source component
+  instead of extending this one in place — see
+  [Phase 19](../roadmap/PHASE_19_MARKET_ANALYSIS_CATALOG_EXPANSION.md). Exact
+  name/output shape for the new component is still an open architect design
+  pass.
 - Which swing definition feeds the Fibonacci levels — the existing
   `structure.swing` component's HH/HL/LH/LL output, most likely, but this
   should be confirmed rather than assumed.

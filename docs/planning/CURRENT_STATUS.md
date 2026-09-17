@@ -12,11 +12,11 @@ Locate the active increment, remaining work and the canonical planning records. 
 |---|---|
 | Current phase | Phase 17 — Research Application (Local Workbench) |
 | Completed increments | Phase 16: 16A–16D (16E–16G unplanned); Phase 17: 17A–17B |
-| Current increment | 17C — Data Manager (next candidate; not yet opened as a sprint) |
+| Current increment | 17C — Data Manager (still not opened as a sprint; superseded in priority by Phase 19, see below) |
 | Completed sprints | 059–062 and 064 merged to `main` (064 via #546, 2026-09-15) |
-| Active sprint | None |
-| Next draft | None currently drafted as a numbered sprint; [IDEA-027](IDEA_INBOX.md) (component pack + Validation Approach, the successor to the now-superseded [Sprint 063](../archive/superseded/SPRINT_063_STRATEGY_SIMULATION_SERIES.md)) is the nearest candidate once its component work is underway |
-| Parallel state | Phase 15 complete; Phase 14A complete; 14B not planned; [Phase 17](roadmap/PHASE_17_RESEARCH_APPLICATION.md) 17A/17B closed 2026-09-15 (ADR-0037–0042), 17C/17D directional and unplanned; Sprint 062 closed (T001–T007 done); [Phase 18](roadmap/PHASE_18_DASHBOARD_RESEARCH_EVIDENCE.md) captured 2026-09-17, fully directional, no PRD/ADR/sprint yet |
+| Active sprint | [Sprint 065](sprints/SPRINT_065.md) — Market Analysis Component Registration Tooling (Phase 19, opened 2026-09-17) |
+| Next draft | Sprint N+1 (Phase 19 Wave A, 21 components) — not yet opened, depends on Sprint 065 closing |
+| Parallel state | Phase 15 complete; Phase 14A complete; 14B not planned; [Phase 17](roadmap/PHASE_17_RESEARCH_APPLICATION.md) 17A/17B closed 2026-09-15 (ADR-0037–0042), 17C/17D directional and unplanned; Sprint 062 closed (T001–T007 done); [Phase 18](roadmap/PHASE_18_DASHBOARD_RESEARCH_EVIDENCE.md) captured 2026-09-17, fully directional, no PRD/ADR/sprint yet; [Phase 19](roadmap/PHASE_19_MARKET_ANALYSIS_CATALOG_EXPANSION.md) approved 2026-09-17, Wave 0 complete and accepted, highest priority among unapproved tracks, Sprint 065 (Tooling) open |
 
 ## 3. Work in Progress
 
