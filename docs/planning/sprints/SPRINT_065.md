@@ -86,7 +86,7 @@ in this sprint; both are already ACCEPTED (maintainer, 2026-09-17).
 |---|---|---|---|---|---|---|
 | T001 | `scaffold_component.py` generates a correct file skeleton + test stub for a new component ID, matching the existing hand-written pattern exactly | Approved sprint | `scripts/market_analysis` | standard | Done — `scripts/market_analysis/scaffold_component.py` + `tests/unit/scripts/test_scaffold_component_cli.py` (9 tests), ruff/ruff-format/mypy clean on both the tool and its generated output; self-review fixed a real `--depends-on` line-length bug and CRLF output before opening the PR | [#552](https://github.com/folg-code/research-trading-framework/pull/552) |
 | T002 | `scaffold_component.py`'s registration-patch step correctly inserts the import, `register_<name>_component` function, its call in `register_mvp_components`, and the `__all__` entry into `registry/builtins.py`, alphabetically, without disturbing existing entries | T001 | `scripts/market_analysis` + `market_analysis/registry` | standard | Done — patches pack `__init__.py` + `registry/builtins.py`; handles both an existing pack and a brand-new one; verified against the real repo (`structure.opening_gap`, reverted after verification — real component is T005) with a minimal correct diff, ruff/format/mypy clean, full `market_analysis` suite (278 tests) green | [#552](https://github.com/folg-code/research-trading-framework/pull/552) |
-| T003 | `scaffold_component.py` appends a stub `ANALYSIS_COMPONENT_CATALOG.md` entry under a "Phase 19 additions" heading, marked with the TODO marker | T001 | `scripts/market_analysis` + docs | low | Not started | PR TBD |
+| T003 | `scaffold_component.py` appends a stub `ANALYSIS_COMPONENT_CATALOG.md` entry under a "Phase 19 additions" heading, marked with the TODO marker | T001 | `scripts/market_analysis` + docs | low | Done — creates the heading once, appends on later runs, refuses an already-documented id; verified against the real catalog doc (reverted after verification) | [#553](https://github.com/folg-code/research-trading-framework/pull/553) |
 | T004 | `check_promotion_readiness.py` runs all six D-P19-01 checks per named component ID and reports PASS/FAIL/NEEDS-REVIEW without mutating any file | Independent of T001-T003 | `scripts/market_analysis` | standard | Not started | PR TBD |
 | T005 | `structure.opening_gap` is scaffolded via T001-T003, its real formula is implemented (gap = current bar open minus prior bar close, plus a normalized/percentage variant if the catalog convention calls for one — implementer confirms against `structure.level_distance`'s ATR-normalization precedent), its contract test passes, its catalog entry is completed (formula, warm-up, zero-denominator/first-bar convention), and `check_promotion_readiness.py` reports it PASS | T001-T004 | `market_analysis/components/structure` | standard | Not started | PR TBD |
 
@@ -97,7 +97,10 @@ Per the `git-workflow` skill defaults; no project-specific deviation.
 ```text
 main
   └── sprint/market-analysis-catalog-tooling
-        ├── feat/component-scaffold-cli          (T001, T002, T003)
+        ├── feat/component-scaffold-cli          (T001, T002 — merged via #552)
+        ├── feat/catalog-stub-entry               (T003 — #553, cut fresh from the
+        │                                          post-#552 sprint branch head,
+        │                                          not from the pre-merge branch)
         ├── feat/promotion-readiness-report       (T004)
         └── feat/opening-gap-component            (T005)
 ```
@@ -105,7 +108,11 @@ main
 - Integration branch: `sprint/market-analysis-catalog-tooling`, cut from
   `main` at its then-current head after approval.
 - Working branches: `<prefix>/<descriptive-slug>`, cut from the sprint
-  branch.
+  branch's **current** head, not from an earlier working branch — #552
+  (T001/T002) squash-merged into the sprint branch before T003 started, so
+  T003 opened as a fresh branch (`feat/catalog-stub-entry`) off the updated
+  sprint branch rather than continuing on the now-stale, pre-merge
+  `feat/component-scaffold-cli` (deleted after #552 merged).
 - PR base is always the sprint branch. One final integration PR to `main`
   at sprint close, after review and CI.
 - Squash merge for working PRs. `engineer` stops before merge and reports
