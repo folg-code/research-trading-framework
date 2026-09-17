@@ -218,3 +218,42 @@ invented, per D-S055-04's no-new-prose discipline.
   value at bar `i` depends on bars strictly after `i`; it is a
   research-only measure, never a live/causal signal. Depends on
   `volatility.atr` keyed by `period`.
+- **`structure.matched_extreme_pair`** — `structure.matched_extreme_pair(pivot_range=2,
+  period=14, tolerance_atr_multiple=0.1)` ("equal highs/lows"). When
+  `structure.swing` confirms a new swing high, `matched_high_event = 1.0`
+  if that swing high's price is within `tolerance_atr_multiple * atr` of
+  the *previous* confirmed swing high's level. `matched_low_event` is the
+  mirror. The first swing of either type has nothing to compare against
+  and never matches. Depends on `structure.swing` (keyed by `pivot_range`)
+  and `volatility.atr` (keyed by `period`). Warm-up: `max(0, period - 1)`
+  bars (the ATR's own warmup; a bar within `structure.swing`'s own warmup
+  simply has no swing event to test).
+- **`structure.close_reversal_level`** — `structure.close_reversal_level()`
+  (no parameters) ("CISD"). At bar `i`, compares the direction of
+  `close[i] - close[i-1]` against `close[i-1] - close[i-2]`. When the two
+  directions are strictly opposite (both non-zero, opposite sign),
+  `reversal_event = 1.0` and `level = close[i-2]` — the close just before
+  the prior directional move began. `NaN`/`0.0` elsewhere. Warm-up: 2 bars
+  (this component's own lookback only — no dependency).
+- **`structure.level_sweep_rejection`** — `structure.level_sweep_rejection(pivot_range=2,
+  observation_window=5)` ("liquidity grab"). Using `structure.swing`'s
+  latest confirmed swing high/low as the level: when a bar's high pierces
+  the *prior* bar's latest swing-high level, and within
+  `observation_window` bars (including the pierce bar itself) a bar's
+  close falls back below that level, `high_rejection_event = 1.0` fires on
+  the rejecting bar. `low_rejection_event` is the mirror. If the window
+  elapses with no rejecting close, nothing is flagged — the level was
+  genuinely taken out. Depends on `structure.swing` (keyed by
+  `pivot_range`) only; no ATR — a plain price comparison, not a normalized
+  distance.
+- **`structure.level_role_reversal`** — `structure.level_role_reversal(pivot_range=2,
+  retest_window=5)` ("SR flip"). Using `structure.swing`'s latest confirmed
+  swing high/low as the level: when a bar closes beyond the *prior* bar's
+  latest swing-high level (a resistance break), and within `retest_window`
+  bars price retests that level from above and holds (a bar's low touches
+  back down to it while its close stays at or above it),
+  `resistance_to_support_event = 1.0` fires on the confirming bar.
+  `support_to_resistance_event` is the mirror. A retest that instead
+  breaks back through the level, or a window that elapses with no retest,
+  confirms nothing. Depends on `structure.swing` (keyed by `pivot_range`)
+  only; no ATR.
