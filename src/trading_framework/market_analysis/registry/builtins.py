@@ -12,6 +12,14 @@ from trading_framework.market_analysis.components.momentum import (
     RsiComponent,
     StochasticComponent,
 )
+from trading_framework.market_analysis.components.session import (
+    CurrentPeriodExtremeComponent,
+    NumpyCurrentPeriodExtremeImplementation,
+    NumpyOverlapWindowImplementation,
+    NumpyPreviousPeriodExtremeImplementation,
+    OverlapWindowComponent,
+    PreviousPeriodExtremeComponent,
+)
 from trading_framework.market_analysis.components.statistics import (
     NumpyReturnAutocorrelationImplementation,
     NumpyReturnDistributionImplementation,
@@ -167,6 +175,29 @@ def register_opening_gap_component(registry: ComponentRegistry) -> None:
     registry.register(OpeningGapComponent(), NumpyOpeningGapImplementation(), default=True)
 
 
+def register_overlap_window_component(registry: ComponentRegistry) -> None:
+    """Register the Overlap Window component."""
+    registry.register(OverlapWindowComponent(), NumpyOverlapWindowImplementation(), default=True)
+
+
+def register_current_period_extreme_component(registry: ComponentRegistry) -> None:
+    """Register the Current Period Extreme component."""
+    registry.register(
+        CurrentPeriodExtremeComponent(),
+        NumpyCurrentPeriodExtremeImplementation(),
+        default=True,
+    )
+
+
+def register_previous_period_extreme_component(registry: ComponentRegistry) -> None:
+    """Register the Previous Period Extreme component."""
+    registry.register(
+        PreviousPeriodExtremeComponent(),
+        NumpyPreviousPeriodExtremeImplementation(),
+        default=True,
+    )
+
+
 def register_mvp_components(registry: ComponentRegistry) -> None:
     """Register Sprint 003 MVP feature and state components."""
     register_volatility_components(registry)
@@ -185,6 +216,9 @@ def register_mvp_components(registry: ComponentRegistry) -> None:
     register_statistics_return_autocorrelation_component(registry)
     register_statistics_return_distribution_component(registry)
     register_opening_gap_component(registry)
+    register_overlap_window_component(registry)
+    register_current_period_extreme_component(registry)
+    register_previous_period_extreme_component(registry)
 
 
 def default_mvp_registry() -> ComponentRegistry:
@@ -197,6 +231,7 @@ def default_mvp_registry() -> ComponentRegistry:
 __all__ = [
     "default_mvp_registry",
     "register_candle_wick_component",
+    "register_current_period_extreme_component",
     "register_ema_component",
     "register_ema_distance_component",
     "register_level_distance_component",
@@ -205,6 +240,8 @@ __all__ = [
     "register_momentum_stochastic_component",
     "register_mvp_components",
     "register_opening_gap_component",
+    "register_overlap_window_component",
+    "register_previous_period_extreme_component",
     "register_range_expansion_component",
     "register_relative_volatility_component",
     "register_session_range_component",

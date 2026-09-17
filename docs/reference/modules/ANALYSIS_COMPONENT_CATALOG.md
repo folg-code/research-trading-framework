@@ -152,3 +152,29 @@ invented, per D-S055-04's no-new-prose discipline.
   regardless. Ordinary zero-denominator convention: a zero ATR (flat market)
   divides through to `inf`/`-inf`/`nan`, not special-cased — the same
   convention `structure.level_distance` already uses.
+- **`session.overlap_window`** — `session.overlap_window(session_a, session_b)`,
+  both one of `"asia"`, `"london"`, `"new_york"` (required, no default;
+  distinct names required). `overlap = 1.0` when the bar is simultaneously
+  in both named sessions per `GlobalSessionCalendarResolver`
+  (ADR-MA-015), else `0.0`. No warmup — a pure per-bar function of session
+  membership, always defined. Requires a resolver carrying the named
+  `session_*` columns (`GlobalSessionCalendarResolver`); raises a clear
+  error, never silently wrong output, if the configured resolver doesn't
+  carry one of the two requested sessions.
+- **`session.current_period_extreme`** — `session.current_period_extreme(period, side)`,
+  `period` one of `"day"`/`"week"`, `side` one of `"high"`/`"low"`
+  (both required, no default). Causal running maximum (`side="high"`) or
+  minimum (`side="low"`) of the bar's own `side` column within the current
+  `period`, grouped from `session_metadata.trading_days` (day: the
+  trading-day itself; week: its ISO `(year, week)`) — any resolver works,
+  no named-session column required. No warmup: value is always defined
+  from the first bar of the dataset (the running extreme of a
+  one-bar-so-far period is that bar's own value).
+- **`session.previous_period_extreme`** — `session.previous_period_extreme(period, side)`,
+  same parameters as `session.current_period_extreme`, sharing its
+  `adapters/numpy/period_extreme.py` kernel. Value is the last *fully
+  closed* period's extreme, held constant through the whole following
+  period until the next period closes. `NaN` before any period has
+  closed (the first period in the dataset has no previous period) — the
+  hard causal-only requirement: never includes any bar from the
+  still-open current period.
