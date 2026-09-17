@@ -132,3 +132,23 @@ Sprint 048 worked examples (see
 documented with warm-up/zero-denominator semantics in the original
 `STRATEGY_AUTHORING.md` §4 — carried forward here as a gap rather than
 invented, per D-S055-04's no-new-prose discipline.
+
+---
+
+## Phase 19 additions
+
+- **`structure.opening_gap`** — `structure.opening_gap(period=14)` (ATR
+  period, min 1). ATR-normalized causal gap between a bar's open and the
+  prior bar's close: `gap_atr = (open - prior_close) / atr`. Positive is a
+  gap up, negative a gap down. Distinct from `structure.range_discontinuity`
+  (a three-bar range gap, not an open-vs-prior-close gap). Depends on
+  `volatility.atr` keyed by the same `period`, same pattern as
+  `structure.level_distance`. Warm-up: `max(1, period - 1)` bars (the wider
+  of this component's own one-bar prior-close lookback and the ATR period —
+  in practice the ATR period always dominates for any valid `period >= 2`).
+  The first bar has no real prior close; per this framework's `true_range`
+  convention it computes as if the prior close equals the bar's own close
+  (an `open - close` value, not a true gap), but this is masked by warmup
+  regardless. Ordinary zero-denominator convention: a zero ATR (flat market)
+  divides through to `inf`/`-inf`/`nan`, not special-cased — the same
+  convention `structure.level_distance` already uses.

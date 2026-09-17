@@ -4,6 +4,10 @@ from trading_framework.market_analysis.components.structure.level_distance impor
     LevelDistanceComponent,
     NumpyLevelDistanceImplementation,
 )
+from trading_framework.market_analysis.components.structure.opening_gap import (
+    NumpyOpeningGapImplementation,
+    OpeningGapComponent,
+)
 from trading_framework.market_analysis.components.structure.session_range import (
     NumpySessionRangeImplementation,
     SessionRangeComponent,
@@ -16,8 +20,10 @@ from trading_framework.market_analysis.components.structure.swing import (
 __all__ = [
     "LevelDistanceComponent",
     "NumpyLevelDistanceImplementation",
+    "NumpyOpeningGapImplementation",
     "NumpySessionRangeImplementation",
     "NumpySwingStructureImplementation",
+    "OpeningGapComponent",
     "SessionRangeComponent",
     "SwingStructureComponent",
 ]
