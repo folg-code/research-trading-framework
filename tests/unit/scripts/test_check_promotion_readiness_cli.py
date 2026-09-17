@@ -176,6 +176,20 @@ def test_check_catalog_entry_fails_when_missing(tmp_path: Path) -> None:
     assert result.verdict is report.Verdict.FAIL
 
 
+def test_check_catalog_entry_fails_on_a_mere_prose_mention(tmp_path: Path) -> None:
+    """A component only mentioned in another entry's prose (backticked, but
+    not bolded as its own entry heading) must not report PASS."""
+    catalog_file = tmp_path / "docs" / "reference" / "modules" / "ANALYSIS_COMPONENT_CATALOG.md"
+    catalog_file.parent.mkdir(parents=True, exist_ok=True)
+    catalog_file.write_text(
+        "- **`structure.opening_gap`** -- distinct from "
+        "`structure.range_discontinuity`, a three-bar range gap.\n",
+        encoding="utf-8",
+    )
+    result = report.check_catalog_entry(tmp_path, "structure.range_discontinuity")
+    assert result.verdict is report.Verdict.FAIL
+
+
 # --- run_checks / main() end-to-end ---
 
 

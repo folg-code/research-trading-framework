@@ -107,7 +107,7 @@ def check_catalog_entry(repo_root: Path, component_id: str) -> CheckResult:
     if not path.is_file():
         return CheckResult("catalog_entry", Verdict.FAIL, f"catalog file not found: {path}")
     text = path.read_text(encoding="utf-8")
-    needle = f"`{component_id}`"
+    needle = f"**`{component_id}`**"
     if needle not in text:
         return CheckResult("catalog_entry", Verdict.FAIL, f"no entry for {component_id} in {path}")
     entry_line = next((line for line in text.splitlines() if needle in line), "")

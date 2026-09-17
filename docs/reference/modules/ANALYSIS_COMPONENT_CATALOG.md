@@ -152,3 +152,215 @@ invented, per D-S055-04's no-new-prose discipline.
   regardless. Ordinary zero-denominator convention: a zero ATR (flat market)
   divides through to `inf`/`-inf`/`nan`, not special-cased — the same
   convention `structure.level_distance` already uses.
+- **`session.overlap_window`** — `session.overlap_window(session_a, session_b)`,
+  both one of `"asia"`, `"london"`, `"new_york"` (required, no default;
+  distinct names required). `overlap = 1.0` when the bar is simultaneously
+  in both named sessions per `GlobalSessionCalendarResolver`
+  (ADR-MA-015), else `0.0`. No warmup — a pure per-bar function of session
+  membership, always defined. Requires a resolver carrying the named
+  `session_*` columns (`GlobalSessionCalendarResolver`); raises a clear
+  error, never silently wrong output, if the configured resolver doesn't
+  carry one of the two requested sessions.
+- **`session.current_period_extreme`** — `session.current_period_extreme(period, side)`,
+  `period` one of `"day"`/`"week"`, `side` one of `"high"`/`"low"`
+  (both required, no default). Causal running maximum (`side="high"`) or
+  minimum (`side="low"`) of the bar's own `side` column within the current
+  `period`, grouped from `session_metadata.trading_days` (day: the
+  trading-day itself; week: its ISO `(year, week)`) — any resolver works,
+  no named-session column required. No warmup: value is always defined
+  from the first bar of the dataset (the running extreme of a
+  one-bar-so-far period is that bar's own value).
+- **`session.previous_period_extreme`** — `session.previous_period_extreme(period, side)`,
+  same parameters as `session.current_period_extreme`, sharing its
+  `adapters/numpy/period_extreme.py` kernel. Value is the last *fully
+  closed* period's extreme, held constant through the whole following
+  period until the next period closes. `NaN` before any period has
+  closed (the first period in the dataset has no previous period) — the
+  hard causal-only requirement: never includes any bar from the
+  still-open current period.
+- **`structure.range_discontinuity`** — `structure.range_discontinuity(period=14,
+  min_gap_atr_multiple=0.1)` ("fair value gap"). `gap_up_event = 1.0` at
+  bar `i` when `low[i] - high[i-2]` exceeds `min_gap_atr_multiple * atr[i]`
+  — no overlap between the current bar's range and the range two bars
+  back, in the up direction; `gap_down_event` is the mirror
+  (`low[i-2] - high[i]`). Distinct from `structure.opening_gap` (an
+  open-vs-prior-close gap, not a three-bar range gap). Depends on
+  `volatility.atr` keyed by `period`. Warm-up: `max(2, period - 1)` bars.
+  `min_gap_atr_multiple` default `0.1` (D-P19-05), a starting,
+  calibratable threshold.
+- **`structure.impulse_origin_range`** — `structure.impulse_origin_range(period=14,
+  impulse_atr_multiple=1.5)` ("order block"). A bar is impulsive when its
+  body `|close - open|` spans at least `impulse_atr_multiple * atr`; when
+  bar `i` is impulsive and bar `i-1`'s own body is the opposite direction,
+  bar `i-1` becomes the active origin range: `origin_event = 1.0` at bar
+  `i`, and `origin_high`/`origin_low` (bar `i-1`'s own high/low) plus
+  `role_active` (`1.0`) are forward-filled from `i` onward. `role_active`
+  flips to `0.0` (invalidated) once a later bar's close breaks back
+  through the range — carrying the "breaker" case as a field, not a
+  separate component. A new `origin_event` always replaces whatever range
+  was previously active. Depends on `volatility.atr` keyed by `period`.
+  Warm-up: `max(1, period - 1)` bars. `impulse_atr_multiple` default `1.5`
+  (D-P19-05), a starting, calibratable threshold.
+- **`structure.impulse_follow_through`** — `structure.impulse_follow_through(period=14,
+  impulse_atr_multiple=1.5, lookahead_bars=5)`. The strength-of-continuation
+  counterpart to `structure.impulse_origin_range`: for each impulsive bar
+  `i` (same impulse definition), `follow_through_atr` is the directional
+  extreme move over the next `lookahead_bars` bars, normalized by ATR at
+  bar `i` — `(max(high[i+1..i+lookahead_bars]) - close[i]) / atr[i]` for a
+  bullish impulse, the mirror for bearish. `NaN` on every non-impulsive
+  bar and on an impulsive bar within `lookahead_bars` of the end of the
+  dataset (an ordinary within-range `NaN`, not a warmup boundary — this
+  component reports no `valid_to_index` truncation; the framework's
+  `build_analysis_result` always marks the trailing bar valid, so
+  insufficient-lookahead bars are represented as `NaN` values instead, the
+  same convention `structure.session_range` already uses for
+  outside-RTH bars). **Causality: `RETROSPECTIVE`** — this component's
+  value at bar `i` depends on bars strictly after `i`; it is a
+  research-only measure, never a live/causal signal. Depends on
+  `volatility.atr` keyed by `period`.
+- **`structure.matched_extreme_pair`** — `structure.matched_extreme_pair(pivot_range=2,
+  period=14, tolerance_atr_multiple=0.1)` ("equal highs/lows"). When
+  `structure.swing` confirms a new swing high, `matched_high_event = 1.0`
+  if that swing high's price is within `tolerance_atr_multiple * atr` of
+  the *previous* confirmed swing high's level. `matched_low_event` is the
+  mirror. The first swing of either type has nothing to compare against
+  and never matches. Depends on `structure.swing` (keyed by `pivot_range`)
+  and `volatility.atr` (keyed by `period`). Warm-up: `max(0, period - 1)`
+  bars (the ATR's own warmup; a bar within `structure.swing`'s own warmup
+  simply has no swing event to test).
+- **`structure.close_reversal_level`** — `structure.close_reversal_level()`
+  (no parameters) ("CISD"). At bar `i`, compares the direction of
+  `close[i] - close[i-1]` against `close[i-1] - close[i-2]`. When the two
+  directions are strictly opposite (both non-zero, opposite sign),
+  `reversal_event = 1.0` and `level = close[i-2]` — the close just before
+  the prior directional move began. `NaN`/`0.0` elsewhere. Warm-up: 2 bars
+  (this component's own lookback only — no dependency).
+- **`structure.level_sweep_rejection`** — `structure.level_sweep_rejection(pivot_range=2,
+  observation_window=5)` ("liquidity grab"). Using `structure.swing`'s
+  latest confirmed swing high/low as the level: when a bar's high pierces
+  the *prior* bar's latest swing-high level, and within
+  `observation_window` bars (including the pierce bar itself) a bar's
+  close falls back below that level, `high_rejection_event = 1.0` fires on
+  the rejecting bar. `low_rejection_event` is the mirror. If the window
+  elapses with no rejecting close, nothing is flagged — the level was
+  genuinely taken out. Depends on `structure.swing` (keyed by
+  `pivot_range`) only; no ATR — a plain price comparison, not a normalized
+  distance.
+- **`structure.level_role_reversal`** — `structure.level_role_reversal(pivot_range=2,
+  retest_window=5)` ("SR flip"). Using `structure.swing`'s latest confirmed
+  swing high/low as the level: when a bar closes beyond the *prior* bar's
+  latest swing-high level (a resistance break), and within `retest_window`
+  bars price retests that level from above and holds (a bar's low touches
+  back down to it while its close stays at or above it),
+  `resistance_to_support_event = 1.0` fires on the confirming bar.
+  `support_to_resistance_event` is the mirror. A retest that instead
+  breaks back through the level, or a window that elapses with no retest,
+  confirms nothing. Depends on `structure.swing` (keyed by `pivot_range`)
+  only; no ATR.
+- **`volatility.range_based_variance`** — `volatility.range_based_variance(period=20,
+  method="parkinson")`. Per bar, computes a range-based variance term —
+  Parkinson's `ln(high/low)**2` or Garman-Klass's
+  `0.5*ln(high/low)**2 - (2*ln(2)-1)*ln(close/open)**2` — averages it over
+  a rolling `period`-bar window, and reports its square root. Uses only the
+  current window's own OHLC, no dependency. Warm-up: `period - 1` bars.
+  Rejects unknown `method` values at validation time.
+- **`volatility.directional_asymmetry`** — `volatility.directional_asymmetry(period=20)`.
+  Within a rolling `period`-bar window, splits bars into "up"
+  (`close[j] > close[j-1]`) and "down" (`close[j] < close[j-1]`), averages
+  each side's Parkinson single-bar variance term separately, and reports
+  the square root of each (`up_volatility`, `down_volatility`) plus
+  `asymmetry = ln(up_volatility / down_volatility)`. A window with no bars
+  of one side yields `NaN` for that side and for `asymmetry`.
+  `down_volatility == 0.0` yields `asymmetry = 0.0` (ordinary
+  zero-denominator convention). Computes its own per-bar Parkinson term
+  directly, no dependency. Warm-up: `period - 1` bars.
+- **`volatility.acceleration`** — `volatility.acceleration(period=14)`. The
+  first difference of ATR: `value = atr[i] - atr[i-1]` — the rate of change
+  of volatility itself, not of price. Depends on `volatility.atr` keyed by
+  `period`. Warm-up: `period` bars (ATR's own `period - 1` warmup, plus one
+  more bar so both `atr[i]` and `atr[i-1]` are valid).
+- **`volatility.choppiness_index`** — `volatility.choppiness_index(period=14)`.
+  `100 * log10(sum(true_range, period) / (max(high, period) -
+  min(low, period))) / log10(period)`. High (near 100) means the period's
+  total true-range path length is close to its net high/low range (choppy,
+  range-bound); low (near 0) means the path length greatly exceeds the net
+  range (a sustained trend). `period` requires `minimum=2`
+  (`log10(1) == 0` would zero the denominator regardless of the price
+  data). Depends on `volatility.true_range`; `max(high)`/`min(low)` are
+  computed directly. Zero-denominator convention: a perfectly flat window
+  forces both the numerator and denominator to `0.0` together, which reads
+  as `0.0`, this catalog's ordinary case. Warm-up: `period - 1` bars.
+- **`volatility.regime_state`** — `volatility.regime_state(fast_period=5,
+  slow_period=20, compression_threshold=0.85, expansion_threshold=1.15)`.
+  `ratio = atr(fast_period) / atr(slow_period)`; `state = -1.0`
+  ("compression") when `ratio < compression_threshold`, `1.0`
+  ("expansion") when `ratio > expansion_threshold`, else `0.0`
+  ("balanced"). A second, ratio-based volatility-state vocabulary distinct
+  from `volatility.state`'s single-ATR/fixed-threshold LOW/HIGH split.
+  Requires `fast_period < slow_period` (rejected otherwise, matching
+  `momentum.macd`'s convention). Depends on two `volatility.atr` outputs
+  (one per period). Zero-denominator convention: a `0.0` slow ATR (a
+  perfectly flat window) yields `ratio = 0.0`, deliberately NOT the
+  catalog's usual "0.0 is neutral" reading — a flat slow window is itself
+  the most-compressed case, so it falls into `state = -1.0` through the
+  same comparison as any other low ratio. Warm-up: the slower ATR's own
+  `valid_from_index`.
+- **`candle.reversal_pattern`** — `candle.reversal_pattern(pivot_range=2,
+  wick_ratio_threshold=2.0)` (D-P19-05). One label per bar/side
+  (`bullish_pattern`/`bearish_pattern`), evaluated in fixed priority order,
+  first match wins: (1) `engulfing` — the current bar's body fully
+  contains the prior bar's body and the two bars close in opposite
+  directions; (2) `level_close_reversal` — the bar pierces
+  `structure.swing`'s latest confirmed level (as of the *prior* bar) but
+  closes back on the origin side, same-bar (not a pending multi-bar event
+  like `structure.level_sweep_rejection`); (3) `rejection_wick` — a
+  hammer-style single-bar rejection where the rejecting wick is at least
+  `wick_ratio_threshold` times the body (via `candle.wick`'s ratios), with
+  the opposite wick no larger than the body — a zero-body (doji) bar never
+  qualifies; (4) `none` — an explicit, always-assigned label for a
+  fully-evaluated bar where nothing matched, distinct from `NaN` ("not yet
+  warmed up"). Depends on `structure.swing` (keyed by `pivot_range`) and
+  `candle.wick`. Warm-up: 1 bar (`engulfing` needs a prior bar).
+- **`candle.smoothed_ohlc`** — `candle.smoothed_ohlc()` (no parameters).
+  Causal smoothed-OHLC ("Heikin-Ashi") transform: `close = (open + high +
+  low + close) / 4`; `open` recurses from the prior bar's own smoothed
+  open/close (seeded at bar 0 as `(open[0] + close[0]) / 2`); `high`/`low`
+  are the raw bar's own high/low widened (never narrowed) to also contain
+  the smoothed open/close. No dependency, no external period parameter, so
+  no warm-up — every bar is valid from bar 0.
+- **`volume.rolling_weighted_price`** — `volume.rolling_weighted_price(period=20,
+  band_multiplier=2.0)`. A fixed ``period``-bar rolling window only —
+  explicitly NOT a session-anchored VWAP (deferred to Wave B).
+  `typical_price = (high + low + close) / 3`; `value` is the
+  volume-weighted average of `typical_price` over the window;
+  `deviation` is the volume-weighted standard deviation of `typical_price`
+  around that same `value`; `upper_band`/`lower_band` are `value +/-
+  band_multiplier * deviation`. Zero-volume-window convention: a window
+  with no volume at all leaves every output `NaN` — a deliberate
+  divergence from this catalog's usual "0.0 on zero-denominator"
+  convention, since these outputs are raw price levels, not ratios. No
+  dependency. Warm-up: `period - 1` bars.
+- **`volume.cumulative_trend`** — `volume.cumulative_trend()` (no
+  parameters; formerly "Price Volume Trend"). `value[0] = 0.0`; `value[i]
+  = value[i-1] + volume[i] * (close[i] - close[i-1]) / close[i-1]` —
+  volume added on up bars, subtracted on down bars, scaled by the bar's
+  own percent price change (not a flat sign, unlike its simpler cousin
+  On-Balance Volume). Zero-denominator convention: `close[i-1] == 0.0`
+  defines that bar's percent change as `0.0` (this catalog's ordinary
+  convention). No dependency, no external period parameter, so no
+  warm-up.
+- **`statistics.rolling_window_position`** — `statistics.rolling_window_position(source_period=14,
+  window=20, method="normal")` (IDEA-030). A generic building block:
+  position of another component's output within its own trailing
+  ``window``-bar window. This v1 depends on `volatility.atr` (keyed by
+  `source_period`), the same fixed-target-dependency pattern already used
+  by `momentum.macd`/`trend.ema_distance`/`volatility.regime_state`, to
+  demonstrate the composition. `z_score = (source - mean(source, window))
+  / stdev(source, window)` (population stdev). `percentile` is kept
+  separate from `z_score` per `method`: `"normal"` (default) is the
+  standard-normal CDF of `z_score`; `"empirical"` is the fraction of the
+  window's values `<= source`, no distributional assumption. Zero-variance
+  convention: a perfectly flat window defines `z_score = 0.0` (this
+  catalog's ordinary zero-denominator convention), from which the
+  `"normal"` percentile falls out as `0.5`. Warm-up: the source ATR's own
+  `valid_from_index` plus `window - 1` further bars.

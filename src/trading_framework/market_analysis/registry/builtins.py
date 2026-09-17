@@ -3,6 +3,10 @@
 from trading_framework.market_analysis.components.candle import (
     CandleWickComponent,
     NumpyCandleWickImplementation,
+    NumpyReversalPatternImplementation,
+    NumpySmoothedOhlcImplementation,
+    ReversalPatternComponent,
+    SmoothedOhlcComponent,
 )
 from trading_framework.market_analysis.components.momentum import (
     MacdComponent,
@@ -12,19 +16,43 @@ from trading_framework.market_analysis.components.momentum import (
     RsiComponent,
     StochasticComponent,
 )
+from trading_framework.market_analysis.components.session import (
+    CurrentPeriodExtremeComponent,
+    NumpyCurrentPeriodExtremeImplementation,
+    NumpyOverlapWindowImplementation,
+    NumpyPreviousPeriodExtremeImplementation,
+    OverlapWindowComponent,
+    PreviousPeriodExtremeComponent,
+)
 from trading_framework.market_analysis.components.statistics import (
     NumpyReturnAutocorrelationImplementation,
     NumpyReturnDistributionImplementation,
+    NumpyRollingWindowPositionImplementation,
     ReturnAutocorrelationComponent,
     ReturnDistributionComponent,
+    RollingWindowPositionComponent,
 )
 from trading_framework.market_analysis.components.structure import (
+    CloseReversalLevelComponent,
+    ImpulseFollowThroughComponent,
+    ImpulseOriginRangeComponent,
     LevelDistanceComponent,
+    LevelRoleReversalComponent,
+    LevelSweepRejectionComponent,
+    MatchedExtremePairComponent,
+    NumpyCloseReversalLevelImplementation,
+    NumpyImpulseFollowThroughImplementation,
+    NumpyImpulseOriginRangeImplementation,
     NumpyLevelDistanceImplementation,
+    NumpyLevelRoleReversalImplementation,
+    NumpyLevelSweepRejectionImplementation,
+    NumpyMatchedExtremePairImplementation,
     NumpyOpeningGapImplementation,
+    NumpyRangeDiscontinuityImplementation,
     NumpySessionRangeImplementation,
     NumpySwingStructureImplementation,
     OpeningGapComponent,
+    RangeDiscontinuityComponent,
     SessionRangeComponent,
     SwingStructureComponent,
 )
@@ -37,16 +65,32 @@ from trading_framework.market_analysis.components.trend import (
     SlopeComponent,
 )
 from trading_framework.market_analysis.components.volatility import (
+    AccelerationComponent,
     AtrComponent,
+    ChoppinessIndexComponent,
+    DirectionalAsymmetryComponent,
+    NumpyAccelerationImplementation,
     NumpyAtrImplementation,
+    NumpyChoppinessIndexImplementation,
+    NumpyDirectionalAsymmetryImplementation,
+    NumpyRangeBasedVarianceImplementation,
     NumpyRangeExpansionImplementation,
+    NumpyRegimeStateImplementation,
     NumpyRelativeVolatilityImplementation,
     NumpyTrueRangeImplementation,
     NumpyVolatilityStateImplementation,
+    RangeBasedVarianceComponent,
     RangeExpansionComponent,
+    RegimeStateComponent,
     RelativeVolatilityComponent,
     TrueRangeComponent,
     VolatilityStateComponent,
+)
+from trading_framework.market_analysis.components.volume import (
+    CumulativeTrendComponent,
+    NumpyCumulativeTrendImplementation,
+    NumpyRollingWeightedPriceImplementation,
+    RollingWeightedPriceComponent,
 )
 from trading_framework.market_analysis.registry.registry import ComponentRegistry
 
@@ -167,6 +211,170 @@ def register_opening_gap_component(registry: ComponentRegistry) -> None:
     registry.register(OpeningGapComponent(), NumpyOpeningGapImplementation(), default=True)
 
 
+def register_overlap_window_component(registry: ComponentRegistry) -> None:
+    """Register the Overlap Window component."""
+    registry.register(OverlapWindowComponent(), NumpyOverlapWindowImplementation(), default=True)
+
+
+def register_current_period_extreme_component(registry: ComponentRegistry) -> None:
+    """Register the Current Period Extreme component."""
+    registry.register(
+        CurrentPeriodExtremeComponent(),
+        NumpyCurrentPeriodExtremeImplementation(),
+        default=True,
+    )
+
+
+def register_previous_period_extreme_component(registry: ComponentRegistry) -> None:
+    """Register the Previous Period Extreme component."""
+    registry.register(
+        PreviousPeriodExtremeComponent(),
+        NumpyPreviousPeriodExtremeImplementation(),
+        default=True,
+    )
+
+
+def register_impulse_origin_range_component(registry: ComponentRegistry) -> None:
+    """Register the Impulse Origin Range component."""
+    registry.register(
+        ImpulseOriginRangeComponent(),
+        NumpyImpulseOriginRangeImplementation(),
+        default=True,
+    )
+
+
+def register_range_discontinuity_component(registry: ComponentRegistry) -> None:
+    """Register the Range Discontinuity component."""
+    registry.register(
+        RangeDiscontinuityComponent(),
+        NumpyRangeDiscontinuityImplementation(),
+        default=True,
+    )
+
+
+def register_impulse_follow_through_component(registry: ComponentRegistry) -> None:
+    """Register the Impulse Follow Through component."""
+    registry.register(
+        ImpulseFollowThroughComponent(),
+        NumpyImpulseFollowThroughImplementation(),
+        default=True,
+    )
+
+
+def register_matched_extreme_pair_component(registry: ComponentRegistry) -> None:
+    """Register the Matched Extreme Pair component."""
+    registry.register(
+        MatchedExtremePairComponent(),
+        NumpyMatchedExtremePairImplementation(),
+        default=True,
+    )
+
+
+def register_close_reversal_level_component(registry: ComponentRegistry) -> None:
+    """Register the Close Reversal Level component."""
+    registry.register(
+        CloseReversalLevelComponent(),
+        NumpyCloseReversalLevelImplementation(),
+        default=True,
+    )
+
+
+def register_level_sweep_rejection_component(registry: ComponentRegistry) -> None:
+    """Register the Level Sweep Rejection component."""
+    registry.register(
+        LevelSweepRejectionComponent(),
+        NumpyLevelSweepRejectionImplementation(),
+        default=True,
+    )
+
+
+def register_level_role_reversal_component(registry: ComponentRegistry) -> None:
+    """Register the Level Role Reversal component."""
+    registry.register(
+        LevelRoleReversalComponent(),
+        NumpyLevelRoleReversalImplementation(),
+        default=True,
+    )
+
+
+def register_range_based_variance_component(registry: ComponentRegistry) -> None:
+    """Register the Range Based Variance component."""
+    registry.register(
+        RangeBasedVarianceComponent(),
+        NumpyRangeBasedVarianceImplementation(),
+        default=True,
+    )
+
+
+def register_directional_asymmetry_component(registry: ComponentRegistry) -> None:
+    """Register the Directional Asymmetry component."""
+    registry.register(
+        DirectionalAsymmetryComponent(),
+        NumpyDirectionalAsymmetryImplementation(),
+        default=True,
+    )
+
+
+def register_acceleration_component(registry: ComponentRegistry) -> None:
+    """Register the Acceleration component."""
+    registry.register(AccelerationComponent(), NumpyAccelerationImplementation(), default=True)
+
+
+def register_choppiness_index_component(registry: ComponentRegistry) -> None:
+    """Register the Choppiness Index component."""
+    registry.register(
+        ChoppinessIndexComponent(),
+        NumpyChoppinessIndexImplementation(),
+        default=True,
+    )
+
+
+def register_regime_state_component(registry: ComponentRegistry) -> None:
+    """Register the Regime State component."""
+    registry.register(RegimeStateComponent(), NumpyRegimeStateImplementation(), default=True)
+
+
+def register_reversal_pattern_component(registry: ComponentRegistry) -> None:
+    """Register the Reversal Pattern component."""
+    registry.register(
+        ReversalPatternComponent(),
+        NumpyReversalPatternImplementation(),
+        default=True,
+    )
+
+
+def register_smoothed_ohlc_component(registry: ComponentRegistry) -> None:
+    """Register the Smoothed Ohlc component."""
+    registry.register(SmoothedOhlcComponent(), NumpySmoothedOhlcImplementation(), default=True)
+
+
+def register_rolling_weighted_price_component(registry: ComponentRegistry) -> None:
+    """Register the Rolling Weighted Price component."""
+    registry.register(
+        RollingWeightedPriceComponent(),
+        NumpyRollingWeightedPriceImplementation(),
+        default=True,
+    )
+
+
+def register_cumulative_trend_component(registry: ComponentRegistry) -> None:
+    """Register the Cumulative Trend component."""
+    registry.register(
+        CumulativeTrendComponent(),
+        NumpyCumulativeTrendImplementation(),
+        default=True,
+    )
+
+
+def register_rolling_window_position_component(registry: ComponentRegistry) -> None:
+    """Register the Rolling Window Position component."""
+    registry.register(
+        RollingWindowPositionComponent(),
+        NumpyRollingWindowPositionImplementation(),
+        default=True,
+    )
+
+
 def register_mvp_components(registry: ComponentRegistry) -> None:
     """Register Sprint 003 MVP feature and state components."""
     register_volatility_components(registry)
@@ -185,6 +393,26 @@ def register_mvp_components(registry: ComponentRegistry) -> None:
     register_statistics_return_autocorrelation_component(registry)
     register_statistics_return_distribution_component(registry)
     register_opening_gap_component(registry)
+    register_overlap_window_component(registry)
+    register_current_period_extreme_component(registry)
+    register_previous_period_extreme_component(registry)
+    register_impulse_origin_range_component(registry)
+    register_range_discontinuity_component(registry)
+    register_impulse_follow_through_component(registry)
+    register_matched_extreme_pair_component(registry)
+    register_close_reversal_level_component(registry)
+    register_level_sweep_rejection_component(registry)
+    register_level_role_reversal_component(registry)
+    register_range_based_variance_component(registry)
+    register_directional_asymmetry_component(registry)
+    register_acceleration_component(registry)
+    register_choppiness_index_component(registry)
+    register_regime_state_component(registry)
+    register_reversal_pattern_component(registry)
+    register_smoothed_ohlc_component(registry)
+    register_rolling_weighted_price_component(registry)
+    register_cumulative_trend_component(registry)
+    register_rolling_window_position_component(registry)
 
 
 def default_mvp_registry() -> ComponentRegistry:
@@ -196,19 +424,39 @@ def default_mvp_registry() -> ComponentRegistry:
 
 __all__ = [
     "default_mvp_registry",
+    "register_acceleration_component",
     "register_candle_wick_component",
+    "register_choppiness_index_component",
+    "register_close_reversal_level_component",
+    "register_cumulative_trend_component",
+    "register_current_period_extreme_component",
+    "register_directional_asymmetry_component",
     "register_ema_component",
     "register_ema_distance_component",
+    "register_impulse_follow_through_component",
+    "register_impulse_origin_range_component",
     "register_level_distance_component",
+    "register_level_role_reversal_component",
+    "register_level_sweep_rejection_component",
+    "register_matched_extreme_pair_component",
     "register_momentum_macd_component",
     "register_momentum_rsi_component",
     "register_momentum_stochastic_component",
     "register_mvp_components",
     "register_opening_gap_component",
+    "register_overlap_window_component",
+    "register_previous_period_extreme_component",
+    "register_range_based_variance_component",
+    "register_range_discontinuity_component",
     "register_range_expansion_component",
+    "register_regime_state_component",
     "register_relative_volatility_component",
+    "register_reversal_pattern_component",
+    "register_rolling_weighted_price_component",
+    "register_rolling_window_position_component",
     "register_session_range_component",
     "register_slope_component",
+    "register_smoothed_ohlc_component",
     "register_statistics_return_autocorrelation_component",
     "register_statistics_return_distribution_component",
     "register_swing_structure_component",
