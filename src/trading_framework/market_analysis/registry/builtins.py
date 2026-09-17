@@ -59,12 +59,18 @@ from trading_framework.market_analysis.components.trend import (
     SlopeComponent,
 )
 from trading_framework.market_analysis.components.volatility import (
+    AccelerationComponent,
     AtrComponent,
+    DirectionalAsymmetryComponent,
+    NumpyAccelerationImplementation,
     NumpyAtrImplementation,
+    NumpyDirectionalAsymmetryImplementation,
+    NumpyRangeBasedVarianceImplementation,
     NumpyRangeExpansionImplementation,
     NumpyRelativeVolatilityImplementation,
     NumpyTrueRangeImplementation,
     NumpyVolatilityStateImplementation,
+    RangeBasedVarianceComponent,
     RangeExpansionComponent,
     RelativeVolatilityComponent,
     TrueRangeComponent,
@@ -275,6 +281,29 @@ def register_level_role_reversal_component(registry: ComponentRegistry) -> None:
     )
 
 
+def register_range_based_variance_component(registry: ComponentRegistry) -> None:
+    """Register the Range Based Variance component."""
+    registry.register(
+        RangeBasedVarianceComponent(),
+        NumpyRangeBasedVarianceImplementation(),
+        default=True,
+    )
+
+
+def register_directional_asymmetry_component(registry: ComponentRegistry) -> None:
+    """Register the Directional Asymmetry component."""
+    registry.register(
+        DirectionalAsymmetryComponent(),
+        NumpyDirectionalAsymmetryImplementation(),
+        default=True,
+    )
+
+
+def register_acceleration_component(registry: ComponentRegistry) -> None:
+    """Register the Acceleration component."""
+    registry.register(AccelerationComponent(), NumpyAccelerationImplementation(), default=True)
+
+
 def register_mvp_components(registry: ComponentRegistry) -> None:
     """Register Sprint 003 MVP feature and state components."""
     register_volatility_components(registry)
@@ -303,6 +332,9 @@ def register_mvp_components(registry: ComponentRegistry) -> None:
     register_close_reversal_level_component(registry)
     register_level_sweep_rejection_component(registry)
     register_level_role_reversal_component(registry)
+    register_range_based_variance_component(registry)
+    register_directional_asymmetry_component(registry)
+    register_acceleration_component(registry)
 
 
 def default_mvp_registry() -> ComponentRegistry:
@@ -314,9 +346,11 @@ def default_mvp_registry() -> ComponentRegistry:
 
 __all__ = [
     "default_mvp_registry",
+    "register_acceleration_component",
     "register_candle_wick_component",
     "register_close_reversal_level_component",
     "register_current_period_extreme_component",
+    "register_directional_asymmetry_component",
     "register_ema_component",
     "register_ema_distance_component",
     "register_impulse_follow_through_component",
@@ -332,6 +366,7 @@ __all__ = [
     "register_opening_gap_component",
     "register_overlap_window_component",
     "register_previous_period_extreme_component",
+    "register_range_based_variance_component",
     "register_range_discontinuity_component",
     "register_range_expansion_component",
     "register_relative_volatility_component",

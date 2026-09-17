@@ -257,3 +257,25 @@ invented, per D-S055-04's no-new-prose discipline.
   breaks back through the level, or a window that elapses with no retest,
   confirms nothing. Depends on `structure.swing` (keyed by `pivot_range`)
   only; no ATR.
+- **`volatility.range_based_variance`** — `volatility.range_based_variance(period=20,
+  method="parkinson")`. Per bar, computes a range-based variance term —
+  Parkinson's `ln(high/low)**2` or Garman-Klass's
+  `0.5*ln(high/low)**2 - (2*ln(2)-1)*ln(close/open)**2` — averages it over
+  a rolling `period`-bar window, and reports its square root. Uses only the
+  current window's own OHLC, no dependency. Warm-up: `period - 1` bars.
+  Rejects unknown `method` values at validation time.
+- **`volatility.directional_asymmetry`** — `volatility.directional_asymmetry(period=20)`.
+  Within a rolling `period`-bar window, splits bars into "up"
+  (`close[j] > close[j-1]`) and "down" (`close[j] < close[j-1]`), averages
+  each side's Parkinson single-bar variance term separately, and reports
+  the square root of each (`up_volatility`, `down_volatility`) plus
+  `asymmetry = ln(up_volatility / down_volatility)`. A window with no bars
+  of one side yields `NaN` for that side and for `asymmetry`.
+  `down_volatility == 0.0` yields `asymmetry = 0.0` (ordinary
+  zero-denominator convention). Computes its own per-bar Parkinson term
+  directly, no dependency. Warm-up: `period - 1` bars.
+- **`volatility.acceleration`** — `volatility.acceleration(period=14)`. The
+  first difference of ATR: `value = atr[i] - atr[i-1]` — the rate of change
+  of volatility itself, not of price. Depends on `volatility.atr` keyed by
+  `period`. Warm-up: `period` bars (ATR's own `period - 1` warmup, plus one
+  more bar so both `atr[i]` and `atr[i-1]` are valid).
