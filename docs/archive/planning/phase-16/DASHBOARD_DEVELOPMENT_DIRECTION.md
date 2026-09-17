@@ -1,7 +1,16 @@
 # Portfolio Dashboard Development Direction
 
+Historical direction record: substantially delivered by Sprints 059–061
+(Phase 16, increment 16D — see
+[Phase 16D](../../../planning/roadmap/PHASE_16D_PORTFOLIO_DASHBOARD.md)).
+For current implemented behavior use
+[Dashboard Application Reference](../../../reference/modules/DASHBOARD_APPLICATION.md);
+for still-open future ideas about the dashboard use
+[Vision](../../../vision/README.md). Kept here for provenance of the accepted
+product direction, not as a current-state description.
+
 ```text
-Status: ACCEPTED (maintainer, 2026-09-09)
+Status: ACCEPTED (maintainer, 2026-09-09); delivered via Sprints 059-061
 Discovery: maintainer Q&A completed 2026-09-09
 Owner: Planning
 Scope: authoritative public portfolio dashboard direction; sprint scope is

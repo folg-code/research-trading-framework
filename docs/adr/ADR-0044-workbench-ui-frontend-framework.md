@@ -198,5 +198,5 @@ nothing in its place.
 - `docs/adr/ADR-0041-workbench-local-job-runner.md`
 - `docs/product/PRD-research-workbench-mvp.md`
 - `docs/vision/RESEARCH_APPLICATION_PRODUCT_VISION.md` §9
-- `docs/planning/sprints/SPRINT_064.md` T008
+- `docs/archive/phases/phase-17-research-application/SPRINT_064.md` T008
 - `apps/workbench/CLAUDE.md`

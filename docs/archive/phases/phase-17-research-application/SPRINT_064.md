@@ -1,10 +1,12 @@
 # Sprint 064: Signal Research Entry Point, Job Runner and First Workbench Run
 
-Status: **Approved** — maintainer sign-off recorded 2026-09-14 in
-`S064_WAVE0_DECISIONS.md` (D-S064-08 checklist, all items confirmed, two
-deviations from the original proposal: D-S064-03's graceful window raised to
-20s, D-S064-05 extended with a summary-report/session-awareness requirement
-for 17C). `engineer` may start T001 on `sprint/research-application-mvp`.
+Status: **Closed** — merged to `main` via
+[#546](https://github.com/folg-code/research-trading-framework/pull/546),
+2026-09-15 (see Closeout below). Maintainer sign-off to open the sprint was
+recorded 2026-09-14 in `S064_WAVE0_DECISIONS.md` (D-S064-08 checklist, all
+items confirmed, two deviations from the original proposal: D-S064-03's
+graceful window raised to 20s, D-S064-05 extended with a summary-report/
+session-awareness requirement for 17C).
 Goal: Make one Signal Research study runnable end to end from
 `apps/workbench` — chosen from a maintained template, previewed and saved as a
 canonical versioned YAML, validated before side effects, executed as a

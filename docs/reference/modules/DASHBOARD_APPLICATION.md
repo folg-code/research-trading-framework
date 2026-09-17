@@ -154,7 +154,7 @@ Entry page: `Project_Overview.py` with helpers in `dashboard_app.views.overview`
   explicit `Market × Signal × Exit × Risk` strategy composition, independent
   workflow consumers, and workflow-owned persisted evidence. There is no edge
   from Market Data to a research result and no mandatory research pipeline
-  (`docs/planning/DASHBOARD_DEVELOPMENT_DIRECTION.md` §3).
+  (`docs/archive/planning/phase-16/DASHBOARD_DEVELOPMENT_DIRECTION.md` §3).
 - `WORKFLOW_ENTRIES` names all six workflows (Market Data, Signal Research,
   Strategy Research, Robustness Research, Predictive Research, Strategy
   Execution) with a `StudyMaturity` badge each — reused from

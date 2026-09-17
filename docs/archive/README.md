@@ -14,7 +14,7 @@ The phase grouping follows the roadmap's capability tracks. Cross-cutting work h
 - [Phase 05 Signal Research](phases/phase-05-signal-research/README.md) — 8 records
 - [Phase 06 Strategy Research](phases/phase-06-strategy-research/README.md) — 4 records
 - [Phase 07 Robustness Research](phases/phase-07-robustness-research/README.md) — 2 records
-- [Phase 08 Dry Run Execution](phases/phase-08-dry-run-execution/README.md) — 13 records
+- [Phase 08 Dry Run Execution](phases/phase-08-dry-run-execution/README.md) — 14 records
 - [Phase 10 Predictive Research](phases/phase-10-predictive-research/README.md) — 13 records
 - [Phase 11 Operator Cli](phases/phase-11-operator-cli/README.md) — 2 records
 - [Phase 12 Strategy Authoring](phases/phase-12-strategy-authoring/README.md) — 2 records
@@ -22,6 +22,7 @@ The phase grouping follows the roadmap's capability tracks. Cross-cutting work h
 - [Phase 14 Predictive Promotion](phases/phase-14-predictive-promotion/README.md) — 3 records
 - [Phase 15 Predictive Catalog](phases/phase-15-predictive-catalog/README.md) — 5 records
 - [Phase 16 Research Workbench](phases/phase-16-research-workbench/README.md) — 10 records
+- [Phase 17 Research Application](phases/phase-17-research-application/README.md) — 2 records
 
 ## Other historical material
 

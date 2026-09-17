@@ -17,3 +17,4 @@ Historical sprint records and companion artifacts. These files are not a stateme
 | [SPRINT_025.md](SPRINT_025.md) | Sprint 025 - Streamlit Dashboard Polish and VPS Publish |
 | [SPRINT_031.md](SPRINT_031.md) | Sprint 031 — Live Paper in Dashboard |
 | [SPRINT_032.md](SPRINT_032.md) | Sprint 032 — Live Strategy Evaluation Parity |
+| [SPRINT_062.md](SPRINT_062.md) | Sprint 062: BTC Futures Dry-Run on VPS and Dashboard Status Card |

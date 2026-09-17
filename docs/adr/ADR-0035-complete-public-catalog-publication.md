@@ -157,7 +157,7 @@ Sprint 061 T006 migrates their public reads; no framework artifact schema or
 
 - `docs/adr/ADR-0034-portfolio-publication-boundary.md`
 - `docs/planning/sprints/SPRINT_061.md`
-- `docs/planning/DASHBOARD_DEVELOPMENT_DIRECTION.md` §8
+- `docs/archive/planning/phase-16/DASHBOARD_DEVELOPMENT_DIRECTION.md` §8
 - `docs/reference/modules/DASHBOARD_APPLICATION.md`
 - `docs/adr/ADR-0022-repository-top-level-layout.md`
 - `docs/adr/ADR-0002-separate-src-and-user-data.md`

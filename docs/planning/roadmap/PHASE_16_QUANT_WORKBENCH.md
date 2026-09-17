@@ -13,7 +13,7 @@ Bring the independently reached Signal, Strategy, Robustness and Predictive Rese
 | 16A Analyst Verdict Artifact | Complete | [Outcome and criteria](../../archive/planning/phase-16/INCREMENT_16A_ANALYST_VERDICT.md) |
 | 16B SampleSpec Foundation | Complete | [Outcome and criteria](../../archive/planning/phase-16/INCREMENT_16B_SAMPLE_SPEC.md) |
 | 16C Signal Quality Scoring | Complete | [Outcome and criteria](../../archive/planning/phase-16/INCREMENT_16C_SIGNAL_QUALITY.md) |
-| 16D Portfolio Dashboard | In progress | [Portfolio Dashboard plan](PHASE_16D_PORTFOLIO_DASHBOARD.md), [direction](../DASHBOARD_DEVELOPMENT_DIRECTION.md) |
+| 16D Portfolio Dashboard | Complete | [Portfolio Dashboard plan](PHASE_16D_PORTFOLIO_DASHBOARD.md), [direction (archived)](../../archive/planning/phase-16/DASHBOARD_DEVELOPMENT_DIRECTION.md) |
 | 16E Strategy Families | Directional | [Future increment](phase-16/INCREMENT_16E_STRATEGY_FAMILIES.md) |
 | 16F Trade Outcome and No-Trade Models | Directional | [Future increment](phase-16/INCREMENT_16F_TRADE_OUTCOMES.md) |
 | 16G Promotion Candidate Gate | Directional | [Future increment](phase-16/INCREMENT_16G_PROMOTION_GATE.md) |
@@ -36,7 +36,7 @@ The real-data study in Sprint 052 was the entry condition for 16A and later incr
 
 ## 13H.4 — Increment 16D — Portfolio Dashboard
 
-[Current increment plan](PHASE_16D_PORTFOLIO_DASHBOARD.md) and [active sprint](../sprints/SPRINT_062.md).
+[Increment plan](PHASE_16D_PORTFOLIO_DASHBOARD.md) (complete). Sprint 062 (Phase 8A VPS deploy, with a dashboard status-card component) is archived at [phase-08-dry-run-execution/SPRINT_062.md](../../archive/phases/phase-08-dry-run-execution/SPRINT_062.md).
 
 ## 13H.5 — Increment 16E — Strategy Families
 

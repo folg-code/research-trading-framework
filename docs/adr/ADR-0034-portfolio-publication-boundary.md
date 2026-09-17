@@ -17,7 +17,7 @@ Sprint 059 T002–T006.
 
 ## Context
 
-Phase 16 increment 16D (`docs/planning/DASHBOARD_DEVELOPMENT_DIRECTION.md`,
+Phase 16 increment 16D (`docs/archive/planning/phase-16/DASHBOARD_DEVELOPMENT_DIRECTION.md`,
 ACCEPTED 2026-09-09) turns `apps/dashboard` from an artifact browser into a
 public portfolio surface. `docs/product/PRD-portfolio-dashboard-mvp.md`
 scopes the first slice: a refreshed overview plus the BTC Signal Quality
@@ -362,7 +362,7 @@ Research evidence.
   verdict the public path displays verbatim and never generates.
 - `docs/adr/ADR-0033-predictive-score-delivery-boundary.md` — the score path
   whose result the BTC study reports; consumed, not changed.
-- `docs/planning/DASHBOARD_DEVELOPMENT_DIRECTION.md` §3, §6, §7, §8, §10 —
+- `docs/archive/planning/phase-16/DASHBOARD_DEVELOPMENT_DIRECTION.md` §3, §6, §7, §8, §10 —
   the accepted direction this decision implements.
 - `docs/product/PRD-portfolio-dashboard-mvp.md` — the feature scope and the
   publication/lineage non-goals.

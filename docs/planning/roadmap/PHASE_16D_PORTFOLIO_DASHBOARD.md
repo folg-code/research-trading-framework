@@ -1,10 +1,11 @@
 # Phase 16D — Portfolio Dashboard
 
 ```text
-Status: IN PROGRESS
+Status: COMPLETE — first vertical slice and extended completion scope delivered
 Product direction: ACCEPTED (maintainer, 2026-09-09)
 PRD: ACCEPTED (maintainer, 2026-09-09)
-Sprint plans: SPRINT_059 and SPRINT_060 are COMPLETE; SPRINT_061 is ACTIVE
+Sprint plans: SPRINT_059, SPRINT_060 and SPRINT_061 are COMPLETE (archived);
+see docs/planning/CURRENT_STATUS.md for current phase/increment
 ```
 
 This file is the detailed roadmap entry for Phase 16 increment 16D. The phase
@@ -17,9 +18,10 @@ lets a general software developer understand what was built and why, how the
 architecture and independent workflows operate, and which persisted artifacts
 demonstrate the result.
 
-`docs/planning/DASHBOARD_DEVELOPMENT_DIRECTION.md` is authoritative for this
-increment. It replaces the former Quant Lab framing. The dashboard presents
-upstream verdicts and evidence; it does not create an accept/reject opinion.
+[`DASHBOARD_DEVELOPMENT_DIRECTION.md`](../../archive/planning/phase-16/DASHBOARD_DEVELOPMENT_DIRECTION.md)
+was authoritative for this increment and is now archived as delivered. It
+replaced the former Quant Lab framing. The dashboard presents upstream
+verdicts and evidence; it does not create an accept/reject opinion.
 
 ## Planned outcomes
 
@@ -76,15 +78,17 @@ upstream verdicts and evidence; it does not create an accept/reject opinion.
 - **Sprint 060 — Signal Quality Portfolio Evidence (COMPLETE):** publish the
   methodology and the first simplified study view, connect it to the technical
   evidence, and validate the complete desktop walkthrough.
-- **Sprint 061 — Portfolio Story, Content and Direction Completion (ACTIVE):**
-  complete the public narrative, safe study-grouped catalog, representative
-  workflow evidence and immutable production publication lifecycle.
+- **Sprint 061 — Portfolio Story, Content and Direction Completion (COMPLETE,
+  archived):** completed the public narrative, safe study-grouped catalog,
+  representative workflow evidence and immutable production publication
+  lifecycle. See its Closeout in
+  `docs/archive/phases/phase-16-research-workbench/SPRINT_061.md`.
 
 ## Extended completion scope
 
-Sprint 061 pulls the remaining accepted Direction outcomes into the completion
+Sprint 061 pulled the remaining accepted Direction outcomes into the completion
 scope: the study-grouped catalog, one representative result per workflow,
-Engineering, Future Direction and Research & Engineering Notes. This extends
+Engineering, Future Direction and Research & Engineering Notes. This extended
 beyond the first-slice PRD without changing the read-only product boundary.
 
 ## Main risks

@@ -3,7 +3,7 @@
 ```text
 Status: ACCEPTED
 Discovery: maintainer Q&A completed 2026-09-09
-Parent direction: docs/planning/DASHBOARD_DEVELOPMENT_DIRECTION.md
+Parent direction: docs/archive/planning/phase-16/DASHBOARD_DEVELOPMENT_DIRECTION.md
 Approved-by: Filip Folga (folga33@gmail.com), 2026-09-09 — approved this PRD
              scope and the Sprint 059 D059-01 through D059-04 architecture
              recommendations at sprint opening.

@@ -1,10 +1,11 @@
 # Phase 17 — Research Application (Local Workbench)
 
-Status: **ACCEPTED**; 17A/17B **closed** 2026-09-15 via
-[Sprint 064](../sprints/SPRINT_064.md) (see that sprint's Closeout section).
-17C/17D remain directional and unplanned. This is the index for the accepted
-phase; [Current Status](../CURRENT_STATUS.md) is authoritative for active
-sprint work.
+Status: **ACCEPTED**; 17A/17B **closed** 2026-09-15 and merged to `main` via
+[#546](https://github.com/folg-code/research-trading-framework/pull/546), via
+[Sprint 064](../../archive/phases/phase-17-research-application/SPRINT_064.md)
+(see that sprint's Closeout section). 17C/17D remain directional and
+unplanned. This is the index for the accepted phase; [Current Status](../CURRENT_STATUS.md)
+is authoritative for active sprint work.
 
 ## Purpose
 
@@ -64,7 +65,7 @@ chunking exposed as business logic), temp-file + atomic-rename publish to
 preserve the existing "never write invalid/partial data" invariant without
 a second read pass — is recorded in full, including the specific call-site
 changes and blast radius, in
-[`S064_WAVE0_DECISIONS.md`](../sprints/S064_WAVE0_DECISIONS.md)'s D-S064-01
+[`S064_WAVE0_DECISIONS.md`](../../archive/phases/phase-17-research-application/S064_WAVE0_DECISIONS.md)'s D-S064-01
 amendment part 2. 17C's own Wave 0 must treat that direction as bound
 rather than re-deriving it, though the exact batch/row-group size, temp-file
 convention, and Parquet reader implementation remain 17C's own decisions.

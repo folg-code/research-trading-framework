@@ -6,7 +6,7 @@ ACCEPTED (2026-09-10)
 
 Date: 2026-09-10
 Owners: architecture triage (Claude Code session), for
-`docs/planning/sprints/SPRINT_062.md` (T001).
+`docs/archive/phases/phase-08-dry-run-execution/SPRINT_062.md` (T001).
 
 This document records decisions D062-01 through D062-04 as stated in
 `SPRINT_062.md` (all four marked approved/inherited by the maintainer on
@@ -543,7 +543,7 @@ replacing the dashboard deployment stack or the shared edge TLS architecture
   a separate volume from research storage.
 - `docs/adr/ADR-0003-utc-internal-time.md` — UTC timestamps and the host NTP
   prerequisite.
-- `docs/planning/sprints/SPRINT_062.md` — D062-01..D062-04, scope, acceptance
+- `docs/archive/phases/phase-08-dry-run-execution/SPRINT_062.md` — D062-01..D062-04, scope, acceptance
   criteria and integration risks recorded here.
 - `docs/planning/sprints/SPRINT_024.md`, `SPRINT_025.md` — prior execution
   state/read-model and operational hardening work.

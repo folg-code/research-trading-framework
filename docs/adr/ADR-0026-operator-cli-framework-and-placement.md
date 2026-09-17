@@ -377,7 +377,7 @@ this codebase's established convention for spec loading.
 
 ### What happened
 
-Sprint 064 T002 (`docs/planning/sprints/SPRINT_064.md`) adds
+Sprint 064 T002 (`docs/archive/phases/phase-17-research-application/SPRINT_064.md`) adds
 `trading-cli research run signal` as ADR-0038's canonical non-UI entry
 point for Signal Research. `resolve_signal_research_definition()`
 (`trading_framework.application.signal_research`) takes an already-parsed
@@ -431,6 +431,6 @@ boundary.
 - `docs/adr/ADR-0038-canonical-signal-research-configuration-and-templates.md`
 - `docs/product/PRD.md`
 - `docs/planning/sprints/SPRINT_046.md`
-- `docs/planning/sprints/SPRINT_064.md`
+- `docs/archive/phases/phase-17-research-application/SPRINT_064.md`
 - `docs/planning/sprints/S046_WAVE0_DECISIONS.md`
 - `docs/planning/TECHNICAL_DEBT.md` TD-024 (module-granularity boundary gap)

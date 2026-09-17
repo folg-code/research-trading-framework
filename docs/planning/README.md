@@ -4,10 +4,10 @@
 
 ## Active work
 
-- [Sprint 062](sprints/SPRINT_062.md): dry-run VPS deployment and observation; T007 remains.
-- [Sprint 063](sprints/SPRINT_063.md): draft reproducible strategy simulation series.
-- [Phase 16](roadmap/PHASE_16_QUANT_WORKBENCH.md) and [Portfolio Dashboard increment](roadmap/PHASE_16D_PORTFOLIO_DASHBOARD.md).
-- [Dashboard Development Direction](DASHBOARD_DEVELOPMENT_DIRECTION.md).
+No sprint is currently active. See [Current Status](CURRENT_STATUS.md) for the next candidate (17C — Data Manager).
+
+- [Sprint 063](sprints/SPRINT_063.md): draft reproducible strategy simulation series (unapproved).
+- [Phase 17](roadmap/PHASE_17_RESEARCH_APPLICATION.md): 17A/17B complete; 17C/17D directional.
 
 ## Open registers
 

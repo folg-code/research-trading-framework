@@ -10,7 +10,7 @@ Sources:
 - `docs/reference/workflows/STRATEGY_RESEARCH.md`
 - `docs/reference/modules/OPERATOR_CLI.md`
 - `docs/reference/modules/STRATEGY_AUTHORING.md`
-- `docs/planning/DASHBOARD_DEVELOPMENT_DIRECTION.md`
+- `docs/archive/planning/phase-16/DASHBOARD_DEVELOPMENT_DIRECTION.md`
 - `docs/planning/PROBLEM_REGISTRY.md` (`PRB-020`)
 - `apps/cli/examples/research_run_strategy*.yaml`
 - `scripts/strategy_research/run_strategy_research.py`
