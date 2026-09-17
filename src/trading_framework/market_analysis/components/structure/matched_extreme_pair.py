@@ -40,9 +40,9 @@ from trading_framework.market_analysis.models.result import AnalysisResult, Outp
 from trading_framework.market_analysis.storage.workspace import AnalysisWorkspaceView
 
 _COMPONENT_ID = ComponentId("structure.matched_extreme_pair")
-_COMPONENT_VERSION = ComponentVersion("1.0.0")
+_COMPONENT_VERSION = ComponentVersion("1.1.0")
 _IMPLEMENTATION_ID = ImplementationId("numpy.matched_extreme_pair")
-_IMPLEMENTATION_VERSION = ImplementationVersion("1.0.0")
+_IMPLEMENTATION_VERSION = ImplementationVersion("1.1.0")
 
 _SWING_ID = ComponentId("structure.swing")
 _ATR_ID = ComponentId("volatility.atr")
@@ -56,6 +56,8 @@ _LATEST_SWING_LOW_LEVEL = OutputId("latest_swing_low_level")
 
 _MATCHED_HIGH_EVENT = OutputId("matched_high_event")
 _MATCHED_LOW_EVENT = OutputId("matched_low_event")
+_LATEST_MATCHED_HIGH_LEVEL = OutputId("latest_matched_high_level")
+_LATEST_MATCHED_LOW_LEVEL = OutputId("latest_matched_low_level")
 
 _PARAMETER_SCHEMA = ParameterSchema(
     fields=(
@@ -68,8 +70,22 @@ _OUTPUT_SCHEMA = OutputSchema(
     outputs=(
         OutputFieldSpec(_MATCHED_HIGH_EVENT, "float64"),
         OutputFieldSpec(_MATCHED_LOW_EVENT, "float64"),
+        OutputFieldSpec(_LATEST_MATCHED_HIGH_LEVEL, "float64"),
+        OutputFieldSpec(_LATEST_MATCHED_LOW_LEVEL, "float64"),
     )
 )
+
+
+def _forward_fill_on_event(event: np.ndarray, level_when_event: np.ndarray) -> np.ndarray:
+    """Carry the most recent ``level_when_event`` forward from each ``event
+    == 1.0`` bar until the next one; ``NaN`` before the first event."""
+    candidate = np.where(event == 1.0, level_when_event, np.nan)
+    has_value = ~np.isnan(candidate)
+    fill_index = np.where(has_value, np.arange(candidate.shape[0]), 0)
+    np.maximum.accumulate(fill_index, out=fill_index)
+    forward_filled: np.ndarray = candidate[fill_index]
+    forward_filled[~np.maximum.accumulate(has_value)] = np.nan
+    return forward_filled
 
 
 def _dependency_result_for(
@@ -95,6 +111,14 @@ class MatchedExtremePairComponent:
     high's level -- two highs close enough to be "the same" level.
     ``matched_low_event`` is the mirror for swing lows. The first swing of
     either type has nothing to compare against and never matches.
+
+    ``latest_matched_high_level``/``latest_matched_low_level`` carry the
+    matching swing's own price forward from each match event until the
+    next one (``NaN`` before the first match ever occurs) -- the
+    continuous "double-top"/"double-bottom" level this component's event
+    flags alone cannot express, added so a consumer (e.g.
+    ``structure.distance_to_level``) has an actual level value to measure
+    distance to, not just a boolean.
 
     Depends on ``structure.swing`` (keyed by ``pivot_range``) and
     ``volatility.atr`` (keyed by ``period``). Warm-up: ``max(0, period - 1)``
@@ -199,9 +223,14 @@ class NumpyMatchedExtremePairImplementation:
         matched_high = np.where((swing_high_event == 1.0) & high_within_tolerance, 1.0, 0.0)
         matched_low = np.where((swing_low_event == 1.0) & low_within_tolerance, 1.0, 0.0)
 
+        latest_matched_high_level = _forward_fill_on_event(matched_high, swing_high_price)
+        latest_matched_low_level = _forward_fill_on_event(matched_low, swing_low_price)
+
         outputs: dict[OutputId, OutputSeries] = {
             _MATCHED_HIGH_EVENT: ndarray_to_output_series(matched_high),
             _MATCHED_LOW_EVENT: ndarray_to_output_series(matched_low),
+            _LATEST_MATCHED_HIGH_LEVEL: ndarray_to_output_series(latest_matched_high_level),
+            _LATEST_MATCHED_LOW_LEVEL: ndarray_to_output_series(latest_matched_low_level),
         }
         warmup_bars = max(0, period - 1)
         dependency_keys = tuple(sorted(workspace.dependency_results))

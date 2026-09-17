@@ -4,6 +4,10 @@ from trading_framework.market_analysis.components.structure.close_reversal_level
     CloseReversalLevelComponent,
     NumpyCloseReversalLevelImplementation,
 )
+from trading_framework.market_analysis.components.structure.distance_to_level import (
+    DistanceToLevelComponent,
+    NumpyDistanceToLevelImplementation,
+)
 from trading_framework.market_analysis.components.structure.impulse_follow_through import (
     ImpulseFollowThroughComponent,
     NumpyImpulseFollowThroughImplementation,
@@ -47,6 +51,7 @@ from trading_framework.market_analysis.components.structure.swing import (
 
 __all__ = [
     "CloseReversalLevelComponent",
+    "DistanceToLevelComponent",
     "ImpulseFollowThroughComponent",
     "ImpulseOriginRangeComponent",
     "LevelDistanceComponent",
@@ -54,6 +59,7 @@ __all__ = [
     "LevelSweepRejectionComponent",
     "MatchedExtremePairComponent",
     "NumpyCloseReversalLevelImplementation",
+    "NumpyDistanceToLevelImplementation",
     "NumpyImpulseFollowThroughImplementation",
     "NumpyImpulseOriginRangeImplementation",
     "NumpyLevelDistanceImplementation",
