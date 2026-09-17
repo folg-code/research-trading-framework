@@ -279,3 +279,29 @@ invented, per D-S055-04's no-new-prose discipline.
   of volatility itself, not of price. Depends on `volatility.atr` keyed by
   `period`. Warm-up: `period` bars (ATR's own `period - 1` warmup, plus one
   more bar so both `atr[i]` and `atr[i-1]` are valid).
+- **`volatility.choppiness_index`** — `volatility.choppiness_index(period=14)`.
+  `100 * log10(sum(true_range, period) / (max(high, period) -
+  min(low, period))) / log10(period)`. High (near 100) means the period's
+  total true-range path length is close to its net high/low range (choppy,
+  range-bound); low (near 0) means the path length greatly exceeds the net
+  range (a sustained trend). `period` requires `minimum=2`
+  (`log10(1) == 0` would zero the denominator regardless of the price
+  data). Depends on `volatility.true_range`; `max(high)`/`min(low)` are
+  computed directly. Zero-denominator convention: a perfectly flat window
+  forces both the numerator and denominator to `0.0` together, which reads
+  as `0.0`, this catalog's ordinary case. Warm-up: `period - 1` bars.
+- **`volatility.regime_state`** — `volatility.regime_state(fast_period=5,
+  slow_period=20, compression_threshold=0.85, expansion_threshold=1.15)`.
+  `ratio = atr(fast_period) / atr(slow_period)`; `state = -1.0`
+  ("compression") when `ratio < compression_threshold`, `1.0`
+  ("expansion") when `ratio > expansion_threshold`, else `0.0`
+  ("balanced"). A second, ratio-based volatility-state vocabulary distinct
+  from `volatility.state`'s single-ATR/fixed-threshold LOW/HIGH split.
+  Requires `fast_period < slow_period` (rejected otherwise, matching
+  `momentum.macd`'s convention). Depends on two `volatility.atr` outputs
+  (one per period). Zero-denominator convention: a `0.0` slow ATR (a
+  perfectly flat window) yields `ratio = 0.0`, deliberately NOT the
+  catalog's usual "0.0 is neutral" reading — a flat slow window is itself
+  the most-compressed case, so it falls into `state = -1.0` through the
+  same comparison as any other low ratio. Warm-up: the slower ATR's own
+  `valid_from_index`.
