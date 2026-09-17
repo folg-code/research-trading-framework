@@ -100,7 +100,9 @@ from trading_framework.market_analysis.components.volume import (
     CumulativeTrendComponent,
     NumpyCumulativeTrendImplementation,
     NumpyRollingWeightedPriceImplementation,
+    NumpySessionWeightedPriceImplementation,
     RollingWeightedPriceComponent,
+    SessionWeightedPriceComponent,
 )
 from trading_framework.market_analysis.registry.registry import ComponentRegistry
 
@@ -430,6 +432,15 @@ def register_fibonacci_extension_level_component(registry: ComponentRegistry) ->
     )
 
 
+def register_session_weighted_price_component(registry: ComponentRegistry) -> None:
+    """Register the Session Weighted Price component."""
+    registry.register(
+        SessionWeightedPriceComponent(),
+        NumpySessionWeightedPriceImplementation(),
+        default=True,
+    )
+
+
 def register_mvp_components(registry: ComponentRegistry) -> None:
     """Register Sprint 003 MVP feature and state components."""
     register_volatility_components(registry)
@@ -473,6 +484,7 @@ def register_mvp_components(registry: ComponentRegistry) -> None:
     register_distance_to_level_component(registry)
     register_fibonacci_retracement_level_component(registry)
     register_fibonacci_extension_level_component(registry)
+    register_session_weighted_price_component(registry)
 
 
 def default_mvp_registry() -> ComponentRegistry:
@@ -520,6 +532,7 @@ __all__ = [
     "register_rolling_weighted_price_component",
     "register_rolling_window_position_component",
     "register_session_range_component",
+    "register_session_weighted_price_component",
     "register_slope_component",
     "register_smoothed_ohlc_component",
     "register_statistics_return_autocorrelation_component",

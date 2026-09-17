@@ -436,3 +436,21 @@ invented, per D-S055-04's no-new-prose discipline.
   zero-denominator case. `NaN` until both extremes have been confirmed at
   least once. Depends on `structure.swing` (keyed by `pivot_range`).
   Warm-up: the dependency's own `valid_from_index`.
+- **`volume.session_weighted_price`** — `volume.session_weighted_price(band_multiplier=2.0)`
+  (IDEA-031, the deferred session-anchored VWAP variant of
+  `volume.rolling_weighted_price`). Accumulated from each RTH session's
+  own start, per `structure.session_range`'s exact session-boundary
+  convention (a new session starts at the first RTH bar of a trading day,
+  or the first RTH bar after a non-RTH gap) — not a fixed rolling bar
+  count. Outside RTH, every output is `NaN`. `typical_price = (high + low
+  + close) / 3`; `value` is the session-so-far volume-weighted average of
+  `typical_price`; `deviation` is the session-so-far volume-weighted
+  standard deviation around `value`; `upper_band`/`lower_band` are `value
+  +/- band_multiplier * deviation`. Zero-volume convention: a session with
+  no volume at all so far leaves every output `NaN` (same deliberate
+  divergence from the ordinary zero-denominator convention as
+  `volume.rolling_weighted_price`, since these are raw price levels, not
+  ratios). No component dependency — reads OHLCV and the run's own session
+  metadata (`is_rth`/`trading_day`) directly. No warm-up in the usual
+  bar-count sense: every RTH bar is valid from its own session's first
+  bar.
