@@ -21,8 +21,10 @@ from trading_framework.market_analysis.components.statistics import (
 from trading_framework.market_analysis.components.structure import (
     LevelDistanceComponent,
     NumpyLevelDistanceImplementation,
+    NumpyOpeningGapImplementation,
     NumpySessionRangeImplementation,
     NumpySwingStructureImplementation,
+    OpeningGapComponent,
     SessionRangeComponent,
     SwingStructureComponent,
 )
@@ -160,6 +162,11 @@ def register_statistics_return_distribution_component(registry: ComponentRegistr
     )
 
 
+def register_opening_gap_component(registry: ComponentRegistry) -> None:
+    """Register the Opening Gap component."""
+    registry.register(OpeningGapComponent(), NumpyOpeningGapImplementation(), default=True)
+
+
 def register_mvp_components(registry: ComponentRegistry) -> None:
     """Register Sprint 003 MVP feature and state components."""
     register_volatility_components(registry)
@@ -177,6 +184,7 @@ def register_mvp_components(registry: ComponentRegistry) -> None:
     register_momentum_stochastic_component(registry)
     register_statistics_return_autocorrelation_component(registry)
     register_statistics_return_distribution_component(registry)
+    register_opening_gap_component(registry)
 
 
 def default_mvp_registry() -> ComponentRegistry:
@@ -196,6 +204,7 @@ __all__ = [
     "register_momentum_rsi_component",
     "register_momentum_stochastic_component",
     "register_mvp_components",
+    "register_opening_gap_component",
     "register_range_expansion_component",
     "register_relative_volatility_component",
     "register_session_range_component",

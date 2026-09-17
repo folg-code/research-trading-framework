@@ -11,5 +11,6 @@ PRDs record accepted feature requirements and their scope at the time of approva
 | ML signal promotion | [ML Signal Promotion](PRD-ml-signal-promotion.md) |
 | Strategy authoring | [Strategy Authoring](PRD-strategy-authoring.md) |
 | Exit/risk and catalog expansion | [Exit/Risk and Catalog](PRD-exit-risk-and-catalog-expansion.md) |
+| Market Analysis catalog expansion (2026-09 batch) | [Market Analysis Catalog Expansion](PRD-market-analysis-catalog-expansion-2026-09.md) |
 
 The [Roadmap](../planning/ROADMAP.md) gives phase status and sequencing. Completed delivery evidence is in the [Archive](../archive/README.md).
