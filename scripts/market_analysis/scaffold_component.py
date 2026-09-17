@@ -1,16 +1,18 @@
 """Scaffold a new Market Analysis component.
 
-Generates a component/implementation file skeleton and a component-contract
-test stub, matching the existing hand-written registration pattern in
+Generates a component/implementation file skeleton, a component-contract
+test stub, and the registration wiring into the pack's ``__init__.py`` and
+``registry/builtins.py`` -- matching the existing hand-written pattern in
 ``trading_framework.market_analysis.components`` exactly (see e.g.
-``components/structure/level_distance.py``). Registration wiring into
-``registry/builtins.py`` and a catalog-doc stub are separate, later pieces
-of this same tool (Phase 19 Sprint 065 T002/T003) -- not implemented here.
+``components/structure/level_distance.py``). A catalog-doc stub is a
+separate, later piece of this same tool (Phase 19 Sprint 065 T003) -- not
+implemented here.
 
 Design authority: ``docs/planning/roadmap/PHASE_19_WAVE0_DECISIONS.md``
 D-P19-01 (ACCEPTED, maintainer, 2026-09-17). This script deliberately does
 not guess a component's formula, parameter defaults or output shape -- the
-author fills those in by hand.
+author fills those in by hand. The registration patch is a simple
+text-anchor insertion, not an AST rewrite, per the same decision.
 """
 
 from __future__ import annotations
@@ -77,6 +79,25 @@ class ScaffoldRequest:
     @property
     def test_file(self) -> Path:
         return self.repo_root / "tests" / "unit" / "market_analysis" / f"test_{self.name}.py"
+
+    @property
+    def pack_init_file(self) -> Path:
+        return self.component_file.parent / "__init__.py"
+
+    @property
+    def builtins_file(self) -> Path:
+        return (
+            self.repo_root
+            / "src"
+            / "trading_framework"
+            / "market_analysis"
+            / "registry"
+            / "builtins.py"
+        )
+
+    @property
+    def register_function_name(self) -> str:
+        return f"register_{self.name}_component"
 
 
 def _parse_component_id(component_id: str, pack_arg: str | None) -> tuple[str, str]:
@@ -246,11 +267,152 @@ def test_{request.name}_component_registers() -> None:
 '''
 
 
-def write_scaffold(request: ScaffoldRequest) -> tuple[Path, Path]:
-    """Write the component and test files. Refuses to overwrite either."""
+_MODULE_IMPORT_BLOCK_RE_TEMPLATE = (
+    r"from trading_framework\.market_analysis\.components\.{pack}\.(\w+) import \(\n"
+    r"((?:    \w+,\n)+)\)\n"
+)
+_PACK_LEVEL_IMPORT_BLOCK_RE = re.compile(
+    r"from trading_framework\.market_analysis\.components\.(\w+) import \(\n"
+    r"((?:    \w+,\n)+)\)\n"
+)
+_ALL_BLOCK_RE = re.compile(r'__all__ = \[\n((?:    "[\w.]+",\n)+)\]\n')
+
+
+def _names_from_block(names_block: str) -> list[str]:
+    return [line.strip().rstrip(",") for line in names_block.strip().splitlines()]
+
+
+def render_pack_init(pack: str, blocks: dict[str, list[str]]) -> str:
+    """Render a pack ``__init__.py`` from its (module -> class names) blocks."""
+    pretty = pack.replace("_", " ").capitalize()
+    lines = [f'"""{pretty}-related Market Analysis components."""', ""]
+    for module in sorted(blocks):
+        names = sorted(blocks[module])
+        lines.append(f"from trading_framework.market_analysis.components.{pack}.{module} import (")
+        lines.extend(f"    {name}," for name in names)
+        lines.append(")")
+    lines.append("")
+    lines.append("__all__ = [")
+    all_names = sorted({name for names in blocks.values() for name in names})
+    lines.extend(f'    "{name}",' for name in all_names)
+    lines.append("]")
+    return "\n".join(lines) + "\n"
+
+
+def patch_pack_init(request: ScaffoldRequest) -> str:
+    """Return the new content for the pack's ``__init__.py``, module block added."""
+    new_names = [request.component_class_name, request.implementation_class_name]
+    if not request.pack_init_file.exists():
+        return render_pack_init(request.pack, {request.name: new_names})
+
+    text = request.pack_init_file.read_text(encoding="utf-8")
+    module_re = re.compile(_MODULE_IMPORT_BLOCK_RE_TEMPLATE.format(pack=request.pack))
+    blocks: dict[str, list[str]] = {
+        module: _names_from_block(names_block) for module, names_block in module_re.findall(text)
+    }
+    if request.name in blocks:
+        raise ValueError(f"{request.pack_init_file} already imports a '{request.name}' module")
+    blocks[request.name] = new_names
+    return render_pack_init(request.pack, blocks)
+
+
+def _render_register_function(request: ScaffoldRequest) -> str:
+    pretty = " ".join(word.capitalize() for word in request.name.split("_"))
+    single_line = (
+        f"    registry.register({request.component_class_name}(), "
+        f"{request.implementation_class_name}(), default=True)"
+    )
+    call_body = (
+        single_line
+        if len(single_line) <= 100
+        else (
+            "    registry.register(\n"
+            f"        {request.component_class_name}(),\n"
+            f"        {request.implementation_class_name}(),\n"
+            "        default=True,\n"
+            "    )"
+        )
+    )
+    return (
+        f"def {request.register_function_name}(registry: ComponentRegistry) -> None:\n"
+        f'    """Register the {pretty} component."""\n'
+        f"{call_body}\n"
+    )
+
+
+def patch_builtins(request: ScaffoldRequest) -> str:
+    """Return the new content for ``registry/builtins.py``, this component wired in."""
+    text = request.builtins_file.read_text(encoding="utf-8")
+
+    if request.component_class_name in text or request.implementation_class_name in text:
+        raise ValueError(
+            f"{request.builtins_file} already references "
+            f"{request.component_class_name} or {request.implementation_class_name}"
+        )
+
+    # 1. Pack-level import block (from components.<pack> import (...)).
+    import_matches = list(_PACK_LEVEL_IMPORT_BLOCK_RE.finditer(text))
+    if not import_matches:
+        raise ValueError(f"could not find any pack-level import block in {request.builtins_file}")
+    pack_blocks: dict[str, list[str]] = {
+        pack: _names_from_block(names_block)
+        for pack, names_block in (m.groups() for m in import_matches)
+    }
+    new_names = {request.component_class_name, request.implementation_class_name}
+    pack_blocks[request.pack] = sorted({*pack_blocks.get(request.pack, []), *new_names})
+    new_import_region = "".join(
+        f"from trading_framework.market_analysis.components.{pack} import (\n"
+        + "".join(f"    {name},\n" for name in sorted(names))
+        + ")\n"
+        for pack, names in sorted(pack_blocks.items())
+    )
+    text = text[: import_matches[0].start()] + new_import_region + text[import_matches[-1].end() :]
+
+    # 2. A new `register_<name>_component` function, right before `register_mvp_components`.
+    function_anchor = "\n\n\ndef register_mvp_components("
+    if function_anchor not in text:
+        raise ValueError(f"could not find {function_anchor!r} anchor in {request.builtins_file}")
+    new_function = _render_register_function(request)
+    text = text.replace(
+        function_anchor,
+        f"\n\n\n{new_function}\n\ndef register_mvp_components(",
+        1,
+    )
+
+    # 3. A call to it, at the end of `register_mvp_components`'s body.
+    call_anchor = "\n\n\ndef default_mvp_registry("
+    if call_anchor not in text:
+        raise ValueError(f"could not find {call_anchor!r} anchor in {request.builtins_file}")
+    text = text.replace(
+        call_anchor,
+        f"\n    {request.register_function_name}(registry){call_anchor}",
+        1,
+    )
+
+    # 4. The `__all__` list, kept sorted.
+    all_match = _ALL_BLOCK_RE.search(text)
+    if all_match is None:
+        raise ValueError(f"could not find __all__ block in {request.builtins_file}")
+    existing_all = re.findall(r'"([\w.]+)"', all_match.group(1))
+    combined_all = sorted({*existing_all, request.register_function_name})
+    new_all_block = "__all__ = [\n" + "".join(f'    "{name}",\n' for name in combined_all) + "]\n"
+    text = text[: all_match.start()] + new_all_block + text[all_match.end() :]
+
+    return text
+
+
+def write_scaffold(request: ScaffoldRequest) -> tuple[Path, Path, Path, Path]:
+    """Write the component and test files, and patch the two registration files.
+
+    Refuses to touch anything if the component/test files already exist or if
+    the target classes already appear in the registration files.
+    """
     for path in (request.component_file, request.test_file):
         if path.exists():
             raise FileExistsError(f"refusing to overwrite existing file: {path}")
+
+    new_pack_init = patch_pack_init(request)
+    new_builtins = patch_builtins(request)
 
     request.component_file.parent.mkdir(parents=True, exist_ok=True)
     request.component_file.write_text(
@@ -260,7 +422,10 @@ def write_scaffold(request: ScaffoldRequest) -> tuple[Path, Path]:
     request.test_file.parent.mkdir(parents=True, exist_ok=True)
     request.test_file.write_text(render_test_file(request), encoding="utf-8", newline="\n")
 
-    return request.component_file, request.test_file
+    request.pack_init_file.write_text(new_pack_init, encoding="utf-8", newline="\n")
+    request.builtins_file.write_text(new_builtins, encoding="utf-8", newline="\n")
+
+    return request.component_file, request.test_file, request.pack_init_file, request.builtins_file
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -318,17 +483,18 @@ def main(argv: list[str] | None = None) -> int:
         parser.error(str(exc))
 
     try:
-        component_file, test_file = write_scaffold(request)
-    except FileExistsError as exc:
+        component_file, test_file, pack_init_file, builtins_file = write_scaffold(request)
+    except (FileExistsError, ValueError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
 
     print(f"wrote {component_file}")
     print(f"wrote {test_file}")
+    print(f"patched {pack_init_file}")
+    print(f"patched {builtins_file}")
     print(
-        "Registration into registry/builtins.py and the "
-        "ANALYSIS_COMPONENT_CATALOG.md stub are not yet automated "
-        "(Phase 19 Sprint 065 T002/T003) -- wire this component in by hand for now."
+        "The ANALYSIS_COMPONENT_CATALOG.md stub is not yet automated "
+        "(Phase 19 Sprint 065 T003) -- add that entry by hand for now."
     )
     return 0
 
