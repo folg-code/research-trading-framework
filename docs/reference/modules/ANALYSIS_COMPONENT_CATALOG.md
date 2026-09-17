@@ -224,7 +224,13 @@ invented, per D-S055-04's no-new-prose discipline.
   if that swing high's price is within `tolerance_atr_multiple * atr` of
   the *previous* confirmed swing high's level. `matched_low_event` is the
   mirror. The first swing of either type has nothing to compare against
-  and never matches. Depends on `structure.swing` (keyed by `pivot_range`)
+  and never matches. `latest_matched_high_level`/`latest_matched_low_level`
+  (added Sprint 067 T002, `ComponentVersion` bumped to `1.1.0`, additive —
+  existing fields unchanged) carry the matching swing's own price forward
+  from each match event until the next one (`NaN` before the first match),
+  giving a consumer (e.g. `structure.distance_to_level`) an actual
+  continuous level to measure distance to, not just a boolean event.
+  Depends on `structure.swing` (keyed by `pivot_range`)
   and `volatility.atr` (keyed by `period`). Warm-up: `max(0, period - 1)`
   bars (the ATR's own warmup; a bar within `structure.swing`'s own warmup
   simply has no swing event to test).
@@ -364,3 +370,87 @@ invented, per D-S055-04's no-new-prose discipline.
   catalog's ordinary zero-denominator convention), from which the
   `"normal"` percentile falls out as `0.5`. Warm-up: the source ATR's own
   `valid_from_index` plus `window - 1` further bars.
+- **`trend.normalized_slope`** — `trend.normalized_slope(slope_period=20,
+  volatility_period=20, baseline_period=100)` (IDEA-029). `value =
+  trend.slope(slope_period) / volatility.relative_volatility(
+  volatility_period, baseline_period).value` — the shared normalizer
+  decided once for the whole IDEA-029 pack (D-P19-02), comparable across
+  volatility regimes unlike `trend.slope`'s raw price-per-bar units.
+  Depends on `trend.slope` and `volatility.relative_volatility`.
+  Zero-denominator convention: this catalog's ordinary convention — a
+  flat volatility window (`value == 0.0`) defines `value = 0.0` (a flat
+  close window also makes the slope itself `0.0`). Warm-up: the later of
+  the two dependencies' own `valid_from_index`.
+- **`momentum.normalized_rate_of_change`** — `momentum.normalized_rate_of_change(
+  lookback=10, volatility_period=20, baseline_period=100)` (IDEA-029).
+  `raw = ln(close[i] / close[i - lookback])`, computed directly (no
+  `momentum.rate_of_change` component exists to depend on); `value = raw
+  / volatility.relative_volatility(volatility_period,
+  baseline_period).value`, the same shared normalizer as
+  `trend.normalized_slope`. Depends on `volatility.relative_volatility`
+  only. Zero-denominator convention: this catalog's ordinary convention —
+  a flat volatility window defines `value = 0.0`. Warm-up: the later of
+  `lookback` bars and the volatility dependency's own `valid_from_index`.
+- **`structure.distance_to_level`** — `structure.distance_to_level(period=14,
+  pivot_range=2, tolerance_atr_multiple=0.1)` (IDEA-032, D-P19-03).
+  Generalizes `structure.level_distance` (kept exactly as-is, single
+  source) to six always-present, fixed named `distance_to_<source>_atr`
+  fields — **not** a caller-configurable `level_sources` subset as
+  originally proposed: architecture triage found the registry has no
+  mechanism for a component's `OutputSchema` to vary per `ComponentRequest`
+  (one singleton instance per `component_id`, `output_schema` a plain
+  property with no parameters), so all six fields are always declared and
+  computed. `distance_to_<source>_atr = (source_high - close) / atr` for a
+  "high" source, `(close - source_low) / atr` for a "low" source, matching
+  `structure.level_distance`'s sign convention. Sources: `session_high`/
+  `session_low` (`structure.session_range`), `previous_day_high`/
+  `previous_day_low` (`session.previous_period_extreme(period="day",
+  ...)`), `matched_extreme_pair_high`/`matched_extreme_pair_low`
+  (`structure.matched_extreme_pair`'s `latest_matched_*_level`, added in
+  this same task). Zero-denominator convention: `atr == 0.0` defines a
+  distance as `0.0` **only when the level itself is a real number** — a
+  `NaN` level (no previous day closed yet, no match yet, outside the
+  session) stays `NaN` regardless of ATR, never conflated with the
+  zero-ATR case. Warm-up: the latest of all five dependencies' own
+  `valid_from_index`.
+- **`structure.fibonacci_retracement_level`** — `structure.fibonacci_retracement_level(pivot_range=2,
+  ratio=0.618)` (IDEA-032). The "active leg" runs between
+  `structure.swing`'s latest confirmed swing high/low, in whichever
+  direction was confirmed most recently (compared by their own
+  `latest_swing_*_observed_index`): an up-leg (`low -> high`) or a
+  down-leg (`high -> low`). `range = high - low`; `value = high - ratio *
+  range` on an up-leg (pulls back toward the low), `value = low + ratio *
+  range` on a down-leg (pulls back toward the high). No zero-denominator
+  case — a linear interpolation, never a division. `NaN` until both a
+  swing high and a swing low have been confirmed at least once. Depends on
+  `structure.swing` (keyed by `pivot_range`). Warm-up: the dependency's
+  own `valid_from_index`.
+- **`structure.fibonacci_extension_level`** — `structure.fibonacci_extension_level(pivot_range=2,
+  ratio=1.618)` (IDEA-032). Same active-leg definition as
+  `structure.fibonacci_retracement_level`, but projecting BEYOND the
+  leg's own most recent extreme in its original direction rather than
+  pulling back into it — the same two formulas, swapped by direction:
+  `value = low + ratio * range` on an up-leg (projects beyond the high),
+  `value = high - ratio * range` on a down-leg (projects beyond the low).
+  `ratio > 1.0` is the conventional usage (not enforced as a minimum). No
+  zero-denominator case. `NaN` until both extremes have been confirmed at
+  least once. Depends on `structure.swing` (keyed by `pivot_range`).
+  Warm-up: the dependency's own `valid_from_index`.
+- **`volume.session_weighted_price`** — `volume.session_weighted_price(band_multiplier=2.0)`
+  (IDEA-031, the deferred session-anchored VWAP variant of
+  `volume.rolling_weighted_price`). Accumulated from each RTH session's
+  own start, per `structure.session_range`'s exact session-boundary
+  convention (a new session starts at the first RTH bar of a trading day,
+  or the first RTH bar after a non-RTH gap) — not a fixed rolling bar
+  count. Outside RTH, every output is `NaN`. `typical_price = (high + low
+  + close) / 3`; `value` is the session-so-far volume-weighted average of
+  `typical_price`; `deviation` is the session-so-far volume-weighted
+  standard deviation around `value`; `upper_band`/`lower_band` are `value
+  +/- band_multiplier * deviation`. Zero-volume convention: a session with
+  no volume at all so far leaves every output `NaN` (same deliberate
+  divergence from the ordinary zero-denominator convention as
+  `volume.rolling_weighted_price`, since these are raw price levels, not
+  ratios). No component dependency — reads OHLCV and the run's own session
+  metadata (`is_rth`/`trading_day`) directly. No warm-up in the usual
+  bar-count sense: every RTH bar is valid from its own session's first
+  bar.

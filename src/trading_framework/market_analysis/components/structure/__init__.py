@@ -4,6 +4,18 @@ from trading_framework.market_analysis.components.structure.close_reversal_level
     CloseReversalLevelComponent,
     NumpyCloseReversalLevelImplementation,
 )
+from trading_framework.market_analysis.components.structure.distance_to_level import (
+    DistanceToLevelComponent,
+    NumpyDistanceToLevelImplementation,
+)
+from trading_framework.market_analysis.components.structure.fibonacci_extension_level import (
+    FibonacciExtensionLevelComponent,
+    NumpyFibonacciExtensionLevelImplementation,
+)
+from trading_framework.market_analysis.components.structure.fibonacci_retracement_level import (
+    FibonacciRetracementLevelComponent,
+    NumpyFibonacciRetracementLevelImplementation,
+)
 from trading_framework.market_analysis.components.structure.impulse_follow_through import (
     ImpulseFollowThroughComponent,
     NumpyImpulseFollowThroughImplementation,
@@ -47,6 +59,9 @@ from trading_framework.market_analysis.components.structure.swing import (
 
 __all__ = [
     "CloseReversalLevelComponent",
+    "DistanceToLevelComponent",
+    "FibonacciExtensionLevelComponent",
+    "FibonacciRetracementLevelComponent",
     "ImpulseFollowThroughComponent",
     "ImpulseOriginRangeComponent",
     "LevelDistanceComponent",
@@ -54,6 +69,9 @@ __all__ = [
     "LevelSweepRejectionComponent",
     "MatchedExtremePairComponent",
     "NumpyCloseReversalLevelImplementation",
+    "NumpyDistanceToLevelImplementation",
+    "NumpyFibonacciExtensionLevelImplementation",
+    "NumpyFibonacciRetracementLevelImplementation",
     "NumpyImpulseFollowThroughImplementation",
     "NumpyImpulseOriginRangeImplementation",
     "NumpyLevelDistanceImplementation",

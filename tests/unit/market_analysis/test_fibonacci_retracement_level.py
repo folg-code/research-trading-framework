@@ -1,9 +1,10 @@
-"""Tests for the causal Structure Matched Extreme Pair ("equal highs/lows") component."""
+"""Tests for the causal Structure Fibonacci Retracement Level component (IDEA-032)."""
 
 from datetime import UTC, datetime
 from decimal import Decimal
 
 import numpy as np
+import pytest
 
 from trading_framework.core.identifiers import Identifier
 from trading_framework.core.types import Price, Volume
@@ -16,7 +17,9 @@ from trading_framework.market_analysis import (
     TimeRange,
 )
 from trading_framework.market_analysis.assembly.session_metadata import TradingSessionMetadata
-from trading_framework.market_analysis.components.structure import MatchedExtremePairComponent
+from trading_framework.market_analysis.components.structure import (
+    FibonacciRetracementLevelComponent,
+)
 from trading_framework.market_analysis.data.view import AnalysisDataView
 from trading_framework.market_analysis.execution import SequentialBatchExecutor
 from trading_framework.market_analysis.models.kind import Causality, ComponentKind
@@ -32,9 +35,11 @@ from trading_framework.market_analysis.registry.registry import ComponentRegistr
 from trading_framework.time.models.timeframe import Timeframe
 from trading_framework.time.sessions import CmeEsRthSessionResolver
 
-# pivot_range=1: a swing high at p is confirmed at t=p+1 when high[t] <= high[p].
-# Two peaks, at index 1 (high=110) and index 4 (high=115), each confirmed one
-# bar later (index 2, index 5).
+# pivot_range=1. Swing highs confirm at (detection=2, pivot=1, price=110),
+# (detection=3, pivot=2, price=106), ... Swing lows confirm at
+# (detection=1, pivot=0, price=99), (detection=2, pivot=1, price=100),
+# (detection=4, pivot=3, price=102), ... Same fixture as
+# test_matched_extreme_pair.py.
 _ROWS: tuple[tuple[datetime, float, float, float, float], ...] = (
     (datetime(2024, 6, 3, 13, 30, tzinfo=UTC), 100.0, 100.0, 99.0, 100.0),
     (datetime(2024, 6, 3, 13, 31, tzinfo=UTC), 100.0, 110.0, 100.0, 105.0),
@@ -83,18 +88,18 @@ def _context(*, start: datetime, end: datetime, source_id: str) -> AnalysisConte
     )
 
 
-def _run(*, tolerance_atr_multiple: float, source_id: str) -> AnalysisResult:
+def _run(*, ratio: float, source_id: str) -> AnalysisResult:
     view = AnalysisDataView.from_bars(_bars(_ROWS))
     resolver = CmeEsRthSessionResolver()
     metadata = TradingSessionMetadata.resolve(view.timestamps, resolver)
     registry = ComponentRegistry()
     register_mvp_components(registry)
     planner = DependencyPlanner(registry)
-    parameters = MatchedExtremePairComponent().parameter_schema.canonicalize(
-        {"pivot_range": 1, "period": 1, "tolerance_atr_multiple": tolerance_atr_multiple}
+    parameters = FibonacciRetracementLevelComponent().parameter_schema.canonicalize(
+        {"pivot_range": 1, "ratio": ratio}
     )
     request = ComponentRequest(
-        component_id=ComponentId("structure.matched_extreme_pair"),
+        component_id=ComponentId("structure.fibonacci_retracement_level"),
         parameters=parameters,
     )
     context = _context(start=view.timestamps[0], end=view.timestamps[-1], source_id=source_id)
@@ -114,54 +119,44 @@ def _run(*, tolerance_atr_multiple: float, source_id: str) -> AnalysisResult:
         session_resolver=resolver,
     )
     for result in executed.result_store.results().values():
-        if result.computation_identity.component_id.value == "structure.matched_extreme_pair":
+        if (
+            result.computation_identity.component_id.value
+            == "structure.fibonacci_retracement_level"
+        ):
             return result
-    raise AssertionError("structure.matched_extreme_pair not computed")
+    raise AssertionError("structure.fibonacci_retracement_level not computed")
 
 
-def test_matched_extreme_pair_component_declares_shape() -> None:
-    component = MatchedExtremePairComponent()
-    assert component.component_id.value == "structure.matched_extreme_pair"
+def test_fibonacci_retracement_level_component_declares_shape() -> None:
+    component = FibonacciRetracementLevelComponent()
+    assert component.component_id.value == "structure.fibonacci_retracement_level"
     assert component.kind is ComponentKind.FEATURE
     assert component.causality is Causality.CAUSAL
     output_ids = {field.output_id.value for field in component.output_schema.outputs}
-    assert output_ids == {
-        "matched_high_event",
-        "matched_low_event",
-        "latest_matched_high_level",
-        "latest_matched_low_level",
-    }
+    assert output_ids == {"value"}
 
 
-def test_first_swing_never_matches_and_second_matches_within_generous_tolerance() -> None:
-    result = _run(tolerance_atr_multiple=1000.0, source_id="matched-generous-tolerance")
-    matched_high = result.outputs[OutputId("matched_high_event")].values
+def test_fibonacci_retracement_level_matches_hand_computed_formula() -> None:
+    result = _run(ratio=0.5, source_id="fib-retracement-hand-computed")
+    value = result.outputs[OutputId("value")].values
 
-    # Bar 2 confirms the first swing high (110): nothing to compare against yet.
-    assert matched_high[2] == 0.0
-    # Bar 5 confirms the second swing high (115): within a huge tolerance of 110.
-    assert matched_high[5] == 1.0
+    assert np.isnan(value[0])
+    assert np.isnan(value[1])
 
+    # index 2: down-leg (high confirmed at pivot 1, low also at pivot 1 --
+    # tie goes to down-leg). high=110, low=100, range=10.
+    # value = low + ratio * range = 100 + 0.5*10 = 105.
+    assert value[2] == pytest.approx(105.0)
 
-def test_latest_matched_high_level_forward_fills_from_the_match_event() -> None:
-    result = _run(tolerance_atr_multiple=1000.0, source_id="matched-latest-level-forward-fill")
-    latest_matched_high_level = result.outputs[OutputId("latest_matched_high_level")].values
-
-    # With pivot_range=1 this fixture confirms three swing highs (110 at
-    # bar 2, 106 at bar 3, 115 at bar 5); bar 2 has nothing to compare
-    # against yet, but bars 3 and 5 both match within a generous tolerance.
-    for index in range(3):
-        assert np.isnan(latest_matched_high_level[index])
-    # Bar 3's match carries its own swing price (106) forward until bar 5's
-    # match overwrites it with 115.
-    assert latest_matched_high_level[3] == 106.0
-    assert latest_matched_high_level[4] == 106.0
-    assert latest_matched_high_level[5] == 115.0
+    # index 3: up-leg (high's pivot index 2 is more recent than low's
+    # pivot index 1). high=106, low=100, range=6.
+    # value = high - ratio * range = 106 - 0.5*6 = 103.
+    assert value[3] == pytest.approx(103.0)
 
 
-def test_matched_extreme_pair_does_not_match_outside_tolerance() -> None:
-    result = _run(tolerance_atr_multiple=0.0, source_id="matched-zero-tolerance")
-    matched_high = result.outputs[OutputId("matched_high_event")].values
-
-    # 115 vs 110 is a 5-point difference -- zero tolerance never matches.
-    assert matched_high[5] == 0.0
+def test_fibonacci_retracement_level_respects_warmup() -> None:
+    result = _run(ratio=0.5, source_id="fib-retracement-warmup")
+    value = result.outputs[OutputId("value")].values
+    # Neither a swing high nor a swing low is confirmed at bar 0.
+    assert np.isnan(value[0])
+    assert not np.isnan(value[2])

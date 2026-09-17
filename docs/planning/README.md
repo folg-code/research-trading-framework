@@ -4,9 +4,9 @@
 
 ## Active work
 
-[Sprint 067](sprints/SPRINT_067.md) (Market Analysis Wave B Component Batch, Phase 19) is active. See [Current Status](CURRENT_STATUS.md) for detail.
+[Sprint 067](sprints/SPRINT_067.md) (Market Analysis Wave B Component Batch, Phase 19) is closed on its sprint branch; the final integration PR to `main` is pending. See [Current Status](CURRENT_STATUS.md) for detail.
 
-- [Phase 19](roadmap/PHASE_19_MARKET_ANALYSIS_CATALOG_EXPANSION.md): PRD approved, Wave 0 accepted, Sprint 065 (Tooling) closed and merged to `main`; Sprint 066 (Wave A, 20 components) closed and merged to `main`; Sprint 067 (Wave B, 6 components) open.
+- [Phase 19](roadmap/PHASE_19_MARKET_ANALYSIS_CATALOG_EXPANSION.md): PRD approved, Wave 0 accepted, Sprint 065 (Tooling) closed and merged to `main`; Sprint 066 (Wave A, 20 components) closed and merged to `main`; Sprint 067 (Wave B, 6 components) closed on its sprint branch, integration PR to `main` pending — all 26+1 PRD components now implemented.
 - [Phase 17](roadmap/PHASE_17_RESEARCH_APPLICATION.md): 17A/17B complete; 17C/17D directional (17C's priority is currently superseded by Phase 19).
 - [Phase 18](roadmap/PHASE_18_DASHBOARD_RESEARCH_EVIDENCE.md): dashboard research evidence views, fully directional, no PRD/ADR/sprint yet.
 - [IDEA-027](IDEA_INBOX.md): Price-Structure and Session Context Component Pack, plus its Validation Approach (the successor to the now-superseded [Sprint 063](../archive/superseded/SPRINT_063_STRATEGY_SIMULATION_SERIES.md) draft) — 10 of its 11 components remain Phase 19's Wave A scope (`structure.opening_gap` already delivered by Sprint 065).

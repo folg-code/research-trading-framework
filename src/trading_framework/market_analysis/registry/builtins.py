@@ -10,7 +10,9 @@ from trading_framework.market_analysis.components.candle import (
 )
 from trading_framework.market_analysis.components.momentum import (
     MacdComponent,
+    NormalizedRateOfChangeComponent,
     NumpyMacdImplementation,
+    NumpyNormalizedRateOfChangeImplementation,
     NumpyRsiImplementation,
     NumpyStochasticImplementation,
     RsiComponent,
@@ -34,6 +36,9 @@ from trading_framework.market_analysis.components.statistics import (
 )
 from trading_framework.market_analysis.components.structure import (
     CloseReversalLevelComponent,
+    DistanceToLevelComponent,
+    FibonacciExtensionLevelComponent,
+    FibonacciRetracementLevelComponent,
     ImpulseFollowThroughComponent,
     ImpulseOriginRangeComponent,
     LevelDistanceComponent,
@@ -41,6 +46,9 @@ from trading_framework.market_analysis.components.structure import (
     LevelSweepRejectionComponent,
     MatchedExtremePairComponent,
     NumpyCloseReversalLevelImplementation,
+    NumpyDistanceToLevelImplementation,
+    NumpyFibonacciExtensionLevelImplementation,
+    NumpyFibonacciRetracementLevelImplementation,
     NumpyImpulseFollowThroughImplementation,
     NumpyImpulseOriginRangeImplementation,
     NumpyLevelDistanceImplementation,
@@ -59,8 +67,10 @@ from trading_framework.market_analysis.components.structure import (
 from trading_framework.market_analysis.components.trend import (
     EmaComponent,
     EmaDistanceComponent,
+    NormalizedSlopeComponent,
     NumpyEmaDistanceImplementation,
     NumpyEmaImplementation,
+    NumpyNormalizedSlopeImplementation,
     NumpySlopeImplementation,
     SlopeComponent,
 )
@@ -90,7 +100,9 @@ from trading_framework.market_analysis.components.volume import (
     CumulativeTrendComponent,
     NumpyCumulativeTrendImplementation,
     NumpyRollingWeightedPriceImplementation,
+    NumpySessionWeightedPriceImplementation,
     RollingWeightedPriceComponent,
+    SessionWeightedPriceComponent,
 )
 from trading_framework.market_analysis.registry.registry import ComponentRegistry
 
@@ -375,6 +387,60 @@ def register_rolling_window_position_component(registry: ComponentRegistry) -> N
     )
 
 
+def register_normalized_slope_component(registry: ComponentRegistry) -> None:
+    """Register the Normalized Slope component."""
+    registry.register(
+        NormalizedSlopeComponent(),
+        NumpyNormalizedSlopeImplementation(),
+        default=True,
+    )
+
+
+def register_normalized_rate_of_change_component(registry: ComponentRegistry) -> None:
+    """Register the Normalized Rate Of Change component."""
+    registry.register(
+        NormalizedRateOfChangeComponent(),
+        NumpyNormalizedRateOfChangeImplementation(),
+        default=True,
+    )
+
+
+def register_distance_to_level_component(registry: ComponentRegistry) -> None:
+    """Register the Distance To Level component."""
+    registry.register(
+        DistanceToLevelComponent(),
+        NumpyDistanceToLevelImplementation(),
+        default=True,
+    )
+
+
+def register_fibonacci_retracement_level_component(registry: ComponentRegistry) -> None:
+    """Register the Fibonacci Retracement Level component."""
+    registry.register(
+        FibonacciRetracementLevelComponent(),
+        NumpyFibonacciRetracementLevelImplementation(),
+        default=True,
+    )
+
+
+def register_fibonacci_extension_level_component(registry: ComponentRegistry) -> None:
+    """Register the Fibonacci Extension Level component."""
+    registry.register(
+        FibonacciExtensionLevelComponent(),
+        NumpyFibonacciExtensionLevelImplementation(),
+        default=True,
+    )
+
+
+def register_session_weighted_price_component(registry: ComponentRegistry) -> None:
+    """Register the Session Weighted Price component."""
+    registry.register(
+        SessionWeightedPriceComponent(),
+        NumpySessionWeightedPriceImplementation(),
+        default=True,
+    )
+
+
 def register_mvp_components(registry: ComponentRegistry) -> None:
     """Register Sprint 003 MVP feature and state components."""
     register_volatility_components(registry)
@@ -413,6 +479,12 @@ def register_mvp_components(registry: ComponentRegistry) -> None:
     register_rolling_weighted_price_component(registry)
     register_cumulative_trend_component(registry)
     register_rolling_window_position_component(registry)
+    register_normalized_slope_component(registry)
+    register_normalized_rate_of_change_component(registry)
+    register_distance_to_level_component(registry)
+    register_fibonacci_retracement_level_component(registry)
+    register_fibonacci_extension_level_component(registry)
+    register_session_weighted_price_component(registry)
 
 
 def default_mvp_registry() -> ComponentRegistry:
@@ -431,8 +503,11 @@ __all__ = [
     "register_cumulative_trend_component",
     "register_current_period_extreme_component",
     "register_directional_asymmetry_component",
+    "register_distance_to_level_component",
     "register_ema_component",
     "register_ema_distance_component",
+    "register_fibonacci_extension_level_component",
+    "register_fibonacci_retracement_level_component",
     "register_impulse_follow_through_component",
     "register_impulse_origin_range_component",
     "register_level_distance_component",
@@ -443,6 +518,8 @@ __all__ = [
     "register_momentum_rsi_component",
     "register_momentum_stochastic_component",
     "register_mvp_components",
+    "register_normalized_rate_of_change_component",
+    "register_normalized_slope_component",
     "register_opening_gap_component",
     "register_overlap_window_component",
     "register_previous_period_extreme_component",
@@ -455,6 +532,7 @@ __all__ = [
     "register_rolling_weighted_price_component",
     "register_rolling_window_position_component",
     "register_session_range_component",
+    "register_session_weighted_price_component",
     "register_slope_component",
     "register_smoothed_ohlc_component",
     "register_statistics_return_autocorrelation_component",
