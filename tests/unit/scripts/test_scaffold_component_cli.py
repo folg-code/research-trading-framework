@@ -188,6 +188,30 @@ def test_scaffold_patches_pack_init_and_builtins(tmp_path: Path) -> None:
     assert mvp_def_index < call_index < default_def_index
 
 
+def test_scaffold_does_not_false_positive_on_a_mere_prose_mention(tmp_path: Path) -> None:
+    """A component only *mentioned* in another entry's prose (e.g. "Distinct
+    from `structure.range_discontinuity`") must not be treated as already
+    documented -- only a real bolded entry heading counts."""
+    _seed_registry(tmp_path)
+    catalog_file = tmp_path / "docs" / "reference" / "modules" / "ANALYSIS_COMPONENT_CATALOG.md"
+    catalog_file.write_text(
+        catalog_file.read_text(encoding="utf-8")
+        + "\n- **`structure.opening_gap`** -- distinct from "
+        "`structure.range_discontinuity`, a three-bar range gap.\n",
+        encoding="utf-8",
+    )
+
+    exit_code = scaffold_component.main(
+        [
+            "--component-id",
+            "structure.range_discontinuity",
+            "--repo-root",
+            str(tmp_path),
+        ]
+    )
+    assert exit_code == 0
+
+
 def test_scaffold_appends_catalog_stub_entry(tmp_path: Path) -> None:
     _seed_registry(tmp_path)
     exit_code = scaffold_component.main(

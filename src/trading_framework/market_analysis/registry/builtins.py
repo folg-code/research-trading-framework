@@ -27,12 +27,18 @@ from trading_framework.market_analysis.components.statistics import (
     ReturnDistributionComponent,
 )
 from trading_framework.market_analysis.components.structure import (
+    ImpulseFollowThroughComponent,
+    ImpulseOriginRangeComponent,
     LevelDistanceComponent,
+    NumpyImpulseFollowThroughImplementation,
+    NumpyImpulseOriginRangeImplementation,
     NumpyLevelDistanceImplementation,
     NumpyOpeningGapImplementation,
+    NumpyRangeDiscontinuityImplementation,
     NumpySessionRangeImplementation,
     NumpySwingStructureImplementation,
     OpeningGapComponent,
+    RangeDiscontinuityComponent,
     SessionRangeComponent,
     SwingStructureComponent,
 )
@@ -198,6 +204,33 @@ def register_previous_period_extreme_component(registry: ComponentRegistry) -> N
     )
 
 
+def register_impulse_origin_range_component(registry: ComponentRegistry) -> None:
+    """Register the Impulse Origin Range component."""
+    registry.register(
+        ImpulseOriginRangeComponent(),
+        NumpyImpulseOriginRangeImplementation(),
+        default=True,
+    )
+
+
+def register_range_discontinuity_component(registry: ComponentRegistry) -> None:
+    """Register the Range Discontinuity component."""
+    registry.register(
+        RangeDiscontinuityComponent(),
+        NumpyRangeDiscontinuityImplementation(),
+        default=True,
+    )
+
+
+def register_impulse_follow_through_component(registry: ComponentRegistry) -> None:
+    """Register the Impulse Follow Through component."""
+    registry.register(
+        ImpulseFollowThroughComponent(),
+        NumpyImpulseFollowThroughImplementation(),
+        default=True,
+    )
+
+
 def register_mvp_components(registry: ComponentRegistry) -> None:
     """Register Sprint 003 MVP feature and state components."""
     register_volatility_components(registry)
@@ -219,6 +252,9 @@ def register_mvp_components(registry: ComponentRegistry) -> None:
     register_overlap_window_component(registry)
     register_current_period_extreme_component(registry)
     register_previous_period_extreme_component(registry)
+    register_impulse_origin_range_component(registry)
+    register_range_discontinuity_component(registry)
+    register_impulse_follow_through_component(registry)
 
 
 def default_mvp_registry() -> ComponentRegistry:
@@ -234,6 +270,8 @@ __all__ = [
     "register_current_period_extreme_component",
     "register_ema_component",
     "register_ema_distance_component",
+    "register_impulse_follow_through_component",
+    "register_impulse_origin_range_component",
     "register_level_distance_component",
     "register_momentum_macd_component",
     "register_momentum_rsi_component",
@@ -242,6 +280,7 @@ __all__ = [
     "register_opening_gap_component",
     "register_overlap_window_component",
     "register_previous_period_extreme_component",
+    "register_range_discontinuity_component",
     "register_range_expansion_component",
     "register_relative_volatility_component",
     "register_session_range_component",
