@@ -111,7 +111,7 @@ This is the single ADR index. `Area` names the primary owning capability; cross-
 | [ADR-MA-012](ADR-MA-012-batch-multitimeframe-computation-with-polars.md) | Batch Multitimeframe Computation with Polars | ACCEPTED | Sprint 004 | Market Analysis |
 | [ADR-MA-013](ADR-MA-013-cme-es-rth-session-and-swing-structure-mtf-projection.md) | CME ES RTH Session and Swing Structure MTF Projection | ACCEPTED | Sprint 005 | Market Analysis |
 | [ADR-MA-014](ADR-MA-014-marketframe-polars-committed-bulk-engine.md) | MarketFrame and Polars as the Committed Bulk Engine | ACCEPTED | Sprint 036 | Market Analysis |
-| [ADR-MA-015](ADR-MA-015-multi-session-trading-calendar-composition.md) | Multi-Session Trading Calendar Composition | PROPOSED | Sprint 066 | Market Analysis |
+| [ADR-MA-015](ADR-MA-015-multi-session-trading-calendar-composition.md) | Multi-Session Trading Calendar Composition | ACCEPTED | Sprint 066 | Market Analysis |
 | [ADR-0006](ADR-0006-declarative-market-and-signal-models.md) | Declarative Market and Signal Models | ACCEPTED | Sprint 006 | Models / Strategy |
 | [ADR-0011](ADR-0011-signal-research-outcomes-and-persistence.md) | Signal Research Outcomes and Persistence | ACCEPTED | Sprint 008 | Research |
 | [ADR-0012](ADR-0012-combined-research-scopes-and-context-alignment.md) | Combined Research Scopes and Context Alignment | ACCEPTED | Sprint 009 | Research |

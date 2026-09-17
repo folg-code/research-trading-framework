@@ -2,7 +2,7 @@
 
 ## Status
 
-PROPOSED
+ACCEPTED (maintainer, 2026-09-17)
 
 ## Context
 
