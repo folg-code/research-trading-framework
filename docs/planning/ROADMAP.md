@@ -32,7 +32,7 @@ Build small vertical slices in a modular monolith. Published market facts feed r
 | 16 Quant Research Workbench | 16A–16D complete; 16E–16G unplanned | [Phase 16](roadmap/PHASE_16_QUANT_WORKBENCH.md), [16D dashboard](roadmap/PHASE_16D_PORTFOLIO_DASHBOARD.md) |
 | 17 Research Application (Local Workbench) | Active: 17A/17B complete (Sprint 064, merged to `main` via #546); 17C/17D directional and unplanned | [Phase 17](roadmap/PHASE_17_RESEARCH_APPLICATION.md) |
 | 18 Dashboard Research Evidence Views | Directional; no PRD, ADR or sprint yet | [Phase 18](roadmap/PHASE_18_DASHBOARD_RESEARCH_EVIDENCE.md) |
-| 19 Market Analysis Catalog Expansion (2026-09 batch) | Approved (2026-09-17); Wave 0 complete, all decisions accepted; 3-sprint plan set, none opened yet; highest priority among unapproved tracks | [Phase 19](roadmap/PHASE_19_MARKET_ANALYSIS_CATALOG_EXPANSION.md) |
+| 19 Market Analysis Catalog Expansion (2026-09 batch) | Approved (2026-09-17); Wave 0 complete; Sprint 065 (Tooling) closed, T001-T005 done (#552-#555); Sprint N+1 (Wave A) not yet opened; highest priority among unapproved tracks | [Phase 19](roadmap/PHASE_19_MARKET_ANALYSIS_CATALOG_EXPANSION.md) |
 
 A completed phase remains in the index for orientation, not as an instruction to reread its delivery history. The [archive phase index](../archive/README.md) locates each completed sprint and its companion artifacts.
 

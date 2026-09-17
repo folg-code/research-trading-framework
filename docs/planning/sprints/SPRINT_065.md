@@ -1,8 +1,8 @@
 # Sprint 065: Market Analysis Component Registration Tooling
 
-Status: **Open** — maintainer authorized opening this sprint 2026-09-17.
-T001-T005 all done pending #555's merge; sprint ready to close once it
-lands.
+Status: **Closed** — T001-T005 complete, merged to
+`sprint/market-analysis-catalog-tooling` via #552-#555. Integration to
+`main` pending review.
 Goal: Remove the fully-manual component-registration step before Phase 19's
 Wave A (21 components) starts, by building a scaffolding CLI and a
 promotion-readiness report, then proving both are actually usable by
@@ -161,7 +161,26 @@ the tooling is actually used, required by the PRD's own success metric 1.
 
 ## Closeout
 
-To be completed when this sprint closes: integrated checks, documentation
-reconciliation (`PHASE_19_MARKET_ANALYSIS_CATALOG_EXPANSION.md`'s sprint
-table, `CURRENT_STATUS.md`), review notes, and remaining work (opening
-Sprint N+1 — Wave A).
+- **Integrated checks:** T001-T005 merged to `sprint/market-analysis-catalog-tooling`
+  via [#552](https://github.com/folg-code/research-trading-framework/pull/552)
+  (T001/T002), [#553](https://github.com/folg-code/research-trading-framework/pull/553)
+  (T003), [#554](https://github.com/folg-code/research-trading-framework/pull/554)
+  (T004), and [#555](https://github.com/folg-code/research-trading-framework/pull/555)
+  (T005). Full test suite green on the sprint branch after all four merges:
+  317 tests (`tests/unit/scripts/test_scaffold_component_cli.py`,
+  `tests/unit/scripts/test_check_promotion_readiness_cli.py`,
+  `tests/unit/market_analysis/`). `check_promotion_readiness.py` reports
+  all applicable checks PASS for `structure.opening_gap`.
+- **Review:** every PR received an inline self-review pass before opening;
+  three real findings were caught and fixed pre-merge — a `--depends-on`
+  line-length bug and CRLF output in T001, a malformed-`--component-id`
+  crash and a redundant per-id registry rebuild in T004, and a
+  reuse/simplification finding (wrong dependency-lookup helper) in T005.
+  No findings survived review in T002 or T003.
+- **Documentation reconciliation:** this file, `PHASE_19_MARKET_ANALYSIS_CATALOG_EXPANSION.md`'s
+  sprint table, `CURRENT_STATUS.md`, `ROADMAP.md` and `planning/README.md`
+  updated to reflect Sprint 065 closed and Sprint N+1 (Wave A) as the next
+  candidate.
+- **Remaining work:** open Sprint N+1 (Phase 19 Wave A — 21 components:
+  IDEA-027, IDEA-028, IDEA-030, IDEA-031-base) as its own numbered sprint,
+  using this sprint's tooling. Not opened by this closeout.
