@@ -1,18 +1,17 @@
 """Scaffold a new Market Analysis component.
 
 Generates a component/implementation file skeleton, a component-contract
-test stub, and the registration wiring into the pack's ``__init__.py`` and
-``registry/builtins.py`` -- matching the existing hand-written pattern in
-``trading_framework.market_analysis.components`` exactly (see e.g.
-``components/structure/level_distance.py``). A catalog-doc stub is a
-separate, later piece of this same tool (Phase 19 Sprint 065 T003) -- not
-implemented here.
+test stub, the registration wiring into the pack's ``__init__.py`` and
+``registry/builtins.py``, and a stub entry in
+``ANALYSIS_COMPONENT_CATALOG.md`` -- matching the existing hand-written
+pattern in ``trading_framework.market_analysis.components`` exactly (see
+e.g. ``components/structure/level_distance.py``).
 
 Design authority: ``docs/planning/roadmap/PHASE_19_WAVE0_DECISIONS.md``
 D-P19-01 (ACCEPTED, maintainer, 2026-09-17). This script deliberately does
 not guess a component's formula, parameter defaults or output shape -- the
-author fills those in by hand. The registration patch is a simple
-text-anchor insertion, not an AST rewrite, per the same decision.
+author fills those in by hand. The registration and catalog patches are
+simple text-anchor insertions, not an AST rewrite, per the same decision.
 """
 
 from __future__ import annotations
@@ -98,6 +97,10 @@ class ScaffoldRequest:
     @property
     def register_function_name(self) -> str:
         return f"register_{self.name}_component"
+
+    @property
+    def catalog_file(self) -> Path:
+        return self.repo_root / "docs" / "reference" / "modules" / "ANALYSIS_COMPONENT_CATALOG.md"
 
 
 def _parse_component_id(component_id: str, pack_arg: str | None) -> tuple[str, str]:
@@ -401,11 +404,38 @@ def patch_builtins(request: ScaffoldRequest) -> str:
     return text
 
 
-def write_scaffold(request: ScaffoldRequest) -> tuple[Path, Path, Path, Path]:
-    """Write the component and test files, and patch the two registration files.
+_CATALOG_SECTION_HEADING = "## Phase 19 additions"
+_CATALOG_TODO_MARKER = "<!-- TODO: fill in before promotion -->"
+
+
+def patch_catalog(request: ScaffoldRequest) -> str:
+    """Return the new content for ``ANALYSIS_COMPONENT_CATALOG.md``, a stub entry added.
+
+    Every scaffolded component's entry lands under one ``## Phase 19
+    additions`` heading, created once at end-of-file on the first call and
+    appended to on every later one. This assumes that heading stays the
+    file's last section for as long as this tool keeps appending to it --
+    true as long as nothing else is added to the catalog after it manually
+    in between scaffold runs.
+    """
+    text = request.catalog_file.read_text(encoding="utf-8")
+    if f"`{request.component_id}`" in text:
+        raise ValueError(f"{request.catalog_file} already documents {request.component_id}")
+
+    entry_line = f"- **`{request.component_id}`** — {_CATALOG_TODO_MARKER}"
+    if not text.endswith("\n"):
+        text += "\n"
+
+    if _CATALOG_SECTION_HEADING not in text:
+        return text + f"\n---\n\n{_CATALOG_SECTION_HEADING}\n\n{entry_line}\n"
+    return text + f"{entry_line}\n"
+
+
+def write_scaffold(request: ScaffoldRequest) -> tuple[Path, Path, Path, Path, Path]:
+    """Write the component and test files, and patch the registration/catalog files.
 
     Refuses to touch anything if the component/test files already exist or if
-    the target classes already appear in the registration files.
+    the target classes already appear in the registration files or catalog.
     """
     for path in (request.component_file, request.test_file):
         if path.exists():
@@ -413,6 +443,7 @@ def write_scaffold(request: ScaffoldRequest) -> tuple[Path, Path, Path, Path]:
 
     new_pack_init = patch_pack_init(request)
     new_builtins = patch_builtins(request)
+    new_catalog = patch_catalog(request)
 
     request.component_file.parent.mkdir(parents=True, exist_ok=True)
     request.component_file.write_text(
@@ -424,8 +455,15 @@ def write_scaffold(request: ScaffoldRequest) -> tuple[Path, Path, Path, Path]:
 
     request.pack_init_file.write_text(new_pack_init, encoding="utf-8", newline="\n")
     request.builtins_file.write_text(new_builtins, encoding="utf-8", newline="\n")
+    request.catalog_file.write_text(new_catalog, encoding="utf-8", newline="\n")
 
-    return request.component_file, request.test_file, request.pack_init_file, request.builtins_file
+    return (
+        request.component_file,
+        request.test_file,
+        request.pack_init_file,
+        request.builtins_file,
+        request.catalog_file,
+    )
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -483,7 +521,9 @@ def main(argv: list[str] | None = None) -> int:
         parser.error(str(exc))
 
     try:
-        component_file, test_file, pack_init_file, builtins_file = write_scaffold(request)
+        component_file, test_file, pack_init_file, builtins_file, catalog_file = write_scaffold(
+            request
+        )
     except (FileExistsError, ValueError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
@@ -492,10 +532,7 @@ def main(argv: list[str] | None = None) -> int:
     print(f"wrote {test_file}")
     print(f"patched {pack_init_file}")
     print(f"patched {builtins_file}")
-    print(
-        "The ANALYSIS_COMPONENT_CATALOG.md stub is not yet automated "
-        "(Phase 19 Sprint 065 T003) -- add that entry by hand for now."
-    )
+    print(f"patched {catalog_file} (stub entry -- fill in before promotion)")
     return 0
 
 

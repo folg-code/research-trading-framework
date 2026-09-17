@@ -1,4 +1,4 @@
-"""CLI tests for scripts/market_analysis/scaffold_component.py (Sprint 065 T001/T002)."""
+"""CLI tests for scripts/market_analysis/scaffold_component.py (Sprint 065 T001-T003)."""
 
 import ast
 from pathlib import Path
@@ -56,6 +56,13 @@ __all__ = [
 ]
 '''
 
+_CATALOG_SEED = """# Analysis Component Catalog
+
+## Sprint 003 additions
+
+- **`structure.level_distance`** -- ATR-normalized distance to session high/low.
+"""
+
 
 def _seed_registry(repo_root: Path) -> None:
     """Seed a minimal, structurally realistic registry to scaffold against."""
@@ -76,6 +83,10 @@ def _seed_registry(repo_root: Path) -> None:
     )
     structure_init.parent.mkdir(parents=True, exist_ok=True)
     structure_init.write_text(_STRUCTURE_INIT_SEED, encoding="utf-8")
+
+    catalog_file = repo_root / "docs" / "reference" / "modules" / "ANALYSIS_COMPONENT_CATALOG.md"
+    catalog_file.parent.mkdir(parents=True, exist_ok=True)
+    catalog_file.write_text(_CATALOG_SEED, encoding="utf-8")
 
 
 def test_scaffold_writes_component_and_test_files(tmp_path: Path) -> None:
@@ -175,6 +186,87 @@ def test_scaffold_patches_pack_init_and_builtins(tmp_path: Path) -> None:
     mvp_def_index = builtins_source.index("def register_mvp_components(")
     default_def_index = builtins_source.index("def default_mvp_registry(")
     assert mvp_def_index < call_index < default_def_index
+
+
+def test_scaffold_appends_catalog_stub_entry(tmp_path: Path) -> None:
+    _seed_registry(tmp_path)
+    exit_code = scaffold_component.main(
+        [
+            "--component-id",
+            "structure.opening_gap",
+            "--repo-root",
+            str(tmp_path),
+        ]
+    )
+    assert exit_code == 0
+
+    catalog_file = tmp_path / "docs" / "reference" / "modules" / "ANALYSIS_COMPONENT_CATALOG.md"
+    catalog_source = catalog_file.read_text(encoding="utf-8")
+    assert "## Phase 19 additions" in catalog_source
+    assert "`structure.opening_gap`" in catalog_source
+    assert "<!-- TODO: fill in before promotion -->" in catalog_source
+    # Existing content must survive untouched.
+    assert "`structure.level_distance`" in catalog_source
+    assert catalog_source.count("## Phase 19 additions") == 1
+
+
+def test_scaffold_appends_second_entry_to_existing_phase19_section(tmp_path: Path) -> None:
+    _seed_registry(tmp_path)
+    first = scaffold_component.main(
+        [
+            "--component-id",
+            "structure.opening_gap",
+            "--repo-root",
+            str(tmp_path),
+        ]
+    )
+    assert first == 0
+    second = scaffold_component.main(
+        [
+            "--component-id",
+            "structure.range_discontinuity",
+            "--repo-root",
+            str(tmp_path),
+        ]
+    )
+    assert second == 0
+
+    catalog_source = (
+        tmp_path / "docs" / "reference" / "modules" / "ANALYSIS_COMPONENT_CATALOG.md"
+    ).read_text(encoding="utf-8")
+    assert catalog_source.count("## Phase 19 additions") == 1
+    assert "`structure.opening_gap`" in catalog_source
+    assert "`structure.range_discontinuity`" in catalog_source
+
+
+def test_scaffold_refuses_when_catalog_already_documents_component_id(tmp_path: Path) -> None:
+    _seed_registry(tmp_path)
+    catalog_file = tmp_path / "docs" / "reference" / "modules" / "ANALYSIS_COMPONENT_CATALOG.md"
+    catalog_file.write_text(
+        catalog_file.read_text(encoding="utf-8")
+        + "\n## Phase 19 additions\n\n- **`structure.opening_gap`** -- already documented.\n",
+        encoding="utf-8",
+    )
+
+    exit_code = scaffold_component.main(
+        [
+            "--component-id",
+            "structure.opening_gap",
+            "--repo-root",
+            str(tmp_path),
+        ]
+    )
+    assert exit_code == 1
+    # Nothing else should have been written for a refused scaffold.
+    assert not (
+        tmp_path
+        / "src"
+        / "trading_framework"
+        / "market_analysis"
+        / "components"
+        / "structure"
+        / "opening_gap.py"
+    ).exists()
 
 
 def test_scaffold_new_pack_creates_init_and_builtins_block(tmp_path: Path) -> None:
