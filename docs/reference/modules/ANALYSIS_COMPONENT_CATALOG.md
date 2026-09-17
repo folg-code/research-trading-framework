@@ -178,3 +178,43 @@ invented, per D-S055-04's no-new-prose discipline.
   closed (the first period in the dataset has no previous period) — the
   hard causal-only requirement: never includes any bar from the
   still-open current period.
+- **`structure.range_discontinuity`** — `structure.range_discontinuity(period=14,
+  min_gap_atr_multiple=0.1)` ("fair value gap"). `gap_up_event = 1.0` at
+  bar `i` when `low[i] - high[i-2]` exceeds `min_gap_atr_multiple * atr[i]`
+  — no overlap between the current bar's range and the range two bars
+  back, in the up direction; `gap_down_event` is the mirror
+  (`low[i-2] - high[i]`). Distinct from `structure.opening_gap` (an
+  open-vs-prior-close gap, not a three-bar range gap). Depends on
+  `volatility.atr` keyed by `period`. Warm-up: `max(2, period - 1)` bars.
+  `min_gap_atr_multiple` default `0.1` (D-P19-05), a starting,
+  calibratable threshold.
+- **`structure.impulse_origin_range`** — `structure.impulse_origin_range(period=14,
+  impulse_atr_multiple=1.5)` ("order block"). A bar is impulsive when its
+  body `|close - open|` spans at least `impulse_atr_multiple * atr`; when
+  bar `i` is impulsive and bar `i-1`'s own body is the opposite direction,
+  bar `i-1` becomes the active origin range: `origin_event = 1.0` at bar
+  `i`, and `origin_high`/`origin_low` (bar `i-1`'s own high/low) plus
+  `role_active` (`1.0`) are forward-filled from `i` onward. `role_active`
+  flips to `0.0` (invalidated) once a later bar's close breaks back
+  through the range — carrying the "breaker" case as a field, not a
+  separate component. A new `origin_event` always replaces whatever range
+  was previously active. Depends on `volatility.atr` keyed by `period`.
+  Warm-up: `max(1, period - 1)` bars. `impulse_atr_multiple` default `1.5`
+  (D-P19-05), a starting, calibratable threshold.
+- **`structure.impulse_follow_through`** — `structure.impulse_follow_through(period=14,
+  impulse_atr_multiple=1.5, lookahead_bars=5)`. The strength-of-continuation
+  counterpart to `structure.impulse_origin_range`: for each impulsive bar
+  `i` (same impulse definition), `follow_through_atr` is the directional
+  extreme move over the next `lookahead_bars` bars, normalized by ATR at
+  bar `i` — `(max(high[i+1..i+lookahead_bars]) - close[i]) / atr[i]` for a
+  bullish impulse, the mirror for bearish. `NaN` on every non-impulsive
+  bar and on an impulsive bar within `lookahead_bars` of the end of the
+  dataset (an ordinary within-range `NaN`, not a warmup boundary — this
+  component reports no `valid_to_index` truncation; the framework's
+  `build_analysis_result` always marks the trailing bar valid, so
+  insufficient-lookahead bars are represented as `NaN` values instead, the
+  same convention `structure.session_range` already uses for
+  outside-RTH bars). **Causality: `RETROSPECTIVE`** — this component's
+  value at bar `i` depends on bars strictly after `i`; it is a
+  research-only measure, never a live/causal signal. Depends on
+  `volatility.atr` keyed by `period`.
