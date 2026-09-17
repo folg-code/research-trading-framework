@@ -19,6 +19,9 @@ Open an ID to read the full entry:
 - [IDEA-021](registries/idea-strategy-execution.md#idea-021) · [IDEA-022](registries/idea-strategy-execution.md#idea-022)
 - [IDEA-023](registries/idea-strategy-execution.md#idea-023) · [IDEA-024](registries/idea-infrastructure-and-interfaces.md#idea-024)
 - [IDEA-025](registries/idea-infrastructure-and-interfaces.md#idea-025) · [IDEA-026](registries/idea-infrastructure-and-interfaces.md#idea-026)
+- [IDEA-027](registries/idea-market-analysis.md#idea-027) · [IDEA-028](registries/idea-market-analysis.md#idea-028)
+- [IDEA-029](registries/idea-market-analysis.md#idea-029) · [IDEA-030](registries/idea-market-analysis.md#idea-030)
+- [IDEA-031](registries/idea-market-analysis.md#idea-031) · [IDEA-032](registries/idea-market-analysis.md#idea-032)
 
 ## 1. Purpose
 
@@ -28,7 +31,7 @@ Review of 2026-09-12: [IDEA-005](registries/idea-market-data.md#idea-005)
 and [IDEA-007](registries/idea-market-data.md#idea-007) are implemented;
 [IDEA-024](registries/idea-infrastructure-and-interfaces.md#idea-024) is
 partially implemented. Their entries remain indexed for provenance, not as
-unstarted work. The other 23 ideas remain proposed, deferred or gated.
+unstarted work. The other 29 ideas remain proposed, deferred or gated.
 
 An idea is not:
 
@@ -142,6 +145,18 @@ Each idea title below links directly to its full entry. Stable ID headings remai
 ## [IDEA-013 — Options-Derived Context Components](registries/idea-market-analysis.md#idea-013)
 
 ## [IDEA-014 — Machine-Learned State Classifiers](registries/idea-market-analysis.md#idea-014)
+
+## [IDEA-027 — Price-Structure and Session Context Component Pack](registries/idea-market-analysis.md#idea-027)
+
+## [IDEA-028 — Volatility Estimator Component Pack](registries/idea-market-analysis.md#idea-028)
+
+## [IDEA-029 — Trend and Momentum Efficiency Component Pack](registries/idea-market-analysis.md#idea-029)
+
+## [IDEA-030 — Rolling Window Position (Generic Distribution Utility)](registries/idea-market-analysis.md#idea-030)
+
+## [IDEA-031 — Candle Pattern and Bar-Volume Component Pack](registries/idea-market-analysis.md#idea-031)
+
+## [IDEA-032 — Level Distance Extension and Fibonacci Levels](registries/idea-market-analysis.md#idea-032)
 
 # 7. Research
 

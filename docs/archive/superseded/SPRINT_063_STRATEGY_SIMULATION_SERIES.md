@@ -1,5 +1,20 @@
 # Sprint 063: Reproducible Strategy Simulation Series
 
+**SUPERSEDED (2026-09-17).** Never approved or executed (Status stayed
+Draft; T001 blocked on D063-01/D063-02). Superseded by
+[IDEA-027](../../planning/registries/idea-market-analysis.md#idea-027)'s
+"Validation Approach" section, which folds this sprint's six-strategy /
+three-period matrix pattern into a validation series scoped to the new
+Price-Structure and Session Context Component Pack instead of existing,
+already-documented strategies — the intended next simulation work is a
+transformation of this draft, not a separate effort. Retained below for
+provenance (the frozen-matrix discipline it establishes, D063-01–D063-04,
+is still the reference pattern). Do not resume or approve this draft as
+written; open a new sprint from IDEA-027's Validation Approach instead when
+that work is ready to schedule.
+
+---
+
 Status: Draft — requires maintainer approval before implementation and data runs
 Goal: Execute and publish a bounded, reproducible series of Strategy Research
 simulations over existing public/non-proprietary strategy examples so the new

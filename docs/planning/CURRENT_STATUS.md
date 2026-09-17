@@ -15,8 +15,8 @@ Locate the active increment, remaining work and the canonical planning records. 
 | Current increment | 17C — Data Manager (next candidate; not yet opened as a sprint) |
 | Completed sprints | 059–062 and 064 merged to `main` (064 via #546, 2026-09-15) |
 | Active sprint | None |
-| Next draft | [Sprint 063](sprints/SPRINT_063.md) (Phase 16D content enrichment, unapproved; independent of 17C) |
-| Parallel state | Phase 15 complete; Phase 14A complete; 14B not planned; [Phase 17](roadmap/PHASE_17_RESEARCH_APPLICATION.md) 17A/17B closed 2026-09-15 (ADR-0037–0042), 17C/17D directional and unplanned; Sprint 062 closed (T001–T007 done) |
+| Next draft | None currently drafted as a numbered sprint; [IDEA-027](IDEA_INBOX.md) (component pack + Validation Approach, the successor to the now-superseded [Sprint 063](../archive/superseded/SPRINT_063_STRATEGY_SIMULATION_SERIES.md)) is the nearest candidate once its component work is underway |
+| Parallel state | Phase 15 complete; Phase 14A complete; 14B not planned; [Phase 17](roadmap/PHASE_17_RESEARCH_APPLICATION.md) 17A/17B closed 2026-09-15 (ADR-0037–0042), 17C/17D directional and unplanned; Sprint 062 closed (T001–T007 done); [Phase 18](roadmap/PHASE_18_DASHBOARD_RESEARCH_EVIDENCE.md) captured 2026-09-17, fully directional, no PRD/ADR/sprint yet |
 
 ## 3. Work in Progress
 
