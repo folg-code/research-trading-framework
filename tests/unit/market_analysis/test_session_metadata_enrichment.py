@@ -21,6 +21,7 @@ from trading_framework.time.sessions import (
     ES_RTH_SESSION_ID,
     OUTSIDE_RTH_SESSION_ID,
     CmeEsRthSessionResolver,
+    GlobalSessionCalendarResolver,
 )
 
 
@@ -183,6 +184,34 @@ def test_resolve_invokes_resolver_without_materializing_tuples(
     assert metadata.is_rth == (False, True)
     assert metadata.session_ids == (OUTSIDE_RTH_SESSION_ID, ES_RTH_SESSION_ID)
     assert metadata.trading_days == (date(2024, 6, 3), date(2024, 6, 3))
+
+
+def test_named_session_raises_when_resolver_carried_no_such_column() -> None:
+    """A plain CmeEsRthSessionResolver carries no session_* columns (ADR-MA-015)."""
+    timestamps = (datetime(2024, 6, 3, 13, 30, tzinfo=UTC),)
+    metadata = TradingSessionMetadata.resolve(timestamps, CmeEsRthSessionResolver())
+    with pytest.raises(ValidationError, match="named session 'asia' not available"):
+        metadata.named_session("asia")
+
+
+def test_named_session_available_via_global_session_calendar_resolver() -> None:
+    timestamps = (
+        datetime(2024, 6, 3, 13, 29, tzinfo=UTC),  # NY 09:29 -- outside NY session
+        datetime(2024, 6, 3, 13, 30, tzinfo=UTC),  # NY 09:30 -- inside NY session
+    )
+    metadata = TradingSessionMetadata.resolve(timestamps, GlobalSessionCalendarResolver())
+    assert metadata.named_session("new_york") == (False, True)
+    # is_rth and the other existing accessors are unaffected by the extra columns.
+    assert metadata.is_rth == (False, True)
+    assert metadata.session_ids[1] == ES_RTH_SESSION_ID
+
+
+def test_named_session_result_is_memoized() -> None:
+    timestamps = (datetime(2024, 6, 3, 13, 30, tzinfo=UTC),)
+    metadata = TradingSessionMetadata.resolve(timestamps, GlobalSessionCalendarResolver())
+    first = metadata.named_session("london")
+    second = metadata.named_session("london")
+    assert first is second
 
 
 def test_from_dataframe_rejects_missing_resolver_columns() -> None:
