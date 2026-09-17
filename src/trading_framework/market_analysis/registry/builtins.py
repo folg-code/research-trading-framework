@@ -84,6 +84,12 @@ from trading_framework.market_analysis.components.volatility import (
     TrueRangeComponent,
     VolatilityStateComponent,
 )
+from trading_framework.market_analysis.components.volume import (
+    CumulativeTrendComponent,
+    NumpyCumulativeTrendImplementation,
+    NumpyRollingWeightedPriceImplementation,
+    RollingWeightedPriceComponent,
+)
 from trading_framework.market_analysis.registry.registry import ComponentRegistry
 
 
@@ -340,6 +346,24 @@ def register_smoothed_ohlc_component(registry: ComponentRegistry) -> None:
     registry.register(SmoothedOhlcComponent(), NumpySmoothedOhlcImplementation(), default=True)
 
 
+def register_rolling_weighted_price_component(registry: ComponentRegistry) -> None:
+    """Register the Rolling Weighted Price component."""
+    registry.register(
+        RollingWeightedPriceComponent(),
+        NumpyRollingWeightedPriceImplementation(),
+        default=True,
+    )
+
+
+def register_cumulative_trend_component(registry: ComponentRegistry) -> None:
+    """Register the Cumulative Trend component."""
+    registry.register(
+        CumulativeTrendComponent(),
+        NumpyCumulativeTrendImplementation(),
+        default=True,
+    )
+
+
 def register_mvp_components(registry: ComponentRegistry) -> None:
     """Register Sprint 003 MVP feature and state components."""
     register_volatility_components(registry)
@@ -375,6 +399,8 @@ def register_mvp_components(registry: ComponentRegistry) -> None:
     register_regime_state_component(registry)
     register_reversal_pattern_component(registry)
     register_smoothed_ohlc_component(registry)
+    register_rolling_weighted_price_component(registry)
+    register_cumulative_trend_component(registry)
 
 
 def default_mvp_registry() -> ComponentRegistry:
@@ -390,6 +416,7 @@ __all__ = [
     "register_candle_wick_component",
     "register_choppiness_index_component",
     "register_close_reversal_level_component",
+    "register_cumulative_trend_component",
     "register_current_period_extreme_component",
     "register_directional_asymmetry_component",
     "register_ema_component",
@@ -413,6 +440,7 @@ __all__ = [
     "register_regime_state_component",
     "register_relative_volatility_component",
     "register_reversal_pattern_component",
+    "register_rolling_weighted_price_component",
     "register_session_range_component",
     "register_slope_component",
     "register_smoothed_ohlc_component",
