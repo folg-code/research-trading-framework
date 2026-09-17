@@ -3,6 +3,10 @@
 from trading_framework.market_analysis.components.candle import (
     CandleWickComponent,
     NumpyCandleWickImplementation,
+    NumpyReversalPatternImplementation,
+    NumpySmoothedOhlcImplementation,
+    ReversalPatternComponent,
+    SmoothedOhlcComponent,
 )
 from trading_framework.market_analysis.components.momentum import (
     MacdComponent,
@@ -322,6 +326,20 @@ def register_regime_state_component(registry: ComponentRegistry) -> None:
     registry.register(RegimeStateComponent(), NumpyRegimeStateImplementation(), default=True)
 
 
+def register_reversal_pattern_component(registry: ComponentRegistry) -> None:
+    """Register the Reversal Pattern component."""
+    registry.register(
+        ReversalPatternComponent(),
+        NumpyReversalPatternImplementation(),
+        default=True,
+    )
+
+
+def register_smoothed_ohlc_component(registry: ComponentRegistry) -> None:
+    """Register the Smoothed Ohlc component."""
+    registry.register(SmoothedOhlcComponent(), NumpySmoothedOhlcImplementation(), default=True)
+
+
 def register_mvp_components(registry: ComponentRegistry) -> None:
     """Register Sprint 003 MVP feature and state components."""
     register_volatility_components(registry)
@@ -355,6 +373,8 @@ def register_mvp_components(registry: ComponentRegistry) -> None:
     register_acceleration_component(registry)
     register_choppiness_index_component(registry)
     register_regime_state_component(registry)
+    register_reversal_pattern_component(registry)
+    register_smoothed_ohlc_component(registry)
 
 
 def default_mvp_registry() -> ComponentRegistry:
@@ -392,8 +412,10 @@ __all__ = [
     "register_range_expansion_component",
     "register_regime_state_component",
     "register_relative_volatility_component",
+    "register_reversal_pattern_component",
     "register_session_range_component",
     "register_slope_component",
+    "register_smoothed_ohlc_component",
     "register_statistics_return_autocorrelation_component",
     "register_statistics_return_distribution_component",
     "register_swing_structure_component",

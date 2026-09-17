@@ -305,3 +305,26 @@ invented, per D-S055-04's no-new-prose discipline.
   the most-compressed case, so it falls into `state = -1.0` through the
   same comparison as any other low ratio. Warm-up: the slower ATR's own
   `valid_from_index`.
+- **`candle.reversal_pattern`** — `candle.reversal_pattern(pivot_range=2,
+  wick_ratio_threshold=2.0)` (D-P19-05). One label per bar/side
+  (`bullish_pattern`/`bearish_pattern`), evaluated in fixed priority order,
+  first match wins: (1) `engulfing` — the current bar's body fully
+  contains the prior bar's body and the two bars close in opposite
+  directions; (2) `level_close_reversal` — the bar pierces
+  `structure.swing`'s latest confirmed level (as of the *prior* bar) but
+  closes back on the origin side, same-bar (not a pending multi-bar event
+  like `structure.level_sweep_rejection`); (3) `rejection_wick` — a
+  hammer-style single-bar rejection where the rejecting wick is at least
+  `wick_ratio_threshold` times the body (via `candle.wick`'s ratios), with
+  the opposite wick no larger than the body — a zero-body (doji) bar never
+  qualifies; (4) `none` — an explicit, always-assigned label for a
+  fully-evaluated bar where nothing matched, distinct from `NaN` ("not yet
+  warmed up"). Depends on `structure.swing` (keyed by `pivot_range`) and
+  `candle.wick`. Warm-up: 1 bar (`engulfing` needs a prior bar).
+- **`candle.smoothed_ohlc`** — `candle.smoothed_ohlc()` (no parameters).
+  Causal smoothed-OHLC ("Heikin-Ashi") transform: `close = (open + high +
+  low + close) / 4`; `open` recurses from the prior bar's own smoothed
+  open/close (seeded at bar 0 as `(open[0] + close[0]) / 2`); `high`/`low`
+  are the raw bar's own high/low widened (never narrowed) to also contain
+  the smoothed open/close. No dependency, no external period parameter, so
+  no warm-up — every bar is valid from bar 0.
