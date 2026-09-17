@@ -419,7 +419,7 @@ def patch_catalog(request: ScaffoldRequest) -> str:
     in between scaffold runs.
     """
     text = request.catalog_file.read_text(encoding="utf-8")
-    if f"`{request.component_id}`" in text:
+    if f"**`{request.component_id}`**" in text:
         raise ValueError(f"{request.catalog_file} already documents {request.component_id}")
 
     entry_line = f"- **`{request.component_id}`** — {_CATALOG_TODO_MARKER}"
