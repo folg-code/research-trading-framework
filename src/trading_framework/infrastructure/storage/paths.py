@@ -437,6 +437,11 @@ def strategy_research_exposure_path(root: Path, run_id: str) -> Path:
     return strategy_research_analytics_dir(root, run_id) / "exposure.parquet"
 
 
+def strategy_research_context_expectancy_path(root: Path, run_id: str) -> Path:
+    """Return the context-expectancy Parquet path for one Strategy Research run."""
+    return strategy_research_analytics_dir(root, run_id) / "context_expectancy.parquet"
+
+
 def robustness_experiment_dir(root: Path, experiment_id: str) -> Path:
     """Return the storage directory for one robustness experiment."""
     return strategy_robustness_root(root) / "experiments" / experiment_id

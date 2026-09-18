@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import dataclasses
 import hashlib
 import json
 from dataclasses import dataclass
@@ -13,6 +14,7 @@ import polars as pl
 
 from trading_framework.core.exceptions import ValidationError
 from trading_framework.infrastructure.storage.paths import (
+    strategy_research_context_expectancy_path,
     strategy_research_drawdown_episodes_path,
     strategy_research_exposure_path,
     strategy_research_run_dir,
@@ -68,6 +70,13 @@ class StrategyResearchRunManifest:
     slippage_bps: str = "0"
     commission_per_side: str = "0"
     initial_capital: str = "100000"
+    #: Dotted ``module:callable`` path that built this run's
+    #: ``StrategyModelDefinition`` (Sprint 069, Phase 18 18A Milestone 1b /
+    #: D-P18-02). ``None`` for a run that predates this field and whose
+    #: source was never resolved. Lets a later pass recompute this run's
+    #: Market Model (e.g. for ``context_expectancy``) without grep
+    #: archaeology through the codebase.
+    strategy_source_ref: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         payload: dict[str, Any] = {
@@ -91,6 +100,8 @@ class StrategyResearchRunManifest:
         }
         if self.experiment_id is not None:
             payload["experiment_id"] = self.experiment_id
+        if self.strategy_source_ref is not None:
+            payload["strategy_source_ref"] = self.strategy_source_ref
         return payload
 
     @classmethod
@@ -116,6 +127,11 @@ class StrategyResearchRunManifest:
             slippage_bps=str(payload.get("slippage_bps", "0")),
             commission_per_side=str(payload.get("commission_per_side", "0")),
             initial_capital=str(payload.get("initial_capital", "100000")),
+            strategy_source_ref=(
+                str(payload["strategy_source_ref"])
+                if payload.get("strategy_source_ref") is not None
+                else None
+            ),
         )
 
 
@@ -263,6 +279,35 @@ class StrategyResearchDatasetRepository:
         path.parent.mkdir(parents=True, exist_ok=True)
         exposure.write_parquet(path)
         return path
+
+    def write_context_expectancy(self, run_id: str, context_expectancy: pl.DataFrame) -> Path:
+        """Persist context expectancy under ``analytics/context_expectancy.parquet``.
+
+        A run whose Market Model references no ``STATE``-kind component is a
+        valid, empty frame -- not an error.
+        """
+        run_dir = strategy_research_run_dir(self._root, run_id)
+        if not run_dir.exists():
+            msg = f"run directory not found: {run_dir}"
+            raise FileNotFoundError(msg)
+        path = strategy_research_context_expectancy_path(self._root, run_id)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        context_expectancy.write_parquet(path)
+        return path
+
+    def update_strategy_source_ref(self, run_id: str, strategy_source_ref: str) -> Path:
+        """Backfill ``strategy_source_ref`` onto an existing run's manifest."""
+        run_dir = strategy_research_run_dir(self._root, run_id)
+        manifest_path = run_dir / "manifest.json"
+        if not manifest_path.exists():
+            msg = f"missing manifest: {manifest_path}"
+            raise FileNotFoundError(msg)
+        manifest = StrategyResearchRunManifest.from_dict(
+            json.loads(manifest_path.read_text(encoding="utf-8"))
+        )
+        updated = dataclasses.replace(manifest, strategy_source_ref=strategy_source_ref)
+        manifest_path.write_text(json.dumps(updated.to_dict(), indent=2), encoding="utf-8")
+        return manifest_path
 
     def read(self, ref: StrategyResearchRunRef) -> StrategyResearchRunEnvelope:
         run_dir = strategy_research_run_dir(self._root, ref.run_id)

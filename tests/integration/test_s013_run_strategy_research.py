@@ -117,3 +117,19 @@ def test_run_strategy_research_persists_and_reloads_round_trip(
 
     exposure = pl.read_parquet(exposure_path)
     assert exposure.height == len(result.equity)
+
+    # Sprint 069 / Phase 18 18A Milestone 1b (D-P18-02): this fixture's tiny
+    # dataset produces zero trades, so context_expectancy is correctly
+    # empty (nothing to join against) -- the non-empty happy path (a
+    # STATE-kind component actually resolved and grouped) is covered by
+    # tests/unit/research/analytics/test_context_expectancy.py against
+    # synthetic data with real trades.
+    from trading_framework.infrastructure.storage.paths import (
+        strategy_research_context_expectancy_path,
+    )
+
+    context_expectancy_path = strategy_research_context_expectancy_path(storage_root, result.run_id)
+    assert context_expectancy_path.exists()
+    context_expectancy = pl.read_parquet(context_expectancy_path)
+    assert result.trades.height == 0
+    assert context_expectancy.height == 0
