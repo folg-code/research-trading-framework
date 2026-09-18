@@ -313,6 +313,54 @@ def test_strategy_research_repository_write_drawdown_episodes_and_exposure(
     assert exposure_path.exists()
 
 
+def test_manifest_round_trips_strategy_source_ref() -> None:
+    """Sprint 069 / D-P18-02 — optional module:callable provenance."""
+    import dataclasses
+
+    manifest = _sample_manifest(run_id="r1")
+    with_ref = dataclasses.replace(manifest, strategy_source_ref="pkg.module:build_strategy")
+    round_tripped = StrategyResearchRunManifest.from_dict(with_ref.to_dict())
+    assert round_tripped.strategy_source_ref == "pkg.module:build_strategy"
+
+
+def test_manifest_strategy_source_ref_defaults_to_none() -> None:
+    manifest = _sample_manifest(run_id="r1")
+    assert manifest.strategy_source_ref is None
+    round_tripped = StrategyResearchRunManifest.from_dict(manifest.to_dict())
+    assert round_tripped.strategy_source_ref is None
+
+
+def test_strategy_research_repository_write_context_expectancy(tmp_path: Path) -> None:
+    from trading_framework.infrastructure.storage.paths import (
+        strategy_research_context_expectancy_path,
+    )
+    from trading_framework.research.analytics.context_expectancy import (
+        empty_context_expectancy_dataframe,
+    )
+
+    run_id = "st-context-1"
+    repo = StrategyResearchDatasetRepository(tmp_path)
+    repo.write(_sample_envelope(run_id=run_id))
+
+    path = repo.write_context_expectancy(run_id, empty_context_expectancy_dataframe())
+    assert path == strategy_research_context_expectancy_path(tmp_path, run_id)
+    assert path.exists()
+
+
+def test_strategy_research_repository_update_strategy_source_ref(tmp_path: Path) -> None:
+    run_id = "st-source-ref-1"
+    repo = StrategyResearchDatasetRepository(tmp_path)
+    repo.write(_sample_envelope(run_id=run_id))
+
+    repo.update_strategy_source_ref(run_id, "pkg.module:build_strategy")
+
+    reloaded = repo.read(StrategyResearchRunRef(run_id=run_id))
+    assert reloaded.manifest.strategy_source_ref == "pkg.module:build_strategy"
+    # Everything else about the manifest is unchanged.
+    assert reloaded.manifest.run_id == run_id
+    assert reloaded.manifest.strategy_model_id == "high_vol_higher_low_fixed_exit"
+
+
 def test_strategy_research_repository_read_validates_manifest(tmp_path: Path) -> None:
     run_id = "broken-manifest"
     run_dir = tmp_path / "research" / "strategy_research" / "runs" / run_id

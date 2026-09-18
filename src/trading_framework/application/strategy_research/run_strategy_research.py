@@ -46,6 +46,7 @@ from trading_framework.model_expression.planning import (
     build_analysis_frame_request,
     collect_model_dependencies,
 )
+from trading_framework.research.analytics.context_expectancy import compute_context_expectancy
 from trading_framework.research.analytics.drawdown_episodes import compute_drawdown_episodes
 from trading_framework.research.analytics.exposure import compute_exposure
 from trading_framework.research.analytics.strategy_dashboard_metrics import (
@@ -96,6 +97,10 @@ class RunStrategyResearchRequest:
     experiment_id: str | None = None
     persist: bool = True
     shared_evaluation: SharedStrategyEvaluationContext | None = None
+    #: Dotted ``module:callable`` path that built ``strategy_model``
+    #: (Sprint 069, Phase 18 18A Milestone 1b / D-P18-02). Optional --
+    #: ``None`` when the caller doesn't know or care to record it.
+    strategy_source_ref: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -233,6 +238,7 @@ def run_strategy_research(
         slippage_bps=format(request.assumptions.slippage_bps, "f"),
         commission_per_side=format(request.assumptions.commission_per_side, "f"),
         initial_capital=format(request.assumptions.initial_capital, "f"),
+        strategy_source_ref=request.strategy_source_ref,
     )
     envelope = StrategyResearchRunEnvelope(
         manifest=manifest,
@@ -264,6 +270,14 @@ def run_strategy_research(
                     run_id=run_id, trades=simulation.trades, equity=simulation.equity
                 )
                 repo.write_exposure(run_id, exposure)
+            with optional_phase("strategy_research.persist_context_expectancy"):
+                context_expectancy = compute_context_expectancy(
+                    run_id=run_id,
+                    market_model=strategy_model.market_model,
+                    frame=frame,
+                    trades=simulation.trades,
+                )
+                repo.write_context_expectancy(run_id, context_expectancy)
 
     return RunStrategyResearchResult(
         run_id=run_id,
