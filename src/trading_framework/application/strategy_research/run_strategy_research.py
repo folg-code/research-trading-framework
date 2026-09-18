@@ -46,6 +46,8 @@ from trading_framework.model_expression.planning import (
     build_analysis_frame_request,
     collect_model_dependencies,
 )
+from trading_framework.research.analytics.drawdown_episodes import compute_drawdown_episodes
+from trading_framework.research.analytics.exposure import compute_exposure
 from trading_framework.research.analytics.strategy_dashboard_metrics import (
     compute_strategy_dashboard_analytics,
 )
@@ -226,6 +228,11 @@ def run_strategy_research(
         risk_model_id=risk_model.risk_model_id,
         simulation_assumptions_fingerprint=assumptions_fingerprint,
         experiment_id=request.experiment_id,
+        fill_policy_entry=request.assumptions.fill_policy_entry.value,
+        fill_policy_exit=request.assumptions.fill_policy_exit.value,
+        slippage_bps=format(request.assumptions.slippage_bps, "f"),
+        commission_per_side=format(request.assumptions.commission_per_side, "f"),
+        initial_capital=format(request.assumptions.initial_capital, "f"),
     )
     envelope = StrategyResearchRunEnvelope(
         manifest=manifest,
@@ -249,6 +256,14 @@ def run_strategy_research(
                     overview=dashboard_analytics.overview,
                 )
                 repo.write_summary_metrics(run_id, metrics)
+            with optional_phase("strategy_research.persist_drawdown_episodes"):
+                episodes = compute_drawdown_episodes(run_id=run_id, equity=simulation.equity)
+                repo.write_drawdown_episodes(run_id, episodes)
+            with optional_phase("strategy_research.persist_exposure"):
+                exposure = compute_exposure(
+                    run_id=run_id, trades=simulation.trades, equity=simulation.equity
+                )
+                repo.write_exposure(run_id, exposure)
 
     return RunStrategyResearchResult(
         run_id=run_id,

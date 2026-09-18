@@ -427,6 +427,16 @@ def strategy_research_summary_metrics_path(root: Path, run_id: str) -> Path:
     return strategy_research_analytics_dir(root, run_id) / "summary_metrics.parquet"
 
 
+def strategy_research_drawdown_episodes_path(root: Path, run_id: str) -> Path:
+    """Return the drawdown-episodes Parquet path for one Strategy Research run."""
+    return strategy_research_analytics_dir(root, run_id) / "drawdown_episodes.parquet"
+
+
+def strategy_research_exposure_path(root: Path, run_id: str) -> Path:
+    """Return the exposure-ratio Parquet path for one Strategy Research run."""
+    return strategy_research_analytics_dir(root, run_id) / "exposure.parquet"
+
+
 def robustness_experiment_dir(root: Path, experiment_id: str) -> Path:
     """Return the storage directory for one robustness experiment."""
     return strategy_robustness_root(root) / "experiments" / experiment_id
