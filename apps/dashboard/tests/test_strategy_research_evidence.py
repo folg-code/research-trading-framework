@@ -1,4 +1,4 @@
-"""Focused coverage for rich public Strategy Research evidence (Sprint 070)."""
+"""Focused coverage for rich public Strategy Research evidence (Sprint 070/071)."""
 
 from __future__ import annotations
 
@@ -8,6 +8,7 @@ from pathlib import Path
 
 import pyarrow as pa
 import pyarrow.parquet as pq
+from streamlit.testing.v1 import AppTest
 
 from dashboard_app.publication.generator import RawArtifactInput, build_projection_bundle
 from dashboard_app.publication.table_loading import bounded_row_indexes, load_table
@@ -15,6 +16,8 @@ from dashboard_app.publication.workspace import (
     STRATEGY_RESEARCH_DENSE_TABLE_MAX_POINTS,
     discover_strategy_research_evidence_inputs,
 )
+
+_REPO_ROOT = Path(__file__).resolve().parents[3]
 
 
 def _write_strategy_run(
@@ -194,3 +197,36 @@ def test_bounded_row_indexes_keeps_both_endpoints() -> None:
 
 def test_load_table_returns_none_when_missing(tmp_path: Path) -> None:
     assert load_table(tmp_path / "absent.parquet") is None
+
+
+def test_strategy_page_renders_overview_and_detail_sections() -> None:
+    """Phase 18, 18A Milestone 2b (Sprint 071). Runs against the real committed
+    projection.json (Sprint 070's regeneration), not a fixture -- this is the
+    same pattern test_signal_page_renders_projected_tables_and_charts uses."""
+    app = AppTest.from_file(str(_REPO_ROOT / "apps/dashboard/pages/6_Strategy_Research.py")).run(
+        timeout=30
+    )
+
+    assert not app.exception
+    assert any(item.value == "KPI summary" for item in app.subheader)
+    assert any(item.value == "Simulated equity and drawdown" for item in app.subheader)
+    assert any(item.value == "Drawdown structure" for item in app.subheader)
+    assert any(item.value == "Capital and exposure" for item in app.subheader)
+    assert len(app.dataframe) >= 1
+    assert len(app.selectbox) == 1
+    assert len(app.get("plotly_chart")) >= 3
+
+
+def test_strategy_page_switches_run_and_shows_context_expectancy() -> None:
+    """The canonical example run has a real STATE-kind context; selecting it
+    must show the eligible/interpretable table, not the "nothing to show" info."""
+    app = AppTest.from_file(str(_REPO_ROOT / "apps/dashboard/pages/6_Strategy_Research.py")).run(
+        timeout=30
+    )
+    select = app.selectbox[0]
+    canonical_option = next(option for option in select.options if "eb80de6c9a6e3ab1" in option)
+    select.select(canonical_option).run(timeout=30)
+
+    assert not app.exception
+    assert not any("No categorical market-context component" in item.value for item in app.info)
+    assert len(app.dataframe) >= 2
