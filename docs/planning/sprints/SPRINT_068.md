@@ -218,10 +218,14 @@ changed file.
 the 3 backfilled runs and their spot-checked values (above) satisfy the
 manual acceptance criteria.
 
-**Not yet done**: nothing committed to git, no branch cut, no PR opened.
-This sprint's work exists only in the local working tree pending the
-maintainer's decision on how to commit/branch/PR it (see the branch plan
-above) — flagged back to the maintainer rather than assumed.
+**Git**: docs (this record, the PRD, Wave 0 decisions, roadmap corrections)
+merged to `main` via [#572](https://github.com/folg-code/research-trading-framework/pull/572).
+Implementation (T001-T003, bundled in one PR since the tasks share
+`StrategyResearchDatasetRepository` and `run_strategy_research.py`'s
+persist step) merged into `sprint/dashboard-strategy-research-evidence-m1a`
+via [#573](https://github.com/folg-code/research-trading-framework/pull/573).
+Final integration PR to `main`:
+[#574](https://github.com/folg-code/research-trading-framework/pull/574).
 
 **Remaining work**: Sprint N+1 (Milestone 1b — `strategy_source_ref` +
 `context_expectancy.parquet`, per D-P18-02) is next per D-P18-05's
