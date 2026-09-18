@@ -92,8 +92,28 @@ def test_run_strategy_research_persists_and_reloads_round_trip(
     assert result.manifest.strategy_model_id == strategy_model.strategy_model_id
     assert len(result.equity) > 0
 
+    # Sprint 068 / Phase 18 18A Milestone 1a: real SimulationAssumptions values,
+    # not just the fingerprint.
+    assert result.manifest.fill_policy_entry == "next_bar_open"
+    assert result.manifest.initial_capital == "100000"
+
     repository = StrategyResearchDatasetRepository(storage_root)
     loaded = repository.read(result.run_ref)
     assert loaded.manifest.run_id == result.run_id
     assert loaded.trades.equals(result.trades)
     assert loaded.equity.equals(result.equity)
+
+    from trading_framework.infrastructure.storage.paths import (
+        strategy_research_drawdown_episodes_path,
+        strategy_research_exposure_path,
+    )
+
+    episodes_path = strategy_research_drawdown_episodes_path(storage_root, result.run_id)
+    exposure_path = strategy_research_exposure_path(storage_root, result.run_id)
+    assert episodes_path.exists()
+    assert exposure_path.exists()
+
+    import polars as pl
+
+    exposure = pl.read_parquet(exposure_path)
+    assert exposure.height == len(result.equity)

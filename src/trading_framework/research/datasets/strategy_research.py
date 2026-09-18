@@ -13,6 +13,8 @@ import polars as pl
 
 from trading_framework.core.exceptions import ValidationError
 from trading_framework.infrastructure.storage.paths import (
+    strategy_research_drawdown_episodes_path,
+    strategy_research_exposure_path,
     strategy_research_run_dir,
     strategy_research_summary_metrics_path,
 )
@@ -54,6 +56,18 @@ class StrategyResearchRunManifest:
     risk_model_id: str
     simulation_assumptions_fingerprint: str
     experiment_id: str | None = None
+    #: Real ``SimulationAssumptions`` field values (Sprint 068, Phase 18
+    #: 18A Milestone 1a / D-P18-01). The fingerprint above stays the
+    #: identity/dedup key; these make it human-readable and publishable
+    #: without needing to reverse a one-way hash. Defaults match
+    #: ``SimulationAssumptions``'s own dataclass defaults so a manifest
+    #: constructed without them (older call sites, existing tests) still
+    #: round-trips.
+    fill_policy_entry: str = "next_bar_open"
+    fill_policy_exit: str = "next_bar_open"
+    slippage_bps: str = "0"
+    commission_per_side: str = "0"
+    initial_capital: str = "100000"
 
     def to_dict(self) -> dict[str, Any]:
         payload: dict[str, Any] = {
@@ -69,6 +83,11 @@ class StrategyResearchRunManifest:
             "exit_model_id": self.exit_model_id,
             "risk_model_id": self.risk_model_id,
             "simulation_assumptions_fingerprint": self.simulation_assumptions_fingerprint,
+            "fill_policy_entry": self.fill_policy_entry,
+            "fill_policy_exit": self.fill_policy_exit,
+            "slippage_bps": self.slippage_bps,
+            "commission_per_side": self.commission_per_side,
+            "initial_capital": self.initial_capital,
         }
         if self.experiment_id is not None:
             payload["experiment_id"] = self.experiment_id
@@ -92,6 +111,11 @@ class StrategyResearchRunManifest:
             experiment_id=(
                 str(payload["experiment_id"]) if payload.get("experiment_id") is not None else None
             ),
+            fill_policy_entry=str(payload.get("fill_policy_entry", "next_bar_open")),
+            fill_policy_exit=str(payload.get("fill_policy_exit", "next_bar_open")),
+            slippage_bps=str(payload.get("slippage_bps", "0")),
+            commission_per_side=str(payload.get("commission_per_side", "0")),
+            initial_capital=str(payload.get("initial_capital", "100000")),
         )
 
 
@@ -209,6 +233,35 @@ class StrategyResearchDatasetRepository:
         path = strategy_research_summary_metrics_path(self._root, run_id)
         path.parent.mkdir(parents=True, exist_ok=True)
         metrics.write_parquet(path)
+        return path
+
+    def write_drawdown_episodes(self, run_id: str, episodes: pl.DataFrame) -> Path:
+        """Persist drawdown episodes under ``analytics/drawdown_episodes.parquet``.
+
+        A run with zero episodes (equity never dipped below its running
+        peak) is a valid, empty frame -- not an error.
+        """
+        run_dir = strategy_research_run_dir(self._root, run_id)
+        if not run_dir.exists():
+            msg = f"run directory not found: {run_dir}"
+            raise FileNotFoundError(msg)
+        path = strategy_research_drawdown_episodes_path(self._root, run_id)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        episodes.write_parquet(path)
+        return path
+
+    def write_exposure(self, run_id: str, exposure: pl.DataFrame) -> Path:
+        """Persist the exposure-ratio series under ``analytics/exposure.parquet``."""
+        run_dir = strategy_research_run_dir(self._root, run_id)
+        if not run_dir.exists():
+            msg = f"run directory not found: {run_dir}"
+            raise FileNotFoundError(msg)
+        if exposure.height < 1:
+            msg = "exposure frame must contain at least one row"
+            raise ValidationError(msg)
+        path = strategy_research_exposure_path(self._root, run_id)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        exposure.write_parquet(path)
         return path
 
     def read(self, ref: StrategyResearchRunRef) -> StrategyResearchRunEnvelope:
