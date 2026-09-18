@@ -7,6 +7,35 @@ Scope: future read-only Signal, Strategy and Robustness Research evidence
 Owner: Product direction
 ```
 
+## Existing baseline (found 2026-09-17)
+
+This document was drafted without accounting for two evidence pages already
+shipped in `apps/dashboard` since 2026-09-11 (`feat(dashboard): recruiter-facing
+readability, navigation and styling pass`), predating this draft:
+
+- [`pages/6_Strategy_Research.py`](../../apps/dashboard/pages/6_Strategy_Research.py)
+  — one representative Strategy Research run: run identity, model, dataset,
+  timeframe, time range, verdict, and a KPI summary limited to net PnL, trade
+  count and win rate. Partial coverage of the "KPI summary" row below; no
+  backtest assumptions/provenance, equity/drawdown, R-multiple distribution,
+  conditional expectancy, exit diagnostics, drawdown structure or
+  capital/exposure.
+- [`pages/4_Market_and_Signal_Research.py`](../../apps/dashboard/pages/4_Market_and_Signal_Research.py)
+  — representative Market Data identity plus a selectable Signal Research
+  run showing summary metrics, grouped metrics, forward-return percentiles by
+  horizon (a line chart, not the heatmap-by-context row below), conditional
+  comparison, metric histograms, quality warnings and join diagnostics.
+  Meaningfully overlaps several "Market and Signal Research" rows below, but
+  none was verified field-by-field against this table.
+
+Both pages read the same `projection.json` / publication-boundary pattern
+this document assumes (ADR-0034/ADR-0035) and already have real persisted
+runs behind them (3 Strategy Research runs, 4 Signal/Predictive Research
+runs, per `apps/dashboard/publication_data/`). Any future PRD for the rows
+below should treat these two pages as the starting baseline, not greenfield,
+and should re-verify per-row coverage against the actual persisted schema
+rather than trusting this summary.
+
 ## Purpose and relationship to existing scope
 
 This direction extends the accepted [Portfolio Dashboard Development

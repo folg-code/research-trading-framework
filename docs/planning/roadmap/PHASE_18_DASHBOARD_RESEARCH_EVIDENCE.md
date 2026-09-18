@@ -1,9 +1,20 @@
 # Phase 18 — Dashboard Research Evidence Views
 
-Status: **DIRECTIONAL** — captured 2026-09-17. No increment has an accepted
-PRD, ADR or sprint yet. This is the index for a phase that does not exist as
-approved work; [Current Status](../CURRENT_STATUS.md) remains authoritative
-for what is actually active.
+Status: **DIRECTIONAL** — captured 2026-09-17, revised 2026-09-17. No
+increment has an accepted PRD, ADR or sprint yet. This is the index for a
+phase that does not exist as approved work; [Current Status](../CURRENT_STATUS.md)
+remains authoritative for what is actually active.
+
+**Revision note (2026-09-17):** this phase file and the vision doc it
+extends were originally drafted assuming no evidence views existed yet. That
+was wrong — `apps/dashboard` has shipped a partial Strategy Research page and
+a richer Market/Signal Research page since 2026-09-11, reading real persisted
+runs through the existing publication boundary. See the vision doc's
+["Existing baseline"](../../vision/DASHBOARD_RESEARCH_VIEWS_FUTURE.md#existing-baseline-found-2026-09-17)
+section. Sequencing below is revised accordingly: 18A/18B no longer need new
+research runs to have something to display — they extend an existing
+baseline — but per-row coverage still needs verifying against the real schema
+before any PRD is written.
 
 ## Purpose
 
@@ -32,30 +43,35 @@ future PRD".
 
 | Increment | Scope | State |
 |---|---|---|
-| 18A Strategy Research evidence views | Backtest assumptions/provenance, KPI summary, simulated equity and drawdown | Directional — recommended first slice (see below) |
+| 18A Strategy Research evidence views | All Strategy Research rows: backtest assumptions/provenance, full KPI summary, simulated equity and drawdown, PnL/return trade distribution, exit diagnostics, conditional expectancy by market context, drawdown structure, capital and exposure. Overview table + run selector, replacing the existing hardcoded single-run page. | **APPROVED (maintainer, 2026-09-18)** — [PRD](../../product/PRD-dashboard-strategy-research-evidence.md); Wave 0 complete and accepted ([decisions](PHASE_18_WAVE0_DECISIONS.md)); [Sprint 068](../sprints/SPRINT_068.md) (Milestone 1a: manifest assumptions + drawdown episodes + exposure) done in the working tree, not yet committed; Sprints N+1 (context-expectancy mechanism), N+2 (generic publisher) and N+3 (dashboard UI) not opened. Absorbs what this table previously called 18C — see that row. |
 | 18B Signal Research evidence views | Workflow overview, forward-drift heatmap, adjusted forward drift, MFE/MAE relation, context timeline and persistence | Directional |
-| 18C Strategy context and diagnostics | Conditional expectancy by market context, exit diagnostics, drawdown structure, capital and exposure | Directional; vision doc flags drawdown-structure and capital/exposure methodology as unresolved even at PRD-question level |
+| ~~18C Strategy context and diagnostics~~ | ~~Conditional expectancy by market context, exit diagnostics, drawdown structure, capital and exposure~~ | **Folded into 18A (2026-09-18)** — these are all Strategy Research rows; the maintainer chose to scope them into 18A's PRD rather than as a separate increment. The methodology this row's "Directional" state used to flag as unresolved is now decided in 18A's PRD (Goals: Milestone 1). |
 | 18D Robustness Research evidence view | Rolling-window robustness (correct formula, not the historical erroneous one) | Directional |
 
 ## Recommended sequencing
 
-**18A first.** Its most direct data source is
-[IDEA-027](../registries/idea-market-analysis.md#idea-027)'s not-yet-scheduled
-Validation Approach: once that idea's components are implemented and its
-validation series runs, it will produce new Strategy Research studies — the
-successor to the now-superseded
-[Sprint 063 draft](../../archive/superseded/SPRINT_063_STRATEGY_SIMULATION_SERIES.md),
-which never ran. So 18A is the increment most likely to have real
-persisted evidence to display without first resolving harder
-multi-horizon/context-join questions. 18B/18C/18D remain unordered relative
-to each other until 18A's PRD and delivery validate the pattern (routing,
-comparison-compatibility disclosure, publication-safety review) that later
-increments would reuse.
-
-18C is explicitly the highest-uncertainty increment: the vision doc itself
-notes drawdown-episode and capital/exposure semantics "need review before
-PRD acceptance criteria are fixed" — its PRD cannot simply restate the
-vision doc's table.
+**18A first**, now as an extension of the existing
+[`pages/6_Strategy_Research.py`](../../../apps/dashboard/pages/6_Strategy_Research.py)
+baseline rather than a greenfield build — 3 Strategy Research runs are
+already persisted and projected today, so 18A does not need
+[IDEA-027](../registries/idea-market-analysis.md#idea-027)'s validation
+series (now implemented as a component pack, see that idea's Review; its
+Signal/Strategy Research validation runs remain a separate, unscheduled
+follow-on and are **not** a dependency for 18A — dashboard work builds on
+whatever evidence already exists, it does not commission new research).
+18A's PRD (approved 2026-09-18) resolved this field-by-field: most Strategy
+Research rows only needed publication-boundary and UI work because the data
+already existed (`equity.parquet`, `trades.parquet`,
+`summary_metrics.parquet`); three rows (conditional expectancy, drawdown
+structure, capital/exposure — previously this table's 18C) needed genuinely
+new research/analytics-layer artifacts with methodology decided directly
+with the maintainer rather than left open. See the PRD's Goals for the
+drawdown-episode definition, the generic categorical-context join, and the
+notional-exposure-ratio formula. 18B is similarly an extension of
+[`pages/4_Market_and_Signal_Research.py`](../../../apps/dashboard/pages/4_Market_and_Signal_Research.py),
+still directional. 18D remains unordered until 18B's PRD validates the
+pattern (routing, comparison-compatibility disclosure, publication-safety
+review) that it would reuse.
 
 ## Binding rules for the whole phase
 
@@ -79,24 +95,32 @@ vision doc's table.
 
 ## Dependencies
 
-- [IDEA-027](../registries/idea-market-analysis.md#idea-027)'s not-yet-scheduled
-  validation series is not a hard blocker for 18A's PRD work, but 18A has
-  little to display without at least one published study first.
+- None blocking 18A or 18B: real persisted runs already exist and are
+  already projected (`apps/dashboard/publication_data/`), and both
+  increments extend an existing page rather than starting from nothing.
+  [IDEA-027](../registries/idea-market-analysis.md#idea-027)'s validation
+  series remains unscheduled and is not a dependency for either increment.
 - No dependency on Phase 16E's Strategy Families machinery (PRB-020): 18A's
-  data source is the existing single-run Strategy Research orchestration,
-  the same one IDEA-027's validation series plans to use.
+  data source is the existing single-run Strategy Research orchestration.
 
 ## Open questions before any PRD
 
-Carried from the vision doc, scoped to whichever increment opens first:
+Carried from the vision doc, scoped to whichever increment opens next
+(18A's own instance of each is resolved — see its PRD's Goals/Open
+questions):
 
 - Which run identity/routing contract opens a run's detail view, including
-  incomplete or unsupported runs, and returns to the overview?
+  incomplete or unsupported runs, and returns to the overview? (18A answer:
+  in-page selector state, no URL routing — no precedent for it existed in
+  this Streamlit app; 18B/18D still need their own answer.)
 - Which persisted fields already exist in supported artifacts today, versus
-  requiring new upstream analytics or public-projection work?
-- For 18A specifically: what is the default time-range/PnL presentation
-  when currency, starting capital or cost assumptions differ across runs
-  shown together?
+  requiring new upstream analytics or public-projection work? (18A answer:
+  see its PRD's Problem section for the field-by-field split.)
+- What is the default time-range/PnL presentation when currency, starting
+  capital or cost assumptions differ across runs shown together? (18A
+  answer: per-run interval marking, currency/capital-labeled absolute PnL,
+  persisted `total_return` as the separate normalized measure — no new
+  normalization logic invented.)
 
 ## Review rule
 
