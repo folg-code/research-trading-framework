@@ -68,6 +68,7 @@ def format_kpi(key: str, value: Any, *, unit: str = "pts") -> str:
         in {
             "net_pnl",
             "max_drawdown",
+            "current_drawdown",
             "total_costs",
             "oos_net_pnl",
             "train_net_pnl",
@@ -78,14 +79,17 @@ def format_kpi(key: str, value: Any, *, unit: str = "pts") -> str:
             "unrealized_pnl",
             "last_price",
             "pnl",
+            "expectancy",
+            "avg_win",
+            "avg_loss",
         }
         and numeric is not None
     ):
-        if key == "max_drawdown" and numeric > 0:
+        if key in {"max_drawdown", "current_drawdown"} and numeric > 0:
             numeric = -abs(numeric)
         sign = "+" if numeric > 0 and key in {"net_pnl", "pnl", "delta_net_pnl"} else ""
         return f"{sign}{numeric:,.2f} {unit}"
-    if key in {"sharpe_ratio", "profit_factor"} and numeric is not None:
+    if key in {"sharpe_ratio", "sortino_ratio", "profit_factor"} and numeric is not None:
         return f"{numeric:.2f}"
     if key in {"trade_count", "trades", "path_count", "bars_held"} and numeric is not None:
         return f"{int(numeric):,}"

@@ -14,6 +14,7 @@ from dashboard_app.publication.evidence import (
     SIGNAL_RESEARCH_EVIDENCE_ROLE,
 )
 from dashboard_app.publication.projection import PublicProjectionBundle
+from dashboard_app.publication.workspace import STRATEGY_RESEARCH_EVIDENCE_ROLE
 
 
 @dataclass(frozen=True, slots=True)
@@ -55,6 +56,25 @@ def signal_research_evidence(
         ProjectedResearchEvidence(artifact_id=artifact.artifact_id, fields=artifact.fields)
         for artifact in bundle.artifacts.values()
         if artifact.artifact_role == SIGNAL_RESEARCH_EVIDENCE_ROLE
+    ]
+    return tuple(
+        sorted(evidence, key=lambda item: str(item.fields.get("created_at_utc", "")), reverse=True)
+    )
+
+
+def strategy_research_evidence(
+    bundle: PublicProjectionBundle,
+) -> tuple[ProjectedResearchEvidence, ...]:
+    """Return projected Strategy runs newest-first without filesystem discovery.
+
+    Phase 18, 18A Milestone 2b (Sprint 071). Mirrors
+    ``signal_research_evidence``'s exact shape for the new, richer
+    ``strategy_research_evidence`` role (Sprint 070).
+    """
+    evidence = [
+        ProjectedResearchEvidence(artifact_id=artifact.artifact_id, fields=artifact.fields)
+        for artifact in bundle.artifacts.values()
+        if artifact.artifact_role == STRATEGY_RESEARCH_EVIDENCE_ROLE
     ]
     return tuple(
         sorted(evidence, key=lambda item: str(item.fields.get("created_at_utc", "")), reverse=True)
