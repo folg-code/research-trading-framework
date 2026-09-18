@@ -219,6 +219,100 @@ def test_strategy_research_repository_refuses_overwrite(tmp_path: Path) -> None:
         repository.write(_sample_envelope(run_id=run_id))
 
 
+def test_manifest_round_trips_simulation_assumptions_fields() -> None:
+    """Sprint 068 / D-P18-01 — real assumption values, not just the fingerprint."""
+    manifest = StrategyResearchRunManifest(
+        run_id="r1",
+        schema_version=STRATEGY_RESEARCH_SCHEMA_VERSION,
+        framework_version=framework_version,
+        created_at_utc=datetime(2024, 1, 1, tzinfo=UTC),
+        source_dataset_ref="ES.c.0:ohlcv:1m:csv:fixture@1",
+        evaluation_timeframe="1m",
+        strategy_model_id="high_vol_higher_low_fixed_exit",
+        market_model_id="high_volatility",
+        signal_model_id="higher_low_long",
+        exit_model_id="fixed_bars",
+        risk_model_id="fixed_quantity",
+        simulation_assumptions_fingerprint="1aa6ee647c5cc636",
+        fill_policy_entry="next_bar_open",
+        fill_policy_exit="next_bar_open",
+        slippage_bps="5",
+        commission_per_side="1.5",
+        initial_capital="50000",
+    )
+    round_tripped = StrategyResearchRunManifest.from_dict(manifest.to_dict())
+    assert round_tripped == manifest
+    assert round_tripped.slippage_bps == "5"
+    assert round_tripped.initial_capital == "50000"
+
+
+def test_manifest_from_dict_defaults_missing_assumptions_fields() -> None:
+    """A pre-Sprint-068 manifest without the new fields still loads, with defaults."""
+    payload = _sample_manifest(run_id="legacy").to_dict()
+    for key in (
+        "fill_policy_entry",
+        "fill_policy_exit",
+        "slippage_bps",
+        "commission_per_side",
+        "initial_capital",
+    ):
+        payload.pop(key, None)
+    loaded = StrategyResearchRunManifest.from_dict(payload)
+    assert loaded.fill_policy_entry == "next_bar_open"
+    assert loaded.fill_policy_exit == "next_bar_open"
+    assert loaded.slippage_bps == "0"
+    assert loaded.commission_per_side == "0"
+    assert loaded.initial_capital == "100000"
+
+
+def test_strategy_research_repository_write_drawdown_episodes_and_exposure(
+    tmp_path: Path,
+) -> None:
+    """Sprint 068 — new analytics writers follow the write_summary_metrics pattern."""
+    from trading_framework.infrastructure.storage.paths import (
+        strategy_research_drawdown_episodes_path,
+        strategy_research_exposure_path,
+    )
+    from trading_framework.research.analytics.drawdown_episodes import (
+        empty_drawdown_episodes_dataframe,
+    )
+    from trading_framework.research.analytics.exposure import compute_exposure
+
+    run_id = "st-analytics-1"
+    repo = StrategyResearchDatasetRepository(tmp_path)
+    repo.write(_sample_envelope(run_id=run_id))
+
+    episodes_path = repo.write_drawdown_episodes(run_id, empty_drawdown_episodes_dataframe())
+    assert episodes_path == strategy_research_drawdown_episodes_path(tmp_path, run_id)
+    assert episodes_path.exists()
+
+    exposure_frame = compute_exposure(
+        run_id=run_id,
+        trades=empty_simulated_trades_dataframe(),
+        equity=empty_equity_points_dataframe(),
+    )
+    # An empty equity grid yields an empty exposure frame; write_exposure requires
+    # at least one row (mirrors write_summary_metrics), so build one real bar here.
+    from datetime import timedelta
+
+    import polars as pl
+
+    non_empty_equity = pl.DataFrame(
+        {
+            "observed_at": [datetime(2024, 1, 1, tzinfo=UTC) + timedelta(minutes=0)],
+            "equity": [100.0],
+            "drawdown": [0.0],
+            "open_position_count": [0],
+        }
+    ).select(empty_equity_points_dataframe().columns)
+    exposure_frame = compute_exposure(
+        run_id=run_id, trades=empty_simulated_trades_dataframe(), equity=non_empty_equity
+    )
+    exposure_path = repo.write_exposure(run_id, exposure_frame)
+    assert exposure_path == strategy_research_exposure_path(tmp_path, run_id)
+    assert exposure_path.exists()
+
+
 def test_strategy_research_repository_read_validates_manifest(tmp_path: Path) -> None:
     run_id = "broken-manifest"
     run_dir = tmp_path / "research" / "strategy_research" / "runs" / run_id
