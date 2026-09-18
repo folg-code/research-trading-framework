@@ -4,7 +4,7 @@
 
 ## Active work
 
-Phase 19 is complete (Sprint 067 merged via #571). [Sprint 068](sprints/SPRINT_068.md) (Strategy Research manifest assumptions, drawdown episodes and exposure — Phase 18, 18A Milestone 1a) is merged to `main` via #574. [Sprint 069](sprints/SPRINT_069.md) (`strategy_source_ref` + context expectancy — Milestone 1b) is implemented and tested, PR pending. See [Current Status](CURRENT_STATUS.md) for detail.
+Phase 19 is complete (Sprint 067 merged via #571). Sprints 068 (Milestone 1a) and 069 (Milestone 1b) are merged to `main` via #574/#577. [Sprint 070](sprints/SPRINT_070.md) (generic Strategy Research publisher — Milestone 2a) is implemented and tested, PR pending. See [Current Status](CURRENT_STATUS.md) for detail.
 
 - [Phase 19](roadmap/PHASE_19_MARKET_ANALYSIS_CATALOG_EXPANSION.md): complete — all 26+1 PRD components implemented, Sprints 065-067 merged to `main`.
 - [Phase 17](roadmap/PHASE_17_RESEARCH_APPLICATION.md): 17A/17B complete; 17C/17D directional (17C's priority is currently superseded by Phase 19).
