@@ -4,7 +4,7 @@
 
 ## Active work
 
-[Sprint 067](sprints/SPRINT_067.md) (Market Analysis Wave B Component Batch, Phase 19) is closed on its sprint branch; the final integration PR to `main` is pending. See [Current Status](CURRENT_STATUS.md) for detail.
+[Sprint 067](sprints/SPRINT_067.md) (Market Analysis Wave B Component Batch, Phase 19) is closed and merged to `main` via #571 — Phase 19 is complete. [Sprint 068](sprints/SPRINT_068.md) (Strategy Research manifest assumptions, drawdown episodes and exposure — Phase 18, 18A Milestone 1a) is done in the local working tree, not yet committed. See [Current Status](CURRENT_STATUS.md) for detail.
 
 - [Phase 19](roadmap/PHASE_19_MARKET_ANALYSIS_CATALOG_EXPANSION.md): PRD approved, Wave 0 accepted, Sprint 065 (Tooling) closed and merged to `main`; Sprint 066 (Wave A, 20 components) closed and merged to `main`; Sprint 067 (Wave B, 6 components) closed on its sprint branch, integration PR to `main` pending — all 26+1 PRD components now implemented.
 - [Phase 17](roadmap/PHASE_17_RESEARCH_APPLICATION.md): 17A/17B complete; 17C/17D directional (17C's priority is currently superseded by Phase 19).

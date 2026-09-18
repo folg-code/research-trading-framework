@@ -184,10 +184,34 @@ scheduled by default (`docs/planning/ROADMAP.md` §13A, Phase 10 closure).
 ## IDEA-027 — Price-Structure and Session Context Component Pack
 
 ```text
-Status: INBOX
+Status: IMPLEMENTED (component pack only — see Review)
 Category: Market Analysis
 Added: 2026-09-17
+Last reviewed: 2026-09-17
 ```
+
+### Review (2026-09-17)
+
+All 11 proposed components are implemented and merged to `main`:
+`structure.opening_gap` via Sprint 065's pilot
+([#552](https://github.com/folg-code/research-trading-framework/pull/552)-[#556](https://github.com/folg-code/research-trading-framework/pull/556));
+the remaining 10 (`structure.range_discontinuity`,
+`structure.impulse_origin_range`, `structure.level_sweep_rejection`,
+`structure.level_role_reversal`, `structure.matched_extreme_pair`,
+`structure.close_reversal_level`, `session.overlap_window`,
+`session.previous_period_extreme`, `session.current_period_extreme`,
+`structure.impulse_follow_through`) via Sprint 066 Wave A
+([#557](https://github.com/folg-code/research-trading-framework/pull/557)-[#566](https://github.com/folg-code/research-trading-framework/pull/566)).
+See [Phase 19](../roadmap/PHASE_19_MARKET_ANALYSIS_CATALOG_EXPANSION.md).
+
+This closes the component-pack proposal below. The **Validation Approach**
+section further down (Signal Research → Strategy Research runs against
+these components) is a separate, still-unscheduled follow-on — component
+implementation does not imply that validation series has run. No dashboard
+work should be gated on it; see
+[Phase 18](../roadmap/PHASE_18_DASHBOARD_RESEARCH_EVIDENCE.md), which builds
+evidence views against whatever Strategy/Signal Research studies already
+exist rather than commissioning new ones.
 
 ### Summary
 
