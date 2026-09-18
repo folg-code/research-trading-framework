@@ -39,7 +39,10 @@ from dashboard_app.publication.validation import (  # noqa: E402
     PublicationUnavailable,
     load_projection_bundle_from_path,
 )
-from dashboard_app.publication.workspace import discover_catalog_inputs  # noqa: E402
+from dashboard_app.publication.workspace import (  # noqa: E402
+    discover_catalog_inputs,
+    discover_strategy_research_evidence_inputs,
+)
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -100,6 +103,11 @@ def main() -> int:
     raw_inputs, skipped = discover_catalog_inputs(args.storage_root)
     evidence_inputs, evidence_skipped = discover_research_evidence_inputs(args.evidence_root)
     raw_inputs.extend(evidence_inputs)
+    strategy_evidence_inputs, strategy_evidence_skipped = (
+        discover_strategy_research_evidence_inputs(args.storage_root)
+    )
+    raw_inputs.extend(strategy_evidence_inputs)
+    skipped += strategy_evidence_skipped
     if args.without_base_bundle:
         bundle = build_projection_bundle(raw_inputs, generated_at_utc=generated_at)
     else:

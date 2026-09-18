@@ -165,11 +165,13 @@ def refresh_publication_projection_bundle(
         ROBUSTNESS_RESEARCH_EVIDENCE_ROLE,
         SIGNAL_RESEARCH_EVIDENCE_ROLE,
     )
+    from dashboard_app.publication.workspace import STRATEGY_RESEARCH_EVIDENCE_ROLE
 
     refreshable_roles = {
         RESEARCH_CATALOG_ENTRY_ROLE,
         SIGNAL_RESEARCH_EVIDENCE_ROLE,
         ROBUSTNESS_RESEARCH_EVIDENCE_ROLE,
+        STRATEGY_RESEARCH_EVIDENCE_ROLE,
     }
     extension = build_projection_bundle(raw_artifacts, generated_at_utc=generated_at_utc)
     artifacts = dict(base_bundle.artifacts)

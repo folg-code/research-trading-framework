@@ -106,6 +106,90 @@ _STRATEGY_RUN_SUMMARY_ALLOWED_FIELDS: frozenset[str] = frozenset(
     {"run_id", "trade_count", "win_rate", "net_pnl"}
 )
 
+#: Phase 18, 18A Milestone 2a (Sprint 070) / D-P18-03. Richer, multi-table
+#: Strategy Research evidence, mirroring ``_SIGNAL_EVIDENCE_*``'s existing
+#: pattern rather than a new one. Supersedes ``strategy_research_run_summary``
+#: for any run the generic publisher covers; that older, 4-field role is left
+#: registered (still read by the pre-Sprint-070 `pages/6_Strategy_Research.py`)
+#: but not extended further.
+_STRATEGY_EVIDENCE_ALLOWED_FIELDS = frozenset(
+    {
+        "run_id",
+        "schema_version",
+        "framework_version",
+        "created_at_utc",
+        "source_dataset_ref",
+        "evaluation_timeframe",
+        "strategy_model_id",
+        "market_model_id",
+        "signal_model_id",
+        "exit_model_id",
+        "risk_model_id",
+        "experiment_id",
+        "fill_policy_entry",
+        "fill_policy_exit",
+        "slippage_bps",
+        "commission_per_side",
+        "initial_capital",
+        "strategy_source_ref",
+    }
+)
+_STRATEGY_EVIDENCE_TABLE_COLUMNS: Mapping[str, frozenset[str]] = {
+    "summary_metrics": frozenset(
+        {
+            "run_id",
+            "net_pnl",
+            "total_return",
+            "max_drawdown",
+            "current_drawdown",
+            "sharpe_ratio",
+            "sortino_ratio",
+            "profit_factor",
+            "expectancy",
+            "trade_count",
+            "win_rate",
+            "avg_win",
+            "avg_loss",
+            "total_costs",
+        }
+    ),
+    # Per-bar dense series -- bounded to _STRATEGY_DENSE_TABLE_MAX_POINTS at
+    # discovery time (Sprint 068's 3 runs have 500K-1.3M bars each; publishing
+    # every point is impractical for a committed static bundle).
+    "equity_curve": frozenset({"observed_at", "equity", "drawdown", "open_position_count"}),
+    "exposure": frozenset({"observed_at", "notional_exposure", "exposure_ratio"}),
+    # Per-trade, not bounded -- a sampled trade population would misrepresent
+    # the PnL/return distribution and exit-diagnostics views that need it.
+    # Never entry/exit price or quantity (PRD non-goal: no per-trade
+    # position-size disclosure).
+    "trades": frozenset({"net_pnl", "exit_reason"}),
+    "drawdown_episodes": frozenset(
+        {
+            "episode_id",
+            "peak_at",
+            "peak_equity",
+            "trough_at",
+            "trough_equity",
+            "depth_pct",
+            "duration_bars",
+            "recovery_bars",
+        }
+    ),
+    "context_expectancy": frozenset(
+        {
+            "component_id",
+            "label",
+            "sample_count",
+            "missing_context_count",
+            "eligible",
+            "interpretable",
+            "net_pnl_mean",
+            "net_pnl_median",
+            "win_rate",
+        }
+    ),
+}
+
 _RESEARCH_CATALOG_ENTRY_ALLOWED_FIELDS: frozenset[str] = frozenset(
     {
         "workflow",
@@ -461,6 +545,26 @@ def sanitize_strategy_research_run_summary(raw: Mapping[str, Any]) -> dict[str, 
     return {key: raw[key] for key in _STRATEGY_RUN_SUMMARY_ALLOWED_FIELDS if key in raw}
 
 
+def sanitize_strategy_research_evidence(raw: Mapping[str, Any]) -> dict[str, Any]:
+    """Project rich Strategy Research facts through explicit field/table allowlists.
+
+    Phase 18, 18A Milestone 2a (Sprint 070) / D-P18-03. Mirrors
+    ``sanitize_signal_research_evidence``'s exact shape.
+    """
+    sanitized = {
+        key: raw[key]
+        for key in _STRATEGY_EVIDENCE_ALLOWED_FIELDS
+        if key in raw and raw[key] is not None
+    }
+    _require_safe_evidence_identity(sanitized, "run_id")
+    tables = _sanitize_evidence_tables(raw.get("tables"), _STRATEGY_EVIDENCE_TABLE_COLUMNS)
+    if "summary_metrics" not in tables:
+        raise UnsafePublicIdentityError("strategy research evidence requires summary_metrics")
+    sanitized["tables"] = tables
+    _validate_public_tree(sanitized)
+    return sanitized
+
+
 def sanitize_research_catalog_entry(raw: Mapping[str, Any]) -> dict[str, Any]:
     """Copy the reviewed public identity fields for one research catalog row."""
     sanitized = {
@@ -608,6 +712,7 @@ _SANITIZERS: Mapping[str, Callable[[Mapping[str, Any]], dict[str, Any]]] = {
     "predictive_run_metrics": sanitize_predictive_run_metrics,
     "predictive_threshold_sensitivity": sanitize_predictive_threshold_sensitivity,
     "strategy_research_run_summary": sanitize_strategy_research_run_summary,
+    "strategy_research_evidence": sanitize_strategy_research_evidence,
     "research_catalog_entry": sanitize_research_catalog_entry,
     "signal_research_evidence": sanitize_signal_research_evidence,
     "robustness_research_evidence": sanitize_robustness_research_evidence,
