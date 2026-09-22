@@ -22,11 +22,9 @@ from __future__ import annotations
 import polars as pl
 
 from trading_framework.market_analysis.assembly.frame import AnalysisFrame
-from trading_framework.market_analysis.models.kind import ComponentKind
-from trading_framework.market_analysis.registry.builtins import default_mvp_registry
 from trading_framework.market_analysis.registry.registry import ComponentRegistry
 from trading_framework.market_model.definitions import MarketModelDefinition
-from trading_framework.model_expression.planning import collect_model_dependencies
+from trading_framework.research.analytics.market_model_context import state_context_aliases
 
 CONTEXT_EXPECTANCY_SCHEMA_VERSION = "strategy_research_context_expectancy.v1"
 
@@ -52,33 +50,6 @@ def context_expectancy_schema() -> dict[str, pl.DataType]:
 
 def empty_context_expectancy_dataframe() -> pl.DataFrame:
     return pl.DataFrame(schema=context_expectancy_schema())
-
-
-def state_context_aliases(
-    *,
-    market_model: MarketModelDefinition,
-    frame: AnalysisFrame,
-    registry: ComponentRegistry | None = None,
-) -> dict[str, str]:
-    """Map a frame column alias to its owning component id, STATE-kind only.
-
-    Only components the Market Model's own expression references qualify --
-    a signal-model-only dependency that happens to share the frame is never
-    treated as market context.
-    """
-    registry = registry or default_mvp_registry()
-    dependencies = collect_model_dependencies(market_models=(market_model,), signal_models=())
-    market_component_ids = {ref.component_id for ref in dependencies.component_output_references}
-
-    aliases: dict[str, str] = {}
-    for alias, output_ref in frame.column_lineage.items():
-        component_id = output_ref.computation_identity.component_id
-        if component_id not in market_component_ids:
-            continue
-        if registry.get_component(component_id).kind is not ComponentKind.STATE:
-            continue
-        aliases[alias] = str(component_id)
-    return aliases
 
 
 def compute_context_expectancy(

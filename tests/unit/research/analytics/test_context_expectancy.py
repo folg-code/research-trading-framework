@@ -28,8 +28,8 @@ from trading_framework.research.analytics.context_expectancy import (
     CONTEXT_EXPECTANCY_SCHEMA_VERSION,
     compute_context_expectancy,
     empty_context_expectancy_dataframe,
-    state_context_aliases,
 )
+from trading_framework.research.analytics.market_model_context import state_context_aliases
 from trading_framework.research.simulation.facts import empty_simulated_trades_dataframe
 
 _START = datetime(2024, 1, 1, tzinfo=UTC)

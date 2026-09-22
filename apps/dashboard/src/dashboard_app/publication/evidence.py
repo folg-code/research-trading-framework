@@ -29,6 +29,10 @@ _SIGNAL_TABLES = (
     "join_diagnostics",
     "metric_histograms",
     "quality_warnings",
+    # Phase 18, 18B Milestone 1 (Sprint 073) / D-P18B-03/04.
+    "adjusted_forward_drift",
+    "context_timeline",
+    "context_persistence",
 )
 _ROBUSTNESS_TABLES = (
     "parameter_sweep_rankings",
@@ -40,6 +44,13 @@ _ROBUSTNESS_TABLES = (
     "monte_carlo_tails",
 )
 _WALK_FORWARD_EQUITY_MAX_POINTS = 1_200
+#: Per-bar dense series (Sprint 073's context_timeline can be 300K+ rows
+#: for a real run) -- bounded the same deterministic, endpoint-preserving
+#: way walk_forward_equity already is.
+_CONTEXT_TIMELINE_MAX_POINTS = 2_000
+#: mfe_mae_pairs is read from the run's raw outcomes.parquet (sibling to
+#: analytics/, not inside it) -- see _load_signal_run.
+_MFE_MAE_PAIRS_MAX_POINTS = 2_000
 
 
 def discover_research_evidence_inputs(research_root: Path) -> tuple[list[RawArtifactInput], int]:
@@ -78,6 +89,9 @@ def _load_signal_run(run_dir: Path) -> RawArtifactInput:
     tables = _load_tables(run_dir / "analytics", _SIGNAL_TABLES)
     if "summary_metrics" not in tables:
         raise ValueError("signal evidence has no summary_metrics")
+    mfe_mae_pairs = _load_mfe_mae_pairs(run_dir)
+    if mfe_mae_pairs is not None:
+        tables["mfe_mae_pairs"] = mfe_mae_pairs
     raw_payload = {
         key: manifest[key]
         for key in (
@@ -138,6 +152,12 @@ def _load_robustness_experiment(experiment_dir: Path) -> RawArtifactInput:
     )
 
 
+_BOUNDED_TABLE_MAX_POINTS = {
+    "walk_forward_equity": _WALK_FORWARD_EQUITY_MAX_POINTS,
+    "context_timeline": _CONTEXT_TIMELINE_MAX_POINTS,
+}
+
+
 def _load_tables(analytics_root: Path, names: tuple[str, ...]) -> dict[str, list[dict[str, Any]]]:
     tables: dict[str, list[dict[str, Any]]] = {}
     for name in names:
@@ -145,11 +165,27 @@ def _load_tables(analytics_root: Path, names: tuple[str, ...]) -> dict[str, list
         if not path.is_file():
             continue
         table = pq.read_table(path)  # type: ignore[no-untyped-call]
-        if name == "walk_forward_equity":
-            table = table.take(_bounded_indexes(table.num_rows, _WALK_FORWARD_EQUITY_MAX_POINTS))
+        max_points = _BOUNDED_TABLE_MAX_POINTS.get(name)
+        if max_points is not None:
+            table = table.take(_bounded_indexes(table.num_rows, max_points))
         rows = table.to_pylist()
         tables[name] = [_json_value(row) for row in rows]
     return tables
+
+
+def _load_mfe_mae_pairs(run_dir: Path) -> list[dict[str, Any]] | None:
+    """Bounded, straight copy of (horizon_bars, forward_return, mfe, mae) triples.
+
+    Sourced from the run's raw ``outcomes.parquet`` (sibling to ``analytics/``,
+    not inside it) -- Phase 18 18B Milestone 1 Goals: no new computation.
+    """
+    path = run_dir / "outcomes.parquet"
+    if not path.is_file():
+        return None
+    table = pq.read_table(path)  # type: ignore[no-untyped-call]
+    table = table.select(["horizon_bars", "forward_return", "mfe", "mae"])
+    table = table.take(_bounded_indexes(table.num_rows, _MFE_MAE_PAIRS_MAX_POINTS))
+    return [_json_value(row) for row in table.to_pylist()]
 
 
 def _bounded_indexes(row_count: int, max_points: int) -> list[int]:
