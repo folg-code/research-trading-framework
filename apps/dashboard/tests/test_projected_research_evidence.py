@@ -76,6 +76,113 @@ def test_discovery_projects_signal_and_bounded_legacy_demo(tmp_path: Path) -> No
     assert all(item.artifact_role != "research_catalog_entry" for item in inputs)
 
 
+def test_discovery_projects_new_signal_tables_bounded_and_sourced_from_outcomes(
+    tmp_path: Path,
+) -> None:
+    """Phase 18 18B Milestone 1 (Sprint 073): adjusted_forward_drift,
+    context_timeline, context_persistence (analytics/) and mfe_mae_pairs
+    (sourced from the run's raw outcomes.parquet, not analytics/).
+    """
+    signal_dir = tmp_path / "market_research/runs/signal-1"
+    signal_analytics = signal_dir / "analytics"
+    signal_analytics.mkdir(parents=True)
+    (signal_dir / "manifest.json").write_text(
+        json.dumps(
+            {
+                "run_id": "signal-1",
+                "schema_version": "signal_research.v2",
+                "framework_version": "0.1.0",
+                "created_at_utc": "2026-09-11T00:00:00+00:00",
+                "source_dataset_ref": "NQ.c.0|ohlcv|1m|derived|demo@1",
+                "evaluation_timeframe": "1m",
+                "experiment_id": "signal-demo",
+                "research_scope": "signal_model_only",
+                "research_question": "Does the signal persist?",
+            }
+        ),
+        encoding="utf-8",
+    )
+    pq.write_table(
+        pa.table({"run_id": ["signal-1"], "horizon_bars": [5], "hit_rate": [0.5]}),
+        signal_analytics / "summary_metrics.parquet",
+    )
+    pq.write_table(
+        pa.table(
+            {
+                "run_id": ["signal-1"],
+                "horizon_bars": [5],
+                "group_dimension": ["calendar_month"],
+                "group_value": ["2025-01"],
+                "sample_size_complete": [10],
+                "forward_return_mean": [0.1],
+                "global_forward_return_mean": [0.0],
+                "shrinkage_weight": [0.09],
+                "adjusted_forward_return_mean": [0.009],
+            }
+        ),
+        signal_analytics / "adjusted_forward_drift.parquet",
+    )
+    pq.write_table(
+        pa.table(
+            {
+                "run_id": ["signal-1"] * 3_000,
+                "component_id": ["volatility.state"] * 3_000,
+                "observed_at": list(range(3_000)),
+                "label": ["0"] * 3_000,
+            }
+        ),
+        signal_analytics / "context_timeline.parquet",
+    )
+    pq.write_table(
+        pa.table(
+            {
+                "run_id": ["signal-1"],
+                "component_id": ["volatility.state"],
+                "label": ["0"],
+                "start_at": [0],
+                "end_at": [None],
+                "duration_bars": [3_000],
+            }
+        ),
+        signal_analytics / "context_persistence.parquet",
+    )
+    pq.write_table(
+        pa.table(
+            {
+                "horizon_bars": [5, 5, 5],
+                "forward_return": [0.1, 0.2, 0.3],
+                "mfe": [0.2, 0.3, 0.4],
+                "mae": [-0.1, -0.2, -0.3],
+            }
+        ),
+        signal_dir / "outcomes.parquet",
+    )
+
+    inputs, skipped = discover_research_evidence_inputs(tmp_path)
+    assert skipped == 0
+    bundle = build_projection_bundle(inputs, generated_at_utc=datetime(2026, 9, 22, tzinfo=UTC))
+    signal = signal_research_evidence(bundle)[0]
+
+    adjusted = signal.table("adjusted_forward_drift")
+    assert adjusted is not None
+    assert adjusted.num_rows == 1
+    assert "schema_version" not in adjusted.column_names
+
+    timeline = signal.table("context_timeline")
+    assert timeline is not None
+    assert timeline.num_rows == 2_000
+    assert "run_id" not in timeline.column_names
+
+    persistence = signal.table("context_persistence")
+    assert persistence is not None
+    assert persistence.num_rows == 1
+
+    mfe_mae = signal.table("mfe_mae_pairs")
+    assert mfe_mae is not None
+    assert mfe_mae.num_rows == 3
+    assert set(mfe_mae.column_names) == {"horizon_bars", "forward_return", "mfe", "mae"}
+
+
 def test_absent_optional_evidence_root_produces_no_inputs(tmp_path: Path) -> None:
     inputs, skipped = discover_research_evidence_inputs(tmp_path / "not-present")
 

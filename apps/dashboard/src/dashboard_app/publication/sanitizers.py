@@ -367,6 +367,25 @@ _SIGNAL_EVIDENCE_TABLE_COLUMNS: Mapping[str, frozenset[str]] = {
         }
     ),
     "quality_warnings": frozenset({"code", "message", "horizon_bars"}),
+    # Phase 18, 18B Milestone 1 (Sprint 073) / D-P18B-03/04.
+    "adjusted_forward_drift": frozenset(
+        {
+            "run_id",
+            "horizon_bars",
+            "group_dimension",
+            "group_value",
+            "sample_size_complete",
+            "forward_return_mean",
+            "global_forward_return_mean",
+            "shrinkage_weight",
+            "adjusted_forward_return_mean",
+        }
+    ),
+    "context_timeline": frozenset({"component_id", "observed_at", "label"}),
+    "context_persistence": frozenset(
+        {"component_id", "label", "start_at", "end_at", "duration_bars"}
+    ),
+    "mfe_mae_pairs": frozenset({"horizon_bars", "forward_return", "mfe", "mae"}),
 }
 
 _ROBUSTNESS_EVIDENCE_ALLOWED_FIELDS = frozenset(
