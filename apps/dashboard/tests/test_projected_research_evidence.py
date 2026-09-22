@@ -297,7 +297,14 @@ def test_pages_restore_rich_evidence_sections() -> None:
         "Context timeline and persistence",
     ):
         assert heading in signal_page
-    for heading in ("Walk-forward (IS/OOS)", "Parameter sweep", "Stress tests", "Monte Carlo"):
+    for heading in (
+        "Walk-forward (IS/OOS)",
+        "Parameter sweep",
+        "Stress tests",
+        "Monte Carlo",
+        "Fold geometry and overlap",
+        "Rolling-window stability",
+    ):
         assert heading in robustness_page
     assert "DEMO · LEGACY EVIDENCE" in robustness_page
     assert "list_runs" not in signal_page + robustness_page
@@ -365,8 +372,13 @@ def test_robustness_page_renders_demo_verdict_and_analytics() -> None:
     assert any("DEMO · LEGACY EVIDENCE" in item.value for item in app.warning)
     assert any(item.value == "Verdict: CONDITIONAL" for item in app.subheader)
     assert any(item.value == "Walk-forward (IS/OOS)" for item in app.subheader)
+    # Phase 18 18D Milestone 2 (Sprint 076): fold geometry/overlap and
+    # stability sections, published for the one real experiment.
+    assert any(item.value == "Fold geometry and overlap" for item in app.subheader)
+    assert any(item.value == "Rolling-window stability" for item in app.subheader)
     assert len(app.checkbox) == 5
     assert len(app.get("plotly_chart")) >= 5
+    assert len(app.dataframe) >= 2
 
 
 def _write_evidence_fixture(research_root: Path) -> list[RawArtifactInput]:

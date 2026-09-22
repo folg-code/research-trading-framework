@@ -62,10 +62,10 @@ D-P18D-03, ACCEPTED (maintainer, 2026-09-22).
 
 | Task | Outcome | Dependencies | Ownership | Risk | Status | PR |
 |---|---|---|---|---|---|---|
-| T001 | Window geometry fields shown in experiment assumptions | None | `apps/dashboard/pages/8_Robustness_Analysis.py` | standard | Open | — |
-| T002 | Fold geometry/overlap table with D-P18D-03 disclosure caption | None | `apps/dashboard/pages/8_Robustness_Analysis.py` | standard | Open | — |
-| T003 | Stability section beside the raw per-fold view | None | `apps/dashboard/pages/8_Robustness_Analysis.py` | standard | Open | — |
-| T004 | Honest "unavailable" messaging verified for all three new sections | T001-T003 | `apps/dashboard/pages/8_Robustness_Analysis.py` | standard | Open | — |
+| T001 | Window geometry fields shown in experiment assumptions | None | `apps/dashboard/pages/8_Robustness_Analysis.py` | standard | Done | — |
+| T002 | Fold geometry/overlap table with D-P18D-03 disclosure caption | None | `apps/dashboard/pages/8_Robustness_Analysis.py` | standard | Done | — |
+| T003 | Stability section beside the raw per-fold view | None | `apps/dashboard/pages/8_Robustness_Analysis.py` | standard | Done | — |
+| T004 | Honest "unavailable" messaging verified for all three new sections | T001-T003 | `apps/dashboard/pages/8_Robustness_Analysis.py` | standard | Done | — |
 
 ## Branch and PR rules
 
@@ -92,4 +92,47 @@ main
 
 ## Closeout
 
-_Pending implementation._
+**Status: DONE.** All 4 tasks (T001-T004) implemented and verified.
+
+**Implementation**:
+
+- `apps/dashboard/pages/8_Robustness_Analysis.py` — the experiment
+  assumptions block now shows `window_mode` and train/OOS/step duration
+  (formatted as whole/fractional days via a small local
+  `_format_duration_seconds` helper); two new sections added right after
+  the existing "Walk-forward (IS/OOS)" fold chart/table: "Fold geometry
+  and overlap" (from `walk_forward_fold_geometry`, with a single
+  disclosure caption per D-P18D-03 counting how many folds overlap and
+  the maximum overlap as a fraction of the fold's own training window,
+  rather than one caption per fold, which would be impractical for 14
+  rows) and "Rolling-window stability" (from `walk_forward_stability`,
+  shown beside, never replacing, the raw per-fold table above it). Both
+  new sections show an honest "unavailable" info message, not an error,
+  when their table is absent or empty.
+- `apps/dashboard/tests/test_projected_research_evidence.py` —
+  `test_pages_restore_rich_evidence_sections` extended with the two new
+  headings; `test_robustness_page_renders_demo_verdict_and_analytics`
+  extended to assert both new subheaders render against the real
+  committed bundle.
+
+**Manual verification**: started the dashboard against the committed
+bundle and opened `8_Robustness_Analysis.py`. Renders with no exceptions;
+assumptions show `ROLLING` / `45d / 14d / 21d`; fold geometry table shows
+all 14 real folds with the correct per-fold overlap column, and the
+caption correctly reports "13 of 14 folds' training windows overlap the
+previous fold's -- up to 24 of 45d training days shared" (fold 0 has no
+previous fold, so 13 of the remaining folds overlap); stability section
+shows the real mean/std/min/max/pct-profitable summary beside the raw
+walk-forward fold table.
+
+**Tests**: dashboard suite **299 passed** (10 in
+`test_projected_research_evidence.py`, all updated/extended in place, no
+new test file needed for this UI-only sprint). `ruff check`, `ruff
+format --check`, `mypy` (full project-configured file set) all clean.
+
+**Acceptance criteria**: all met — see Manual verification and Tests
+above.
+
+**Remaining work**: Phase 18 18D is now fully complete (Milestones 1 and
+2 both done). Phase 18 overall now has 18A, 18B and 18D all done; 18C is
+folded into 18A. No further Phase 18 increment is currently planned.
