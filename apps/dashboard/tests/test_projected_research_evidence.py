@@ -104,7 +104,10 @@ def test_committed_projection_contains_rich_workflow_evidence() -> None:
     bundle = load_projection_bundle_from_path(projection_bundle_path())
 
     assert not isinstance(bundle, PublicationUnavailable)
-    assert len(signal_research_evidence(bundle)) == 3
+    # Phase 18 18B Milestone 1 (Sprint 072): all 6 real Signal Research
+    # runs are now published (was 3 -- the other 3 were silently skipped
+    # by a storage-root mismatch, D-P18B-01).
+    assert len(signal_research_evidence(bundle)) == 6
     assert legacy_robustness_evidence(bundle) is not None
 
 

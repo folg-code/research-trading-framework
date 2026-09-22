@@ -17,7 +17,12 @@ def test_catalog_page_uses_projection_without_private_storage_configuration() ->
 
     assert not app.exception
     assert app.title[0].value == "Research Catalog"
-    assert [metric.value for metric in app.metric] == ["0", "0", "3", "0", "4"]
+    # Phase 18 18B Milestone 1 (Sprint 072) / D-P18B-01: the catalog
+    # scanner now scans both storage roots -- Market/Signal/Robustness
+    # were all silently hidden by a root mismatch (was ["0", "0", "3",
+    # "0", "4"]); Strategy also gained the previously-unknown 4th run
+    # f4f3093ec5ec3f3a, found living under the same second root.
+    assert [metric.value for metric in app.metric] == ["1", "5", "4", "1", "4"]
     captions = " ".join(item.value for item in app.caption)
     assert "never scans the private workspace" in captions
     assert "EDITORIAL STUDY" in captions
