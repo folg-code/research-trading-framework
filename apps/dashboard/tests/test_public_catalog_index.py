@@ -191,7 +191,10 @@ def test_committed_publication_contains_grouped_path_free_catalog() -> None:
     result = load_public_catalog_from_paths(root / "projection.json", root / "manifests")
 
     assert isinstance(result, PublicCatalogIndex)
-    assert len(result.runs) == 7
+    # Phase 18 18B Milestone 1 (Sprint 072): the catalog scanner now scans
+    # both storage roots (D-P18B-01), surfacing runs a root mismatch
+    # previously hid entirely -- was 7.
+    assert len(result.runs) == 15
     assert any(study.editorial for study in result.studies)
     assert any(not study.editorial for study in result.studies)
     assert "storage_path" not in repr(result)
