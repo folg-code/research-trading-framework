@@ -1,9 +1,10 @@
 # Phase 18 — Dashboard Research Evidence Views
 
-Status: **DIRECTIONAL** — captured 2026-09-17, revised 2026-09-17. No
-increment has an accepted PRD, ADR or sprint yet. This is the index for a
-phase that does not exist as approved work; [Current Status](../CURRENT_STATUS.md)
-remains authoritative for what is actually active.
+Status: **COMPLETE (2026-09-22)** — captured 2026-09-17, revised
+2026-09-17, closed 2026-09-22. All three increments with an accepted
+PRD (18A, 18B, 18D) are DONE and merged to `main`; 18C was folded into
+18A. [Current Status](../CURRENT_STATUS.md) remains authoritative for
+what is actually active.
 
 **Revision note (2026-09-17):** this phase file and the vision doc it
 extends were originally drafted assuming no evidence views existed yet. That
@@ -46,7 +47,13 @@ future PRD".
 | 18A Strategy Research evidence views | All Strategy Research rows: backtest assumptions/provenance, full KPI summary, simulated equity and drawdown, PnL/return trade distribution, exit diagnostics, conditional expectancy by market context, drawdown structure, capital and exposure. Overview table + run selector, replacing the existing hardcoded single-run page. | **DONE (2026-09-18)** — [PRD](../../product/PRD-dashboard-strategy-research-evidence.md) fully implemented; Wave 0 ([decisions](PHASE_18_WAVE0_DECISIONS.md)) all accepted and closed. [Sprint 068](../sprints/SPRINT_068.md) (Milestone 1a) via #574; [Sprint 069](../sprints/SPRINT_069.md) (Milestone 1b) via #577; [Sprint 070](../sprints/SPRINT_070.md) (Milestone 2a) via #580; [Sprint 071](../sprints/SPRINT_071.md) (Milestone 2b: dashboard UI) via #583 — all four of D-P18-05's sprints merged to `main`. Absorbs what this table previously called 18C — see that row. |
 | 18B Signal Research evidence views | Workflow overview, forward-drift heatmap, adjusted forward drift, MFE/MAE relation, context timeline and persistence | **DONE (2026-09-22)** — [PRD](../../product/PRD-dashboard-signal-research-evidence.md) fully implemented; Wave 0 ([decisions](PHASE_18B_WAVE0_DECISIONS.md)) all accepted and closed. [Sprint 072](../sprints/SPRINT_072.md) (Milestone 1a) via #588; [Sprint 073](../sprints/SPRINT_073.md) (Milestone 1b) via #591; [Sprint 074](../sprints/SPRINT_074.md) (Milestone 2: dashboard UI) via #594 — all three sprints merged to `main`. |
 | ~~18C Strategy context and diagnostics~~ | ~~Conditional expectancy by market context, exit diagnostics, drawdown structure, capital and exposure~~ | **Folded into 18A (2026-09-18)** — these are all Strategy Research rows; the maintainer chose to scope them into 18A's PRD rather than as a separate increment. The methodology this row's "Directional" state used to flag as unresolved is now decided in 18A's PRD (Goals: Milestone 1). |
-| 18D Robustness Research evidence view | Rolling-window robustness (correct formula, not the historical erroneous one) | **APPROVED (maintainer, 2026-09-22)** — [PRD](../../product/PRD-dashboard-robustness-research-evidence.md); Wave 0 complete and accepted ([decisions](PHASE_18D_WAVE0_DECISIONS.md)); [Sprint 075](../sprints/SPRINT_075.md) (Milestone 1: fold geometry, overlap and stability) merged; [Sprint 076](../sprints/SPRINT_076.md) (Milestone 2: dashboard UI) open. Grill-me investigation found no trace of the vision doc's "historical erroneous formula" anywhere in the repo (treated as a caution, not a bug to locate); found the real experiment already uses `window_mode=ROLLING` with a 24-day fold-overlap that is computed correctly but never disclosed. |
+| 18D Robustness Research evidence view | Rolling-window robustness (correct formula, not the historical erroneous one) | **DONE (2026-09-22)** — [PRD](../../product/PRD-dashboard-robustness-research-evidence.md) fully implemented; Wave 0 ([decisions](PHASE_18D_WAVE0_DECISIONS.md)) all accepted and closed. [Sprint 075](../sprints/SPRINT_075.md) (Milestone 1: fold geometry, overlap and stability) via #597; [Sprint 076](../sprints/SPRINT_076.md) (Milestone 2: dashboard UI) via #600 — both sprints merged to `main`. Grill-me investigation found no trace of the vision doc's "historical erroneous formula" anywhere in the repo (treated as a caution, not a bug to locate); found the real experiment already uses `window_mode=ROLLING` with a 24-day fold-overlap that is now correctly disclosed. |
+
+**Closure note (2026-09-22):** all three PRDs this phase produced (18A,
+18B, 18D) are DONE and merged. No further Phase 18 increment is
+currently planned; a future Signal/Strategy/Robustness evidence gap
+would need its own new PRD under this phase's Binding rules, not a
+reopening of 18A/18B/18D.
 
 ## Recommended sequencing
 
