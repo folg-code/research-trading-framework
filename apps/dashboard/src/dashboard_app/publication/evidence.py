@@ -42,6 +42,13 @@ _ROBUSTNESS_TABLES = (
     "stress_comparison",
     "monte_carlo_distributions",
     "monte_carlo_tails",
+    # Phase 18, 18D Milestone 1 (Sprint 075) / D-P18D-01/02. Backfilled by
+    # scripts/robustness_research/backfill_fold_stability.py -- computed
+    # once in the research/analytics layer (never in the dashboard, which
+    # may not import trading_framework.research at all, ADR-0022), then
+    # read here like any other analytics/ table.
+    "walk_forward_fold_geometry",
+    "walk_forward_stability",
 )
 _WALK_FORWARD_EQUITY_MAX_POINTS = 1_200
 #: Per-bar dense series (Sprint 073's context_timeline can be 300K+ rows
@@ -145,6 +152,23 @@ def _load_robustness_experiment(experiment_dir: Path) -> RawArtifactInput:
         "verdict": verdict,
         "tables": tables,
     }
+
+    # Phase 18, 18D Milestone 1 (Sprint 075) / D-P18D-01/02: window geometry
+    # already sits in manifest["spec"]["walk_forward"] -- publish it rather
+    # than dropping it. walk_forward_fold_geometry/walk_forward_stability
+    # (in `tables`, from `_ROBUSTNESS_TABLES`) are computed and persisted by
+    # scripts/robustness_research/backfill_fold_stability.py, not here --
+    # the dashboard may not import trading_framework.research (ADR-0022).
+    walk_forward_spec = spec.get("walk_forward")
+    if isinstance(walk_forward_spec, dict):
+        for key in (
+            "window_mode",
+            "train_duration_seconds",
+            "oos_duration_seconds",
+            "step_duration_seconds",
+        ):
+            if key in walk_forward_spec:
+                raw_payload[key] = walk_forward_spec[key]
     return RawArtifactInput(
         artifact_id=f"robustness-research-evidence-{experiment_id}",
         artifact_role=ROBUSTNESS_RESEARCH_EVIDENCE_ROLE,
