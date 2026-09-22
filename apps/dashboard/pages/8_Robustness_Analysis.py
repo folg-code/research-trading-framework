@@ -54,6 +54,14 @@ st.warning(
     "DEMO · LEGACY EVIDENCE — retained to demonstrate the robustness workflow. It is not "
     "presented as current Strategy Research and is excluded from Strategy catalog grouping."
 )
+
+
+def _format_duration_seconds(value: object) -> str:
+    if not isinstance(value, int | float):
+        return "—"
+    return f"{value / 86_400:g}d"
+
+
 st.write(
     {
         "experiment": fields.get("experiment_id", "—"),
@@ -63,6 +71,12 @@ st.write(
             f"{fields.get('requested_range_start', '—')} → {fields.get('requested_range_end', '—')}"
         ),
         "strategy template": fields.get("strategy_template_id", "—"),
+        "walk-forward window mode": fields.get("window_mode", "—"),
+        "train / OOS / step duration": (
+            f"{_format_duration_seconds(fields.get('train_duration_seconds'))} / "
+            f"{_format_duration_seconds(fields.get('oos_duration_seconds'))} / "
+            f"{_format_duration_seconds(fields.get('step_duration_seconds'))}"
+        ),
     }
 )
 st.caption(
@@ -121,6 +135,62 @@ if folds is not None:
     st.plotly_chart(build_walk_forward_fold_figure(folds), use_container_width=True)
     with st.expander("Fold table", expanded=False):
         st.dataframe(folds.to_pandas(), use_container_width=True)
+
+fold_geometry = evidence.table("walk_forward_fold_geometry")
+if fold_geometry is None or fold_geometry.num_rows == 0:
+    st.info(
+        "No fold geometry is published for this experiment -- unavailable, not computed at "
+        "request time."
+    )
+else:
+    st.subheader("Fold geometry and overlap")
+    geometry_df = fold_geometry.to_pandas()
+    train_duration_days = _format_duration_seconds(fields.get("train_duration_seconds"))
+    geometry_df["train_overlap_days"] = geometry_df["train_overlap_seconds_with_previous_fold"] / (
+        24 * 60 * 60
+    )
+    st.dataframe(
+        geometry_df[
+            [
+                "fold_index",
+                "train_range_start",
+                "train_range_end",
+                "oos_range_start",
+                "oos_range_end",
+                "train_overlap_days",
+            ]
+        ],
+        use_container_width=True,
+        hide_index=True,
+    )
+    overlapping_folds = int((geometry_df["train_overlap_seconds_with_previous_fold"] > 0).sum())
+    if overlapping_folds > 0:
+        max_overlap_days = float(geometry_df["train_overlap_days"].max())
+        st.caption(
+            f"{overlapping_folds} of {geometry_df.shape[0]} folds' training windows overlap the "
+            f"previous fold's -- up to {max_overlap_days:g} of {train_duration_days} training "
+            "days shared. Overlapping folds are not fully independent evidence; this is disclosed "
+            "as computed, not flagged as an error."
+        )
+    else:
+        st.caption("No fold's training window overlaps the previous fold's.")
+
+stability = evidence.table("walk_forward_stability")
+if stability is None or stability.num_rows == 0:
+    st.info(
+        "No rolling-window stability summary is published for this experiment -- unavailable, "
+        "not computed at request time."
+    )
+else:
+    st.subheader("Rolling-window stability")
+    st.dataframe(stability.to_pandas(), use_container_width=True, hide_index=True)
+    st.caption(
+        "Mean/std/min/max and percent-profitable of each fold's PnL, computed once from the "
+        "already-published per-fold walk-forward results above -- shown beside that raw table, "
+        "never replacing it. A coefficient of variation is deliberately not shown: checked "
+        "against this experiment's own numbers, it produced a meaningless ratio when the mean "
+        "straddles zero."
+    )
 
 equity = evidence.table("walk_forward_equity")
 if equity is not None:
