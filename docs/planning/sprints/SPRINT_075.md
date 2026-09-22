@@ -78,10 +78,10 @@ D-P18D-01/02/03, all ACCEPTED (maintainer, 2026-09-22).
 
 | Task | Outcome | Dependencies | Ownership | Risk | Status | PR |
 |---|---|---|---|---|---|---|
-| T001 | `window_mode`/duration fields published on the experiment's evidence payload | None | `apps/dashboard/src/dashboard_app/publication/evidence.py` | standard | Open | — |
-| T002 | `walk_forward_fold_geometry` published, overlap formula verified against the real 24-day fold-0→1 case | None | `apps/dashboard/src/dashboard_app/publication/evidence.py` | standard | Open | — |
-| T003 | `walk_forward_stability` published, verified against the real 14-fold distribution (non-degenerate) | None | new research/analytics module (path TBD by implementer) | standard | Open | — |
-| T004 | Publication layer wired; committed `projection.json` regenerated for real | T001-T003 | `apps/dashboard/src/dashboard_app/publication/`, `apps/dashboard/publication_data/` | standard | Open | — |
+| T001 | `window_mode`/duration fields published on the experiment's evidence payload | None | `apps/dashboard/src/dashboard_app/publication/evidence.py` | standard | Done | — |
+| T002 | `walk_forward_fold_geometry` published, overlap formula verified against the real 24-day fold-0→1 case | None | `src/trading_framework/research/robustness/analytics/fold_stability.py` | standard | Done | — |
+| T003 | `walk_forward_stability` published, verified against the real 14-fold distribution (non-degenerate) | None | `src/trading_framework/research/robustness/analytics/fold_stability.py` | standard | Done | — |
+| T004 | Publication layer wired; committed `projection.json` regenerated for real | T001-T003 | `apps/dashboard/src/dashboard_app/publication/`, `apps/dashboard/publication_data/` | standard | Done | — |
 
 ## Branch and PR rules
 
@@ -115,4 +115,83 @@ main
 
 ## Closeout
 
-_Pending implementation._
+**Status: DONE.** All 4 tasks (T001-T004) implemented and verified.
+
+**Architecture triage during implementation**: the PRD/Sprint's original
+plan computed `walk_forward_fold_geometry`/`walk_forward_stability`
+directly inside `apps/dashboard/src/dashboard_app/publication/evidence.py`
+at publication time (mirroring 18B's `mfe_mae_pairs`). Running the full
+test suite caught a real architecture-boundary violation:
+`tests/unit/test_apps_boundaries.py::test_dashboard_does_not_import_forbidden_framework_packages`
+(ADR-0022) forbids `apps/dashboard` from importing
+`trading_framework.research` at all -- unlike Signal Research's
+`mfe_mae_pairs` (a bounded copy, no derived computation), fold geometry's
+overlap and stability's statistics ARE derived computations, so they
+belong in the research/analytics layer, not the dashboard. Corrected by
+moving both functions' computation into a new backfill script
+(`scripts/robustness_research/backfill_fold_stability.py`, mirroring
+18B's `backfill_adjusted_drift.py`/`backfill_context_timeline.py`
+precedent exactly), which persists two new `analytics/` Parquet tables
+the dashboard then reads generically like every other robustness
+analytics table -- no `trading_framework` import needed in `evidence.py`
+at all. Caught by the test suite before merge, not left as a static
+lint-only concern.
+
+**Implementation**:
+
+- `src/trading_framework/research/robustness/analytics/fold_stability.py`
+  (NEW) — `compute_walk_forward_fold_geometry` (D-P18D-02's
+  interval-intersection overlap formula, verified correct for both
+  `ROLLING` and `EXPANDING`) and `compute_walk_forward_stability`
+  (D-P18D-01's mean/std/min/max/pct-profitable summary).
+- `scripts/robustness_research/backfill_fold_stability.py` (NEW) — reads
+  the experiment's `WalkForwardFoldPlan` and `walk_forward_folds.parquet`,
+  writes both new tables. Run against the one real experiment
+  (`demo-robustness-nq-half-year`); verified fold 1's overlap is exactly
+  24 days and the stability summary matches D-P18D-01's real numbers
+  exactly.
+- `apps/dashboard/src/dashboard_app/publication/evidence.py` —
+  `_ROBUSTNESS_TABLES` gained `walk_forward_fold_geometry`/
+  `walk_forward_stability` (read generically, no new code path);
+  `_load_robustness_experiment` now also publishes `window_mode`,
+  `train_duration_seconds`, `oos_duration_seconds`, `step_duration_seconds`
+  from `manifest["spec"]["walk_forward"]`.
+- `apps/dashboard/src/dashboard_app/publication/sanitizers.py` —
+  `_ROBUSTNESS_EVIDENCE_ALLOWED_FIELDS` gained the four window-geometry
+  fields; `_ROBUSTNESS_EVIDENCE_TABLE_COLUMNS` gained allowlists for both
+  new tables.
+- `apps/dashboard/publication_data/projection.json` — regenerated for
+  real via `scripts/dashboard/generate_public_projection.py`: 32
+  artifacts (unchanged count -- no new runs, only new fields/tables on
+  the existing `robustness_research_evidence` artifact), 26 projected
+  inputs, 0 skipped.
+- `tests/unit/research/robustness/analytics/test_fold_stability.py`
+  (NEW) — 7 tests covering empty inputs, the first-fold-has-no-overlap
+  case, `ROLLING` partial overlap (checked against the real 24-day
+  value), `EXPANDING` full containment, no-overlap when step exceeds
+  train duration, and the stability summary checked against the real
+  14-fold numbers exactly.
+- `apps/dashboard/tests/test_projected_research_evidence.py` — new
+  `test_discovery_projects_robustness_window_geometry_and_stability`,
+  covering the window-geometry fields and both new tables end to end.
+
+**Manual verification**: started the dashboard against the regenerated
+bundle and opened `8_Robustness_Analysis.py`. Page renders with no
+exceptions and no server errors (Milestone 2's new sections are not yet
+wired into the UI, so nothing new is visible yet -- only that nothing
+existing broke).
+
+**Tests**: unit suite **2074 passed**, dashboard suite **299 passed**
+(10 in `test_projected_research_evidence.py`, up from 9 -- one new test
+added), including the architecture-boundary test that caught the
+mid-implementation design correction above. `ruff check`, `ruff format
+--check`, `mypy` (full project-configured file set, including the new
+backfill script) all clean.
+
+**Acceptance criteria**: all met — see Manual verification and Tests
+above.
+
+**Remaining work**: Milestone 2 (dashboard UI: window geometry as
+experiment assumptions, fold geometry/overlap table with disclosure
+caption, stability section beside the raw per-fold view) is next, per
+the PRD's sequencing gate.

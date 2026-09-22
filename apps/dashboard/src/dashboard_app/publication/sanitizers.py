@@ -400,6 +400,13 @@ _ROBUSTNESS_EVIDENCE_ALLOWED_FIELDS = frozenset(
         "requested_range_end",
         "strategy_template_id",
         "evidence_label",
+        # Phase 18, 18D Milestone 1 (Sprint 075) / D-P18D-01/02: window
+        # geometry already computed by the walk-forward planner, dropped
+        # by the publisher until now.
+        "window_mode",
+        "train_duration_seconds",
+        "oos_duration_seconds",
+        "step_duration_seconds",
     }
 )
 _ROBUSTNESS_EVIDENCE_TABLE_COLUMNS: Mapping[str, frozenset[str]] = {
@@ -468,6 +475,32 @@ _ROBUSTNESS_EVIDENCE_TABLE_COLUMNS: Mapping[str, frozenset[str]] = {
             "method",
             "probability_terminal_pnl_negative",
             "probability_max_drawdown_exceeds_threshold",
+        }
+    ),
+    # Phase 18, 18D Milestone 1 (Sprint 075) / D-P18D-02.
+    "walk_forward_fold_geometry": frozenset(
+        {
+            "experiment_id",
+            "fold_id",
+            "fold_index",
+            "train_range_start",
+            "train_range_end",
+            "oos_range_start",
+            "oos_range_end",
+            "train_overlap_seconds_with_previous_fold",
+        }
+    ),
+    # Phase 18, 18D Milestone 1 (Sprint 075) / D-P18D-01.
+    "walk_forward_stability": frozenset(
+        {
+            "experiment_id",
+            "metric",
+            "fold_count",
+            "mean",
+            "std",
+            "min",
+            "max",
+            "pct_profitable_folds",
         }
     ),
 }

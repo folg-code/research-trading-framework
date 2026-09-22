@@ -76,6 +76,94 @@ def test_discovery_projects_signal_and_bounded_legacy_demo(tmp_path: Path) -> No
     assert all(item.artifact_role != "research_catalog_entry" for item in inputs)
 
 
+def test_discovery_projects_robustness_window_geometry_and_stability(tmp_path: Path) -> None:
+    """Phase 18 18D Milestone 1 (Sprint 075): window_mode/duration fields,
+    walk_forward_fold_geometry and walk_forward_stability -- all read
+    generically like any other robustness analytics table/field, never
+    computed in the dashboard (ADR-0022 forbids importing
+    trading_framework.research here).
+    """
+    robustness_dir = tmp_path / "strategy_robustness/experiments/demo-robustness-nq-half-year"
+    robustness_analytics = robustness_dir / "analytics"
+    robustness_analytics.mkdir(parents=True)
+    (robustness_dir / "manifest.json").write_text(
+        json.dumps(
+            {
+                "experiment_id": "demo-robustness-nq-half-year",
+                "schema_version": "robustness_experiment.v1",
+                "framework_version": "0.1.0",
+                "created_at_utc": "2026-09-11T00:00:00+00:00",
+                "spec": {
+                    "dataset_ref": "NQ.c.0|ohlcv|1m|derived|demo@1",
+                    "timeframe": "1m",
+                    "strategy_template_id": "demo-template",
+                    "walk_forward": {
+                        "window_mode": "ROLLING",
+                        "train_duration_seconds": 3_888_000,
+                        "oos_duration_seconds": 1_209_600,
+                        "step_duration_seconds": 1_814_400,
+                    },
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+    (robustness_analytics / "verdict.json").write_text(
+        json.dumps({"verdict": "CONDITIONAL", "gate_results": []}), encoding="utf-8"
+    )
+    pq.write_table(
+        pa.table({"fold_index": [0], "train_net_pnl": [1.0], "oos_net_pnl": [0.5]}),
+        robustness_analytics / "walk_forward_folds.parquet",
+    )
+    pq.write_table(
+        pa.table(
+            {
+                "fold_index": [0, 1],
+                "train_range_start": [0, 21 * 86_400],
+                "train_range_end": [45 * 86_400, 66 * 86_400],
+                "oos_range_start": [45 * 86_400 + 60, 66 * 86_400 + 60],
+                "oos_range_end": [59 * 86_400, 80 * 86_400],
+                "train_overlap_seconds_with_previous_fold": [0, 24 * 86_400],
+            }
+        ),
+        robustness_analytics / "walk_forward_fold_geometry.parquet",
+    )
+    pq.write_table(
+        pa.table(
+            {
+                "metric": ["oos_net_pnl"],
+                "fold_count": [14],
+                "mean": [9.7],
+                "std": [320.3],
+                "min": [-511.25],
+                "max": [549.25],
+                "pct_profitable_folds": [0.5],
+            }
+        ),
+        robustness_analytics / "walk_forward_stability.parquet",
+    )
+
+    inputs, skipped = discover_research_evidence_inputs(tmp_path)
+    assert skipped == 0
+    bundle = build_projection_bundle(inputs, generated_at_utc=datetime(2026, 9, 22, tzinfo=UTC))
+    robustness = legacy_robustness_evidence(bundle)
+
+    assert robustness is not None
+    assert robustness.fields["window_mode"] == "ROLLING"
+    assert robustness.fields["train_duration_seconds"] == 3_888_000
+    assert robustness.fields["step_duration_seconds"] == 1_814_400
+
+    geometry = robustness.table("walk_forward_fold_geometry")
+    assert geometry is not None
+    assert geometry.num_rows == 2
+    assert geometry.column("train_overlap_seconds_with_previous_fold")[1].as_py() == 24 * 86_400
+
+    stability = robustness.table("walk_forward_stability")
+    assert stability is not None
+    assert stability.num_rows == 1
+    assert stability.column("pct_profitable_folds")[0].as_py() == 0.5
+
+
 def test_discovery_projects_new_signal_tables_bounded_and_sourced_from_outcomes(
     tmp_path: Path,
 ) -> None:
