@@ -198,7 +198,16 @@ def test_pages_restore_rich_evidence_sections() -> None:
         encoding="utf-8"
     )
 
-    for heading in ("Summary metrics", "Grouped metrics", "Forward-return distributions"):
+    for heading in (
+        "Summary metrics",
+        "Grouped metrics",
+        "Forward-return distributions",
+        "Overview — every safely projected run",
+        "Forward-drift heatmap by context and horizon",
+        "Adjusted forward drift",
+        "MFE/MAE relation",
+        "Context timeline and persistence",
+    ):
         assert heading in signal_page
     for heading in ("Walk-forward (IS/OOS)", "Parameter sweep", "Stress tests", "Monte Carlo"):
         assert heading in robustness_page
@@ -244,6 +253,17 @@ def test_signal_page_renders_projected_tables_and_charts() -> None:
 
     assert not app.exception
     assert any(item.value == "Summary metrics" for item in app.subheader)
+    subheaders = {item.value for item in app.subheader}
+    # Phase 18 18B Milestone 2 (Sprint 074): overview table + the four new
+    # sections over Sprint 073's published tables.
+    for heading in (
+        "Overview — every safely projected run",
+        "Forward-drift heatmap by context and horizon",
+        "Adjusted forward drift",
+        "MFE/MAE relation",
+        "Context timeline and persistence",
+    ):
+        assert heading in subheaders
     assert len(app.dataframe) >= 4
     assert len(app.get("plotly_chart")) >= 2
 
